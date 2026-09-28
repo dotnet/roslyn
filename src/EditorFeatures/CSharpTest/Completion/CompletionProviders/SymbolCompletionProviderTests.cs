@@ -5562,6 +5562,37 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             referencedLanguage: LanguageNames.CSharp);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")]
+    public async Task EditorBrowsable_Method_BrowsableStateNever_HidesBaseMethod()
+    {
+        var markup = """
+            class Program
+            {
+                void M()
+                {
+                    Goo.$$
+                }
+            }
+            """;
+
+        var referencedCode = """
+            public class Goo
+            {
+                [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+                public static new bool Equals(object a, object b) => false;
+            }
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Equals",
+            expectedSymbolsSameSolution: 2,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
     [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_ExtensionMethod_BrowsableAlways()
     {

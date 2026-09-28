@@ -661,6 +661,24 @@ internal static partial class ISymbolExtensions
         // constructors once and reuse.
         var editorBrowsableInfo = new EditorBrowsableInfo(compilation);
 
+        // Methods hidden by a non-browsable method must not show up in its place.
+        foreach (var symbol in symbols)
+        {
+            if (symbol is IMethodSymbol { ContainingType: { } hidingType } hidingMethod &&
+                !hidingMethod.IsEditorBrowsable(hideAdvancedMembers, compilation, editorBrowsableInfo))
+            {
+                foreach (var other in symbols)
+                {
+                    if (other is IMethodSymbol { ContainingType: { } hiddenType } hiddenMethod &&
+                        SignatureComparer.Instance.HaveSameSignature(hidingMethod, hiddenMethod, compilation.IsCaseSensitive) &&
+                        hidingType.InheritsFromIgnoringConstruction(hiddenType))
+                    {
+                        overriddenSymbols.Add(hiddenMethod);
+                    }
+                }
+            }
+        }
+
         // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
         // check to see if we're referencing a symbol defined in source.
         var filteredSymbols = symbols.WhereAsArray(static (s, arg) =>
