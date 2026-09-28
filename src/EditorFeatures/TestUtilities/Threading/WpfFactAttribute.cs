@@ -14,7 +14,7 @@ using Xunit.v3;
 namespace Roslyn.Test.Utilities;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-[XunitTestCaseDiscoverer(typeof(XunitStaFact::Xunit.Sdk.WpfFactDiscoverer))]
+[XunitTestCaseDiscoverer(typeof(WpfFactDiscoverer))]
 public class WpfFactAttribute : FactAttribute
 {
     public WpfFactAttribute(

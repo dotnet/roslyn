@@ -14,7 +14,7 @@ using Xunit.v3;
 namespace Roslyn.Test.Utilities;
 
 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-[XunitTestCaseDiscoverer(typeof(XunitStaFact::Xunit.Sdk.WpfTheoryDiscoverer))]
+[XunitTestCaseDiscoverer(typeof(WpfTheoryDiscoverer))]
 public class WpfTheoryAttribute : TheoryAttribute
 {
     public WpfTheoryAttribute(
