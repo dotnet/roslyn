@@ -36,7 +36,7 @@ internal static class WpfTestCaseRunner
                 await s_testSerializationGate.WaitAsync(cancellationTokenSource.Token);
                 try
                 {
-                    IReadOnlyCollection<IXunitTest> tests = await aggregator.RunAsync(testCase.CreateTests, []);
+                    var tests = await aggregator.RunAsync(testCase.CreateTests, []);
                     if (aggregator.ToException() is Exception exception)
                     {
                         if (exception.Message.StartsWith(DynamicSkipToken.Value, StringComparison.Ordinal))
@@ -180,7 +180,11 @@ internal static class WpfTestCaseRunner
     private sealed class SynchronizationContextTaskScheduler(SynchronizationContext synchronizationContext) : TaskScheduler
     {
         protected override void QueueTask(Task task)
-            => synchronizationContext.Post(_ => TryExecuteTask(task), null);
+        {
+#pragma warning disable VSTHRD001 // Post to the dispatcher context to preserve WPF thread affinity.
+            synchronizationContext.Post(_ => TryExecuteTask(task), null);
+#pragma warning restore VSTHRD001 // Post to the dispatcher context to preserve WPF thread affinity.
+        }
 
         protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
             => SynchronizationContext.Current == synchronizationContext && TryExecuteTask(task);

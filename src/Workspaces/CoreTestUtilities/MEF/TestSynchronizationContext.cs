@@ -36,7 +36,9 @@ internal sealed class TestSynchronizationContext : SynchronizationContext
     {
         if (_innerContext is not null)
         {
+#pragma warning disable VSTHRD001 // Forward to the captured context to preserve its scheduling behavior.
             _innerContext.Post(d, state);
+#pragma warning restore VSTHRD001 // Forward to the captured context to preserve its scheduling behavior.
             return;
         }
 
@@ -53,7 +55,9 @@ internal sealed class TestSynchronizationContext : SynchronizationContext
     {
         if (_innerContext is not null)
         {
+#pragma warning disable VSTHRD001 // Forward to the captured context to preserve its scheduling behavior.
             _innerContext.Send(d, state);
+#pragma warning restore VSTHRD001 // Forward to the captured context to preserve its scheduling behavior.
             return;
         }
 
