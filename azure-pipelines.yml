@@ -504,6 +504,9 @@ stages:
       - powershell: eng/todo-check.ps1
         displayName: Validate TODO/PROTOTYPE comments are not present
 
+      - script: dotnet run --file eng/validate-bom.cs
+        displayName: Validate EditorConfig BOM settings
+
   - job: Correctness_Rebuild
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
