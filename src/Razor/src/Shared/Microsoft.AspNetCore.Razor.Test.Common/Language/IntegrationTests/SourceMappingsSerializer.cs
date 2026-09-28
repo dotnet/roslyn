@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Text;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.IntegrationTests;
 

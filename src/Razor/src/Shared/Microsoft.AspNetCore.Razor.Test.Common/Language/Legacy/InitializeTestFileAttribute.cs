@@ -4,6 +4,8 @@
 #nullable disable
 
 using System.Reflection;
+using Xunit;
+using Xunit.v3;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 

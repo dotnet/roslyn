@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 

@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 

@@ -12,6 +12,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.DependencyModel;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis;
 

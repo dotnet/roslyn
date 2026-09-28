@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 

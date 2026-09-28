@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 

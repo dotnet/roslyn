@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Test.Common.Workspaces;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 

@@ -6,6 +6,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.AspNetCore.Razor.Utilities;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor;
 

@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Utilities;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
 

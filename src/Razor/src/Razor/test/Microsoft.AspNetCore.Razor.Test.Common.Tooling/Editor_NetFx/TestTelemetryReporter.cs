@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Razor.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
+using Xunit;
 using static Microsoft.VisualStudio.Razor.Telemetry.AggregatingTelemetryLog;
 
 namespace Microsoft.VisualStudio.Editor.Razor.Test.Shared;

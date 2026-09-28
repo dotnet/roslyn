@@ -4,6 +4,8 @@
 // Uncomment to easily generate baselines for tests
 //#define GENERATE_BASELINES
 
+using Xunit;
+
 public class GenerateBaselines
 {
 #if GENERATE_BASELINES
