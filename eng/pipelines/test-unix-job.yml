@@ -44,8 +44,6 @@ jobs:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)/.duplicate'
 
     - template: install-dotnet.yml
-      parameters:
-        configuration: ${{ parameters.configuration }}
 
     - task: Bash@3
       displayName: Run Unit Tests

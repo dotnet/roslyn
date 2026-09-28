@@ -62,12 +62,11 @@ The build scripts also accept `-test`, `-testSet:<name>`, `-testKind:<name>`, or
 build actions. They forward the build configuration and supplied test-option
 values; test discovery, selection, and validation remain in RunTests.
 
-CI test-only jobs use `eng/pipelines/install-dotnet.yml` to bootstrap the SDK
-pinned in `global.json` with the repository's Arcade helpers, which support daily
-SDK feeds. The helpers prepend the SDK to subsequent Azure steps' `PATH`; the
-template also persists SDK roots, telemetry, NuGet, and diagnostic environment
-variables. Windows bootstrap enables preview SDKs for Visual Studio. Test steps
-then call `dotnet exec` directly; build-then-test jobs reuse the SDK already
+CI test-only jobs use `eng/pipelines/install-dotnet.yml` to install the SDK
+from `global.json` with `UseDotNet@2`. PrepareTests includes the checked-in
+`global.json` in the downloaded test payload for jobs without a source checkout.
+The task adds the SDK to `PATH`, and test steps call `dotnet exec` directly;
+build-then-test jobs reuse the SDK already
 installed and added to `PATH` by the build step. RunTests defaults to the dotnet
 executable above its hosting runtime directory, so `--dotnet` is unnecessary.
 

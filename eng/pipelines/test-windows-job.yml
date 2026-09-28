@@ -39,8 +39,6 @@ jobs:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
     - template: install-dotnet.yml
-      parameters:
-        configuration: ${{ parameters.configuration }}
 
     # Attempt every submission even if an earlier one fails, then fail the aggregate job below.
     - ${{ each testRun in parameters.testRuns }}:

@@ -40,8 +40,6 @@ jobs:
         filename: rehydrate-all.cmd
 
     - template: install-dotnet.yml
-      parameters:
-        configuration: ${{ parameters.configuration }}
 
     - task: PowerShell@2
       displayName: Run Unit Tests

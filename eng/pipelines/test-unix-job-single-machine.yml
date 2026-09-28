@@ -49,8 +49,6 @@ jobs:
         scriptPath: ./rehydrate-all.sh
 
     - template: install-dotnet.yml
-      parameters:
-        configuration: ${{ parameters.configuration }}
 
     - task: Bash@3
       inputs:
