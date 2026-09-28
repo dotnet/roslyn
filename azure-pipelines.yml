@@ -501,6 +501,13 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
+      - task: UseDotNet@2
+        displayName: Install .NET SDK from global.json
+        inputs:
+          packageType: sdk
+          useGlobalJson: true
+          workingDirectory: '$(Build.SourcesDirectory)'
+
       - powershell: eng/todo-check.ps1
         displayName: Validate TODO/PROTOTYPE comments are not present
 

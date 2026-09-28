@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env dotnet
+#!/usr/bin/env dotnet
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -7,11 +7,11 @@ using System.Diagnostics;
 using System.IO.Enumeration;
 using System.Text;
 
-// Lists all files with an associated `.editorconfig` charset but an invalid BOM.
+// Checks tracked files' BOMs against their EditorConfig charset and preserves shebangs at byte zero.
 //
 // Usage:
-//   dotnet run --file validate-bom.cs
-//   dotnet run --file validate-bom.cs -- --self-test
+//   dotnet run --file eng/validate-bom.cs
+//   dotnet run --file eng/validate-bom.cs -- --self-test
 //
 // Default mode when no args are passed: verify
 
@@ -36,12 +36,13 @@ if (failures.Count > maxFailuresToShow)
 if (failures.Count > 0)
     throw new InvalidOperationException($"{failures.Count} files violate EditorConfig charset settings.");
 
-Console.WriteLine("All tracked files with a configured UTF-8 charset have the expected BOM.");
+Console.WriteLine("Tracked files comply with configured UTF-8 BOM settings and shebang placement.");
 
 static List<(string Path, string Charset)> Validate(string root, IEnumerable<string> files)
 {
     var configurations = new Dictionary<string, EditorConfig>(StringComparer.OrdinalIgnoreCase);
     var failures = new List<(string Path, string Charset)>();
+    Span<byte> prefix = stackalloc byte[5];
 
     foreach (var relativePath in files)
     {
@@ -52,6 +53,17 @@ static List<(string Path, string Charset)> Validate(string root, IEnumerable<str
         if (Directory.Exists(fullPath) || File.Exists(fullPath) is false)
             continue;
 
+        using var stream = File.OpenRead(fullPath);
+        var bytesRead = stream.Read(prefix);
+        var hasBom = bytesRead >= 3 && prefix[..3].SequenceEqual(Encoding.UTF8.Preamble);
+        var hasShebang = bytesRead >= (hasBom ? 5 : 2)
+            && prefix.Slice(hasBom ? 3 : 0, 2).SequenceEqual("#!"u8);
+        if (hasBom && hasShebang)
+        {
+            failures.Add((relativePath, "shebang at byte zero (no BOM)"));
+            continue;
+        }
+
         var charset = GetCharset(root, relativePath, configurations);
         if (charset is null or "unset")
             continue;
@@ -59,9 +71,6 @@ static List<(string Path, string Charset)> Validate(string root, IEnumerable<str
         if (charset is not ("utf-8" or "utf-8-bom"))
             throw new InvalidOperationException($"Unsupported charset '{charset}' for {relativePath}.");
 
-        using var stream = File.OpenRead(fullPath);
-        Span<byte> preamble = stackalloc byte[3];
-        var hasBom = stream.Read(preamble) == preamble.Length && preamble.SequenceEqual(Encoding.UTF8.Preamble);
         if (hasBom != (charset == "utf-8-bom"))
             failures.Add((relativePath, charset));
     }
@@ -138,6 +147,14 @@ static async Task RunSelfTestAsync()
         await File.WriteAllTextAsync(Path.Combine(root, "fixture", ".editorconfig"), "root = true\n[*.cs]\ncharset = unset\n");
         await File.WriteAllTextAsync(Path.Combine(root, "fixture", "a.cs"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
         Assert(Validate(root, ["fixture/a.cs"]).Count == 0, "Unset charset must skip validation.");
+
+        await File.WriteAllTextAsync(Path.Combine(root, "fixture", "script.sh"), "#!/usr/bin/env bash\n", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        failures = Validate(root, ["fixture/script.sh"]);
+        Assert(failures.SequenceEqual([("fixture/script.sh", "shebang at byte zero (no BOM)")]),
+            "BOM-prefixed shebangs must fail even without a charset setting.");
+
+        await File.WriteAllTextAsync(Path.Combine(root, "fixture", "script.sh"), "#!/usr/bin/env bash\n", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        Assert(Validate(root, ["fixture/script.sh"]).Count == 0, "BOM-free shebang must pass.");
     }
     finally
     {
