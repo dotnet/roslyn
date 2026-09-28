@@ -197,7 +197,7 @@ namespace RunTests
                 { "collectdumps", "Gather dumps on timeouts and crashes (process executor only, not supported with --helix)", o => collectDumps = o is object },
                 { "testFramework=", "Test framework to run: core or desktop (can be specified multiple times)", s => testFrameworks.Add(s) },
                 { "testSet=", "Test set to run: compiler (restricts to compiler test assemblies)", s => testSet = s },
-                { "testKind=", "Test kind to run: ioperation, runtimeasync, usedassemblies", s => testKind = s },
+                { "testKind=", "Test kind to run: ioperation, runtimeasync, usedassemblies. runtimeasync requires --testFramework:core.", s => testKind = s },
                 { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
                     if (o is object)
                         environmentVariables["ROSLYN_TEST_CI"] = "true";
@@ -298,7 +298,7 @@ namespace RunTests
 
             if (testDesktop && environmentVariables.ContainsKey("DOTNET_RuntimeAsync"))
             {
-                ConsoleUtil.WriteLine("Cannot run desktop tests with runtime async validation enabled.");
+                ConsoleUtil.WriteLine("Runtime async validation is supported only on Core. Specify --testFramework:core and do not select desktop.");
                 return null;
             }
 

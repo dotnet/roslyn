@@ -76,11 +76,16 @@ Key options:
 | `--exclude` | Regex pattern to exclude test project names (repeatable) |
 | `--testFramework` | `core` or `desktop` (repeatable, defaults to both) |
 | `--testSet` | `compiler` to run only compiler test assemblies |
-| `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies` |
+| `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies`; `runtimeasync` requires `--testFramework:core` |
 | `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |
 | `--timeout` | Minutes before killing tests (default: 90) |
 | `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
+
+Runtime-async validation requires an explicit Core-only selection, for example
+`./test.sh --testKind:runtimeasync --testFramework:core`. Omitting the framework
+selects both Core and desktop by default and is rejected for runtime-async
+validation; RunTests does not automatically change the selected frameworks.
 
 Helix submission returns after the jobs are submitted; the pipeline's **Monitor
 Helix Jobs** job monitors completion and retries. Test-run names distinguish

@@ -24,7 +24,7 @@ For a combined build and test run, use `./build.sh --test`, `./build.sh --testSe
 
 Repeat `--testFramework:<name>` to forward multiple framework selections, for example `--testFramework:core --testFramework:desktop`; do not combine them into a comma-separated value. RunTests determines which frameworks are supported on the current platform.
 
-Pass other test options to `test.sh`. For example, `./test.sh --testFramework:core --testConfiguration Release --testSet:compiler` tests the Release compiler binaries. Use `--testKind:ioperation`, `--testKind:runtimeasync`, or `--testKind:usedassemblies` for additional validation, and `--env:KEY=VALUE` to set an environment variable in test processes. Run `./test.sh --help` for all options.
+Pass other test options to `test.sh`. For example, `./test.sh --testFramework:core --testConfiguration Release --testSet:compiler` tests the Release compiler binaries. Use `--testKind:ioperation`, `--testKind:runtimeasync --testFramework:core`, or `--testKind:usedassemblies` for additional validation, and `--env:KEY=VALUE` to set an environment variable in test processes. Runtime-async validation requires Core-only selection; the default selection includes desktop and is rejected. Run `./test.sh --help` for all options.
 
 To run all tests in a single project, it's recommended to use the `dotnet test path/to/project` command.
 
