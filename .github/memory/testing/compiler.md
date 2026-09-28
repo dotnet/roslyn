@@ -41,6 +41,7 @@ public class MyTests : CSharpTestBase
   for test source code.
 - **Localized command-line diagnostics**: compare message arguments using the
   corresponding `CodeAnalysisResources` format string, not hard-coded English
-  punctuation. Analyzer-config descriptors can cache a resource string before
-  `/preferreduilang` takes effect, so account for the host UI culture as well as
-  the requested compiler UI culture when checking their output.
+  punctuation. Analyzer-config descriptors cache resource strings at their
+  first use, which may happen in another test running under the host UI culture
+  before a compiler with `/preferreduilang:en` runs. Account for both cultures
+  when checking output from those diagnostics.

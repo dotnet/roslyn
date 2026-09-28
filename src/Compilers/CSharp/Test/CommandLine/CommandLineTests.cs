@@ -362,7 +362,7 @@ dotnet_diagnostic.cs0169.severity = garbage");
 
         private static void AssertLocalizedAnalyzerConfigMessage(string output, string resourceName, params object[] args)
         {
-            // The descriptor can cache its message before the compiler applies /preferreduilang:en.
+            // Another test can initialize the descriptor under the host UI culture before this compiler runs.
             var english = CultureInfo.GetCultureInfo("en-US");
             var expectedEnglish = string.Format(english, CodeAnalysisResources.ResourceManager.GetString(resourceName, english), args);
             var expectedCurrent = string.Format(CultureInfo.CurrentUICulture,
