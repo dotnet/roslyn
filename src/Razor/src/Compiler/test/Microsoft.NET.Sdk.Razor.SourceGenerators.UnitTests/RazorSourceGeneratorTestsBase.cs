@@ -136,6 +136,16 @@ public abstract class RazorSourceGeneratorTestsBase
     {
         // Load the compiled DLL.
         var assemblyLoadContext = new AssemblyLoadContext("Razor execution", isCollectible: true);
+
+        // The ASP.NET runtime assemblies are copied next to the test binaries, but they are only listed
+        // as compile-time references in the deps file, so they are not part of the default load context's
+        // trusted platform assemblies. Probe for them next to the test binaries instead.
+        assemblyLoadContext.Resolving += static (context, assemblyName) =>
+        {
+            var path = Path.Combine(AppContext.BaseDirectory, assemblyName.Name + ".dll");
+            return File.Exists(path) ? context.LoadFromAssemblyPath(path) : null;
+        };
+
         Assembly assembly;
         using (var peStream = new MemoryStream())
         {
