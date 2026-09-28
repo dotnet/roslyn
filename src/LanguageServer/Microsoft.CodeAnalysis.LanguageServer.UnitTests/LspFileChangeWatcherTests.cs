@@ -113,7 +113,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
         var filePath = Path.Combine(tempDirectory.Path, "File.cs");
 
         using var context = lspFileChangeWatcher.CreateContext([new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
-        var fileChangedSource = new TaskCompletionSource<FileChangedEventArgs>();
+        var fileChangedSource = new TaskCompletionSource<FileChangedEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
         context.FileChanged += (_, e) => fileChangedSource.TrySetResult(e);
 
         await testLspServer.ExecuteNotificationAsync(

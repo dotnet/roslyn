@@ -81,7 +81,7 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
         var logMessages = new List<string>();
         await using (var server = await CreateLanguageServerAsync())
         {
-            var logCompletionSource = new TaskCompletionSource<LogMessageParams>();
+            var logCompletionSource = new TaskCompletionSource<LogMessageParams>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             server.LogMessageReceived += logMessage =>
             {

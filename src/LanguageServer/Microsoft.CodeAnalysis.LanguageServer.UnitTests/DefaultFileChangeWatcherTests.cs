@@ -524,7 +524,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
 
     private static FileChangeTask ListenForFileChangeAsync(IFileChangeContext context, string filePath)
     {
-        var eventSource = new TaskCompletionSource<FileChangeKind>();
+        var eventSource = new TaskCompletionSource<FileChangeKind>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         context.FileChanged += (sender, e) =>
         {
