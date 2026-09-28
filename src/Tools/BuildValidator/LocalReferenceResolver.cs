@@ -161,6 +161,7 @@ namespace BuildValidator
                     continue;
                 }
 
+                // ReadyToRun images retain the metadata and MVID needed to resolve recorded references.
                 var currentInfo = new AssemblyInfo(filePath, peInfo.Mvid);
                 assemblyInfoList.Add(currentInfo);
 
