@@ -3,8 +3,6 @@
 
 using System;
 using System.Runtime.CompilerServices;
-using Xunit;
-using Xunit.Sdk;
 using Xunit.v3;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
