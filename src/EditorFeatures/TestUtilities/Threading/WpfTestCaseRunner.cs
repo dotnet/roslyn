@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -72,6 +73,7 @@ internal static class WpfTestCaseRunner
                 }
                 finally
                 {
+                    ReleaseClipboardOwnership();
                     s_testSerializationGate.Release();
                 }
             },
@@ -81,6 +83,78 @@ internal static class WpfTestCaseRunner
 
         return new ValueTask<RunSummary>(runTask.GetAwaiter().GetResult());
     }
+
+    /// <summary>
+    /// All WPF tests share this STA thread, so clipboard data copied by one test stays owned by a live window on the
+    /// thread. Clipboard listeners in other processes (e.g. clipboard history) may then need this thread to render
+    /// that data while a later test is running synchronously, holding the clipboard open and making clipboard
+    /// operations in that test fail with <c>CLIPBRD_E_CANT_OPEN</c>. Release ownership after each test, similar to
+    /// how the clipboard is released when a per-test STA thread exits.
+    /// </summary>
+    private static void ReleaseClipboardOwnership()
+    {
+        var owner = GetClipboardOwner();
+        if (owner == IntPtr.Zero || GetWindowThreadProcessId(owner, out _) != GetCurrentThreadId())
+            return;
+
+        for (var attempt = 0; attempt < 10; attempt++)
+        {
+            if (OpenClipboard(IntPtr.Zero))
+            {
+                EmptyClipboard();
+                CloseClipboard();
+                return;
+            }
+
+            // Another process may be waiting on this thread to render clipboard data. Process sent messages before
+            // retrying.
+            _ = MsgWaitForMultipleObjectsEx(0, IntPtr.Zero, 50, QS_SENDMESSAGE, 0);
+            _ = PeekMessage(out _, IntPtr.Zero, 0, 0, PM_NOREMOVE);
+        }
+    }
+
+    private const uint QS_SENDMESSAGE = 0x0040;
+    private const uint PM_NOREMOVE = 0x0000;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct MSG
+    {
+        public IntPtr hwnd;
+        public uint message;
+        public IntPtr wParam;
+        public IntPtr lParam;
+        public uint time;
+        public int ptX;
+        public int ptY;
+    }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetClipboardOwner();
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint processId);
+
+    [DllImport("kernel32.dll")]
+    private static extern uint GetCurrentThreadId();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool OpenClipboard(IntPtr newOwner);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool EmptyClipboard();
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool CloseClipboard();
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool PeekMessage(out MSG message, IntPtr hwnd, uint messageFilterMin, uint messageFilterMax, uint removeMessage);
+
+    [DllImport("user32.dll")]
+    private static extern uint MsgWaitForMultipleObjectsEx(uint count, IntPtr handles, uint milliseconds, uint wakeMask, uint flags);
 
     private static DispatcherSynchronizationContext CreateDispatcherSynchronizationContext()
     {
