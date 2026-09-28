@@ -358,6 +358,8 @@ public sealed class SdkIntegrationTests : IDisposable
 
         ProjectDir.CreateFile("c.cs").WriteAllText("class C { }");
         RunBuild(projectFile.Path, succeeds: true);
+
+        ArtifactUploadUtil.SetSucceeded();
     }
 
     [ConditionalFact(typeof(DotNetSdkAvailable))]
@@ -397,5 +399,7 @@ public sealed class SdkIntegrationTests : IDisposable
         Assert.Equal(1, errors.Count);
         Assert.Contains(errors, static error => error.Text == "VerifyTriggeredByCompilation error.");
         Assert.DoesNotContain(errors, static error => error.Text == "VerifyTriggeredAfterCSharpCompilation did not execute.");
+
+        ArtifactUploadUtil.SetSucceeded();
     }
 }
