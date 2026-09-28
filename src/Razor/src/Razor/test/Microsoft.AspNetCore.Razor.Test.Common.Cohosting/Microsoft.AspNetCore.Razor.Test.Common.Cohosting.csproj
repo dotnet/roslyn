@@ -44,22 +44,12 @@
     <PackageReference Include="Microsoft.VisualStudio.Threading" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" />
     <PackageReference Include="Moq" />
-    <PackageReference Include="xunit.v3.assert">
-      <Aliases>XunitV3</Aliases>
-    </PackageReference>
+    <PackageReference Include="xunit.v3.assert" />
     <PackageReference Include="xunit.analyzers" />
-    <PackageReference Include="xunit.v3.common">
-      <Aliases>XunitV3</Aliases>
-    </PackageReference>
-    <PackageReference Include="xunit.v3.extensibility.core">
-      <Aliases>XunitV3</Aliases>
-    </PackageReference>
-    <PackageReference Include="Xunit.Combinatorial">
-      <Aliases>XunitV3</Aliases>
-    </PackageReference>
-    <PackageReference Include="Xunit.StaFact">
-      <Aliases>XunitV3</Aliases>
-    </PackageReference>
+    <PackageReference Include="xunit.v3.common" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="Xunit.Combinatorial" />
+    <PackageReference Include="Xunit.StaFact" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == '$(NetFxVS)'">
