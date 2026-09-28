@@ -331,6 +331,9 @@ if [[ "$restore" == true || "$build" == true || "$rebuild" == true ]]; then
 fi
 
 if [[ "$test" == true ]]; then
+  if [[ "$ci" == true ]]; then
+    test_arguments+=("--ci")
+  fi
   "$_InitializeDotNetCli/dotnet" exec "$artifacts_dir/bin/RunTests/$configuration/net10.0/RunTests.dll" --testConfiguration "$configuration" ${test_arguments[@]+"${test_arguments[@]}"} ${test_kind_arguments[@]+"${test_kind_arguments[@]}"} ${test_framework_arguments[@]+"${test_framework_arguments[@]}"} || ExitWithExitCode $?
 fi
 

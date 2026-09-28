@@ -52,6 +52,9 @@ after successful build actions. The scripts forward the build configuration as
 RunTests owns test discovery, option validation, and execution. For other test
 options, invoke RunTests directly.
 
+The build scripts also forward CI mode (`-ci` in PowerShell, `--ci` in Bash)
+as `--ci`, so RunTests configures CI-specific test behavior.
+
 For multiple frameworks, invoke the PowerShell script with an array:
 `.\eng\build.ps1 -build -testFramework:core,desktop`. In Bash, repeat the option:
 `./build.sh --testFramework:core --testFramework:desktop`.

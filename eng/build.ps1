@@ -367,6 +367,9 @@ try {
   if ($test -or $PSBoundParameters.ContainsKey('testSet') -or $PSBoundParameters.ContainsKey('testKind') -or $PSBoundParameters.ContainsKey('testFramework')) {
     $runTests = GetProjectOutputBinary "RunTests.dll" -tfm "net10.0"
     $testArguments = @('--testConfiguration', $configuration)
+    if ($ci) {
+      $testArguments += '--ci'
+    }
     if ($PSBoundParameters.ContainsKey('testSet')) {
       $testArguments += "--testSet:$testSet"
     }
