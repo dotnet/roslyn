@@ -5,6 +5,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Razor.Utilities;
 using Xunit;
 
@@ -20,6 +21,20 @@ namespace Microsoft.AspNetCore.Razor;
 public sealed class ConditionalFactAttribute : FactAttribute
 {
     public ConditionalFactAttribute(params string[] conditions)
+        : this(conditions, null, -1)
+    {
+    }
+
+    public ConditionalFactAttribute(
+        string condition,
+        [CallerFilePath] string? sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+        : this([condition], sourceFilePath, sourceLineNumber)
+    {
+    }
+
+    private ConditionalFactAttribute(string[] conditions, string? sourceFilePath, int sourceLineNumber)
+        : base(sourceFilePath, sourceLineNumber)
     {
         if (!Conditions.AllTrue(conditions))
         {
@@ -65,6 +80,20 @@ public sealed class ConditionalFactAttribute : FactAttribute
 public sealed class ConditionalTheoryAttribute : TheoryAttribute
 {
     public ConditionalTheoryAttribute(params string[] conditions)
+        : this(conditions, null, -1)
+    {
+    }
+
+    public ConditionalTheoryAttribute(
+        string condition,
+        [CallerFilePath] string? sourceFilePath = null,
+        [CallerLineNumber] int sourceLineNumber = -1)
+        : this([condition], sourceFilePath, sourceLineNumber)
+    {
+    }
+
+    private ConditionalTheoryAttribute(string[] conditions, string? sourceFilePath, int sourceLineNumber)
+        : base(sourceFilePath, sourceLineNumber)
     {
         if (!Conditions.AllTrue(conditions))
         {

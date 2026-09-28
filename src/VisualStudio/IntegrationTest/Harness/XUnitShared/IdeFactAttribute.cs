@@ -5,6 +5,7 @@
 namespace Xunit
 {
     using System;
+    using System.Runtime.CompilerServices;
     using Xunit.Threading;
     using Xunit.v3;
 
@@ -12,7 +13,10 @@ namespace Xunit
     [XunitTestCaseDiscoverer(typeof(IdeFactDiscoverer))]
     public class IdeFactAttribute : FactAttribute, IIdeSettingsAttribute
     {
-        public IdeFactAttribute()
+        public IdeFactAttribute(
+            [CallerFilePath] string? sourceFilePath = null,
+            [CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
         {
             MinVersion = VisualStudioVersion.Unspecified;
             MaxVersion = VisualStudioVersion.Unspecified;

@@ -38,6 +38,12 @@ package versions for both suites.
   attribute, e.g. `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`
   or `[Theory, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`.
   Use the originating GitHub issue/PR or Azure DevOps work item URL.
+- Custom xUnit v3 fact/theory attributes need public constructors with optional
+  `[CallerFilePath]` and `[CallerLineNumber]` parameters that forward to the
+  `FactAttribute`/`TheoryAttribute` base constructor. If an attribute retains
+  a variadic `params` conditions constructor, use a caller-aware overload for
+  commonly used positional condition forms; source parameters cannot follow
+  a `params` parameter.
 
 ## Running Tests
 
