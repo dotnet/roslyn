@@ -84,4 +84,7 @@ executable above its hosting runtime directory, so `--dotnet` is unnecessary.
 
 ## CI
 
-PR validation runs via `azure-pipelines-pr-validation.yml` (Azure DevOps + Helix). For investigating failures, use the `ci-analysis` and `integration-test-analysis` skills.
+PR test CI runs via `azure-pipelines.yml` (Azure DevOps + Helix).
+`azure-pipelines-pr-validation.yml` builds and publishes insertion-validation
+artifacts; it does not build or run tests. For investigating failures, use the
+`ci-analysis` and `integration-test-analysis` skills.
