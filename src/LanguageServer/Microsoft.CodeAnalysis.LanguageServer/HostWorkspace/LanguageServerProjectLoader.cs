@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
@@ -395,24 +394,32 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     /// <summary>
     /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
     /// </summary>
-    internal async Task<LoadedProject> BeginLoadingProjectAsync(string projectPath)
+    internal async Task<LoadedProject> BeginLoadingProjectAsync(
+        string projectPath,
+        bool isHighPriority)
     {
         projectPath = NormalizeProjectPath(projectPath);
         LoadedProject? loadedProject;
+        ProjectReloadPriority reloadPriority = isHighPriority ? ProjectReloadPriority.High : ProjectReloadPriority.Medium;
 
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
             Contract.ThrowIfTrue(_isDisposed, "Project loader is already disposed");
 
-            // If we haven't already started this project loading, then let's create a project and start it loading
-            if (!_loadedProjects.TryGetValue(projectPath, out loadedProject))
+            if (_loadedProjects.TryGetValue(projectPath, out loadedProject))
             {
-                loadedProject = new LoadedProject(projectPath, _fileChangeWatcher);
-                _loadedProjects.Add(projectPath, loadedProject);
+                // This is project queued for loading. Ensure it is high priority if requested.
+                if (isHighPriority)
+                    _projectsToReload.ChangeWorkPriorityIfScheduled(loadedProject.ProjectFilePath, (int)reloadPriority);
 
-                loadedProject.NeedsReload += LoadedProject_NeedsReload;
-                _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)ProjectReloadPriority.Medium);
+                return loadedProject;
             }
+
+            loadedProject = new LoadedProject(projectPath, _fileChangeWatcher);
+            _loadedProjects.Add(projectPath, loadedProject);
+
+            loadedProject.NeedsReload += LoadedProject_NeedsReload;
+            _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)reloadPriority);
         }
 
         // Try to load the contents from the project cache if we have one; we'll do this outside the lock
@@ -482,13 +489,22 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     internal async Task WaitForAllProjectLoadsAsync(CancellationToken cancellationToken)
     {
+        var currentProjectLoads = await CaptureCurrentProjectLoadsAsync(cancellationToken);
+        await currentProjectLoads;
+    }
+
+    /// <summary>
+    /// Captures tracked project loads under the loader gate without waiting for their completion.
+    /// </summary>
+    internal async ValueTask<Task> CaptureCurrentProjectLoadsAsync(CancellationToken cancellationToken)
+    {
         ImmutableArray<LoadedProject> loadedProjects;
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
             loadedProjects = [.. _loadedProjects.Values];
         }
 
-        await WaitForProjectLoadsAsync(loadedProjects, cancellationToken: cancellationToken);
+        return WaitForProjectLoadsAsync(loadedProjects, cancellationToken: cancellationToken);
     }
 
     /// <summary>Unloads all projects associated with this project loader.</summary>

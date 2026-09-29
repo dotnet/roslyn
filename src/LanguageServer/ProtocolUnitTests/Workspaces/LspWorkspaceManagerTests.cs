@@ -8,10 +8,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -24,6 +27,161 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Workspaces;
 public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, false)]
+    public async Task DeferredHostDocumentRemovesOnlyOriginalMiscellaneousDocumentAsync(bool hostDocumentLoaded, bool closeAndReopen)
+    {
+        var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        await using var testLspServer = await CreateTestLspServerAsync(
+            "", mutatingLspWorkspace: false,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition: composition);
+        var provider = testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>();
+        var miscellaneousWorkspace = Assert.IsAssignableFrom<Workspace>(provider);
+        var loader = new TestOnDemandProjectLoader();
+        var telemetry = new CountingRequestTelemetryLogger();
+        var manager = new LspWorkspaceManager(
+            testLspServer.GetRequiredLspService<ILspLogger>(),
+            provider,
+            testLspServer.GetRequiredLspService<LspWorkspaceRegistrationService>(),
+            testLspServer.GetRequiredLspService<ILanguageInfoProvider>(),
+            telemetry,
+            loader);
+        var filePath = TestHelpers.CreateAbsolutePath("OnDemand.cs");
+        var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+        var text = SourceText.From("class C { }");
+        await manager.StartTrackingAsync(uri, text, "csharp", lspVersion: 1, CancellationToken.None);
+
+        var contextTask = await manager.CaptureLspDocumentContextAsync(
+            CreateTextDocumentIdentifier(uri), manager.GetTrackedLspText(),
+            allowProjectLoading: true, CancellationToken.None);
+        Assert.NotNull(contextTask);
+        var originalMiscellaneousDocument = Assert.Single(miscellaneousWorkspace.CurrentSolution.GetDocumentIds(uri));
+
+        if (closeAndReopen)
+        {
+            await manager.StopTrackingAsync(uri, CancellationToken.None);
+            await manager.StartTrackingAsync(uri, text, "csharp", lspVersion: 2, CancellationToken.None);
+            var reopenedContext = await manager.CaptureLspDocumentContextAsync(
+                CreateTextDocumentIdentifier(uri), manager.GetTrackedLspText(),
+                allowProjectLoading: false, CancellationToken.None);
+            Assert.NotNull(reopenedContext);
+            Assert.NotEqual(originalMiscellaneousDocument, Assert.Single(miscellaneousWorkspace.CurrentSolution.GetDocumentIds(uri)));
+        }
+
+        if (hostDocumentLoaded)
+        {
+            var projectId = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Id;
+            var hostSolution = testLspServer.TestWorkspace.CurrentSolution.AddDocument(
+                DocumentId.CreateNewId(projectId), "OnDemand.cs", text, filePath: filePath);
+            await testLspServer.TestWorkspace.ChangeSolutionAsync(hostSolution);
+        }
+
+        loader.Complete(couldHaveLoadedProjects: true);
+        var result = await contextTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(closeAndReopen ? 3 : 2, telemetry.FindDocumentCount);
+        Assert.Equal(hostDocumentLoaded ? WorkspaceKind.Host : WorkspaceKind.MiscellaneousFiles, result.Workspace.Kind);
+        Assert.Equal(
+            closeAndReopen || !hostDocumentLoaded ? 1 : 0,
+            miscellaneousWorkspace.CurrentSolution.GetDocumentIds(uri).Length);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task DeferredContextPreservesTextBeforeLaterEditsAsync(bool documentRequest, bool initiallyTracked)
+    {
+        var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        await using var testLspServer = await CreateTestLspServerAsync(
+            "class B { }", mutatingLspWorkspace: true,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition: composition);
+        var loader = new TestOnDemandProjectLoader();
+        var manager = new LspWorkspaceManager(
+            testLspServer.GetRequiredLspService<ILspLogger>(),
+            testLspServer.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>(),
+            testLspServer.GetRequiredLspService<LspWorkspaceRegistrationService>(),
+            testLspServer.GetRequiredLspService<ILanguageInfoProvider>(),
+            testLspServer.GetRequiredLspService<RequestTelemetryLogger>(),
+            loader);
+        var existingDocument = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        var newDocumentPath = TestHelpers.CreateAbsolutePath("OnDemand.cs");
+        var newDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(newDocumentPath);
+        var newDocumentText = SourceText.From("class A { }");
+        var existingDocumentUri = existingDocument.GetURI();
+        var expectedText = initiallyTracked ? "class B { int Before; }" : "class B { }";
+
+        if (initiallyTracked)
+            await manager.StartTrackingAsync(existingDocumentUri, SourceText.From(expectedText), "csharp", lspVersion: 1, CancellationToken.None);
+
+        Task<LspWorkspaceContext>? contextTask;
+        if (documentRequest)
+        {
+            await manager.StartTrackingAsync(newDocumentUri, newDocumentText, "csharp", lspVersion: 1, CancellationToken.None);
+            contextTask = await manager.CaptureLspDocumentContextAsync(
+                CreateTextDocumentIdentifier(newDocumentUri), manager.GetTrackedLspText(),
+                allowProjectLoading: true, CancellationToken.None);
+        }
+        else
+        {
+            contextTask = await manager.CaptureLspSolutionContextAsync(
+                manager.GetTrackedLspText(), allowProjectLoading: true, CancellationToken.None);
+        }
+
+        Assert.NotNull(contextTask);
+        if (initiallyTracked)
+        {
+            manager.UpdateTrackedDocument(existingDocumentUri, SourceText.From("class B { int Later; }"), lspVersion: 2);
+            await manager.CaptureLspSolutionContextAsync(manager.GetTrackedLspText(), allowProjectLoading: false, CancellationToken.None);
+        }
+        else
+        {
+            await manager.StartTrackingAsync(existingDocumentUri, SourceText.From("class B { int Later; }"), "csharp", lspVersion: 1, CancellationToken.None);
+        }
+
+        Assert.Equal("class B { int Later; }", (await testLspServer.TestWorkspace.CurrentSolution.GetRequiredDocument(existingDocument.Id).GetTextAsync()).ToString());
+
+        var projectId = existingDocument.Project.Id;
+        var newDocumentId = DocumentId.CreateNewId(projectId);
+        var loadedSolution = testLspServer.TestWorkspace.CurrentSolution.AddDocument(
+            newDocumentId, "OnDemand.cs", newDocumentText, filePath: newDocumentPath);
+        await testLspServer.TestWorkspace.ChangeSolutionAsync(loadedSolution);
+
+        loader.Complete(couldHaveLoadedProjects: true);
+        var context = await contextTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(expectedText, (await context.Solution.GetRequiredDocument(existingDocument.Id).GetTextAsync()).ToString());
+        Assert.Equal("class A { }", (await context.Solution.GetRequiredDocument(newDocumentId).GetTextAsync()).ToString());
+        Assert.Equal(documentRequest ? newDocumentId : null, context.Document?.Id);
+        Assert.Equal("class B { int Later; }", (await testLspServer.TestWorkspace.CurrentSolution.GetRequiredDocument(existingDocument.Id).GetTextAsync()).ToString());
+    }
+
+    private sealed class CountingRequestTelemetryLogger() : RequestTelemetryLogger("Test")
+    {
+        public int FindDocumentCount { get; private set; }
+
+        protected override void IncreaseFindDocumentCount(string workspaceCounterMetricName)
+            => FindDocumentCount++;
+    }
+
+    private sealed class TestOnDemandProjectLoader(Task<bool>? completedResult = null, Action? onStart = null) : IOnDemandProjectLoader
+    {
+        private readonly TaskCompletionSource<bool> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        public Task<bool> StartLoadingAsync(DocumentUri uri)
+        {
+            onStart?.Invoke();
+            return completedResult ?? _completion.Task;
+        }
+
+        public ValueTask<Task> CaptureWorkspaceLoadSnapshotAsync() => new(_completion.Task);
+
+        public void Complete(bool couldHaveLoadedProjects) => _completion.SetResult(couldHaveLoadedProjects);
+    }
+
     [Theory, CombinatorialData]
     public async Task TestUsesLspTextOnOpenCloseAsync(bool mutatingLspWorkspace)
     {
@@ -761,12 +919,13 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
 
     private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
     {
-        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None).ConfigureAwait(false);
-        return (workspace, document as Document);
+        var context = await testLspServer.CaptureLspDocumentContextAsync(CreateTextDocumentIdentifier(uri)).ConfigureAwait(false);
+        return (context?.Workspace, context?.Document as Document);
     }
 
-    private static Task<(Workspace?, Solution?)> GetLspHostWorkspaceAndSolutionAsync(TestLspServer testLspServer)
+    private static async Task<(Workspace?, Solution?)> GetLspHostWorkspaceAndSolutionAsync(TestLspServer testLspServer)
     {
-        return testLspServer.GetManager().GetLspSolutionInfoAsync(CancellationToken.None);
+        var context = await testLspServer.CaptureLspSolutionContextAsync().ConfigureAwait(false);
+        return (context?.Workspace, context?.Solution);
     }
 }
