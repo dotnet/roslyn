@@ -2666,7 +2666,7 @@ BC32047: Type parameter 'V' can only have one constraint that is a class.
 BC32047: Type parameter 'V' can only have one constraint that is a class.
     Friend Sub M(Of V As {A, B})() Implements I(Of A, B).M ' D4
                              ~
-BC32078: 'Friend Sub M(Of V As A)()' cannot implement 'I(Of A, B).Sub M(Of V As {A, B})()' because they differ by type parameter constraints.
+BC32078: 'Friend Sub M(Of V)()' cannot implement 'I(Of A, B).Sub M(Of V)()' because they differ by type parameter constraints.
     Friend Sub M(Of V As {A, B})() Implements I(Of A, B).M ' D4
                                               ~~~~~~~~~~~~
 </expected>)
@@ -2779,7 +2779,7 @@ End Module
                 </compilation>
             Dim comp = CreateCompilationWithCustomILSource(vbSource, ilSource, includeVbRuntime:=True)
             comp.AssertTheseDiagnostics(<expected>
-BC32077: 'Public Overrides Sub M(Of T As A)()' cannot override 'Public Overrides Sub M(Of T As ?)()' because they differ by type parameter constraints.
+BC32077: 'Public Overrides Sub M(Of T)()' cannot override 'Public Overrides Sub M(Of T)()' because they differ by type parameter constraints.
     Public Overrides Sub M(Of T As A)()
                          ~
 BC30649: '' is an unsupported type.
@@ -2788,7 +2788,7 @@ Class C
 BC32044: Type argument 'A' does not inherit from or implement the constraint type '?'.
 Class C
       ~
-BC32078: 'Private Sub M(Of U As A)()' cannot implement 'I(Of A).Sub M(Of U As ?)()' because they differ by type parameter constraints.
+BC32078: 'Private Sub M(Of U)()' cannot implement 'I(Of A).Sub M(Of U)()' because they differ by type parameter constraints.
     Private Sub M(Of U As A)() Implements I(Of A).M
                                           ~~~~~~~~~
 BC30649: '' is an unsupported type.
@@ -2983,10 +2983,10 @@ BC36739: Type 'IAI(Of T).IT' does not inherit the generic type parameters of its
 BC36739: Type 'CF(Of T).CT' does not inherit the generic type parameters of its container.
     Inherits CF(Of C).CT ' BC36739
              ~~~~~~~~~~~
-BC36739: Type 'IIn(Of In T).IT' does not inherit the generic type parameters of its container.
+BC36739: Type 'IIn(Of T).IT' does not inherit the generic type parameters of its container.
     Implements IIn(Of Object).IT ' BC36739
                ~~~~~~~~~~~~~~~~~
-BC36739: Type 'IIn(Of In T).IOut' does not inherit the generic type parameters of its container.
+BC36739: Type 'IIn(Of T).IOut' does not inherit the generic type parameters of its container.
     Implements IIn(Of Object).IOut ' BC36739
                ~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -3108,10 +3108,10 @@ End Class
         </file>
     </compilation>)
             compilation.AssertTheseDiagnostics(<expected>
-BC32078: 'Private Sub C1_M(Of U As Structure)()' cannot implement 'I(Of ValueType).Sub M(Of U As {Structure, ValueType})()' because they differ by type parameter constraints.
+BC32078: 'Private Sub C1_M(Of U)()' cannot implement 'I(Of ValueType).Sub M(Of U)()' because they differ by type parameter constraints.
     Private Sub C1_M(Of U As {Structure})() Implements I(Of ValueType).M
                                                        ~~~~~~~~~~~~~~~~~
-BC32078: 'Private Sub C2_M(Of U As ValueType)()' cannot implement 'I(Of ValueType).Sub M(Of U As {Structure, ValueType})()' because they differ by type parameter constraints.
+BC32078: 'Private Sub C2_M(Of U)()' cannot implement 'I(Of ValueType).Sub M(Of U)()' because they differ by type parameter constraints.
     Private Sub C2_M(Of U As {ValueType})() Implements I(Of ValueType).M
                                                        ~~~~~~~~~~~~~~~~~
 </expected>)
@@ -3926,7 +3926,7 @@ End Class
                 </compilation>
             Dim compilation = CreateCompilationWithCustomILSource(vbSource, ilSource)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC32077: 'Public Overrides Sub M2(Of U As {Structure, ValueType})()' cannot override 'Public MustOverride Overrides Sub M2(Of U As Structure)()' because they differ by type parameter constraints.
+BC32077: 'Public Overrides Sub M2(Of U)()' cannot override 'Public MustOverride Overrides Sub M2(Of U)()' because they differ by type parameter constraints.
     Public Overrides Sub M2(Of U As {Structure, System.ValueType})() ' Dev10 error
                          ~~
      ]]></errors>)
@@ -4461,7 +4461,7 @@ BC32105: Type argument 'A(Of U)' does not satisfy the 'Structure' constraint for
 BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T'.
     Implements I(Of A(Of U))
                          ~
-BC32105: Type argument 'I(Of V As Structure)' does not satisfy the 'Structure' constraint for type parameter 'T'.
+BC32105: Type argument 'I(Of V)' does not satisfy the 'Structure' constraint for type parameter 'T'.
     Sub M(Of V As Structure)(o As A(Of I(Of V)))
                                        ~~~~~~~
 BC32105: Type argument 'Object()' does not satisfy the 'Structure' constraint for type parameter 'T'.
@@ -4482,7 +4482,7 @@ Class C(Of U)
 BC32105: Type argument 'U' does not satisfy the 'Structure' constraint for type parameter 'T'.
 Class C(Of U)
       ~
-BC32105: Type argument 'I(Of V As Structure)' does not satisfy the 'Structure' constraint for type parameter 'T'.
+BC32105: Type argument 'I(Of V)' does not satisfy the 'Structure' constraint for type parameter 'T'.
     Sub M(Of V As Structure)(o As A(Of I(Of V)))
                              ~
 BC32105: Type argument 'Object()' does not satisfy the 'Structure' constraint for type parameter 'T'.
