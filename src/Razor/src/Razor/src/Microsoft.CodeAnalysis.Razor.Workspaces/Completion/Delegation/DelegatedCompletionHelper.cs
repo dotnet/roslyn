@@ -143,7 +143,8 @@ internal static class DelegatedCompletionHelper
         var token = root.FindToken(absoluteIndex, includeWhitespace: true);
 
         // At EOF after an incomplete start tag, the parser doesn't place EOF inside the tag.
-        token = token.Kind == SyntaxKind.EndOfFile
+        var atEof = token.Kind == SyntaxKind.EndOfFile;
+        token = atEof
             ? token.GetPreviousToken()
             : token;
 
@@ -163,6 +164,16 @@ internal static class DelegatedCompletionHelper
             isStartTagContext = enclosingStartTag.Name.Span.IntersectsWith(absoluteIndex);
 
             return isStartTagContext;
+        }
+
+        if (atEof)
+        {
+            // We were at the true end of the document, and the preceding token isn't part of an
+            // in-progress start tag (e.g., the document ends right after a complete "</div>").
+            // This is equivalent to being in (empty) text content, so snippets are available on
+            // explicit invocation — unless we're ending a <script> or <style> block.
+            return token.Parent?.FirstAncestorOrSelf<BaseMarkupElementSyntax>() is not { } eofElement
+                || !RazorSyntaxFacts.IsScriptOrStyleBlock(eofElement);
         }
 
         // In text content (element body), snippets are available on explicit invocation only
