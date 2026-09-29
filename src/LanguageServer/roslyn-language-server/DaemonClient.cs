@@ -111,7 +111,7 @@ internal static class DaemonClient
         // pipes keeps them from ever reaching EOF after we exit (so the editor's WaitForExit/output draining hangs) and
         // in stdio mode corrupts the editor's LSP channel. The bootstrap applies the same protection when it launches
         // the daemon. A no-op off Windows.
-        var process = bootstrapExecutable.StartWithStandardHandleInheritanceSuppressed(bootstrapArguments);
+        using var process = bootstrapExecutable.StartWithStandardHandleInheritanceSuppressed(bootstrapArguments);
 
         // The bootstrap reads nothing from its stdin; close our write end so it sees EOF if it ever does.
         try
@@ -126,9 +126,15 @@ internal static class DaemonClient
         // Drain the bootstrap's stdout so it never blocks on a full pipe, and forward its stderr onto ours (never our
         // stdout, which carries LSP in stdio mode). Both end on their own once the bootstrap exits, shortly after it has
         // launched the daemon. The daemon then logs to its own files.
-        _ = ProcessUtilities.ForwardStreamAsync(process.StandardOutput.BaseStream, Stream.Null, CancellationToken.None);
-        _ = ForwardAndDisposeStandardErrorAsync(process.StandardError.BaseStream);
+        var drainStandardOutput = ProcessUtilities.ForwardStreamAsync(process.StandardOutput.BaseStream, Stream.Null, CancellationToken.None);
+        var forwardStandardError = ForwardAndDisposeStandardErrorAsync(process.StandardError.BaseStream);
         Console.Error.WriteLine($"Started language server daemon bootstrap (pid {process.Id})");
+
+        // Do not let the launching thin client proceed until the bootstrap has exited. The bootstrap's exit severs
+        // the daemon from this client's process tree; until then, killing this client and its descendants can still
+        // reach the daemon through the bootstrap.
+        process.WaitForExit();
+        Task.WaitAll(drainStandardOutput, forwardStandardError);
     }
 
     private static Task ForwardAndDisposeStandardErrorAsync(Stream daemonStandardError)
