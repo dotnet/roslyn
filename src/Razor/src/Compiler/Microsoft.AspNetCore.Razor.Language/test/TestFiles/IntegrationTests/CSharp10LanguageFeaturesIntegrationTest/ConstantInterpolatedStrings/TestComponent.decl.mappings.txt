@@ -1,0 +1,11 @@
+﻿Source Location: (7:0,7 [95] x:\dir\subdir\Test\TestComponent.razor)
+|
+    private const string Name = "Razor";
+    private const string Value = $"{Name} Tests";
+|
+Generated Location: (556:18,0 [95] )
+|
+    private const string Name = "Razor";
+    private const string Value = $"{Name} Tests";
+|
+

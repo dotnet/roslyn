@@ -58,7 +58,7 @@
                 CSharpCode - (639:14,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (639:14,0 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - }\n
             CSharpCode - (651:16,7 [233] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (651:16,7 [233] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    ElementReference myElementReference;\n    TemplatedComponent myComponentReference;\n    string myVariable;\n\n    void MethodRenderingMarkup(RenderTreeBuilder __builder)\n    {\n        for (var i = 0; i < 10; i++)\n        {\n
+                IntermediateToken - (765:20,0 [119] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    void MethodRenderingMarkup(RenderTreeBuilder __builder)\n    {\n        for (var i = 0; i < 10; i++)\n        {\n
             MarkupElement - (896:25,12 [35] x:\dir\subdir\Test\TestComponent.cshtml) - li
                 HtmlAttribute - (899:25,15 [14] x:\dir\subdir\Test\TestComponent.cshtml) -  data-index= - 
                     CSharpExpressionAttributeValue - (911:25,27 [2] x:\dir\subdir\Test\TestComponent.cshtml) - 

@@ -1,0 +1,7 @@
+﻿[0000] OpenElement("form")
+[0001] AddAttribute("method", "post")
+[0002] AddAttribute("onsubmit", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, () => { } ))
+[0003] AddMarkupContent("\r\n")
+[0004] OpenElement("form")
+[0005] AddAttribute("method", "post")
+[0006] AddAttribute("onsubmit", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, () => { } ))

@@ -7,10 +7,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class BuildHostProjectFileInfoProvider(
+    SolutionServices solutionServices,
     BuildHostProcessManager buildHostProcessManager,
     ProjectFileExtensionRegistry projectFileExtensionRegistry,
     DiagnosticReporter diagnosticReporter,
@@ -18,19 +21,43 @@ internal sealed class BuildHostProjectFileInfoProvider(
 {
     public async Task<ImmutableArray<ProjectFileInfo>> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
     {
-        if (!projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var languageName))
+        if (!projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var languageName, out var isFileBasedApp))
         {
             return []; // Failure should already be reported.
         }
 
-        var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
+        var preferredBuildHostKind = isFileBasedApp
+            ? BuildHostProcessKind.NetCore
+            : BuildHostProcessManager.GetKindForProject(projectPath);
         var (buildHost, _) = await buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken).ConfigureAwait(false);
-        var projectFile = await progress.DoOperationAndReportProgressAsync(
-            ProjectLoadOperation.Evaluate,
-            projectPath,
-            targetFramework: null,
-            () => buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken)
-        ).ConfigureAwait(false);
+
+        RemoteProjectFile projectFile;
+
+        if (isFileBasedApp)
+        {
+            var fileBasedProgramService = solutionServices.GetRequiredService<IFileBasedProgramService>();
+            projectFile = await progress.DoOperationAndReportProgressAsync(
+                ProjectLoadOperation.Evaluate,
+                projectPath,
+                targetFramework: null,
+                () => FileBasedProgramsProjectLoader.LoadFileBasedAppProjectAsync(
+                    buildHost,
+                    fileBasedProgramService,
+                    projectPath,
+                    (error) => diagnosticReporter.Report(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, error)),
+                    cancellationToken)
+            ).ConfigureAwait(false);
+        }
+        else
+        {
+            projectFile = await progress.DoOperationAndReportProgressAsync(
+                ProjectLoadOperation.Evaluate,
+                projectPath,
+                targetFramework: null,
+                () => buildHost.LoadProjectFileAsync(projectPath, languageName, cancellationToken)
+            ).ConfigureAwait(false);
+        }
+
         await using var _ = projectFile.ConfigureAwait(false);
 
         // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.

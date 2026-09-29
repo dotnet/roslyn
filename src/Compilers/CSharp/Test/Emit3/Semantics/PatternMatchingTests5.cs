@@ -1917,9 +1917,6 @@ class C
                 // (2,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Prop: { True: false } }' is not covered.
                 // _ = new C() switch // 1
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Prop: { True: false } }").WithLocation(2, 13),
-                // (10,18): hidden CS9335: The pattern is redundant.
-                //     { Prop.True: false } => 0
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "false").WithLocation(10, 18),
                 // (14,13): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{ Prop: { Prop: not null } }' is not covered.
                 // _ = new C() switch // 2
                 Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("{ Prop: { Prop: not null } }").WithLocation(14, 13)
@@ -4867,9 +4864,6 @@ Evaluated C14.F False
 Evaluated C14.F False
 Evaluated C14.F False
 ").VerifyDiagnostics(
-                // (49,30): hidden CS9335: The pattern is redundant.
-                //         return u is (C12 and I1 and { F: 1 }, 2) or ({ F: 1 or 2 }, 1);
-                Diagnostic(ErrorCode.HDN_RedundantPattern, "I1").WithLocation(49, 30)
                 );
 
             verifier.VerifyIL("Program.Test1", @"

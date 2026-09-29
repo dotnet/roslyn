@@ -10,17 +10,11 @@ internal enum RelayEndpoint
     Server,
 }
 
-internal readonly struct RelayResult(RelayEndpoint closedEndpoint, bool bothSidesClosed)
+internal enum RelayCompletionKind
 {
-    /// <summary>The endpoint whose stream closed first, ending the relay.</summary>
-    public RelayEndpoint ClosedEndpoint { get; } = closedEndpoint;
-
-    /// <summary>
-    /// True when, shortly after the first side closed, the other side also closed on its own. A clean LSP
-    /// shutdown closes both sides (the editor sends <c>exit</c> and closes; the server processes it and
-    /// closes), whereas a crash leaves one side connected.
-    /// </summary>
-    public bool BothSidesClosed { get; } = bothSidesClosed;
+    CleanShutdown,
+    EditorConnectionLost,
+    ServerConnectionLost,
 }
 
 internal static class LspRelay
@@ -31,7 +25,7 @@ internal static class LspRelay
     /// </summary>
     private static readonly TimeSpan s_secondCloseGracePeriod = TimeSpan.FromSeconds(5);
 
-    public static async Task<RelayResult> RelayAsync(
+    public static async Task<RelayCompletionKind> RelayAsync(
         Stream fromEditor,
         Stream toEditor,
         Stream fromServer,
@@ -42,14 +36,28 @@ internal static class LspRelay
         var serverToEditor = CopyUntilClosedAsync(fromServer, toEditor, RelayEndpoint.Server, RelayEndpoint.Editor, cancellationSource.Token);
         var completedTask = await Task.WhenAny(editorToServer, serverToEditor).ConfigureAwait(false);
 
-        // Give the other direction a brief window to finish on its own. If it does, both sides closed, which
-        // indicates a clean shutdown rather than a crash on one side.
+        // Give the other direction a brief window to finish on its own. If both copies terminate at the server,
+        // the server connection was lost and caused both directions to stop. Any other pair is a clean shutdown:
+        // an editor closes its bidirectional transport after sending LSP 'exit', so both copies can terminate at
+        // the editor before the server closes its side.
         var otherTask = completedTask == editorToServer ? serverToEditor : editorToServer;
-        var bothSidesClosed = await Task.WhenAny(otherTask, Task.Delay(s_secondCloseGracePeriod)).ConfigureAwait(false) == otherTask;
+        RelayEndpoint? otherClosedEndpoint = null;
+        if (await Task.WhenAny(otherTask, Task.Delay(s_secondCloseGracePeriod)).ConfigureAwait(false) == otherTask)
+            otherClosedEndpoint = await otherTask.ConfigureAwait(false);
 
         cancellationSource.Cancel();
-        var result = await completedTask.ConfigureAwait(false);
-        return new RelayResult(result, bothSidesClosed);
+        var closedEndpoint = await completedTask.ConfigureAwait(false);
+
+        if (otherClosedEndpoint is not null)
+        {
+            return closedEndpoint == RelayEndpoint.Server && otherClosedEndpoint == RelayEndpoint.Server
+                ? RelayCompletionKind.ServerConnectionLost
+                : RelayCompletionKind.CleanShutdown;
+        }
+
+        return closedEndpoint == RelayEndpoint.Editor
+            ? RelayCompletionKind.EditorConnectionLost
+            : RelayCompletionKind.ServerConnectionLost;
     }
 
     private static async Task<RelayEndpoint> CopyUntilClosedAsync(

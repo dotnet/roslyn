@@ -5,7 +5,6 @@
 Imports System.ComponentModel.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
@@ -25,10 +24,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Public Sub New(
             workspace As VisualStudioWorkspace,
             globalOptions As IGlobalOptionService,
-            listenerProvider As IAsynchronousOperationListenerProvider,
-            threadingContext As IThreadingContext)
+            listenerProvider As IAsynchronousOperationListenerProvider)
 
-            MyBase.New(workspace, globalOptions, listenerProvider, threadingContext, languageName:=LanguageNames.VisualBasic)
+            MyBase.New(workspace, globalOptions, listenerProvider, languageName:=LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

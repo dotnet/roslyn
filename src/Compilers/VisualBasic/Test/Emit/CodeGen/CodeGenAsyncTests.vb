@@ -13535,6 +13535,306 @@ End Class
             c = CreateCompilation(source, options:=TestOptions.ReleaseExe)
             CompileAndVerify(c, expectedOutput:="New Value").VerifyDiagnostics()
         End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84517")>
+        Public Sub Coalesce_01()
+            Dim source =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Module Program
+    Sub Main()
+        DoStuffAsync().GetAwaiter().GetResult()
+    End Sub
+
+    Async Function DoStuffAsync() As Task
+        Dim a As Object = New Object()
+        Console.WriteLine($"Is a nothing: {a Is Nothing}")
+
+        Dim b As Object = If(GetNothingObj(), Await GetObjAsync())
+        Console.WriteLine($"Is b nothing: {b Is Nothing}")
+
+        Console.WriteLine($"Is a nothing: {a Is Nothing}")
+    End Function
+
+    Function GetNothingObj() As Object
+        Return Nothing
+    End Function
+
+    Async Function GetObjAsync() As Task(Of Object)
+        Await Task.Yield()
+        Return New Object()
+    End Function
+End Module
+    ]]></file>
+</compilation>
+            Dim c = CreateCompilation(source, options:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(c, expectedOutput:="
+Is a nothing: False
+Is b nothing: False
+Is a nothing: False
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_1_DoStuffAsync.MoveNext",
+            <![CDATA[
+{
+  // Code size      315 (0x13b)
+  .maxstack  3
+  .locals init (Integer V_0,
+                Object V_1,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Object) V_2,
+                Program.VB$StateMachine_1_DoStuffAsync V_3,
+                Object V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_1_DoStuffAsync.$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_0081
+    IL_000e:  nop
+    IL_000f:  ldarg.0
+    IL_0010:  newobj     "Sub Object..ctor()"
+    IL_0015:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+    IL_001a:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$VB$ResumableLocal_a$0 As Object"
+    IL_001f:  ldstr      "Is a nothing: {0}"
+    IL_0024:  ldarg.0
+    IL_0025:  ldfld      "Program.VB$StateMachine_1_DoStuffAsync.$VB$ResumableLocal_a$0 As Object"
+    IL_002a:  ldnull
+    IL_002b:  ceq
+    IL_002d:  box        "Boolean"
+    IL_0032:  call       "Function String.Format(String, Object) As String"
+    IL_0037:  call       "Sub System.Console.WriteLine(String)"
+    IL_003c:  nop
+    IL_003d:  call       "Function Program.GetNothingObj() As Object"
+    IL_0042:  stloc.1
+    IL_0043:  ldloc.1
+    IL_0044:  brtrue.s   IL_00b5
+    IL_0046:  call       "Function Program.GetObjAsync() As System.Threading.Tasks.Task(Of Object)"
+    IL_004b:  callvirt   "Function System.Threading.Tasks.Task(Of Object).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_0050:  stloc.2
+    IL_0051:  ldloca.s   V_2
+    IL_0053:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Object).get_IsCompleted() As Boolean"
+    IL_0058:  brtrue.s   IL_009f
+    IL_005a:  ldarg.0
+    IL_005b:  ldc.i4.0
+    IL_005c:  dup
+    IL_005d:  stloc.0
+    IL_005e:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$State As Integer"
+    IL_0063:  ldarg.0
+    IL_0064:  ldloc.2
+    IL_0065:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_006a:  ldarg.0
+    IL_006b:  ldflda     "Program.VB$StateMachine_1_DoStuffAsync.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0070:  ldloca.s   V_2
+    IL_0072:  ldarg.0
+    IL_0073:  stloc.3
+    IL_0074:  ldloca.s   V_3
+    IL_0076:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Object), Program.VB$StateMachine_1_DoStuffAsync)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Object), ByRef Program.VB$StateMachine_1_DoStuffAsync)"
+    IL_007b:  nop
+    IL_007c:  leave      IL_013a
+    IL_0081:  ldarg.0
+    IL_0082:  ldc.i4.m1
+    IL_0083:  dup
+    IL_0084:  stloc.0
+    IL_0085:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$State As Integer"
+    IL_008a:  ldarg.0
+    IL_008b:  ldfld      "Program.VB$StateMachine_1_DoStuffAsync.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_0090:  stloc.2
+    IL_0091:  ldarg.0
+    IL_0092:  ldflda     "Program.VB$StateMachine_1_DoStuffAsync.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_0097:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_009d:  br.s       IL_009f
+    IL_009f:  ldloca.s   V_2
+    IL_00a1:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Object).GetResult() As Object"
+    IL_00a6:  stloc.s    V_4
+    IL_00a8:  ldloca.s   V_2
+    IL_00aa:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_00b0:  ldloc.s    V_4
+    IL_00b2:  stloc.1
+    IL_00b3:  br.s       IL_00b5
+    IL_00b5:  ldarg.0
+    IL_00b6:  ldloc.1
+    IL_00b7:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+    IL_00bc:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$VB$ResumableLocal_b$1 As Object"
+    IL_00c1:  ldstr      "Is b nothing: {0}"
+    IL_00c6:  ldarg.0
+    IL_00c7:  ldfld      "Program.VB$StateMachine_1_DoStuffAsync.$VB$ResumableLocal_b$1 As Object"
+    IL_00cc:  ldnull
+    IL_00cd:  ceq
+    IL_00cf:  box        "Boolean"
+    IL_00d4:  call       "Function String.Format(String, Object) As String"
+    IL_00d9:  call       "Sub System.Console.WriteLine(String)"
+    IL_00de:  nop
+    IL_00df:  ldstr      "Is a nothing: {0}"
+    IL_00e4:  ldarg.0
+    IL_00e5:  ldfld      "Program.VB$StateMachine_1_DoStuffAsync.$VB$ResumableLocal_a$0 As Object"
+    IL_00ea:  ldnull
+    IL_00eb:  ceq
+    IL_00ed:  box        "Boolean"
+    IL_00f2:  call       "Function String.Format(String, Object) As String"
+    IL_00f7:  call       "Sub System.Console.WriteLine(String)"
+    IL_00fc:  nop
+    IL_00fd:  leave.s    IL_0124
+  }
+  catch System.Exception
+  {
+    IL_00ff:  dup
+    IL_0100:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0105:  stloc.s    V_5
+    IL_0107:  ldarg.0
+    IL_0108:  ldc.i4.s   -2
+    IL_010a:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$State As Integer"
+    IL_010f:  ldarg.0
+    IL_0110:  ldflda     "Program.VB$StateMachine_1_DoStuffAsync.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_0115:  ldloc.s    V_5
+    IL_0117:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_011c:  nop
+    IL_011d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0122:  leave.s    IL_013a
+  }
+  IL_0124:  ldarg.0
+  IL_0125:  ldc.i4.s   -2
+  IL_0127:  dup
+  IL_0128:  stloc.0
+  IL_0129:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$State As Integer"
+  IL_012e:  ldarg.0
+  IL_012f:  ldflda     "Program.VB$StateMachine_1_DoStuffAsync.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0134:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_0139:  nop
+  IL_013a:  ret
+}
+]]>)
+
+            c = CreateCompilation(source, options:=TestOptions.ReleaseExe)
+            verifier = CompileAndVerify(c, expectedOutput:="
+Is a nothing: False
+Is b nothing: False
+Is a nothing: False
+").VerifyDiagnostics()
+
+            verifier.VerifyIL("Program.VB$StateMachine_1_DoStuffAsync.MoveNext",
+            <![CDATA[
+{
+  // Code size      283 (0x11b)
+  .maxstack  3
+  .locals init (Integer V_0,
+            Object V_1, //b
+            Object V_2,
+            System.Runtime.CompilerServices.TaskAwaiter(Of Object) V_3,
+            System.Exception V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "Program.VB$StateMachine_1_DoStuffAsync.$State As Integer"
+  IL_0006:  stloc.0
+  .try
+  {
+    IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_0077
+    IL_000a:  ldarg.0
+    IL_000b:  newobj     "Sub Object..ctor()"
+    IL_0010:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+    IL_0015:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$VB$ResumableLocal_a$0 As Object"
+    IL_001a:  ldstr      "Is a nothing: {0}"
+    IL_001f:  ldarg.0
+    IL_0020:  ldfld      "Program.VB$StateMachine_1_DoStuffAsync.$VB$ResumableLocal_a$0 As Object"
+    IL_0025:  ldnull
+    IL_0026:  ceq
+    IL_0028:  box        "Boolean"
+    IL_002d:  call       "Function String.Format(String, Object) As String"
+    IL_0032:  call       "Sub System.Console.WriteLine(String)"
+    IL_0037:  call       "Function Program.GetNothingObj() As Object"
+    IL_003c:  stloc.2
+    IL_003d:  ldloc.2
+    IL_003e:  brtrue.s   IL_00a3
+    IL_0040:  call       "Function Program.GetObjAsync() As System.Threading.Tasks.Task(Of Object)"
+    IL_0045:  callvirt   "Function System.Threading.Tasks.Task(Of Object).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_004a:  stloc.3
+    IL_004b:  ldloca.s   V_3
+    IL_004d:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Object).get_IsCompleted() As Boolean"
+    IL_0052:  brtrue.s   IL_0093
+    IL_0054:  ldarg.0
+    IL_0055:  ldc.i4.0
+    IL_0056:  dup
+    IL_0057:  stloc.0
+    IL_0058:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$State As Integer"
+    IL_005d:  ldarg.0
+    IL_005e:  ldloc.3
+    IL_005f:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_0064:  ldarg.0
+    IL_0065:  ldflda     "Program.VB$StateMachine_1_DoStuffAsync.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_006a:  ldloca.s   V_3
+    IL_006c:  ldarg.0
+    IL_006d:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Object), Program.VB$StateMachine_1_DoStuffAsync)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Object), ByRef Program.VB$StateMachine_1_DoStuffAsync)"
+    IL_0072:  leave      IL_011a
+    IL_0077:  ldarg.0
+    IL_0078:  ldc.i4.m1
+    IL_0079:  dup
+    IL_007a:  stloc.0
+    IL_007b:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$State As Integer"
+    IL_0080:  ldarg.0
+    IL_0081:  ldfld      "Program.VB$StateMachine_1_DoStuffAsync.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_0086:  stloc.3
+    IL_0087:  ldarg.0
+    IL_0088:  ldflda     "Program.VB$StateMachine_1_DoStuffAsync.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_008d:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_0093:  ldloca.s   V_3
+    IL_0095:  call       "Function System.Runtime.CompilerServices.TaskAwaiter(Of Object).GetResult() As Object"
+    IL_009a:  ldloca.s   V_3
+    IL_009c:  initobj    "System.Runtime.CompilerServices.TaskAwaiter(Of Object)"
+    IL_00a2:  stloc.2
+    IL_00a3:  ldloc.2
+    IL_00a4:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+    IL_00a9:  stloc.1
+    IL_00aa:  ldstr      "Is b nothing: {0}"
+    IL_00af:  ldloc.1
+    IL_00b0:  ldnull
+    IL_00b1:  ceq
+    IL_00b3:  box        "Boolean"
+    IL_00b8:  call       "Function String.Format(String, Object) As String"
+    IL_00bd:  call       "Sub System.Console.WriteLine(String)"
+    IL_00c2:  ldstr      "Is a nothing: {0}"
+    IL_00c7:  ldarg.0
+    IL_00c8:  ldfld      "Program.VB$StateMachine_1_DoStuffAsync.$VB$ResumableLocal_a$0 As Object"
+    IL_00cd:  ldnull
+    IL_00ce:  ceq
+    IL_00d0:  box        "Boolean"
+    IL_00d5:  call       "Function String.Format(String, Object) As String"
+    IL_00da:  call       "Sub System.Console.WriteLine(String)"
+    IL_00df:  leave.s    IL_0105
+  }
+  catch System.Exception
+  {
+    IL_00e1:  dup
+    IL_00e2:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00e7:  stloc.s    V_4
+    IL_00e9:  ldarg.0
+    IL_00ea:  ldc.i4.s   -2
+    IL_00ec:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$State As Integer"
+    IL_00f1:  ldarg.0
+    IL_00f2:  ldflda     "Program.VB$StateMachine_1_DoStuffAsync.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+    IL_00f7:  ldloc.s    V_4
+    IL_00f9:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)"
+    IL_00fe:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0103:  leave.s    IL_011a
+  }
+  IL_0105:  ldarg.0
+  IL_0106:  ldc.i4.s   -2
+  IL_0108:  dup
+  IL_0109:  stloc.0
+  IL_010a:  stfld      "Program.VB$StateMachine_1_DoStuffAsync.$State As Integer"
+  IL_010f:  ldarg.0
+  IL_0110:  ldflda     "Program.VB$StateMachine_1_DoStuffAsync.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder"
+  IL_0115:  call       "Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()"
+  IL_011a:  ret
+}
+]]>)
+        End Sub
     End Class
 End Namespace
 

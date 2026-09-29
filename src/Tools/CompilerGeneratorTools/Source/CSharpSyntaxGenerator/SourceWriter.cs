@@ -136,6 +136,7 @@ namespace CSharpSyntaxGenerator
         {
             WriteFileHeader();
             WriteLine("namespace Microsoft.CodeAnalysis.CSharp;");
+            WriteLine();
             WriteLine("using System.Diagnostics.CodeAnalysis;");
             WriteLine("using Microsoft.CodeAnalysis.CSharp.Syntax;");
             this.WriteRedVisitors();

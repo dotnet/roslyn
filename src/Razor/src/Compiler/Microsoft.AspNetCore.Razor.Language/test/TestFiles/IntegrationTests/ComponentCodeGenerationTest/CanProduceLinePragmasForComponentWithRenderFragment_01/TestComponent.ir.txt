@@ -39,5 +39,3 @@
                             LazyIntermediateToken - (154:5,7 [12] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ChildContent
                     CSharpCode - (180:7,0 [5] x:\dir\subdir\Test\TestComponent.cshtml)
                         LazyIntermediateToken - (180:7,0 [5] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -   }\n
-            CSharpCode - (201:10,1 [277] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (201:10,1 [277] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n  [Parameter]\n  public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>\n  [Parameter]\n  public bool Collapsed { get; set; }\n  string ActionText { get => Collapsed ? "Expand" : "Collapse"; }\n  void Toggle()\n  {\n    Collapsed = !Collapsed;\n  }\n

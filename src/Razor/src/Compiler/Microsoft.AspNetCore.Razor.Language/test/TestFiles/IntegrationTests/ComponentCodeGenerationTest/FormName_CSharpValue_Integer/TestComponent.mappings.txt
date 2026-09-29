@@ -13,12 +13,3 @@ Source Location: (98:1,54 [1] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1430:39,0 [1] )
 |x|
 
-Source Location: (117:2,7 [18] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    int x = 1;
-|
-Generated Location: (1729:51,0 [18] )
-|
-    int x = 1;
-|
-

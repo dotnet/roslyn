@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Roslyn.Test.Utilities;
+using StreamJsonRpc;
+using StreamJsonRpc.Protocol;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests;
@@ -21,16 +23,50 @@ public sealed class SingleServerLifecycleTests(ITestOutputHelper testOutputHelpe
             new LspServerLaunchOptions { UseNamedPipe = useNamedPipe, ClientProcessId = clientProcessId });
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84828")]
     public async Task StartsAndShutsDownCleanly(bool useNamedPipe)
     {
         await using var client = await StartAsync(useNamedPipe);
 
-        await client.ShutdownAndExitAsync();
+        var shutdownTask = client.ShutdownAndExitAsync();
+        Assert.Same(shutdownTask, client.ShutdownAndExitAsync());
+        await shutdownTask;
 
         var exitCode = await WaitForThinClientExitAsync(client);
         Assert.Equal(0, exitCode);
 
         await AssertServerProcessExitedAsync(client);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84890")]
+    public async Task UnknownRequestReturnsMethodNotFoundAndServerStaysAlive(bool useNamedPipe)
+    {
+        await using var client = await StartAsync(useNamedPipe);
+
+        var exception = await Assert.ThrowsAsync<RemoteMethodNotFoundException>(async ()
+            => await client.ExecuteRequestAsync<object, object>("nonExistentMethod", new(), CancellationToken.None));
+        Assert.Equal(JsonRpcErrorCode.MethodNotFound, (JsonRpcErrorCode)exception.ErrorCode);
+        Assert.Equal("nonExistentMethod", exception.TargetMethod);
+
+        var serverProcess = await client.GetServerProcessAsync();
+        Assert.False(serverProcess.HasExited);
+
+        await client.ShutdownAndExitAsync();
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/84890")]
+    public async Task UnknownNotificationKeepsServerAlive(bool useNamedPipe)
+    {
+        await using var client = await StartAsync(useNamedPipe);
+
+        await client.ExecuteNotification0Async("nonExistentMethod");
+
+        var serverProcess = await client.GetServerProcessAsync();
+        Assert.False(serverProcess.HasExited);
+
+        await client.ShutdownAndExitAsync();
     }
 
     [Theory, CombinatorialData]

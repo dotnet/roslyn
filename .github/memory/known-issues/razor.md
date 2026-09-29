@@ -63,3 +63,16 @@ BenchmarkDotNet parses the command line and configures exactly one Dry job. For
 Razor benchmarks that reference the Roslyn project graph, use
 `InProcessNoEmitToolchain` for that validation job so BenchmarkDotNet does not
 generate and build a second project graph.
+
+## ReadyToRun VSIX payloads must enter the publish graph before post-processing
+
+**Affected area:** `Microsoft.CodeAnalysis.Remote.Razor` payloads consumed by the
+CoreComponents VSIX projects
+**Description:** A project reference with `ReferenceOutputAssembly=false` does
+not automatically contribute its output to `ResolvedFileToPublish`. Synthesizing
+the referenced project's RID-specific `publish` path is also unreliable because
+the project may be built without being independently published.
+**Workaround:** Add compile-invisible payloads to `ResolvedFileToPublish` before
+`ComputeResolvedFilesToPublishList`. Set `PostprocessAssembly=true` on managed
+assemblies so ReadyToRun replaces them with the RID-specific output, and preserve
+`RecursiveDir` in satellite-resource `RelativePath` metadata.

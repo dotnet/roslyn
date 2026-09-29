@@ -42,13 +42,14 @@ internal sealed class OpenSolutionHandler : ILspService, ILspServiceNotification
     async Task INotificationHandler<NotificationParams, RequestContext>.HandleNotificationAsync(NotificationParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
         var solutionPath = request.Solution.GetDocumentFilePathFromUri();
+        var solutionFileName = Path.GetFileName(solutionPath);
 
-        var loadingMessage = string.Format(LanguageServerResources.Loading_0, solutionPath);
+        var loadingMessage = string.Format(LanguageServerResources.Loading_0, solutionFileName);
         await using var progressReporter = await _workDoneProgressManager.CreateWorkDoneProgressAsync(
             reportProgressToClient: true,
             title: loadingMessage,
             startMessage: loadingMessage,
-            endMessage: string.Format(LanguageServerResources.Loaded_0, solutionPath),
+            endMessage: string.Format(LanguageServerResources.Loaded_0, solutionFileName),
             clientCanCancel: false,
             serverCancellationToken: cancellationToken);
 

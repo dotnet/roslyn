@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -74,12 +74,12 @@ internal sealed class AzdoClient : IDisposable
     }
 
     /// <summary>
-    /// Gets test runs for a build within the build's time range, matching a stage/phase name.
+    /// Gets a test run for a build within the build's time range, matching its exact name.
     /// </summary>
-    public async Task<AzdoTestRun?> GetRunForStageAsync(
+    public async Task<AzdoTestRun?> GetTestRunAsync(
         string project,
         AzdoBuild build,
-        string phaseName,
+        string testRunName,
         CancellationToken cancellationToken)
     {
         var minTime = build.QueueTime!.Value.ToString("o");
@@ -94,7 +94,7 @@ internal sealed class AzdoClient : IDisposable
 
         // If the last successful build had multiple attempts then there are potentially multiple runs with
         // the same name. Take the last one as it will be the successful one.
-        return runs.LastOrDefault(r => r.Name.Contains(phaseName));
+        return runs.LastOrDefault(r => string.Equals(r.Name, testRunName, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

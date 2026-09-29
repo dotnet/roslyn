@@ -27,6 +27,19 @@ public sealed class UsingDirectiveIntermediateNode : IntermediateNode
         visitor.VisitUsingDirective(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new UsingDirectiveIntermediateNode
+        {
+            AppendLineDefaultAndHidden = AppendLineDefaultAndHidden,
+            Content = Content,
+            HasExplicitSemicolon = HasExplicitSemicolon,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(Content);

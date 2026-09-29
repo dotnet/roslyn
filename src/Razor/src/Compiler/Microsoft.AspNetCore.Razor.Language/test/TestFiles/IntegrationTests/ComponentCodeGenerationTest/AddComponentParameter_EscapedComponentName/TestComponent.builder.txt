@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.@int>()
+[0001] AddComponentParameter(nameof(global::Test.@int. Value ), "Hello")

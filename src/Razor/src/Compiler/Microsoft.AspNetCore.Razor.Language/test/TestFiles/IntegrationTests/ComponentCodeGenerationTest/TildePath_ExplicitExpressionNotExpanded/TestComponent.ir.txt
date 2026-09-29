@@ -1,0 +1,13 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                MarkupElement - (0:0,0 [36] x:\dir\subdir\Test\TestComponent.cshtml) - img
+                    HtmlAttribute - (4:0,4 [29] x:\dir\subdir\Test\TestComponent.cshtml) -  src=" - "
+                        CSharpExpressionAttributeValue - (10:0,10 [22] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (12:0,12 [19] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "~/images/logo.png"

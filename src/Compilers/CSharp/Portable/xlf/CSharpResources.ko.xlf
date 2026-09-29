@@ -222,6 +222,11 @@
         <target state="translated">{0} 인수는 언어 버전 {1}의 'ref' 키워드와 함께 전달될 수 없습니다. 'ref' 인수를 'in' 매개 변수에 전달하려면 언어 버전 {2} 이상으로 업그레이드하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="translated">'fixed' 문의 컨텍스트에서 대기할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">연산자 '{0}'은(는) UTF-8 바이트 표현이 아닌 '{1}' 및 '{2}' 유형의 피연산자에 적용할 수 없습니다.</target>
@@ -723,8 +728,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
-        <target state="new">A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</target>
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="translated">'not' 또는 'or' 패턴 안에 변수를 선언할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -1030,6 +1035,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion14">
         <source>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' 기능은 C# 14.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion15">
+        <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
+        <target state="translated">'{0}' 기능은 C# 15.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1520,6 +1530,11 @@
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">'Experimental' 특성에 대한 diagnosticId 인수는 유효한 식별자여야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidPropertyUnsafeMods">
+        <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
+        <target state="translated">'{0}' 속성 또는 인덱서와 해당 접근자 둘 다에 'unsafe' 또는 'safe' 한정자를 지정할 수 없습니다. 둘 중 하나를 제거하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
@@ -2517,10 +2532,15 @@
         <target state="translated">대상 런타임에서 확장 가능 또는 런타임 환경 기본 호출 규칙을 지원하지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_SafeModifierUnsupportedTarget">
-        <source>The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</source>
-        <target state="new">The 'safe' modifier may only be used on members that are not marked 'unsafe' and are either 'extern', or field-like in types with explicit or extended layout.</target>
-        <note>'safe', 'extern', and 'unsafe' should not be localized.</note>
+      <trans-unit id="ERR_SafeModifierCannotBeUsedWithUnsafe">
+        <source>The 'safe' and 'unsafe' modifiers cannot be used together.</source>
+        <target state="translated">'safe'와 'unsafe' 한정자는 함께 사용할 수 없습니다.</target>
+        <note>'safe' and 'unsafe' should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="ERR_SamePropertyUnsafeAccessorMods">
+        <source>Cannot specify the same 'unsafe' or 'safe' modifier on all accessors of property or indexer '{0}'. Instead, put that modifier on the property itself.</source>
+        <target state="translated">속성 또는 인덱서 '{0}'의 모든 접근자에 동일한 'unsafe' 또는 'safe' 한정자를 지정할 수 없습니다. 대신 해당 한정자를 속성 자체에 지정하세요.</target>
+        <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedAfterInOutRefReadonly">
         <source>The 'scoped' modifier cannot come after an 'in', 'out', 'ref' or 'readonly' modifier.</source>
@@ -2942,11 +2962,6 @@
         <target state="translated">using 지시문은 이전에 전역 using으로 나타났습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="HDN_RedundantPattern">
-        <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="HDN_RedundantPatternStackGuard">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">패턴이 너무 복잡하여 중복성을 분석할 수 없습니다.</target>
@@ -2955,11 +2970,6 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">패턴이 너무 복잡하여 중복성을 분석할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="HDN_RedundantPattern_Title">
-        <source>The pattern is redundant.</source>
-        <target state="new">The pattern is redundant.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -11434,11 +11444,6 @@ C#에서는 out과 ref를 구분하지만 CLR에서는 동일한 것으로 간�
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">await' 연산자는 정적 스크립트 변수 이니셜라이저에서 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="new">Cannot await in an unsafe context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

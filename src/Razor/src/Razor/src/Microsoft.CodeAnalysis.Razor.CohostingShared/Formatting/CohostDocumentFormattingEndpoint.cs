@@ -62,7 +62,7 @@ internal sealed class CohostDocumentFormattingEndpoint(
 
     protected override Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
         return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 
@@ -124,6 +124,9 @@ internal sealed class CohostDocumentFormattingEndpoint(
 
     internal readonly struct TestAccessor(CohostDocumentFormattingEndpoint instance)
     {
+        public Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
+            => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+
         public Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, CancellationToken cancellationToken)
             => instance.HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }

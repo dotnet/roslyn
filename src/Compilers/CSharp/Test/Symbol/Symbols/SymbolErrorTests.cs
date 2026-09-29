@@ -14748,9 +14748,9 @@ namespace TestNamespace
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (3,23): error CS1014: A get, set or init accessor expected
+                // (3,23): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     public object P { partial get; set; }
-                Diagnostic(ErrorCode.ERR_GetOrSetExpected, "partial").WithLocation(3, 23),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(3, 23),
                 // (4,34): error CS1014: A get, set or init accessor expected
                 //     object Q { get { return 0; } add { } }
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 34));

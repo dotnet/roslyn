@@ -15,7 +15,7 @@ public sealed class StackOverflowProbingTests : CSharpTestBase
 {
     private static readonly EmitOptions s_emitOptions = EmitOptions.Default.WithInstrumentationKinds([InstrumentationKind.StackOverflowProbing]);
 
-    private CompilationVerifier CompileAndVerify(string source, string? expectedOutput = null, CSharpCompilationOptions? options = null, Verification? verification = null)
+    private CompilationVerifier CompileAndVerify(CSharpTestSource source, string? expectedOutput = null, CSharpCompilationOptions? options = null, Verification? verification = null)
         => CompileAndVerify(
             source,
             options: options ?? (expectedOutput != null ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll),
@@ -761,6 +761,33 @@ public sealed class StackOverflowProbingTests : CSharpTestBase
               IL_000e:  call       "object..ctor()"
               IL_0013:  nop
               IL_0014:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void UnionDeclaration_01()
+    {
+        var source = """
+            public union TestUnion(string, int);
+            """;
+
+        var verifier = CompileAndVerify([source, UnionAttributeSource, IUnionSource]);
+
+        AssertNotInstrumented(verifier, "TestUnion.Value.get");
+
+        verifier.VerifyIL("TestUnion..ctor(int)", """
+            {
+              // Code size       20 (0x14)
+              .maxstack  2
+              IL_0000:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.EnsureSufficientExecutionStack()"
+              IL_0005:  nop
+              IL_0006:  ldarg.0
+              IL_0007:  ldarg.1
+              IL_0008:  box        "int"
+              IL_000d:  stfld      "object TestUnion.<Value>k__BackingField"
+              IL_0012:  nop
+              IL_0013:  ret
             }
             """);
     }

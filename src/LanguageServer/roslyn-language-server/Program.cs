@@ -71,27 +71,29 @@ internal static class Program
         Stream daemonStream,
         EditorConnection editorConnection)
     {
-        var relayResult = await LspRelay.RelayAsync(
+        var relayCompletionKind = await LspRelay.RelayAsync(
             editorConnection.Input,
             editorConnection.Output,
             daemonStream,
             daemonStream);
 
-        // A clean LSP shutdown closes both sides; report success so the editor doesn't treat it as a crash.
-        if (relayResult.BothSidesClosed)
+        switch (relayCompletionKind)
         {
-            Console.Error.WriteLine("Language server session ended cleanly.");
-            return ExitCodes.Success;
-        }
+            case RelayCompletionKind.CleanShutdown:
+                Console.Error.WriteLine("Language server session ended cleanly.");
+                return ExitCodes.Success;
 
-        if (relayResult.ClosedEndpoint == RelayEndpoint.Editor)
-        {
-            Console.Error.WriteLine("Editor connection closed before the language server daemon connection.");
-            return ExitCodes.EditorConnectionLost;
-        }
+            case RelayCompletionKind.EditorConnectionLost:
+                Console.Error.WriteLine("Editor connection closed before the language server daemon connection.");
+                return ExitCodes.EditorConnectionLost;
 
-        Console.Error.WriteLine("Language server daemon connection closed before the editor connection.");
-        return ExitCodes.ServerConnectionLost;
+            case RelayCompletionKind.ServerConnectionLost:
+                Console.Error.WriteLine("Language server daemon connection closed before the editor connection.");
+                return ExitCodes.ServerConnectionLost;
+
+            default:
+                throw new InvalidOperationException($"Unexpected relay completion kind: {relayCompletionKind}");
+        }
     }
 
     private static Task StartClientProcessMonitorAsync(int? processId)

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -23,6 +22,9 @@ internal readonly struct EmitSolutionUpdateResults
     [DataContract]
     internal readonly struct Data
     {
+        [DataMember]
+        public required SolutionAction SolutionAction { get; init; }
+
         [DataMember]
         public required ModuleUpdates ModuleUpdates { get; init; }
 
@@ -89,8 +91,12 @@ internal readonly struct EmitSolutionUpdateResults
                 Location.None,
                 errorMessage);
 
+            // An internal error should be treated as a blocking rude edit in all running projects
+            // since restarting all projects will apply any changes that were made and allow the user to continue debugging.
+
             return new()
             {
+                SolutionAction = SolutionAction.None,
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
                 Diagnostics = [DiagnosticData.Create(diagnostic, firstProject)],
                 SyntaxError = null,
@@ -104,6 +110,7 @@ internal readonly struct EmitSolutionUpdateResults
     public static readonly EmitSolutionUpdateResults Empty = new()
     {
         Solution = null,
+        SolutionAction = SolutionAction.None,
         ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.None, []),
         Diagnostics = [],
         SyntaxError = null,
@@ -120,6 +127,11 @@ internal readonly struct EmitSolutionUpdateResults
     /// Null only for empty results.
     /// </summary>
     public required Solution? Solution { get; init; }
+
+    /// <summary>
+    /// Action taken on the solution.
+    /// </summary>
+    public required SolutionAction SolutionAction { get; init; }
 
     public required ModuleUpdates ModuleUpdates { get; init; }
 
@@ -153,6 +165,7 @@ internal readonly struct EmitSolutionUpdateResults
         => Solution == null
         ? new()
         {
+            SolutionAction = SolutionAction,
             ModuleUpdates = ModuleUpdates,
             Diagnostics = [],
             SyntaxError = null,
@@ -162,6 +175,7 @@ internal readonly struct EmitSolutionUpdateResults
         }
         : new()
         {
+            SolutionAction = SolutionAction,
             ModuleUpdates = ModuleUpdates,
             Diagnostics = Diagnostics.ToDiagnosticData(Solution),
             SyntaxError = GetSyntaxErrorData(),

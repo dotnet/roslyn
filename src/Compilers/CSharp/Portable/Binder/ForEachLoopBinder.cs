@@ -729,7 +729,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode exprSyntax = collectionExpr.Syntax;
 
                 MethodSymbol nullableValueGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Nullable_T_get_Value, diagnostics, exprSyntax);
-                if ((object)nullableValueGetter != null)
+
+                // 'collectionExprType' can be a constructed error type over a missing 'System.Nullable<T>', for example when
+                // it comes from a compilation without a core library. Adjusting 'get_Value' to such a type is not possible,
+                // so the collection expression is treated as bad instead.
+                if ((object)nullableValueGetter != null &&
+                    ReferenceEquals(collectionExprType.OriginalDefinition, nullableValueGetter.ContainingSymbol))
                 {
                     nullableValueGetter = nullableValueGetter.AsMember((NamedTypeSymbol)collectionExprType);
 

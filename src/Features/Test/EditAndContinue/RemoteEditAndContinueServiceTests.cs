@@ -209,6 +209,7 @@ public sealed class RemoteEditAndContinueServiceTests
 
             return new()
             {
+                SolutionAction = SolutionAction.None,
                 Solution = solution,
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,

@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
@@ -49,5 +50,17 @@ public class HtmlErrorTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     public void WithUnfinishedTagAtEOFErrorsWithIncompleteTag()
     {
         ParseDocumentTest("@{<foo bar=baz");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/12810")]
+    public void EmptyOuterTagProducesWarningInMarkupBlock()
+    {
+        ParseDocumentTest("@{<>foo</>}");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/razor/issues/12810")]
+    public void EmptyOuterTagProducesWarningInTemplateExpression()
+    {
+        ParseDocumentTest("@Html.Repeat(10, @<>Foo #@item</>)");
     }
 }

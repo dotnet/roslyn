@@ -75,14 +75,12 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         _workQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.Medium,
             ComputeViewStateAsync,
-            asyncListener,
-            _threadingContext.DisposalToken);
+            asyncListener);
 
         _selectionQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.Medium,
             UpdateSelectionAsync,
-            asyncListener,
-            _threadingContext.DisposalToken);
+            asyncListener);
 
         _taggerEventSource = TaggerEventSources.Compose(
             TaggerEventSources.OnTextChanged(_textBuffer),
@@ -102,6 +100,8 @@ internal sealed partial class DocumentOutlineViewModel : INotifyPropertyChanged,
         _isDisposed = true;
         _taggerEventSource.Changed -= OnEventSourceChanged;
         _taggerEventSource.Disconnect();
+        _workQueue.Dispose();
+        _selectionQueue.Dispose();
     }
 
     private static DocumentOutlineViewState CreateEmptyViewState(ITextSnapshot currentSnapshot)

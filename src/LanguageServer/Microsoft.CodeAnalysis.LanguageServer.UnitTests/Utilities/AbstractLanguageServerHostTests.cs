@@ -14,7 +14,9 @@ using Roslyn.LanguageServer.Protocol;
 using StreamJsonRpc;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 
@@ -48,7 +50,8 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
         SourceGeneratorExecutionPreference: SourceGeneratorExecutionPreference.Balanced,
         ClientProcessId: null);
 
-    internal static ServerConfiguration ServerConfigurationWithoutDevKit => DefaultServerConfiguration with { DevKitDependencyPath = null };
+    internal static ServerConfiguration ServerConfigurationWithoutDevKit
+        => DefaultServerConfiguration with { DevKitDependencyPath = null };
 
     private protected virtual Task<ExportProvider> CreateExportProviderAsync(
         ServerConfiguration serverConfiguration,
@@ -210,6 +213,43 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         internal T GetRequiredLspService<T>() where T : class
             => GetServerForLspServices().GetLspServices().GetRequiredService<T>();
+
+        internal async Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths, CancellationToken cancellationToken)
+        {
+            Contract.ThrowIfTrue(projectFilePaths.IsEmpty);
+
+            await ExecuteProjectLoadNotificationAsync(
+                () => ExecuteNotificationAsync(
+                    OpenProjectHandler.OpenProjectName,
+                    new OpenProjectHandler.NotificationParams
+                    {
+                        Projects = [.. projectFilePaths.Select(ProtocolConversions.CreateAbsoluteDocumentUri)],
+                    }),
+                cancellationToken);
+        }
+
+        internal async Task OpenSolutionAsync(string solutionFilePath, CancellationToken cancellationToken)
+        {
+            await ExecuteProjectLoadNotificationAsync(
+                () => ExecuteNotificationAsync(
+                    OpenSolutionHandler.OpenSolutionName,
+                    new OpenSolutionHandler.NotificationParams
+                    {
+                        Solution = ProtocolConversions.CreateAbsoluteDocumentUri(solutionFilePath),
+                    }),
+                cancellationToken);
+        }
+
+        private async Task ExecuteProjectLoadNotificationAsync(Func<Task> executeNotificationAsync, CancellationToken cancellationToken)
+        {
+            var completionSource = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            _clientRpc.AddLocalRpcMethod(
+                ProjectInitializationHandler.ProjectInitializationCompleteName,
+                () => completionSource.TrySetResult());
+
+            await executeNotificationAsync();
+            await completionSource.Task.WaitAsync(cancellationToken);
+        }
 
         /// <summary>The language server host whose MEF services back <see cref="GetRequiredLspService{T}"/>.</summary>
         private protected abstract LanguageServerHost GetServerForLspServices();
@@ -378,6 +418,9 @@ public abstract class AbstractLanguageServerHostTests : IDisposable
 
         // A "crashed" client has already dropped its transport, so skip the clean shutdown/exit handshake on dispose.
         private protected override bool ShouldShutDownCleanly => !_crashed;
+
+        private protected override Task WaitForServerShutdownAsync()
+            => _daemonServer?.WaitForExitAsync() ?? Task.CompletedTask;
 
         private protected override ValueTask DisposeTransportAsync() => _daemonClientStream.DisposeAsync();
     }

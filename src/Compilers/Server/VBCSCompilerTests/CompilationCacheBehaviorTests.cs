@@ -299,6 +299,57 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
         Assert.False(File.Exists(Path.Combine(workingDirectory.Path, keyFileName)));
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/84889")]
+    public async Task CacheHit_SupportsBinaryAdditionalFiles(bool visualBasic)
+    {
+        var workingDirectory = Temp.CreateDirectory();
+        var cacheDirectory = Temp.CreateDirectory();
+        var sourceFileName = visualBasic ? "test.vb" : "test.cs";
+        var outputFileName = "test.dll";
+        var additionalFileName = "additional.bin";
+        var outputFilePath = Path.Combine(workingDirectory.Path, outputFileName);
+        var additionalFilePath = Path.Combine(workingDirectory.Path, additionalFileName);
+        var source = visualBasic
+            ? """
+            Public Class TestType
+            End Class
+            """
+            : """
+            public class TestType
+            {
+            }
+            """;
+
+        File.WriteAllBytes(additionalFilePath, [0, 0]);
+
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(
+            visualBasic,
+            serverData.PipeName,
+            sourceFileName,
+            outputFileName,
+            additionalArguments: $"/additionalfile:{additionalFileName}",
+            cachePath: cacheDirectory.Path);
+
+        var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
+        Assert.Equal(0, exitCode);
+        Assert.DoesNotContain("CS2015", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Compilation result restored from cache.", output, StringComparison.Ordinal);
+
+        File.Delete(outputFilePath);
+
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
+
+        File.Delete(outputFilePath);
+        File.WriteAllBytes(additionalFilePath, [0, 0, 1]);
+
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.DoesNotContain("Compilation result restored from cache.", output, StringComparison.Ordinal);
+    }
+
     private static RequestLanguage GetLanguage(bool visualBasic)
         => visualBasic ? RequestLanguage.VisualBasicCompile : RequestLanguage.CSharpCompile;
 

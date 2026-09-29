@@ -11,5 +11,3 @@
                     ComponentAttribute -  - @Bind-Placeholder -  - AttributeStructure.DoubleQuotes
                         CSharpExpression - (32:0,32 [2] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (33:0,33 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - s
-            CSharpCode - (49:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (49:2,7 [33] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private string s = "abc";\n

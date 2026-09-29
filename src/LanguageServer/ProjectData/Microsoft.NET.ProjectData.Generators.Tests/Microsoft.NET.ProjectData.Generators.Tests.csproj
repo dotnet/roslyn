@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Roslyn expects all unit test projects end with "UnitTests" -->
+    <AssemblyName>Microsoft.NET.ProjectData.Generators.UnitTests</AssemblyName>
+    <RootNamespace>Microsoft.NET.ProjectData.Generators.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.NET.ProjectData.Generators\Microsoft.NET.ProjectData.Generators.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+  </ItemGroup>
+
+</Project>

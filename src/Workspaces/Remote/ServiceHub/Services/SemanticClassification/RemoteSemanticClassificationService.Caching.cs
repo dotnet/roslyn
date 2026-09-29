@@ -54,7 +54,6 @@ internal sealed partial class RemoteSemanticClassificationService : BrokeredServ
     /// However, we'll only process the last version of any document added.
     /// </summary>
     private readonly AsyncBatchingWorkQueue<(Document, ClassificationType type, ClassificationOptions)> _workQueue;
-    private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     public RemoteSemanticClassificationService(in ServiceConstructionArguments arguments)
         : base(arguments)
@@ -63,13 +62,12 @@ internal sealed partial class RemoteSemanticClassificationService : BrokeredServ
             DelayTimeSpan.NonFocus,
             CacheClassificationsAsync,
             EqualityComparer<(Document, ClassificationType, ClassificationOptions)>.Default,
-            AsynchronousOperationListenerProvider.NullListener,
-            _cancellationTokenSource.Token);
+            AsynchronousOperationListenerProvider.NullListener);
     }
 
     public override void Dispose()
     {
-        _cancellationTokenSource.Cancel();
+        _workQueue.Dispose();
         base.Dispose();
     }
 

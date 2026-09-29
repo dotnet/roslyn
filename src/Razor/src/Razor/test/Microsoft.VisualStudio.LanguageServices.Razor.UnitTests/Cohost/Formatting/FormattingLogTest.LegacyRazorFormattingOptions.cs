@@ -34,7 +34,8 @@ public partial class FormattingLogTest
                 TabSize = TabSize,
                 CodeBlockBraceOnNextLine = CodeBlockBraceOnNextLine,
                 AttributeIndentStyle = AttributeIndentStyle,
-                CSharpSyntaxFormattingOptions = CSharpSyntaxFormattingOptions?.ToCSharpSyntaxFormattingOptions(),
+                CSharpSyntaxFormattingOptions = CSharpSyntaxFormattingOptions?.ToCSharpSyntaxFormattingOptions()
+                    ?? Microsoft.CodeAnalysis.CSharp.Formatting.CSharpSyntaxFormattingOptions.Default,
                 FromPaste = FromPaste,
             };
     }

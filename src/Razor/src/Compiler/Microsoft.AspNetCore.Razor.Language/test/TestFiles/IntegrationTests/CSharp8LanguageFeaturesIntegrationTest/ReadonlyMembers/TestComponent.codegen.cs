@@ -19,26 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(14,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public readonly struct Measurement
-    {
-        private readonly int _value;
-    
-        public Measurement(int value)
-        {
-            _value = value;
-        }
-    
-        public readonly int GetValue()
-            => _value;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

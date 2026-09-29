@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -42,6 +43,96 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
             """;
 
         await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.GenerateMethod);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task GenerateMethod_UsesEditorConfig_Razor()
+    {
+        var input = """
+            @code
+            {
+                private void M()
+                {
+                    [||]NewMethod();
+                }
+            }
+            """;
+
+        var expected = """
+            @using System
+            @code
+            {
+                private void M()
+                {
+                NewMethod();
+                }
+
+                private void NewMethod()
+                {
+                throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateMethod,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task GenerateMethod_UsesEditorConfig_Cshtml()
+    {
+        var input = """
+            @functions
+            {
+                private void M()
+                {
+                    [||]NewMethod();
+                }
+            }
+            """;
+
+        var expected = """
+            @functions
+            {
+                private void M()
+                {
+                NewMethod();
+                }
+
+                private void NewMethod()
+                {
+                throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateMethod,
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
     }
 
     [Fact]
@@ -368,7 +459,7 @@ public class GenerateMethodTests(ITestOutputHelper testOutputHelper) : CohostCod
                 }
             }
 
-            @code {}
+            @code { }
             """;
 
         await VerifyCodeActionAsync(input, expected, PredefinedCodeFixProviderNames.GenerateMethod);

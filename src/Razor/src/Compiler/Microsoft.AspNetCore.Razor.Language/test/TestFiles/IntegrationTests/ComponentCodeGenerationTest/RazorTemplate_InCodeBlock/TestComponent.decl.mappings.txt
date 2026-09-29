@@ -1,0 +1,15 @@
+﻿Source Location: (84:3,7 [76] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    class Person
+    {
+        public string Name { get; set; }
+    }
+|
+Generated Location: (557:18,0 [76] )
+|
+    class Person
+    {
+        public string Name { get; set; }
+    }
+|
+

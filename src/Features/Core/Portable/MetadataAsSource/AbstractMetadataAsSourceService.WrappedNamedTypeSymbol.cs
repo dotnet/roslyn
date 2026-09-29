@@ -144,12 +144,15 @@ internal abstract partial class AbstractMetadataAsSourceService
 
         public bool IsUnion => _symbol.IsUnion;
 
+        public ImmutableArray<ITypeSymbol> UnionCaseTypes => _symbol.UnionCaseTypes;
+
         public bool IsNativeIntegerType => _symbol.IsNativeIntegerType;
 
         public bool IsExtension => _symbol.IsExtension;
         public IParameterSymbol ExtensionParameter => _symbol.ExtensionParameter;
         public string ExtensionGroupingName => _symbol.ExtensionGroupingName;
         public string ExtensionMarkerName => _symbol.ExtensionMarkerName;
+        public TypeLayout TypeLayout => _symbol.TypeLayout;
 
         public bool IsFileLocal => _symbol.IsFileLocal;
 

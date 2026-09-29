@@ -179,7 +179,7 @@ public sealed class VirtualKeywordRecommenderTests : KeywordRecommenderTests
         => VerifyAbsenceAsync("""
             union U(int) {
                $$
-            """, CSharpNextParseOptions, CSharpNextScriptParseOptions);
+            """, CSharp15ParseOptions, CSharp15ScriptParseOptions);
 
     [Fact]
     public Task TestInsideInterface()

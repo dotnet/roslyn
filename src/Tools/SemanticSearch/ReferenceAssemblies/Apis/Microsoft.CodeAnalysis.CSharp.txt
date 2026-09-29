@@ -1214,6 +1214,7 @@ Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp11
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp13
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp14
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp15
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp2
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp3
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp4

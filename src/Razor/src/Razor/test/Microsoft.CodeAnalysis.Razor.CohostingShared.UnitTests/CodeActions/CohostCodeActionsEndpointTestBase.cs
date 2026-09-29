@@ -193,7 +193,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
     private async Task<WorkspaceEdit> ResolveCodeActionAsync(CodeAnalysis.TextDocument document, CodeAction codeAction)
     {
         var requestInvoker = new TestHtmlRequestInvoker();
-        var endpoint = new CohostCodeActionsResolveEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, requestInvoker);
+        var endpoint = new CohostCodeActionsResolveEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, ClientSettingsManager, requestInvoker);
 
         var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, codeAction, DisposalToken);
 

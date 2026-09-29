@@ -11,5 +11,5 @@ namespace Microsoft.CodeAnalysis.Razor.CodeActions;
 
 internal interface IRazorCodeActionResolver : ICodeActionResolver
 {
-    Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken);
+    Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken);
 }

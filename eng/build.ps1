@@ -41,6 +41,8 @@ param (
   [switch]$skipDocumentation = $false,
   [switch][Alias('d')]$deployExtensions,
   [switch]$prepareMachine,
+  [bool][Alias('mt')]$msbuildMultiThreaded = $false,
+  [bool]$nodeReuse = $true,
   [switch]$useGlobalNuGetCache = $true,
   [switch]$warnAsError = $false,
   [string]$warnNotAsError = "",
@@ -78,6 +80,12 @@ param (
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference = "Stop"
+
+# Node reuse isn't used on CI unless it was explicitly requested via -nodeReuse.
+# tools.ps1 reads $nodeReuse, so this has to be settled before Arcade is imported.
+if ($ci -and -not $PSBoundParameters.ContainsKey('nodeReuse')) {
+  $nodeReuse = $false
+}
 
 function Print-Usage() {
   Write-Host "Common settings:"
@@ -118,6 +126,8 @@ function Print-Usage() {
   Write-Host "  -runAnalyzers             Run analyzers during build operations (short: -a)"
   Write-Host "  -skipDocumentation        Skip generation of XML documentation files"
   Write-Host "  -prepareMachine           Prepare machine for CI run, clean up processes after build"
+  Write-Host "  -msbuildMultiThreaded <value> Sets MSBuild's multi-threaded mode, i.e. the -mt switch ('1' or '0') (short: -mt)"
+  Write-Host "  -nodeReuse <value>        Sets nodereuse msbuild parameter ('1' or '0')"
   Write-Host "  -useGlobalNuGetCache      Use global NuGet cache."
   Write-Host "  -warnAsError              Treat all warnings as errors"
   Write-Host "  -warnNotAsError <codes>   Suppress specific warnings from being treated as errors (semi-colon delimited)"
@@ -227,7 +237,7 @@ function Process-Arguments() {
   }
 
   foreach ($property in $properties) {
-    if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase")) {
+    if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase") -and !$property.StartsWith("/clp:", "InvariantCultureIgnoreCase")) {
       Write-Host "Invalid argument: $property"
       Print-Usage
       exit 1

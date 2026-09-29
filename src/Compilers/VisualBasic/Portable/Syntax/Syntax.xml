@@ -1387,7 +1387,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Accessors" list="true"  kind="GetAccessorBlock|SetAccessorBlock">
+      <child name="Accessors" list="true"  kind="GetAccessorBlock|SetAccessorBlock" min-count="1">
         <description>
           The accessor blocks contained in the property, between the Property and
           the End Property statements.
@@ -1428,7 +1428,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
 
-      <child name="Accessors" list="true"  kind="AddHandlerAccessorBlock|RemoveHandlerAccessorBlock|RaiseEventAccessorBlock">
+      <child name="Accessors" list="true"  kind="AddHandlerAccessorBlock|RemoveHandlerAccessorBlock|RaiseEventAccessorBlock" min-count="1">
         <description>
           The accessor blocks contained in the custom event declaration, between the Event statement and
           the End Event statement.
@@ -2859,7 +2859,7 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Field"></lm-equiv>
         <native-equiv name="Statement.Opcodes.VariableDeclaration"></native-equiv>
       </node-kind>
-      <child name="Modifiers" list="true" kind="StaticKeyword|DimKeyword|ConstKeyword">
+      <child name="Modifiers" list="true" kind="StaticKeyword|DimKeyword|ConstKeyword" min-count="1">
         <description>
           The modifier token (Static, Dim or Const) that introduces this local variable declaration.
         </description>
@@ -6126,7 +6126,9 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="BlockStatement.Children"></native-equiv>
       </child>
 
-      <child name="EndSubOrFunctionStatement" kind="EndSubStatement|EndFunctionStatement">
+      <!-- Keep these kinds in the same order as the node-kinds above.  The grammar generator
+           pairs a child's kinds with the containing structure's node-kinds by position. -->
+      <child name="EndSubOrFunctionStatement" kind="EndFunctionStatement|EndSubStatement">
         <description>
           Returns the "End Sub" or "End Function" statement if this is a multi-line lambda.
         </description>
@@ -6322,7 +6324,7 @@ Unify Enum declarations with other block type declarations.
 
       <node-kind name="QueryExpression"/>
 
-      <child name="Clauses" list="true" kind="@QueryClauseSyntax">
+      <child name="Clauses" list="true" kind="@QueryClauseSyntax" min-count="1">
         <description>
           A list of all the query operators in this query expression. This list always contains
           at least one operator.
@@ -7194,7 +7196,7 @@ Unify Enum declarations with other block type declarations.
       <node-kind name="XmlText">
       </node-kind>
 
-      <child name="TextTokens" list="true" kind="XmlTextLiteralToken">
+      <child name="TextTokens" list="true" kind="XmlTextLiteralToken" min-count="1">
         <description>
           A list of all the text tokens in the Xml text.
           This list always contains at least one token.
@@ -7418,7 +7420,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="ElementType"></native-equiv>
       </child>
 
-      <child name="RankSpecifiers" list="true" kind="ArrayRankSpecifier">
+      <child name="RankSpecifiers" list="true" kind="ArrayRankSpecifier" min-count="1">
         <description>Represents the list of "()" or "(,,)" modifiers on the array type.</description>
       </child>
     </node-structure>

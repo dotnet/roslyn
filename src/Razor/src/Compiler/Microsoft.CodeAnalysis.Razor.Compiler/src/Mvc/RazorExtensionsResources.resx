@@ -138,6 +138,9 @@
   <data name="ModelDirective_Description" xml:space="preserve">
     <value>Specify the view or page model for the page.</value>
   </data>
+  <data name="ModelDirective_ModelTypeNotApplied" xml:space="preserve">
+    <value>The '@model' directive is not applied to the generated base class because the '@inherits' directive does not contain '&lt;TModel&gt;'.</value>
+  </data>
   <data name="ModelDirective_TypeToken_Description" xml:space="preserve">
     <value>The model type.</value>
   </data>

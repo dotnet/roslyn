@@ -20,12 +20,14 @@ internal static class ComponentsApi
         public const string MetadataName = FullTypeName;
 
         public const string BuildRenderTree = nameof(BuildRenderTree);
+        public const string Assets = nameof(Assets);
     }
 
     public static class ParameterAttribute
     {
         public const string FullTypeName = "Microsoft.AspNetCore.Components.ParameterAttribute";
         public const string MetadataName = FullTypeName;
+        public const string CaptureUnmatchedValues = nameof(CaptureUnmatchedValues);
     }
 
     public static class LayoutAttribute
@@ -48,6 +50,11 @@ internal static class ComponentsApi
     public static class IDictionary
     {
         public const string MetadataName = "System.Collection.IDictionary`2";
+    }
+
+    public static class Dictionary
+    {
+        public const string MetadataName = "System.Collections.Generic.Dictionary`2";
     }
 
     public static class IComponentRenderMode
@@ -153,6 +160,22 @@ internal static class ComponentsApi
     public static class EventHandlerAttribute
     {
         public const string FullTypeName = "Microsoft.AspNetCore.Components.EventHandlerAttribute";
+    }
+
+    public static class AssetPathAttribute
+    {
+        public const string FullTypeName = "Microsoft.AspNetCore.Components.AssetPathAttribute";
+        public const string MetadataName = FullTypeName;
+    }
+
+    public static class AcceptsAssetPathAttribute
+    {
+        public const string FullTypeName = "Microsoft.AspNetCore.Components.AcceptsAssetPathAttribute";
+        public const string MetadataName = FullTypeName;
+
+        // Name of the public type the runtime decorates with [AcceptsAssetPath] declarations;
+        // the compiler discovers it by name to build the asset-path allowlist.
+        public const string CandidateTypeName = "AssetPathAttributes";
     }
 
     public static class ElementReference

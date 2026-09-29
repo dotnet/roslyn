@@ -51,6 +51,7 @@ src/Tools/BuildActionTelemetryTable @dotnet/roslyn-infrastructure
 src/Tools/BuildBoss @dotnet/roslyn-infrastructure
 src/Tools/BuildValidator @dotnet/roslyn-infrastructure
 src/Tools/dotnet-format @dotnet/roslyn-infrastructure
+src/Tools/dotnet-roslyn-tools/ @dotnet/roslyn-infrastructure
 src/Tools/ExternalAccess @dotnet/roslyn-ide
 src/Tools/IdeBenchmarks @dotnet/roslyn-ide
 src/Tools/IdeCoreBenchmarks @dotnet/roslyn-ide

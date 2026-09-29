@@ -28,6 +28,7 @@ public static class CompilerFeatures
             builder.Features.Add(new RefTagHelperProducer.Factory());
             builder.Features.Add(new KeyTagHelperProducer.Factory());
             builder.Features.Add(new SplatTagHelperProducer.Factory());
+            builder.Features.Add(new AcceptsAssetPathTagHelperProducer.Factory());
         }
 
         if (builder.Configuration.LanguageVersion >= RazorLanguageVersion.Version_8_0)

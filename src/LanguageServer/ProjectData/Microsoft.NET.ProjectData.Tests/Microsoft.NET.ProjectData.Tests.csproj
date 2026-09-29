@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- Roslyn expects all unit test projects end with "UnitTests" -->
+    <AssemblyName>Microsoft.NET.ProjectData.UnitTests</AssemblyName>
+    <RootNamespace>Microsoft.NET.ProjectData.Tests</RootNamespace>
+    <IsPackable>false</IsPackable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+    <ProjectReference Include="..\Microsoft.NET.ProjectData\Microsoft.NET.ProjectData.csproj" />
+  </ItemGroup>
+
+</Project>

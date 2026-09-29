@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -65,8 +64,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
     public ExternalErrorDiagnosticUpdateSource(
         VisualStudioWorkspace workspace,
         IAsynchronousOperationListenerProvider listenerProvider,
-        [Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker,
-        IThreadingContext threadingContext)
+        [Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker)
     {
         _workspace = workspace;
         _diagnosticCache = workspace.Services.GetRequiredService<VisualStudioDiagnosticIdCache>();
@@ -75,8 +73,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         _taskQueue = new AsyncBatchingWorkQueue<Func<CancellationToken, Task>>(
             TimeSpan.Zero,
             processBatchAsync: ProcessTaskQueueItemsAsync,
-            listenerProvider.GetListener(FeatureAttribute.ErrorList),
-            threadingContext.DisposalToken);
+            listenerProvider.GetListener(FeatureAttribute.ErrorList));
 
         // This pattern ensures that we are called whenever the build starts/completes even if it is already in progress.
         KnownUIContexts.SolutionBuildingContext.WhenActivated(() =>
@@ -110,6 +107,7 @@ internal sealed class ExternalErrorDiagnosticUpdateSource : IDisposable
         lock (_gate)
         {
             // Only called when the MEF catalog is disposed on shutdown.
+            _taskQueue.Dispose();
             _diagnosticManagerService?.Dispose();
         }
     }

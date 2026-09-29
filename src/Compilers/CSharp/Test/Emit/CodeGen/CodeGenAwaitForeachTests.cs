@@ -2720,11 +2720,11 @@ unsafe class C
         public int* Current { get => throw null; }
     }
 }";
-            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithTasksExtensions(source + s_IAsyncEnumerable, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
             comp.VerifyDiagnostics(
-                // (6,9): error CS4004: Cannot await in an unsafe context
+                // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await foreach (var i in new C())
-                Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(6, 9));
 
             var tree = comp.SyntaxTrees.Single();
             var model = (SyntaxTreeSemanticModel)comp.GetSemanticModel(tree, ignoreAccessibility: false);

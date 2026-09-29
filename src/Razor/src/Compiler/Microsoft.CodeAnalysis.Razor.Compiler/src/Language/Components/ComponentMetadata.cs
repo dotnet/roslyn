@@ -11,6 +11,7 @@ public sealed record class ComponentMetadata() : MetadataObject(MetadataKind.Com
 
     public bool IsGeneric { get; init; }
     public bool HasRenderModeDirective { get; init; }
+    internal bool AcceptsUnmatchedAttributes { get; init; }
 
     internal override bool HasDefaultValue => Equals(Default);
 
@@ -18,18 +19,21 @@ public sealed record class ComponentMetadata() : MetadataObject(MetadataKind.Com
     {
         builder.Append(IsGeneric);
         builder.Append(HasRenderModeDirective);
+        builder.Append(AcceptsUnmatchedAttributes);
     }
 
     public ref struct Builder
     {
         public bool IsGeneric { get; set; }
         public bool HasRenderModeDirective { get; set; }
+        internal bool AcceptsUnmatchedAttributes { get; set; }
 
         public readonly ComponentMetadata Build()
             => new()
             {
                 IsGeneric = IsGeneric,
-                HasRenderModeDirective = HasRenderModeDirective
+                HasRenderModeDirective = HasRenderModeDirective,
+                AcceptsUnmatchedAttributes = AcceptsUnmatchedAttributes
             };
     }
 }

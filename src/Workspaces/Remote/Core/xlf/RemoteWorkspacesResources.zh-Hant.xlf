@@ -32,11 +32,6 @@
         <target state="translated">Copilot 變更分析</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_CopilotProposalAdjuster">
-        <source>Copilot proposal adjuster</source>
-        <target state="translated">Copilot 提案調整器</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">相依類型尋找工具</target>

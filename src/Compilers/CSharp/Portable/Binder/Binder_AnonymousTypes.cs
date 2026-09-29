@@ -204,6 +204,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private TypeSymbol GetAnonymousTypeFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, BindingDiagnosticBag diagnostics)
+        {
+            bool hasError = false;
+            return GetAnonymousTypeFieldType(expression, errorSyntax, diagnostics, ref hasError);
+        }
+
         /// <summary>
         /// Returns the type to be used as a field type; generates errors in case the type is not
         /// supported for anonymous type fields.
@@ -248,8 +254,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 hasError = true;
                 Error(diagnostics, ErrorCode.ERR_AnonymousTypePropertyAssignedBadValue, errorSyntax, errorArg);
-                // NOTE: ERR_QueryRangeVariableAssignedBadValue is being generated 
-                //       by query binding code and never reach this point
             }
 
             return expressionType;
