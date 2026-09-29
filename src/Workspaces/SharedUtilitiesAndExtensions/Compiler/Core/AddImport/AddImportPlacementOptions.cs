@@ -4,6 +4,7 @@
 
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Formatting;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
@@ -24,6 +25,9 @@ internal sealed record class AddImportPlacementOptions
 
     [DataMember]
     public bool AllowInHiddenRegions { get; init; } = false;
+
+    [DataMember]
+    public string NewLine { get; init; } = LineFormattingOptions.Default.NewLine;
 
     public bool PlaceImportsInsideNamespaces => UsingDirectivePlacement.Value == AddImportPlacement.InsideNamespace;
 
