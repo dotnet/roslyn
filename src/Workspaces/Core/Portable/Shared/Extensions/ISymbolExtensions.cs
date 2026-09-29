@@ -671,14 +671,16 @@ internal static partial class ISymbolExtensions
                 // VB reports HidesBaseMethodsByName as true for every method, so only C# symbols can be trusted.
                 var hidesByName = hidingMethod.Language == LanguageNames.CSharp && hidingMethod.HidesBaseMethodsByName;
 
-                for (var baseType = hidingMethod.ContainingType?.BaseType; baseType != null; baseType = baseType.BaseType)
+                for (var baseType = hidingMethod.ContainingType.BaseType; baseType != null; baseType = baseType.BaseType)
                 {
                     foreach (var member in baseType.GetMembers(hidingMethod.Name))
                     {
-                        if (member is IMethodSymbol hiddenMethod &&
-                            (hidesByName || SignatureComparer.Instance.HaveSameSignature(hidingMethod, hiddenMethod, compilation.IsCaseSensitive)))
+                        if (member is IMethodSymbol baseMethod)
                         {
-                            overriddenSymbols.Add(hiddenMethod);
+                            if (hidesByName || SignatureComparer.Instance.HaveSameSignature(hidingMethod, baseMethod, compilation.IsCaseSensitive))
+                            {
+                                overriddenSymbols.Add(baseMethod);
+                            }
                         }
                     }
                 }
