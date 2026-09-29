@@ -991,13 +991,6 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerCts != null)
                 {
                     analyzerCts.Cancel();
-
-                    // The driver initialization task runs on a background thread and parts of it (e.g. binding
-                    // well-known types) do not observe cancellation. Wait for it to finish so it does not keep
-                    // loading symbols after the compilation has completed. Faults and cancellation are
-                    // intentionally not observed here; WaitAny does not throw for them.
-                    Debug.Assert(analyzerDriver != null);
-                    System.Threading.Tasks.Task.WaitAny(analyzerDriver.WhenInitializedTask);
                 }
 
                 var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
