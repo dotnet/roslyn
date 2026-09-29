@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,6 +23,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Workspaces.ProjectSystem.ProjectSystemProjectFactory;
 
@@ -996,34 +996,8 @@ internal sealed partial class ProjectSystemProject
     }
 
     private string? TryRedirectAnalyzerAssembly(string fullPath)
-    {
-        string? redirectedPath = null;
-
-        foreach (var redirector in _hostInfo.AnalyzerAssemblyRedirectors)
-        {
-            try
-            {
-                if (redirector.RedirectPath(fullPath) is { } currentlyRedirectedPath)
-                {
-                    if (redirectedPath == null)
-                    {
-                        redirectedPath = currentlyRedirectedPath;
-                        CodeAnalysisEventSource.Log.AnanlyzerReferenceRedirected(redirector.GetType().Name, fullPath, redirectedPath, DisplayName);
-                    }
-                    else if (redirectedPath != currentlyRedirectedPath)
-                    {
-                        throw new InvalidOperationException($"Multiple redirectors disagree on the path to redirect '{fullPath}' to ('{redirectedPath}' vs '{currentlyRedirectedPath}').");
-                    }
-                }
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
-            {
-                // Ignore if the external redirector throws.
-            }
-        }
-
-        return redirectedPath;
-    }
+        => AnalyzerAssemblyRedirectorUtilities.TryRedirectAnalyzerAssembly(
+            fullPath, _hostInfo.AnalyzerAssemblyRedirectors, logProjectName: DisplayName);
 
     private static readonly string s_csharpCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "cs");
     private static readonly string s_visualBasicCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "vb");

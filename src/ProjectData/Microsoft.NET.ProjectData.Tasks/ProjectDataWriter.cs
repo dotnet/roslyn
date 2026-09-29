@@ -1776,7 +1776,7 @@ internal static class ProjectDataWriter
 			if (!string.IsNullOrWhiteSpace(version))
 			{
 				this.VersionString = version!.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version.Substring(1) : version;
-				this.Version = Version.TryParse(this.VersionString, out Version v) ? v : null;
+				this.Version = Version.TryParse(this.VersionString, out Version? v) ? v : null;
 			}
 		}
 	}

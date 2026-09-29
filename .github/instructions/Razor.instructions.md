@@ -39,6 +39,11 @@ their original sub-tree layout
 - **Razor engine concurrency**: Hosts can process multiple documents concurrently through one
   `RazorProjectEngine`. Phase and pass instances are shared, so keep per-document state in locals
   or an execution context rather than mutable instance fields.
+- **Source-generator/project-engine boundary**: Source generators build incremental inputs and drive
+  the project engine by attaching project-wide inputs to `RazorCodeDocument`; compiler phases and
+  passes consume those document inputs rather than source-generator-specific state. Direct project-
+  engine tests that depend on those inputs must attach them explicitly instead of changing production
+  phases to preserve a test-only execution path.
 - **Razor documents in Roslyn**: Stored as additional documents. Resolve via
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
 - **Razor documents with virtual URIs**: Remote Razor document classification preserves the full
@@ -59,8 +64,8 @@ their original sub-tree layout
   a well-known name (`EventHandlers`, `AssetPathAttributes`). A `TagHelperProducer` under
   `Language/TagHelpers/Producers/` keys off that type name (`IsCandidateType`) and emits carrier
   `TagHelperDescriptor`s whose descriptor-level metadata carries the parsed values. A later
-  optimization pass reads the full discovered set via `ITagHelperFeature.GetTagHelpers()` (not the
-  document's in-scope tag helpers, which are namespace-scoped) and filters by metadata kind.
+  optimization pass reads the full discovered set from `RazorCodeDocument.GetRequiredTagHelpers()`.
+  Do not use the document's in-scope tag helpers, which are namespace-scoped.
 - **Visual Studio options**: Register Razor Advanced settings in
   `Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json`, localize
   their UI text in `VSPackage.resx`, read them through `OptionsStorage`, and add remotely consumed

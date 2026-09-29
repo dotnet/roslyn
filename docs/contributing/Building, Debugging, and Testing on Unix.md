@@ -111,3 +111,9 @@ Make sure to install the following via `apt install`
 - lldb
 - cmake
 - xrdp
+
+
+## Troubleshooting
+
+See the [Troubleshooting section](Building,%20Debugging,%20and%20Testing%20on%20Windows.md#troubleshooting)
+in the Windows doc, which is not Windows-specific (use `rm -rf` in place of `Remove-Item`).
