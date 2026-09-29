@@ -21,54 +21,13 @@ public sealed class ProcessMemoryTelemetryTests
         using var _ = telemetry.AddEventSink(sink);
         using var memoryTelemetry = new ProcessMemoryTelemetry(telemetry, () => 0, Timeout.InfiniteTimeSpan);
 
-        var snapshot = new ProcessMemorySnapshot(PrivateBytes: 300 * MB, WorkingSetBytes: 400 * MB, GCCommittedBytes: 200 * MB);
-        memoryTelemetry.LogSample(snapshot, activeClients: 7);
+        memoryTelemetry.LogSample(workingSetBytes: 400 * MB, gcCommittedBytes: 200 * MB, activeClients: 7);
 
         var properties = Assert.Single(sink.Events);
-        Assert.Equal(300L, properties[ProcessMemoryTelemetry.PrivateMBPropertyName]);
         Assert.Equal(400L, properties[ProcessMemoryTelemetry.WorkingSetMBPropertyName]);
         Assert.Equal(200L, properties[ProcessMemoryTelemetry.GCCommittedMBPropertyName]);
         Assert.Equal(7, properties[ProcessMemoryTelemetry.ActiveClientsPropertyName]);
         Assert.Contains(properties[ProcessMemoryTelemetry.GCModePropertyName], new[] { "Server", "Workstation" });
-    }
-
-    [Fact]
-    public void LogSample_OmitsPrivateMemoryWhenUnavailable()
-    {
-        var telemetry = new RoslynTelemetry();
-        var sink = new CapturingEventSink();
-        using var _ = telemetry.AddEventSink(sink);
-        using var memoryTelemetry = new ProcessMemoryTelemetry(telemetry, () => 0, Timeout.InfiniteTimeSpan);
-
-        var snapshot = new ProcessMemorySnapshot(PrivateBytes: null, WorkingSetBytes: 400 * MB, GCCommittedBytes: 200 * MB);
-        memoryTelemetry.LogSample(snapshot, activeClients: 1);
-
-        var properties = Assert.Single(sink.Events);
-        Assert.False(properties.ContainsKey(ProcessMemoryTelemetry.PrivateMBPropertyName));
-        Assert.Equal(400L, properties[ProcessMemoryTelemetry.WorkingSetMBPropertyName]);
-    }
-
-    [Theory]
-    [InlineData("RssAnon:\t  123456 kB", "RssAnon:", true, 123456)]
-    [InlineData("VmSwap:\t       0 kB", "VmSwap:", true, 0)]
-    [InlineData("VmSwap:\t       0 kB", "RssAnon:", false, 0)]
-    [InlineData("RssAnon:\t  garbage kB", "RssAnon:", false, 0)]
-    public void TryParseProcStatusKilobytes(string line, string fieldName, bool expectedResult, long expectedKilobytes)
-    {
-        Assert.Equal(expectedResult, ProcessMemorySnapshot.TryParseProcStatusKilobytes(line, fieldName, out var kilobytes));
-        Assert.Equal(expectedKilobytes, kilobytes);
-    }
-
-    [Fact]
-    public void Capture_ReportsProcessMemory()
-    {
-        // Ensure a GC has completed so GetGCMemoryInfo has data.
-        GC.Collect();
-        var snapshot = ProcessMemorySnapshot.Capture();
-
-        Assert.True(snapshot.PrivateBytes > 0);
-        Assert.True(snapshot.WorkingSetBytes > 0);
-        Assert.True(snapshot.GCCommittedBytes > 0);
     }
 
     [Fact]
@@ -82,6 +41,7 @@ public sealed class ProcessMemoryTelemetryTests
         {
             var properties = await sampled.Task.WaitAsync(TimeSpan.FromMinutes(1));
             Assert.Equal(3, properties[ProcessMemoryTelemetry.ActiveClientsPropertyName]);
+            Assert.True((long)properties[ProcessMemoryTelemetry.WorkingSetMBPropertyName]! > 0);
         }
     }
 
