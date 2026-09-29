@@ -16,7 +16,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(GetTextDocumentWithContextHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(GetTextDocumentWithContextHandler)), Shared]
 [Method(VSMethods.GetProjectContextsName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

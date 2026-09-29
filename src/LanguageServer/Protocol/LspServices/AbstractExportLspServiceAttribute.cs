@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
@@ -35,10 +34,10 @@ internal abstract class AbstractExportLspServiceAttribute : ExportAttribute
     public WellKnownLspServerKinds? ServerKind { get; }
 
     /// <summary>
-    /// Services MEF exported as <see cref="ILspService"/> must by definition be stateless as they are
-    /// shared amongst all LSP server instances through restarts.
+    /// The LSP contract (e.g. <see cref="ProtocolConstants.RoslynLspLanguagesContract"/>) this service belongs to.
+    /// If <see cref="ProtocolConstants.AllLspContracts"/>, the service is available to servers of every contract.
     /// </summary>
-    public bool IsStateless { get; }
+    public string LspContract { get; }
 
     /// <summary>
     /// The full assembly-qualified type names of the interfaces the service implements.
@@ -53,11 +52,17 @@ internal abstract class AbstractExportLspServiceAttribute : ExportAttribute
     /// </summary>
     public string?[]? MethodHandlerData => _lazyMethodHandlerData?.Value;
 
-    protected AbstractExportLspServiceAttribute(
-        Type serviceType, string contractName, Type contractType, bool isStateless, WellKnownLspServerKinds serverKind)
-        : base(contractName, contractType)
+    /// <summary>
+    /// Exports <paramref name="serviceType"/> under <see cref="LspServiceComposition.ContractName"/>.  The LSP contract
+    /// is carried in metadata so that <see cref="LspServerScope"/> can pick the services that apply to each server.
+    /// </summary>
+    protected AbstractExportLspServiceAttribute(Type serviceType, string lspContract, WellKnownLspServerKinds serverKind)
+        : base(LspServiceComposition.ContractName, serviceType)
     {
-        Contract.ThrowIfFalse(serviceType.GetInterfaces().Contains(typeof(ILspService)), $"{serviceType.Name} does not inherit from {nameof(ILspService)}");
+        Contract.ThrowIfFalse(typeof(ILspService).IsAssignableFrom(serviceType), $"{serviceType.Name} does not inherit from {nameof(ILspService)}");
+        Contract.ThrowIfNull(lspContract);
+
+        LspContract = lspContract;
 
         Contract.ThrowIfNull(serviceType.FullName);
         TypeName = serviceType.FullName;
@@ -69,7 +74,6 @@ internal abstract class AbstractExportLspServiceAttribute : ExportAttribute
         CodeBase = serviceType.Assembly.CodeBase;
 #pragma warning restore SYSLIB0012 // Type or member is obsolete
 
-        IsStateless = isStateless;
         ServerKind = serverKind;
 
         InterfaceNames = Array.ConvertAll(serviceType.GetInterfaces(), t => t.AssemblyQualifiedName!);

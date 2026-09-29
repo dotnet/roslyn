@@ -22,19 +22,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 /// Also creates the <see cref="ProjectInitializationHandler"/> with the actual service broker instance
 /// so it can subscribe to the remote project initialization status service.
 /// </summary>
-[ExportCSharpVisualBasicLspServiceFactory(typeof(DevKitProjectLoadingServiceContributor)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DevKitProjectLoadingServiceContributorFactory() : ILspServiceFactory
+[ExportCSharpVisualBasicLspService(typeof(DevKitProjectLoadingServiceContributor)), Shared(LspServiceComposition.SharingBoundary)]
+internal sealed class DevKitProjectLoadingServiceContributor : IServiceBrokerInitializer, ILspService
 {
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new DevKitProjectLoadingServiceContributor(lspServices, lspServices.GetRequiredService<ILoggerFactory>());
-}
+    private readonly LspServices _lspServices;
+    private readonly ILoggerFactory _loggerFactory;
 
-internal sealed class DevKitProjectLoadingServiceContributor(
-    LspServices lspServices,
-    ILoggerFactory loggerFactory) : IServiceBrokerInitializer, ILspService
-{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DevKitProjectLoadingServiceContributor(
+        LspService<LspServices> lspServices,
+        LspService<ILoggerFactory> loggerFactory)
+    {
+        _lspServices = lspServices.Value;
+        _loggerFactory = loggerFactory.Value;
+    }
+
     public ImmutableDictionary<ServiceMoniker, ServiceRegistration> ServicesToRegister => new Dictionary<ServiceMoniker, ServiceRegistration>
     {
         { WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor.Moniker, new ServiceRegistration(ServiceAudience.Local, null, allowGuestClients: false) }
@@ -46,14 +49,14 @@ internal sealed class DevKitProjectLoadingServiceContributor(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             async (moniker, options, innerServiceBroker, cancellationToken) =>
             {
-                var workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
-                var targetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
-                var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-                var requestTelemetryLogger = (VSCodeRequestTelemetryLogger)lspServices.GetRequiredService<RequestTelemetryLogger>();
+                var workspaceFactory = _lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
+                var targetFrameworkManager = _lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
+                var clientLanguageServerManager = _lspServices.GetRequiredService<IClientLanguageServerManager>();
+                var requestTelemetryLogger = (VSCodeRequestTelemetryLogger)_lspServices.GetRequiredService<RequestTelemetryLogger>();
                 var projectInitializationHandler = new ProjectInitializationHandler(
-                    clientLanguageServerManager, innerServiceBroker, loggerFactory, requestTelemetryLogger);
+                    clientLanguageServerManager, innerServiceBroker, _loggerFactory, requestTelemetryLogger);
                 var service = new WorkspaceProjectFactoryService(
-                    workspaceFactory, targetFrameworkManager, projectInitializationHandler, loggerFactory, requestTelemetryLogger);
+                    workspaceFactory, targetFrameworkManager, projectInitializationHandler, _loggerFactory, requestTelemetryLogger);
                 await service.InitializeAsync(cancellationToken);
                 return service;
             });

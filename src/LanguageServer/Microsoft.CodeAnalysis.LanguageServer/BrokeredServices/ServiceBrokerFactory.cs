@@ -7,7 +7,6 @@ using System.Composition;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.BrokeredServiceBridgeManifest;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
@@ -16,32 +15,28 @@ using ExportProvider = Microsoft.VisualStudio.Composition.ExportProvider;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
+[ExportCSharpVisualBasicLspService(typeof(ServiceBrokerFactory)), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class ServiceBrokerFactory : ILspService
 {
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(ServiceBrokerFactory)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private class ServiceBrokerFactoryFactory(ExportProvider exportProvider) : ILspServiceFactory
-    {
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new ServiceBrokerFactory(lspServices.GetRequiredServices<IServiceBrokerInitializer>(), exportProvider, lspServices.GetRequiredService<ILoggerFactory>());
-    }
-
     private readonly ExportProvider _exportProvider;
     private Task _bridgeCompletionTask;
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly ImmutableArray<IServiceBrokerInitializer> _serviceBrokerInitializers;
     private readonly ILoggerFactory _loggerFactory;
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public ServiceBrokerFactory(
-        IEnumerable<IServiceBrokerInitializer> onServiceBrokerInitialized,
+        LspService<LspServices> lspServices,
         ExportProvider exportProvider,
-        ILoggerFactory loggerFactory)
+        LspService<ILoggerFactory> loggerFactory)
     {
+        var serviceBrokerInitializers = lspServices.Value.GetRequiredServices<IServiceBrokerInitializer>();
+        var loggerFactoryValue = loggerFactory.Value;
         _exportProvider = exportProvider;
-        _loggerFactory = loggerFactory;
+        _loggerFactory = loggerFactoryValue;
         _bridgeCompletionTask = Task.CompletedTask;
-        _serviceBrokerInitializers = [.. onServiceBrokerInitialized];
+        _serviceBrokerInitializers = [.. serviceBrokerInitializers];
     }
 
     /// <summary>

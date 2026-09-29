@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,17 +15,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(WorkspaceFolderTracker)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class WorkspaceFolderTrackerFactory() : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new WorkspaceFolderTracker();
-}
-
+[ExportCSharpVisualBasicLspService(typeof(WorkspaceFolderTracker)), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class WorkspaceFolderTracker : IWorkspaceFolderTracker, IOnInitialize
 {
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Constructed directly by tests")]
+    public WorkspaceFolderTracker()
+    {
+    }
+
     // The gate makes updates atomic; volatile allows lock-free reads of the latest immutable snapshot.
     private readonly object _gate = new();
     private volatile ImmutableHashSet<string> _workspaceFolderPaths = ImmutableHashSet.Create(PathUtilities.Comparer);

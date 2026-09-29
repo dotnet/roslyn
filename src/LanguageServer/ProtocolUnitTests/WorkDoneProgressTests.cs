@@ -36,7 +36,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
     {
     }
 
-    protected override TestComposition Composition => base.Composition.AddParts(typeof(TestWorkDoneProgressServiceFactory));
+    protected override TestComposition Composition => base.Composition.AddParts(typeof(TestWorkDoneProgressService));
 
     [Theory, CombinatorialData]
     public async Task ProgressCanBeCreatedReportedAndCompleted(bool mutatingLspWorkspace)
@@ -153,16 +153,10 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
     private static TestWorkDoneProgressService GetTestService(TestLspServer server)
         => server.GetRequiredLspService<TestWorkDoneProgressService>();
 
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(TestWorkDoneProgressService)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(TestWorkDoneProgressService)), PartNotDiscoverable, Shared(LspServiceComposition.SharingBoundary)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class TestWorkDoneProgressServiceFactory() : ILspServiceFactory
-    {
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new TestWorkDoneProgressService(lspServices.GetRequiredService<WorkDoneProgressManager>());
-    }
-
-    internal sealed class TestWorkDoneProgressService(WorkDoneProgressManager workDoneProgressManager) : ILspService
+    internal sealed class TestWorkDoneProgressService(LspService<WorkDoneProgressManager> workDoneProgressManager) : ILspService
     {
         public async Task RunCompleteWorkDoneProgress()
         {
@@ -191,7 +185,7 @@ public sealed class WorkDoneProgressTests : AbstractLanguageServerProtocolTests
 
         private async Task<IWorkDoneProgressReporter> CreateProgressAndReport(CancellationToken cancellationToken)
         {
-            var progress = await workDoneProgressManager.CreateWorkDoneProgressAsync(
+            var progress = await workDoneProgressManager.Value.CreateWorkDoneProgressAsync(
                 reportProgressToClient: true,
                 title: Title,
                 startMessage: StartMessage,

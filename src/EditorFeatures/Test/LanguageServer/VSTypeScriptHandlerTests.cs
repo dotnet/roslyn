@@ -30,7 +30,7 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
     {
     }
 
-    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures.AddParts(typeof(VSTypeScriptTestLoggerFactory));
+    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocolEditorFeatures.AddParts(typeof(VSTypeScriptTestLspLogger));
 
     [Fact]
     public async Task TestRoslynTypeScriptHandlerInvoked()
@@ -121,10 +121,10 @@ public sealed class VSTypeScriptHandlerTests : AbstractLanguageServerProtocolTes
 
     internal sealed record TSRequest([property: JsonConverter(typeof(DocumentUriConverter))] DocumentUri Document, string Project);
 
-    [ExportLspServiceFactory(typeof(TestLspLogger), ProtocolConstants.TypeScriptLanguageContract, WellKnownLspServerKinds.Any), Shared]
+    [ExportLspService(typeof(TestLspLogger), ProtocolConstants.TypeScriptLanguageContract, WellKnownLspServerKinds.Any), Shared(LspServiceComposition.SharingBoundary)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptTestLoggerFactory() : TestLspLoggerFactory
+    internal sealed class VSTypeScriptTestLspLogger(LspService<IClientLanguageServerManager> clientLanguageServerManager) : TestLspLogger(clientLanguageServerManager)
     {
     }
 }

@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json.Nodes;
+using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,6 +21,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration;
 
+[ExportCSharpVisualBasicLspService(typeof(DidChangeConfigurationNotificationHandler)), Shared(LspServiceComposition.SharingBoundary)]
 [Method(Methods.WorkspaceDidChangeConfigurationName)]
 internal sealed partial class DidChangeConfigurationNotificationHandler : ILspServiceNotificationHandler<LSP.DidChangeConfigurationParams>, IOnInitialized
 {
@@ -45,14 +48,16 @@ internal sealed partial class DidChangeConfigurationNotificationHandler : ILspSe
 
     public static readonly ImmutableArray<string> SupportedLanguages = [LanguageNames.CSharp, LanguageNames.VisualBasic];
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public DidChangeConfigurationNotificationHandler(
-        ILspLogger logger,
+        LspService<ILspLogger> logger,
         IGlobalOptionService globalOptionService,
-        IClientLanguageServerManager clientLanguageServerManager)
+        LspService<IClientLanguageServerManager> clientLanguageServerManager)
     {
-        _lspLogger = logger;
+        _lspLogger = logger.Value;
         _globalOptionService = globalOptionService;
-        _clientLanguageServerManager = clientLanguageServerManager;
+        _clientLanguageServerManager = clientLanguageServerManager.Value;
         _registrationId = Guid.NewGuid();
         _configurationItems = GenerateGlobalConfigurationItems();
         _optionsAndLanguageNamesToRefresh = GenerateOptionsNeedsToRefresh();

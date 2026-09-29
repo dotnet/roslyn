@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once
 /// we no longer reference VS icon types.
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(WorkspaceSymbolsHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(WorkspaceSymbolsHandler)), Shared]
 [Method(Methods.WorkspaceSymbolName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

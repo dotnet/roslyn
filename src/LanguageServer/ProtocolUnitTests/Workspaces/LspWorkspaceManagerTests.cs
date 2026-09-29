@@ -530,7 +530,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         // prior to a project system even telling it about a file, and even if the project system removes the file.
 
         // Start with an empty workspace and composition with misc files provider.
-        var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProvider));
         await using var testLspServer = await CreateTestLspServerAsync(
             [], mutatingLspWorkspace: true, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition: composition);
 

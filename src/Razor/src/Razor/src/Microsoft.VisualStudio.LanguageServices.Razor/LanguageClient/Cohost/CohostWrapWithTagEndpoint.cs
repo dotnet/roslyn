@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 [CohostEndpoint(LanguageServerConstants.RazorWrapWithTagEndpoint)]
-[ExportRazorStatelessLspService(typeof(CohostWrapWithTagEndpoint))]
+[ExportRazorLspService(typeof(CohostWrapWithTagEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostWrapWithTagEndpoint(

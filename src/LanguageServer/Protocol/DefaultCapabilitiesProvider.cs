@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// Implementation of <see cref="ICapabilitiesProvider"/> that provides all the capabilities that Roslyn supports via LSP.
 /// </summary>
 [Export(typeof(DefaultCapabilitiesProvider)), Shared]
-[ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.Any)]
+[ExportCSharpVisualBasicLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.Any)]
 internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
 {
     private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;

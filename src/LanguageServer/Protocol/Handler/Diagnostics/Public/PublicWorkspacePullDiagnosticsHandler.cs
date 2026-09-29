@@ -4,9 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
@@ -19,15 +21,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_diagnostic
 using WorkspaceDiagnosticPartialReport = SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>;
 
+[ExportLspService(typeof(PublicWorkspacePullDiagnosticsHandler), ProtocolConstants.AllLspContracts), Shared(LspServiceComposition.SharingBoundary)]
 [Method(Methods.WorkspaceDiagnosticName)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class PublicWorkspacePullDiagnosticsHandler(
-    LspWorkspaceManager workspaceManager,
-    LspWorkspaceRegistrationService registrationService,
+    LspService<LspWorkspaceManager> workspaceManager,
+    LspService<LspWorkspaceRegistrationService> registrationService,
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticRefresher,
     IGlobalOptionService globalOptions)
     : AbstractWorkspacePullDiagnosticsHandler<WorkspaceDiagnosticParams, WorkspaceDiagnosticPartialReport, WorkspaceDiagnosticReport?>(
-        workspaceManager, registrationService, diagnosticSourceManager, diagnosticRefresher, globalOptions), IDisposable
+        workspaceManager.Value, registrationService.Value, diagnosticSourceManager, diagnosticRefresher, globalOptions), IDisposable
 {
     protected override string? GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;
