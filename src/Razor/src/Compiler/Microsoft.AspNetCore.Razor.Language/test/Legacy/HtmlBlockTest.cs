@@ -38,6 +38,78 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     }
 
     [Theory]
+    [InlineData("summary", "summary", true)]
+    [InlineData("Summary", "Summary", true)]
+    [InlineData("summary", "Summary", false)]
+    [InlineData("Summary", "summary", false)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyMatchesTagNamesCaseSensitively(string startTagName, string endTagName, bool expectedIsComplete)
+    {
+        var body = $"<root><{startTagName}>Text</{endTagName}></root>";
+        var source = body + "}after";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(body.Length, end);
+        Assert.Equal(expectedIsComplete, isComplete);
+    }
+
+    [Theory]
+    [InlineData("<summary>Text")]
+    [InlineData("<summary><para>Text")]
+    [InlineData("<summary><para>Text</para>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyUnclosedElementsConsumeToEndOfFile(string markup)
+    {
+        var source = markup + "}after";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length, end);
+        Assert.False(isComplete);
+    }
+
+    [Theory]
+    [InlineData("<summary><para>Text</summary>")]
+    [InlineData("<summary><para><c>Text</summary>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyRecoversUnclosedElementsAtAncestorEndTag(string body)
+    {
+        var source = body + "}after";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(body.Length, end);
+        Assert.False(isComplete);
+    }
+
+    [Theory]
+    [InlineData("@")]
+    [InlineData("@@")]
+    [InlineData("@**@")]
+    [InlineData("@{}")]
+    [InlineData("@value")]
+    [InlineData("@* comment")]
+    [InlineData("@{")]
+    [InlineData("@}")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyTreatsRazorTransitionsAsLiteralText(string content)
+    {
+        const string prefix = "before{";
+        var body = "<summary>" + content + "</summary>";
+        var source = prefix + body + "}after";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: prefix.Length, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(prefix.Length + body.Length, end);
+        Assert.True(isComplete);
+    }
+
+    [Theory]
     [InlineData("<![CDATA[[{}]]]>")]
     [InlineData("<![CDATA[[[{}]]]]>")]
     [InlineData("<?example ??>")]
