@@ -131,4 +131,76 @@
     <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(_XunitV3AppHost)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(_TargetConfigPath)" DestinationFiles="$(_XunitV3AppHostConfig)" SkipUnchangedFiles="true" Condition="Exists('$(_TargetConfigPath)')" />
   </Target>
+
+  <!--
+    .NET Framework test assemblies are executables whose own PE header determines the default
+    stack size of every thread in the test process, including the thread pool threads that
+    xunit.v3 runs tests on. csc always emits a 1 MB stack reserve, which deep-recursion compiler
+    tests overflow in Debug builds. Raise it to 4 MB to match the testhost.net47x.exe that
+    previously hosted these tests. The intermediate assembly is patched so every copy of it
+    (bin output and the .exe app host) carries the same value.
+  -->
+  <UsingTask TaskName="SetPEStackReserve"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <FilePath ParameterType="System.String" Required="true" />
+      <StackReserve ParameterType="System.Int64" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        using (var stream = new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite))
+        using (var reader = new BinaryReader(stream))
+        using (var writer = new BinaryWriter(stream))
+        {
+            stream.Position = 0x3C;
+            var peHeaderOffset = reader.ReadInt32();
+            stream.Position = peHeaderOffset;
+            if (reader.ReadUInt32() != 0x00004550)
+            {
+                Log.LogError("'{0}' is not a PE file.", FilePath);
+                return false;
+            }
+
+            // The optional header follows the 20-byte COFF header; SizeOfStackReserve is at offset 72 in both PE32 and PE32+.
+            var optionalHeaderOffset = peHeaderOffset + 4 + 20;
+            stream.Position = optionalHeaderOffset;
+            var magic = reader.ReadUInt16();
+            stream.Position = optionalHeaderOffset + 72;
+            if (magic == 0x10B)
+            {
+                if (reader.ReadUInt32() == (uint)StackReserve)
+                {
+                    return true;
+                }
+
+                stream.Position = optionalHeaderOffset + 72;
+                writer.Write((uint)StackReserve);
+            }
+            else if (magic == 0x20B)
+            {
+                if (reader.ReadUInt64() == (ulong)StackReserve)
+                {
+                    return true;
+                }
+
+                stream.Position = optionalHeaderOffset + 72;
+                writer.Write((ulong)StackReserve);
+            }
+            else
+            {
+                Log.LogError("'{0}' has an unknown optional header magic 0x{1:X}.", FilePath, magic);
+                return false;
+            }
+        }
+]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="SetTestAssemblyStackReserve"
+          AfterTargets="CoreCompile"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(DotNetBuildSourceOnly)' != 'true'">
+    <SetPEStackReserve FilePath="@(IntermediateAssembly->'%(FullPath)')" StackReserve="4194304" Condition="Exists('@(IntermediateAssembly->'%(FullPath)')')" />
+  </Target>
 </Project>
