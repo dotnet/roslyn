@@ -172,11 +172,10 @@ internal static class DelegatedCompletionHelper
         // suppress snippets since the caret is still inside markup, not past it.
         if (atEof && token.Parent is BaseMarkupEndTagSyntax { CloseAngle.IsMissing: false } endTag)
         {
-            // Snippets are available here unless the tag we just closed is itself nested inside
+            // Snippets are available here unless the tag we just closed is nested inside
             // a <script> or <style> block — the closed tag's own element doesn't count, since the
             // caret is now past it, not inside it.
-            return endTag.Parent?.Parent?.FirstAncestorOrSelf<BaseMarkupElementSyntax>() is not { } eofElement
-                || !RazorSyntaxFacts.IsScriptOrStyleBlock(eofElement);
+            return endTag.Parent?.Parent?.FirstAncestorOrSelf<BaseMarkupElementSyntax>(RazorSyntaxFacts.IsScriptOrStyleBlock) is null;
         }
 
         // In text content (element body), snippets are available on explicit invocation only
