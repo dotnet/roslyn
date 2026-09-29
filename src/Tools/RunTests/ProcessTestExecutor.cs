@@ -154,7 +154,7 @@ namespace RunTests
                 Directory.CreateDirectory(resultsDir!);
 
                 // Define environment variables for processes started via ProcessRunner.
-                var environmentVariables = new Dictionary<string, string>();
+                var environmentVariables = new Dictionary<string, string>(options.EnvironmentVariables);
                 AddDotNetRootEnvironmentVariables(environmentVariables, options.DotnetFilePath, options.Architecture);
 
                 // NOTE: xUnit seems to have an occasional issue creating logs create
