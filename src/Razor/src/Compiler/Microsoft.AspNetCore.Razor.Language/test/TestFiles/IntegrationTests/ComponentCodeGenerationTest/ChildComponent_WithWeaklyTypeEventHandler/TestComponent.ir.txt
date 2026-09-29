@@ -14,5 +14,3 @@
                             IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, 
                             IntermediateToken - (70:1,26 [7] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - OnClick
                             IntermediateToken -  - CSharp - )
-            CSharpCode - (92:3,7 [60] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (92:3,7 [60] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private Action<MouseEventArgs> OnClick { get; set; }\n

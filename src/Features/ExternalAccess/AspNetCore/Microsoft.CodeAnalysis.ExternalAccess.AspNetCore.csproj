@@ -40,11 +40,4 @@
     <PublicAPI Include="InternalAPI.Unshipped.txt" />
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Update="ExternalAccessAspNetCoreResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>ExternalAccessAspNetCoreResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
 </Project>

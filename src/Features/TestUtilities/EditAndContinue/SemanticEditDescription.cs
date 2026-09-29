@@ -20,7 +20,6 @@ internal sealed class SemanticEditDescription(
     Func<Compilation, ISymbol>? deletedSymbolContainerProvider)
 {
     public readonly SemanticEditKind Kind = kind;
-    public readonly Func<Compilation, ISymbol> SymbolProvider = symbolProvider;
     public readonly Func<Compilation, ITypeSymbol>? PartialType = partialType;
     public readonly Func<Compilation, ISymbol>? DeletedSymbolContainerProvider = deletedSymbolContainerProvider;
 
@@ -31,6 +30,9 @@ internal sealed class SemanticEditDescription(
         => HasSyntaxMap ? GetSyntaxMapWithRudeEdits(syntaxMap, rudeEdits) : null;
 
     public readonly bool HasSyntaxMap = hasSyntaxMap;
+
+    public ISymbol GetSymbol(Compilation compilation)
+        => symbolProvider(compilation).PartialAsImplementation();
 
     private static IEnumerable<(TextSpan oldSpan, TextSpan newSpan, RuntimeRudeEditDescription? runtimeRudeEdit)> GetSyntaxMapWithRudeEdits(IEnumerable<(TextSpan, TextSpan)>? syntaxMap, IEnumerable<RuntimeRudeEditDescription>? rudeEdits)
     {

@@ -1,0 +1,2 @@
+﻿[0000] AddContent(RenderPerson( (__builder2) => { __builder2.AddMarkupContent(1, "<div>HI</div>"); } ))
+[0001] AddMarkupContent("<div>HI</div>")

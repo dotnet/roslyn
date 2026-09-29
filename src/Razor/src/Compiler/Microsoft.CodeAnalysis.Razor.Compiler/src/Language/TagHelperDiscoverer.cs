@@ -168,4 +168,59 @@ internal sealed class TagHelperDiscoverer(ImmutableArray<TagHelperProducer> prod
             builder.Dispose();
         }
     }
+
+    /// <summary>
+    ///  Discovers tag helpers for a known set of types rather than walking an entire assembly.
+    /// </summary>
+    /// <remarks>
+    ///  Only type producers run here; assembly-level static tag helpers are intentionally skipped because a
+    ///  caller with a specific type set already owns discovery of the rest of the assembly. Producers examine
+    ///  each type independently, so restricting the input to a subset yields the same descriptors those types
+    ///  would produce during a full assembly walk. Results are not assembly-cached because the input is a
+    ///  per-request slice rather than a whole assembly.
+    /// </remarks>
+    public TagHelperCollection GetTagHelpers(ImmutableArray<INamedTypeSymbol> types, CancellationToken cancellationToken = default)
+    {
+        if (producers.IsDefaultOrEmpty || types.IsDefaultOrEmpty)
+        {
+            return TagHelperCollection.Empty;
+        }
+
+        var builder = new TagHelperCollection.RefBuilder();
+        try
+        {
+            using var _ = ArrayPool<TagHelperProducer>.Shared.GetPooledArraySpan(
+                minimumLength: producers.Length, clearOnReturn: true, out var typeProducers);
+
+            var index = 0;
+            foreach (var producer in producers)
+            {
+                if (producer.SupportsTypes)
+                {
+                    typeProducers[index++] = producer;
+                }
+            }
+
+            typeProducers = typeProducers[..index];
+
+            foreach (var type in types)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                foreach (var producer in typeProducers)
+                {
+                    if (producer.IsCandidateType(type))
+                    {
+                        producer.AddTagHelpersForType(type, ref builder, cancellationToken);
+                    }
+                }
+            }
+
+            return builder.ToCollection();
+        }
+        finally
+        {
+            builder.Dispose();
+        }
+    }
 }

@@ -2819,6 +2819,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
+        internal static bool CheckFeatureAvailability(SyntaxNodeOrToken syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
+            => CheckFeatureAvailability(syntax.SyntaxTree!, feature, diagnostics.DiagnosticBag, (location, syntax), static tuple => tuple.location ?? tuple.syntax.GetLocation()!);
 
         internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, BindingDiagnosticBag diagnostics, Location? location = null)
             => CheckFeatureAvailability(syntax, feature, diagnostics.DiagnosticBag, location);

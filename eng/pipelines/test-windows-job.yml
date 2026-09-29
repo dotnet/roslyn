@@ -1,10 +1,5 @@
 # Test on Windows Desktop using Helix
 parameters:
-- name: helixQueueName
-  type: string
-- name: testRunName
-  type: string
-  default: ''
 - name: jobName
   type: string
   default: ''
@@ -14,9 +9,9 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
-- name: testArguments
-  type: string
-  default: ''
+- name: testRuns
+  type: object
+  default: []
 - name: helixApiAccessToken
   type: string
   default: ''
@@ -43,19 +38,67 @@ jobs:
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
+    # Attempt every submission even if an earlier one fails, then fail the aggregate job below.
+    - ${{ each testRun in parameters.testRuns }}:
+      - task: PowerShell@2
+        displayName: Submit ${{ testRun.displayName }}
+        continueOnError: true
+        inputs:
+          filePath: eng/build.ps1
+          ${{ if ne(variables['System.TeamProject'], 'public') }}:
+            arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ testRun.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ testRun.testArguments }} -collectDumps
+          ${{ else }}:
+            arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ testRun.helixQueueName }} ${{ testRun.testArguments }} -collectDumps
+        env:
+          SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+
+      # RunTests uses the same output paths for every Helix submission. Move each submission's
+      # outputs aside so the next sequential submission cannot overwrite or mix its diagnostics.
+      - task: PowerShell@2
+        displayName: Preserve ${{ testRun.displayName }} submission logs
+        condition: succeededOrFailed()
+        continueOnError: true
+        inputs:
+          targetType: inline
+          script: |
+            $artifactsDirectory = '$(Build.SourcesDirectory)\artifacts'
+            $logDirectory = Join-Path $artifactsDirectory 'log\${{ parameters.configuration }}'
+            $submissionLogDirectory = Join-Path $logDirectory '${{ testRun.name }}'
+            $payloadsDirectory = Join-Path $artifactsDirectory 'payloads'
+            $submissionPayloadsDirectory = Join-Path $artifactsDirectory 'payloads-${{ testRun.name }}-$(System.JobAttempt)'
+            $helixProjectPath = Join-Path $artifactsDirectory 'helix.proj'
+            $helixBinaryLogPath = Join-Path $logDirectory 'helix.binlog'
+            $submissionBinaryLogPath = Join-Path $logDirectory 'helix-${{ testRun.name }}.binlog'
+            $loggedHelixProjectPath = Join-Path $logDirectory 'helix.proj'
+
+            if (Test-Path $submissionLogDirectory) {
+              Remove-Item $submissionLogDirectory -Recurse -Force
+            }
+            New-Item -ItemType Directory -Path $submissionLogDirectory -Force | Out-Null
+            if (Test-Path $helixBinaryLogPath) {
+              Move-Item $helixBinaryLogPath $submissionBinaryLogPath -Force
+            }
+            if (Test-Path $loggedHelixProjectPath) {
+              Move-Item $loggedHelixProjectPath $submissionLogDirectory -Force
+            }
+            Get-ChildItem -Path $logDirectory -Filter 'workitem_*' -Directory |
+              Move-Item -Destination $submissionLogDirectory -Force
+
+            if (Test-Path $payloadsDirectory) {
+              Move-Item $payloadsDirectory $submissionPayloadsDirectory
+            }
+            if (Test-Path $helixProjectPath) {
+              Remove-Item $helixProjectPath -Force
+            }
+
     - task: PowerShell@2
-      displayName: Run Unit Tests
+      displayName: Fail job if any submission failed
+      condition: eq(variables['Agent.JobStatus'], 'SucceededWithIssues')
       inputs:
-        filePath: eng/build.ps1
-        ${{ if ne(variables['System.TeamProject'], 'public') }}:
-          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} -helixApiAccessToken ${{ parameters.helixApiAccessToken }} ${{ parameters.testArguments }} -collectDumps        
-        ${{ else }}:
-          arguments: -ci -helix -configuration ${{ parameters.configuration }} -helixQueueName ${{ parameters.helixQueueName }} ${{ parameters.testArguments }} -collectDumps
-      env:
-        SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        targetType: inline
+        script: throw 'One or more Helix submissions failed.'
 
     - template: publish-logs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
         jobName: ${{ parameters.jobName }}
-        testRunName: ${{ parameters.testRunName }}

@@ -15,30 +15,29 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCacheEntry, TMetadataCacheEntry>(
     IAsynchronousOperationListenerProvider listenerProvider,
-    Func<ImmutableSegmentedList<Project>, CancellationToken, ValueTask> processBatchAsync,
-    CancellationToken disposalToken)
+    Func<ImmutableSegmentedList<Project>, CancellationToken, ValueTask> processBatchAsync)
     : IWorkspaceServiceFactory
     where TProjectCacheEntry : class
     where TMetadataCacheEntry : class
 {
     private readonly IAsynchronousOperationListenerProvider _listenerProvider = listenerProvider;
     private readonly Func<ImmutableSegmentedList<Project>, CancellationToken, ValueTask> _processBatchAsync = processBatchAsync;
-    private readonly CancellationToken _disposalToken = disposalToken;
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
     {
         var workQueue = new AsyncBatchingWorkQueue<Project>(
             TimeSpan.FromSeconds(1),
             _processBatchAsync,
-            _listenerProvider.GetListener(FeatureAttribute.CompletionSet),
-            _disposalToken);
+            _listenerProvider.GetListener(FeatureAttribute.CompletionSet));
 
         return new ImportCompletionCacheService(workQueue);
     }
 
     private sealed class ImportCompletionCacheService(
-        AsyncBatchingWorkQueue<Project> workQueue) : IImportCompletionCacheService<TProjectCacheEntry, TMetadataCacheEntry>
+        AsyncBatchingWorkQueue<Project> workQueue) : IImportCompletionCacheService<TProjectCacheEntry, TMetadataCacheEntry>, IDisposable
     {
         public AsyncBatchingWorkQueue<Project> WorkQueue { get; } = workQueue;
+
+        public void Dispose() => WorkQueue.Dispose();
     }
 }

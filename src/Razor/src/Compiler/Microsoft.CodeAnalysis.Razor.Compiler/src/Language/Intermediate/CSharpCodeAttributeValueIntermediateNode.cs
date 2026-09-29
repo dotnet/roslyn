@@ -23,6 +23,17 @@ public sealed class CSharpCodeAttributeValueIntermediateNode : IntermediateNode
         visitor.VisitCSharpCodeAttributeValue(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new CSharpCodeAttributeValueIntermediateNode
+        {
+            Prefix = Prefix,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteChildren(Children);

@@ -20,10 +20,12 @@ $benchmarkProjects = @(
   @{ Project = "src/Razor/src/Compiler/perf/Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.Compiler.csproj"; Framework = "net10.0" }
   @{ Project = "src/Razor/src/Razor/benchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks/Microsoft.AspNetCore.Razor.Microbenchmarks.csproj"; Framework = "net10.0"; HasValidationMode = $true }
   @{ Project = "src/Razor/src/Compiler/perf/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator/Microsoft.AspNetCore.Razor.Microbenchmarks.Generator.csproj"; HasValidationMode = $true }
+  # Use a representative type to exercise the generated runner build without running the full benchmark suite.
+  # This project uses BenchmarkDotNet 0.15 for the VS DiagnosticsHub adapter, so keep both its host and generated runner on .NET 10.
+  @{ Project = "src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj"; Framework = "net10.0"; Filter = "*SegmentedArrayBenchmarks_Indexer*"; RollForward = "LatestPatch"; RollForwardToPrerelease = "0" }
 
   # These projects are excluded because their current benchmark harnesses do not
   # complete a Dry validation run in this script's execution model.
-  # @{ Project = "src/Tools/IdeCoreBenchmarks/IdeCoreBenchmarks.csproj"; Framework = "net10.0" }
   # @{ Project = "src/Tools/IdeBenchmarks/IdeBenchmarks.csproj" }
 )
 
@@ -65,14 +67,32 @@ foreach ($entry in $benchmarkProjects) {
 
   if ($ci) {
     # Keep the filter as one argument so PowerShell does not expand '*' into file names.
-    $args += "--filter=*"
+    $filter = if ($entry.ContainsKey("Filter")) { $entry["Filter"] } else { "*" }
+    $args += "--filter=$filter"
   }
 
   Write-Host "dotnet $($args -join ' ')"
 
-  & dotnet @args
+  $previousRollForward = $env:DOTNET_ROLL_FORWARD
+  $previousRollForwardToPrerelease = $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE
+  try {
+    # CI sets these variables to LatestMajor globally; scope project-specific overrides to this process and its benchmark children.
+    if ($entry.ContainsKey("RollForward")) {
+      $env:DOTNET_ROLL_FORWARD = $entry["RollForward"]
+    }
+    if ($entry.ContainsKey("RollForwardToPrerelease")) {
+      $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE = $entry["RollForwardToPrerelease"]
+    }
 
-  if ($LASTEXITCODE -ne 0) {
+    & dotnet @args
+    $exitCode = $LASTEXITCODE
+  }
+  finally {
+    $env:DOTNET_ROLL_FORWARD = $previousRollForward
+    $env:DOTNET_ROLL_FORWARD_TO_PRERELEASE = $previousRollForwardToPrerelease
+  }
+
+  if ($exitCode -ne 0) {
     Write-Host "FAILED: $projectName" -ForegroundColor Red
     $failed += $projectName
   }

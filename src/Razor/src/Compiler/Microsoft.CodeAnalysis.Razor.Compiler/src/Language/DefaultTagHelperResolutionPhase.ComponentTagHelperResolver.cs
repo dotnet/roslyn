@@ -59,6 +59,14 @@ internal partial class DefaultTagHelperResolutionPhase
                 convertedNode.AddDiagnostic(
                     ComponentDiagnosticFactory.Create_UnexpectedMarkupElement(originalNode.TagName, originalNode.StartTagSpan ?? originalNode.Source));
             }
+
+            foreach (var child in originalNode.Children)
+            {
+                if (child is UnresolvedAttributeIntermediateNode unresolvedAttribute)
+                {
+                    AddUnboundDirectiveAttributeDiagnostic(documentNode, unresolvedAttribute);
+                }
+            }
         }
 
         protected override void LowerComplexNonStringValues(
@@ -171,6 +179,11 @@ internal partial class DefaultTagHelperResolutionPhase
             }
             else
             {
+                if (!hasMatches)
+                {
+                    AddUnboundDirectiveAttributeDiagnostic(context.DocumentNode, unresolvedAttr);
+                }
+
                 ConvertToUnresolvedUnboundAttribute(tagHelperNode, unresolvedAttr, attributeName, isDuplicateBound);
             }
         }
@@ -379,6 +392,8 @@ internal partial class DefaultTagHelperResolutionPhase
             {
                 AttributeName = attributeName,
                 AttributeStructure = unresolvedAttr.AttributeStructure,
+                AttributeNameSpan = unresolvedAttr.AttributeNameSpan,
+                IsDirectiveAttributeCandidate = unresolvedAttr.IsDirectiveAttributeCandidate,
             };
 
             if (!unresolvedAttr.IsMinimized && unresolvedAttr.AsTagHelperAttribute is HtmlAttributeIntermediateNode fallbackAttr)
@@ -928,6 +943,7 @@ internal partial class DefaultTagHelperResolutionPhase
                 {
                     AttributeName = attributeName,
                     AttributeStructure = InferAttributeStructure(htmlAttr),
+                    AttributeNameSpan = attributeNameSpan,
                 };
 
                 thHtml.Children.AddRange(htmlAttr.Children);
@@ -1162,6 +1178,19 @@ internal partial class DefaultTagHelperResolutionPhase
 
             parent.Children[index] = markupElement;
         }
+
+        private static void AddUnboundDirectiveAttributeDiagnostic(
+            DocumentIntermediateNode documentNode,
+            UnresolvedAttributeIntermediateNode attribute)
+        {
+            if (attribute.IsDirectiveAttributeCandidate)
+            {
+                documentNode.AddDiagnostic(ComponentDiagnosticFactory.Create_UnboundDirectiveAttribute(
+                    attribute.AttributeNameSpan,
+                    attribute.AttributeName));
+            }
+        }
+
         private static bool LooksLikeUnexpectedComponent(DocumentIntermediateNode? documentNode, string? tagName)
         {
             return documentNode != null &&

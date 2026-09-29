@@ -51,15 +51,6 @@ internal sealed class RazorRemoteHostClient
 
     // solution
 
-    public async ValueTask<bool> TryInvokeAsync<TService>(Solution solution, Func<TService, RazorSolutionWrapper, CancellationToken, ValueTask> invocation, CancellationToken cancellationToken) where TService : class
-    {
-        using var connection = CreateConnection<TService>();
-        return await connection.TryInvokeAsync(
-            solution,
-            (service, solutionInfo, cancellationToken) => invocation(service, solutionInfo, cancellationToken),
-            cancellationToken).ConfigureAwait(false);
-    }
-
     public async ValueTask<Optional<TResult>> TryInvokeAsync<TService, TResult>(Solution solution, Func<TService, RazorSolutionWrapper, CancellationToken, ValueTask<TResult>> invocation, CancellationToken cancellationToken) where TService : class
     {
         using var connection = CreateConnection<TService>();

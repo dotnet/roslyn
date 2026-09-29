@@ -95,6 +95,30 @@ public class [|$$RegularClass|]
         End Function
 
         <Theory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/84847")>
+        Public Sub RenameWithUnrelatedGeneratedDocumentContainingReplacementText(host As RenameTestHost)
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" AssemblyName="ClassLibrary1" CommonReferences="true">
+                            <Document>
+public class TypeData
+{
+    public int [|$$Type|];
+}
+                            </Document>
+                            <DocumentFromSourceGenerator>
+public class Unrelated
+{
+    public int Value;
+}
+                            </DocumentFromSourceGenerator>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="Value")
+
+            End Using
+        End Sub
+
+        <Theory, CombinatorialData>
         <WorkItem("https://github.com/dotnet/roslyn/issues/51537")>
         Public Sub RenameWithCascadeIntoGeneratedFile(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,

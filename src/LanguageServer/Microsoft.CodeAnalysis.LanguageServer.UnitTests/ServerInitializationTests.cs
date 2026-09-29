@@ -39,7 +39,7 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
             TextDocument = document,
             ContentChanges =
             [
-               new TextDocumentContentChangeEvent
+               new TextDocumentContentChangePartial
                {
                    Range = new Roslyn.LanguageServer.Protocol.Range { Start = new Position(0, 0), End = new Position(0, 0) },
                    Text = "Console."

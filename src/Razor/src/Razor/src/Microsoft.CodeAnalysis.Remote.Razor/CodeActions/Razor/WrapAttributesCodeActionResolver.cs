@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Razor.CodeActions;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 
@@ -21,7 +22,7 @@ internal sealed class WrapAttributesCodeActionResolver : IRazorCodeActionResolve
 {
     public string Action => LanguageServerConstants.CodeActions.WrapAttributes;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<WrapAttributesCodeActionParams>();
         if (actionParams is null)
@@ -30,7 +31,7 @@ internal sealed class WrapAttributesCodeActionResolver : IRazorCodeActionResolve
         }
 
         var indentationString = FormattingUtilities.GetIndentationString(actionParams.IndentSize, options.InsertSpaces, options.TabSize);
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
         using var edits = new PooledArrayBuilder<SumType<TextEdit, AnnotatedTextEdit>>();
 
         foreach (var position in actionParams.NewLinePositions)
@@ -42,7 +43,7 @@ internal sealed class WrapAttributesCodeActionResolver : IRazorCodeActionResolve
 
         var tde = new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri },
             Edits = edits.ToArray()
         };
 

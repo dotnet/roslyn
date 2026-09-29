@@ -171,6 +171,8 @@
       "src\\Test\\Perf\\StackDepthTest\\StackDepthTest.csproj",
       "src\\Test\\Perf\\Utilities\\Roslyn.Test.Performance.Utilities.csproj",
       "src\\Test\\Perf\\tests\\Roslyn.PerformanceTests.csproj",
+      "src\\Tools\\dotnet-roslyn-tools\\Test\\Microsoft.RoslynTools.UnitTests.csproj",
+      "src\\Tools\\dotnet-roslyn-tools\\Tool\\Microsoft.RoslynTools.csproj",
       "src\\Tools\\AnalyzerRunner\\AnalyzerRunner.csproj",
       "src\\Tools\\BuildActionTelemetryTable\\BuildActionTelemetryTable.csproj",
       "src\\Tools\\BuildBoss\\BuildBoss.csproj",

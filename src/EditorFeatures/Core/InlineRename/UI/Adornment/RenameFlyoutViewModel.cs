@@ -229,7 +229,7 @@ internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
 
     public bool Submit()
     {
-        if (StatusSeverity == Severity.Error)
+        if (!_isReplacementTextValid)
         {
             return false;
         }

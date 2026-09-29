@@ -137,7 +137,14 @@ Skip if the csharplang issue URL already appears in the file.
 
 Skip if an open PR already exists.
 
-Use the GitHub API to create the branch and commit **without touching the local working tree**:
+When the current worktree is clean and based on `main`, make the status-page edit locally:
+
+1. Create `feature-status/<spec-filename>` from `main`.
+2. Edit `docs/Language Feature Status.md` in the worktree.
+3. Inspect the resulting diff and present the exact change to the user for approval before committing or publishing it.
+4. After approval, commit the change. Obtain explicit permission before pushing, then push the branch and create the PR.
+
+Use the GitHub API only when the worktree is not clean or is not based on `main`:
 
 ```powershell
 # Get latest main SHA

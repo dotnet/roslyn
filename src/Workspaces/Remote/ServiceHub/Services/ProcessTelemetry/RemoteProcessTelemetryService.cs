@@ -28,11 +28,13 @@ internal sealed partial class RemoteProcessTelemetryService(
             => new RemoteProcessTelemetryService(arguments);
     }
 
-    private readonly CancellationTokenSource _shutdownCancellationSource = new();
-
-#pragma warning disable IDE0052 // Remove unread private members
     private PerformanceReporter? _performanceReporter;
-#pragma warning restore
+
+    public override void Dispose()
+    {
+        _performanceReporter?.Dispose();
+        base.Dispose();
+    }
 
     /// <summary>
     /// Remote API. Initializes ServiceHub process global state.
@@ -63,7 +65,7 @@ internal sealed partial class RemoteProcessTelemetryService(
             if (diagnosticAnalyzerPerformanceTracker != null)
             {
                 // We know in the remote layer that this type must exist.
-                _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker, _shutdownCancellationSource.Token);
+                _performanceReporter = new PerformanceReporter(telemetrySession, diagnosticAnalyzerPerformanceTracker);
             }
         }, cancellationToken);
     }

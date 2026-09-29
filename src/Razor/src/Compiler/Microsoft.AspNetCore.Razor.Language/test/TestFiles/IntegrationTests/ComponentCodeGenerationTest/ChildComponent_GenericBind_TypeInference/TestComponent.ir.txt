@@ -23,8 +23,6 @@
                     ComponentAttribute - (57:1,24 [5] x:\dir\subdir\Test\TestComponent.cshtml) - ItemChanged - ItemChanged - AttributeStructure.DoubleQuotes
                         CSharpExpression - 
                             IntermediateToken -  - CSharp - __value => Value = __value
-            CSharpCode - (73:2,7 [21] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (73:2,7 [21] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string Value;\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

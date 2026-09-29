@@ -22,7 +22,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOfferedWhenFeatureUnavailable()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.CSharp13,
+            LanguageVersion = LanguageVersion.CSharp14,
             TestCode = """
                 class C
                 {
@@ -48,7 +48,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_TwoLevels()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -92,7 +92,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_LabelReferencedElsewhere()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -143,7 +143,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_EmptyLabelPad()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -182,7 +182,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_MultipleJumpsToSameLabel()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -230,7 +230,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoContinue_TwoLevels()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -271,7 +271,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_ContinueLabelOnNonEmptyStatement()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -297,7 +297,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_SingleLevelBreak()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -320,7 +320,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestBreakAndContinueTargetingSameLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -393,7 +393,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_NestedLoopsDifferentTargets()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -446,7 +446,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_NestedLoopsSameTarget()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -499,7 +499,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoContinue_NestedLoopsDifferentTargets()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -558,7 +558,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlag_NestedDifferentTargets()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -627,7 +627,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlag_MultiLevelChainBreak()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -684,7 +684,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlag_MultiLevelChainContinue()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -741,7 +741,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagChainIntermediateContinue()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -777,7 +777,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_JumpNotInsideLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -802,7 +802,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_LabelAfterNonLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -824,7 +824,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagBreak_ForLoopSynthesizesLoopVariableName()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -874,7 +874,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagContinue_FlagResetAtTopOfLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -927,7 +927,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagBreak_MultipleSites()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -986,7 +986,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagReadElsewhere()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1018,7 +1018,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_SwitchTarget()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1068,7 +1068,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_LabelInsideSwitchSection()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1119,7 +1119,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_TopLevelStatements()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestState = { OutputKind = OutputKind.ConsoleApplication },
             TestCode = """
                 for (int i = 0; i < 10; i++)
@@ -1152,7 +1152,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_SingleLevelSwitchBreak()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1177,7 +1177,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_LabelNotImmediatelyAfterLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1200,7 +1200,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_GotoCase()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1226,7 +1226,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_LabelHasNoPrecedingStatement()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1247,7 +1247,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_ContinueLabelNotLastStatement()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1273,7 +1273,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_ContinueLabelInNonLoopBlock()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1301,7 +1301,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_SingleLevelContinue()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1323,7 +1323,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagInitializedToTrue()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1353,7 +1353,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagAssignmentNotFollowedByBreak()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1386,7 +1386,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagGuardIsReturn()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1416,7 +1416,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagGuardNotPrecededByLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1443,7 +1443,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagInnerBreakTargetsSwitch()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1476,7 +1476,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagIsNullableBool()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1506,7 +1506,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagIsField()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1538,7 +1538,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagWithTwoGuards()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1572,7 +1572,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagContinue_DeclaredOutsideLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1605,7 +1605,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_ExistingLoopLabelWithExternalReference()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1650,7 +1650,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlag_NestedWhileLoopsSynthesizeDistinctLabels()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1745,7 +1745,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlag_RemovedDeclarationKeepsUnbalancedDirectives()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1798,7 +1798,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoContinue_EmbeddedLoopWrappedInBlock()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1842,7 +1842,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlag_EmbeddedLoopWrappedInBlock()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1890,7 +1890,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagBreak_ForEachSynthesizesLoopVariableName()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 using System.Collections.Generic;
 
@@ -1942,7 +1942,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagBreak_DoWhileSynthesizesOuter()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -1990,7 +1990,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlag_BraceWrappedGuard()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2040,7 +2040,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlag_DeclaredInsideTargetLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2088,7 +2088,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagGuardHasElse()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2120,7 +2120,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagBreak_SynthesizedLabelMatchesExistingLocalName()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2174,7 +2174,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_BracelessLoopBodies()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2210,7 +2210,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_InsideTryBlock()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2266,7 +2266,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestGotoBreak_InsideLocalFunction()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2316,7 +2316,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagBreak_InsideLambda()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2370,7 +2370,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagBreak_DeeplyNested()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2436,7 +2436,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_GotoDefault()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2461,7 +2461,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagGuardCompoundCondition()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2491,7 +2491,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagGuardNegated()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2521,7 +2521,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagSitesDifferentInnerLoops()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2560,7 +2560,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagContinue_DeclaredInsideTargetLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2614,7 +2614,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestNotOffered_FlagBreak_TargetLoopReenteredByOuterLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2648,7 +2648,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagBreak_FlagDeclaredInsideOuterLoop()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {
@@ -2704,7 +2704,7 @@ public sealed class UseLabeledJumpStatementsTests
     public Task TestFlagBreak_FlagResetMakesReEntrySafe()
         => new VerifyCS.Test
         {
-            LanguageVersion = LanguageVersion.Preview,
+            LanguageVersion = LanguageVersion.CSharp15,
             TestCode = """
                 class C
                 {

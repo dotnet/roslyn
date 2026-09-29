@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -47,7 +49,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Equal(3, result.GeneratedSources.Length);
+        // _Imports.razor (no decl), Component1.razor (decl + impl), Component2.razor (decl + impl) = 5
+        Assert.Equal(5, result.GeneratedSources.Length);
         result.VerifyOutputsMatchBaseline();
     }
 
@@ -141,7 +144,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Equal(3, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), Component1.razor (decl + impl), Component2.razor (@inherits -> fallback, shell decl + impl) = 5
+        Assert.Equal(5, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -188,7 +192,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Equal(3, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), Component1.razor (decl + impl), Component2.razor (@inherits -> fallback, shell decl + impl) = 5
+        Assert.Equal(5, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -210,7 +215,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Single(result.GeneratedSources);
+        // Component1.razor (@inject -> fallback, shell decl + impl) = 2
+        Assert.Equal(2, result.GeneratedSources.Length);
         result.VerifyOutputsMatchBaseline();
     }
 
@@ -246,7 +252,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Equal(4, result.GeneratedSources.Length);
+        // Index.cshtml (no decl), Component1 + BaseComponent (decl + impl each), DerivedComponent (@inherits -> fallback, shell decl + impl) = 7
+        Assert.Equal(7, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -290,7 +297,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         Assert.Empty(result.Diagnostics);
-        Assert.Equal(4, result.GeneratedSources.Length);
+        // Index.cshtml (no decl) + 3 components (decl + impl each) = 7
+        Assert.Equal(7, result.GeneratedSources.Length);
         result.VerifyOutputsMatchBaseline();
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
@@ -322,7 +330,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert.
         Assert.Empty(result.Diagnostics);
-        var source = Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
+        var source = result.ImplGeneratedSources().Single();
         if (langVersion == "7.0")
         {
             // In Razor v7, AddComponentParameter shouldn't be used even if available.
@@ -399,7 +408,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         // Assert. Behaves as if `AddComponentParameter` wasn't available because
         // the source generator only searches for it in references, not the current compilation.
         Assert.Empty(result.Diagnostics);
-        var source = Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
+        var source = result.ImplGeneratedSources().Single();
         Assert.Contains("AddAttribute", source.SourceText.ToString());
         Assert.DoesNotContain("AddComponentParameter", source.SourceText.ToString());
     }
@@ -438,7 +448,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             // Shared/Component1.razor(3,1): error RZ10001: The type of component 'Component1' cannot be inferred based on the values provided. Consider specifying the type arguments directly using the following attributes: 'T'.
             // <Component1 />
             Diagnostic("RZ10001").WithLocation(3, 1));
-        Assert.Single(result.GeneratedSources);
+        // Component1.razor (@typeparam -> fallback, shell decl + impl) = 2
+        Assert.Equal(2, result.GeneratedSources.Length);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/8545")]
@@ -468,7 +479,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -526,7 +537,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -579,7 +590,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -628,7 +639,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -677,7 +688,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -735,7 +746,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -784,7 +795,8 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Equal(2, result.GeneratedSources.Length);
+        // Index.cshtml (no decl) + Component1.razor (decl + impl) = 3
+        Assert.Equal(3, result.GeneratedSources.Length);
         var suffix = razorLangVersion == "7.0" ? "7" : "8";
         result.VerifyOutputsMatchBaseline(suffix: suffix);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index", suffix: suffix);
@@ -822,33 +834,46 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var original = project.AdditionalDocuments.Single();
         var originalText = await original.GetTextAsync();
         Assert.Equal(source, originalText.ToString());
-        var generated = result.GeneratedSources.Single();
-        var generatedText = generated.SourceText;
-        var generatedTextString = generatedText.ToString();
-        var snippet = "RaiseHere()";
 
-        // Find the snippet three times (at line 0, 3, and 4).
+        // The decl half contains @code body (magicNumber and the method definition); the impl
+        // half contains BuildRenderTree (the @(RaiseHere()) markup expression). Collect every
+        // RaiseHere() occurrence across both generated files and verify the line-mapping for
+        // each. Expected mapped lines are 0, 3, 4 in source-order regardless of which generated
+        // file each occurrence lives in.
+        var generatedSources = result.GeneratedSources;
+        Assert.Equal(2, generatedSources.Length);
+        var snippet = "RaiseHere()";
         var expectedLines = new[] { 0, 3, 4 };
+
+        var actualMappings = new List<(int sourceIndex, int generatedIndex, FileLinePositionSpan mapped)>();
+        for (var i = 0; i < generatedSources.Length; i++)
+        {
+            var text = generatedSources[i].SourceText.ToString();
+            var idx = -1;
+            while ((idx = text.IndexOf(snippet, idx + 1, StringComparison.Ordinal)) >= 0)
+            {
+                var mapped = generatedSources[i].SyntaxTree.GetMappedLineSpan(new TextSpan(idx, snippet.Length));
+                Assert.True(mapped.IsValid);
+                Assert.True(mapped.HasMappedPath);
+                Assert.Equal("Shared/Component1.razor", mapped.Path);
+                actualMappings.Add((i, idx, mapped));
+            }
+        }
+
+        // Sort by mapped line in the original Razor file, then verify against expected lines.
+        var ordered = actualMappings.OrderBy(m => m.mapped.StartLinePosition.Line).ToImmutableArray();
+        Assert.Equal(expectedLines.Length, ordered.Length);
+
         var originalIndex = -1;
-        var generatedIndex = -1;
-        for (var count = 0; ; count++)
+        for (var count = 0; count < expectedLines.Length; count++)
         {
             originalIndex = source.IndexOf(snippet, originalIndex + 1, StringComparison.Ordinal);
-            generatedIndex = generatedTextString.IndexOf(snippet, generatedIndex + 1, StringComparison.Ordinal);
+            Assert.True(originalIndex >= 0);
 
-            if (count == 3)
-            {
-                Assert.True(originalIndex < 0);
-                Assert.True(generatedIndex < 0);
-                break;
-            }
-
+            var (sourceIndex, generatedIndex, mapped) = ordered[count];
+            var generatedText = generatedSources[sourceIndex].SourceText;
             var generatedSpan = new TextSpan(generatedIndex, snippet.Length);
             Assert.Equal(snippet, generatedText.ToString(generatedSpan));
-            var mapped = generated.SyntaxTree.GetMappedLineSpan(generatedSpan);
-            Assert.True(mapped.IsValid);
-            Assert.True(mapped.HasMappedPath);
-            Assert.Equal("Shared/Component1.razor", mapped.Path);
             var expectedLine = expectedLines[count];
             Assert.Equal(expectedLine, mapped.StartLinePosition.Line);
             Assert.Equal(expectedLine, mapped.EndLinePosition.Line);
@@ -888,7 +913,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var original = project.AdditionalDocuments.Single();
         var originalText = await original.GetTextAsync();
         Assert.Equal(source, originalText.ToString());
-        var generated = result.GeneratedSources.Single();
+        var generated = result.ImplGeneratedSources().Single();
         var generatedText = generated.SourceText;
         var generatedTextString = generatedText.ToString();
 
@@ -939,7 +964,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Equal(2, result.GeneratedSources.Length);
+        Assert.Equal(3, result.GeneratedSources.Length);
         await VerifyRazorPageMatchesBaselineAsync(compilation, "Views_Home_Index");
     }
 
@@ -980,7 +1005,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
             Diagnostic("RZ10022").WithLocation(6, 16), // Attribute '@formname' can only be applied to 'form' elements.
             Diagnostic("RZ10012").WithLocation(7, 1),
             Diagnostic("RZ10023").WithLocation(7, 18)); // Attribute '@rendermode' is only valid when used on a component.
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/aspnetcore/issues/48778")]
@@ -1211,7 +1236,51 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
+    }
+
+    [Fact(Skip = "Fallback component nested-delegate metadata is lost by fast discovery; see https://github.com/dotnet/roslyn/issues/84646")]
+    public async Task Component_BindValue_NestedDelegateInFallbackComponent()
+    {
+        // Known limitation of the decl/impl split: a split (fast-path) component whose ValueChanged
+        // parameter type is a delegate nested in a *fallback* component loses the delegate's metadata
+        // during fast discovery -- the fallback emits a bodiless type shell that declares only the outer
+        // class, so the nested delegate binds as an error type and @bind-Value lowers as an EventCallback,
+        // producing CS1503 in the consumer. Tracked by https://github.com/dotnet/roslyn/issues/84646;
+        // remove the Skip when it is fixed.
+
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            // Widget can't be split (@implements forces the fallback path) and declares a nested delegate.
+            ["Widget.razor"] = """
+                @implements System.IDisposable
+                @code {
+                    public delegate void MyHandler(int x);
+                    public void Dispose() { }
+                }
+                """,
+            // MyInput is split and its ValueChanged parameter type is Widget's nested delegate.
+            ["MyInput.razor"] = """
+                @code {
+                    [Microsoft.AspNetCore.Components.Parameter] public int Value { get; set; }
+                    [Microsoft.AspNetCore.Components.Parameter] public MyApp.Widget.MyHandler? ValueChanged { get; set; }
+                }
+                """,
+            ["Index.razor"] = """
+                @using MyApp
+                @{ int myValue = 0; }
+                <MyInput @bind-Value="myValue" />
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        _ = RunGenerator(compilation!, ref driver, out var outputCompilation, static _ => { });
+
+        // Assert - the consumer should compile once the limitation is fixed.
+        Assert.Empty(outputCompilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error));
     }
 
     [Fact]
@@ -1257,7 +1326,53 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert
         result.Diagnostics.Verify();
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84817")]
+    public async Task Component_FallbackComponent_ChildContentParameters()
+    {
+        // A fallback component (unsplittable via @inherits) exposes RenderFragment child-content
+        // parameters. A consumer referencing them as child elements must resolve them, i.e. no
+        // RZ10012 "unexpected name" for Header/ChildContent.
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Card.razor"] = """
+                @inherits EmptyBase
+
+                <header>@Header</header>
+                <main>@ChildContent</main>
+
+                @code {
+                    [Parameter]
+                    public RenderFragment? Header { get; set; }
+
+                    [Parameter]
+                    public RenderFragment? ChildContent { get; set; }
+                }
+                """,
+            ["Shared/Consumer.razor"] = """
+                <Card>
+                    <Header>Expected header</Header>
+                    <ChildContent>Expected content</ChildContent>
+                </Card>
+                """,
+        }, new()
+        {
+            ["EmptyBase.cs"] = """
+                using Microsoft.AspNetCore.Components;
+
+                public abstract class EmptyBase : ComponentBase;
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert -- no RZ10012 for the fallback component's child-content parameters
+        result.Diagnostics.Verify();
     }
 
     [Fact]
@@ -1315,7 +1430,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert — should compile without CS0103 for 'context'
         result.Diagnostics.Verify();
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
     }
 
     [Fact]
@@ -1371,7 +1486,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
 
         // Assert — should compile without CS7036
         result.Diagnostics.Verify();
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
     }
 
     [Fact]
@@ -1479,7 +1594,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var result = RunGenerator(compilation!, ref driver);
 
         result.Diagnostics.Verify();
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
     }
 
     [Fact]
@@ -1541,7 +1656,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var result = RunGenerator(compilation!, ref driver);
 
         result.Diagnostics.Verify();
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
     }
 
     [Fact]
@@ -1607,7 +1722,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var result = RunGenerator(compilation!, ref driver);
 
         result.Diagnostics.Verify();
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
     }
 
     [Fact]
@@ -1720,7 +1835,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var result = RunGenerator(compilation!, ref driver);
 
         result.Diagnostics.Verify();
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
     }
 
     [Fact]
@@ -1790,7 +1905,7 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var result = RunGenerator(compilation!, ref driver);
 
         result.Diagnostics.Verify();
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
     }
 
     [Fact]
@@ -1851,6 +1966,131 @@ public sealed class RazorSourceGeneratorComponentTests : RazorSourceGeneratorTes
         var result = RunGenerator(compilation!, ref driver);
 
         result.Diagnostics.Verify();
-        Assert.Single(result.GeneratedSources);
+        Assert.Equal(2, result.GeneratedSources.Length);
+    }
+
+    /// <summary>
+    /// Targeted assertion that the source generator splits a component into a
+    /// "decl" file (class declaration + members like `[Parameter]`) and an "impl"
+    /// file (the partial class wrapper containing only `BuildRenderTree`). Both
+    /// halves must declare the class as `partial` so the C# compiler can rejoin
+    /// them. Sonic part 3.
+    /// </summary>
+    [Fact]
+    public async Task DeclImplSplit_ProducesTwoFilesPerComponent()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Shared/Greeter.razor"] = """
+                <h1>Hello, @Name!</h1>
+
+                @code {
+                    [Parameter]
+                    public string Name { get; set; } = "world";
+                }
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert
+        result.Diagnostics.Verify();
+
+        Assert.Equal(2, result.GeneratedSources.Length);
+
+        var impl = result.ImplGeneratedSources().Single();
+        var decl = result.DeclGeneratedSources().Single();
+
+        // The impl hint name ends in ".g.cs"; the decl hint name substitutes ".decl.g.cs"
+        // for the trailing ".g.cs" so both halves keep the .g.cs suffix without stacking it.
+        Assert.EndsWith(".g.cs", impl.HintName);
+        Assert.False(impl.HintName.EndsWith(".decl.g.cs", StringComparison.Ordinal), $"Impl hint name should not end with .decl.g.cs: {impl.HintName}");
+        Assert.EndsWith(".decl.g.cs", decl.HintName);
+        Assert.Equal(impl.HintName.Substring(0, impl.HintName.Length - ".g.cs".Length) + ".decl.g.cs", decl.HintName);
+
+        var implText = impl.SourceText.ToString();
+        var declText = decl.SourceText.ToString();
+
+        // Both halves declare the same partial class so they merge at compile time.
+        Assert.Contains("public partial class Greeter", implText);
+        Assert.Contains("public partial class Greeter", declText);
+
+        // The render method body lives in the impl half only. The literal markup
+        // "Hello, " from the .razor file appears verbatim in the AddMarkupContent call.
+        Assert.Contains("BuildRenderTree", implText);
+        Assert.DoesNotContain("BuildRenderTree", declText);
+        Assert.Contains("Hello, ", implText);
+
+        // The component's [Parameter] property (declared in @code) lives in the decl
+        // half only. The user's `[Parameter]` attribute syntax flows through
+        // unchanged because @code content is emitted verbatim.
+        Assert.Contains("[Parameter]", declText);
+        Assert.DoesNotContain("[Parameter]", implText);
+        Assert.Contains("public string Name", declText);
+        Assert.DoesNotContain("public string Name", implText);
+    }
+
+    /// <summary>
+    /// Non-component documents (e.g. `.cshtml` Razor pages) still produce a single
+    /// generated file -- the decl/impl split is a component-only optimization.
+    /// </summary>
+    [Fact]
+    public async Task DeclImplSplit_DoesNotApplyToCshtml()
+    {
+        // Arrange
+        var project = CreateTestProject(new()
+        {
+            ["Pages/Index.cshtml"] = """
+                @page
+                <h1>Hello world</h1>
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert
+        result.Diagnostics.Verify();
+
+        var only = Assert.Single(result.GeneratedSources);
+        Assert.False(only.HintName.EndsWith(".decl.g.cs", StringComparison.Ordinal), $"Cshtml output should not be a decl file: {only.HintName}");
+        Assert.Empty(result.DeclGeneratedSources());
+    }
+
+    /// <summary>
+    /// Regression test for the decl/impl split: diagnostics attached to the document
+    /// node (such as <c>RZ10011</c> from <c>ComponentDocumentClassifierPass</c>) survive
+    /// the in-flight tree mutation between the two writes, so without dedupe the same
+    /// diagnostic would be collected by <c>GetAllDiagnostics()</c> in both
+    /// <c>CodeRenderingContext</c>s and reported twice.
+    /// </summary>
+    [Fact]
+    public async Task DeclImplSplit_DocumentLevelDiagnosticReportedOnce()
+    {
+        // Arrange -- a lowercase component name causes ComponentDocumentClassifierPass
+        // to attach RZ10011 directly to the documentNode, which is a node that exists in
+        // both the decl write and the impl write.
+        var project = CreateTestProject(new()
+        {
+            ["lowercase.razor"] = """
+                <p>I am a lowercase component.</p>
+                """,
+        });
+        var compilation = await project.GetCompilationAsync();
+        var driver = await GetDriverAsync(project);
+
+        // Act
+        var result = RunGenerator(compilation!, ref driver);
+
+        // Assert -- the diagnostic should appear exactly once even though the document
+        // is split into a decl and impl file.
+        var diagnostic = Assert.Single(result.Diagnostics);
+        Assert.Equal("RZ10011", diagnostic.Id);
     }
 }

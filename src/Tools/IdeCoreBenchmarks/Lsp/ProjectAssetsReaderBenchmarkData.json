@@ -1,0 +1,818 @@
+{
+  "version": 3,
+  "targets": {
+    "net10.0": {
+      "Humanizer.Core/2.14.1": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/Humanizer.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/Humanizer.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "MessagePack/2.5.302": {
+        "type": "package",
+        "dependencies": {
+          "MessagePack.Annotations": "2.5.302",
+          "Microsoft.NET.StringTools": "17.6.3"
+        },
+        "compile": {
+          "lib/net6.0/MessagePack.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net6.0/MessagePack.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Microsoft.Build.Framework/18.7.1": {
+        "type": "package",
+        "compile": {
+          "ref/net10.0/Microsoft.Build.Framework.dll": {}
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Build.Framework.dll": {}
+        }
+      },
+      "Microsoft.Extensions.Configuration/10.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.1",
+          "Microsoft.Extensions.Primitives": "10.0.1"
+        },
+        "compile": {
+          "lib/net10.0/Microsoft.Extensions.Configuration.dll": {}
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Configuration.dll": {}
+        }
+      },
+      "Microsoft.Extensions.FileSystemGlobbing/10.0.1": {
+        "type": "package",
+        "compile": {
+          "lib/net10.0/Microsoft.Extensions.FileSystemGlobbing.dll": {}
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.FileSystemGlobbing.dll": {}
+        }
+      },
+      "Microsoft.Extensions.Logging/10.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.DependencyInjection": "10.0.1",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.1",
+          "Microsoft.Extensions.Options": "10.0.1"
+        },
+        "compile": {
+          "lib/net10.0/Microsoft.Extensions.Logging.dll": {}
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Logging.dll": {}
+        }
+      },
+      "Microsoft.Extensions.Logging.Console/10.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Binder": "10.0.1",
+          "Microsoft.Extensions.Logging": "10.0.1",
+          "Microsoft.Extensions.Logging.Configuration": "10.0.1",
+          "System.Text.Json": "10.0.1"
+        },
+        "compile": {
+          "lib/net10.0/Microsoft.Extensions.Logging.Console.dll": {}
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Logging.Console.dll": {}
+        }
+      },
+      "Microsoft.ServiceHub.Framework/4.10.128": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.ServiceHub.Client": "4.6.3200",
+          "Microsoft.VisualStudio.Threading": "18.7.19",
+          "Nerdbank.Streams": "2.13.16",
+          "StreamJsonRpc": "2.26.5"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.ServiceHub.Framework.dll": {}
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.ServiceHub.Framework.dll": {}
+        }
+      },
+      "Microsoft.TestPlatform.ObjectModel/17.14.1": {
+        "type": "package",
+        "dependencies": {
+          "NuGet.Frameworks": "6.5.0",
+          "System.Reflection.Metadata": "8.0.0"
+        },
+        "compile": {
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.CoreUtilities.dll": {},
+          "lib/netcoreapp3.1/Microsoft.VisualStudio.TestPlatform.ObjectModel.dll": {}
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.CoreUtilities.dll": {},
+          "lib/netcoreapp3.1/Microsoft.VisualStudio.TestPlatform.ObjectModel.dll": {}
+        }
+      },
+      "Microsoft.TestPlatform.TranslationLayer/17.14.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.TestPlatform.ObjectModel": "17.14.1",
+          "Newtonsoft.Json": "13.0.3"
+        },
+        "compile": {
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.CommunicationUtilities.dll": {},
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.CrossPlatEngine.dll": {},
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.PlatformAbstractions.dll": {},
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.Utilities.dll": {},
+          "lib/netcoreapp3.1/Microsoft.VisualStudio.TestPlatform.Common.dll": {},
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.TranslationLayer.dll": {}
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.CommunicationUtilities.dll": {},
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.CrossPlatEngine.dll": {},
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.PlatformAbstractions.dll": {},
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.Utilities.dll": {},
+          "lib/netcoreapp3.1/Microsoft.VisualStudio.TestPlatform.Common.dll": {},
+          "lib/netcoreapp3.1/Microsoft.TestPlatform.TranslationLayer.dll": {}
+        }
+      },
+      "Microsoft.VisualStudio.Composition/18.9.15": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.VisualStudio.Threading": "18.7.19",
+          "Microsoft.VisualStudio.Validation": "18.7.1",
+          "Nerdbank.Streams": "2.13.16"
+        },
+        "compile": {
+          "lib/net8.0/Microsoft.VisualStudio.Composition.dll": {}
+        },
+        "runtime": {
+          "lib/net8.0/Microsoft.VisualStudio.Composition.dll": {}
+        }
+      },
+      "Newtonsoft.Json/13.0.4": {
+        "type": "package",
+        "compile": {
+          "lib/net6.0/Newtonsoft.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net6.0/Newtonsoft.Json.dll": {}
+        }
+      },
+      "NuGet.Common/6.8.0-rc.112": {
+        "type": "package",
+        "dependencies": {
+          "NuGet.Frameworks": "6.8.0-rc.112"
+        },
+        "compile": {
+          "lib/netstandard2.0/NuGet.Common.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NuGet.Common.dll": {}
+        }
+      },
+      "NuGet.Configuration/6.8.0-rc.112": {
+        "type": "package",
+        "dependencies": {
+          "NuGet.Common": "6.8.0-rc.112"
+        },
+        "compile": {
+          "lib/netstandard2.0/NuGet.Configuration.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NuGet.Configuration.dll": {}
+        }
+      },
+      "NuGet.Frameworks/6.8.0-rc.112": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/NuGet.Frameworks.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NuGet.Frameworks.dll": {}
+        }
+      },
+      "NuGet.LibraryModel/6.8.0-rc.112": {
+        "type": "package",
+        "dependencies": {
+          "NuGet.Common": "6.8.0-rc.112",
+          "NuGet.Versioning": "6.8.0-rc.112"
+        },
+        "compile": {
+          "lib/netstandard2.0/NuGet.LibraryModel.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NuGet.LibraryModel.dll": {}
+        }
+      },
+      "NuGet.ProjectModel/6.8.0-rc.112": {
+        "type": "package",
+        "dependencies": {
+          "NuGet.Common": "6.8.0-rc.112",
+          "NuGet.Configuration": "6.8.0-rc.112",
+          "NuGet.DependencyResolver.Core": "6.8.0-rc.112",
+          "NuGet.Frameworks": "6.8.0-rc.112",
+          "NuGet.LibraryModel": "6.8.0-rc.112",
+          "NuGet.Packaging": "6.8.0-rc.112",
+          "NuGet.Versioning": "6.8.0-rc.112"
+        },
+        "compile": {
+          "lib/netstandard2.0/NuGet.ProjectModel.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NuGet.ProjectModel.dll": {}
+        }
+      },
+      "NuGet.Versioning/6.8.0-rc.112": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/NuGet.Versioning.dll": {}
+        },
+        "runtime": {
+          "lib/netstandard2.0/NuGet.Versioning.dll": {}
+        }
+      },
+      "SQLite3MC.PCLRaw.bundle/2.3.5": {
+        "type": "package",
+        "dependencies": {
+          "SQLite3MC.PCLRaw.lib": "2.3.5",
+          "SQLite3MC.PCLRaw.provider": "2.3.5",
+          "SQLitePCLRaw.core": "3.0.2"
+        },
+        "compile": {
+          "lib/net8.0/SQLite3MC.PCLRaw.bundle.dll": {}
+        },
+        "runtime": {
+          "lib/net8.0/SQLite3MC.PCLRaw.bundle.dll": {}
+        }
+      },
+      "SQLitePCLRaw.core/3.0.2": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/SQLitePCLRaw.core.dll": {}
+        },
+        "runtime": {
+          "lib/net8.0/SQLitePCLRaw.core.dll": {}
+        }
+      },
+      "StreamJsonRpc/2.26.5": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.VisualStudio.Threading": "18.7.19",
+          "Nerdbank.Streams": "2.13.16",
+          "Newtonsoft.Json": "13.0.4"
+        },
+        "compile": {
+          "lib/net8.0/StreamJsonRpc.dll": {}
+        },
+        "runtime": {
+          "lib/net8.0/StreamJsonRpc.dll": {}
+        }
+      },
+      "System.CommandLine/3.0.0-preview.6.26324.102": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/System.CommandLine.dll": {}
+        },
+        "runtime": {
+          "lib/net8.0/System.CommandLine.dll": {}
+        }
+      },
+      "System.Composition.Hosting/10.0.8": {
+        "type": "package",
+        "dependencies": {
+          "System.Composition.Runtime": "10.0.8"
+        },
+        "compile": {
+          "lib/net10.0/System.Composition.Hosting.dll": {}
+        },
+        "runtime": {
+          "lib/net10.0/System.Composition.Hosting.dll": {}
+        }
+      },
+      "System.Text.Json/10.0.8": {
+        "type": "package",
+        "dependencies": {
+          "System.IO.Pipelines": "10.0.8",
+          "System.Text.Encodings.Web": "10.0.8"
+        },
+        "compile": {
+          "lib/net10.0/System.Text.Json.dll": {}
+        },
+        "runtime": {
+          "lib/net10.0/System.Text.Json.dll": {}
+        }
+      },
+      "Microsoft.CodeAnalysis.Common/5.10.0-dev": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/Microsoft.CodeAnalysis.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Microsoft.CodeAnalysis.dll": {}
+        }
+      },
+      "Microsoft.CodeAnalysis.CSharp.Workspaces/5.10.0-dev": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.CSharp": "5.10.0-dev",
+          "Microsoft.CodeAnalysis.Workspaces.Common": "5.10.0-dev"
+        },
+        "compile": {
+          "bin/placeholder/Microsoft.CodeAnalysis.CSharp.Workspaces.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Microsoft.CodeAnalysis.CSharp.Workspaces.dll": {}
+        }
+      },
+      "Microsoft.CodeAnalysis.Features/5.10.0-dev": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Common": "5.10.0-dev",
+          "Microsoft.CodeAnalysis.Workspaces.Common": "5.10.0-dev"
+        },
+        "compile": {
+          "bin/placeholder/Microsoft.CodeAnalysis.Features.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Microsoft.CodeAnalysis.Features.dll": {}
+        }
+      },
+      "Microsoft.CodeAnalysis.LanguageServer.Protocol/5.10.0-dev": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "compile": {
+          "bin/placeholder/Microsoft.CodeAnalysis.LanguageServer.Protocol.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Microsoft.CodeAnalysis.LanguageServer.Protocol.dll": {}
+        }
+      },
+      "Microsoft.CodeAnalysis.Workspaces.MSBuild/5.10.0-dev": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v10.0",
+        "dependencies": {
+          "Microsoft.CodeAnalysis.Workspaces.Common": "5.10.0-dev"
+        },
+        "compile": {
+          "bin/placeholder/Microsoft.CodeAnalysis.Workspaces.MSBuild.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Microsoft.CodeAnalysis.Workspaces.MSBuild.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Humanizer.Core/2.14.1": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "humanizer.core/2.14.1",
+      "files": [
+        ".nupkg.metadata",
+        "humanizer.core.2.14.1.nupkg.sha512",
+        "humanizer.core.nuspec",
+        "lib/net6.0/Humanizer.dll",
+        "lib/net6.0/Humanizer.xml"
+      ]
+    },
+    "MessagePack/2.5.302": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "messagepack/2.5.302",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net6.0/MessagePack.dll",
+        "lib/net6.0/MessagePack.xml",
+        "messagepack.2.5.302.nupkg.sha512",
+        "messagepack.nuspec"
+      ]
+    },
+    "Microsoft.Build.Framework/18.7.1": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "microsoft.build.framework/18.7.1",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net10.0/Microsoft.Build.Framework.dll",
+        "microsoft.build.framework.18.7.1.nupkg.sha512",
+        "microsoft.build.framework.nuspec",
+        "ref/net10.0/Microsoft.Build.Framework.dll"
+      ]
+    },
+    "Microsoft.Extensions.Configuration/10.0.1": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "microsoft.extensions.configuration/10.0.1",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net10.0/Microsoft.Extensions.Configuration.dll",
+        "lib/net10.0/Microsoft.Extensions.Configuration.xml",
+        "microsoft.extensions.configuration.10.0.1.nupkg.sha512",
+        "microsoft.extensions.configuration.nuspec"
+      ]
+    },
+    "Microsoft.Extensions.FileSystemGlobbing/10.0.1": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "microsoft.extensions.filesystemglobbing/10.0.1",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net10.0/Microsoft.Extensions.FileSystemGlobbing.dll",
+        "lib/net10.0/Microsoft.Extensions.FileSystemGlobbing.xml",
+        "microsoft.extensions.filesystemglobbing.10.0.1.nupkg.sha512",
+        "microsoft.extensions.filesystemglobbing.nuspec"
+      ]
+    },
+    "Microsoft.Extensions.Logging/10.0.1": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "microsoft.extensions.logging/10.0.1",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net10.0/Microsoft.Extensions.Logging.dll",
+        "lib/net10.0/Microsoft.Extensions.Logging.xml",
+        "microsoft.extensions.logging.10.0.1.nupkg.sha512",
+        "microsoft.extensions.logging.nuspec"
+      ]
+    },
+    "Microsoft.Extensions.Logging.Console/10.0.1": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "microsoft.extensions.logging.console/10.0.1",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net10.0/Microsoft.Extensions.Logging.Console.dll",
+        "lib/net10.0/Microsoft.Extensions.Logging.Console.xml",
+        "microsoft.extensions.logging.console.10.0.1.nupkg.sha512",
+        "microsoft.extensions.logging.console.nuspec"
+      ]
+    },
+    "Microsoft.ServiceHub.Framework/4.10.128": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "microsoft.servicehub.framework/4.10.128",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net8.0/Microsoft.ServiceHub.Framework.dll",
+        "lib/net8.0/Microsoft.ServiceHub.Framework.xml",
+        "microsoft.servicehub.framework.4.10.128.nupkg.sha512",
+        "microsoft.servicehub.framework.nuspec"
+      ]
+    },
+    "Microsoft.TestPlatform.ObjectModel/17.14.1": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "microsoft.testplatform.objectmodel/17.14.1",
+      "files": [
+        ".nupkg.metadata",
+        "lib/netcoreapp3.1/Microsoft.TestPlatform.CoreUtilities.dll",
+        "lib/netcoreapp3.1/Microsoft.VisualStudio.TestPlatform.ObjectModel.dll",
+        "microsoft.testplatform.objectmodel.17.14.1.nupkg.sha512",
+        "microsoft.testplatform.objectmodel.nuspec"
+      ]
+    },
+    "Microsoft.TestPlatform.TranslationLayer/17.14.1": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "microsoft.testplatform.translationlayer/17.14.1",
+      "files": [
+        ".nupkg.metadata",
+        "lib/netcoreapp3.1/Microsoft.TestPlatform.TranslationLayer.dll",
+        "microsoft.testplatform.translationlayer.17.14.1.nupkg.sha512",
+        "microsoft.testplatform.translationlayer.nuspec"
+      ]
+    },
+    "Microsoft.VisualStudio.Composition/18.9.15": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "microsoft.visualstudio.composition/18.9.15",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net8.0/Microsoft.VisualStudio.Composition.dll",
+        "lib/net8.0/Microsoft.VisualStudio.Composition.xml",
+        "microsoft.visualstudio.composition.18.9.15.nupkg.sha512",
+        "microsoft.visualstudio.composition.nuspec"
+      ]
+    },
+    "Newtonsoft.Json/13.0.4": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "newtonsoft.json/13.0.4",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net6.0/Newtonsoft.Json.dll",
+        "lib/net6.0/Newtonsoft.Json.xml",
+        "newtonsoft.json.13.0.4.nupkg.sha512",
+        "newtonsoft.json.nuspec"
+      ]
+    },
+    "NuGet.Common/6.8.0-rc.112": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "nuget.common/6.8.0-rc.112",
+      "files": [
+        ".nupkg.metadata",
+        "lib/netstandard2.0/NuGet.Common.dll",
+        "lib/netstandard2.0/NuGet.Common.xml",
+        "nuget.common.6.8.0-rc.112.nupkg.sha512",
+        "nuget.common.nuspec"
+      ]
+    },
+    "NuGet.Configuration/6.8.0-rc.112": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "nuget.configuration/6.8.0-rc.112",
+      "files": [
+        ".nupkg.metadata",
+        "lib/netstandard2.0/NuGet.Configuration.dll",
+        "lib/netstandard2.0/NuGet.Configuration.xml",
+        "nuget.configuration.6.8.0-rc.112.nupkg.sha512",
+        "nuget.configuration.nuspec"
+      ]
+    },
+    "NuGet.Frameworks/6.8.0-rc.112": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "nuget.frameworks/6.8.0-rc.112",
+      "files": [
+        ".nupkg.metadata",
+        "lib/netstandard2.0/NuGet.Frameworks.dll",
+        "lib/netstandard2.0/NuGet.Frameworks.xml",
+        "nuget.frameworks.6.8.0-rc.112.nupkg.sha512",
+        "nuget.frameworks.nuspec"
+      ]
+    },
+    "NuGet.LibraryModel/6.8.0-rc.112": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "nuget.librarymodel/6.8.0-rc.112",
+      "files": [
+        ".nupkg.metadata",
+        "lib/netstandard2.0/NuGet.LibraryModel.dll",
+        "lib/netstandard2.0/NuGet.LibraryModel.xml",
+        "nuget.librarymodel.6.8.0-rc.112.nupkg.sha512",
+        "nuget.librarymodel.nuspec"
+      ]
+    },
+    "NuGet.ProjectModel/6.8.0-rc.112": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "nuget.projectmodel/6.8.0-rc.112",
+      "files": [
+        ".nupkg.metadata",
+        "lib/netstandard2.0/NuGet.ProjectModel.dll",
+        "lib/netstandard2.0/NuGet.ProjectModel.xml",
+        "nuget.projectmodel.6.8.0-rc.112.nupkg.sha512",
+        "nuget.projectmodel.nuspec"
+      ]
+    },
+    "NuGet.Versioning/6.8.0-rc.112": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "nuget.versioning/6.8.0-rc.112",
+      "files": [
+        ".nupkg.metadata",
+        "lib/netstandard2.0/NuGet.Versioning.dll",
+        "lib/netstandard2.0/NuGet.Versioning.xml",
+        "nuget.versioning.6.8.0-rc.112.nupkg.sha512",
+        "nuget.versioning.nuspec"
+      ]
+    },
+    "SQLite3MC.PCLRaw.bundle/2.3.5": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "sqlite3mc.pclraw.bundle/2.3.5",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net8.0/SQLite3MC.PCLRaw.bundle.dll",
+        "sqlite3mc.pclraw.bundle.2.3.5.nupkg.sha512",
+        "sqlite3mc.pclraw.bundle.nuspec"
+      ]
+    },
+    "SQLitePCLRaw.core/3.0.2": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "sqlitepclraw.core/3.0.2",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net8.0/SQLitePCLRaw.core.dll",
+        "lib/net8.0/SQLitePCLRaw.core.xml",
+        "sqlitepclraw.core.3.0.2.nupkg.sha512",
+        "sqlitepclraw.core.nuspec"
+      ]
+    },
+    "StreamJsonRpc/2.26.5": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "streamjsonrpc/2.26.5",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net8.0/StreamJsonRpc.dll",
+        "lib/net8.0/StreamJsonRpc.xml",
+        "streamjsonrpc.2.26.5.nupkg.sha512",
+        "streamjsonrpc.nuspec"
+      ]
+    },
+    "System.CommandLine/3.0.0-preview.6.26324.102": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "system.commandline/3.0.0-preview.6.26324.102",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net8.0/System.CommandLine.dll",
+        "lib/net8.0/System.CommandLine.xml",
+        "system.commandline.3.0.0-preview.6.26324.102.nupkg.sha512",
+        "system.commandline.nuspec"
+      ]
+    },
+    "System.Composition.Hosting/10.0.8": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "system.composition.hosting/10.0.8",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net10.0/System.Composition.Hosting.dll",
+        "lib/net10.0/System.Composition.Hosting.xml",
+        "system.composition.hosting.10.0.8.nupkg.sha512",
+        "system.composition.hosting.nuspec"
+      ]
+    },
+    "System.Text.Json/10.0.8": {
+      "sha512": "real-world-benchmark-placeholder",
+      "type": "package",
+      "path": "system.text.json/10.0.8",
+      "files": [
+        ".nupkg.metadata",
+        "lib/net10.0/System.Text.Json.dll",
+        "lib/net10.0/System.Text.Json.xml",
+        "system.text.json.10.0.8.nupkg.sha512",
+        "system.text.json.nuspec"
+      ]
+    },
+    "Microsoft.CodeAnalysis.Common/5.10.0-dev": {
+      "type": "project",
+      "path": "../../Compilers/Core/Portable/Microsoft.CodeAnalysis.csproj",
+      "msbuildProject": "../../Compilers/Core/Portable/Microsoft.CodeAnalysis.csproj"
+    },
+    "Microsoft.CodeAnalysis.CSharp.Workspaces/5.10.0-dev": {
+      "type": "project",
+      "path": "../../Workspaces/CSharp/Portable/Microsoft.CodeAnalysis.CSharp.Workspaces.csproj",
+      "msbuildProject": "../../Workspaces/CSharp/Portable/Microsoft.CodeAnalysis.CSharp.Workspaces.csproj"
+    },
+    "Microsoft.CodeAnalysis.Features/5.10.0-dev": {
+      "type": "project",
+      "path": "../../Features/Core/Portable/Microsoft.CodeAnalysis.Features.csproj",
+      "msbuildProject": "../../Features/Core/Portable/Microsoft.CodeAnalysis.Features.csproj"
+    },
+    "Microsoft.CodeAnalysis.LanguageServer.Protocol/5.10.0-dev": {
+      "type": "project",
+      "path": "../Protocol/Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj",
+      "msbuildProject": "../Protocol/Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj"
+    },
+    "Microsoft.CodeAnalysis.Workspaces.MSBuild/5.10.0-dev": {
+      "type": "project",
+      "path": "../../Workspaces/MSBuild/Core/Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj",
+      "msbuildProject": "../../Workspaces/MSBuild/Core/Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj"
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net10.0": [
+      "Microsoft.Extensions.FileSystemGlobbing >= 10.0.1",
+      "Microsoft.Extensions.Logging >= 10.0.1",
+      "Microsoft.ServiceHub.Framework >= 4.10.128",
+      "Microsoft.TestPlatform.ObjectModel >= 17.14.1",
+      "Microsoft.TestPlatform.TranslationLayer >= 17.14.1",
+      "Microsoft.VisualStudio.Composition >= 18.9.15",
+      "NuGet.ProjectModel >= 6.8.0-rc.112",
+      "SQLite3MC.PCLRaw.bundle >= 2.3.5",
+      "SQLitePCLRaw.core >= 3.0.2",
+      "System.CommandLine >= 3.0.0-preview.6.26324.102"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\developer\\.nuget\\packages\\": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\src\\roslyn\\src\\LanguageServer\\Microsoft.CodeAnalysis.LanguageServer\\Microsoft.CodeAnalysis.LanguageServer.csproj",
+      "projectName": "Microsoft.CodeAnalysis.LanguageServer",
+      "projectPath": "C:\\src\\roslyn\\src\\LanguageServer\\Microsoft.CodeAnalysis.LanguageServer\\Microsoft.CodeAnalysis.LanguageServer.csproj",
+      "packagesPath": "C:\\Users\\developer\\.nuget\\packages\\",
+      "outputPath": "C:\\src\\roslyn\\artifacts\\obj\\Microsoft.CodeAnalysis.LanguageServer\\",
+      "projectStyle": "PackageReference",
+      "configFilePaths": [
+        "C:\\Users\\developer\\AppData\\Roaming\\NuGet\\NuGet.Config"
+      ],
+      "originalTargetFrameworks": [
+        "net10.0"
+      ],
+      "sources": {
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net10.0": {
+          "targetAlias": "net10.0",
+          "projectReferences": {
+            "C:\\src\\roslyn\\src\\Compilers\\Core\\Portable\\Microsoft.CodeAnalysis.csproj": {
+              "projectPath": "C:\\src\\roslyn\\src\\Compilers\\Core\\Portable\\Microsoft.CodeAnalysis.csproj"
+            },
+            "C:\\src\\roslyn\\src\\Features\\Core\\Portable\\Microsoft.CodeAnalysis.Features.csproj": {
+              "projectPath": "C:\\src\\roslyn\\src\\Features\\Core\\Portable\\Microsoft.CodeAnalysis.Features.csproj"
+            },
+            "C:\\src\\roslyn\\src\\Workspaces\\MSBuild\\Core\\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj": {
+              "projectPath": "C:\\src\\roslyn\\src\\Workspaces\\MSBuild\\Core\\Microsoft.CodeAnalysis.Workspaces.MSBuild.csproj"
+            }
+          }
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "all"
+      }
+    },
+    "frameworks": {
+      "net10.0": {
+        "targetAlias": "net10.0",
+        "dependencies": {
+          "Microsoft.Extensions.FileSystemGlobbing": {
+            "target": "Package",
+            "version": "[10.0.1, )"
+          },
+          "Microsoft.Extensions.Logging": {
+            "target": "Package",
+            "version": "[10.0.1, )"
+          },
+          "Microsoft.ServiceHub.Framework": {
+            "target": "Package",
+            "version": "[4.10.128, )"
+          },
+          "Microsoft.TestPlatform.ObjectModel": {
+            "target": "Package",
+            "version": "[17.14.1, )"
+          },
+          "Microsoft.TestPlatform.TranslationLayer": {
+            "target": "Package",
+            "version": "[17.14.1, )"
+          },
+          "Microsoft.VisualStudio.Composition": {
+            "target": "Package",
+            "version": "[18.9.15, )"
+          },
+          "NuGet.ProjectModel": {
+            "target": "Package",
+            "version": "[6.8.0-rc.112, )"
+          },
+          "SQLite3MC.PCLRaw.bundle": {
+            "target": "Package",
+            "version": "[2.3.5, )"
+          },
+          "SQLitePCLRaw.core": {
+            "target": "Package",
+            "version": "[3.0.2, )"
+          },
+          "System.CommandLine": {
+            "target": "Package",
+            "version": "[3.0.0-preview.6.26324.102, )"
+          }
+        },
+        "imports": [
+          "net461",
+          "net462",
+          "net47",
+          "net471",
+          "net472",
+          "net48",
+          "net481"
+        ],
+        "assetTargetFallback": true,
+        "warn": true,
+        "frameworkReferences": {
+          "Microsoft.NETCore.App": {
+            "privateAssets": "all"
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.302/PortableRuntimeIdentifierGraph.json"
+      }
+    }
+  }
+}

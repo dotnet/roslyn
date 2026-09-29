@@ -5,8 +5,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -476,7 +476,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     public Task TestMutableInterfaces(string type)
         => VerifyItemExistsAsync($$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersion.CSharp15.ToDisplayString()}}">
                     <Document><![CDATA[
             using System.Collections.Generic;
 
@@ -499,7 +499,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     public Task TestReadOnlyInterfaces(string type)
         => VerifyItemIsAbsentAsync((string?)$$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersion.CSharp15.ToDisplayString()}}">
                     <Document><![CDATA[
             using System;
             using System.Collections.Generic;
@@ -520,7 +520,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     {
         var markup = $$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersion.CSharp15.ToDisplayString()}}">
                     <Document><![CDATA[
             using System;
             using System.Collections.Generic;
@@ -545,7 +545,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     {
         var markup = $$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersion.CSharp15.ToDisplayString()}}">
                     <Document><![CDATA[
             using System;
             using System.Collections.Generic;
@@ -570,7 +570,7 @@ public sealed class NamedParameterCompletionProviderTests : AbstractCSharpComple
     {
         var markup = $$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersion.CSharp15.ToDisplayString()}}">
                     <Document><![CDATA[
             using System;
             using System.Collections;

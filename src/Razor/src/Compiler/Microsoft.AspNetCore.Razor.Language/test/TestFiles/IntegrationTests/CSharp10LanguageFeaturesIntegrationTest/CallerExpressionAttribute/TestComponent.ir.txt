@@ -10,5 +10,3 @@
                 MarkupElement - (228:7,0 [31] x:\dir\subdir\Test\TestComponent.razor) - div
                     CSharpExpression - (234:7,6 [19] x:\dir\subdir\Test\TestComponent.razor)
                         LazyIntermediateToken - (234:7,6 [19] x:\dir\subdir\Test\TestComponent.razor) - CSharp - Capture(1 + 1 == 2)
-            CSharpCode - (7:0,7 [216] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (7:0,7 [216] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    public static string Capture(\n        bool condition,\n        [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(condition))] string? expression = null)\n        => expression ?? string.Empty;\n

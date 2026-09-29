@@ -1165,7 +1165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(bytesWritten == hash.Length);
             }
 
-            return CodeAnalysis.CodeGen.PrivateImplementationDetails.HashToHex(hash);
+            return HexUtilities.ToHexString(hash);
         }
 
         /// <summary>

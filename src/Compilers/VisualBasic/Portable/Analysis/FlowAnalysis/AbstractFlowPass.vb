@@ -1453,7 +1453,7 @@ lUnsplitAndFinish:
                 '  all other cases including 'If("const", AnyExpression)'
                 Dim savedState As LocalState = Me.State.Clone()
                 VisitRvalue(node.ElseExpression)
-                Me.SetState(savedState)
+                IntersectWith(Me.State, savedState)
             End If
             Return Nothing
         End Function

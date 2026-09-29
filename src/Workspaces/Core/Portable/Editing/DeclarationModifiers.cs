@@ -139,7 +139,6 @@ public readonly record struct DeclarationModifiers
 
     internal bool IsFixed => (Modifiers & Modifiers.Fixed) != 0;
 
-    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
     public bool IsClosed => (Modifiers & Modifiers.Closed) != 0;
 
     public DeclarationModifiers WithIsStatic(bool isStatic)
@@ -197,7 +196,6 @@ public readonly record struct DeclarationModifiers
     public DeclarationModifiers WithIsFile(bool isFile)
         => new(SetFlag(Modifiers, Modifiers.File, isFile));
 
-    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
     public DeclarationModifiers WithIsClosed(bool isClosed)
         => new(SetFlag(Modifiers, Modifiers.Closed, isClosed));
 
@@ -227,7 +225,6 @@ public readonly record struct DeclarationModifiers
 
     internal static DeclarationModifiers Fixed => new(Modifiers.Fixed);
 
-    [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/83717")]
     public static DeclarationModifiers Closed => new(Modifiers.Closed);
 
     public static DeclarationModifiers operator |(DeclarationModifiers left, DeclarationModifiers right)

@@ -57,7 +57,7 @@ union U1(E1);
         }
         EOF();
 
-        UsingTree(src, useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+        UsingTree(src, useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -190,7 +190,7 @@ union M()
         }
         EOF();
 
-        UsingTree(src, useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview,
+        UsingTree(src, useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview,
             // (1,9): error CS1031: Type expected
             // union M()
             Diagnostic(ErrorCode.ERR_TypeExpected, ")").WithLocation(1, 9),
@@ -266,7 +266,7 @@ partial union U1(E1);
         }
         EOF();
 
-        UsingTree(src, useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+        UsingTree(src, useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -341,7 +341,7 @@ ref union U1(E1);
         }
         EOF();
 
-        UsingTree(src, useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+        UsingTree(src, useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -423,7 +423,7 @@ ref partial union U1(E1);
         }
         EOF();
 
-        UsingTree(src, useCSharp15 ? TestOptions.RegularNext : TestOptions.RegularPreview);
+        UsingTree(src, useCSharp15 ? TestOptions.Regular15 : TestOptions.RegularPreview);
 
         N(SyntaxKind.CompilationUnit);
         {

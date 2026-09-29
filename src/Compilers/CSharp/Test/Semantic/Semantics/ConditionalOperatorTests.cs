@@ -199,6 +199,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84641")]
+        public void InvalidCondition_UnconvertedConditionalOperator()
+        {
+            var source = """
+                class C
+                {
+                    string F = string.Join("", 2 ? "" : ToString);
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,32): error CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //     string F = string.Join("", 2 ? "" : ToString);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "2").WithArguments("int", "bool").WithLocation(3, 32),
+                // (3,41): error CS0236: A field initializer cannot reference the non-static field, method, or property 'object.ToString()'
+                //     string F = string.Join("", 2 ? "" : ToString);
+                Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "ToString").WithArguments("object.ToString()").WithLocation(3, 41));
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/67975")]
         public void SumTypeInTuple()
         {

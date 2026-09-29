@@ -28,14 +28,3 @@ Source Location: (79:1,49 [5] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (2548:51,0 [5] )
 |Value|
 
-Source Location: (131:3,7 [81] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    public int ParentValue { get; set; } = 42;
-    public void OnAfter() { }
-|
-Generated Location: (2877:65,0 [81] )
-|
-    public int ParentValue { get; set; } = 42;
-    public void OnAfter() { }
-|
-

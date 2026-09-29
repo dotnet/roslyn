@@ -1,0 +1,24 @@
+
+# Banned MessagePack APIs.
+# Use [DataContract] with [DataMember] for serialization contracts instead.
+T:MessagePack.MessagePackObjectAttribute;Use [DataContract] with [DataMember] instead
+T:MessagePack.Resolvers.StandardResolverAllowPrivate;Uses Reflection.Emit — not AOT-compatible
+T:MessagePack.Resolvers.DynamicObjectResolverAllowPrivate;Uses Reflection.Emit — not AOT-compatible
+# Banned descriptor APIs — use ServiceJsonRpcPolyTypeDescriptor via ServiceRpcDescriptorUtility instead.
+T:StreamJsonRpc.ServiceJsonRpcDescriptor;Not AOT-compatible — uses Reflection.Emit for proxy generation. Subclass ServiceJsonRpcPolyTypeDescriptor instead, or use ServiceRpcDescriptorUtility.CreateDescriptor
+P:StreamJsonRpc.MessagePackFormatter.DefaultUserDataSerializationOptions;Not AOT-compatible — uses dynamic code. Use NerdbankMessagePackFormatter via ServiceJsonRpcPolyTypeDescriptor instead
+# Banned TraceSource APIs — use Logger instead.
+M:System.Diagnostics.TraceSource.TraceInformation(System.String);Use logger.Info?.Trace() instead
+M:System.Diagnostics.TraceSource.TraceInformation(System.String,System.Object[]);Use logger.Info?.Trace() instead
+# Banned MEF import options — all imports are statically satisfied by the source-generated composition.
+P:System.ComponentModel.Composition.ImportAttribute.AllowDefault;All imports are statically satisfied by the source-generated composition — use non-nullable parameter types instead
+# Banned Newtonsoft.Json APIs — the server is published as NativeAOT, which disables
+# reflection-based serialization. Use System.Text.Json with [JsonPropertyName] and
+# source-generated JsonSerializerContext instead.
+N:Newtonsoft.Json;Use System.Text.Json with [JsonPropertyName] and source-generated JsonSerializerContext instead (NativeAOT compatibility)
+N:Newtonsoft.Json.Linq;Use System.Text.Json instead (NativeAOT compatibility)
+N:Newtonsoft.Json.Serialization;Use System.Text.Json instead (NativeAOT compatibility)
+N:Newtonsoft.Json.Converters;Use System.Text.Json instead (NativeAOT compatibility)
+
+
+

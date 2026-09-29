@@ -23,11 +23,11 @@ internal sealed class RemoteSpellCheckService(in ServiceArgs args) : RazorDocume
         => RunServiceAsync(
             solutionInfo,
             razorDocumentId,
-            context => GetSpellCheckRangeTriplesAsync(context, cancellationToken),
+            snapshot => GetSpellCheckRangeTriplesAsync(snapshot, cancellationToken),
             cancellationToken);
 
-    private async ValueTask<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentContext context, CancellationToken cancellationToken)
+    private async ValueTask<int[]> GetSpellCheckRangeTriplesAsync(RemoteDocumentSnapshot snapshot, CancellationToken cancellationToken)
     {
-        return await _spellCheckService.GetSpellCheckRangeTriplesAsync(context, cancellationToken).ConfigureAwait(false);
+        return await _spellCheckService.GetSpellCheckRangeTriplesAsync(snapshot, cancellationToken).ConfigureAwait(false);
     }
 }

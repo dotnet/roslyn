@@ -437,6 +437,8 @@ public sealed class RemoveUnusedMembersTests
             },
             ExpectedDiagnostics =
             {
+                // /0/Test0.cs(1,1): error CS8802: Only one compilation unit can have top-level statements.
+                DiagnosticResult.CompilerError("CS8802").WithSpan("/0/Test0.cs", 1, 1, 1, 7),
                 // /0/Test0.cs(2,1): error CS8805: Program using top-level statements must be an executable.
                 DiagnosticResult.CompilerError("CS8805").WithSpan(1, 1, 1, 10),
                 // /0/Test1.cs(2,1): error CS8802: Only one compilation unit can have top-level statements.
@@ -485,6 +487,8 @@ public sealed class RemoveUnusedMembersTests
             },
             ExpectedDiagnostics =
             {
+                // /0/Test0.cs(1,1): error CS8802: Only one compilation unit can have top-level statements.
+                DiagnosticResult.CompilerError("CS8802").WithSpan("/0/Test0.cs", 1, 1, 1, 7),
                 // /0/Test1.cs(2,1): error CS8802: Only one compilation unit can have top-level statements.
                 DiagnosticResult.CompilerError("CS8802").WithSpan("/0/Test1.cs", 1, 1, 1, 7),
             },

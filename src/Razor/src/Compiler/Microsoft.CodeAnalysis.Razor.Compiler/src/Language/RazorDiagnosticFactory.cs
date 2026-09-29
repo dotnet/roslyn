@@ -207,7 +207,8 @@ internal static class RazorDiagnosticFactory
     internal static readonly RazorDiagnosticDescriptor Parsing_OuterTagMissingName =
         new($"{DiagnosticPrefix}1022",
             Resources.ParseError_OuterTagMissingName,
-            RazorDiagnosticSeverity.Error);
+            RazorDiagnosticSeverity.Warning,
+            warningLevel: 11);
 
     public static RazorDiagnostic CreateParsing_OuterTagMissingName(SourceSpan location)
         => RazorDiagnostic.Create(Parsing_OuterTagMissingName, location);

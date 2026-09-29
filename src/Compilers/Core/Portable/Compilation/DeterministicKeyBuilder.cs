@@ -173,7 +173,18 @@ namespace Microsoft.CodeAnalysis
                     writer.WriteObjectStart();
                     WriteFilePath(writer, "fileName", additionalText.Path, pathMap, options);
                     writer.WriteKey("text");
-                    WriteSourceText(writer, additionalText.GetText(cancellationToken));
+
+                    // Generators can consume binary additional files by reading Path directly, so hash command-line files without decoding them.
+                    if (additionalText is AdditionalTextFile additionalTextFile)
+                    {
+                        using var stream = additionalTextFile.OpenRead();
+                        WriteStream(writer, stream);
+                    }
+                    else
+                    {
+                        WriteSourceText(writer, additionalText.GetText(cancellationToken));
+                    }
+
                     writer.WriteObjectEnd();
                 }
                 writer.WriteArrayEnd();

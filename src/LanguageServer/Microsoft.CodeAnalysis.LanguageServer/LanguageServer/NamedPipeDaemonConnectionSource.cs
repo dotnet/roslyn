@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.Extensions.Logging;
+using RoslynLog = Microsoft.CodeAnalysis.Internal.Log;
 
 // Reuse the compiler server's named-pipe helper (Asynchronous | WriteThrough | CurrentUserOnly,
 // MaxAllowedServerInstances, and Unix /tmp socket-path handling). It is source-linked into
@@ -72,6 +73,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
 
         source = new NamedPipeDaemonConnectionSource(
             pipeName, serverMutex, initialConnectionTimeout ?? s_initialConnectionTimeout, keepAlive, logger);
+        RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Started, logLevel: RoslynLog.LogLevel.Information);
         return true;
     }
 
@@ -113,6 +115,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
             _onConnectionAccepted?.Invoke();
             _idleTimeout.OpenConnection();
             _logger.LogInformation("Daemon accepted a new client connection.");
+            RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Client_Connected, logLevel: RoslynLog.LogLevel.Information);
 
             // The accepted stream is both input and output, and is disposed when its language server exits.
             yield return new LanguageServerConnection(pipeStream, pipeStream, new ConnectionResource(pipeStream, this));
@@ -153,6 +156,7 @@ internal sealed class NamedPipeDaemonConnectionSource : ILanguageServerConnectio
             finally
             {
                 source._idleTimeout.CloseConnection();
+                RoslynLog.Logger.Log(RoslynLog.FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, logLevel: RoslynLog.LogLevel.Information);
             }
         }
     }

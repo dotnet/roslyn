@@ -220,6 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         string? INamedTypeSymbol.ExtensionMarkerName => UnderlyingNamedTypeSymbol.ExtensionMarkerName;
 
         IParameterSymbol? INamedTypeSymbol.ExtensionParameter => UnderlyingNamedTypeSymbol.ExtensionParameter?.GetPublicSymbol();
+
+        TypeLayout INamedTypeSymbol.TypeLayout => UnderlyingNamedTypeSymbol.Layout;
 #nullable disable
 
         #region ISymbol Members

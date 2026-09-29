@@ -67,7 +67,13 @@ internal static class Extensions
     /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
     /// </summary>
     private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
-        => new(reference.EvaluatedInclude, reference.GetAliases(), reference.ReferenceOutputAssemblyIsTrue());
+    {
+        // If this comes from `#:ref` directive, we need to use the path of the `.cs` file, not the virtual `.csproj` file behind it.
+        var path = reference.HasMetadata(MetadataNames.FileBasedProgramsFromRefDirective)
+            ? reference.GetMetadataValue(MetadataNames.FileBasedProgramsFromRefDirective)
+            : reference.EvaluatedInclude;
+        return new(path, reference.GetAliases(), reference.ReferenceOutputAssemblyIsTrue());
+    }
 
     public static string[] GetAliases(this MSB.Framework.ITaskItem item)
     {

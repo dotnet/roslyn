@@ -434,12 +434,39 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
             }
         }
 
-        var original = GetAttributeContent(bindEntry.GetEffectiveBindNode());
+        var targetNode = bindEntry.GetEffectiveBindNode();
+
+        var original = GetAttributeContent(targetNode);
         if (string.IsNullOrEmpty(original.Content))
         {
             // This can happen in error cases, the parser will already have flagged this
             // as an error, so ignore it.
-            return [bindEntry.GetEffectiveBindNode()];
+            return [targetNode];
+        }
+
+        if (parent is ComponentIntermediateNode component &&
+            !string.IsNullOrEmpty(valueAttributeName) &&
+            !component.Component.AcceptsUnmatchedAttributes())
+        {
+            var source = GetOriginalPropertySpan(targetNode) ?? targetNode.Source;
+
+            if (valueAttribute is null)
+            {
+                component.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_MissingTarget(
+                    source,
+                    bindEntry.OriginalAttributeName,
+                    component.TagName));
+            }
+            else if (changeAttributeNode is null &&
+                     !string.IsNullOrEmpty(changeAttributeName) &&
+                     changeAttribute is null)
+            {
+                component.AddDiagnostic(ComponentDiagnosticFactory.CreateBindAttribute_MissingChangeAttribute(
+                    bindEntry.BindEventNode?.Source ?? source,
+                    bindEntry.OriginalAttributeName,
+                    changeAttributeName,
+                    component.TagName));
+            }
         }
 
         // Look for a format. If we find one then we need to pass the format into the
@@ -506,8 +533,6 @@ internal partial class ComponentBindLoweringPass : ComponentIntermediateNodePass
                 ref valueExpressionTokens.AsRef(),
                 ref changeExpressionTokens.AsRef());
         }
-
-        var targetNode = bindEntry.GetEffectiveBindNode();
 
         if (parent is MarkupElementIntermediateNode)
         {

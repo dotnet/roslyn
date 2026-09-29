@@ -252,19 +252,23 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             // (8,21): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //             ref int y = ref x;
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 21),
-            // (9,13): error CS4004: Cannot await in an unsafe context
+            // (9,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //             await Task.Yield();
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 13));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(9, 13));
 
         var expectedDiagnostics = new[]
         {
-            // (9,13): error CS4004: Cannot await in an unsafe context
+            // (9,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //             await Task.Yield();
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 13)
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(9, 13)
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            // (10,34): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+            //             System.Console.Write(y);
+            Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(10, 34));
     }
 
     [Fact]
@@ -287,19 +291,23 @@ public class RefUnsafeInIteratorAndAsyncTests : CSharpTestBase
             // (6,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
             //         ref int y = ref x;
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 17),
-            // (7,9): error CS4004: Cannot await in an unsafe context
+            // (7,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         await Task.Yield();
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 9));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(7, 9));
 
         var expectedDiagnostics = new[]
         {
-            // (7,9): error CS4004: Cannot await in an unsafe context
+            // (7,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         await Task.Yield();
-            Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(7, 9)
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(7, 9)
         };
 
         CreateCompilation(source, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            // (8,30): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+            //         System.Console.Write(y);
+            Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(8, 30));
     }
 
     [Fact]

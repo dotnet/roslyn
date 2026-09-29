@@ -3,8 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryUnsafeModifier;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -134,6 +138,100 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
                 }
                 """,
             NumberOfFixAllIterations = 2,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84564")]
+    public Task KeepWhenRequiredForExplicitLayoutField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Runtime.InteropServices;
+
+                [StructLayout(LayoutKind.Explicit)]
+                struct S
+                {
+                    [FieldOffset(0)] public unsafe int F1;
+                    [FieldOffset(4)] public unsafe int F2;
+                }
+                """,
+            SolutionTransforms =
+            {
+                static (solution, projectId) =>
+                {
+                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
+                    return solution.WithProjectParseOptions(
+                        projectId, parseOptions.WithFeature("updated-memory-safety-rules"));
+                },
+            },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84564")]
+    public Task KeepWhenRequiredForExternMethod()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public unsafe extern void M();
+                }
+                """,
+            SolutionTransforms =
+            {
+                static (solution, projectId) =>
+                {
+                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
+                    return solution.WithProjectParseOptions(
+                        projectId, parseOptions.WithFeature("updated-memory-safety-rules"));
+                },
+            },
+        }.RunAsync();
+
+    [Fact]
+    public Task KeepWhenItMarksCallerUnsafe()
+        => new VerifyCS.Test
+        {
+            // https://github.com/dotnet/roslyn/issues/82546: this `unsafe` marks the member as caller-unsafe, it should not be removed
+            TestCode = """
+                class C
+                {
+                    public [|unsafe|] void M() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    public void M() { }
+                }
+                """,
+            SolutionTransforms =
+            {
+                static (solution, projectId) =>
+                {
+                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
+                    return solution.WithProjectParseOptions(
+                        projectId, parseOptions.WithFeature("updated-memory-safety-rules"));
+                },
+            },
+        }.RunAsync();
+
+    [Theory, CombinatorialData]
+    public Task RemoveWhenNotNeededDueToSafePointers(
+        [CombinatorialValues(LanguageVersionExtensions.CSharpNext, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public [|unsafe|] void M(int* p) { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    public void M(int* p) { }
+                }
+                """,
+            LanguageVersion = languageVersion,
         }.RunAsync();
 
     [Fact]

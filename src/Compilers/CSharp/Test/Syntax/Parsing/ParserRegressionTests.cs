@@ -47,36 +47,58 @@ class Program
                 // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial abstract class A {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-                // (7,13): error CS1525: Invalid expression term 'partial'
+                // (7,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(7, 13),
-                // (7,13): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(7, 13),
+                // (7,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(7, 13),
-                // (8,13): error CS1525: Invalid expression term 'partial'
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(7, 5),
+                // (8,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(8, 13),
-                // (8,13): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(8, 13),
+                // (8,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(8, 13),
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(8, 5),
+                // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
+                //     partial abstract struct S {}
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29),
                 // (10,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial abstract struct S {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(10, 5),
                 // (11,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(11, 5),
-                // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
-                //     partial abstract struct S {}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29),
-                // (8,13): error CS0102: The type 'Program' already contains a definition for ''
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "").WithArguments("Program", "").WithLocation(8, 13),
-                // (8,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(8, 5),
-                // (7,5): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(7, 5));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(11, 5));
+        }
+
+        [Fact]
+        public void RepeatedPartialTypeModifiers()
+        {
+            const string source = "partial partial partial class C { }";
+
+            UsingTree(source);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.PartialKeyword);
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // partial partial partial class C { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
+                // (1,9): error CS1004: Duplicate 'partial' modifier
+                // partial partial partial class C { }
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 9));
         }
 
         [WorkItem(540005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540005")]

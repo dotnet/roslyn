@@ -41,7 +41,6 @@ public abstract partial class Workspace : IDisposable
     private readonly IAsynchronousOperationListener _asyncOperationListener;
 
     private readonly AsyncBatchingWorkQueue<(EventArgs, EventHandlerSet)> _eventHandlerWorkQueue;
-    private readonly CancellationTokenSource _workQueueTokenSource = new();
     private readonly ITaskSchedulerProvider _taskSchedulerProvider;
 
     // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
@@ -84,8 +83,7 @@ public abstract partial class Workspace : IDisposable
         _eventHandlerWorkQueue = new(
             TimeSpan.Zero,
             ProcessEventHandlerWorkQueueAsync,
-            _asyncOperationListener,
-            _workQueueTokenSource.Token);
+            _asyncOperationListener);
 
         // initialize with empty solution
         _latestSolution = CreateSolution(
@@ -99,8 +97,7 @@ public abstract partial class Workspace : IDisposable
             TimeSpan.FromMilliseconds(1500),
             ProcessUpdateSourceGeneratorRequestAsync,
             EqualityComparer<(ProjectId? projectId, bool forceRegeneration)>.Default,
-            listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
-            _updateSourceGeneratorsQueueTokenSource.Token);
+            listenerProvider.GetListener(FeatureAttribute.SourceGenerators));
     }
 
     /// <summary>
@@ -698,8 +695,8 @@ public abstract partial class Workspace : IDisposable
         Services.Dispose();
 
         // We're disposing this workspace.  Stop any work to update SG docs in the background.
-        _updateSourceGeneratorsQueueTokenSource.Cancel();
-        _workQueueTokenSource.Cancel();
+        _updateSourceGeneratorsQueue.Dispose();
+        _eventHandlerWorkQueue.Dispose();
     }
 
     private async ValueTask ProcessEventHandlerWorkQueueAsync(ImmutableSegmentedList<(EventArgs Args, EventHandlerSet HandlerSet)> list, CancellationToken cancellationToken)

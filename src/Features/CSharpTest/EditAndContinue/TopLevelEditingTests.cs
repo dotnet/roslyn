@@ -9362,6 +9362,60 @@ public sealed class TopLevelEditingTests : EditingTestBase
             ]);
 
     [Fact]
+    public void PartialMember_DeleteInsert_AddFieldInitializer2()
+        => EditAndContinueValidation.VerifySemantics(
+            editScripts:
+            [
+                GetTopEdits("""
+                    partial class C
+                    {
+                        public C() => M();
+
+                        private partial void M();
+                    }
+                    """,
+                    """
+                    partial class C
+                    {
+                        public C() => M();
+                
+                        private partial void M();
+                    }
+                    """),
+                GetTopEdits("""
+                    partial class C
+                    {
+                        private partial void M()
+                        {
+                            _ = 1;
+                        }
+                    }
+                    """,
+                    """
+                    partial class C
+                    {
+                        private int f = 0;
+                
+                        private partial void M()
+                        {
+                            _ = 2;
+                        }
+                    }
+                    """)
+            ],
+            results:
+            [
+                DocumentResults(),
+                DocumentResults(semanticEdits:
+                [
+                    SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.f")),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), partialType: "C", preserveLocalVariables: true),
+                    SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"), partialType: "C"),
+                ])
+            ],
+            capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+
+    [Fact]
     public void PartialMember_DeleteInsert_RemoveFieldInitializer()
         => EditAndContinueValidation.VerifySemantics(
             [GetTopEdits("partial class C { int f = 1; }", "partial class C { }"), GetTopEdits("partial class C { }", "partial class C { int f; }")],

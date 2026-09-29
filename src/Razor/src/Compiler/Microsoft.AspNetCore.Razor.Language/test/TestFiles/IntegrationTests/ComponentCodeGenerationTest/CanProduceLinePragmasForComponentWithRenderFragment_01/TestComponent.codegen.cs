@@ -71,23 +71,6 @@ __builder.AddContent(9, ChildContent
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (11,2)-(21,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-  [Parameter]
-  public RenderFragment ChildContent { get; set; } = (context) => <p>@context</p>
-  [Parameter]
-  public bool Collapsed { get; set; }
-  string ActionText { get => Collapsed ? "Expand" : "Collapse"; }
-  void Toggle()
-  {
-    Collapsed = !Collapsed;
-  }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

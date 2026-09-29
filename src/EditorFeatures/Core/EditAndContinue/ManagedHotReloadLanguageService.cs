@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
-using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -61,4 +60,8 @@ internal sealed class ManagedHotReloadLanguageService(ManagedHotReloadLanguageSe
 
     public ValueTask<bool> HasChangesAsync(string? sourceFilePath, CancellationToken cancellationToken)
         => impl.HasChangesAsync(sourceFilePath, cancellationToken);
+
+    // internal for testing:
+    internal ManagedHotReloadLanguageServiceImpl Impl
+        => impl;
 }

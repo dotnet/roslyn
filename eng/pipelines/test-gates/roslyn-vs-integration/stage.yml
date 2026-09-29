@@ -105,7 +105,7 @@ stages:
         displayName: Setup branch for validation
         inputs:
           filePath: 'eng\setup-pr-validation.ps1'
-          arguments: "-sourceBranchName $(Build.SourceBranch) -prNumber ${{ parameters.prNumber }} -commitSHA ${{ parameters.sha }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
+          arguments: "-prNumber ${{ parameters.prNumber }} -commitSHA ${{ parameters.sha }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
         condition: succeeded()
     - powershell: |
         git fetch origin ${{ parameters.testsCommitHash }}

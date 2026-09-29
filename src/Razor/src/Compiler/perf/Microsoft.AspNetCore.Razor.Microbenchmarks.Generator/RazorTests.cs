@@ -87,6 +87,28 @@ public class RazorTests
     }
 
     [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
+    public void Razor_Edit_IndependentIgnorable()
+    {
+        // arrange
+        var razorBenchmarks = new RazorBenchmarks();
+        razorBenchmarks.Setup();
+
+        // check the contents of the generated 0 page
+        var initialResults = razorBenchmarks.Project!.GeneratorDriver.GetRunResult();
+        Assert.Contains("<h1>Page 0 </h1>", initialResults.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Generated_0_razor.g.cs").SourceText.ToString());
+
+        // act
+        var driver = razorBenchmarks.Razor_Edit_IndependentIgnorable();
+
+        // assert: the markup body changed, but the @page route (declaration) is preserved, so this is an
+        // impl-only edit -- the counterpart to Razor_Edit_DependentIgnorable.
+        var results = driver.GetRunResult();
+        Assert.Empty(results.Diagnostics);
+        var page = results.Results[0].GeneratedSources.Single(r => r.HintName == "Pages_Generated_0_razor.g.cs").SourceText.ToString();
+        Assert.Contains("<h1>Independent file</h1>", page);
+    }
+
+    [Fact(Skip = "https://github.com/dotnet/razor/issues/7982")]
     public void Razor_Remove_Independent()
     {
         // arrange

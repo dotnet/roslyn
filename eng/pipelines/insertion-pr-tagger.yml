@@ -1,0 +1,78 @@
+schedules:
+- cron: "0 */12 * * *"
+  displayName: Roslyn Tagger Tool
+  branches:
+    include:
+    - main
+  always: true
+
+variables:
+- group: roslyn-perf-bot
+
+# Make sure the pipeline doesn't build on commits.
+trigger: none
+pr: none
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    pool:
+      name: NetCore1ESPool-Svc-Internal
+      image: 1es-ubuntu-2204
+      os: linux
+    sdl:
+      sourceAnalysisPool:
+        name: NetCore1ESPool-Svc-Internal
+        image: 1es-windows-2022
+        os: windows
+    stages:
+    - stage: tagInsertedPullRequest
+      jobs:
+      - job: runPRTagger
+        steps:
+        - checkout: none
+        - task: UseDotNet@2
+          displayName: Install .NET 10 SDK
+          inputs:
+            packageType: sdk
+            version: 10.0.x
+        - task: AzureCLI@2
+          displayName: Run PR Tagger
+          inputs:
+            azureSubscription: 'Roslyn PRTagger: DevDiv'
+            scriptType: pscore
+            scriptLocation: inlineScript
+            inlineScript: |
+              $azdoToken = az account get-access-token --resource 499b84ac-1321-427f-aa17-267ca6975798 --query accessToken -o tsv
+              if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($azdoToken)) {
+                Write-Error 'Failed to acquire Azure DevOps access token via WIF.'
+                exit 1
+              }
+
+              if ([string]::IsNullOrWhiteSpace($Env:GitHubToken)) {
+                Write-Error 'The GitHub token is not configured.'
+                exit 1
+              }
+
+              $arguments = @(
+                "Microsoft.RoslynTools"
+                "--prerelease"
+                "--add-source", "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json"
+                "--"
+                "pr-tagger"
+                "--github-token", $Env:GitHubToken
+                "--devdiv-azdo-token", $azdoToken
+                "--dnceng-azdo-token", $azdoToken
+                "--ci"
+              )
+
+              & dnx @arguments
+          env:
+            GitHubToken: $(roslyn-dotnet-bot-issue-w-pat)

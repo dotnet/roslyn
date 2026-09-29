@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// For event accessors, this comes from the containing member's safe modifier
         /// (the accessor is not allowed to have its own safe modifier).
         /// </summary>
-        protected abstract bool HasSafeModifier { get; }
+        internal abstract bool HasSafeModifier { get; }
 
         internal bool IntroducesUnsafeContext
         {

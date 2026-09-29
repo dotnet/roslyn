@@ -1164,4 +1164,14 @@ public sealed partial class UpgradeProjectTests(ITestOutputHelper logger) : Abst
             """,
             expected: LanguageVersion.CSharp14,
             new CSharpParseOptions(LanguageVersion.CSharp13));
+
+    [Fact]
+    public Task UpgradeProjectForClosedClass()
+        => TestLanguageVersionUpgradedAsync("""
+            closed class [|C|]
+            {
+            }
+            """,
+            expected: LanguageVersion.CSharp15,
+            new CSharpParseOptions(LanguageVersion.CSharp14));
 }

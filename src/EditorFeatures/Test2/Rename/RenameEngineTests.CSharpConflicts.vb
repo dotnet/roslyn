@@ -15,6 +15,86 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 _outputHelper = outputHelper
             End Sub
 
+            <Theory>
+            <CombinatorialData>
+            Public Sub RenameMethodReferenceWithUnboundArgument(host As RenameTestHost)
+                Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class Program
+{
+    static void Main(string[] args)
+    {
+        [|Test|](x);
+        [|Test|](1);
+    }
+
+    static void [|$$Test|](int number)
+    {
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="Test2")
+                End Using
+            End Sub
+
+            <Theory>
+            <CombinatorialData>
+            Public Sub RenameMethodDoesNotRenameAmbiguousReferenceWithUnboundArgument(host As RenameTestHost)
+                Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test(x);
+        [|Test|](1);
+    }
+
+    static void [|$$Test|](int number)
+    {
+    }
+
+    static void Test(string value)
+    {
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="Test2")
+
+                    Dim documentText = result.ConflictResolution.NewSolution.Projects.Single().Documents.Single().GetTextAsync().Result.ToString()
+                    Assert.Contains("Test(x);", documentText)
+                    Assert.Contains("Test2(1);", documentText)
+                End Using
+            End Sub
+
+            <Theory>
+            <CombinatorialData>
+            Public Sub RenameTypeReferenceWithUnboundConstructorArgument(host As RenameTestHost)
+                Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+record [|$$MyRecord|](int Number);
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var r = new [|MyRecord|](x);
+    }
+}
+                            </Document>
+                        </Project>
+                    </Workspace>, host:=host, renameTo:="MyRecord2")
+                End Using
+            End Sub
+
             <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773543")>
             <CombinatorialData>
             Public Sub BreakingRenameWithRollBacksInsideLambdas_2(host As RenameTestHost)
@@ -3647,4 +3727,3 @@ class C
         End Sub
     End Class
 End Namespace
-

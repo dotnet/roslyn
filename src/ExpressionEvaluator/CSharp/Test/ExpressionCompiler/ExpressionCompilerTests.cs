@@ -2391,10 +2391,11 @@ class C
         }
 
         /// <remarks>
-        /// This would be illegal in any non-debugger context.
+        /// This would be illegal in any non-debugger context before the unsafe evolution feature.
         /// </remarks>
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
-        public void AwaitInUnsafeContext()
+        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1075258")]
+        public void AwaitInUnsafeContext(
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion langVersion)
         {
             var source = @"
 using System;
@@ -2414,7 +2415,9 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib461(source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
+                options: TestOptions.UnsafeDebugDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.Main");
@@ -2425,6 +2428,56 @@ class C
     unsafe 
     {
         return await F();
+    }
+})", out error, testData);
+                Assert.Null(error);
+            });
+        }
+
+        /// <remarks>
+        /// 'await' inside a 'fixed' statement is illegal in any non-debugger context,
+        /// but the debugger sets <see cref="BinderFlags.AllowAwaitInUnsafeContext"/>, which
+        /// also lifts the 'fixed' restriction.
+        /// </remarks>
+        [Theory, CombinatorialData]
+        public void AwaitInFixedStatement(
+            [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion langVersion)
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task<object> F()
+    {
+        return null;
+    }
+    static void G(Func<Task<object>> f)
+    {
+    }
+    static void Main()
+    {
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib461(source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion),
+                options: TestOptions.UnsafeDebugDll);
+            WithRuntimeInstance(comp, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.Main");
+                string error;
+                var testData = new CompilationTestData();
+                context.CompileExpression(@"G(async() => 
+{
+    int[] a = new int[1];
+    unsafe 
+    {
+        fixed (int* p = a)
+        {
+            return await F();
+        }
     }
 })", out error, testData);
                 Assert.Null(error);

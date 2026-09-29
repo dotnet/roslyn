@@ -1060,11 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("string Property { init set; }", options: options,
                     // (1,24): error CS8180: { or ; or => expected
                     // string Property { init set; }
-                    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "set").WithLocation(1, 24),
-                    // (1,30): error CS1513: } expected
-                    // string Property { init set; }
-                    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 30)
-                    );
+                    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "set").WithLocation(1, 24));
                 N(SyntaxKind.PropertyDeclaration);
                 {
                     N(SyntaxKind.PredefinedType);
@@ -1078,21 +1074,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.InitAccessorDeclaration);
                         {
                             N(SyntaxKind.InitKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                M(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.ExpressionStatement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "set");
-                                    }
-                                    N(SyntaxKind.SemicolonToken);
-                                }
-                                N(SyntaxKind.CloseBraceToken);
-                            }
+                            M(SyntaxKind.SemicolonToken);
                         }
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 EOF();

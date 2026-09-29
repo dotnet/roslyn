@@ -629,6 +629,13 @@
   <data name="Adds_a_file_reference" xml:space="preserve">
     <value>Adds a file reference.</value>
   </data>
+  <data name="Ref_directive_file_path" xml:space="preserve">
+    <value>path</value>
+    <comment>'path' is a placeholder for a file path in a directive like '#:ref path'.</comment>
+  </data>
+  <data name="Adds_a_file_based_app_reference" xml:space="preserve">
+    <value>References another file-based app as a library.</value>
+  </data>
   <data name="Add_using_0" xml:space="preserve">
     <value>Add 'using {0};'</value>
     <comment>{Locked="using"} "using" is a C# keyword and should not be localized.</comment>

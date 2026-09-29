@@ -1,0 +1,5 @@
+﻿[0000] OpenElement("strong")
+[0001] AddContent(TestBool)
+[0002] AddMarkupContent("\r\n\r\n")
+[0003] OpenComponent<global::Test.TestComponent>()
+[0004] AddComponentParameter(nameof(global::Test.TestComponent. TestBool ), true)

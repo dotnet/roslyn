@@ -20,7 +20,7 @@ internal partial class RemoteProcessTelemetryService
     /// <summary>
     /// Track when last time report has sent and send new report if there is update after given internal
     /// </summary>
-    private sealed class PerformanceReporter
+    private sealed class PerformanceReporter : IDisposable
     {
         private readonly IPerformanceTrackerService _diagnosticAnalyzerPerformanceTracker;
         private readonly TelemetrySession _telemetrySession;
@@ -28,8 +28,7 @@ internal partial class RemoteProcessTelemetryService
 
         public PerformanceReporter(
             TelemetrySession telemetrySession,
-            IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker,
-            CancellationToken shutdownToken)
+            IPerformanceTrackerService diagnosticAnalyzerPerformanceTracker)
         {
             _telemetrySession = telemetrySession;
             _diagnosticAnalyzerPerformanceTracker = diagnosticAnalyzerPerformanceTracker;
@@ -37,10 +36,20 @@ internal partial class RemoteProcessTelemetryService
             _workQueue = new AsyncBatchingWorkQueue(
                 TimeSpan.FromMinutes(2),
                 ProcessWorkAsync,
-                AsynchronousOperationListenerProvider.NullListener,
-                shutdownToken);
+                AsynchronousOperationListenerProvider.NullListener);
 
-            _diagnosticAnalyzerPerformanceTracker.SnapshotAdded += (_, _) => _workQueue.AddWork();
+            _diagnosticAnalyzerPerformanceTracker.SnapshotAdded += OnSnapshotAdded;
+        }
+
+        private void OnSnapshotAdded(object? sender, EventArgs e)
+        {
+            _workQueue.AddWork();
+        }
+
+        public void Dispose()
+        {
+            _diagnosticAnalyzerPerformanceTracker.SnapshotAdded -= OnSnapshotAdded;
+            _workQueue.Dispose();
         }
 
         private async ValueTask ProcessWorkAsync(CancellationToken cancellationToken)
