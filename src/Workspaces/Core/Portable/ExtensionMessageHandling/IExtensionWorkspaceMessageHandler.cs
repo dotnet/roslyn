@@ -40,5 +40,5 @@ public interface IExtensionWorkspaceMessageHandler<TMessage, TResponse>
     /// <param name="message">The message sent by the IDE.</param>
     /// <param name="context">The context containing the current state of the solution.</param>
     /// <returns>The response to be returned to the IDE.</returns>
-    Task<TResponse> ExecuteAsync(TMessage message, ExtensionMessageContext context, CancellationToken cancellationToken);
+    Task<TResponse> ExecuteAsync(TMessage message, ExtensionWorkspaceMessageContext context, CancellationToken cancellationToken);
 }

@@ -38,8 +38,7 @@ public interface IExtensionDocumentMessageHandler<TMessage, TResponse>
     /// The method that receives the message and returns the response.
     /// </summary>
     /// <param name="message">The message sent by the IDE.</param>
-    /// <param name="context">The context containing the current state of the solution.</param>
-    /// <param name="document">The document object the message refers to.</param>
+    /// <param name="context">The context containing the solution and text document the message refers to.</param>
     /// <returns>The response to be returned to the IDE.</returns>
-    Task<TResponse> ExecuteAsync(TMessage message, ExtensionMessageContext context, Document document, CancellationToken cancellationToken);
+    Task<TResponse> ExecuteAsync(TMessage message, ExtensionDocumentMessageContext context, CancellationToken cancellationToken);
 }

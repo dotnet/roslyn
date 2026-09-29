@@ -15,6 +15,6 @@ internal sealed class ExtensionWorkspaceMessageHandlerWrapper(
 {
     protected override Task ExecuteAsync(MethodInfo executeAsyncMethod, object handler, object? message, Solution argument, CancellationToken cancellationToken)
 #pragma warning disable RSEXPERIMENTAL008 // Internal implementation of experimental API
-        => (Task)executeAsyncMethod.Invoke(handler, [message, new ExtensionMessageContext(argument), cancellationToken])!;
+        => (Task)executeAsyncMethod.Invoke(handler, [message, new ExtensionWorkspaceMessageContext(argument), cancellationToken])!;
 #pragma warning restore RSEXPERIMENTAL008
 }

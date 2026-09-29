@@ -7,18 +7,24 @@ using System.Diagnostics.CodeAnalysis;
 namespace Microsoft.CodeAnalysis.Extensions;
 
 /// <summary>
-/// Represents the context of an extension message handler.
+/// Represents the context of a document extension message handler.
 /// </summary>
 [Experimental("RSEXPERIMENTAL008", UrlFormat = "https://github.com/dotnet/roslyn/pull/85209")]
-public sealed class ExtensionMessageContext
+public readonly struct ExtensionDocumentMessageContext
 {
-    internal ExtensionMessageContext(Solution solution)
+    internal ExtensionDocumentMessageContext(TextDocument textDocument)
     {
-        Solution = solution;
+        TextDocument = textDocument;
+        Solution = textDocument.Project.Solution;
     }
 
     /// <summary>
     /// Gets the current solution state.
     /// </summary>
     public Solution Solution { get; }
+
+    /// <summary>
+    /// Gets the text document the message refers to.
+    /// </summary>
+    public TextDocument TextDocument { get; }
 }

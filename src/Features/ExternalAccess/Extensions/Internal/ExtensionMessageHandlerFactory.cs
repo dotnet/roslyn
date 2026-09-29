@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Extensions;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class ExtensionMessageHandlerFactory() : IExtensionMessageHandlerFactory
 {
-    public ImmutableArray<IExtensionMessageHandlerWrapper<Document>> CreateDocumentMessageHandlers(
+    public ImmutableArray<IExtensionMessageHandlerWrapper<TextDocument>> CreateDocumentMessageHandlers(
         Assembly assembly, string extensionIdentifier, CancellationToken cancellationToken)
         => CreateWorkspaceHandlers(
             assembly,

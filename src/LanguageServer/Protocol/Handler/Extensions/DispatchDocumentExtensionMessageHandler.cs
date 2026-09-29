@@ -26,7 +26,7 @@ internal sealed class DispatchDocumentExtensionMessageHandler()
 
     public async Task<DispatchExtensionMessageResponse> HandleRequestAsync(DispatchDocumentExtensionMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var document = await context.GetRequiredTextDocumentAsync(cancellationToken).ConfigureAwait(false);
         var solution = document.Project.Solution;
 
         var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();

@@ -11,10 +11,10 @@ namespace Microsoft.CodeAnalysis.Extensions;
 
 internal sealed class ExtensionDocumentMessageHandlerWrapper(
     object handler, Type customMessageHandlerInterface, string extensionIdentifier)
-    : ExtensionHandlerWrapper<Document>(handler, customMessageHandlerInterface, extensionIdentifier)
+    : ExtensionHandlerWrapper<TextDocument>(handler, customMessageHandlerInterface, extensionIdentifier)
 {
-    protected override Task ExecuteAsync(MethodInfo executeAsyncMethod, object handler, object? message, Document argument, CancellationToken cancellationToken)
+    protected override Task ExecuteAsync(MethodInfo executeAsyncMethod, object handler, object? message, TextDocument argument, CancellationToken cancellationToken)
 #pragma warning disable RSEXPERIMENTAL008 // Internal implementation of experimental API
-        => (Task)executeAsyncMethod.Invoke(handler, [message, new ExtensionMessageContext(argument.Project.Solution), argument, cancellationToken])!;
+        => (Task)executeAsyncMethod.Invoke(handler, [message, new ExtensionDocumentMessageContext(argument), cancellationToken])!;
 #pragma warning restore RSEXPERIMENTAL008
 }
