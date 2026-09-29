@@ -10,6 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
@@ -26,6 +27,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     /// so these are manually created in <see cref="RoslynLanguageServer"/>.
     /// </summary>
     private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
+    private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
 
     /// <summary>
     /// Gates access to <see cref="_servicesToDispose"/> and <see cref="_servicesToDisposeAsync"/>.
@@ -166,6 +168,10 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
             // Stateless LSP services will be disposed of on MEF container disposal.
             var checkDisposal = !lazyService.Metadata.IsStateless && !lazyService.IsValueCreated;
 
+            // A service can first be requested from a context that carries no ambient instance of its own (for
+            // example a file-watcher callback or work-queue batch), so re-establish this server's instance for
+            // factories that capture RoslynTelemetry.Current.
+            using var _ = RoslynTelemetry.SetCurrent(_telemetry);
             var lspService = lazyService.Value;
             if (checkDisposal)
             {

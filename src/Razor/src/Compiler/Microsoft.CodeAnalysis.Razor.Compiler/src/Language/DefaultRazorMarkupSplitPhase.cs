@@ -24,12 +24,9 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// <remarks>
 /// Running before tag-helper resolution is the point: the decl half is markup-free and depends only on
 /// user source, so tag-helper discovery can consume it early and stay incremental. A component with no
-/// class-body markup still splits -- its whole body is the decl, its render method the impl. A component
-/// whose body has markup the analysis can't route safely (a markup property, an unsupported member, an
-/// <c>@inject</c>, a preprocessor directive, or unrecoverable syntax), or one carrying a header/arity
-/// directive (<c>@inherits</c>/<c>@implements</c>/<c>@typeparam</c>) -- whose base type, interfaces, or
-/// type parameters a move-based partition would leave duplicated on the impl header -- is left as a single
-/// document for the fallback lowering.
+/// class-body markup still splits -- its whole body is the decl, its render method the impl. Only a body
+/// with markup the analysis can't route safely (a markup property, an unsupported member, a preprocessor
+/// directive, or unrecoverable syntax) falls back to single-document lowering.
 /// </remarks>
 internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
 {
@@ -77,15 +74,6 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
             return RouteToFallbackDiscovery(shellDecl: null);
         }
 
-        // A header/arity directive (@inherits/@implements/@typeparam) puts a base type, interfaces, or
-        // type parameters on the class header. A move-based partition leaves that header on the impl half
-        // as well, so combining one with class-body markup would emit the header on both partials; such a
-        // document lowers as a single file instead and its descriptor comes from fallback discovery.
-        if (HasUnsplittableDocumentDirective(documentNode))
-        {
-            return RouteToFallbackDiscovery(BuildStubDeclDocument(documentNode, primaryNamespace, primaryClass));
-        }
-
         // Decide the split over the classified class body. Only an unroutable body (fallback) stays a
         // single document; NoSplit and SplitPlan both produce a decl.
         var decision = MarkupSplitter.Split(primaryClass, renderMethod, codeDocument.ParserOptions);
@@ -95,6 +83,10 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         }
 
         var plan = decision as SplitDecision.SplitPlan;
+
+        // @inherits/@implements/@typeparam land on the class header, and both partials repeat it (C# allows
+        // that). Keeping it on the impl is deliberate: the compiler flags unimplemented base members there,
+        // so the ImplementInterface / ImplementAbstractClass code actions keep targeting the impl partial.
 
         // BuildDeclDocument captures the decl's view of the class body first because MakeImplInPlace then
         // rewrites that shared primary class in place. The decl subtree keeps its leaf nodes by reference,
@@ -271,7 +263,7 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
 
     // Rewrites the primary class into the impl half in place: keep the render method and compiler-
     // synthesized helpers, drop the decl-only surface, and (for a split plan) append the markup-bearing
-    // pieces lifted from the class body.
+    // pieces lifted from the class body. The class header stays, duplicated with the decl.
     private static void MakeImplInPlace(
         ClassDeclarationIntermediateNode primaryClass,
         MethodDeclarationIntermediateNode renderMethod,
@@ -306,21 +298,6 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         {
             primaryClass.Children.Add(child);
         }
-    }
-
-    // True if the document carries a header/arity directive (@inherits/@implements/@typeparam). Walks
-    // descendants because classification can nest these directives under the namespace or class.
-    private static bool HasUnsplittableDocumentDirective(DocumentIntermediateNode documentNode)
-    {
-        foreach (var directive in documentNode.FindDescendantNodes<DirectiveIntermediateNode>())
-        {
-            if (directive.DirectiveName is "inherits" or "implements" or "typeparam")
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     // Class-decoration nodes (@layout -> [Layout], @attribute -> [...], @page -> [Route]) lower to

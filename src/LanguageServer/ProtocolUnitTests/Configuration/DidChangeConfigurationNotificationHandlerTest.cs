@@ -145,6 +145,7 @@ public sealed class DidChangeConfigurationNotificationHandlerTest : AbstractLang
             "background_analysis.dotnet_compiler_diagnostics_scope",
             "code_lens.dotnet_enable_references_code_lens",
             "code_lens.dotnet_enable_tests_code_lens",
+            "testing.dotnet_use_semantic_test_discovery",
             "auto_insert.dotnet_enable_auto_insert",
             "projects.dotnet_binary_log_path",
             "projects.dotnet_enable_automatic_restore",

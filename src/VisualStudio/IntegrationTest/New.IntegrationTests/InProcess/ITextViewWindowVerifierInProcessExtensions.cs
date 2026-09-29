@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
@@ -101,7 +102,7 @@ internal static class ITextViewWindowVerifierInProcessExtensions
         if (!RoslynString.IsNullOrEmpty(applyFix))
         {
             var codeActionLogger = new CodeActionLogger();
-            using var loggerRegistration = RoslynTelemetry.AddEventSink(codeActionLogger);
+            using var loggerRegistration = RoslynTelemetry.Current.AddEventSink(codeActionLogger);
 
             var result = await textViewWindowVerifier.TestServices.Editor.ApplyLightBulbActionAsync(applyFix, fixAllScope, blockUntilComplete, cancellationToken);
 
@@ -158,6 +159,10 @@ internal static class ITextViewWindowVerifierInProcessExtensions
     private sealed class CodeActionLogger : IEventSink
     {
         public List<string> Messages { get; } = [];
+
+        public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
+        {
+        }
 
         public bool IsEnabled(FunctionId functionId)
         {

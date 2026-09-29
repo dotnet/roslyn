@@ -2648,6 +2648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    Debug.Assert(false, "Please add test coverage for this code path. Consider covering SemanticModel, Nullable Analysis and IOperation behavior too.");
                     // Conversion method's return type --> conversion's "to" type
                     Conversion fromReturnTypeConversion = Conversions.ClassifyStandardConversion(conversionReturnType, conversionToType, ref useSiteInfo);
                     Debug.Assert(fromReturnTypeConversion.IsNullable);

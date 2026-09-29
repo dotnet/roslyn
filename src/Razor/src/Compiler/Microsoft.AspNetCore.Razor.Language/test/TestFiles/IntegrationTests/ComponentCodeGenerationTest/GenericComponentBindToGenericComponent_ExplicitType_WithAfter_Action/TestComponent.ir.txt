@@ -20,5 +20,3 @@
                             IntermediateToken -  - CSharp - ); }
                     ComponentAttribute - (97:1,78 [6] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
                         IntermediateToken - (97:1,78 [6] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - Update
-            CSharpCode - (116:2,7 [79] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (116:2,7 [79] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public TParam ParentValue { get; set; }\n\n    public void Update() { }\n

@@ -17,7 +17,7 @@ using Microsoft.CodeAnalysis.Razor.Telemetry;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
-internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TResponse>(
+internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TResponse, THtmlResponse>(
     IIncompatibleProjectService incompatibleProjectService,
     IRemoteServiceInvoker remoteServiceInvoker,
     IHtmlRequestInvoker requestInvoker,
@@ -42,7 +42,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
     protected abstract string LspMethodName { get; }
     protected abstract bool SupportsHtmlDiagnostics { get; }
 
-    protected virtual LspDiagnostic[] ExtractHtmlDiagnostics(TResponse result)
+    protected virtual LspDiagnostic[] ExtractHtmlDiagnostics(THtmlResponse result)
     {
         throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement GetHtmlDiagnostics");
     }
@@ -52,7 +52,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         throw new NotSupportedException("If SupportsHtmlDiagnostics is true, you must implement CreateHtmlParams");
     }
 
-    protected async Task<LspDiagnostic[]?> GetDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken)
+    protected async Task<LspDiagnostic[]?> GetDiagnosticsAsync(TextDocument razorDocument, CancellationToken cancellationToken, Func<DocumentUri, TRequest>? createHtmlParams = null)
     {
         var correlationId = Guid.NewGuid();
         using var _ = _telemetryReporter.TrackLspRequest(LspMethodName, LanguageServerConstants.RazorLanguageServerName, TelemetryThresholds.DiagnosticsRazorTelemetryThreshold, correlationId);
@@ -65,7 +65,7 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
 
         var csharpTask = GetCSharpDiagnosticsAsync(razorDocument, correlationId, cancellationToken);
         var htmlTask = SupportsHtmlDiagnostics
-            ? GetHtmlDiagnosticsAsync(razorDocument, correlationId, cancellationToken)
+            ? GetHtmlDiagnosticsAsync(razorDocument, createHtmlParams ?? CreateHtmlParams, correlationId, cancellationToken)
             : SpecializedTasks.EmptyArray<LspDiagnostic>();
 
         try
@@ -129,11 +129,11 @@ internal abstract class CohostDocumentPullDiagnosticsEndpointBase<TRequest, TRes
         return (implDiagnostics, declDiagnostics);
     }
 
-    private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Guid correlationId, CancellationToken cancellationToken)
+    private async Task<LspDiagnostic[]> GetHtmlDiagnosticsAsync(TextDocument razorDocument, Func<DocumentUri, TRequest> createHtmlParams, Guid correlationId, CancellationToken cancellationToken)
     {
-        var diagnosticsParams = CreateHtmlParams(razorDocument.GetURI());
+        var diagnosticsParams = createHtmlParams(razorDocument.GetURI());
 
-        var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequest, TResponse>(
+        var result = await _requestInvoker.MakeHtmlLspRequestAsync<TRequest, THtmlResponse>(
             razorDocument,
             LspMethodName,
             diagnosticsParams,

@@ -33,9 +33,10 @@ internal sealed class TestTelemetryEventSink : TelemetryEventSink
 
     public List<TelemetryEvent> PostedEvents = [];
     public HashSet<TestScope> OpenedScopes = [];
+    public bool Enabled { get; set; } = true;
 
     public override bool IsEnabled(FunctionId functionId)
-        => true;
+        => Enabled;
 
     protected override void PostEvent(TelemetryEvent telemetryEvent)
     {

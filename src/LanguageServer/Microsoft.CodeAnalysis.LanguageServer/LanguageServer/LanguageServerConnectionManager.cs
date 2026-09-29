@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -15,9 +15,12 @@ internal sealed class LanguageServerConnectionManager
 {
     private readonly object _gate = new();
     private ImmutableArray<ServerEntry> _servers = [];
+    private long _connectionsAccepted;
 
     // Test hook: invoked just before LanguageServerHost.Start(). Throw to simulate a startup failure.
     private Action? _onBeforeStartServer;
+
+    public long ConnectionsAccepted => Interlocked.Read(ref _connectionsAccepted);
 
     /// <summary>
     /// Runs an independent language server for each connection yielded by <paramref name="connectionSource"/>.
@@ -30,6 +33,7 @@ internal sealed class LanguageServerConnectionManager
         ExportProvider exportProvider,
         AbstractTypeRefResolver typeRefResolver,
         ILogger logger,
+        string? daemonSessionId,
         CancellationToken cancellationToken)
     {
         // For a source that isolates faults (the daemon), a server fault is logged and confined to that one
@@ -45,6 +49,8 @@ internal sealed class LanguageServerConnectionManager
         {
             await foreach (var connection in connectionSource.AcceptConnectionsAsync(cancellationToken).ConfigureAwait(false))
             {
+                Interlocked.Increment(ref _connectionsAccepted);
+
                 if (isolateFaults)
                 {
                     // Daemon mode: start server construction and supervision in a background task so this
@@ -129,7 +135,12 @@ internal sealed class LanguageServerConnectionManager
             LanguageServerHost server;
             try
             {
-                server = new LanguageServerHost(connection.InputStream, connection.OutputStream, exportProvider, typeRefResolver);
+                server = new LanguageServerHost(
+                    connection.InputStream,
+                    connection.OutputStream,
+                    exportProvider,
+                    typeRefResolver,
+                    daemonSessionId);
             }
             catch
             {

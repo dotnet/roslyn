@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -47,7 +47,9 @@ internal sealed partial class RemoteProcessTelemetryService(
             telemetrySession.Start();
 
             telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
-            telemetryService.RegisterUnexpectedExceptionLogger(TraceLogger);
+
+            // Keep the fault logger for the remote process lifetime, not just this RPC service.
+            _ = RoslynTelemetry.Current.AddEventSink(new TraceSourceFaultEventSink(TraceLogger));
             FaultReporter.InitializeFatalErrorHandlers();
 
             // log telemetry that service hub started

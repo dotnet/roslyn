@@ -364,9 +364,6 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
                     int IBase.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
                     string IBase.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-                    string IDerived.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-                    int IDerived.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
                     event EventHandler IBase.Event1
                     {
@@ -380,6 +377,10 @@ public class ImplementInterfaceTests(ITestOutputHelper testOutputHelper) : Cohos
                             throw new NotImplementedException();
                         }
                     }
+
+                    int IDerived.this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+                    string IDerived.Property1 { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
                     event EventHandler IDerived.Event1
                     {

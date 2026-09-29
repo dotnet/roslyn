@@ -17,5 +17,3 @@
                         LazyIntermediateToken - (167:8,24 [7] x:\dir\subdir\Test\TestComponent.cshtml) - Html - ;\n    
                 CSharpCode - (180:10,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (180:10,0 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - }\n
-            CSharpCode - (190:11,7 [185] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (190:11,7 [185] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TItem1 Item1 { get; set; }\n    [Parameter] public List<TItem2> Items2 { get; set; }\n    [Parameter] public RenderFragment<TItem2> ChildContent { get; set; }\n

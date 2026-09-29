@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -32,14 +31,13 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
         Contract.ThrowIfFalse(CurrentSession is null);
 
         var metricSink = new VSMetricSink(telemetrySession);
+        Debug.Assert(RoslynTelemetry.IsDefault(RoslynTelemetry.Current));
         _registrations =
         [
-            .. CreateEventSinks(telemetrySession, logDelta).SelectAsArray(RoslynTelemetry.AddEventSink),
-            RoslynTelemetry.AddMetricSink(metricSink),
+            .. CreateEventSinks(telemetrySession, logDelta).SelectAsArray(RoslynTelemetry.Current.AddEventSink),
+            RoslynTelemetry.Current.AddMetricSink(metricSink),
             metricSink,
         ];
-
-        FaultReporter.RegisterTelemetrySesssion(telemetrySession);
 
         CurrentSession = telemetrySession;
 
@@ -60,17 +58,11 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
     public string? SerializeCurrentSessionSettings()
         => CurrentSession?.SerializeSettings();
 
-    public void RegisterUnexpectedExceptionLogger(TraceSource logger)
-        => FaultReporter.RegisterLogger(logger);
-
-    public void UnregisterUnexpectedExceptionLogger(TraceSource logger)
-        => FaultReporter.UnregisterLogger(logger);
-
     public void Dispose()
     {
         // Ensure any aggregate telemetry is flushed when the catalog is destroyed.
         // It is fine for this to be called multiple times - if telemetry has already been flushed this will no-op.
-        RoslynTelemetry.Flush();
+        RoslynTelemetry.Current.Flush();
 
         foreach (var registration in _registrations)
             registration.Dispose();
