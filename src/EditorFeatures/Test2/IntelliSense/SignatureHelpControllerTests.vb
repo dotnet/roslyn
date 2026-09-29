@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim bufferFactory As ITextBufferFactoryService = workspace.GetService(Of ITextBufferFactoryService)
             Dim buffer = bufferFactory.CreateTextBuffer()
             Dim view = CreateMockTextView(buffer)
-            Dim asyncListener = AsynchronousOperationListenerProvider.NullListener
+            Dim asyncListener = New AsynchronousOperationListener()
             If documentProvider Is Nothing Then
                 documentProvider = New Mock(Of IDocumentProvider)(MockBehavior.Strict)
                 documentProvider.Setup(Function(p) p.GetDocument(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(document)
@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 DirectCast(controller, IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs)).ExecuteCommand(
                     New InvokeSignatureHelpCommandArgs(view.Object, buffer), Nothing, TestCommandExecutionContext.Create())
                 If waitForPresentation Then
-                    Await controller.WaitForModelComputation_ForTestingPurposesOnlyAsync()
+                    Await DirectCast(asyncListener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
                 End If
             End If
 
