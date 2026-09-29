@@ -111,7 +111,6 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 - **LanguageServer request context**: Handlers should use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Obsolete synchronous members remain only for compatibility with existing external-access consumers and forward to the asynchronous accessors.
-- **LanguageServer daemon telemetry**: each daemon-hosted server has its own `RoslynTelemetry` session (correlated by `daemonSessionId`); process-wide measurements such as memory (`ProcessMemoryTelemetry`) belong on the process-level session created in `Program.cs`, never on a per-server session.
 
 ## Common Gotchas
 
