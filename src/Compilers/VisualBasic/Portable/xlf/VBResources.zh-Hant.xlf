@@ -412,8 +412,7 @@
 -addmodule:&lt;file_list&gt;            從指定的模組參考中繼資料
 -link:&lt;file_list&gt;                 從指定的 Interop
                                   組件參考中繼資料。(簡短形式: -l)
--recurse:&lt;wildcard&gt;               根據
-萬用字元
+-recurse:&lt;wildcard&gt;               根據萬用字元
                                   規格
                                   包含目前目錄和子目錄中的所有檔案。
 -reference:&lt;file_list&gt;            從指定的
