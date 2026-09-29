@@ -75,12 +75,19 @@ Key options:
 | `--include` | Regex pattern to match test project names (repeatable) |
 | `--exclude` | Regex pattern to exclude test project names (repeatable) |
 | `--testFramework` | `core` or `desktop` (repeatable, defaults to both) |
-| `--testSet` | `compiler` to run only compiler test assemblies |
+| `--testSet` | `compiler` adds compiler test assembly patterns to any `--include` patterns |
 | `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies`; `runtimeasync` requires `--testFramework:core` |
 | `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |
 | `--timeout` | Minutes before killing tests (default: 90) |
 | `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
+
+`--testSet:compiler` selects compiler test assemblies when used alone. With
+`--include`, assemblies matching either the compiler patterns or any supplied
+include pattern are selected; `--exclude` still removes matches from that selection.
+
+`Test.cmd` and `test.sh` pass the repository's artifacts directory explicitly.
+Pass `--artifactspath <path>` to override it when testing a different payload.
 
 Runtime-async validation requires an explicit Core-only selection, for example
 `./test.sh --testKind:runtimeasync --testFramework:core`. Omitting the framework

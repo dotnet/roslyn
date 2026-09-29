@@ -196,7 +196,7 @@ namespace RunTests
                 { "artifactspath=", "Path to the artifacts directory (auto-detected from binary location if not set)", s => artifactsPath = s },
                 { "collectdumps", "Gather dumps on timeouts and crashes (process executor only, not supported with --helix)", o => collectDumps = o is object },
                 { "testFramework=", "Test framework to run: core or desktop (can be specified multiple times)", s => testFrameworks.Add(s) },
-                { "testSet=", "Test set to run: compiler (restricts to compiler test assemblies)", s => testSet = s },
+                { "testSet=", "Test set to include: compiler (adds compiler test assembly patterns to any --include patterns)", s => testSet = s },
                 { "testKind=", "Test kind to run: ioperation, runtimeasync, usedassemblies. runtimeasync requires --testFramework:core.", s => testKind = s },
                 { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
                     if (o is object)

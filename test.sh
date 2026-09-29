@@ -13,4 +13,4 @@ while [[ -h $source ]]; do
 done
 
 scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
-dotnet run --project "$scriptroot/src/Tools/RunTests" -- "$@"
+dotnet run --project "$scriptroot/src/Tools/RunTests" -- --artifactspath "$scriptroot/artifacts" "$@"
