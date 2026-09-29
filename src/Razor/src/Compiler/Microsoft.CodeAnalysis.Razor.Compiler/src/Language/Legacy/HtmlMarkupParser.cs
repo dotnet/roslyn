@@ -812,7 +812,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             chunkGenerator,
             GetEditHandler());
 
-        if (!_parseAsXml && string.Equals(tagName, ScriptTagName, StringComparison.OrdinalIgnoreCase))
+        if (!_parseAsXml && string.Equals(tagName, ScriptTagName, TagNameComparison))
         {
             // If the script tag expects javascript content then we should do minimal parsing until we reach
             // the end script tag. Don't want to incorrectly parse a "var tag = '<input />';" as an HTML tag.
