@@ -1035,6 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 CalculateUseSiteDiagnostic(ref result);
                 var diag = deriveCompilerFeatureRequiredUseSiteInfo();
                 MergeUseSiteDiagnostics(ref diag, result.DiagnosticInfo);
+                diag ??= PEUtilities.DeriveUnrecognizedMemorySafetyRulesAttributeDiagnostic(this);
                 result = result.AdjustDiagnosticInfo(diag);
 
                 if (result.DiagnosticInfo is not null || !result.SecondaryDependencies.IsNullOrEmpty())

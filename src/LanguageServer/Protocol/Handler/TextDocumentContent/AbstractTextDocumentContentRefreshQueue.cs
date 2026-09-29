@@ -95,7 +95,7 @@ internal abstract class AbstractTextDocumentContentRefreshQueue :
         foreach (var kvp in trackedDocuments)
         {
             var uri = kvp.Key;
-            if (uri.ParsedUri is { } parsedUri && parsedUri.Scheme == Scheme)
+            if (uri.ParsedDocumentUri is { } parsedUri && parsedUri.Scheme == Scheme)
             {
                 try
                 {

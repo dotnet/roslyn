@@ -25,5 +25,5 @@ internal sealed class GoToDefinitionHandler : AbstractGoToDefinitionHandler
     }
 
     public override Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
-        => GetDefinitionAsync(request, forSymbolType: false, context, cancellationToken);
+        => GetDefinitionAsync(request, LSP.Methods.TextDocumentDefinitionName, forSymbolType: false, context, cancellationToken);
 }

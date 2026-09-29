@@ -64,7 +64,7 @@ extends:
               $arguments = @(
                 "Microsoft.RoslynTools"
                 "--prerelease"
-                "--add-source", "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json"
+                "--source", "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json"
                 "--"
                 "pr-tagger"
                 "--github-token", $Env:GitHubToken

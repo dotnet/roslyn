@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -32,7 +32,7 @@ internal sealed class CopilotCompletionResolveContextHandler(ICSharpCopilotConte
     public async Task<IContextItem[]> HandleRequestAsync(ContextResolveParam param, RequestContext context, CancellationToken cancellationToken)
     {
         var linePosition = new LinePosition(param.DocumentContext.Position.Line, param.DocumentContext.Position.Character);
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
 
         var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var position = text.Lines.GetPosition(linePosition);

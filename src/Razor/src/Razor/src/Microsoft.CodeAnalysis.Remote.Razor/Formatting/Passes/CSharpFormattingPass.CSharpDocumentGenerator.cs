@@ -187,6 +187,10 @@ internal partial class CSharpFormattingPass
             /// </remarks>
             private int? _honourHtmlFormattingUntilLine;
             /// <summary>
+            /// The number of Html indentation levels already represented in the generated C# document while honouring Html formatting.
+            /// </summary>
+            private int _htmlIndentationLevelInGeneratedDocument;
+            /// <summary>
             /// The line number of the last line of a block where formatting should be completely ignored
             /// </summary>
             /// <remarks>
@@ -263,6 +267,7 @@ internal partial class CSharpFormattingPass
                         endLine <= line.LineNumber)
                     {
                         _honourHtmlFormattingUntilLine = null;
+                        _htmlIndentationLevelInGeneratedDocument = 0;
                     }
 
                     if (_ignoreUntilLine is { } endLine2 &&
@@ -683,10 +688,28 @@ internal partial class CSharpFormattingPass
                     if (honouredEndLine > _currentLine.LineNumber)
                     {
                         _honourHtmlFormattingUntilLine = honouredEndLine;
+
+                        // Walk the ancestors once per multiline script/style block so each content line can reuse the result.
+                        _htmlIndentationLevelInGeneratedDocument = GetHtmlIndentationLevel(node);
                     }
                 }
 
                 return lineInfo;
+            }
+
+            private int GetHtmlIndentationLevel(BaseMarkupStartTagSyntax startTag)
+            {
+                var indentationLevel = 0;
+                for (RazorSyntaxNode? node = startTag.ParentElement; node is not null; node = node.Parent)
+                {
+                    if (node is BaseMarkupElementSyntax { StartTag: { } ancestorStartTag } &&
+                        ElementCausesIndentation(ancestorStartTag))
+                    {
+                        indentationLevel++;
+                    }
+                }
+
+                return indentationLevel;
             }
 
             private bool ContainsMultilineCollectionExpressionStartingOnCurrentLine(RazorSyntaxNode node)
@@ -1379,14 +1402,15 @@ internal partial class CSharpFormattingPass
                 int formattedOffsetFromEndOfLine = 0,
                 int? additionalIndentation = null)
             {
-                // We sometimes want to honour the indentation that the Html formatter supplied, when inside the right type of tag
-                // but we will also have added our own C# indentation on top of that, so we need to subtract one level to compensate.
+                // We sometimes want to honour the indentation that the Html formatter supplied inside script and style tags.
+                // The generated C# document already represents every enclosing Html element as a brace, so remove those
+                // structural levels and preserve only the embedded language's relative indentation.
                 if (additionalIndentation is null &&
                     htmlIndentLevel == 0 &&
                     _honourHtmlFormattingUntilLine is { } endLine &&
                     endLine >= _currentLine.LineNumber)
                 {
-                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out var calculatedAdditionalIndentation) - 1;
+                    htmlIndentLevel = FormattingUtilities.GetIndentationLevel(_currentLine, _currentFirstNonWhitespacePosition, _insertSpaces, _tabSize, out var calculatedAdditionalIndentation) - _htmlIndentationLevelInGeneratedDocument;
                     additionalIndentation = calculatedAdditionalIndentation;
                 }
 

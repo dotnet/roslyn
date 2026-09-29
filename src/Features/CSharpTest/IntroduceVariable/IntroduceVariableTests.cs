@@ -8290,6 +8290,37 @@ namespace ConsoleApp1
             }
             """, new(index: 1, parseOptions: CSharpParseOptions.Default, options: ImplicitTypingEverywhere()));
 
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9300")]
+    public async Task TestIntroduceConstantInTopLevelLambda()
+    {
+        var code =
+            """
+            System.Action action = () =>
+            {
+                System.Console.WriteLine([|"/Access"|]);
+            };
+            """;
+
+        await TestExactActionSetOfferedAsync(
+            code,
+            [
+                string.Format(FeaturesResources.Introduce_local_constant_for_0, "\"/Access\""),
+                string.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "\"/Access\""),
+            ],
+            new(parseOptions: TestOptions.Regular));
+
+        await TestAsync(
+            code,
+            """
+            System.Action action = () =>
+            {
+                const string {|Rename:Value|} = "/Access";
+                System.Console.WriteLine(Value);
+            };
+            """,
+            new(parseOptions: TestOptions.Regular));
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47277")]
     public Task TestPreserveIndentationInLambda1()
         => TestInRegularAndScriptAsync(

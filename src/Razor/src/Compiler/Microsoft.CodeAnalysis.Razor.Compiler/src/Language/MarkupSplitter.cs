@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.AspNetCore.Razor.Language.Components;
 using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.PooledObjects;
@@ -141,16 +142,18 @@ internal static partial class MarkupSplitter
     /// missing a markup node would let it leak into the resolution-free decl half.
     /// </summary>
     /// <remarks>
-    /// This is the deliberately over-eager <em>gate</em> classifier. It can flag a non-markup extension
-    /// node (an <c>@inject</c>) as "markup"; that only causes <see cref="Split"/> to run, which then sees
-    /// the node isn't a kind it can route (<see cref="IsSupportedClassBodyNode"/>) and falls back. Routing
-    /// itself uses the precise allow-list <see cref="IsMarkupNode"/>, never this predicate.
+    /// The deliberately over-eager <em>gate</em>: an unrecognized node counts as markup, which only makes
+    /// <see cref="Split"/> run and then fall back if it can't route the node; routing itself uses the
+    /// precise allow-list <see cref="IsMarkupNode"/>. <c>@inject</c>
+    /// (<see cref="ComponentInjectIntermediateNode"/>) is excluded -- it is a markup-free injected property,
+    /// so a component whose only non-C# member is an <c>@inject</c> splits.
     /// </remarks>
     internal static bool IsClassBodyMarkup(IntermediateNode node)
         => node is not (CSharpCodeIntermediateNode or
                         FieldDeclarationIntermediateNode or
                         PropertyDeclarationIntermediateNode or
-                        MethodDeclarationIntermediateNode);
+                        MethodDeclarationIntermediateNode or
+                        ComponentInjectIntermediateNode);
 
     /// <summary>
     /// The precise allow-list of markup intermediate node kinds the splitter knows how to route to the
@@ -172,12 +175,20 @@ internal static partial class MarkupSplitter
                    HtmlContentIntermediateNode;
 
     /// <summary>
-    /// A class-body node the splitter can route: raw C# text (which stays in decl or lifts to impl with
-    /// its member) or a recognized markup node (which lifts to impl). Any other kind -- a structured or
-    /// extension member such as <c>@inject</c> -- means the file can't be split and must fall back.
+    /// A class-body node the splitter can route: raw C# text, a recognized markup node, or a decl-surface
+    /// declaration like <c>@inject</c> (see <see cref="IsDeclSurfaceDeclaration"/>). Anything else forces a
+    /// fallback.
     /// </summary>
     internal static bool IsSupportedClassBodyNode(IntermediateNode node)
-        => node is CSharpCodeIntermediateNode || IsMarkupNode(node);
+        => node is CSharpCodeIntermediateNode || IsMarkupNode(node) || IsDeclSurfaceDeclaration(node);
+
+    /// <summary>
+    /// A markup-free declaration synthesized as its own class-body child -- an <c>@inject</c>, which lowers
+    /// to an <c>[Inject]</c> property. It has no source text (only a zero-length analysis span), so routing
+    /// always places it in the decl half.
+    /// </summary>
+    internal static bool IsDeclSurfaceDeclaration(IntermediateNode node)
+        => node is ComponentInjectIntermediateNode;
 
     /// <summary>
     /// The ordered user-authored class-body children -- everything that isn't the render method or a

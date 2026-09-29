@@ -8,8 +8,7 @@
 #       apply to all branches.
 
 queue:
-  name: VSEngSS-MicroBuild2022-1ES
-  demands: Cmd
+  name: VSEng-MicroBuildVSStable
   timeoutInMinutes: 90
 variables:
   - group: DotNet-Roslyn-ApiScan

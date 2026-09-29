@@ -16,11 +16,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Apex" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.Copilot" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.FSharp" />
-
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTests" />
 
     <!--
@@ -32,11 +27,6 @@
       ⚠ ONLY COPILOT ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Copilot.Roslyn" Key="$(CopilotKey)" />
-
-    <!--
-      ⚠ ONLY TEMPLATE ASSEMBLIES MAY BE ADDED HERE ⚠
-    -->
-    <InternalsVisibleTo Include="Templates.Editorconfig.Wizard" Key="$(MicrosoftSharedPublicKey)" />
 
     <!--
       ⚠ ONLY F# ASSEMBLIES MAY BE ADDED HERE ⚠
@@ -61,9 +51,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- The generated accessor looks the resources up under a namespace RootNamespace
+         cannot produce, so the manifest name has to be spelled out to match it. -->
     <EmbeddedResource Update="FSharp\ExternalAccessFSharpResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ExternalAccessFSharpResources.Designer.cs</LastGenOutput>
+      <LogicalName>Microsoft.CodeAnalysis.ExternalAccess.FSharp.ExternalAccessFSharpResources.resources</LogicalName>
     </EmbeddedResource>
   </ItemGroup>
 

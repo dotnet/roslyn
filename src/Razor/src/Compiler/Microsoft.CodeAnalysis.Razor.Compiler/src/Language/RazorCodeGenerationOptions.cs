@@ -164,6 +164,16 @@ public sealed partial class RazorCodeGenerationOptions
     public bool WriteHtmlUtf8StringLiterals
         => (_flags & Flags.WriteHtmlUtf8StringLiterals) == Flags.WriteHtmlUtf8StringLiterals;
 
+    /// <summary>
+    /// Gets a value that determines whether a component is split into separate declaration and
+    /// implementation halves by <see cref="DefaultRazorMarkupSplitPhase"/>. Defaults to <c>false</c>:
+    /// the split is only meaningful for a host that consumes both halves (the Razor source generator),
+    /// and a host that only reads the implementation document would otherwise silently lose the
+    /// declaration half's code.
+    /// </summary>
+    internal bool EnableMarkupSplit
+        => (_flags & Flags.EnableMarkupSplit) == Flags.EnableMarkupSplit;
+
     public RazorCodeGenerationOptions WithIndentSize(int value)
         => IndentSize == value
             ? this

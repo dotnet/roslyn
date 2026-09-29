@@ -40,7 +40,7 @@ public class HtmlCodeActionResolverTest
             .Callback<Solution, WorkspaceEdit, CancellationToken>((_, edit, _) =>
             {
                 var textDocumentEdit = edit.EnumerateTextDocumentEdits().First();
-                textDocumentEdit.TextDocument.DocumentUri = new(documentPath);
+                textDocumentEdit.TextDocument.DocumentUri = documentUri;
                 textDocumentEdit.Edits = [LspFactory.CreateTextEdit(sourceText.GetRange(span), "Goo /*~~~~~~~~~~~*/ Bar")];
             })
             .Returns(Task.CompletedTask);

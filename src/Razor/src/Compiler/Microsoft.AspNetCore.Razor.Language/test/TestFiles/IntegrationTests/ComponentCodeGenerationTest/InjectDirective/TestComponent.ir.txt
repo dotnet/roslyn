@@ -9,8 +9,3 @@
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupBlock -  - <div>\n    Content\n</div>
-            ComponentInject - 
-            ComponentInject - 
-            ComponentInject - 
-            ComponentInject - 
-            ComponentInject - 

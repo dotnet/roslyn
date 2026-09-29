@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers;
 
 internal sealed class DiscardSyntaxClassifier : AbstractSyntaxClassifier
 {
-    public override ImmutableArray<Type> SyntaxNodeTypes { get; } = [typeof(DiscardDesignationSyntax), typeof(DiscardPatternSyntax), typeof(ParameterSyntax), typeof(IdentifierNameSyntax)];
+    public override ImmutableArray<Type> SyntaxNodeTypes { get; } = [typeof(DiscardDesignationSyntax), typeof(DiscardPatternSyntax), typeof(IdentifierNameSyntax)];
 
     public override void AddClassifications(
        SyntaxNode syntax,
@@ -33,16 +33,6 @@ internal sealed class DiscardSyntaxClassifier : AbstractSyntaxClassifier
 
         switch (syntax)
         {
-            case ParameterSyntax parameter when parameter.Identifier.Text == "_":
-                var symbol = semanticModel.GetDeclaredSymbol(parameter, cancellationToken);
-
-                if (symbol?.IsDiscard == true)
-                {
-                    result.Add(new ClassifiedSpan(parameter.Identifier.Span, ClassificationTypeNames.Keyword));
-                }
-
-                break;
-
             case IdentifierNameSyntax identifierName when identifierName.Identifier.Text == "_":
                 var symbolInfo = semanticModel.GetSymbolInfo(identifierName, cancellationToken);
 

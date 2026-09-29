@@ -53,6 +53,8 @@ internal sealed class BrokeredServiceBridgeProvider
             var serviceBroker = container.GetLimitedAccessServiceBroker(ServiceAudience.Local, ImmutableDictionary<string, string>.Empty, ClientCredentialsPolicy.RequestOverridesDefault);
             using IpcRelayServiceBroker relayServiceBroker = new(serviceBroker);
 
+            // ConstructRpc starts listening here, so every inbound request that activates a service through
+            // this broker is dispatched on this execution context and inherits the owning server's telemetry.
             FrameworkServices.RemoteServiceBroker
                 .WithTraceSource(brokeredServiceTraceSource)
                 .ConstructRpc(relayServiceBroker, profferedServiceBrokerChannel);

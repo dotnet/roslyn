@@ -367,7 +367,7 @@ internal abstract partial class AbstractSymbolDisplayService
 
         private static readonly SymbolDisplayFormat s_formatForCaptures = SymbolDisplayFormat.MinimallyQualifiedFormat
             .RemoveLocalOptions(SymbolDisplayLocalOptions.IncludeType)
-            .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeType);
+            .RemoveParameterOptions(SymbolDisplayParameterOptions.IncludeType | SymbolDisplayParameterOptions.IncludeDefaultValue);
 
         public async Task<ImmutableArray<SymbolDisplayPart>> BuildDescriptionAsync(
             ImmutableArray<ISymbol> symbolGroup, SymbolDescriptionGroups groups)

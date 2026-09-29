@@ -33,7 +33,7 @@ internal sealed class DocumentPullDiagnosticsEndpoint(
     ITelemetryReporter telemetryReporter,
     ILoggerFactory loggerFactory,
     IEditAndContinueSessionTracker encSessionTracker)
-    : CohostDocumentPullDiagnosticsEndpointBase<DocumentDiagnosticParams, FullDocumentDiagnosticReport?>(
+    : CohostDocumentPullDiagnosticsEndpointBase<DocumentDiagnosticParams, FullDocumentDiagnosticReport?, FullDocumentDiagnosticReport?>(
         incompatibleProjectService,
         remoteServiceInvoker,
         requestInvoker,
