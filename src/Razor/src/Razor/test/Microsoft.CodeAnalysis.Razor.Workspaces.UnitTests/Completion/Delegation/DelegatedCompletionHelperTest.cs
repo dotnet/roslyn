@@ -90,6 +90,20 @@ public class DelegatedCompletionHelperTest(ITestOutputHelper testOutput) : Tooli
     }
 
     [Fact]
+    public void ShouldIncludeSnippets_AfterEndTagInsideStyleBlock_ReturnsFalse()
+    {
+        // The caret is past a complete end tag nested inside a <style> block, so snippets
+        // must not be offered while still inside the style block.
+        TestCode code = "<style><div></div>$$";
+        var codeDocument = CreateCodeDocument(code);
+
+        var result = DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, code.Position, out var isStartTagContext);
+
+        Assert.False(result);
+        Assert.False(isStartTagContext);
+    }
+
+    [Fact]
     public void ShouldIncludeSnippets_InTextContent_ReturnsTrue()
     {
         TestCode code = "<div>ab$$cd</div>";
