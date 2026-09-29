@@ -225,7 +225,7 @@ namespace AnalyzerRunner
 
             var configuration = CompositionConfiguration.Create(catalog);
             var runtimeConfiguration = RuntimeComposition.CreateRuntimeComposition(configuration);
-            var exportProviderFactory = runtimeConfiguration.CreateExportProviderFactory();
+            var exportProviderFactory = runtimeConfiguration.CreateExportProviderFactory(joinableTaskFactory: null);
 
             var exportProvider = exportProviderFactory.CreateExportProvider();
             var refactorings = exportProvider.GetExports<CodeRefactoringProvider, CodeRefactoringProviderMetadata>();

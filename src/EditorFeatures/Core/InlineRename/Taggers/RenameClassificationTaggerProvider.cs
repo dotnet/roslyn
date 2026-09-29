@@ -6,6 +6,7 @@
 
 using System;
 using System.ComponentModel.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
@@ -24,7 +25,7 @@ internal sealed class RenameClassificationTaggerProvider(
     IClassificationTypeRegistryService classificationTypeRegistryService) : ITaggerProvider
 {
     private readonly InlineRenameService _renameService = renameService;
-    private readonly IClassificationType _classificationType = classificationTypeRegistryService.GetClassificationType(ClassificationTypeDefinitions.InlineRenameField);
+    private readonly IClassificationType _classificationType = classificationTypeRegistryService.GetRequiredClassificationType(ClassificationTypeDefinitions.InlineRenameField);
 
     public ITagger<T> CreateTagger<T>(ITextBuffer buffer) where T : ITag
         => new RenameClassificationTagger(buffer, _renameService, _classificationType) as ITagger<T>;
