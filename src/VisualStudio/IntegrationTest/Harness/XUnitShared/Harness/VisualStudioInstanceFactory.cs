@@ -346,6 +346,7 @@ namespace Xunit.Harness
                     {
                         var messageBuilder = new StringBuilder();
                         messageBuilder.AppendLine($"VSIX installer failed with exit code: {installProcess.ExitCode}");
+                        messageBuilder.AppendLine($"See log file {logFileName} for details");
                         messageBuilder.AppendLine();
                         messageBuilder.AppendLine($"Standard Error:");
                         messageBuilder.AppendLine(await standardErrorAsync.ConfigureAwait(true));
