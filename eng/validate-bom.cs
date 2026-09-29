@@ -65,6 +65,14 @@ static List<(string Path, string Charset)> Validate(string root, IEnumerable<str
         }
 
         var charset = GetCharset(root, relativePath, configurations);
+        if (charset is null &&
+            relativePath.StartsWith("src/Workspaces/CSharp/Portable/SyncedSource/FileBasedPrograms/", StringComparison.OrdinalIgnoreCase) &&
+            relativePath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+        {
+            // The SDK-synced root .editorconfig has no charset, so Roslyn's parent setting cannot reach these files.
+            charset = "utf-8-bom";
+        }
+
         if (charset is null or "unset")
             continue;
 
@@ -155,6 +163,17 @@ static async Task RunSelfTestAsync()
 
         await File.WriteAllTextAsync(Path.Combine(root, "fixture", "script.sh"), "#!/usr/bin/env bash\n", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
         Assert(Validate(root, ["fixture/script.sh"]).Count == 0, "BOM-free shebang must pass.");
+
+        const string syncedPath = "src/Workspaces/CSharp/Portable/SyncedSource/FileBasedPrograms/a.cs";
+        var syncedDirectory = Path.GetDirectoryName(Path.Combine(root, syncedPath))!;
+        Directory.CreateDirectory(syncedDirectory);
+        await File.WriteAllTextAsync(Path.Combine(syncedDirectory, ".editorconfig"), "root = true\n[*.cs]\ngenerated_code = true\n");
+        await File.WriteAllTextAsync(Path.Combine(root, syncedPath), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        failures = Validate(root, [syncedPath]);
+        Assert(failures.SequenceEqual([(syncedPath, "utf-8-bom")]), "Synced C# source without a BOM must fail validation.");
+
+        await File.WriteAllTextAsync(Path.Combine(root, syncedPath), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        Assert(Validate(root, [syncedPath]).Count == 0, "Synced C# source with a BOM must pass validation.");
     }
     finally
     {

@@ -3,7 +3,6 @@ root = true
 
 # C# files
 [*.cs]
-charset = utf-8-bom
 
 # We don't want any analyzer diagnostics to be reported for people consuming this as a source package.
 dotnet_analyzer_diagnostic.severity = none
