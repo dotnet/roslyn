@@ -51,7 +51,7 @@ public class GuestProjectPathProviderTest(ITestOutputHelper testOutput) : Toolin
         var textBuffer = StrictMock.Of<ITextBuffer>();
         var textDocumentFactoryServiceMock = new StrictMock<ITextDocumentFactoryService>();
         textDocumentFactoryServiceMock
-            .Setup(s => s.TryGetTextDocument(It.IsAny<ITextBuffer>(), out It.Ref<ITextDocument>.IsAny))
+            .Setup(s => s.TryGetTextDocument(It.IsAny<ITextBuffer>(), out It.Ref<ITextDocument?>.IsAny))
             .Returns(false);
 
         var projectPathProvider = new GuestProjectPathProvider(
