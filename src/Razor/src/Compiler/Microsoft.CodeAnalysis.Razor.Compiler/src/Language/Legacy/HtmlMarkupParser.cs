@@ -267,28 +267,15 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 break;
             case ParserState.SpecialTag:
                 ParseSpecialTag(builder);
-                if (_parseAsXml)
-                {
-                    _isMarkupComplete = false;
-                }
                 break;
             case ParserState.XmlPI:
-                if (!ParseXmlPI(builder) && _parseAsXml)
-                {
-                    _isMarkupComplete = false;
-                }
+                ParseXmlPI(builder);
                 break;
             case ParserState.CData:
-                if (!ParseCData(builder) && _parseAsXml)
-                {
-                    _isMarkupComplete = false;
-                }
+                ParseCData(builder);
                 break;
             case ParserState.MarkupComment:
-                if (!ParseMarkupComment(builder) && _parseAsXml)
-                {
-                    _isMarkupComplete = false;
-                }
+                ParseMarkupComment(builder);
                 break;
             case ParserState.RazorComment:
                 ParseRazorCommentWithLeadingAndTrailingWhitespace(builder);
@@ -1630,24 +1617,31 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         builder.Add(element);
     }
 
-    private bool ParseSpecialTag(in SyntaxListBuilder<RazorSyntaxNode> builder)
+    private void ParseSpecialTag(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         // Clear the current token builder.
         builder.Add(OutputAsMarkupLiteral());
 
-        return AcceptTokenUntilAll(builder, SyntaxKind.CloseAngle);
+        AcceptTokenUntilAll(builder, SyntaxKind.CloseAngle);
+        if (_parseAsXml)
+        {
+            _isMarkupComplete = false;
+        }
     }
 
-    private bool ParseXmlPI(in SyntaxListBuilder<RazorSyntaxNode> builder)
+    private void ParseXmlPI(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         Assert(SyntaxKind.OpenAngle);
         AcceptAndMoveNext();
         Assert(SyntaxKind.QuestionMark);
         AcceptAndMoveNext();
-        return AcceptTokenUntilAll(builder, SyntaxKind.QuestionMark, SyntaxKind.CloseAngle);
+        if (!AcceptTokenUntilAll(builder, SyntaxKind.QuestionMark, SyntaxKind.CloseAngle) && _parseAsXml)
+        {
+            _isMarkupComplete = false;
+        }
     }
 
-    private bool ParseCData(in SyntaxListBuilder<RazorSyntaxNode> builder)
+    private void ParseCData(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         // <![CDATA[...]]>
         Assert(SyntaxKind.OpenAngle);
@@ -1657,7 +1651,10 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         Debug.Assert(CurrentToken.Kind == SyntaxKind.Text && string.Equals(CurrentToken.Content, "cdata", StringComparison.OrdinalIgnoreCase));
         AcceptAndMoveNext();
         Assert(SyntaxKind.LeftBracket);
-        return AcceptTokenUntilAll(builder, SyntaxKind.RightBracket, SyntaxKind.RightBracket, SyntaxKind.CloseAngle);
+        if (!AcceptTokenUntilAll(builder, SyntaxKind.RightBracket, SyntaxKind.RightBracket, SyntaxKind.CloseAngle) && _parseAsXml)
+        {
+            _isMarkupComplete = false;
+        }
     }
 
     private void ParseDoubleTransition(in SyntaxListBuilder<RazorSyntaxNode> builder)
@@ -1699,7 +1696,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         OtherParserBlock(builder);
     }
 
-    private bool ParseMarkupComment(in SyntaxListBuilder<RazorSyntaxNode> builder)
+    private void ParseMarkupComment(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         Assert(SyntaxKind.OpenAngle);
 
@@ -1736,7 +1733,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     htmlCommentBuilder.Add(OutputAsMarkupLiteral());
                     var commentBlock = SyntaxFactory.MarkupCommentBlock(htmlCommentBuilder.ToList());
                     builder.Add(commentBlock);
-                    return true;
+                    return;
                 }
                 else if (lastDoubleHyphen != null)
                 {
@@ -1747,7 +1744,10 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             builder.Add(OutputAsMarkupLiteral());
         }
 
-        return false;
+        if (_parseAsXml)
+        {
+            _isMarkupComplete = false;
+        }
     }
 
     private void ParseRazorCommentWithLeadingAndTrailingWhitespace(in SyntaxListBuilder<RazorSyntaxNode> builder)
