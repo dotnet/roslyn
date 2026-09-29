@@ -33,6 +33,19 @@ come from the platform-specific Release publish configured by
 `src/LanguageServer/LanguageServerPublish.props`. They only exist after a Release publish with a
 runtime identifier, so a plain local build will not exercise ReadyToRun reference resolution.
 
+## Post-compile modification of intermediate assemblies
+
+Anything that rewrites `@(IntermediateAssembly)` after `CoreCompile` breaks validation for every
+affected project, because BuildValidator compares its rebuild against the file in `artifacts/obj`.
+A single changed header byte is enough. Post-process the copies in `artifacts/bin` instead, and
+restore the original last write time so incremental copies keep skipping the patched files.
+
+`eng/targets/XUnit.targets` does this for .NET Framework test executables: `SetTestAssemblyStackReserve`
+raises the PE `SizeOfStackReserve` to 4 MB on the bin assembly after `CopyFilesToOutputDirectory`,
+and `CreateXunitV3AppHost` does the same for the `.exe` app host that xunit.v3's VSTest adapter
+launches. Note that csc already emits a 4 MB reserve for 64-bit images, so only the 32-bit/AnyCPU
+output is actually changed.
+
 ## Investigating failures
 
 - Every rebuild diff is retained for the whole run (`Program.ValidateFiles` accumulates
