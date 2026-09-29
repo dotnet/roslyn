@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(FoldingRangesHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(FoldingRangesHandler)), Shared]
 [Method(Methods.TextDocumentFoldingRangeName)]
 internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<FoldingRangeParams, FoldingRange[]?>
 {

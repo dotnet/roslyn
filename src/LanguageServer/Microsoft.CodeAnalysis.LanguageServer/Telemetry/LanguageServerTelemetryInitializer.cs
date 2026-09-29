@@ -12,16 +12,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 /// <summary>
 /// Called by <see cref="InitializedHandler"/> to update telemetry common properties with client information.
 /// </summary>
-[ExportCSharpVisualBasicLspServiceFactory(typeof(TelemetryClientNameInitializeHandler), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+[ExportCSharpVisualBasicLspService(typeof(TelemetryClientNameInitializeHandler), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared(LspServiceComposition.SharingBoundary)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class TelemetryClientNameInitializeHandlerFactory() : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new TelemetryClientNameInitializeHandler();
-}
-
-internal sealed class TelemetryClientNameInitializeHandler : ILspService, IOnInitialize
+internal sealed class TelemetryClientNameInitializeHandler() : ILspService, IOnInitialize
 {
     private LanguageServerTelemetry? _languageServerTelemetry;
 

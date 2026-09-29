@@ -31,7 +31,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     protected override TestComposition Composition => base.Composition.AddParts(
         typeof(CustomResolveHandler),
         typeof(LanguageSpecificHandler),
-        typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        typeof(TestLspMiscellaneousFilesWorkspaceProvider));
 
     [ConditionalTheory(typeof(WindowsOnly), Reason = "Uses Windows paths and Unicode encoding differs across platforms")]
     [CombinatorialData]
@@ -429,7 +429,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     private sealed record class CustomResolveParams([property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument);
     private sealed record class LanguageSpecificResponse(bool HandlerCalled);
 
-    [ExportCSharpVisualBasicStatelessLspService(typeof(CustomResolveHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(CustomResolveHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -452,7 +452,7 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
     /// Test handler that is only registered for the "Razor" language, with no default fallback.
     /// This simulates handlers like textDocument/documentColor that are dynamically registered by Razor.
     /// </summary>
-    [ExportCSharpVisualBasicStatelessLspService(typeof(LanguageSpecificHandler)), PartNotDiscoverable, Shared]
+    [ExportCSharpVisualBasicLspService(typeof(LanguageSpecificHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, "Razor")]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

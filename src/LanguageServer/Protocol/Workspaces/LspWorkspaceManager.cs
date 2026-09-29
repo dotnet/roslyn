@@ -5,11 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -43,6 +45,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 ///   <item>The code is relatively straightforward</item>
 /// </list>
 /// </remarks>
+[ExportLspService(typeof(LspWorkspaceManager), ProtocolConstants.AllLspContracts), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
     /// <summary>
@@ -70,19 +73,21 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     private readonly ILanguageInfoProvider _languageInfoProvider;
     private readonly RequestTelemetryLogger _requestTelemetryLogger;
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LspWorkspaceManager(
-        ILspLogger logger,
-        ILspMiscellaneousFilesWorkspaceProvider? lspMiscellaneousFilesWorkspace,
-        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        ILanguageInfoProvider languageInfoProvider,
-        RequestTelemetryLogger requestTelemetryLogger)
+        LspService<ILspLogger> logger,
+        LspService<ILspMiscellaneousFilesWorkspaceProvider> lspMiscellaneousFilesWorkspace,
+        LspService<LspWorkspaceRegistrationService> lspWorkspaceRegistrationService,
+        LspService<ILanguageInfoProvider> languageInfoProvider,
+        LspService<RequestTelemetryLogger> requestTelemetryLogger)
     {
-        _lspMiscellaneousFilesWorkspaceProvider = lspMiscellaneousFilesWorkspace;
-        _logger = logger;
-        _requestTelemetryLogger = requestTelemetryLogger;
+        _lspMiscellaneousFilesWorkspaceProvider = lspMiscellaneousFilesWorkspace.GetValueOrDefault();
+        _logger = logger.Value;
+        _requestTelemetryLogger = requestTelemetryLogger.Value;
 
-        _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-        _languageInfoProvider = languageInfoProvider;
+        _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService.Value;
+        _languageInfoProvider = languageInfoProvider.Value;
     }
 
     public EventHandler<EventArgs>? LspTextChanged;

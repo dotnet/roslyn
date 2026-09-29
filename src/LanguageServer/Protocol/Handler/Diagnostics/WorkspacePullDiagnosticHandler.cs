@@ -2,10 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
@@ -13,15 +16,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
+[ExportLspService(typeof(WorkspacePullDiagnosticHandler), ProtocolConstants.AllLspContracts), Shared(LspServiceComposition.SharingBoundary)]
 [Method(VSInternalMethods.WorkspacePullDiagnosticName)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class WorkspacePullDiagnosticHandler(
-    LspWorkspaceManager workspaceManager,
-    LspWorkspaceRegistrationService registrationService,
+    LspService<LspWorkspaceManager> workspaceManager,
+    LspService<LspWorkspaceRegistrationService> registrationService,
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions)
     : AbstractWorkspacePullDiagnosticsHandler<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[], VSInternalWorkspaceDiagnosticReport[]>(
-        workspaceManager, registrationService, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
+        workspaceManager.Value, registrationService.Value, diagnosticSourceManager, diagnosticsRefresher, globalOptions)
 {
     // All workspace diagnostics are potential duplicates given that they can be overridden by the diagnostics
     // produced by document diagnostics.

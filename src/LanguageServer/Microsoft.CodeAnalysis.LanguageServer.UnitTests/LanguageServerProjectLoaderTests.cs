@@ -39,7 +39,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         ExtensionAssemblyManager extensionManager,
         IAssemblyLoader assemblyLoader)
         => Task.FromResult(LanguageServerTestComposition.GetSharedExportProvider(
-            serverConfiguration, loggerFactory, typeof(TestProjectLoaderFactory)));
+            serverConfiguration, loggerFactory, typeof(TestProjectLoader)));
 
     [Fact]
     public async Task ConcurrentCallersShareLoadedProjectAndCompleteAfterWorkspaceCommit()
@@ -420,28 +420,10 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.Equal(project.Id, projectFromCanonicalPath.Id);
     }
 
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(TestProjectLoader)), PartNotDiscoverable, Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class TestProjectLoaderFactory(
-        IGlobalOptionService globalOptionService,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        ServerConfigurationFactory serverConfigurationFactory) : ILspServiceFactory
-    {
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-            => new TestProjectLoader(
-                lspServices,
-                globalOptionService,
-                lspServices.GetRequiredService<ILoggerFactory>(),
-                listenerProvider,
-                serverConfigurationFactory,
-                lspServices.GetRequiredService<IBinLogPathProvider>(),
-                lspServices.GetRequiredService<DotnetCliHelper>());
-    }
-
     /// <summary>
     /// A project loader whose design-time builds are supplied by the test so load ordering and results are deterministic.
     /// </summary>
+    [ExportCSharpVisualBasicLspService(typeof(TestProjectLoader)), PartNotDiscoverable, Shared(LspServiceComposition.SharingBoundary)]
     internal sealed class TestProjectLoader : LanguageServerProjectLoader, ILspService
     {
         private readonly ConcurrentQueue<ExpectedDesignTimeBuild> _expectedDesignTimeBuilds = new();
@@ -455,15 +437,17 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         // must not fall back to one on machines with fewer processors.
         protected override int MaxNodeCount => 2;
 
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestProjectLoader(
-            ILspServices lspServices,
+            LspService<LspServices> lspServices,
             IGlobalOptionService globalOptionService,
-            ILoggerFactory loggerFactory,
+            LspService<ILoggerFactory> loggerFactory,
             IAsynchronousOperationListenerProvider listenerProvider,
             ServerConfigurationFactory serverConfigurationFactory,
-            IBinLogPathProvider binLogPathProvider,
-            DotnetCliHelper dotnetCliHelper)
-            : base(lspServices, globalOptionService, loggerFactory, listenerProvider, serverConfigurationFactory, binLogPathProvider, dotnetCliHelper)
+            LspService<IBinLogPathProvider> binLogPathProvider,
+            LspService<DotnetCliHelper> dotnetCliHelper)
+            : base(lspServices.Value, globalOptionService, loggerFactory.Value, listenerProvider, serverConfigurationFactory, binLogPathProvider.Value, dotnetCliHelper.Value)
         {
         }
 

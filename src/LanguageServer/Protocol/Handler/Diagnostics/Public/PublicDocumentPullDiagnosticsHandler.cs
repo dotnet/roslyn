@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
@@ -17,16 +20,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>;
 using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>;
 
+[ExportLspService(typeof(PublicDocumentPullDiagnosticsHandler), ProtocolConstants.AllLspContracts), Shared(LspServiceComposition.SharingBoundary)]
 [Method(Methods.TextDocumentDiagnosticName)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class PublicDocumentPullDiagnosticsHandler(
-    IClientLanguageServerManager clientLanguageServerManager,
+    LspService<IClientLanguageServerManager> clientLanguageServerManager,
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions)
     : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport>(
         diagnosticsRefresher, diagnosticSourceManager, globalOptions)
 {
-    private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager;
+    private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager.Value;
 
     protected override string? GetRequestDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;

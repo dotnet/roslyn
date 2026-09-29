@@ -12,7 +12,7 @@ using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(LongRunningNonMutatingRequestHandler)), PartNotDiscoverable, Shared]
+[ExportCSharpVisualBasicLspService(typeof(LongRunningNonMutatingRequestHandler)), PartNotDiscoverable, Shared]
 [Method(MethodName)]
 internal sealed class LongRunningNonMutatingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
 {

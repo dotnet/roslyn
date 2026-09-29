@@ -5,21 +5,20 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(ProjectCapabilityManager)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ProjectCapabilityManagerFactory() : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new ProjectCapabilityManager();
-}
-
+[ExportCSharpVisualBasicLspService(typeof(ProjectCapabilityManager)), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class ProjectCapabilityManager : ILspService
 {
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Constructed directly by tests")]
+    public ProjectCapabilityManager()
+    {
+    }
+
     private readonly ConcurrentDictionary<ProjectId, ImmutableHashSet<string>> _projectCapabilities = new();
 
     public void UpdateCapabilities(ProjectId projectId, IEnumerable<string> capabilities)

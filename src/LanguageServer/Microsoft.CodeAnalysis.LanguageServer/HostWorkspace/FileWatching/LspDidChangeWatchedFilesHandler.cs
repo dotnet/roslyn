@@ -10,7 +10,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(LspDidChangeWatchedFilesHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(LspDidChangeWatchedFilesHandler)), Shared]
 [Method("workspace/didChangeWatchedFiles")]
 internal sealed class LspDidChangeWatchedFilesHandler : ILspServiceNotificationHandler<DidChangeWatchedFilesParams>
 {

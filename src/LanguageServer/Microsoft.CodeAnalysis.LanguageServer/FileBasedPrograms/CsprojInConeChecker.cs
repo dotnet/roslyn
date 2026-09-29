@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -11,20 +12,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
-[Shared]
-[ExportLspServiceFactory(typeof(CsprojInConeChecker), ProtocolConstants.RoslynLspLanguagesContract)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CsprojInConeCheckerFactory() : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-    {
-        return new CsprojInConeChecker(lspServices.GetRequiredService<IWorkspaceFolderTracker>());
-    }
-}
-
+[ExportLspService(typeof(CsprojInConeChecker), ProtocolConstants.RoslynLspLanguagesContract), Shared(LspServiceComposition.SharingBoundary)]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used directly by tests")]
 internal sealed class CsprojInConeChecker(IWorkspaceFolderTracker workspaceFolderTracker) : ILspService
 {
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CsprojInConeChecker(LspService<IWorkspaceFolderTracker> workspaceFolderTracker)
+        : this(workspaceFolderTracker.Value)
+    {
+    }
+
     public bool IsContainedInCsprojCone(string csFilePath)
     {
         // Note: manual perf testing of this check on Windows, in a reasonably complex case,

@@ -30,7 +30,7 @@ public class MEFCompositionTest(ITestOutputHelper testOutputHelper) : ToolingTes
                 but found 0.
                 """, e),
             e => AssertEx.AssertEqualToleratingWhitespaceDifferences("""
-                Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationServiceFactory.ctor(eventListener): expected exactly 1 export matching constraints:
+                Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationService.ctor(eventListener): expected exactly 1 export matching constraints:
                     Contract name: Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationEventListener
                     TypeIdentityName: Microsoft.CodeAnalysis.LanguageServer.LspWorkspaceRegistrationEventListener
                 but found 0.

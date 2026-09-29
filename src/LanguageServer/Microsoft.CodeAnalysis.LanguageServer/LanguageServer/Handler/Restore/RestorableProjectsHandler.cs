@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// Handler that allows the client to retrieve a set of restorable projects.
 /// Used to populate a list of projects that can be restored.
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(RestorableProjectsHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(RestorableProjectsHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

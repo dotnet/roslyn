@@ -59,8 +59,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     var exportAttributeApplication = exportAttributes.FirstOrDefault();
 
                     if (exportAttributeApplication != null &&
-                        !namedTypeAttributes.Any(ad => ad.AttributeClass.Name == "SharedAttribute" &&
-                                                       ad.AttributeClass.ContainingNamespace.Equals(exportAttribute.ContainingNamespace)))
+                        !namedTypeAttributes.Any(ad => IsSharedAttribute(ad.AttributeClass, exportAttribute.ContainingNamespace)))
                     {
                         if (exportAttributeApplication.ApplicationSyntaxReference == null)
                         {
@@ -74,6 +73,23 @@ namespace Roslyn.Diagnostics.Analyzers
                     }
                 }, SymbolKind.NamedType);
             });
+        }
+
+        /// <summary>
+        /// Returns true if <paramref name="attributeClass"/> is, or derives from, the MEFv2 <c>SharedAttribute</c>.
+        /// </summary>
+        private static bool IsSharedAttribute(INamedTypeSymbol attributeClass, INamespaceSymbol compositionNamespace)
+        {
+            for (var current = attributeClass; current != null; current = current.BaseType)
+            {
+                if (current.Name == "SharedAttribute" &&
+                    current.ContainingNamespace.Equals(compositionNamespace))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

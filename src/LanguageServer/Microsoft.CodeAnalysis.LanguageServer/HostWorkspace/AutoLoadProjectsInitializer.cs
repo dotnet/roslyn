@@ -16,41 +16,43 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(AutoLoadProjectsInitializer)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class AutoLoadProjectsInitializerFactory(
-    ServerConfiguration serverConfiguration,
-    IGlobalOptionService globalOptionService) : ILspServiceFactory
+[ExportCSharpVisualBasicLspService(typeof(AutoLoadProjectsInitializer)), Shared(LspServiceComposition.SharingBoundary)]
+internal sealed class AutoLoadProjectsInitializer : ILspService, IOnInitialized
 {
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new AutoLoadProjectsInitializer(
-            lspServices.GetRequiredService<LanguageServerProjectSystem>(),
-            lspServices.GetRequiredService<ILoggerFactory>(),
-            serverConfiguration,
-            globalOptionService);
-}
+    private readonly LanguageServerProjectSystem _projectSystem;
+    private readonly ServerConfiguration _serverConfiguration;
+    private readonly IGlobalOptionService _globalOptionService;
+    private readonly ILogger _logger;
 
-internal sealed class AutoLoadProjectsInitializer(
-    LanguageServerProjectSystem projectSystem,
-    ILoggerFactory loggerFactory,
-    ServerConfiguration serverConfiguration,
-    IGlobalOptionService globalOptionService) : ILspService, IOnInitialized
-{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public AutoLoadProjectsInitializer(
+        LspService<LanguageServerProjectSystem> projectSystem,
+        LspService<ILoggerFactory> loggerFactory,
+        ServerConfiguration serverConfiguration,
+        IGlobalOptionService globalOptionService)
+    {
+        var projectSystemValue = projectSystem.Value;
+        var loggerFactoryValue = loggerFactory.Value;
+        _projectSystem = projectSystemValue;
+        _serverConfiguration = serverConfiguration;
+        _globalOptionService = globalOptionService;
+        _logger = loggerFactoryValue.CreateLogger<AutoLoadProjectsInitializer>();
+    }
+
     private static readonly EnumerationOptions s_recursiveEnumerationOptions = new() { RecurseSubdirectories = true, IgnoreInaccessible = true };
-    private readonly ILogger _logger = loggerFactory.CreateLogger<AutoLoadProjectsInitializer>();
 
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
         var initializeParams = context.GetRequiredService<IInitializeManager>().TryGetInitializeParams();
         Contract.ThrowIfNull(initializeParams, "Initialize params should be set during initialization.");
 
-        if (GetAutoLoadProjectsMaximum(initializeParams.InitializationOptions, serverConfiguration.AutoLoadProjects) is not int projectAutoLoadMaximum)
+        if (GetAutoLoadProjectsMaximum(initializeParams.InitializationOptions, _serverConfiguration.AutoLoadProjects) is not int projectAutoLoadMaximum)
         {
             return;
         }
 
-        var isUsingDevKit = globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures);
+        var isUsingDevKit = _globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures);
         Contract.ThrowIfTrue(isUsingDevKit, "Auto load projects is not supported when using DevKit.");
 
         var workspaceFolders = initializeParams.WorkspaceFolders;
@@ -71,7 +73,7 @@ internal sealed class AutoLoadProjectsInitializer(
             _logger.LogInformation("Using VS Code settings to auto load solution {SolutionFile}", solutionPath);
             var solutionFileName = Path.GetFileName(solutionPath);
             await StartAndReportProgressAsync(
-                (reporter) => projectSystem.OpenSolutionAsync(solutionPath, reporter),
+                (reporter) => _projectSystem.OpenSolutionAsync(solutionPath, reporter),
                 title: string.Format(LanguageServerResources.Loading_0, solutionFileName),
                 startMessage: string.Empty,
                 endMessage: string.Format(LanguageServerResources.Loaded_0, solutionFileName));
@@ -93,7 +95,7 @@ internal sealed class AutoLoadProjectsInitializer(
                     _logger.LogInformation("Found single solution file {SolutionFile} to auto load", solutionFiles[0]);
                     var solutionFileName = Path.GetFileName(solutionFiles[0]);
                     await StartAndReportProgressAsync(
-                        (reporter) => projectSystem.OpenSolutionAsync(solutionFiles[0], reporter),
+                        (reporter) => _projectSystem.OpenSolutionAsync(solutionFiles[0], reporter),
                         title: string.Format(LanguageServerResources.Loading_0, solutionFileName),
                         startMessage: string.Empty,
                         endMessage: string.Format(LanguageServerResources.Loaded_0, solutionFileName));
@@ -137,7 +139,7 @@ internal sealed class AutoLoadProjectsInitializer(
         // The background load can outlive this method's pooled builder.
         var projectsToLoad = projectFiles.ToImmutable();
         await StartAndReportProgressAsync(
-            (reporter) => projectSystem.OpenProjectsAsync(projectsToLoad, reporter),
+            (reporter) => _projectSystem.OpenProjectsAsync(projectsToLoad, reporter),
             title: LanguageServerResources.Loading_projects,
             startMessage: string.Empty,
             endMessage: string.Format(LanguageServerResources.Loaded_0_projects, projectFiles.Count));

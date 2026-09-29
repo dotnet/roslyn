@@ -13,17 +13,13 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(ExtensionMessageHandlerShutdown)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(ExtensionMessageHandlerShutdown)), Shared(LspServiceComposition.SharingBoundary)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class ExtensionMessageHandlerShutdownFactory() : ILspServiceFactory
+internal class ExtensionMessageHandlerShutdown(LspService<LspWorkspaceRegistrationService> lspWorkspaceRegistrationService) : IOnServerShutdown, ILspService
 {
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new ExtensionMessageHandlerShutdown(lspServices.GetRequiredService<LspWorkspaceRegistrationService>());
-}
+    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService.Value;
 
-internal class ExtensionMessageHandlerShutdown(LspWorkspaceRegistrationService lspWorkspaceRegistrationService) : IOnServerShutdown, ILspService
-{
     public virtual async Task ShutdownAsync()
     {
         // Shutting down is not cancellable.
@@ -32,7 +28,7 @@ internal class ExtensionMessageHandlerShutdown(LspWorkspaceRegistrationService l
         // HACK: we're doing FirstOrDefault rather than SingleOrDefault because right now in unit tests we might have more than one. Tests that derive from
         // AbstractLanguageServerProtocolTests create a TestLspWorkspace, even if the ExportProvider already has some other workspace registered.
         // Since we're only using this as a proxy to fetch a workspace service that won't differ between the workspaces, we can pick any of them.
-        var hostWorkspace = lspWorkspaceRegistrationService.GetAllRegistrations().FirstOrDefault(w => w.Kind == WorkspaceKind.Host);
+        var hostWorkspace = _lspWorkspaceRegistrationService.GetAllRegistrations().FirstOrDefault(w => w.Kind == WorkspaceKind.Host);
         if (hostWorkspace is not null)
         {
             var service = hostWorkspace.Services.GetRequiredService<IExtensionMessageHandlerService>();

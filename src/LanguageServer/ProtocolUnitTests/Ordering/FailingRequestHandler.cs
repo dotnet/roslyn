@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(FailingRequestHandler)), PartNotDiscoverable, Shared]
+[ExportCSharpVisualBasicLspService(typeof(FailingRequestHandler)), PartNotDiscoverable, Shared]
 [Method(MethodName)]
 internal sealed class FailingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
 {

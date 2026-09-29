@@ -4,21 +4,12 @@
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(BinLogPathProvider)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class BinLogPathProviderFactory(IGlobalOptionService globalOptionService) : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new BinLogPathProvider(globalOptionService, lspServices.GetRequiredService<ILoggerFactory>());
-}
-
+[ExportCSharpVisualBasicLspService(typeof(BinLogPathProvider)), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class BinLogPathProvider : IBinLogPathProvider, ILspService
 {
     /// <summary>
@@ -34,10 +25,13 @@ internal sealed class BinLogPathProvider : IBinLogPathProvider, ILspService
     private readonly IGlobalOptionService _globalOptionService;
     private readonly ILogger _logger;
 
-    public BinLogPathProvider(IGlobalOptionService globalOptionService, ILoggerFactory loggerFactory)
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public BinLogPathProvider(IGlobalOptionService globalOptionService, LspService<ILoggerFactory> loggerFactory)
     {
+        var loggerFactoryValue = loggerFactory.Value;
         _globalOptionService = globalOptionService;
-        _logger = loggerFactory.CreateLogger<BinLogPathProvider>();
+        _logger = loggerFactoryValue.CreateLogger<BinLogPathProvider>();
     }
 
     public string? GetNewLogPath()

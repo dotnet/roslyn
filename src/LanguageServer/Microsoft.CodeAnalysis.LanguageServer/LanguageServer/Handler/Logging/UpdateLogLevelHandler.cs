@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.LanguageServer.Handler.Logging;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(UpdateLogLevelHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(UpdateLogLevelHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -1,9 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Composition;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -20,12 +22,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 /// LSP clients don't always support file watching; this allows us to be flexible and use it when we can, but fall back
 /// to something else if we can't.
 /// </remarks>
-internal sealed class DelegatingFileChangeWatcher(
-    ILspServices lspServices,
-    ILoggerFactory loggerFactory,
-    IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
-    : IFileChangeWatcher, ILspService
+[ExportCSharpVisualBasicLspService(typeof(DelegatingFileChangeWatcher)), Shared(LspServiceComposition.SharingBoundary)]
+internal sealed class DelegatingFileChangeWatcher : IFileChangeWatcher, ILspService
 {
+    private readonly Lazy<IFileChangeWatcher> _underlyingFileWatcher;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DelegatingFileChangeWatcher(
+        LspService<LspServices> lspServices,
+        LspService<ILoggerFactory> loggerFactory,
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+    {
+        var lspServicesValue = lspServices.Value;
+        var loggerFactoryValue = loggerFactory.Value;
+        _underlyingFileWatcher = new Lazy<IFileChangeWatcher>(() =>
+        {
+            if (LspFileChangeWatcher.TryCreate(lspServicesValue, asynchronousOperationListenerProvider, out var lspFileChangeWatcher))
+                return lspFileChangeWatcher;
+
+            loggerFactoryValue.CreateLogger<DelegatingFileChangeWatcher>().LogWarning("We are unable to use LSP file watching; falling back to our in-process watcher.");
+
+            return _defaultFileChangeWatcher.Value;
+        });
+    }
+
     /// <summary>
     /// Share a single default file change watcher across all server instances to ensure they respect the platform limits and consolidate.
     /// As servers are created and disposed, they will add / remove files/directories from this shared watcher.
@@ -34,16 +55,6 @@ internal sealed class DelegatingFileChangeWatcher(
     /// TODO: we could read the inotify limit and set this dynamically, since some newer kernels have a higher default.
     /// </summary>
     private static readonly Lazy<DefaultFileChangeWatcher> _defaultFileChangeWatcher = new(() => new DefaultFileChangeWatcher(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? 10_000 : 50));
-
-    private readonly Lazy<IFileChangeWatcher> _underlyingFileWatcher = new(() =>
-        {
-            if (LspFileChangeWatcher.TryCreate(lspServices, asynchronousOperationListenerProvider, out var lspFileChangeWatcher))
-                return lspFileChangeWatcher;
-
-            loggerFactory.CreateLogger<DelegatingFileChangeWatcher>().LogWarning("We are unable to use LSP file watching; falling back to our in-process watcher.");
-
-            return _defaultFileChangeWatcher.Value;
-        });
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
         => _underlyingFileWatcher.Value.CreateContext(watchedDirectories);
