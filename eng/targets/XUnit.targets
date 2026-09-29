@@ -118,11 +118,10 @@
   </Target>
 
   <!--
-    .NET Framework test assemblies are executables whose own PE header determines the default
-    stack size of every thread in the test process, including the thread pool threads that
-    xunit.v3 runs tests on. csc always emits a 1 MB stack reserve, which deep-recursion compiler
-    tests overflow in Debug builds. Raising it to 4 MB matches the testhost.net47x.exe that
-    previously hosted these tests.
+    xunit.v3 test projects run in their own process, whose PE header determines the default stack
+    size of every thread. .NET Framework test assemblies reserve 1 MB by default, and .NET Core
+    app hosts reserve 1.5 MB. Raising both to 4 MB prevents deep-recursion compiler tests from
+    overflowing the stack.
 
     Only the copies in the output directory are patched. The intermediate assembly is left exactly
     as csc emitted it, so rebuild validation (eng/test-rebuild.ps1) can still reproduce it from
@@ -212,7 +211,16 @@
 
   <Target Name="SetTestAssemblyStackReserve"
           AfterTargets="CopyFilesToOutputDirectory"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(DotNetBuildSourceOnly)' != 'true'">
-    <SetPEStackReserve FilePath="$(TargetPath)" StackReserve="$(TestAssemblyStackReserve)" Condition="Exists('$(TargetPath)')" />
+          Condition="'$(OutputType)' == 'Exe' and '$(DotNetBuildSourceOnly)' != 'true'">
+    <PropertyGroup>
+      <_XunitV3CoreAppHost>$(TargetDir)$(TargetName).exe</_XunitV3CoreAppHost>
+    </PropertyGroup>
+
+    <SetPEStackReserve FilePath="$(TargetPath)"
+                       StackReserve="$(TestAssemblyStackReserve)"
+                       Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and Exists('$(TargetPath)')" />
+    <SetPEStackReserve FilePath="$(_XunitV3CoreAppHost)"
+                       StackReserve="$(TestAssemblyStackReserve)"
+                       Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '$(OS)' == 'Windows_NT' and Exists('$(_XunitV3CoreAppHost)')" />
   </Target>
 </Project>
