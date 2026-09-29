@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics;
+using System.Text.Json;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
@@ -19,6 +22,58 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
           </PropertyGroup>
         </Project>
         """;
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(1)]
+    public async Task InitializationOptionsAreIsolatedBetweenDaemonClients(int? commandLineMaximum)
+    {
+        var workspaceContent = CreateAutoLoadWorkspace()
+            .WithFile("First/First.csproj", ProjectContent)
+            .WithFile("Second/Second.csproj", ProjectContent);
+        var launchOptions = new LspServerLaunchOptions
+        {
+            DaemonMode = true,
+            UseNamedPipe = false,
+            DaemonPipeName = NamedPipeTestUtilities.CreateShortPipeName("autoload-"),
+            DaemonKeepAlive = 0,
+            AutoLoadProjects = commandLineMaximum,
+        };
+
+        Process? daemonProcess = null;
+        try
+        {
+            await using var enabled = await CreateClientAsync(new { autoLoadProjects = 2 });
+            daemonProcess = Process.GetProcessById((await enabled.GetServerProcessAsync()).Id);
+            await AssertProjectsLoadedAsync(enabled, projectCount: 2);
+
+            await using var disabled = await CreateClientAsync(new { autoLoadProjects = 0 });
+            Assert.Equal(daemonProcess.Id, (await disabled.GetServerProcessAsync()).Id);
+            await AssertProjectsLoadedAsync(disabled, projectCount: 0);
+
+            await using var explicitNull = await CreateClientAsync(JsonSerializer.Deserialize<JsonElement>("""{"autoLoadProjects":null}"""));
+            Assert.Equal(daemonProcess.Id, (await explicitNull.GetServerProcessAsync()).Id);
+            await AssertProjectsLoadedAsync(explicitNull, projectCount: commandLineMaximum ?? 0);
+
+            await using var fallback = await CreateClientAsync(initializationOptions: null);
+            Assert.Equal(daemonProcess.Id, (await fallback.GetServerProcessAsync()).Id);
+            await AssertProjectsLoadedAsync(fallback, projectCount: commandLineMaximum ?? 0);
+        }
+        finally
+        {
+            if (daemonProcess is not null)
+            {
+                using (daemonProcess)
+                {
+                    await daemonProcess.WaitForExitAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+                }
+            }
+        }
+
+        Task<TestLspClient> CreateClientAsync(object? initializationOptions)
+            => CreateLanguageServerAsync(
+                workspaceContent, launchOptions with { InitializationOptions = initializationOptions }, CreateWorkDoneProgressClientCapabilities());
+    }
 
     [Fact]
     public async Task LoadsAllProjectsInFolderAndSubdirectories()
@@ -164,7 +219,7 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
     private Task<TestLspClient> CreateAutoLoadLanguageServerAsync(LspWorkspaceContent workspaceContent)
         => CreateLanguageServerAsync(
             workspaceContent,
-            new LspServerLaunchOptions { AutoLoadProjects = true },
+            new LspServerLaunchOptions { AutoLoadProjects = 500 },
             CreateWorkDoneProgressClientCapabilities());
 
     private static VSInternalClientCapabilities CreateWorkDoneProgressClientCapabilities()
@@ -191,18 +246,29 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
 
     private static async Task AssertProjectsLoadedAsync(TestLspClient testLspServer, int projectCount, bool assertInitialProgressReport = false)
     {
-        var unit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(LanguageServerResources.Loading_projects).WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.NotNull(unit.CreateParams.Token.Value);
-
-        if (assertInitialProgressReport)
+        if (projectCount > 0)
         {
-            var initialProgress = await unit.WaitForProgressReportAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
-            Assert.Equal(GetLoadingProjectsMessage(projectCount), initialProgress.Message);
-            Assert.Equal(0, initialProgress.Percentage);
+            var unit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(LanguageServerResources.Loading_projects).WaitAsync(TestHelpers.HangMitigatingTimeout);
+            Assert.NotNull(unit.CreateParams.Token.Value);
+
+            if (assertInitialProgressReport)
+            {
+                var initialProgress = await unit.WaitForProgressReportAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+                Assert.Equal(GetLoadingProjectsMessage(projectCount), initialProgress.Message);
+                Assert.Equal(0, initialProgress.Percentage);
+            }
+
+            var end = await unit.WaitForEndAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+            Assert.Equal(GetLoadedProjectsMessage(projectCount), end.Message);
         }
 
-        var end = await unit.WaitForEndAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.Equal(GetLoadedProjectsMessage(projectCount), end.Message);
+        var projects = await testLspServer.ExecuteRequestAsync<object, string[]>(
+            RestorableProjectsHandler.MethodName, new { }, CancellationToken.None);
+        Assert.NotNull(projects);
+        Assert.Equal(projectCount, projects.Length);
+
+        if (projectCount == 0)
+            Assert.Empty(testLspServer.WorkDoneProgress.GetProgressUnits());
     }
 
     private static string GetLoadingProjectsMessage(int projectCount)
