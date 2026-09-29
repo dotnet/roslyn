@@ -115,7 +115,7 @@ internal class TestHistoryManager
                         // a test that applies to both VB and C#, but the tests in both the C# and VB assembly accidentally use the C# namespace.
                         // It may have a different run time, but ADO does not let us differentiate by assembly name, so we just have to pick one.
                         //
-                        // Keep tracking the count of theory instances so we can apply async lifetime adjustment.
+                        // Accumulate theory instance counts across the duplicate entries.
                         testInfosForRun[testName] = (existing.Duration, existing.TestTheoryInstances + testResult.SubResultsCount);
                         duplicateCount++;
                     }
