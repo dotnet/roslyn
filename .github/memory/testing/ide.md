@@ -35,3 +35,10 @@ public class MyTests
   test source code.
 - Keep tests focused — avoid unnecessary intermediary assertions; use `.Single()`
   rather than asserting a count then indexing.
+- When a test needs a feature waiter, retrieve the concrete
+  `AsynchronousOperationListenerProvider` from the export provider and call
+  `GetWaiter`; do not retrieve the interface and cast the listener.
+- Language Server orchestration tests can pass additional MEF parts to
+  `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
+  `PartNotDiscoverable` project loader can provide deterministic design-time
+  build timing and results without invoking MSBuild.

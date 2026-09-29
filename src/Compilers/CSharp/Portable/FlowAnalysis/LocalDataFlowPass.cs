@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract int AddVariable(VariableIdentifier identifier);
 
-        /// <summary>
+        /// <summary>Get the slot for a variable, if the slot already exists.</summary>
+        /// <remarks>
         /// Locals are given slots when their declarations are encountered.  We only need give slots
         /// to local variables, out parameters, and the "this" variable of a struct constructs.
         /// Other variables are not given slots, and are therefore not tracked by the analysis.  This
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// variables that occur before the variable is declared, as those are reported in an
         /// earlier phase as "use before declaration". That allows us to avoid giving slots to local
         /// variables before processing their declarations.
-        /// </summary>
+        /// </remarks>
         protected int VariableSlot(Symbol symbol, int containingSlot = 0)
         {
             // Skip LocalStoreTracker from data flow analysis.

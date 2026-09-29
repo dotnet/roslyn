@@ -49,11 +49,9 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
     /// </summary>
     public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var result);
-
-        var solution = context.Solution;
         var codeAnalysisService = solution.Services.GetRequiredService<ICodeAnalysisDiagnosticAnalyzerService>();
 
         foreach (var project in WorkspaceDiagnosticSourceHelpers.GetProjectsInPriorityOrder(solution, context.SupportedLanguages))

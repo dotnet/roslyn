@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    return name + ".Item" + (Index + 1).ToString();
+                    return name + ".Item" + (Index + 1).ToString(CultureInfo.InvariantCulture);
                 }
             }
 

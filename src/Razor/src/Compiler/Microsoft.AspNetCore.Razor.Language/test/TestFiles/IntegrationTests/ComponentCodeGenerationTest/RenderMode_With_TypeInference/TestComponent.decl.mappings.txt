@@ -1,0 +1,19 @@
+﻿Source Location: (11:0,11 [11] x:\dir\subdir\Test\TestComponent.cshtml)
+|TRenderMode|
+Generated Location: (474:16,0 [11] )
+|TRenderMode|
+
+Source Location: (23:0,23 [72] x:\dir\subdir\Test\TestComponent.cshtml)
+|where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode|
+Generated Location: (682:24,0 [72] )
+|where TRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode|
+
+Source Location: (241:5,1 [67] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter] public TRenderMode RenderModeParam { get; set;}
+|
+Generated Location: (916:33,0 [67] )
+|
+    [Parameter] public TRenderMode RenderModeParam { get; set;}
+|
+

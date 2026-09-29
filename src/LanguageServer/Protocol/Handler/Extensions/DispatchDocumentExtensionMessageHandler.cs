@@ -26,13 +26,12 @@ internal sealed class DispatchDocumentExtensionMessageHandler()
 
     public async Task<DispatchExtensionMessageResponse> HandleRequestAsync(DispatchDocumentExtensionMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Document);
-
-        var solution = context.Document.Project.Solution;
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var solution = document.Project.Solution;
 
         var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
         var (response, extensionWasUnloaded, exception) = await service.HandleExtensionDocumentMessageAsync(
-            context.Document, request.MessageName, request.Message, cancellationToken).ConfigureAwait(false);
+            document, request.MessageName, request.Message, cancellationToken).ConfigureAwait(false);
 
         // Report any exceptions the extension itself caused while handling the request.
         if (exception is not null)

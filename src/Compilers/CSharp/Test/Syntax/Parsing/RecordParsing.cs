@@ -3711,23 +3711,13 @@ class C(int X, int Y)
         public void RecordStructParsing_PartialReadonly()
         {
             var text = "partial readonly record struct S;";
-            UsingTree(text, options: TestOptions.RegularPreview,
-                // (1,9): error CS1585: Member modifier 'readonly' must precede the member type and name
-                // partial readonly record struct S;
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(1, 9)
-                );
+            UsingTree(text, options: TestOptions.RegularPreview);
 
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
-                }
                 N(SyntaxKind.RecordStructDeclaration);
                 {
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.RecordKeyword);
                     N(SyntaxKind.StructKeyword);
@@ -3737,6 +3727,11 @@ class C(int X, int Y)
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
+            CreateCompilation(text, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                // partial readonly record struct S;
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1));
         }
 
         [Fact, CompilerTrait(CompilerFeature.RecordStructs)]
@@ -3815,13 +3810,10 @@ class C(int X, int Y)
             {
                 N(SyntaxKind.IncompleteMember);
                 {
-                    N(SyntaxKind.RefType);
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "record");
-                        }
+                        N(SyntaxKind.IdentifierToken, "record");
                     }
                 }
                 N(SyntaxKind.StructDeclaration);

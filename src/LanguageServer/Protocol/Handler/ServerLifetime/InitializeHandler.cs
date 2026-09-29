@@ -23,6 +23,9 @@ internal sealed class InitializeHandler() : ILspServiceRequestHandler<Initialize
         var clientCapabilities = request.Capabilities;
         clientCapabilitiesManager.SetInitializeParams(request);
 
+        foreach (var service in context.GetRequiredServices<IOnInitialize>())
+            await service.OnInitializeAsync(request, context, cancellationToken).ConfigureAwait(false);
+
         var lspServices = context.GetRequiredService<ILspServices>();
         var capabilitiesProvider = context.GetRequiredLspService<ICapabilitiesProvider>();
         var serverCapabilities = capabilitiesProvider.GetCapabilities(clientCapabilities, lspServices);

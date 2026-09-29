@@ -49,6 +49,49 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/8354")]
+    public async Task TestLooseFile_DocumentSymbolsBeforeDidOpen(bool mutatingLspWorkspace)
+    {
+        var sourceFile = TempRoot.CreateDirectory().CreateFile("SomeFile.cs");
+        sourceFile.WriteAllText("class A { }");
+        var looseFileUri = CreateAbsoluteDocumentUri(sourceFile.Path);
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            ClientCapabilities = new LSP.ClientCapabilities
+            {
+                TextDocument = new LSP.TextDocumentClientCapabilities
+                {
+                    DocumentSymbol = new LSP.DocumentSymbolSetting
+                    {
+                        HierarchicalDocumentSymbolSupport = true,
+                    },
+                },
+            },
+        });
+
+        var symbols = await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, LSP.DocumentSymbol[]>(
+            LSP.Methods.TextDocumentDocumentSymbolName,
+            new LSP.DocumentSymbolParams { TextDocument = CreateTextDocumentIdentifier(looseFileUri) },
+            CancellationToken.None);
+
+        Assert.NotNull(symbols);
+        Assert.Equal("A", Assert.Single(symbols).Name);
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        sourceFile.WriteAllText("class B { }");
+        symbols = await testLspServer.ExecuteRequestAsync<LSP.DocumentSymbolParams, LSP.DocumentSymbol[]>(
+            LSP.Methods.TextDocumentDocumentSymbolName,
+            new LSP.DocumentSymbolParams { TextDocument = CreateTextDocumentIdentifier(looseFileUri) },
+            CancellationToken.None);
+
+        Assert.NotNull(symbols);
+        Assert.Equal("B", Assert.Single(symbols).Name);
+        Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+    }
+
+    [Theory, CombinatorialData]
     public async Task TestLooseFile_Changed(bool mutatingLspWorkspace)
     {
         // Create a server that supports LSP misc files and verify no misc files present.
@@ -422,4 +465,3 @@ public sealed partial class LspMiscellaneousFilesWorkspaceProviderTests : Abstra
         Assert.Contains(canonicalDocumentTwo.Project.Documents, d => d.Name == "Canonical.AssemblyInfo.cs");
     }
 }
-

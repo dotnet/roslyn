@@ -32,8 +32,8 @@ internal sealed class RegisterSolutionSnapshotHandler : ILspServiceRequestHandle
 
     public async Task<LspSolutionSnapshotId> HandleRequestAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
-        var id = _registry.RegisterSolutionSnapshot(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
+        var id = _registry.RegisterSolutionSnapshot(solution);
         return new LspSolutionSnapshotId(id.Id);
     }
 }

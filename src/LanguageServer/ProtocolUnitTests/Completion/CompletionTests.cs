@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -48,6 +49,43 @@ public sealed class CompletionTests : AbstractLanguageServerProtocolTests
 
     public CompletionTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
+    }
+
+    [Fact]
+    public async Task TestGetCompletionsWithStaleLinkedDocumentAsync()
+    {
+        var filePath = TestHelpers.CreateAbsolutePath("C.cs");
+        var workspaceXml = $$"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                    <Document FilePath="{{filePath}}">Con{|caret:|}</Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2">
+                    <Document IsLinkFile="true" LinkFilePath="{{filePath}}" LinkAssemblyName="CSProj1"></Document>
+                </Project>
+            </Workspace>
+            """;
+
+        await using var testLspServer = await CreateXmlTestLspServerAsync(
+            workspaceXml,
+            mutatingLspWorkspace: false,
+            initializationOptions: new() { ClientCapabilities = s_vsCompletionCapabilities });
+
+        var workspaceDocuments = testLspServer.TestWorkspace.CurrentSolution.Projects.SelectMany(static p => p.Documents).ToArray();
+        Assert.Equal(2, workspaceDocuments.Length);
+        await testLspServer.TestWorkspace.ChangeDocumentAsync(workspaceDocuments[1].Id, SourceText.From(""));
+
+        var caretLocation = testLspServer.GetLocations("caret").Single();
+        await testLspServer.OpenDocumentAsync(caretLocation.DocumentUri, "Con");
+
+        var completionParams = CreateCompletionParams(
+            caretLocation,
+            invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+            triggerCharacter: "\0",
+            triggerKind: LSP.CompletionTriggerKind.Invoked);
+
+        var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
+        Assert.Contains(results.Items, static item => item.Label == "class");
     }
 
     [Theory, CombinatorialData]

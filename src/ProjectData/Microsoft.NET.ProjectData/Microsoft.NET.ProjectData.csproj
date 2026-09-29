@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Library is consumed by the server (and source-linked into Tasks); not packaged on its own. -->
+    <IsPackable>false</IsPackable>
+    <IsTrimmable>true</IsTrimmable>
+    <!-- Keep additions and removals from the shared public contract intentional in all configurations. -->
+    <WarningsAsErrors>$(WarningsAsErrors);RS0016;RS0017</WarningsAsErrors>
+    <!-- Preserve mirrored overload, parameter-ordering, and unused-public-parameter shapes without inline suppressions that would diverge shared sources. -->
+    <NoWarn>$(NoWarn);RS0026;RS0027;CA1068;IDE0060</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.NET.ProjectData.Generators\Microsoft.NET.ProjectData.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" />
+
+    <!-- The generator depends on System.Text.Json, so pass its runtime dependency closure as /analyzer inputs to the compiler. This is needed for
+         us to build under net472 compilers which we do in our test-rebuild validation in CI. -->
+    <PackageReference Include="System.IO.Pipelines" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" GeneratePathProperty="true" ExcludeAssets="all" PrivateAssets="all" />
+    <Analyzer Include="$(PkgSystem_IO_Pipelines)\lib\netstandard2.0\System.IO.Pipelines.dll" />
+    <Analyzer Include="$(PkgSystem_Text_Json)\lib\netstandard2.0\System.Text.Json.dll" />
+
+    <AdditionalFiles Include="..\Microsoft.NET.ProjectData.Generators\project-data-schema.json" />
+    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.UnitTests" Key="$(VsPublicKey)" />
+    <InternalsVisibleTo Include="CSDevKit.Tests" Key="$(VsPublicKey)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PublicAPI Include="PublicAPI.Shipped.txt" />
+    <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+
+</Project>

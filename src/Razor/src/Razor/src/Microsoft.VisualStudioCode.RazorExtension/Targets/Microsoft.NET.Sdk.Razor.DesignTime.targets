@@ -86,6 +86,35 @@ Copyright (c) .NET Foundation. All rights reserved.
     </PropertyPageSchema>
   </ItemGroup>
 
+  <!--
+    Microsoft.Managed.Core.targets discovers analyzer config files from Compile items. Razor files
+    can live in directories without Compile items, so include their directories in design-time
+    discovery as well. Default Razor items are resolved from Content during target execution, so
+    include both Content and any Razor items that were added explicitly during evaluation.
+
+    Microsoft.Managed.DesignTime.targets copies PotentialEditorConfigFiles into
+    AdditionalDesignTimeBuildInput before this file is imported, so add the Razor candidates to both.
+  -->
+  <ItemGroup Condition="'$(DesignTimeBuild)' == 'true' and '$(DiscoverEditorConfigFiles)' != 'false'">
+    <_RazorAnalyzerConfigInputs Include="@(Content->WithMetadataValue('Extension', '.razor'));@(Content->WithMetadataValue('Extension', '.cshtml'))" />
+    <_RazorAnalyzerConfigInputs Include="@(RazorGenerate);@(RazorComponent)" />
+    <_RazorAllDirectoriesAbove Include="@(_RazorAnalyzerConfigInputs->GetPathsOfAllDirectoriesAbove())" />
+    <_RazorPotentialEditorConfigFiles Include="@(_RazorAllDirectoriesAbove->'%(FullPath)'->Distinct()->Combine('.editorconfig'))" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(DesignTimeBuild)' == 'true' and '$(DiscoverEditorConfigFiles)' != 'false'">
+    <PotentialEditorConfigFiles
+      Include="@(_RazorPotentialEditorConfigFiles)"
+      Exclude="@(PotentialEditorConfigFiles)" />
+    <AdditionalDesignTimeBuildInput
+      Include="@(_RazorPotentialEditorConfigFiles)"
+      Exclude="@(AdditionalDesignTimeBuildInput)"
+      ContentSensitive="false" />
+    <EditorConfigFiles
+      Include="@(PotentialEditorConfigFiles->Exists())"
+      Exclude="@(EditorConfigFiles)" />
+  </ItemGroup>
+
   <Target
     Name="RazorGenerateDesignTime"
     DependsOnTargets="ResolveRazorGenerateInputs;AssignRazorGenerateTargetPaths"

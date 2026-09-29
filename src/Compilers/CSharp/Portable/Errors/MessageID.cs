@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-                case MessageID.IDS_FeatureUnsafeEvolution: // https://github.com/dotnet/roslyn/issues/82546: keep this in preview until C# 16
+                case MessageID.IDS_FeatureUnsafeEvolution:
                     return LanguageVersion.Preview;
 
                 // C# 15.0 features.
