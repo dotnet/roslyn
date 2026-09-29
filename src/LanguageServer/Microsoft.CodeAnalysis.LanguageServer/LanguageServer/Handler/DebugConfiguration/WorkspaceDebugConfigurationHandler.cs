@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(WorkspaceDebugConfigurationHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(WorkspaceDebugConfigurationHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

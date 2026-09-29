@@ -11,7 +11,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(WorkDoneProgressCancelledHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(WorkDoneProgressCancelledHandler)), Shared]
 [Method(Methods.WindowWorkDoneProgressCancelName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

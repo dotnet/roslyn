@@ -11,7 +11,7 @@ using Roslyn.LanguageServer.Protocol;
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Copilot;
 
 [Method(MethodName)]
-[ExportCSharpVisualBasicStatelessLspService(typeof(CopilotCompletionResolveContextHandler), WellKnownLspServerKinds.Any), Shared]
+[ExportCSharpVisualBasicLspService(typeof(CopilotCompletionResolveContextHandler), WellKnownLspServerKinds.Any), Shared]
 [method: ImportingConstructor]
 [method: Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
 internal sealed class CopilotCompletionResolveContextHandler(ICSharpCopilotContextProviderService contextProviderService)

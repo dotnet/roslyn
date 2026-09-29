@@ -534,7 +534,7 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     {
 
         // Create a server that supports LSP misc files.
-        var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
+        var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProvider));
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer }, composition: composition);
 
         // Open an empty loose file.

@@ -16,7 +16,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(CodeLensResolveHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(CodeLensResolveHandler)), Shared]
 [Method(LSP.Methods.CodeLensResolveName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

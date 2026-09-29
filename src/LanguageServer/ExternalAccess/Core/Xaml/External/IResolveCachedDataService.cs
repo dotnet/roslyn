@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 /// Represents a service to convert between a large data object + document identifier and request resolve data.
 /// </summary>
 /// <remarks>
-/// The data is held in a short-term cache and the service is provided to implementers of <see cref="XamlRequestHandlerFactoryBase{TRequest, TResponse}" />
+/// The data is held in a short-term cache of the LSP server.  Services shared in <see cref="XamlLspServiceComposition.SharingBoundary"/> can
+/// import the <see cref="IResolveCachedDataService"/> of their LSP server.
 /// </remarks>
 internal interface IResolveCachedDataService
 {

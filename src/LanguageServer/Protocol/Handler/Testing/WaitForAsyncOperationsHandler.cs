@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.TestHooks;
 ///
 /// This should generally only be used as a last resort when it is impossible for the client to wait specifically for a result it asked for.
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(WaitForAsyncOperationsHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(WaitForAsyncOperationsHandler)), Shared]
 [Method(MethodName)]
 internal class WaitForAsyncOperationsHandler : ILspServiceRequestHandler<WaitForAsyncOperationsParams, WaitForAsyncOperationsResponse>
 {

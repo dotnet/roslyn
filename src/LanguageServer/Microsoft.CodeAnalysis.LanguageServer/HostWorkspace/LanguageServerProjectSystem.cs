@@ -21,28 +21,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-/// <summary>
-/// LSP service factory that constructs the per-LSP-server <see cref="LanguageServerProjectSystem"/>.
-/// </summary>
-[ExportCSharpVisualBasicLspServiceFactory(typeof(LanguageServerProjectSystem)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class LanguageServerProjectSystemServiceFactory(
-    IGlobalOptionService globalOptionService,
-    IAsynchronousOperationListenerProvider listenerProvider,
-    ServerConfigurationFactory serverConfigurationFactory) : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new LanguageServerProjectSystem(
-            lspServices,
-            globalOptionService,
-            lspServices.GetRequiredService<ILoggerFactory>(),
-            listenerProvider,
-            serverConfigurationFactory,
-            lspServices.GetRequiredService<IBinLogPathProvider>(),
-            lspServices.GetRequiredService<DotnetCliHelper>());
-}
-
+[ExportCSharpVisualBasicLspService(typeof(LanguageServerProjectSystem)), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader, ILspService
 {
     private readonly ILogger _logger;
@@ -50,26 +29,28 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
     private readonly ProjectSystemProjectFactory _hostProjectFactory;
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
 
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public LanguageServerProjectSystem(
-        ILspServices lspServices,
+        LspService<LspServices> lspServices,
         IGlobalOptionService globalOptionService,
-        ILoggerFactory loggerFactory,
+        LspService<ILoggerFactory> loggerFactory,
         IAsynchronousOperationListenerProvider listenerProvider,
         ServerConfigurationFactory serverConfigurationFactory,
-        IBinLogPathProvider binLogPathProvider,
-        DotnetCliHelper dotnetCliHelper)
+        LspService<IBinLogPathProvider> binLogPathProvider,
+        LspService<DotnetCliHelper> dotnetCliHelper)
             : base(
-                lspServices,
+                lspServices.Value,
                 globalOptionService,
-                loggerFactory,
+                loggerFactory.Value,
                 listenerProvider,
                 serverConfigurationFactory,
-                binLogPathProvider,
-                dotnetCliHelper)
+                binLogPathProvider.Value,
+                dotnetCliHelper.Value)
     {
-        _logger = loggerFactory.CreateLogger(nameof(LanguageServerProjectSystem));
-        _hostProjectFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>().HostProjectFactory;
-        _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        _logger = loggerFactory.Value.CreateLogger(nameof(LanguageServerProjectSystem));
+        _hostProjectFactory = _workspaceFactory.HostProjectFactory;
+        _clientLanguageServerManager = lspServices.Value.GetRequiredService<IClientLanguageServerManager>();
         var workspace = _hostProjectFactory.Workspace;
         _projectFileExtensionRegistry = new ProjectFileExtensionRegistry(new DiagnosticReporter(workspace), workspace.Services.GetService<IFileBasedProgramService>());
     }

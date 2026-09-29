@@ -12,17 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(OpenProjectHandler)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class OpenProjectHandlerFactory() : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new OpenProjectHandler(
-            lspServices.GetRequiredService<LanguageServerProjectSystem>(),
-            lspServices.GetRequiredService<WorkDoneProgressManager>());
-}
-
+[ExportCSharpVisualBasicLspService(typeof(OpenProjectHandler)), Shared(LspServiceComposition.SharingBoundary)]
 [Method(OpenProjectName)]
 internal sealed class OpenProjectHandler : ILspService, ILspServiceNotificationHandler<OpenProjectHandler.NotificationParams>
 {
@@ -31,10 +21,16 @@ internal sealed class OpenProjectHandler : ILspService, ILspServiceNotificationH
     private readonly LanguageServerProjectSystem _projectSystem;
     private readonly WorkDoneProgressManager _workDoneProgressManager;
 
-    public OpenProjectHandler(LanguageServerProjectSystem projectSystem, WorkDoneProgressManager workDoneProgressManager)
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public OpenProjectHandler(
+        LspService<LanguageServerProjectSystem> projectSystem,
+        LspService<WorkDoneProgressManager> workDoneProgressManager)
     {
-        _projectSystem = projectSystem;
-        _workDoneProgressManager = workDoneProgressManager;
+        var projectSystemValue = projectSystem.Value;
+        var workDoneProgressManagerValue = workDoneProgressManager.Value;
+        _projectSystem = projectSystemValue;
+        _workDoneProgressManager = workDoneProgressManagerValue;
     }
 
     public bool MutatesSolutionState => false;

@@ -15,53 +15,45 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(ILspMiscellaneousFilesWorkspaceProvider), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared]
+[ExportCSharpVisualBasicLspService(typeof(ILspMiscellaneousFilesWorkspaceProvider), WellKnownLspServerKinds.CSharpVisualBasicLspServer), Shared(LspServiceComposition.SharingBoundary)]
 [PartNotDiscoverable]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class TestLspMiscellaneousFilesWorkspaceProviderFactory() : ILspServiceFactory
+internal sealed class TestLspMiscellaneousFilesWorkspaceProvider(LspService<HostServices> hostServices)
+    : Workspace(hostServices.Value, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
 {
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+    public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)
     {
-        var hostServices = lspServices.GetRequiredService<HostServices>();
-        return new TestLspMiscellaneousFilesWorkspaceProvider(hostServices);
+        if (trackedDocumentInfo is null)
+            return new(result: null);
+
+        var documentFilePath = documentUri.GetDocumentFilePathFromUri();
+        var sourceTextLoader = new SourceTextLoader(trackedDocumentInfo.Value.SourceText, documentFilePath);
+        var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
+            this, documentFilePath, sourceTextLoader, new LanguageInformation(LanguageNames.CSharp, "csx"), trackedDocumentInfo.Value.SourceText.ChecksumAlgorithm, Services.SolutionServices, [], false);
+        OnProjectAdded(projectInfo);
+
+        var id = projectInfo.Documents.Single().Id;
+        return new(CurrentSolution.GetRequiredDocument(id));
     }
 
-    private class TestLspMiscellaneousFilesWorkspaceProvider(HostServices host) : Workspace(host, WorkspaceKind.MiscellaneousFiles), ILspMiscellaneousFilesWorkspaceProvider
+    public async ValueTask CloseDocumentAsync(DocumentUri uri)
     {
-        public ValueTask<TextDocument?> AddDocumentAsync(DocumentUri documentUri, TrackedDocumentInfo? trackedDocumentInfo)
+        await TryRemoveMiscellaneousDocumentAsync(uri);
+    }
+
+    public ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
+    {
+        // We'll only ever have a single document matching this URI in the misc solution.
+        var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
+        if (matchingDocument != null)
         {
-            if (trackedDocumentInfo is null)
-                return new(result: null);
+            var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
+            OnProjectRemoved(project.Id);
 
-            var documentFilePath = documentUri.GetDocumentFilePathFromUri();
-            var sourceTextLoader = new SourceTextLoader(trackedDocumentInfo.Value.SourceText, documentFilePath);
-            var projectInfo = MiscellaneousFileUtilities.CreateMiscellaneousProjectInfoForDocument(
-                this, documentFilePath, sourceTextLoader, new LanguageInformation(LanguageNames.CSharp, "csx"), trackedDocumentInfo.Value.SourceText.ChecksumAlgorithm, Services.SolutionServices, [], false);
-            OnProjectAdded(projectInfo);
-
-            var id = projectInfo.Documents.Single().Id;
-            return new(CurrentSolution.GetRequiredDocument(id));
+            return new(true);
         }
 
-        public async ValueTask CloseDocumentAsync(DocumentUri uri)
-        {
-            await TryRemoveMiscellaneousDocumentAsync(uri);
-        }
-
-        public ValueTask<bool> TryRemoveMiscellaneousDocumentAsync(DocumentUri uri)
-        {
-            // We'll only ever have a single document matching this URI in the misc solution.
-            var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
-            if (matchingDocument != null)
-            {
-                var project = CurrentSolution.GetRequiredProject(matchingDocument.ProjectId);
-                OnProjectRemoved(project.Id);
-
-                return new(true);
-            }
-
-            return new(false);
-        }
+        return new(false);
     }
 }

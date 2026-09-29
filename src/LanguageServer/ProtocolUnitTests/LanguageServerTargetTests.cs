@@ -26,9 +26,9 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
     }
 
     protected override TestComposition Composition => base.Composition.AddParts(
-        typeof(StatefulLspServiceFactory),
-        typeof(AsyncDisposableLspServiceFactory),
-        typeof(DualDisposableLspServiceFactory),
+        typeof(StatefulLspService),
+        typeof(AsyncDisposableLspService),
+        typeof(DualDisposableLspService),
         typeof(StatelessLspService));
 
     [Theory, CombinatorialData]
@@ -151,11 +151,13 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
         await server.ShutdownTestServerAsync();
         await server.ExitTestServerAsync();
 
-        // Only the stateful services should be disposed of on server shutdown.
+        // Only the per-server services should be disposed of on server shutdown.  A service that is both
+        // IAsyncDisposableLspService and IDisposable gets both calls, asynchronous disposal first.
         Assert.True(statefulService.IsDisposed);
         Assert.True(asyncDisposableService.IsDisposed);
-        Assert.False(dualDisposableService.IsDisposed);
+        Assert.True(dualDisposableService.IsDisposed);
         Assert.True(dualDisposableService.IsDisposedAsync);
+        Assert.True(dualDisposableService.WasDisposedAsyncFirst);
         Assert.False(statelessService.IsDisposed);
     }
 
@@ -165,19 +167,10 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
         Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
     }
 
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(StatefulLspService)), Shared]
-    internal sealed class StatefulLspServiceFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public StatefulLspServiceFactory()
-        {
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new StatefulLspService();
-    }
-
-    internal sealed class StatefulLspService : ILspService, IDisposable
+    [ExportCSharpVisualBasicLspService(typeof(StatefulLspService)), Shared(LspServiceComposition.SharingBoundary)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class StatefulLspService() : ILspService, IDisposable
     {
         public bool IsDisposed { get; private set; } = false;
         public void Dispose()
@@ -186,19 +179,10 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
         }
     }
 
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(AsyncDisposableLspService)), Shared]
-    internal sealed class AsyncDisposableLspServiceFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AsyncDisposableLspServiceFactory()
-        {
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new AsyncDisposableLspService();
-    }
-
-    internal sealed class AsyncDisposableLspService : ILspService, IAsyncDisposable
+    [ExportCSharpVisualBasicLspService(typeof(AsyncDisposableLspService)), Shared(LspServiceComposition.SharingBoundary)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class AsyncDisposableLspService() : IAsyncDisposableLspService
     {
         public bool IsDisposed { get; private set; }
 
@@ -208,25 +192,20 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
         }
     }
 
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(DualDisposableLspService)), Shared]
-    internal sealed class DualDisposableLspServiceFactory : ILspServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DualDisposableLspServiceFactory()
-        {
-        }
-
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind) => new DualDisposableLspService();
-    }
-
-    internal sealed class DualDisposableLspService : ILspService, IDisposable, IAsyncDisposable
+    [ExportCSharpVisualBasicLspService(typeof(DualDisposableLspService)), Shared(LspServiceComposition.SharingBoundary)]
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class DualDisposableLspService() : IAsyncDisposableLspService, IDisposable
     {
         public bool IsDisposed { get; private set; }
         public bool IsDisposedAsync { get; private set; }
+        public bool WasDisposedAsyncFirst { get; private set; }
 
         public void Dispose()
-            => IsDisposed = true;
+        {
+            WasDisposedAsyncFirst = IsDisposedAsync;
+            IsDisposed = true;
+        }
 
         public ValueTask DisposeAsync()
         {
@@ -235,7 +214,7 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
         }
     }
 
-    [ExportCSharpVisualBasicStatelessLspService(typeof(StatelessLspService)), Shared]
+    [ExportCSharpVisualBasicLspService(typeof(StatelessLspService)), Shared]
     internal sealed class StatelessLspService : ILspService, IDisposable
     {
         [ImportingConstructor]

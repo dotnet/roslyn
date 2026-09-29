@@ -11,36 +11,21 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
+[ExportCSharpVisualBasicLspService(typeof(DiagnosticsRefreshQueue)), Shared(LspServiceComposition.SharingBoundary)]
 internal sealed class DiagnosticsRefreshQueue : AbstractRefreshQueue
 {
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(DiagnosticsRefreshQueue)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class Factory(
-        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-        IDiagnosticsRefresher refresher,
-        FeatureProviderRefresher providerRefresher) : ILspServiceFactory
-    {
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        {
-            var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
-            var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-            var lspWorkspaceRegistrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
-
-            return new DiagnosticsRefreshQueue(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher, refresher);
-        }
-    }
-
     private readonly IDiagnosticsRefresher _refresher;
 
-    private DiagnosticsRefreshQueue(
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public DiagnosticsRefreshQueue(
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
-        LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
-        LspWorkspaceManager lspWorkspaceManager,
-        IClientLanguageServerManager notificationManager,
         FeatureProviderRefresher providerRefresher,
-        IDiagnosticsRefresher refresher)
-        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, providerRefresher)
+        IDiagnosticsRefresher refresher,
+        LspService<IClientLanguageServerManager> notificationManager,
+        LspService<LspWorkspaceRegistrationService> lspWorkspaceRegistrationService,
+        LspService<LspWorkspaceManager> lspWorkspaceManager)
+        : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService.Value, lspWorkspaceManager.Value, notificationManager.Value, providerRefresher)
     {
         _refresher = refresher;
 

@@ -14,7 +14,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(DataTipRangeHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(DataTipRangeHandler)), Shared]
 [Method(VSInternalMethods.TextDocumentDataTipRangeName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -25,7 +25,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
+internal abstract partial class LanguageServerProjectLoader : IAsyncDisposableLspService
 {
     private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
 
