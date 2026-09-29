@@ -6,8 +6,8 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Runtime;
 using System.Runtime.InteropServices;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Telemetry;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 
@@ -52,7 +52,10 @@ internal sealed class ProcessMemoryTelemetry : IDisposable
         _telemetry = telemetry;
         _getActiveClients = getActiveClients;
 
-        _ = SampleLoopAsync(sampleInterval, _cancellationSource.Token);
+        _ = PeriodicTelemetryLoop.RunAsync(
+            sampleInterval,
+            () => RecordSample(ProcessMemorySnapshot.Capture(), _getActiveClients()),
+            _cancellationSource.Token);
     }
 
     public static string GCMode => GCSettings.IsServerGC ? "Server" : "Workstation";
@@ -78,30 +81,6 @@ internal sealed class ProcessMemoryTelemetry : IDisposable
         var peakWorkingSetBytes = Math.Max(Interlocked.Read(ref _sampledPeakWorkingSetBytes), snapshot.PeakWorkingSetBytes);
 
         return (peakPrivateBytes is { } bytes ? ToMegabytes(bytes) : null, ToMegabytes(peakWorkingSetBytes));
-    }
-
-    private async Task SampleLoopAsync(TimeSpan sampleInterval, CancellationToken cancellationToken)
-    {
-        while (true)
-        {
-            try
-            {
-                await Task.Delay(sampleInterval, cancellationToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-
-            try
-            {
-                RecordSample(ProcessMemorySnapshot.Capture(), _getActiveClients());
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                // Keep sampling: one failed sample must not stop every later one.
-            }
-        }
     }
 
     internal void RecordSample(ProcessMemorySnapshot snapshot, int activeClients)

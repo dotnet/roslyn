@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.VisualStudio.Telemetry;
@@ -86,31 +84,11 @@ internal sealed class VSMetricSink : IMetricSink, IDisposable
     {
         _poster = poster;
 
-        _ = PostCollectedTelemetryAsync();
+        _ = PeriodicTelemetryLoop.RunAsync(TimeSpan.FromMinutes(30), Flush, _flushLoopCancellation.Token);
     }
 
     public void Dispose()
         => _flushLoopCancellation.Cancel();
-
-    private async Task PostCollectedTelemetryAsync()
-    {
-        while (!_flushLoopCancellation.IsCancellationRequested)
-        {
-            try
-            {
-                await Task.Delay(TimeSpan.FromMinutes(30), _flushLoopCancellation.Token).ConfigureAwait(false);
-                Flush();
-            }
-            catch (OperationCanceledException)
-            {
-                return;
-            }
-            catch (Exception e) when (FatalError.ReportAndCatch(e))
-            {
-                // Keep looping: one failed post must not stop every later flush for this session.
-            }
-        }
-    }
 
     internal static class TestAccessor
     {
