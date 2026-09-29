@@ -39,6 +39,8 @@ Anything that rewrites `@(IntermediateAssembly)` after `CoreCompile` breaks vali
 affected project, because BuildValidator compares its rebuild against the file in `artifacts/obj`.
 A single changed header byte is enough. Post-process the copies in `artifacts/bin` instead, and
 restore the original last write time so incremental copies keep skipping the patched files.
+CI builds pass `ROSLYNUSEHARDLINKS=true`, so bin copies are hard links to `artifacts/obj` files:
+delete and recreate the bin file before writing, or the edit also changes the intermediate assembly.
 
 `eng/targets/XUnit.targets` does this for xunit.v3 test executables:
 `SetTestAssemblyStackReserve` raises the PE `SizeOfStackReserve` to 4 MB on .NET Framework bin
