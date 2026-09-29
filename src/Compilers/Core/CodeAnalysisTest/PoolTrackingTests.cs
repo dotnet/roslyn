@@ -81,6 +81,38 @@ public class PoolTrackingTests
     }
 
     [Fact]
+    public async Task StopTrackingAllocations_IgnoresLaterAllocationsButSeesFrees()
+    {
+        PoolTracker.StartTracking(out var context);
+        var earlyBuilder = ArrayBuilder<int>.GetInstance();
+        using var allowAllocate = new SemaphoreSlim(0, 1);
+        using var allocated = new SemaphoreSlim(0, 1);
+        using var allowFree = new SemaphoreSlim(0, 1);
+        var task = Task.Run(() =>
+        {
+            allowAllocate.Wait();
+            var lateBuilder = ArrayBuilder<int>.GetInstance();
+            allocated.Release();
+            allowFree.Wait();
+            lateBuilder.Free();
+        });
+
+        context.StopTrackingAllocations();
+        allowAllocate.Release();
+        allocated.Wait();
+
+        // Frees are still recorded after stopping, and the allocation made after stopping is not tracked.
+        Assert.True(context.HasLeaks);
+        earlyBuilder.Free();
+        Assert.False(context.HasLeaks);
+
+        allowFree.Release();
+        await task;
+        PoolTracker.StopTracking();
+        Assert.False(context.HasLeaks);
+    }
+
+    [Fact]
     public void TrackingFlowsIntoParallelFor()
     {
         PoolTracker.StartTracking(out var context);

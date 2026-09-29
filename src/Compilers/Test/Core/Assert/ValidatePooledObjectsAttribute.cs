@@ -93,6 +93,9 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
         var context = _context;
         _context = null;
 
+        // The test has completed, so any allocations from here on come from background work that outlived it.
+        context?.StopTrackingAllocations();
+
         if (LeakReason is null && !s_suppressClassLevelValidation.Value && WaitForOutstandingObjectsToBeFreed)
         {
             context?.WaitForOutstandingObjectsToBeFreed(s_asyncCleanupTimeout);
