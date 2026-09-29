@@ -663,6 +663,7 @@ internal static partial class ISymbolExtensions
         var editorBrowsableInfo = new EditorBrowsableInfo(compilation);
 
         // Methods hidden by a non-browsable method must not show up in its place.
+        // See https://github.com/dotnet/roslyn/issues/4434#issuecomment-546428317
         foreach (var symbol in symbols)
         {
             if (symbol is IMethodSymbol hidingMethod &&
