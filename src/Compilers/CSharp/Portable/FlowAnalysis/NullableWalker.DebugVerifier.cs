@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (element is BoundCollectionExpressionSpreadElement spread)
                     {
+                        Debug.Assert(!hasKnownLength || spread.LengthOrCount is { });
                         VisitCollectionExpressionSpreadElement(spread, hasKnownLength);
                         if (spread.EnumeratorInfoOpt != null)
                         {
@@ -152,11 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
             {
-                return VisitCollectionExpressionSpreadElement(node, hasKnownLength: false);
-            }
-
-            private BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, bool hasKnownLength)
-            {
                 Visit(node.Expression);
 
                 if (node.Conversion is BoundConversion conversion)
@@ -164,7 +160,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Visit(conversion);
                 }
 
-                Debug.Assert(!hasKnownLength || node.LengthOrCount is { });
+                return null;
+            }
+
+            private BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, bool hasKnownLength)
+            {
+                VisitCollectionExpressionSpreadElement(node);
+
                 if (hasKnownLength && node.LengthOrCount is { } lengthOrCount)
                 {
                     Visit(lengthOrCount);
