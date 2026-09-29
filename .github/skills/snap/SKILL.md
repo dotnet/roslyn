@@ -143,11 +143,14 @@ Then propose the after-snap flow matrix from the actual servicing requirements:
 
 For every affected branch, including any new or retiring SDK servicing branch:
 - Record its incoming Arcade subscription's ID, channel, enabled state, update frequency, batchability, excluded assets, and merge policies. Verify it is a dependency subscription (`Source-enabled: False`), not VMR source flow.
+- For **both named-branch merges** (`main` -> `release/insiders` and `release/insiders` -> `release/stable`), compare the target's current Arcade pins and subscription with those of the exact source tree being snapped. Read `global.json` and the repository's dependency manifests (`eng/Version.Details.props` / `eng/Version.Details.xml` in Roslyn). Record the before/after pins and proposed engineering channel.
+- A take-source merge replaces the target's tooling but does **not** update its incoming subscription. If the old target channel no longer matches the incoming tooling, propose retargeting its existing subscription to the source branch's compatible engineering channel. Preserve the target's update frequency, filters, and merge policies unless a separate change is approved. Do not assume retaining SDK destinations means retaining Arcade channels.
+- Resolve what `.NET Eng - Latest` currently supplies; it can advance across majors independently of the product's SDK version. Do not choose `.NET 11 Eng` merely because a branch ships into SDK 11 if the snapped tree already uses Arcade 12. If channel/pin compatibility is unclear or a deliberate fixed-channel policy differs from the source, stop for confirmation.
 - For a new servicing branch, use the preserved branch's compatible Arcade subscription as the template. Record the template ID and intended engineering channel in the plan. For example, a branch preserving content that consumes `.NET 10 Eng` should normally keep that channel, not use `.NET 10.0.4xx SDK` or automatically switch to `.NET Eng - Latest`.
 - If the template is missing, disabled, or no longer appropriate for the preserved content, stop and confirm the intended Arcade flow with the user rather than guessing.
 - Preserve Arcade subscriptions for branches that remain supported. Retiring an SDK destination alone does not authorize deleting that branch's incoming tooling updates.
 
-Present both SDK-flow matrices and the planned Arcade subscriptions for confirmation. Do not make subscription or default-channel changes yet.
+Present both SDK-flow matrices and the before/after Arcade channel plan for confirmation, including any retargeting on existing named branches. Do not make subscription or default-channel changes yet.
 
 #### 1.4 Read Visual Studio schedules and draft the pre-snap announcement
 
@@ -287,6 +290,7 @@ After gathering, present **all** planned actions in a numbered list for the user
    - Preserve every confirmed SDK destination that remains supported; adding an SDK destination does not implicitly remove another.
    - Add the snapped content's required SDK source channel and subscription/backflow changes to `release/insiders`.
    - Transfer the old stable SDK flow to the new `release/<sdk-band>` servicing branch when one is being created.
+   - Retarget existing incoming Arcade subscriptions for insiders/stable when their source trees require a different engineering channel, using the approved comparison from step 1.3. Preserve other subscription settings; unchanged SDK flows do not imply unchanged Arcade channels.
    - Provision the new servicing branch's incoming Arcade dependency subscription using the confirmed template and engineering channel from step 1.3, preserving its update frequency, asset filters, and merge policies.
    - Remove the previous servicing branch's default channel and VMR subscriptions when that flow is being retired. Remove its Arcade subscription only if the branch itself no longer needs servicing and that removal is explicitly approved.
    - Add a future SDK channel only when it exists and the user confirms the new flow.
@@ -614,7 +618,15 @@ darc update-subscription --id {subscriptionId} --channel "{newChannel}" --config
 
 > **Note**: `-q` is critical — without it, `darc add-subscription` opens an interactive YAML editor even when all flags are provided. The `--subscription` clone approach is preferred because backflow subscriptions have complex excluded-assets lists that are tedious to specify manually.
 
-**Arcade dependency subscriptions**: Apply the separately approved Arcade plan from step 1.3 on the **same configuration branch**. For each new servicing branch, first check for an existing subscription:
+**Arcade dependency subscriptions**: Apply the separately approved Arcade plan from step 1.3 on the **same configuration branch**, covering existing named branches as well as new servicing branches.
+
+For each receiving named branch, recheck its source tree's Arcade pins and current subscription. If the approved plan requires a channel change, update the existing subscription in place rather than cloning a competing one:
+```
+darc update-subscription --id {arcadeSubscriptionId} --channel "{approvedArcadeChannel}" --configuration-branch {cfgBranch} --no-pr --ci
+```
+Verify the diff changes only the approved channel/settings. If the existing subscription is missing or disabled, stop for confirmation rather than silently skipping it or enabling it.
+
+For each new servicing branch, first check for an existing subscription:
 ```
 darc get-subscriptions --exact --source-repo https://github.com/dotnet/arcade --target-repo https://github.com/{owner}/{repo} --target-branch release/{sdkBand}
 ```
@@ -678,7 +690,7 @@ if ($pr.isDraft -or $null -eq $pr.autoCompleteSetBy) {
 Write-Output "PR: https://dev.azure.com/dnceng/internal/_git/maestro-configuration/pullrequest/$prId"
 ```
 
-After the Maestro configuration PR merges, re-query default channels, VMR subscriptions, and incoming Arcade subscriptions using the commands in step 1.3. Verify every new servicing branch has its approved enabled Arcade dependency subscription as well as its publishing and VMR configuration. If the live configuration has not caught up or an expected subscription is missing, report the configuration checkpoint as pending; do not declare it complete based only on the PR merge.
+After the Maestro configuration PR merges, re-query default channels, VMR subscriptions, and incoming Arcade subscriptions using the commands in step 1.3. For both receiving named branches, verify that the live Arcade channel agrees with the approved after-snap plan and the inherited tooling pins; comparing subscriptions only against their pre-snap settings is insufficient. Verify every new servicing branch has its approved enabled Arcade dependency subscription as well as its publishing and VMR configuration. If the live configuration has not caught up, an expected subscription is missing, or an old channel is incompatible with the snapped content, report the configuration checkpoint as pending; do not declare it complete based only on the PR merge.
 
 Then manually update the [dnceng Roslyn/Razor InfraSwat dashboard](https://dev.azure.com/dnceng/internal/_dashboards/dashboard/7cd4c2dc-8e75-4cb6-9936-e937c0e496c4). Treat this as a required snap checkpoint. Dashboard widget updates are intentionally manual: the API requires replacing full widget payloads and preserving eTags, layout, and settings, which makes unattended edits unnecessarily risky.
 
