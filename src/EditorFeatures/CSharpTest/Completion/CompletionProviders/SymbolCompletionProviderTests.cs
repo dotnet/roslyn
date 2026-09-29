@@ -5593,6 +5593,44 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             referencedLanguage: LanguageNames.CSharp);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")]
+    public async Task EditorBrowsable_Method_BrowsableStateNever_HidesBaseMethodsByName()
+    {
+        var markup = """
+            class Program
+            {
+                void M()
+                {
+                    new Derived().$$
+                }
+            }
+            """;
+
+        var referencedCode = """
+            Public Class Base
+                Public Sub Goo(x As Integer)
+                End Sub
+            End Class
+
+            Public Class Derived
+                Inherits Base
+
+                <System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)>
+                Public Shadows Sub Goo()
+                End Sub
+            End Class
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Goo",
+            expectedSymbolsSameSolution: 0,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.VisualBasic);
+    }
+
     [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_ExtensionMethod_BrowsableAlways()
     {

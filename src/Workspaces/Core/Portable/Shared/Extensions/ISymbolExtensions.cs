@@ -637,11 +637,11 @@ internal static partial class ISymbolExtensions
     /// First, remove symbols from the set if they are overridden by other symbols in the set.
     /// If a symbol is overridden only by symbols outside of the set, then it is not removed. 
     /// This is useful for filtering out symbols that cannot be accessed in a given context due
-    /// to the existence of overriding members. Base methods hidden by a non-browsable method in
-    /// the set are removed as well, so they don't show up in its place. Second, remove remaining
-    /// symbols that are unsupported (e.g. pointer types in VB) or not editor browsable based on
-    /// the EditorBrowsable attribute. Finally, keep only remaining symbols which the given
-    /// inclusionFilter indicates should be included.
+    /// to the existence of overriding members. Base methods hidden (by signature or by name) by a
+    /// non-browsable method in the set are removed as well, so they don't show up in its place.
+    /// Second, remove remaining symbols that are unsupported (e.g. pointer types in VB) or not
+    /// editor browsable based on the EditorBrowsable attribute. Finally, keep only remaining
+    /// symbols which the given inclusionFilter indicates should be included.
     /// </summary>
     public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
         this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation, Func<T, bool> inclusionFilter) where T : ISymbol
@@ -668,12 +668,15 @@ internal static partial class ISymbolExtensions
             if (symbol is IMethodSymbol hidingMethod &&
                 !hidingMethod.IsEditorBrowsable(hideAdvancedMembers, compilation, editorBrowsableInfo))
             {
+                // VB reports HidesBaseMethodsByName as true for every method, so only C# symbols can be trusted.
+                var hidesByName = hidingMethod.Language == LanguageNames.CSharp && hidingMethod.HidesBaseMethodsByName;
+
                 for (var baseType = hidingMethod.ContainingType?.BaseType; baseType != null; baseType = baseType.BaseType)
                 {
                     foreach (var member in baseType.GetMembers(hidingMethod.Name))
                     {
                         if (member is IMethodSymbol hiddenMethod &&
-                            SignatureComparer.Instance.HaveSameSignature(hidingMethod, hiddenMethod, compilation.IsCaseSensitive))
+                            (hidesByName || SignatureComparer.Instance.HaveSameSignature(hidingMethod, hiddenMethod, compilation.IsCaseSensitive)))
                         {
                             overriddenSymbols.Add(hiddenMethod);
                         }
