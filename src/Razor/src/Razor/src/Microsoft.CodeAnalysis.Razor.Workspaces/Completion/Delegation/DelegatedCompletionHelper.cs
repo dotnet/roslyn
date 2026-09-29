@@ -143,10 +143,17 @@ internal static class DelegatedCompletionHelper
         var token = root.FindToken(absoluteIndex, includeWhitespace: true);
 
         // At EOF after an incomplete start tag, the parser doesn't place EOF inside the tag.
+        // In a truly empty document, the EOF token has no previous token — GetPreviousToken()
+        // returns a default (Kind == None) token in that case, so keep the original EOF token.
         var atEof = token.Kind == SyntaxKind.EndOfFile;
-        token = atEof
-            ? token.GetPreviousToken()
-            : token;
+        if (atEof)
+        {
+            var previousToken = token.GetPreviousToken();
+            if (previousToken.Kind != SyntaxKind.None)
+            {
+                token = previousToken;
+            }
+        }
 
         // Empty document — allow snippets on explicit invocation.
         if (token.Kind == SyntaxKind.EndOfFile)

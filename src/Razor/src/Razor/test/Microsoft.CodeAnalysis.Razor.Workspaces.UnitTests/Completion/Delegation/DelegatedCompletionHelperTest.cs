@@ -60,6 +60,20 @@ public class DelegatedCompletionHelperTest(ITestOutputHelper testOutput) : Tooli
     }
 
     [Fact]
+    public void ShouldIncludeSnippets_TrulyEmptyDocument_ReturnsTrue()
+    {
+        // The document is completely empty (zero characters) — this should be
+        // treated like the "empty document" case and offer snippets.
+        TestCode code = "$$";
+        var codeDocument = CreateCodeDocument(code);
+
+        var result = DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, code.Position, out var isStartTagContext);
+
+        Assert.True(result);
+        Assert.False(isStartTagContext);
+    }
+
+    [Fact]
     public void ShouldIncludeSnippets_InsideScriptBlock_ReturnsFalse()
     {
         // The caret is inside a <script> block's text content, which contains JavaScript, not
