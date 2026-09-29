@@ -3296,6 +3296,78 @@ End Class
                 referencedLanguage:=LanguageNames.VisualBasic)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")>
+        Public Async Function TestEditorBrowsable_Method_BrowsableStateNever_ShadowsBaseMethodsByName() As Task
+
+            Dim markup = <Text><![CDATA[
+Class Program
+    Sub M(d As Derived)
+        d.$$
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim referencedCode = <Text><![CDATA[
+Public Class Base
+    Public Sub Goo(x As Integer)
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
+    Public Shadows Sub Goo()
+    End Sub
+End Class
+]]></Text>.Value
+
+            Await VerifyItemInEditorBrowsableContextsAsync(
+                markup:=markup,
+                referencedCode:=referencedCode,
+                item:="Goo",
+                expectedSymbolsSameSolution:=1,
+                expectedSymbolsMetadataReference:=0,
+                sourceLanguage:=LanguageNames.VisualBasic,
+                referencedLanguage:=LanguageNames.VisualBasic)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")>
+        Public Async Function TestEditorBrowsable_Method_BrowsableStateNever_KeepsBaseOverloadWithDifferentSignature() As Task
+
+            Dim markup = <Text><![CDATA[
+Class Program
+    Sub M(d As Derived)
+        d.$$
+    End Sub
+End Class
+]]></Text>.Value
+
+            Dim referencedCode = <Text><![CDATA[
+Public Class Base
+    Public Sub Goo(x As Integer)
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    <System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)>
+    Public Overloads Sub Goo()
+    End Sub
+End Class
+]]></Text>.Value
+
+            Await VerifyItemInEditorBrowsableContextsAsync(
+                markup:=markup,
+                referencedCode:=referencedCode,
+                item:="Goo",
+                expectedSymbolsSameSolution:=2,
+                expectedSymbolsMetadataReference:=1,
+                sourceLanguage:=LanguageNames.VisualBasic,
+                referencedLanguage:=LanguageNames.VisualBasic)
+        End Function
+
         <Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")>
         Public Async Function TestOverriddenSymbolsFilteredFromCompletionList() As Task
 
