@@ -1317,6 +1317,42 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             unexpectedItemLabels: ["snippet1", "snippet2"]);
     }
 
+#if !VSCODE
+    [Fact]
+    public void AddSnippets_DoesNotMutateSharedCompletionList()
+    {
+        var snippetCache = new SnippetCache();
+        var snippetCompletionItemProvider = new SnippetCompletionItemProvider(snippetCache);
+        var endpoint = new CohostDocumentCompletionEndpoint(
+            IncompatibleProjectService,
+            RemoteServiceInvoker,
+            ClientSettingsManager,
+            ClientCapabilitiesService,
+            snippetCompletionItemProvider,
+            new TestHtmlRequestInvoker((Methods.TextDocumentCompletionName, (object?)null)),
+            new CompletionListCache(),
+            NoOpTelemetryReporter.Instance,
+            LoggerFactory);
+        var testAccessor = endpoint.GetTestAccessor();
+        var sharedCompletionList = new RazorVSInternalCompletionList() { Items = [] };
+        var options = new RazorCompletionOptions(
+            SnippetsSupported: true,
+            AutoInsertAttributeQuotes: false,
+            CommitElementsWithSpace: false,
+            IsVsCode: false);
+
+        snippetCache.Update(SnippetLanguage.Html, [new SnippetInfo("first", "first", "", "", SnippetLanguage.Html)]);
+        var firstResult = testAccessor.AddSnippets(sharedCompletionList, RazorLanguageKind.Html, "<", isStartTagContext: true, options);
+
+        snippetCache.Update(SnippetLanguage.Html, [new SnippetInfo("second", "second", "", "", SnippetLanguage.Html)]);
+        var secondResult = testAccessor.AddSnippets(sharedCompletionList, RazorLanguageKind.Html, "<", isStartTagContext: true, options);
+
+        Assert.Empty(sharedCompletionList.Items);
+        Assert.Equal(["first"], firstResult!.Items.Select(item => item.Label));
+        Assert.Equal(["second"], secondResult!.Items.Select(item => item.Label));
+    }
+#endif
+
     [Fact]
     public async Task HtmlElementNamesCompletion_UsesRazorVSInternalCompletionParams()
     {

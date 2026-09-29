@@ -297,8 +297,12 @@ internal sealed class CohostDocumentCompletionEndpoint(
         }
         else
         {
-            // There were Html completion items, so combine them with our snippet list
-            completionList.Items = [.. snippetCompletionList.Items, .. completionList.Items];
+            // There were Html completion items, so combine them with our snippet list without
+            // mutating the original list, which may be shared with another request.
+            completionList = new RazorVSInternalCompletionList(completionList)
+            {
+                Items = [.. snippetCompletionList.Items, .. completionList.Items]
+            };
         }
 
         return completionList;
@@ -313,5 +317,13 @@ internal sealed class CohostDocumentCompletionEndpoint(
             TextDocument razorDocument,
             CancellationToken cancellationToken)
                 => instance.HandleRequestAsync(request, razorDocument, cancellationToken);
+
+        public RazorVSInternalCompletionList? AddSnippets(
+            RazorVSInternalCompletionList? completionList,
+            RazorLanguageKind languageKind,
+            string? triggerCharacter,
+            bool isStartTagContext,
+            RazorCompletionOptions options)
+                => instance.AddSnippets(completionList, languageKind, triggerCharacter, isStartTagContext, options);
     }
 }
