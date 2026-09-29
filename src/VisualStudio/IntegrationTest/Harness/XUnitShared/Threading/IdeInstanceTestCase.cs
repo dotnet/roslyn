@@ -4,7 +4,9 @@
 
 namespace Xunit.Threading
 {
+    using System;
     using System.Collections.Immutable;
+    using System.ComponentModel;
     using System.Runtime.CompilerServices;
     using Xunit.Harness;
     using Xunit.Sdk;
@@ -21,6 +23,12 @@ namespace Xunit.Threading
 #if IDE_INSTANCE_TEST_CASE_SUPPORT
         private static readonly ConditionalWeakTable<ITestFrameworkDiscoveryOptions, StrongBox<ImmutableDictionary<VisualStudioInstanceKey, IdeInstanceTestCase>>> _instances = new();
 #endif
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
+        public IdeInstanceTestCase()
+        {
+        }
 
         public IdeInstanceTestCase(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
             : base(testMethod, visualStudioInstanceKey, includeRootSuffixInDisplayName: true, testMethodArguments)

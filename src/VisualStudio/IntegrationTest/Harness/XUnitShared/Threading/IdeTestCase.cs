@@ -4,11 +4,19 @@
 
 namespace Xunit.Threading
 {
+    using System;
+    using System.ComponentModel;
     using Xunit.Harness;
     using Xunit.v3;
 
     public sealed class IdeTestCase : IdeTestCaseBase
     {
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Called by the deserializer; should only be called by deriving classes for deserialization purposes", error: true)]
+        public IdeTestCase()
+        {
+        }
+
         public IdeTestCase(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
             : base(testMethod, visualStudioInstanceKey, includeRootSuffixInDisplayName: false, testMethodArguments)
         {

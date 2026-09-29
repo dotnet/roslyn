@@ -9,8 +9,7 @@ namespace Xunit.Threading
     using Xunit.Sdk;
     using Xunit.v3;
 
-    // IdeTheoryAttribute uses xUnit's TheoryDiscoverer; this discoverer is not registered.
-    // Consequently, theories do not fan out across Visual Studio instances.
+    // Creates one IDE test case per supported Visual Studio instance for each theory data row.
     public class IdeTheoryDiscoverer : TheoryDiscoverer
     {
         /*

@@ -6,10 +6,11 @@ namespace Xunit
 {
     using System;
     using System.Runtime.CompilerServices;
+    using Xunit.Threading;
     using Xunit.v3;
 
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    [XunitTestCaseDiscoverer(typeof(TheoryDiscoverer))]
+    [XunitTestCaseDiscoverer(typeof(IdeTheoryDiscoverer))]
     public class IdeTheoryAttribute : TheoryAttribute, IIdeSettingsAttribute
     {
         public IdeTheoryAttribute(
