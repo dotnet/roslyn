@@ -1871,7 +1871,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                             using (PushSpanContextConfig())
                             {
                                 EndingBlock();
-                                var razorBlock = HtmlParser.ParseRazorBlock(Tuple.Create("{", "}"), caseSensitive: true);
+                                var razorBlock = HtmlParser.ParseRazorBlock(Tuple.Create("{", "}"));
                                 directiveBuilder.Add(razorBlock);
                                 StartingBlock();
                             }

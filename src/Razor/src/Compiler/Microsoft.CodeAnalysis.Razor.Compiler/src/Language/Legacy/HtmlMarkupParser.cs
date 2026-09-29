@@ -53,7 +53,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         using var xmlContext = new ParserContext(sourceDocument, options, cancellationToken);
         xmlContext.Source.Position = start;
         using var parser = new HtmlMarkupParser(xmlContext, parseAsXml: true);
-        parser.ParseRazorBlock(Tuple.Create("{", "}"), caseSensitive: true);
+        parser.ParseRazorBlock(Tuple.Create("{", "}"));
         return (xmlContext.Source.Position, parser._isMarkupComplete);
     }
 
@@ -61,8 +61,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
     private string? CurrentStartTagName => CurrentTracker?.TagName;
 
-    // XML tag names are case-sensitive; HTML tag names are not. This is independent of
-    // CaseSensitive, which controls matching block delimiters.
+    // XML tag names are case-sensitive; HTML tag names are not.
     private StringComparison TagNameComparison => _parseAsXml ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
     private CSharpCodeParser? _codeParser;
@@ -75,13 +74,6 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             return _codeParser!;
         }
         set => _codeParser = value;
-    }
-
-    private bool CaseSensitive { get; set; }
-
-    private StringComparison Comparison
-    {
-        get { return CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase; }
     }
 
     //
@@ -213,7 +205,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     // Similar to ParseBlock, the tag stack inside a razor block is different from the stack outside the block.
     // E.g, `@section Foo { </div> } <div>` will be parsed as two separate elements.
     //
-    public MarkupBlockSyntax ParseRazorBlock(Tuple<string, string> nestingSequences, bool caseSensitive)
+    public MarkupBlockSyntax ParseRazorBlock(Tuple<string, string> nestingSequences)
     {
         CancellationToken.ThrowIfCancellationRequested();
 
@@ -234,7 +226,6 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 var builder = pooledResult.Builder;
 
                 NextToken();
-                CaseSensitive = caseSensitive;
                 NestingBlock(builder, nestingSequences);
                 AcceptMarkerTokenIfNecessary();
                 builder.Add(OutputAsMarkupLiteral());
@@ -2287,7 +2278,9 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             position + sequence.Length <= CurrentToken.Content.Length)
         {
             var possibleStart = CurrentToken.Content.AsSpan(position, sequence.Length);
-            if (possibleStart.Equals(sequence.AsSpan(), Comparison))
+            // Compare the token slice with an opening or closing Razor block delimiter ("{" or "}").
+            // Delimiters are literal syntax, so use an exact, culture-independent ordinal comparison.
+            if (possibleStart.Equals(sequence.AsSpan(), StringComparison.Ordinal))
             {
                 // Capture the current token and "put it back" (really we just want to clear CurrentToken)
                 var bookmark = CurrentStart;
