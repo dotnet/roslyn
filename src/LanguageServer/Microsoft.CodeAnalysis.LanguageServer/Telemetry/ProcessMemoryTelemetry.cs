@@ -12,31 +12,24 @@ using Microsoft.CodeAnalysis.Telemetry;
 namespace Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 
 /// <summary>
-/// Periodically samples the memory used by this process and records it on the process-level telemetry session.
+/// Periodically samples the memory used by this process and logs it on the process-level telemetry session.
 /// </summary>
 /// <remarks>
 /// Memory belongs to the process, not to an LSP client: in daemon mode every connected server shares one runtime, GC
-/// heap, and set of loaded assemblies. Samples are therefore tagged with the number of clients active at the time
-/// they were taken rather than attributed to a single client session, so that standalone and daemon processes can be
-/// compared by memory per active client.
+/// heap, and set of loaded assemblies. Each sample therefore includes the number of clients active when it was taken
+/// rather than being attributed to a single client session, so that standalone and daemon processes can be compared
+/// by memory per active client.
 /// </remarks>
 internal sealed class ProcessMemoryTelemetry : IDisposable
 {
     public static readonly TimeSpan DefaultSampleInterval = TimeSpan.FromMinutes(5);
 
-    // Values are recorded in megabytes because the VS telemetry histogram buckets top out at 10000.
-    internal const string PrivateMBMetricName = "privateMB";
-    internal const string WorkingSetMBMetricName = "workingSetMB";
-    internal const string GCCommittedMBMetricName = "gcCommittedMB";
-    internal const string ActiveClientsMetricName = "activeClients";
+    internal const string PrivateMBPropertyName = "PrivateMB";
+    internal const string WorkingSetMBPropertyName = "WorkingSetMB";
+    internal const string GCCommittedMBPropertyName = "GCCommittedMB";
+    internal const string ActiveClientsPropertyName = "ActiveClients";
+    internal const string GCModePropertyName = "GCMode";
 
-    internal const string ActiveClientsTagName = "activeClients";
-    internal const string GCModeTagName = "gcMode";
-
-    /// <summary>
-    /// Active client counts at or above this value share one tag value to keep tag cardinality bounded.
-    /// </summary>
-    private const int MaxActiveClientsBucket = 5;
     private const long BytesPerMegabyte = 1024 * 1024;
 
     private readonly RoslynTelemetry _telemetry;
@@ -48,7 +41,7 @@ internal sealed class ProcessMemoryTelemetry : IDisposable
 
         _ = PeriodicTelemetryLoop.RunAsync(
             sampleInterval,
-            () => RecordSample(ProcessMemorySnapshot.Capture(), getActiveClients()),
+            () => LogSample(ProcessMemorySnapshot.Capture(), getActiveClients()),
             _cancellationSource.Token);
     }
 
@@ -58,29 +51,19 @@ internal sealed class ProcessMemoryTelemetry : IDisposable
         _cancellationSource.Dispose();
     }
 
-    internal void RecordSample(ProcessMemorySnapshot snapshot, int activeClients)
+    internal void LogSample(ProcessMemorySnapshot snapshot, int activeClients)
     {
-        const FunctionId functionId = FunctionId.VSCode_LanguageServer_Process_Memory;
-        KeyValuePair<string, object?> activeClientsTag = new(ActiveClientsTagName, GetActiveClientsBucket(activeClients));
-        KeyValuePair<string, object?> gcModeTag = new(GCModeTagName, GCSettings.IsServerGC ? "Server" : "Workstation");
+        _telemetry.Log(FunctionId.VSCode_LanguageServer_Process_Memory, KeyValueLogMessage.Create(LogType.Trace, m =>
+        {
+            if (snapshot.PrivateBytes is { } privateBytes)
+                m[PrivateMBPropertyName] = privateBytes / BytesPerMegabyte;
 
-        if (snapshot.PrivateBytes is { } privateBytes)
-            _telemetry.Record(functionId, PrivateMBMetricName, ToMegabytes(privateBytes), activeClientsTag, gcModeTag);
-
-        _telemetry.Record(functionId, WorkingSetMBMetricName, ToMegabytes(snapshot.WorkingSetBytes), activeClientsTag, gcModeTag);
-        _telemetry.Record(functionId, GCCommittedMBMetricName, ToMegabytes(snapshot.GCCommittedBytes), activeClientsTag, gcModeTag);
-
-        // Recorded exactly (unlike the bucketed tag) so that memory can be divided by the number of clients sharing it.
-        _telemetry.Record(functionId, ActiveClientsMetricName, activeClients, activeClientsTag, gcModeTag);
+            m[WorkingSetMBPropertyName] = snapshot.WorkingSetBytes / BytesPerMegabyte;
+            m[GCCommittedMBPropertyName] = snapshot.GCCommittedBytes / BytesPerMegabyte;
+            m[ActiveClientsPropertyName] = activeClients;
+            m[GCModePropertyName] = GCSettings.IsServerGC ? "Server" : "Workstation";
+        }));
     }
-
-    internal static string GetActiveClientsBucket(int activeClients)
-        => activeClients >= MaxActiveClientsBucket
-            ? MaxActiveClientsBucket.ToString(CultureInfo.InvariantCulture) + "+"
-            : activeClients.ToString(CultureInfo.InvariantCulture);
-
-    private static long ToMegabytes(long bytes)
-        => bytes / BytesPerMegabyte;
 }
 
 /// <summary>

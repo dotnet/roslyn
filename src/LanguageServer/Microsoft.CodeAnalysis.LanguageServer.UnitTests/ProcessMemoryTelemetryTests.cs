@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Concurrent;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 
@@ -13,48 +14,39 @@ public sealed class ProcessMemoryTelemetryTests
     private const long MB = 1024 * 1024;
 
     [Fact]
-    public void RecordSample_RecordsMemoryInMegabytesTaggedWithActiveClients()
+    public void LogSample_LogsMemoryInMegabytesWithActiveClients()
     {
         var telemetry = new RoslynTelemetry();
-        var sink = new CapturingMetricSink();
-        using var _ = telemetry.AddMetricSink(sink);
+        var sink = new CapturingEventSink();
+        using var _ = telemetry.AddEventSink(sink);
         using var memoryTelemetry = new ProcessMemoryTelemetry(telemetry, () => 0, Timeout.InfiniteTimeSpan);
 
         var snapshot = new ProcessMemorySnapshot(PrivateBytes: 300 * MB, WorkingSetBytes: 400 * MB, GCCommittedBytes: 200 * MB);
-        memoryTelemetry.RecordSample(snapshot, activeClients: 2);
+        memoryTelemetry.LogSample(snapshot, activeClients: 7);
 
-        var values = sink.Measurements.ToDictionary(m => m.MetricName, m => m.Value);
-        Assert.Equal(300, values[ProcessMemoryTelemetry.PrivateMBMetricName]);
-        Assert.Equal(400, values[ProcessMemoryTelemetry.WorkingSetMBMetricName]);
-        Assert.Equal(200, values[ProcessMemoryTelemetry.GCCommittedMBMetricName]);
-        Assert.Equal(2, values[ProcessMemoryTelemetry.ActiveClientsMetricName]);
-
-        Assert.All(sink.Measurements, m => Assert.Contains(new(ProcessMemoryTelemetry.ActiveClientsTagName, "2"), m.Tags));
-        Assert.All(sink.Measurements, m => Assert.Contains(m.Tags, tag => tag.Key == ProcessMemoryTelemetry.GCModeTagName));
+        var properties = Assert.Single(sink.Events);
+        Assert.Equal(300L, properties[ProcessMemoryTelemetry.PrivateMBPropertyName]);
+        Assert.Equal(400L, properties[ProcessMemoryTelemetry.WorkingSetMBPropertyName]);
+        Assert.Equal(200L, properties[ProcessMemoryTelemetry.GCCommittedMBPropertyName]);
+        Assert.Equal(7, properties[ProcessMemoryTelemetry.ActiveClientsPropertyName]);
+        Assert.Contains(properties[ProcessMemoryTelemetry.GCModePropertyName], new[] { "Server", "Workstation" });
     }
 
     [Fact]
-    public void RecordSample_SkipsPrivateMemoryWhenUnavailable()
+    public void LogSample_OmitsPrivateMemoryWhenUnavailable()
     {
         var telemetry = new RoslynTelemetry();
-        var sink = new CapturingMetricSink();
-        using var _ = telemetry.AddMetricSink(sink);
+        var sink = new CapturingEventSink();
+        using var _ = telemetry.AddEventSink(sink);
         using var memoryTelemetry = new ProcessMemoryTelemetry(telemetry, () => 0, Timeout.InfiniteTimeSpan);
 
         var snapshot = new ProcessMemorySnapshot(PrivateBytes: null, WorkingSetBytes: 400 * MB, GCCommittedBytes: 200 * MB);
-        memoryTelemetry.RecordSample(snapshot, activeClients: 1);
+        memoryTelemetry.LogSample(snapshot, activeClients: 1);
 
-        Assert.DoesNotContain(sink.Measurements, m => m.MetricName == ProcessMemoryTelemetry.PrivateMBMetricName);
-        Assert.Contains(sink.Measurements, m => m.MetricName == ProcessMemoryTelemetry.WorkingSetMBMetricName);
+        var properties = Assert.Single(sink.Events);
+        Assert.False(properties.ContainsKey(ProcessMemoryTelemetry.PrivateMBPropertyName));
+        Assert.Equal(400L, properties[ProcessMemoryTelemetry.WorkingSetMBPropertyName]);
     }
-
-    [Theory]
-    [InlineData(0, "0")]
-    [InlineData(4, "4")]
-    [InlineData(5, "5+")]
-    [InlineData(12, "5+")]
-    public void GetActiveClientsBucket(int activeClients, string expected)
-        => Assert.Equal(expected, ProcessMemoryTelemetry.GetActiveClientsBucket(activeClients));
 
     [Theory]
     [InlineData("RssAnon:\t  123456 kB", "RssAnon:", true, 123456)]
@@ -83,42 +75,43 @@ public sealed class ProcessMemoryTelemetryTests
     public async Task SamplesPeriodically()
     {
         var telemetry = new RoslynTelemetry();
-        var sampled = new TaskCompletionSource<long>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var sink = new CapturingMetricSink(onMeasurement: m =>
-        {
-            if (m.MetricName == ProcessMemoryTelemetry.ActiveClientsMetricName)
-                sampled.TrySetResult(m.Value);
-        });
-        using var _ = telemetry.AddMetricSink(sink);
+        var sampled = new TaskCompletionSource<IReadOnlyDictionary<string, object?>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var _ = telemetry.AddEventSink(new CapturingEventSink(onLog: properties => sampled.TrySetResult(properties)));
 
         using (new ProcessMemoryTelemetry(telemetry, () => 3, TimeSpan.FromMilliseconds(10)))
         {
-            Assert.Equal(3, await sampled.Task.WaitAsync(TimeSpan.FromMinutes(1)));
+            var properties = await sampled.Task.WaitAsync(TimeSpan.FromMinutes(1));
+            Assert.Equal(3, properties[ProcessMemoryTelemetry.ActiveClientsPropertyName]);
         }
     }
 
-    private sealed record Measurement(string MetricName, long Value, KeyValuePair<string, object?>[] Tags);
-
-    private sealed class CapturingMetricSink(Action<Measurement>? onMeasurement = null) : IMetricSink
+    private sealed class CapturingEventSink(Action<IReadOnlyDictionary<string, object?>>? onLog = null) : IEventSink
     {
-        private readonly ConcurrentQueue<Measurement> _measurements = new();
+        private readonly ConcurrentQueue<IReadOnlyDictionary<string, object?>> _events = new();
 
-        public Measurement[] Measurements => [.. _measurements];
+        public IReadOnlyDictionary<string, object?>[] Events => [.. _events];
 
-        public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
-            => Add(new(metricName, delta, tags.ToArray()));
+        public bool IsEnabled(FunctionId functionId)
+            => functionId == FunctionId.VSCode_LanguageServer_Process_Memory;
 
-        public void Record(string eventName, string metricName, long value, ReadOnlySpan<KeyValuePair<string, object?>> tags)
-            => Add(new(metricName, value, tags.ToArray()));
+        public void Log(FunctionId functionId, LogMessage logMessage)
+        {
+            // The message is returned to a pool once logged, so copy its properties.
+            var properties = new Dictionary<string, object?>(((KeyValueLogMessage)logMessage).Properties);
+            _events.Enqueue(properties);
+            onLog?.Invoke(properties);
+        }
 
-        public void Flush()
+        public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
         {
         }
 
-        private void Add(Measurement measurement)
+        public void LogBlockStart(FunctionId functionId, LogMessage logMessage, int uniquePairId, CancellationToken cancellationToken)
         {
-            _measurements.Enqueue(measurement);
-            onMeasurement?.Invoke(measurement);
+        }
+
+        public void LogBlockEnd(FunctionId functionId, LogMessage logMessage, int uniquePairId, int delta, CancellationToken cancellationToken)
+        {
         }
     }
 }
