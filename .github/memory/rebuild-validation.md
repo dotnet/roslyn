@@ -42,12 +42,11 @@ restore the original last write time so incremental copies keep skipping the pat
 CI builds pass `ROSLYNUSEHARDLINKS=true`, so bin copies are hard links to `artifacts/obj` files:
 delete and recreate the bin file before writing, or the edit also changes the intermediate assembly.
 
-`eng/targets/XUnit.targets` does this for xunit.v3 test executables:
-`SetTestAssemblyStackReserve` raises the PE `SizeOfStackReserve` to 4 MB on .NET Framework bin
-assemblies and Windows .NET Core bin app hosts after `CopyFilesToOutputDirectory`, and
-`CreateXunitV3AppHost` does the same for the .NET Framework `.exe` app host that xunit.v3's VSTest
-adapter launches. Note that csc already emits a 4 MB reserve for 64-bit images, so only the
-32-bit/AnyCPU .NET Framework output is actually changed.
+`eng/targets/XUnit.targets` does this for .NET Framework test executables: `SetTestAssemblyStackReserve`
+raises the PE `SizeOfStackReserve` to 4 MB on the bin assembly after `CopyFilesToOutputDirectory`,
+and `CreateXunitV3AppHost` does the same for the `.exe` app host that xunit.v3's VSTest adapter
+launches. Note that csc already emits a 4 MB reserve for 64-bit images, so only the 32-bit/AnyCPU
+output is actually changed.
 
 ## Investigating failures
 
