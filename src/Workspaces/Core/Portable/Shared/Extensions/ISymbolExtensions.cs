@@ -639,6 +639,8 @@ internal static partial class ISymbolExtensions
     /// This is useful for filtering out symbols that cannot be accessed in a given context due
     /// to the existence of overriding members. Base methods hidden (by signature or by name) by a
     /// non-browsable method in the set are removed as well, so they don't show up in its place.
+    /// That includes methods on base classes and, when the hiding method is declared on an
+    /// interface, methods on its base interfaces.
     /// Second, remove remaining symbols that are unsupported (e.g. pointer types in VB) or not
     /// editor browsable based on the EditorBrowsable attribute. Finally, keep only remaining
     /// symbols which the given inclusionFilter indicates should be included.
@@ -671,19 +673,20 @@ internal static partial class ISymbolExtensions
             {
                 // VB reports HidesBaseMethodsByName as true for every method, so only C# symbols can be trusted.
                 var hidesByName = hidingMethod.Language == LanguageNames.CSharp && hidingMethod.HidesBaseMethodsByName;
+                var caseSensitive = compilation.IsCaseSensitive;
 
-                for (var baseType = hidingMethod.ContainingType.BaseType; baseType != null; baseType = baseType.BaseType)
+                // Interface BaseType is null, but completion lookup still includes every base interface.
+                // See Binder.AddMemberLookupSymbolsInfoInInterface.
+                var containingType = hidingMethod.ContainingType;
+                if (containingType.TypeKind == TypeKind.Interface)
                 {
-                    foreach (var member in baseType.GetMembers(hidingMethod.Name))
-                    {
-                        if (member is IMethodSymbol baseMethod)
-                        {
-                            if (hidesByName || SignatureComparer.Instance.HaveSameSignature(hidingMethod, baseMethod, compilation.IsCaseSensitive))
-                            {
-                                overriddenSymbols.Add(baseMethod);
-                            }
-                        }
-                    }
+                    foreach (var baseInterface in containingType.AllInterfaces)
+                        CollectHiddenBaseMethods(baseInterface, hidingMethod, hidesByName, caseSensitive, overriddenSymbols);
+                }
+                else
+                {
+                    for (var baseType = containingType.BaseType; baseType != null; baseType = baseType.BaseType)
+                        CollectHiddenBaseMethods(baseType, hidingMethod, hidesByName, caseSensitive, overriddenSymbols);
                 }
             }
         }
@@ -710,5 +713,54 @@ internal static partial class ISymbolExtensions
         this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
     {
         return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation, static s => !s.RequiresUnsafeModifier());
+    }
+
+    private static void CollectHiddenBaseMethods(
+        INamedTypeSymbol baseType,
+        IMethodSymbol hidingMethod,
+        bool hidesByName,
+        bool caseSensitive,
+        MetadataUnifyingSymbolHashSet overriddenSymbols)
+    {
+        foreach (var member in baseType.GetMembers(hidingMethod.Name))
+        {
+            if (member is IMethodSymbol baseMethod &&
+                (hidesByName || HidesBaseMethodBySignature(hidingMethod, baseMethod, caseSensitive)))
+            {
+                overriddenSymbols.Add(baseMethod);
+            }
+        }
+    }
+
+    /// <summary>
+    /// True when <paramref name="hidingMethod"/> hides <paramref name="baseMethod"/> under C# hiding rules.
+    /// <see cref="SignatureComparer"/> treats every non-value <see cref="RefKind"/> as equivalent, but C#
+    /// treats inherited ref, out, and in signatures as distinct. <see cref="RefKind.In"/> and
+    /// <see cref="RefKind.RefReadOnlyParameter"/> still match, as they do for override and hiding comparison.
+    /// </summary>
+    private static bool HidesBaseMethodBySignature(IMethodSymbol hidingMethod, IMethodSymbol baseMethod, bool caseSensitive)
+    {
+        if (!SignatureComparer.Instance.HaveSameSignature(hidingMethod, baseMethod, caseSensitive))
+            return false;
+
+        var hidingParameters = hidingMethod.Parameters;
+        var baseParameters = baseMethod.Parameters;
+        for (var i = 0; i < hidingParameters.Length; i++)
+        {
+            if (!AreHidingRefKindsEquivalent(hidingParameters[i].RefKind, baseParameters[i].RefKind))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool AreHidingRefKindsEquivalent(RefKind hidingRefKind, RefKind baseRefKind)
+    {
+        if (hidingRefKind == baseRefKind)
+            return true;
+
+        // Match MemberSignatureComparer.RefKindCompareMode.AllowRefReadonlyVsInMismatch.
+        return (hidingRefKind, baseRefKind) is (RefKind.RefReadOnlyParameter, RefKind.In)
+            or (RefKind.In, RefKind.RefReadOnlyParameter);
     }
 }

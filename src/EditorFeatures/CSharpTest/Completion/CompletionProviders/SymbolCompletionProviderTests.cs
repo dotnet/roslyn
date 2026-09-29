@@ -5667,6 +5667,78 @@ expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
             referencedLanguage: LanguageNames.CSharp);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")]
+    public async Task EditorBrowsable_Method_BrowsableStateNever_HidesBaseInterfaceMethod()
+    {
+        var markup = """
+            class Program
+            {
+                void M(IDerived d)
+                {
+                    d.$$
+                }
+            }
+            """;
+
+        var referencedCode = """
+            public interface IBase
+            {
+                void M();
+            }
+
+            public interface IDerived : IBase
+            {
+                [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+                new void M();
+            }
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "M",
+            expectedSymbolsSameSolution: 2,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/4434")]
+    public async Task EditorBrowsable_Method_BrowsableStateNever_KeepsBaseMethodWithDifferentRefKind()
+    {
+        var markup = """
+            class Program
+            {
+                void M()
+                {
+                    new Derived().$$
+                }
+            }
+            """;
+
+        var referencedCode = """
+            public class Base
+            {
+                public void M(ref int x) { }
+            }
+
+            public class Derived : Base
+            {
+                [System.ComponentModel.EditorBrowsableAttribute(System.ComponentModel.EditorBrowsableState.Never)]
+                public void M(out int x) { x = 0; }
+            }
+            """;
+
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "M",
+            expectedSymbolsSameSolution: 2,
+            expectedSymbolsMetadataReference: 1,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
     [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_ExtensionMethod_BrowsableAlways()
     {
