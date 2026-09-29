@@ -85,7 +85,11 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
 
             server.LogMessageReceived += logMessage =>
             {
-                logMessages.Add(logMessage.Message);
+                lock (logMessages)
+                {
+                    logMessages.Add(logMessage.Message);
+                }
+
                 if (logMessage.Message.Contains(logEnd, StringComparison.Ordinal))
                 {
                     logCompletionSource.TrySetResult(logMessage);
@@ -109,10 +113,18 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
             await logCompletionSource.Task;
         }
 
-        Assert.Contains(debugOne, logMessages);
-        Assert.Contains(infoOne, logMessages);
-        Assert.DoesNotContain(debugTwo, logMessages);
-        Assert.Contains(infoTwo, logMessages);
+        // Disposing the client does not wait for in-flight window/logMessage handlers (e.g. for messages logged
+        // during shutdown), so they may still be adding to the list; assert against a snapshot.
+        string[] logMessagesSnapshot;
+        lock (logMessages)
+        {
+            logMessagesSnapshot = [.. logMessages];
+        }
+
+        Assert.Contains(debugOne, logMessagesSnapshot);
+        Assert.Contains(infoOne, logMessagesSnapshot);
+        Assert.DoesNotContain(debugTwo, logMessagesSnapshot);
+        Assert.Contains(infoTwo, logMessagesSnapshot);
 
         async Task WaitForLogLevelUpdate(TestLspServer server, LogLevel newLevel)
         {
