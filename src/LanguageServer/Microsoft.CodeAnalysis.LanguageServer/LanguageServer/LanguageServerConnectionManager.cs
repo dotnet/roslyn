@@ -17,7 +17,6 @@ internal sealed class LanguageServerConnectionManager
     private readonly object _gate = new();
     private ImmutableArray<ServerEntry> _servers = [];
     private long _connectionsAccepted;
-    private int _peakActiveConnections;
 
     // Test hook: invoked just before LanguageServerHost.Start(). Throw to simulate a startup failure.
     private Action? _onBeforeStartServer;
@@ -27,26 +26,7 @@ internal sealed class LanguageServerConnectionManager
     /// <summary>
     /// The number of servers currently registered (starting or running).
     /// </summary>
-    public int ActiveConnections
-    {
-        get
-        {
-            lock (_gate)
-                return _servers.Length;
-        }
-    }
-
-    /// <summary>
-    /// The largest value <see cref="ActiveConnections"/> has reached over the life of this manager.
-    /// </summary>
-    public int PeakActiveConnections
-    {
-        get
-        {
-            lock (_gate)
-                return _peakActiveConnections;
-        }
-    }
+    public int ActiveConnections => _servers.Length;
 
     /// <summary>
     /// Runs an independent language server for each connection yielded by <paramref name="connectionSource"/>.
@@ -186,7 +166,6 @@ internal sealed class LanguageServerConnectionManager
                 if (!cancellationToken.IsCancellationRequested)
                 {
                     _servers = _servers.Add(entry);
-                    _peakActiveConnections = Math.Max(_peakActiveConnections, _servers.Length);
                 }
                 else
                 {

@@ -151,7 +151,9 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     using var memoryTelemetry = telemetryService is null
         ? null
         : new ProcessMemoryTelemetry(
-            telemetryService.Telemetry, () => connectionManager.ActiveConnections, ProcessMemoryTelemetry.DefaultSampleInterval);
+            telemetryService.Telemetry,
+            () => connectionManager.ActiveConnections,
+            ProcessMemoryTelemetry.DefaultSampleInterval);
 
     var exitReason = "Faulted";
     // VS telemetry reads block properties on completion, after the final count and exit reason are known.
@@ -160,18 +162,7 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         RoslynLog.KeyValueLogMessage.Create(m =>
         {
             m["ConnectionsAccepted"] = connectionManager.ConnectionsAccepted;
-            m["PeakActiveConnections"] = connectionManager.PeakActiveConnections;
             m["ExitReason"] = exitReason;
-            m["GCMode"] = ProcessMemoryTelemetry.GCMode;
-
-            if (memoryTelemetry is not null)
-            {
-                var (peakPrivateMB, peakWorkingSetMB) = memoryTelemetry.GetPeaks();
-                if (peakPrivateMB is not null)
-                    m["PeakPrivateMB"] = peakPrivateMB.Value;
-
-                m["PeakWorkingSetMB"] = peakWorkingSetMB;
-            }
         }),
         cancellationToken);
 

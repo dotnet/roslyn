@@ -28,7 +28,6 @@ internal sealed class ProcessMemoryTelemetry : IDisposable
     internal const string PrivateMBMetricName = "privateMB";
     internal const string WorkingSetMBMetricName = "workingSetMB";
     internal const string GCCommittedMBMetricName = "gcCommittedMB";
-    internal const string GCHeapMBMetricName = "gcHeapMB";
     internal const string ActiveClientsMetricName = "activeClients";
 
     internal const string ActiveClientsTagName = "activeClients";
@@ -41,24 +40,17 @@ internal sealed class ProcessMemoryTelemetry : IDisposable
     private const long BytesPerMegabyte = 1024 * 1024;
 
     private readonly RoslynTelemetry _telemetry;
-    private readonly Func<int> _getActiveClients;
     private readonly CancellationTokenSource _cancellationSource = new();
-
-    private long _sampledPeakPrivateBytes;
-    private long _sampledPeakWorkingSetBytes;
 
     public ProcessMemoryTelemetry(RoslynTelemetry telemetry, Func<int> getActiveClients, TimeSpan sampleInterval)
     {
         _telemetry = telemetry;
-        _getActiveClients = getActiveClients;
 
         _ = PeriodicTelemetryLoop.RunAsync(
             sampleInterval,
-            () => RecordSample(ProcessMemorySnapshot.Capture(), _getActiveClients()),
+            () => RecordSample(ProcessMemorySnapshot.Capture(), getActiveClients()),
             _cancellationSource.Token);
     }
-
-    public static string GCMode => GCSettings.IsServerGC ? "Server" : "Workstation";
 
     public void Dispose()
     {
@@ -66,39 +58,19 @@ internal sealed class ProcessMemoryTelemetry : IDisposable
         _cancellationSource.Dispose();
     }
 
-    /// <summary>
-    /// Returns the peak memory usage of the process in megabytes, combining OS-tracked peaks where available with the
-    /// peaks observed by sampling.
-    /// </summary>
-    public (long? PeakPrivateMB, long PeakWorkingSetMB) GetPeaks()
-    {
-        var snapshot = ProcessMemorySnapshot.Capture();
-        UpdateSampledPeaks(snapshot);
-
-        long? peakPrivateBytes = snapshot.PrivateBytes is null
-            ? null
-            : Math.Max(Interlocked.Read(ref _sampledPeakPrivateBytes), snapshot.PeakPrivateBytes ?? 0);
-        var peakWorkingSetBytes = Math.Max(Interlocked.Read(ref _sampledPeakWorkingSetBytes), snapshot.PeakWorkingSetBytes);
-
-        return (peakPrivateBytes is { } bytes ? ToMegabytes(bytes) : null, ToMegabytes(peakWorkingSetBytes));
-    }
-
     internal void RecordSample(ProcessMemorySnapshot snapshot, int activeClients)
     {
-        UpdateSampledPeaks(snapshot);
-
         const FunctionId functionId = FunctionId.VSCode_LanguageServer_Process_Memory;
         KeyValuePair<string, object?> activeClientsTag = new(ActiveClientsTagName, GetActiveClientsBucket(activeClients));
-        KeyValuePair<string, object?> gcModeTag = new(GCModeTagName, GCMode);
+        KeyValuePair<string, object?> gcModeTag = new(GCModeTagName, GCSettings.IsServerGC ? "Server" : "Workstation");
 
         if (snapshot.PrivateBytes is { } privateBytes)
             _telemetry.Record(functionId, PrivateMBMetricName, ToMegabytes(privateBytes), activeClientsTag, gcModeTag);
 
         _telemetry.Record(functionId, WorkingSetMBMetricName, ToMegabytes(snapshot.WorkingSetBytes), activeClientsTag, gcModeTag);
         _telemetry.Record(functionId, GCCommittedMBMetricName, ToMegabytes(snapshot.GCCommittedBytes), activeClientsTag, gcModeTag);
-        _telemetry.Record(functionId, GCHeapMBMetricName, ToMegabytes(snapshot.GCHeapBytes), activeClientsTag, gcModeTag);
 
-        // Recorded exactly (unlike the bucketed tag) so that summing it over samples yields client time.
+        // Recorded exactly (unlike the bucketed tag) so that memory can be divided by the number of clients sharing it.
         _telemetry.Record(functionId, ActiveClientsMetricName, activeClients, activeClientsTag, gcModeTag);
     }
 
@@ -106,27 +78,6 @@ internal sealed class ProcessMemoryTelemetry : IDisposable
         => activeClients >= MaxActiveClientsBucket
             ? MaxActiveClientsBucket.ToString(CultureInfo.InvariantCulture) + "+"
             : activeClients.ToString(CultureInfo.InvariantCulture);
-
-    private void UpdateSampledPeaks(ProcessMemorySnapshot snapshot)
-    {
-        if (snapshot.PrivateBytes is { } privateBytes)
-            InterlockedMax(ref _sampledPeakPrivateBytes, privateBytes);
-
-        InterlockedMax(ref _sampledPeakWorkingSetBytes, snapshot.WorkingSetBytes);
-
-        static void InterlockedMax(ref long location, long value)
-        {
-            var current = Interlocked.Read(ref location);
-            while (value > current)
-            {
-                var previous = Interlocked.CompareExchange(ref location, value, current);
-                if (previous == current)
-                    return;
-
-                current = previous;
-            }
-        }
-    }
 
     private static long ToMegabytes(long bytes)
         => bytes / BytesPerMegabyte;
@@ -137,34 +88,22 @@ internal sealed class ProcessMemoryTelemetry : IDisposable
 /// </summary>
 /// <param name="PrivateBytes">
 /// Memory that is private to this process, including native allocations but excluding file-backed pages (such as
-/// mapped assemblies) that can be shared with other processes. <see langword="null"/> when the platform does not
-/// provide a reliable measure.
+/// mapped assemblies) that can be shared with other processes. This is the measure that shows whether processes that
+/// share a daemon use less memory than separate processes, so it is collected on every platform the server supports.
+/// <see langword="null"/> when the platform does not provide a reliable measure.
 /// </param>
-/// <param name="PeakPrivateBytes">The OS-tracked peak of <paramref name="PrivateBytes"/>, when the OS provides one.</param>
-/// <param name="WorkingSetBytes">Resident memory, including shared pages.</param>
-/// <param name="PeakWorkingSetBytes">The OS-tracked peak of <paramref name="WorkingSetBytes"/>.</param>
+/// <param name="WorkingSetBytes">Resident memory, including pages shared with other processes.</param>
 /// <param name="GCCommittedBytes">Memory committed by the GC as of the last collection.</param>
-/// <param name="GCHeapBytes">The size of the managed heap as of the last collection.</param>
-internal readonly record struct ProcessMemorySnapshot(
-    long? PrivateBytes,
-    long? PeakPrivateBytes,
-    long WorkingSetBytes,
-    long PeakWorkingSetBytes,
-    long GCCommittedBytes,
-    long GCHeapBytes)
+internal readonly record struct ProcessMemorySnapshot(long? PrivateBytes, long WorkingSetBytes, long GCCommittedBytes)
 {
     public static ProcessMemorySnapshot Capture()
     {
         using var process = Process.GetCurrentProcess();
-        var gcMemoryInfo = GC.GetGCMemoryInfo();
 
         long? privateBytes;
-        long? peakPrivateBytes = null;
         if (OperatingSystem.IsWindows())
         {
-            // Private commit. PagedMemorySize64 maps to the pagefile-backed (private) commit charge, whose peak the OS tracks.
             privateBytes = process.PrivateMemorySize64;
-            peakPrivateBytes = process.PeakPagedMemorySize64;
         }
         else if (OperatingSystem.IsLinux())
         {
@@ -174,6 +113,7 @@ internal readonly record struct ProcessMemorySnapshot(
         }
         else if (OperatingSystem.IsMacOS())
         {
+            // PrivateMemorySize64 is always 0 on macOS in .NET 10 (later runtimes report the physical footprint).
             privateBytes = TryGetMacOSPhysicalFootprint();
         }
         else
@@ -181,13 +121,7 @@ internal readonly record struct ProcessMemorySnapshot(
             privateBytes = null;
         }
 
-        return new(
-            privateBytes,
-            peakPrivateBytes,
-            process.WorkingSet64,
-            process.PeakWorkingSet64,
-            gcMemoryInfo.TotalCommittedBytes,
-            gcMemoryInfo.HeapSizeBytes);
+        return new(privateBytes, process.WorkingSet64, GC.GetGCMemoryInfo().TotalCommittedBytes);
     }
 
     /// <summary>
@@ -195,24 +129,18 @@ internal readonly record struct ProcessMemorySnapshot(
     /// </summary>
     private static long? TryGetLinuxPrivateBytes()
     {
-        try
+        long? rssAnonKilobytes = null;
+        long swapKilobytes = 0;
+        foreach (var line in File.ReadLines("/proc/self/status"))
         {
-            long? rssAnonKilobytes = null;
-            long swapKilobytes = 0;
-            foreach (var line in File.ReadLines("/proc/self/status"))
-            {
-                if (TryParseProcStatusKilobytes(line, "RssAnon:", out var kilobytes))
-                    rssAnonKilobytes = kilobytes;
-                else if (TryParseProcStatusKilobytes(line, "VmSwap:", out kilobytes))
-                    swapKilobytes = kilobytes;
-            }
+            if (TryParseProcStatusKilobytes(line, "RssAnon:", out var kilobytes))
+                rssAnonKilobytes = kilobytes;
+            else if (TryParseProcStatusKilobytes(line, "VmSwap:", out kilobytes))
+                swapKilobytes = kilobytes;
+        }
 
-            return rssAnonKilobytes is { } rssAnon ? (rssAnon + swapKilobytes) * 1024 : null;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            return null;
-        }
+        // RssAnon requires Linux 4.5 or later.
+        return rssAnonKilobytes is { } rssAnon ? (rssAnon + swapKilobytes) * 1024 : null;
     }
 
     /// <summary>
@@ -236,18 +164,9 @@ internal readonly record struct ProcessMemorySnapshot(
     /// example in Activity Monitor). It includes compressed and swapped memory and excludes shared file-backed pages.
     /// </summary>
     private static long? TryGetMacOSPhysicalFootprint()
-    {
-        try
-        {
-            return proc_pid_rusage(Environment.ProcessId, RUSAGE_INFO_V0, out var usage) == 0
-                ? (long)usage.PhysFootprint
-                : null;
-        }
-        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
-        {
-            return null;
-        }
-    }
+        => proc_pid_rusage(Environment.ProcessId, RUSAGE_INFO_V0, out var usage) == 0
+            ? (long)usage.PhysFootprint
+            : null;
 
     private const int RUSAGE_INFO_V0 = 0;
 

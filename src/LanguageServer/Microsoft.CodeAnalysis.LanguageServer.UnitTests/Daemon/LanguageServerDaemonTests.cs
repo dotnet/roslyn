@@ -80,26 +80,6 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
     }
 
     [Fact]
-    public async Task Daemon_TracksActiveAndPeakConnections()
-    {
-        await using var daemon = await CreateDaemonServerAsync();
-        Assert.Equal(0, daemon.ActiveConnections);
-
-        await using (var first = await daemon.CreateClientAsync())
-        await using (var second = await daemon.CreateClientAsync())
-        {
-            Assert.Equal(2, daemon.ActiveConnections);
-            Assert.Equal(2, daemon.PeakActiveConnections);
-        }
-
-        await WaitForConditionAsync(() => daemon.ActiveConnections == 0);
-
-        await using var third = await daemon.CreateClientAsync();
-        Assert.Equal(1, daemon.ActiveConnections);
-        Assert.Equal(2, daemon.PeakActiveConnections);
-    }
-
-    [Fact]
     public async Task Daemon_EachServerHasAnIsolatedTelemetrySession()
     {
         var configuration = DefaultServerConfiguration with { IsDaemon = true, TelemetryLevel = "error" };
