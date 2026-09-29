@@ -28,9 +28,8 @@ internal static class MinimizeUtil
         Directory.CreateDirectory(duplicateDirectory);
 
         // These files are required in the test payload for downstream jobs that
-        // don't check out source. In particular, global.json is needed by the
-        // UseDotNet@2 task (useGlobalJson: true) in test jobs to
-        // install the correct SDK version.
+        // don't check out source. The SDK installation template reads sdk.version
+        // from global.json and passes that exact version to UseDotNet@2.
         var individualFiles = new[]
         {
             "global.json",
