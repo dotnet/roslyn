@@ -166,13 +166,16 @@ internal static class DelegatedCompletionHelper
             return isStartTagContext;
         }
 
-        if (atEof)
+        // At the true end of the document, only treat the position as (empty) text content when
+        // the preceding token closes a *complete* end tag (e.g., "</div>$$"). An incomplete end
+        // tag (e.g., "</di$$", missing '>') falls through to the checks below, which correctly
+        // suppress snippets since the caret is still inside markup, not past it.
+        if (atEof && token.Parent is BaseMarkupEndTagSyntax { CloseAngle.IsMissing: false } endTag)
         {
-            // We were at the true end of the document, and the preceding token isn't part of an
-            // in-progress start tag (e.g., the document ends right after a complete "</div>").
-            // This is equivalent to being in (empty) text content, so snippets are available on
-            // explicit invocation — unless we're ending a <script> or <style> block.
-            return token.Parent?.FirstAncestorOrSelf<BaseMarkupElementSyntax>() is not { } eofElement
+            // Snippets are available here unless the tag we just closed is itself nested inside
+            // a <script> or <style> block — the closed tag's own element doesn't count, since the
+            // caret is now past it, not inside it.
+            return endTag.Parent?.Parent?.FirstAncestorOrSelf<BaseMarkupElementSyntax>() is not { } eofElement
                 || !RazorSyntaxFacts.IsScriptOrStyleBlock(eofElement);
         }
 

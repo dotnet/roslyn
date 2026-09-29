@@ -445,6 +445,48 @@ public partial class CohostDocumentCompletionEndpointTest
     }
 
     [Fact]
+    public async Task HtmlSnippetsCompletion_NotAfterIncompleteEndTag_OnExplicitInvocation()
+    {
+        // Cursor is at the true end of the document, immediately after an *incomplete* end tag
+        // (missing '>'). Unlike a complete end tag, this must NOT be treated as (empty) text
+        // content — the caret is still inside markup, not past it.
+        await VerifyCompletionListAsync(
+            input: """
+                <div></di$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: [],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_InTextContentAfterScriptBlock_OnExplicitInvocation()
+    {
+        // Cursor is at the true end of the document, immediately after a complete "</script>" end
+        // tag. The caret is now past the script block (not inside it), so snippets should appear,
+        // unlike HtmlSnippetsCompletion_NotInScriptBlock where the caret is inside the block.
+        // htmlItemLabels must be supplied because the local HTML completion provider still treats
+        // this position as within the script block, causing delegation to the (mock) HTML server.
+        await VerifyCompletionListAsync(
+            input: """
+                <script></script>$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            htmlItemLabels: ["js-completion"],
+            expectedItemLabels: ["js-completion", "snippet1", "snippet2"],
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
     public async Task HtmlSnippetsCompletion_ContextFiltering_OnlyValidChildren()
     {
         // Inside <ul>, only snippets whose root element is a valid child should appear.
