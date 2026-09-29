@@ -15,6 +15,9 @@
     <!-- xunit.v3 test projects must build an executable; keep the .dll extension for VSTest discovery. -->
     <OutputType>Exe</OutputType>
     <TargetExt>.dll</TargetExt>
+
+    <!-- 4 MB, matching the stack reserve of the testhost.net47x.exe that VSTest uses for non-xunit.v3 projects. -->
+    <TestAssemblyStackReserve>4194304</TestAssemblyStackReserve>
   </PropertyGroup>
 
   <ItemGroup>
@@ -115,30 +118,16 @@
   </Target>
 
   <!--
-    xunit.v3's VSTest adapter launches .NET Framework test assemblies through an app host.
-    Roslyn test projects use a .dll target extension to satisfy test naming checks, so provide
-    a matching .exe host without changing the primary test artifact.
-  -->
-  <Target Name="CreateXunitV3AppHost"
-          AfterTargets="Build"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(TargetExt)' == '.dll' and '$(DotNetBuildSourceOnly)' != 'true'">
-    <PropertyGroup>
-      <_XunitV3AppHost>$(TargetDir)$(TargetName).exe</_XunitV3AppHost>
-      <_TargetConfigPath>$(TargetPath).config</_TargetConfigPath>
-      <_XunitV3AppHostConfig>$(_XunitV3AppHost).config</_XunitV3AppHostConfig>
-    </PropertyGroup>
-
-    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(_XunitV3AppHost)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(_TargetConfigPath)" DestinationFiles="$(_XunitV3AppHostConfig)" SkipUnchangedFiles="true" Condition="Exists('$(_TargetConfigPath)')" />
-  </Target>
-
-  <!--
     .NET Framework test assemblies are executables whose own PE header determines the default
     stack size of every thread in the test process, including the thread pool threads that
     xunit.v3 runs tests on. csc always emits a 1 MB stack reserve, which deep-recursion compiler
-    tests overflow in Debug builds. Raise it to 4 MB to match the testhost.net47x.exe that
-    previously hosted these tests. The intermediate assembly is patched so every copy of it
-    (bin output and the .exe app host) carries the same value.
+    tests overflow in Debug builds. Raising it to 4 MB matches the testhost.net47x.exe that
+    previously hosted these tests.
+
+    Only the copies in the output directory are patched. The intermediate assembly is left exactly
+    as csc emitted it, so rebuild validation (eng/test-rebuild.ps1) can still reproduce it from
+    source. The last write time is restored after patching so the incremental copies that produce
+    these files keep skipping them and downstream targets see no spurious change.
   -->
   <UsingTask TaskName="SetPEStackReserve"
              TaskFactory="RoslynCodeTaskFactory"
@@ -150,6 +139,8 @@
     <Task>
       <Using Namespace="System.IO" />
       <Code Type="Fragment" Language="cs"><![CDATA[
+        var originalLastWriteTimeUtc = File.GetLastWriteTimeUtc(FilePath);
+
         using (var stream = new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite))
         using (var reader = new BinaryReader(stream))
         using (var writer = new BinaryWriter(stream))
@@ -194,13 +185,35 @@
                 return false;
             }
         }
+
+        File.SetLastWriteTimeUtc(FilePath, originalLastWriteTimeUtc);
 ]]></Code>
     </Task>
   </UsingTask>
 
+  <!--
+    xunit.v3's VSTest adapter launches .NET Framework test assemblies through an app host.
+    Roslyn test projects use a .dll target extension to satisfy test naming checks, so provide
+    a matching .exe host without changing the primary test artifact.
+  -->
+  <Target Name="CreateXunitV3AppHost"
+          AfterTargets="Build"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(TargetExt)' == '.dll' and '$(DotNetBuildSourceOnly)' != 'true'">
+    <PropertyGroup>
+      <_XunitV3AppHost>$(TargetDir)$(TargetName).exe</_XunitV3AppHost>
+      <_TargetConfigPath>$(TargetPath).config</_TargetConfigPath>
+      <_XunitV3AppHostConfig>$(_XunitV3AppHost).config</_XunitV3AppHostConfig>
+    </PropertyGroup>
+
+    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(_XunitV3AppHost)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="$(_TargetConfigPath)" DestinationFiles="$(_XunitV3AppHostConfig)" SkipUnchangedFiles="true" Condition="Exists('$(_TargetConfigPath)')" />
+
+    <SetPEStackReserve FilePath="$(_XunitV3AppHost)" StackReserve="$(TestAssemblyStackReserve)" Condition="Exists('$(_XunitV3AppHost)')" />
+  </Target>
+
   <Target Name="SetTestAssemblyStackReserve"
-          AfterTargets="CoreCompile"
+          AfterTargets="CopyFilesToOutputDirectory"
           Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(DotNetBuildSourceOnly)' != 'true'">
-    <SetPEStackReserve FilePath="@(IntermediateAssembly->'%(FullPath)')" StackReserve="4194304" Condition="Exists('@(IntermediateAssembly->'%(FullPath)')')" />
+    <SetPEStackReserve FilePath="$(TargetPath)" StackReserve="$(TestAssemblyStackReserve)" Condition="Exists('$(TargetPath)')" />
   </Target>
 </Project>
