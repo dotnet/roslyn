@@ -2,6 +2,9 @@ parameters:
 - name: configuration
   type: string
   default: 'Debug'
+- name: cacheArtifactName
+  type: string
+  default: ''
 
 steps:
   - task: PowerShell@2
@@ -51,3 +54,17 @@ steps:
         exit 0
     continueOnError: true
     condition: succeededOrFailed()
+
+  - pwsh: |
+      if (Test-Path "$(ROSLYN_CACHE_PATH)") {
+        Write-Host "##vso[task.setvariable variable=ROSLYN_CACHE_EXISTS]true"
+      }
+    displayName: Check Compiler Cache Exists
+    condition: and(ne('${{ parameters.cacheArtifactName }}', ''), succeeded())
+
+  - task: PublishPipelineArtifact@1
+    displayName: Publish Compiler Cache
+    inputs:
+      targetPath: '$(ROSLYN_CACHE_PATH)'
+      artifactName: ${{ parameters.cacheArtifactName }}
+    condition: and(ne('${{ parameters.cacheArtifactName }}', ''), succeeded(), eq(variables['ROSLYN_CACHE_EXISTS'], 'true'))

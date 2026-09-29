@@ -1,0 +1,4 @@
+steps:
+  - script: |
+      dotnet build ./eng/enable-compiler-cache.cs
+    displayName: Build file-based apps
