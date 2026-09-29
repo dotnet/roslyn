@@ -10,13 +10,15 @@ namespace Microsoft.CodeAnalysis.Razor.Completion.Delegation;
 
 public class DelegatedCompletionHelperTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
-    [Fact]
-    public void ShouldIncludeSnippets_InTextContentAfterCompleteEndTag_ReturnsTrue()
+    [Theory]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public void ShouldIncludeSnippets_InTextContentAfterCompleteEndTag_ReturnsTrue(RazorFileKind fileKind)
     {
         // The caret is at the true end of the document, immediately after a complete "</div>".
         // This is equivalent to being in (empty) text content, so snippets should be offered.
         TestCode code = "<div></div>$$";
-        var codeDocument = CreateCodeDocument(code);
+        var codeDocument = CreateCodeDocument(code, fileKind);
 
         var result = DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, code.Position, out var isStartTagContext);
 
@@ -24,14 +26,16 @@ public class DelegatedCompletionHelperTest(ITestOutputHelper testOutput) : Tooli
         Assert.False(isStartTagContext);
     }
 
-    [Fact]
-    public void ShouldIncludeSnippets_AfterIncompleteEndTag_ReturnsFalse()
+    [Theory]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public void ShouldIncludeSnippets_AfterIncompleteEndTag_ReturnsFalse(RazorFileKind fileKind)
     {
         // The caret is at the true end of the document, immediately after an *incomplete* end tag
         // (missing '>'). Unlike a complete end tag, the caret is still inside markup, not past it,
         // so snippets must not be offered.
         TestCode code = "<div></di$$";
-        var codeDocument = CreateCodeDocument(code);
+        var codeDocument = CreateCodeDocument(code, fileKind);
 
         var result = DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, code.Position, out var isStartTagContext);
 
@@ -39,13 +43,15 @@ public class DelegatedCompletionHelperTest(ITestOutputHelper testOutput) : Tooli
         Assert.False(isStartTagContext);
     }
 
-    [Fact]
-    public void ShouldIncludeSnippets_InTextContentAfterCompleteScriptBlock_ReturnsTrue()
+    [Theory]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public void ShouldIncludeSnippets_InTextContentAfterCompleteScriptBlock_ReturnsTrue(RazorFileKind fileKind)
     {
         // The caret is at the true end of the document, immediately after a complete "</script>".
         // The caret is past the script block (not inside it), so snippets should be offered.
         TestCode code = "<script></script>$$";
-        var codeDocument = CreateCodeDocument(code);
+        var codeDocument = CreateCodeDocument(code, fileKind);
 
         var result = DelegatedCompletionHelper.ShouldIncludeSnippets(codeDocument, code.Position, out var isStartTagContext);
 
@@ -139,7 +145,7 @@ public class DelegatedCompletionHelperTest(ITestOutputHelper testOutput) : Tooli
         Assert.False(isStartTagContext);
     }
 
-    private static RazorCodeDocument CreateCodeDocument(TestCode code)
+    private static RazorCodeDocument CreateCodeDocument(TestCode code, RazorFileKind fileKind = RazorFileKind.Component)
     {
         var sourceDocument = TestRazorSourceDocument.Create(code.Text);
         var projectEngine = RazorProjectEngine.Create(builder =>
@@ -150,6 +156,6 @@ public class DelegatedCompletionHelperTest(ITestOutputHelper testOutput) : Tooli
             });
         });
 
-        return projectEngine.Process(sourceDocument, RazorFileKind.Legacy, importSources: default, tagHelpers: []);
+        return projectEngine.Process(sourceDocument, fileKind, importSources: default, tagHelpers: []);
     }
 }
