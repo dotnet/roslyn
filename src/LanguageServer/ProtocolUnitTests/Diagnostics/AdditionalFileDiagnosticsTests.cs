@@ -54,7 +54,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         var additionalDocument = testLspServer.GetCurrentSolution().Projects.Single().AdditionalDocuments.Single();
         await testLspServer.OpenDocumentAsync(additionalDocument.GetURI());
 
-        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, additionalDocument.GetURI(), useVSDiagnostics, category: TestAdditionalFileDocumentSourceProvider.DiagnosticSourceProviderName);
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, additionalDocument.GetURI(), category: TestAdditionalFileDocumentSourceProvider.DiagnosticSourceProviderName);
         Assert.NotEmpty(results);
         AssertEx.Equal(
         [
@@ -82,7 +82,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         AssertEx.Equal(
         [
             @$"{ProtocolConversions.CreateAbsoluteDocumentUri(csFilePath)}: []",
@@ -91,7 +91,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         ], results.Select(r => $"{r.Uri}: [{string.Join(", ", r.Diagnostics!.Select(d => d.Code?.Value?.ToString()))}]"));
 
         // Asking again should give us back an unchanged diagnostic.
-        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
         Assert.Empty(results2);
     }
 
@@ -115,7 +115,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(3, results.Length);
 
         AssertEx.Empty(results[0].Diagnostics);
@@ -127,11 +127,11 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         var newSolution = initialSolution.RemoveAdditionalDocument(initialSolution.Projects.Single().AdditionalDocumentIds.Single());
         await testLspServer.TestWorkspace.ChangeSolutionAsync(newSolution);
 
-        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
         // We should get a single report for the removed additional file, the rest are unchanged and do not report.
         Assert.Equal(1, results2.Length);
-        Assert.Equal(useVSDiagnostics ? null : [], results2[0].Diagnostics);
+        Assert.Empty(results2[0].Diagnostics!);
         Assert.Null(results2[0].ResultId);
     }
 
@@ -160,7 +160,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
 
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics: true);
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         Assert.Equal(6, results.Length);
 
         Assert.Equal(MockAdditionalFileDiagnosticAnalyzer.Id, results[1].Diagnostics!.Single().Code);
@@ -171,7 +171,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
         Assert.Equal("CSProj2", ((LSP.VSDiagnostic)results[4].Diagnostics!.Single()).Projects!.First().ProjectName);
 
         // Asking again should give us back an unchanged diagnostic.
-        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: true, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
+        var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
         AssertEx.Empty(results2);
     }
 
@@ -206,7 +206,7 @@ public sealed class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTests
             new TestGeneratorReference(generator));
         await testLspServer.WaitForSourceGeneratorsAsync();
 
-        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer);
         AssertEx.Equal(
         [
             @$"{ProtocolConversions.CreateAbsoluteDocumentUri(csFilePath)}: []",

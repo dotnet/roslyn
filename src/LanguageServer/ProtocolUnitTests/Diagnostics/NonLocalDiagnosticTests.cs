@@ -40,7 +40,7 @@ public sealed class NonLocalDiagnosticTests : AbstractPullDiagnosticTestsBase
         // and not reported here.
         await OpenDocumentAsync(testLspServer, document);
 
-        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
         if (fsaEnabled)
         {
             Assert.Equal(1, results.Length);
@@ -51,7 +51,7 @@ public sealed class NonLocalDiagnosticTests : AbstractPullDiagnosticTestsBase
             Assert.Equal(document.GetURI(), results[0].Uri);
 
             // Asking again should give us back unchanged diagnostics.
-            var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, previousResultId: results.Single().ResultId, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
+            var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), previousResultId: results.Single().ResultId, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
             Assert.Null(results2[0].Diagnostics);
             Assert.Equal(results[0].ResultId, results2[0].ResultId);
         }
@@ -60,7 +60,7 @@ public sealed class NonLocalDiagnosticTests : AbstractPullDiagnosticTestsBase
             Assert.Empty(results.Single().Diagnostics!);
 
             // Asking again should give us back unchanged diagnostics.
-            var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
+            var results2 = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), category: PublicDocumentNonLocalDiagnosticSourceProvider.NonLocal);
             Assert.Empty(results.Single().Diagnostics!);
         }
     }

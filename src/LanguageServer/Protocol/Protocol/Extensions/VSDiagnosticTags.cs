@@ -20,16 +20,6 @@ internal static class VSDiagnosticTags
     public const DiagnosticTag IntellisenseError = (DiagnosticTag)(int.MaxValue - 2);
 
     /// <summary>
-    /// A <see cref="Diagnostic"/> entry that could be generated from both builds
-    /// and Intellisense.
-    ///
-    /// <see cref="Diagnostic"/> entries tagged with <see cref="PotentialDuplicate"/> will be hidden
-    /// in the error list if the error list is displaying build and intellisense
-    /// errors.
-    /// </summary>
-    public const DiagnosticTag PotentialDuplicate = (DiagnosticTag)(int.MaxValue - 3);
-
-    /// <summary>
     /// A <see cref="Diagnostic"/> entry is never displayed in the error list.
     /// </summary>
     public const DiagnosticTag HiddenInErrorList = (DiagnosticTag)(int.MaxValue - 4);
