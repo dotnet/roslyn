@@ -108,7 +108,9 @@ through project references into non-test consumers such as benchmark projects.
 `TestDiscoveryWorker` references `xunit.v3.runner.utility` 4.0.0 for
 version-independent discovery. That official v3 runner package has a transitive
 `xunit.abstractions` 2.0.3 compatibility dependency so it can inspect v1/v2
-assemblies; it is not a test-framework-v2 consumer.
+assemblies; it is not a test-framework-v2 consumer. The worker uses the default
+out-of-process front controller, so the discovered test assembly and its
+dependencies load in the test process rather than in the worker.
 
 VS integration projects keep `IsTestProject=true` so `XUnit.targets` supplies
 their xUnit v3 package references and VSTest discovery works; see
