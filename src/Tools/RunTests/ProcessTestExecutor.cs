@@ -156,7 +156,7 @@ namespace RunTests
                     var processes = new List<Process> { dotnetProcessInfo.Process };
                     try
                     {
-                        WriteSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
+                        writeSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
                         processes.AddRange(ProcessUtil.GetChildProcesses(dotnetProcessInfo.Process));
                         await DumpCollector.CollectAsync(processes, options, workItemDirectory).ConfigureAwait(false);
                     }
@@ -231,7 +231,7 @@ namespace RunTests
                 {
                     if (timeoutMessage is null && !ContainsFailedTest(resultsFilePath))
                     {
-                        WriteSyntheticFailure(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName,
+                        writeSyntheticFailure(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName,
                             $"Test runner exited with code {exitCode} without a failed test result.{Environment.NewLine}{errorOutput}");
                     }
 
@@ -266,6 +266,26 @@ namespace RunTests
                     Directory.CreateDirectory(dirPath);
                     return dirPath;
                 }
+
+                static void writeSyntheticFailure(string resultsFilePath, string displayName, string message)
+                {
+                    var escapedDisplayName = SecurityElement.Escape(displayName);
+                    var xml = $"""
+                        <?xml version="1.0" encoding="utf-8"?>
+                        <assemblies>
+                          <assembly name="{escapedDisplayName}" total="1" passed="0" failed="1" skipped="0">
+                            <collection name="RunTests" total="1" passed="0" failed="1" skipped="0">
+                              <test name="{escapedDisplayName}" type="RunTests.WorkItem" method="Execute" time="0" result="Fail">
+                                <failure exception-type="WorkItemFailure">
+                                  <message>{SecurityElement.Escape(message)}</message>
+                                </failure>
+                              </test>
+                            </collection>
+                          </assembly>
+                        </assemblies>
+                        """;
+                    File.WriteAllText(GetSyntheticFailurePath(resultsFilePath), xml);
+                }
             }
             catch (Exception ex)
             {
@@ -297,26 +317,6 @@ namespace RunTests
             }
 
             return false;
-        }
-
-        private static void WriteSyntheticFailure(string resultsFilePath, string displayName, string message)
-        {
-            var escapedDisplayName = SecurityElement.Escape(displayName);
-            var xml = $"""
-                <?xml version="1.0" encoding="utf-8"?>
-                <assemblies>
-                  <assembly name="{escapedDisplayName}" total="1" passed="0" failed="1" skipped="0">
-                    <collection name="RunTests" total="1" passed="0" failed="1" skipped="0">
-                      <test name="{escapedDisplayName}" type="RunTests.WorkItem" method="Execute" time="0" result="Fail">
-                        <failure exception-type="WorkItemFailure">
-                          <message>{SecurityElement.Escape(message)}</message>
-                        </failure>
-                      </test>
-                    </collection>
-                  </assembly>
-                </assemblies>
-                """;
-            File.WriteAllText(GetSyntheticFailurePath(resultsFilePath), xml);
         }
 
         /// <summary>
