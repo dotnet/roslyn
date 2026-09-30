@@ -111,8 +111,8 @@ version-independent discovery. That official v3 runner package has a transitive
 `xunit.abstractions` 2.0.3 compatibility dependency so it can inspect v1/v2
 assemblies; it is not a test-framework-v2 consumer.
 
-Some VS integration projects manage their xUnit v3 package references
-explicitly with `IsTestProject=false`; see
+VS integration projects keep `IsTestProject=true` so `XUnit.targets` supplies
+their xUnit v3 package references and VSTest discovery works; see
 `testing/vs-integration-tests-xunit-v3.md`.
 
 ### Shared test-infrastructure projects
