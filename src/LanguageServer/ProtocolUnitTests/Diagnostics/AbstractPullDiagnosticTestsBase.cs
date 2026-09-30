@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.UseImplicitObjectCreation;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.TaskList;
@@ -77,7 +76,7 @@ public abstract class AbstractPullDiagnosticTestsBase(ITestOutputHelper testOutp
         if (triggerConnectionClose)
         {
             // Workspace diagnostics wait for a change before closing the connection so we manually tell it to close here to let the test finish.
-            var service = testLspServer.GetRequiredLspService<PublicWorkspacePullDiagnosticsHandler>();
+            var service = testLspServer.GetRequiredLspService<WorkspacePullDiagnosticsHandler>();
             service.GetTestAccessor().TriggerConnectionClose();
         }
 

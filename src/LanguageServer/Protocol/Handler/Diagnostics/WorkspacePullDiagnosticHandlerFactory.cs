@@ -9,12 +9,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(PublicWorkspacePullDiagnosticsHandler)), Shared]
+[ExportCSharpVisualBasicLspServiceFactory(typeof(WorkspacePullDiagnosticsHandler)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class PublicWorkspacePullDiagnosticHandlerFactory(
+internal class WorkspacePullDiagnosticHandlerFactory(
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions) : ILspServiceFactory
@@ -23,6 +23,6 @@ internal class PublicWorkspacePullDiagnosticHandlerFactory(
     {
         var workspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
         var registrationService = lspServices.GetRequiredService<LspWorkspaceRegistrationService>();
-        return new PublicWorkspacePullDiagnosticsHandler(workspaceManager, registrationService, diagnosticSourceManager, diagnosticsRefresher, globalOptions);
+        return new WorkspacePullDiagnosticsHandler(workspaceManager, registrationService, diagnosticSourceManager, diagnosticsRefresher, globalOptions);
     }
 }

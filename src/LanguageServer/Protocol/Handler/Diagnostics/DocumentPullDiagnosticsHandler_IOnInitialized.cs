@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 // A document diagnostic partial report is defined as having the first literal send = DocumentDiagnosticReport (aka changed / unchanged) followed
 // by n DocumentDiagnosticPartialResult literals.
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
 
-internal sealed partial class PublicDocumentPullDiagnosticsHandler : IOnInitialized
+internal sealed partial class DocumentPullDiagnosticsHandler : IOnInitialized
 {
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {

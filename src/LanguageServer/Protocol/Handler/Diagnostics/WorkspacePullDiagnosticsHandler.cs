@@ -5,14 +5,13 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 // A document diagnostic partial report is defined as having the first literal send = WorkspaceDiagnosticReport followed
 // by n WorkspaceDiagnosticReportPartialResult literals.
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using WorkspaceDiagnosticPartialReport = SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>;
 
 [Method(Methods.WorkspaceDiagnosticName)]
-internal sealed partial class PublicWorkspacePullDiagnosticsHandler(
+internal sealed partial class WorkspacePullDiagnosticsHandler(
     LspWorkspaceManager workspaceManager,
     LspWorkspaceRegistrationService registrationService,
     IDiagnosticSourceManager diagnosticSourceManager,
@@ -32,7 +31,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler(
     protected override string? GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;
 
-    protected override WorkspaceDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+    protected override WorkspaceDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId, ClientCapabilities clientCapabilities)
         => new(new WorkspaceDiagnosticReport
         {
             Items =
@@ -40,7 +39,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler(
                 new WorkspaceFullDocumentDiagnosticReport
                 {
                     Uri = identifier.DocumentUri,
-                    ProjectContext = (identifier as VSTextDocumentIdentifier)?.ProjectContext,
+                    ProjectContext = clientCapabilities.HasVisualStudioLspCapability() ? (identifier as VSTextDocumentIdentifier)?.ProjectContext : null,
                     Items = diagnostics,
                     // The documents provided by workspace reports are never open, so we return null.
                     Version = null,
@@ -49,7 +48,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler(
             ]
         });
 
-    protected override WorkspaceDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier)
+    protected override WorkspaceDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier, ClientCapabilities clientCapabilities)
         => new(new WorkspaceDiagnosticReport
         {
             Items =
@@ -57,7 +56,7 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler(
                 new WorkspaceFullDocumentDiagnosticReport
                 {
                     Uri = identifier.DocumentUri,
-                    ProjectContext = (identifier as VSTextDocumentIdentifier)?.ProjectContext,
+                    ProjectContext = clientCapabilities.HasVisualStudioLspCapability() ? (identifier as VSTextDocumentIdentifier)?.ProjectContext : null,
                     Items = [],
                     // The documents provided by workspace reports are never open, so we return null.
                     Version = null,
