@@ -103,12 +103,12 @@ namespace Roslyn.Test.Utilities
         }
 
         public ConditionalFactAttribute(
-            Type[] skipCondition,
+            Type[] skipConditions,
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
             [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
             : base(sourceFilePath, sourceLineNumber)
         {
-            Initialize(skipCondition);
+            Initialize(skipConditions);
         }
 
         public ConditionalFactAttribute(
@@ -190,12 +190,12 @@ namespace Roslyn.Test.Utilities
         }
 
         public ConditionalTheoryAttribute(
-            Type[] skipCondition,
+            Type[] skipConditions,
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
             [System.Runtime.CompilerServices.CallerLineNumber] int sourceLineNumber = -1)
             : base(sourceFilePath, sourceLineNumber)
         {
-            Initialize(skipCondition);
+            Initialize(skipConditions);
         }
 
         public ConditionalTheoryAttribute(

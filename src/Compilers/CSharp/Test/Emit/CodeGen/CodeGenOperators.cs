@@ -5413,7 +5413,7 @@ class Test
             ControlFlowGraph.Create((IMethodBodyOperation)model.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Calculate").Single()));
         }
 
-        [ConditionalFact(skipCondition: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
@@ -5474,7 +5474,7 @@ class Test
             return builder.ToString();
         }
 
-        [ConditionalFact(skipCondition: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_04()
         {
@@ -5561,7 +5561,7 @@ class Test
 5180801");
         }
 
-        [ConditionalFact(skipCondition: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428", AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46361")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428", AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46361")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_06()
         {
@@ -5638,7 +5638,7 @@ struct S1
             return builder.ToString();
         }
 
-        [ConditionalFact(skipCondition: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
         [ValidatePooledObjects(LeakReason = "Deep binary expression tree overflows stack guard, leaking ArrayBuilder")]
         public void EmitSequenceOfBinaryExpressions_07()
@@ -5713,7 +5713,7 @@ struct S1
             Assert.True(passed);
         }
 
-        [ConditionalFact(skipCondition: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
         public void EmitSequenceOfBinaryExpressions_08()
         {
