@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Management;
 using System.Runtime.Versioning;
@@ -16,6 +17,26 @@ namespace RunTests
         private static readonly object s_snapshotGate = new();
         private static Dictionary<int, int> s_parentProcessIds = new();
         private static long s_snapshotTimestamp;
+
+        internal static long GetProcessStartIdentity(Process process)
+        {
+            if (OperatingSystem.IsLinux())
+            {
+                // Process.StartTime on Linux uses a boot-time estimate cached independently in
+                // each caller. Use kernel clock ticks so identities match across dump helpers.
+                var fields = ReadLinuxProcessStat(process.Id);
+                return long.Parse(fields[19], CultureInfo.InvariantCulture);
+            }
+
+            return process.StartTime.ToUniversalTime().Ticks;
+        }
+
+        private static string[] ReadLinuxProcessStat(int pid)
+        {
+            var stat = File.ReadAllText($"/proc/{pid}/stat");
+            // The comm field may itself contain spaces and parentheses.
+            return stat.Substring(stat.LastIndexOf(')') + 2).Split(' ');
+        }
 
         internal static void KillTree(Process process)
         {
@@ -69,9 +90,7 @@ namespace RunTests
 
                     try
                     {
-                        var stat = File.ReadAllText(Path.Combine(directory, "stat"));
-                        // The comm field may itself contain spaces and parentheses.
-                        var fields = stat.Substring(stat.LastIndexOf(')') + 2).Split(' ');
+                        var fields = ReadLinuxProcessStat(pid);
                         result[pid] = int.Parse(fields[1]);
                     }
                     catch (IOException) { }

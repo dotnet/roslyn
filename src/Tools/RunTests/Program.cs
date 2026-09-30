@@ -46,6 +46,8 @@ namespace RunTests
                 return await HelixTestRunner.RunAsync(options, assemblyFilePaths);
             }
 
+            Directory.CreateDirectory(options.LogFilesDirectory);
+
             if (options.CollectDumps && OperatingSystem.IsWindows())
             {
                 if (!DumpUtil.IsAdministrator())

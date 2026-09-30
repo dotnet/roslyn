@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -25,11 +26,17 @@ namespace RunTests
             try
             {
                 if (args.Length != 4)
+                {
+                    Console.Error.WriteLine("Dump helper requires a PID, process start identity, and output path.");
                     return Program.ExitFailure;
+                }
 
-                using var process = Process.GetProcessById(int.Parse(args[1]));
-                if (process.StartTime.ToUniversalTime().Ticks != long.Parse(args[2]))
+                using var process = Process.GetProcessById(int.Parse(args[1], CultureInfo.InvariantCulture));
+                if (ProcessUtil.GetProcessStartIdentity(process) != long.Parse(args[2], CultureInfo.InvariantCulture))
+                {
+                    Console.Error.WriteLine($"Process {process.Id} no longer matches the requested dump target.");
                     return Program.ExitFailure;
+                }
 
                 return TryDumpProcess(process, args[3]) ? Program.ExitSuccess : Program.ExitFailure;
             }
@@ -85,8 +92,8 @@ namespace RunTests
                     };
                     startInfo.ArgumentList.Add(typeof(Program).Assembly.Location);
                     startInfo.ArgumentList.Add("--dump-process");
-                    startInfo.ArgumentList.Add(process.Id.ToString());
-                    startInfo.ArgumentList.Add(process.StartTime.ToUniversalTime().Ticks.ToString());
+                    startInfo.ArgumentList.Add(process.Id.ToString(CultureInfo.InvariantCulture));
+                    startInfo.ArgumentList.Add(ProcessUtil.GetProcessStartIdentity(process).ToString(CultureInfo.InvariantCulture));
                     startInfo.ArgumentList.Add(path);
                     ConsoleUtil.WriteLine($"Dumping owned process {process.Id} to {dumpPath}");
                     var helper = ProcessRunner.CreateProcess(startInfo, cancellationToken: budget.Token);
