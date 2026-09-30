@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Concurrent;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer.Handler.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -78,7 +79,7 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
         var debugTwo = "DebugTwo";
         var infoTwo = "InfoTwo";
         var logEnd = "LogEnd";
-        var logMessages = new List<string>();
+        var logMessages = new ConcurrentBag<string>();
         await using (var server = await CreateLanguageServerAsync())
         {
             // Completing this from an event callback must not run test cleanup inline on that callback thread.
@@ -86,10 +87,7 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
 
             server.LogMessageReceived += logMessage =>
             {
-                lock (logMessages)
-                {
-                    logMessages.Add(logMessage.Message);
-                }
+                logMessages.Add(logMessage.Message);
 
                 if (logMessage.Message.Contains(logEnd, StringComparison.Ordinal))
                 {
@@ -116,11 +114,7 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
 
         // Disposing the client does not wait for in-flight window/logMessage handlers (e.g. for messages logged
         // during shutdown), so they may still be adding to the list; assert against a snapshot.
-        string[] logMessagesSnapshot;
-        lock (logMessages)
-        {
-            logMessagesSnapshot = [.. logMessages];
-        }
+        var logMessagesSnapshot = logMessages.ToArray();
 
         Assert.Contains(debugOne, logMessagesSnapshot);
         Assert.Contains(infoOne, logMessagesSnapshot);
