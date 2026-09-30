@@ -26,7 +26,16 @@ internal sealed class LanguageServerConnectionManager
     /// <summary>
     /// The number of servers currently registered (starting or running).
     /// </summary>
-    public int ActiveConnections => _servers.Length;
+    public int ActiveConnections
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _servers.Length;
+            }
+        }
+    }
 
     /// <summary>
     /// Runs an independent language server for each connection yielded by <paramref name="connectionSource"/>.
