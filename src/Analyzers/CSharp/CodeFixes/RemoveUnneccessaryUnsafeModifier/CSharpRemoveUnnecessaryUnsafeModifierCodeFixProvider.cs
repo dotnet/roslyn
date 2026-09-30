@@ -87,7 +87,7 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
             if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationComment &&
                 documentationComment.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
             {
-                // Add the safety element to the existing multiline documentation comment.
+                // Insert the safety element into the existing /** */ comment before its closing delimiter.
                 return node.WithLeadingTrivia(leadingTrivia.Replace(trivia, AddSafetyElementToExistingDocComment(trivia, newLine)));
             }
         }
