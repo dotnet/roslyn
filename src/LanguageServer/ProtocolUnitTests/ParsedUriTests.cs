@@ -30,12 +30,12 @@ public sealed class ParsedUriTests
     public void File_Cases(UriCase testCase)
         => AssertCase(ParsedUri.File(testCase.Input), testCase);
 
-    [ConditionalTheory(skipConditions: typeof(WindowsOnly))]
+    [ConditionalTheory(skipCondition: typeof(WindowsOnly))]
     [MemberData(nameof(FileWindowsCases))]
     public void File_Windows_Cases(UriCase testCase)
         => AssertCase(ParsedUri.File(testCase.Input), testCase);
 
-    [ConditionalTheory(skipConditions: typeof(UnixLikeOnly))]
+    [ConditionalTheory(skipCondition: typeof(UnixLikeOnly))]
     [MemberData(nameof(FileUnixLikeCases))]
     public void File_UnixLike_Cases(UriCase testCase)
         => AssertCase(ParsedUri.File(testCase.Input), testCase);
