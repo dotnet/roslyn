@@ -107,7 +107,14 @@ namespace RunTests
                     ConsoleUtil.Warning($"Dump collection failed: {ex.Message}");
                     if (path is not null)
                     {
-                        try { File.Delete(path); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+                        try
+                        {
+                            File.Delete(path);
+                        }
+                        catch (Exception cleanupException)
+                        {
+                            ConsoleUtil.Warning($"Failed to delete partial dump '{path}': {cleanupException.Message}");
+                        }
                     }
                 }
             }
