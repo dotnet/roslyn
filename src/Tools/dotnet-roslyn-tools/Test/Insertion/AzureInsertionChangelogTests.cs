@@ -37,7 +37,7 @@ public class AzureInsertionChangelogTests
 
         Assert.Equal(["head", "snap-pr", "config", "snap"], changes.Select(commit => commit.CommitId));
         Assert.Equal(RepoUrl + "/branchCompare?baseVersion=GCbase&targetVersion=GChead", diffLink);
-        Assert.Equal(["snap-pr", "discarded", "config", "snap", "base"], client.TreeLookups);
+        Assert.Equal(["base"], client.TreeLookups);
     }
 
     [Fact]
@@ -59,6 +59,7 @@ public class AzureInsertionChangelogTests
         var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "snap");
 
         Assert.Equal(["snap", "target", "source"], changes.Select(commit => commit.CommitId));
+        Assert.Empty(client.TreeLookups);
     }
 
     [Fact]
@@ -233,6 +234,86 @@ public class AzureInsertionChangelogTests
         var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "merge");
 
         Assert.Equal(["merge", "target"], changes.Select(commit => commit.CommitId));
+        Assert.Empty(client.TreeLookups);
+    }
+
+    [Fact]
+    public async Task SharedOutOfRangeParentTreeIsFetchedOnlyOnce()
+    {
+        var commits = new[]
+        {
+            Commit("head", "Combine histories (#5)", "left", "right"),
+            Commit("left", "Replace left content (#3)", "old-left", "base"),
+            Commit("right", "Replace right content (#4)", "old-right", "base"),
+            Commit("old-left", "Old left update (#1)", "base"),
+            Commit("old-right", "Old right update (#2)", "base"),
+        };
+        using var client = new Client(commits, new Dictionary<string, string>
+        {
+            ["left"] = "base-tree",
+            ["right"] = "base-tree",
+            ["base"] = "base-tree",
+        });
+
+        var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "head");
+
+        Assert.Equal(["head", "left", "right"], changes.Select(commit => commit.CommitId));
+        Assert.Equal(["base"], client.TreeLookups);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task MissingCommitTreeIsReported(string? treeId)
+    {
+        var head = Commit("head", "Update (#1)", "base");
+        head.TreeId = treeId;
+        using var client = new Client([head], new Dictionary<string, string>());
+
+        var error = await Assert.ThrowsAsync<InvalidDataException>(() =>
+            RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "head"));
+
+        Assert.Contains("'head'", error.Message);
+        Assert.Empty(client.TreeLookups);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData(" ")]
+    public async Task MissingOutOfRangeParentTreeIsReported(string? treeId)
+    {
+        using var client = new Client(
+            [Commit("merge", "Merge (#3)", "target", "source")],
+            new Dictionary<string, string> { ["target"] = "unused-tree" })
+        {
+            BeforeTreeLookup = _ => new GitItem { GitObjectType = GitObjectType.Tree, ObjectId = treeId },
+        };
+
+        var error = await Assert.ThrowsAsync<InvalidDataException>(() =>
+            RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "merge"));
+
+        Assert.Contains("'target'", error.Message);
+        Assert.Equal(["target"], client.TreeLookups);
+    }
+
+    [Fact]
+    public async Task OutOfRangeParentTreeFailureIsPropagated()
+    {
+        var failure = new IOException("Tree lookup failed.");
+        using var client = new Client(
+            [Commit("merge", "Merge (#3)", "target", "source")],
+            new Dictionary<string, string>())
+        {
+            BeforeTreeLookup = _ => throw failure,
+        };
+
+        var actualFailure = await Assert.ThrowsAsync<IOException>(() =>
+            RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "merge"));
+
+        Assert.Same(failure, actualFailure);
+        Assert.Equal(["target"], client.TreeLookups);
     }
 
     [Fact]
@@ -240,7 +321,7 @@ public class AzureInsertionChangelogTests
     {
         using var client = new Client(
             [Commit("merge", "Merge (#3)", "target", "source")],
-            new Dictionary<string, string> { ["merge"] = "object-id" })
+            new Dictionary<string, string> { ["target"] = "object-id" })
         {
             RootType = GitObjectType.Blob,
         };
@@ -256,6 +337,7 @@ public class AzureInsertionChangelogTests
         return new GitCommit
         {
             CommitId = id,
+            TreeId = $"tree-{id}",
             Comment = message,
             Author = new GitUserDate { Name = "Contributor" },
             Committer = new GitUserDate { Name = "GitHub" },
@@ -275,6 +357,7 @@ public class AzureInsertionChangelogTests
         public List<string> TreeLookups { get; } = [];
         public GitObjectType RootType { get; init; } = GitObjectType.Tree;
         public Func<string, CancellationToken, Task>? BeforeCommitDetailsAsync { get; init; }
+        public Func<string, GitItem>? BeforeTreeLookup { get; init; }
 
         public Client(IReadOnlyList<GitCommit> commits, IReadOnlyDictionary<string, string> trees)
             : base(new Uri("https://dev.azure.com/example"), new VssBasicCredential("", "test-token"))
@@ -282,6 +365,13 @@ public class AzureInsertionChangelogTests
             _commits = commits;
             _commitsById = commits.ToDictionary(commit => commit.CommitId);
             _trees = trees;
+            foreach (var commit in commits)
+            {
+                if (trees.TryGetValue(commit.CommitId, out var tree))
+                {
+                    commit.TreeId = tree;
+                }
+            }
         }
 
         public override Task<List<GitCommitRef>> GetCommitsAsync(
@@ -344,11 +434,13 @@ public class AzureInsertionChangelogTests
             Assert.Equal(GitVersionType.Commit, versionDescriptor.VersionType);
             var commitId = versionDescriptor.Version;
             TreeLookups.Add(commitId);
-            return Task.FromResult(new GitItem
-            {
-                GitObjectType = RootType,
-                ObjectId = _trees[commitId],
-            });
+            return Task.FromResult(BeforeTreeLookup is not null
+                ? BeforeTreeLookup(commitId)
+                : new GitItem
+                {
+                    GitObjectType = RootType,
+                    ObjectId = _trees[commitId],
+                });
         }
     }
 }

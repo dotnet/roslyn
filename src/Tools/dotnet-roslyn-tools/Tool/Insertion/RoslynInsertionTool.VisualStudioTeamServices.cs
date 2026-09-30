@@ -589,6 +589,7 @@ internal static partial class RoslynInsertionTool
 
         // AzDO does not provide the full commit message, so query each commit for PR merge messages.
         var commits = new List<GitCommit>(commitRefs.Count);
+        var trees = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var batch in commitRefs.Chunk(CommitDetailBatchSize))
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -596,6 +597,12 @@ internal static partial class RoslynInsertionTool
             var details = await Task.WhenAll(getCommits);
             foreach (var c in details)
             {
+                if (string.IsNullOrWhiteSpace(c.TreeId))
+                {
+                    throw new InvalidDataException($"Azure DevOps did not provide a tree for commit '{c.CommitId}'.");
+                }
+
+                trees.Add(c.CommitId, c.TreeId);
                 commits.Add(new GitCommit()
                 {
                     Author = c.Author.Name,
@@ -611,6 +618,11 @@ internal static partial class RoslynInsertionTool
 
         commits = await CommitHistoryFilter.FilterAsync(commits, toSHA, async (commitId, token) =>
         {
+            if (trees.TryGetValue(commitId, out var tree))
+            {
+                return tree;
+            }
+
             var root = await gitClient.GetItemAsync(
                 project,
                 repoId,
