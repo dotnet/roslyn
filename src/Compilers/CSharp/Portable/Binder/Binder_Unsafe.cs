@@ -131,7 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (callerUnsafeMode != CallerUnsafeMode.None)
             {
                 ReportUnsafeIfNotAllowed(arg, location, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version2,
-                    ignoreUnsafeDiagnosticsSuppression: false,
                     customErrorCode: callerUnsafeMode switch
                     {
                         CallerUnsafeMode.Explicit => ErrorCode.ERR_UnsafeMemberOperation,
@@ -218,7 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 static node => node.GetLocation(),
                 diagnostics,
                 disallowedUnder,
-                ignoreUnsafeDiagnosticsSuppression: false,
                 sizeOfTypeOpt,
                 customErrorCode,
                 customArgs);
@@ -247,7 +245,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 static l => l,
                 diagnostics,
                 disallowedUnder,
-                ignoreUnsafeDiagnosticsSuppression: false,
                 sizeOfTypeOpt: null,
                 customErrorCode,
                 customArgs);
@@ -262,12 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Func<T, Location?> location,
             DiagnosticBag diagnostics,
             MemorySafetyRulesVersion disallowedUnder,
-            bool ignoreUnsafeDiagnosticsSuppression,
             TypeSymbol? sizeOfTypeOpt = null,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(disallowedUnder, ignoreUnsafeDiagnosticsSuppression, sizeOfTypeOpt, customErrorCode, customArgs);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(disallowedUnder, ignoreUnsafeDiagnosticsSuppression: false, sizeOfTypeOpt, customErrorCode, customArgs);
             if (diagnosticInfo == null)
             {
                 return false;
