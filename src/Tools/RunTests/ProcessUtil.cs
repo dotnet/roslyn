@@ -137,7 +137,6 @@ namespace RunTests
         {
             var result = new Dictionary<int, int>();
             using var searcher = new ManagementObjectSearcher("SELECT ProcessId, ParentProcessId FROM Win32_Process");
-            searcher.Options.Timeout = TimeSpan.FromSeconds(2);
             using var processes = searcher.Get();
             foreach (ManagementObject process in processes)
             {
