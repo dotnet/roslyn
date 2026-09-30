@@ -15,9 +15,6 @@
     <!-- xunit.v3 test projects must build an executable; keep the .dll extension for VSTest discovery. -->
     <OutputType>Exe</OutputType>
     <TargetExt>.dll</TargetExt>
-
-    <!-- 4 MB, matching the stack reserve of the testhost.net47x.exe that VSTest uses for non-xunit.v3 projects. -->
-    <TestAssemblyStackReserve>4194304</TestAssemblyStackReserve>
   </PropertyGroup>
 
   <ItemGroup>
@@ -118,82 +115,6 @@
   </Target>
 
   <!--
-    Windows takes the default thread stack size from the PE header of the executable that starts
-    the process, so for .NET Framework tests it comes from the app host that xunit.v3 launches
-    (see CreateXunitV3AppHost below), including the thread pool threads that xunit.v3 runs tests
-    on. csc emits a 1 MB stack reserve for 32-bit and AnyCPU outputs (it only emits 4 MB for
-    outputs that require 64-bit), which deep-recursion compiler tests overflow in Debug builds.
-    Raising it to 4 MB matches the testhost.net47x.exe that previously hosted these tests.
-
-    Only the generated app host in the output directory is patched. The intermediate assembly and
-    the primary test artifact are left exactly as csc emitted them, so rebuild validation
-    (eng/test-rebuild.ps1) can still reproduce them from source. The patched file is recreated
-    rather than written in place, because CI builds (ROSLYNUSEHARDLINKS) hard link output copies
-    to the intermediate assembly. The last write time is restored after patching so the
-    incremental copies that produce these files keep skipping them and downstream targets see no
-    spurious change.
-  -->
-  <UsingTask TaskName="SetPEStackReserve"
-             TaskFactory="RoslynCodeTaskFactory"
-             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
-    <ParameterGroup>
-      <FilePath ParameterType="System.String" Required="true" />
-      <StackReserve ParameterType="System.Int64" Required="true" />
-    </ParameterGroup>
-    <Task>
-      <Using Namespace="System.IO" />
-      <Code Type="Fragment" Language="cs"><![CDATA[
-        var originalLastWriteTimeUtc = File.GetLastWriteTimeUtc(FilePath);
-        var bytes = File.ReadAllBytes(FilePath);
-
-        var peHeaderOffset = BitConverter.ToInt32(bytes, 0x3C);
-        if (BitConverter.ToUInt32(bytes, peHeaderOffset) != 0x00004550)
-        {
-            Log.LogError("'{0}' is not a PE file.", FilePath);
-            return false;
-        }
-
-        // The optional header follows the 20-byte COFF header; SizeOfStackReserve is at offset 72 in both PE32 and PE32+.
-        var optionalHeaderOffset = peHeaderOffset + 4 + 20;
-        var stackReserveOffset = optionalHeaderOffset + 72;
-        var magic = BitConverter.ToUInt16(bytes, optionalHeaderOffset);
-        byte[] newValue;
-        if (magic == 0x10B)
-        {
-            if (BitConverter.ToUInt32(bytes, stackReserveOffset) == (uint)StackReserve)
-            {
-                return true;
-            }
-
-            newValue = BitConverter.GetBytes((uint)StackReserve);
-        }
-        else if (magic == 0x20B)
-        {
-            if (BitConverter.ToUInt64(bytes, stackReserveOffset) == (ulong)StackReserve)
-            {
-                return true;
-            }
-
-            newValue = BitConverter.GetBytes((ulong)StackReserve);
-        }
-        else
-        {
-            Log.LogError("'{0}' has an unknown optional header magic 0x{1:X}.", FilePath, magic);
-            return false;
-        }
-
-        Buffer.BlockCopy(newValue, 0, bytes, stackReserveOffset, newValue.Length);
-
-        // CI builds copy outputs as hard links to the intermediate assembly. Deleting and recreating
-        // the file breaks that link so the intermediate assembly is not modified.
-        File.Delete(FilePath);
-        File.WriteAllBytes(FilePath, bytes);
-        File.SetLastWriteTimeUtc(FilePath, originalLastWriteTimeUtc);
-]]></Code>
-    </Task>
-  </UsingTask>
-
-  <!--
     xunit.v3's VSTest adapter launches .NET Framework test assemblies through an app host.
     Roslyn test projects use a .dll target extension to satisfy test naming checks, so provide
     a matching .exe host without changing the primary test artifact.
@@ -209,7 +130,5 @@
 
     <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(_XunitV3AppHost)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="$(_TargetConfigPath)" DestinationFiles="$(_XunitV3AppHostConfig)" SkipUnchangedFiles="true" Condition="Exists('$(_TargetConfigPath)')" />
-
-    <SetPEStackReserve FilePath="$(_XunitV3AppHost)" StackReserve="$(TestAssemblyStackReserve)" Condition="Exists('$(_XunitV3AppHost)')" />
   </Target>
 </Project>

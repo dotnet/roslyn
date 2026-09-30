@@ -44,12 +44,6 @@ restore the original last write time so incremental copies keep skipping the pat
 CI builds pass `ROSLYNUSEHARDLINKS=true`, so bin copies are hard links to `artifacts/obj` files:
 delete and recreate the bin file before writing, or the edit also changes the intermediate assembly.
 
-`eng/targets/XUnit.targets` does this for .NET Framework xUnit v3 tests in the
-`CreateXunitV3AppHost` target: it copies the test assembly to the `.exe` app host launched by the
-VSTest adapter, then applies the `SetPEStackReserve` task to that copy. It does not patch the
-primary test assembly or its intermediate. The task changes the 32-bit/AnyCPU app host from its
-1 MB reserve to 4 MB; a 64-bit app host already has a 4 MB reserve and is left unchanged.
-
 ## Investigating failures
 
 - `Program.ValidateFiles` retains each `CompilationDiff` until the run ends. A binary-difference
