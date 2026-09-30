@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 DirectCast(controller, IChainedCommandHandler(Of InvokeSignatureHelpCommandArgs)).ExecuteCommand(
                     New InvokeSignatureHelpCommandArgs(view.Object, buffer), Nothing, TestCommandExecutionContext.Create())
                 If waitForPresentation Then
-                    Await DirectCast(asyncListener, IAsynchronousOperationWaiter).ExpeditedWaitAsync()
+                    Await asyncListener.ExpeditedWaitAsync()
                 End If
             End If
 
