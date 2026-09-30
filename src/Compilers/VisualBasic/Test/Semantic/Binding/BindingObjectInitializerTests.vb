@@ -1777,7 +1777,8 @@ IObjectCreationOperation (Constructor: Sub scen2..ctor()) (OperationKind.ObjectC
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <ConditionalFact(GetType(WindowsOrLinuxOnly)), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880"), WorkItem(788522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/788522")>
+        ' On .NET Framework, the deep binder recursion requires a larger stack than the default xUnit v3 test host provides.
+        <ConditionalFact(GetType(CoreClrOnly), GetType(WindowsOrLinuxOnly), Reason:="Requires a larger test-host stack on .NET Framework."), WorkItem(34880, "https://github.com/dotnet/roslyn/issues/34880"), WorkItem(788522, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/788522")>
         Public Sub ObjectInitializerNoStackOverflowFor150LevelsOfNesting()
             Dim source =
 <compilation>
