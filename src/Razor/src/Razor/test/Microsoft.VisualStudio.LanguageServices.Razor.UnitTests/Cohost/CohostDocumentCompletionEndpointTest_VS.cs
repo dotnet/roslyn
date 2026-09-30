@@ -33,7 +33,22 @@ public partial class CohostDocumentCompletionEndpointTest
             NoOpTelemetryReporter.Instance,
             LoggerFactory);
         var testAccessor = endpoint.GetTestAccessor();
-        var sharedCompletionList = new RazorVSInternalCompletionList() { Items = [] };
+        var htmlItem = new VSInternalCompletionItem { Label = "div", Kind = CompletionItemKind.Text };
+        var data = new object();
+        var commitCharacters = new[] { ">" };
+        SumType<VSInternalContinueCharacterSingle, VSInternalContinueCharacterRange, VSInternalContinueCharacterClass>[] continueCharacters =
+            [new VSInternalContinueCharacterSingle { Character = "." }];
+        var itemDefaults = new CompletionListItemDefaults();
+        var sharedCompletionList = new RazorVSInternalCompletionList()
+        {
+            Items = [htmlItem],
+            Data = data,
+            CommitCharacters = commitCharacters,
+            ContinueCharacters = continueCharacters,
+            ItemDefaults = itemDefaults,
+            IsIncomplete = true,
+            SuggestionMode = true
+        };
         var options = new RazorCompletionOptions(
             SnippetsSupported: true,
             AutoInsertAttributeQuotes: false,
@@ -46,9 +61,21 @@ public partial class CohostDocumentCompletionEndpointTest
         snippetCache.Update(SnippetLanguage.Html, [new SnippetInfo("second", "second", "", "", SnippetLanguage.Html)]);
         var secondResult = testAccessor.AddSnippets(sharedCompletionList, RazorLanguageKind.Html, "<", isStartTagContext: true, options);
 
-        Assert.Empty(sharedCompletionList.Items);
-        Assert.Equal(["first"], firstResult!.Items.Select(item => item.Label));
-        Assert.Equal(["second"], secondResult!.Items.Select(item => item.Label));
+        Assert.Same(htmlItem, Assert.Single(sharedCompletionList.Items));
+        Assert.Equal(["first", "div"], firstResult!.Items.Select(item => item.Label));
+        Assert.Equal(["second", "div"], secondResult!.Items.Select(item => item.Label));
+        foreach (var result in new[] { firstResult, secondResult })
+        {
+            Assert.NotNull(result);
+            Assert.NotSame(sharedCompletionList, result);
+            Assert.Same(htmlItem, result.Items[1]);
+            Assert.Same(data, result.Data);
+            Assert.Same(commitCharacters, result.CommitCharacters!.Value.First);
+            Assert.Same(continueCharacters, result.ContinueCharacters);
+            Assert.Same(itemDefaults, result.ItemDefaults);
+            Assert.True(result.IsIncomplete);
+            Assert.True(result.SuggestionMode);
+        }
     }
 
     [Fact]

@@ -299,10 +299,9 @@ internal sealed class CohostDocumentCompletionEndpoint(
         {
             // There were Html completion items, so combine them with our snippet list without
             // mutating the original list, which may be shared with another request.
-            completionList = new RazorVSInternalCompletionList(completionList)
-            {
-                Items = [.. snippetCompletionList.Items, .. completionList.Items]
-            };
+            completionList = new RazorVSInternalCompletionList(
+                completionList,
+                [.. snippetCompletionList.Items, .. completionList.Items]);
         }
 
         return completionList;

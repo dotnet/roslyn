@@ -1,7 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 
@@ -22,12 +24,18 @@ internal sealed class RazorVSInternalCompletionList : VSInternalCompletionList
 
     [SetsRequiredMembers]
     public RazorVSInternalCompletionList(VSInternalCompletionList completionList)
+        : this(completionList, JsonHelpers.ConvertAll<CompletionItem, VSInternalCompletionItem>(completionList.Items))
+    {
+    }
+
+    [SetsRequiredMembers]
+    public RazorVSInternalCompletionList(VSInternalCompletionList completionList, IEnumerable<VSInternalCompletionItem> items)
     {
         this.Data = completionList.Data;
         this.CommitCharacters = completionList.CommitCharacters;
         this.ContinueCharacters = completionList.ContinueCharacters;
         this.IsIncomplete = completionList.IsIncomplete;
-        this.Items = JsonHelpers.ConvertAll<CompletionItem, VSInternalCompletionItem>(completionList.Items);
+        this.Items = items as VSInternalCompletionItem[] ?? items.ToArray();
         this.ItemDefaults = completionList.ItemDefaults;
         this.SuggestionMode = completionList.SuggestionMode;
     }
