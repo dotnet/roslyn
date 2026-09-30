@@ -249,14 +249,15 @@ stages:
         testArguments: --testFramework:core --testSet:compiler --testKind:usedassemblies
         helixQueueName: $(HelixWindowsQueueName)
 
-  - template: eng/pipelines/test-windows-job-single-machine.yml
-    parameters:
-      testRunName: 'Intentional Windows Hang Dump Validation'
-      jobName: Test_Windows_CoreClr_Debug_Single_Machine
-      testArtifactName: $(testArtifactName)
-      configuration: Debug
-      poolParameters: ${{ parameters.vs2026PreviewPool }}
-      testArguments: --testFramework:core --testFramework:desktop --sequential --include "^Microsoft\.CodeAnalysis\.UnitTests$" --testfilter "FullyQualifiedName=Microsoft.CodeAnalysis.UnitTests.MetadataReferencePropertiesTests.Constructor" --workItemTimeout 60 --testInactivityTimeout 180 --dumpTimeout 120 --env:ROSLYN_VALIDATE_HANG_DUMPS=true
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-windows-job-single-machine.yml
+      parameters:
+        testRunName: 'Test Windows CoreClr Debug Single Machine'
+        jobName: Test_Windows_CoreClr_Debug_Single_Machine
+        testArtifactName: $(testArtifactName)
+        configuration: Debug
+        poolParameters: ${{ parameters.vs2026PreviewPool }}
+        testArguments: --testFramework:core
 
   - template: /eng/common/core-templates/job/helix-job-monitor.yml
     parameters:
@@ -315,7 +316,7 @@ stages:
       jobName: Test_Linux_Debug
       testArtifactName: $(testArtifactName)
       configuration: Debug
-      testArguments: --testFramework:core --include "^Microsoft\.CodeAnalysis\.UnitTests$" --testfilter "FullyQualifiedName=Microsoft.CodeAnalysis.UnitTests.MetadataReferencePropertiesTests.Constructor" --workItemTimeout 60 --testInactivityTimeout 180 --dumpTimeout 120 --env:ROSLYN_VALIDATE_HANG_DUMPS=true
+      testArguments: --testFramework:core
       poolParameters: ${{ parameters.ubuntuPool }}
 
   - template: eng/pipelines/test-unix-job-single-machine.yml
@@ -324,7 +325,7 @@ stages:
       jobName: Test_Linux_Debug_Spanish_Single_Machine
       testArtifactName: $(testArtifactName)
       configuration: Debug
-      testArguments: --testFramework:core --include "^Microsoft\.CodeAnalysis\.UnitTests$" --testfilter "FullyQualifiedName=Microsoft.CodeAnalysis.UnitTests.MetadataReferencePropertiesTests.Constructor" --workItemTimeout 120 --testInactivityTimeout 15 --dumpTimeout 120 --env:ROSLYN_VALIDATE_HANG_DUMPS=true
+      testArguments: --testFramework:core
       poolParameters: ${{ parameters.ubuntuPool }}
       locale: es_ES.UTF-8
 
