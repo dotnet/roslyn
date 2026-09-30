@@ -26,6 +26,7 @@ internal class PRFinder
     /// <param name="logger">Logger where result will be output.</param>
     /// <param name="repoPath">Optional path to product repo. Current directory will be used otherwise.</param>
     /// <param name="builder">Optional if the caller wants result as a string.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     public static async Task<int> FindPRsAsync(
         string startRef,
         string endRef,
@@ -35,7 +36,8 @@ internal class PRFinder
         RemoteConnections connections,
         ILogger logger,
         string? repoPath = null,
-        StringBuilder? builder = null)
+        StringBuilder? builder = null,
+        CancellationToken cancellationToken = default)
     {
         // If we are not provided a repo path, walk up the file system to fine one.
         if (repoPath is null && !TryFindGitRepoPath(Environment.CurrentDirectory, out repoPath))
@@ -145,25 +147,36 @@ internal class PRFinder
 
         RecordLine(formatter.FormatDiffHeader(host.GetDiffUrl(startRef, endRef)), builder);
 
-        // Filter commits by path before converting to GitCommit
         var commitLog = repo.Commits.QueryBy(commitFilter);
-        var filteredCommits = commitsForPath is not null
-            ? commitLog.Where(c => IsCommitForPath(c, commitsForPath))
-            : commitLog;
-
-        var gitCommits = filteredCommits.Select(commit => new GitCommit
+        var gitCommits = commitLog.Select(commit => new GitCommit
         {
             Author = commit.Author.Name,
             Committer = commit.Committer.Name,
             Message = commit.Message,
             CommitId = commit.Sha,
+            Parents = commit.Parents.Select(parent => parent.Sha).ToArray(),
         }).ToList();
+
+        gitCommits = await CommitHistoryFilter.FilterAsync(
+            gitCommits,
+            startCommit.Sha,
+            (commitId, _) => Task.FromResult(LookupCommit(commitId).Tree.Sha),
+            cancellationToken);
+
+        if (commitsForPath is not null)
+        {
+            gitCommits.RemoveAll(commit => !IsCommitForPath(LookupCommit(commit.CommitId), commitsForPath));
+        }
 
         await AppendChangesToDescriptionAsync(gitCommits, host, formatter, labels, builder);
 
         logger.LogInformation("{Builder}", builder);
 
         return 0;
+
+        Commit LookupCommit(string commitId)
+            => repo.Lookup<Commit>(commitId)
+                ?? throw new InvalidOperationException($"Commit '{commitId}' is unavailable in the repository.");
     }
 
     /// <summary>

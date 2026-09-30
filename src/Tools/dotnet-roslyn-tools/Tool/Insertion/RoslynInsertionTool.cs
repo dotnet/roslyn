@@ -411,7 +411,7 @@ internal static partial class RoslynInsertionTool
                     }
                     else
                     {
-                        var (changes, diffLink) = await GetChangesBetweenBuildsAsync(oldBuild, buildToInsert);
+                        var (changes, diffLink) = await GetChangesBetweenBuildsAsync(oldBuild, buildToInsert, cancellationToken);
 
                         var diffDescription = changes.Count != 0
                             ? $"[View Complete Diff of Changes]({diffLink})"
@@ -421,7 +421,7 @@ internal static partial class RoslynInsertionTool
                         prDescriptionMarkdown = await AppendChangesToDescriptionAsync(prDescriptionMarkdown, oldBuild ?? buildToInsert, changes);
                     }
                 }
-                catch (Exception e)
+                catch (Exception e) when (e is not OperationCanceledException)
                 {
                     LogWarning("Failed to create diff links.");
                     LogWarning(e.Message);

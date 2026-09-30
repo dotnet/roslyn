@@ -8,6 +8,7 @@ using System.Text;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.Policy.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
+using Microsoft.RoslynTools.PRFinder;
 using Microsoft.RoslynTools.PRFinder.Hosts;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.VisualStudio.Services.WebApi;
@@ -545,7 +546,7 @@ internal static partial class RoslynInsertionTool
         return new Component(manifest.info.manifestName, fileName, url, manifest.info.buildVersion);
     }
 
-    internal static async Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsAsync(Build fromBuild, Build tobuild)
+    internal static async Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsAsync(Build fromBuild, Build tobuild, CancellationToken cancellationToken)
     {
         var repoId = !string.IsNullOrEmpty(Options.ComponentGitHubRepoName)
             ? Options.ComponentGitHubRepoName
@@ -556,30 +557,41 @@ internal static partial class RoslynInsertionTool
 
         if (tobuild.Repository.Type == "GitHub" || !string.IsNullOrEmpty(Options.ComponentGitHubRepoName))
         {
-            return await GetChangesBetweenBuildsFromGitHubAsync(repoId, fromSHA, toSHA);
+            return await GetChangesBetweenBuildsFromGitHubAsync(Connections.GitHubClient, repoId, fromSHA, toSHA, cancellationToken);
         }
         else if (tobuild.Repository.Type == "TfsGit")
         {
-            return await GetChangesBetweenBuildsFromAzDOAsync(tobuild, repoId, fromSHA, toSHA);
+            return await GetChangesBetweenBuildsFromAzDOAsync(tobuild, repoId, fromSHA, toSHA, cancellationToken);
         }
 
         throw new NotSupportedException("Only builds created from GitHub & AzDO repos support enumerating commits.");
     }
 
-    private static async Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsFromAzDOAsync(Build tobuild, string repoId, string fromSHA, string toSHA)
+    private static Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsFromAzDOAsync(Build tobuild, string repoId, string fromSHA, string toSHA, CancellationToken cancellationToken)
+        => GetChangesBetweenBuildsFromAzDOAsync(ComponentBuildConnection.GitClient, Options.ComponentBuildProjectNameOrFallback, repoId, tobuild.Repository.Url.OriginalString, fromSHA, toSHA, cancellationToken);
+
+    internal static async Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsFromAzDOAsync(GitHttpClient gitClient, string project, string repoId, string repoUrl, string fromSHA, string toSHA, CancellationToken cancellationToken = default)
     {
-        var gitClient = ComponentBuildConnection.GitClient;
-        var project = Options.ComponentBuildProjectNameOrFallback;
-        var getCommits = (await gitClient.GetCommitsAsync(
-            project,
-            repoId,
-            new GitQueryCommitsCriteria()
+        const int PageSize = 1000;
+        var commitRefs = new List<GitCommitRef>();
+        var criteria = new GitQueryCommitsCriteria()
+        {
+            ItemVersion = new GitVersionDescriptor() { Version = fromSHA, VersionType = GitVersionType.Commit },
+            CompareVersion = new GitVersionDescriptor() { Version = toSHA, VersionType = GitVersionType.Commit }
+        };
+
+        while (true)
+        {
+            var page = await gitClient.GetCommitsAsync(project, repoId, criteria, skip: commitRefs.Count, top: PageSize, cancellationToken: cancellationToken);
+            commitRefs.AddRange(page);
+            if (page.Count < PageSize)
             {
-                ItemVersion = new GitVersionDescriptor() { Version = fromSHA, VersionType = GitVersionType.Commit },
-                CompareVersion = new GitVersionDescriptor() { Version = toSHA, VersionType = GitVersionType.Commit }
-            }))
-            // AzDO does not provide the full commit message, so we must query for each commit to provide better messages for PR merge commits.
-            .Select(c => gitClient.GetCommitAsync(project, c.CommitId, repoId));
+                break;
+            }
+        }
+
+        // AzDO does not provide the full commit message, so query each commit for PR merge messages.
+        var getCommits = commitRefs.Select(c => gitClient.GetCommitAsync(project, c.CommitId, repoId, cancellationToken: cancellationToken));
         var commits = (await Task.WhenAll(getCommits))
             .Select(c =>
                 new GitCommit()
@@ -589,11 +601,30 @@ internal static partial class RoslynInsertionTool
                     CommitDate = c.Committer.Date,
                     Message = c.Comment,
                     CommitId = c.CommitId,
-                    RemoteUrl = ((ReferenceLink)c.Links.Links["web"]).Href
+                    RemoteUrl = ((ReferenceLink)c.Links.Links["web"]).Href,
+                    Parents = c.Parents.ToArray(),
                 })
             .ToList();
 
-        return (commits, ConstructAzDOCompareUrl(tobuild.Repository.Url.OriginalString, fromSHA, toSHA));
+        commits = await CommitHistoryFilter.FilterAsync(commits, toSHA, async (commitId, token) =>
+        {
+            var root = await gitClient.GetItemAsync(
+                project,
+                repoId,
+                path: "/",
+                recursionLevel: VersionControlRecursionType.None,
+                versionDescriptor: new GitVersionDescriptor { Version = commitId, VersionType = GitVersionType.Commit },
+                includeContent: false,
+                cancellationToken: token);
+            if (root.GitObjectType != GitObjectType.Tree)
+            {
+                throw new InvalidDataException($"Azure DevOps did not provide a root tree for commit '{commitId}'.");
+            }
+
+            return root.ObjectId;
+        }, cancellationToken);
+
+        return (commits, ConstructAzDOCompareUrl(repoUrl, fromSHA, toSHA));
     }
 
     internal static string ConstructAzDOCompareUrl(string repoUrlString, string fromSHA, string toSHA)
@@ -601,58 +632,99 @@ internal static partial class RoslynInsertionTool
         return $"{repoUrlString}/branchCompare?baseVersion=GC{fromSHA}&targetVersion=GC{toSHA}";
     }
 
-    private static async Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsFromGitHubAsync(string repoId, string fromSHA, string toSHA)
+    internal static async Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsFromGitHubAsync(HttpClient client, string repoId, string fromSHA, string toSHA, CancellationToken cancellationToken = default)
     {
         var restEndpoint = $"https://api.github.com/repos/{repoId}/compare/{fromSHA}...{toSHA}";
-        var client = new HttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, restEndpoint);
-        request.Headers.Add("User-Agent", "RoslynInsertionTool");
-
-        var response = await client.SendAsync(request);
-        var content = await response.Content.ReadAsStringAsync();
-
-        // https://developer.github.com/v3/repos/commits/
-        var data = JsonConvert.DeserializeAnonymousType(content,
-            new
+        var template = new
+        {
+            total_commits = 0,
+            commits = new[]
             {
-                commits = new[]
+                new
                 {
-                    new
+                    sha = "",
+                    parents = new[] { new { sha = "" } },
+                    commit = new
                     {
-                        sha = "",
-                        commit = new
+                        author = new
                         {
-                            author = new
-                            {
-                                name = "",
-                                email = "",
-                                date = ""
-                            },
-                            committer = new
-                            {
-                                name = ""
-                            },
-                            message = ""
+                            name = "",
+                            date = ""
                         },
-                        html_url = ""
-                    }
+                        committer = new { name = "" },
+                        message = "",
+                        tree = new { sha = "" }
+                    },
+                    html_url = ""
                 }
-            });
+            }
+        };
 
-        var result = (data?.commits ?? Array.Empty<dynamic>())
-            .Select(d =>
-                new GitCommit()
+        var result = new List<GitCommit>();
+        var trees = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        for (var page = 1; ; page++)
+        {
+            using var response = await client.GetAsync($"{restEndpoint}?per_page=100&page={page}", cancellationToken);
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            var data = JsonConvert.DeserializeAnonymousType(content, template);
+            if (data?.commits is null)
+            {
+                throw new InvalidDataException("GitHub comparison did not contain a commit list.");
+            }
+
+            foreach (var commit in data.commits)
+            {
+                result.Add(new GitCommit()
                 {
-                    Author = d.commit.author.name,
-                    Committer = d.commit.committer.name,
-                    CommitDate = DateTime.Parse(d.commit.author.date),
-                    Message = d.commit.message,
-                    CommitId = d.sha,
-                    RemoteUrl = d.html_url
-                })
-            // show HEAD first, base last
-            .Reverse()
-            .ToList();
+                    Author = commit.commit.author.name,
+                    Committer = commit.commit.committer.name,
+                    CommitDate = DateTime.Parse(commit.commit.author.date),
+                    Message = commit.commit.message,
+                    CommitId = commit.sha,
+                    RemoteUrl = commit.html_url,
+                    Parents = commit.parents.Select(parent => parent.sha).ToArray(),
+                });
+                if (string.IsNullOrEmpty(commit.commit.tree.sha))
+                {
+                    throw new InvalidDataException($"GitHub did not provide a tree for commit '{commit.sha}'.");
+                }
+
+                trees.Add(commit.sha, commit.commit.tree.sha);
+            }
+
+            if (result.Count == data.total_commits)
+            {
+                break;
+            }
+
+            if (result.Count > data.total_commits || data.commits.Length == 0)
+            {
+                throw new InvalidDataException("GitHub comparison returned an incomplete commit range.");
+            }
+        }
+
+        // Show HEAD first, base last.
+        result.Reverse();
+        result = await CommitHistoryFilter.FilterAsync(result, toSHA, async (commitId, token) =>
+        {
+            if (trees.TryGetValue(commitId, out var tree))
+            {
+                return tree;
+            }
+
+            using var response = await client.GetAsync($"https://api.github.com/repos/{repoId}/commits/{commitId}", token);
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync(token);
+            var data = JsonConvert.DeserializeAnonymousType(content, new { commit = new { tree = new { sha = "" } } });
+            tree = data?.commit?.tree?.sha;
+            if (string.IsNullOrEmpty(tree))
+            {
+                throw new InvalidDataException($"GitHub did not provide a tree for commit '{commitId}'.");
+            }
+
+            return tree;
+        }, cancellationToken);
 
         return (result, $"//github.com/{repoId}/compare/{fromSHA}...{toSHA}?w=1");
     }
