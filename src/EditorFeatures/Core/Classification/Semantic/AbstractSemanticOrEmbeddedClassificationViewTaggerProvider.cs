@@ -153,7 +153,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
             return false;
 
         // Retrieve the information about the last time we classified this document.
-        var (lastSemanticVersion, lastTextImageVersion) = ((VersionStamp, ITextImageVersion))context.State;
+        var (lastSemanticVersion, lastTextVersion) = ((VersionStamp, ITextVersion))context.State;
 
         // if a top level change was made.  We can't perform this optimization.
         if (lastSemanticVersion != currentSemanticVersion)
@@ -165,9 +165,8 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         // will find the member that contains the changes and only refresh that member.  If possible, try to get a
         // speculative binder to make things even cheaper.
 
-        var currentTextImageVersion = GetTextImageVersion(snapshotSpan);
-
-        var textChangeRanges = ITextImageHelpers.GetChangeRanges(lastTextImageVersion, currentTextImageVersion);
+        var currentTextVersion = snapshotSpan.Snapshot.Version;
+        var textChangeRanges = currentTextVersion.GetChangeRanges(lastTextVersion);
         var collapsedRange = TextChangeRange.Collapse(textChangeRanges);
 
         var changedSpan = new TextSpan(collapsedRange.Span.Start, collapsedRange.NewLength);
@@ -209,9 +208,6 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
             context, document, subSpanToTag, classificationService, options, currentSemanticVersion, cancellationToken).ConfigureAwait(false);
         return true;
     }
-
-    private static ITextImageVersion GetTextImageVersion(SnapshotSpan snapshotSpan)
-        => ((ITextSnapshot2)snapshotSpan.Snapshot).TextImage.Version;
 
     private async Task ClassifySpansAsync(
         TaggerContext<IClassificationTag> context,
@@ -256,9 +252,9 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
                 // Let the context know that this was the span we actually tried to tag.
                 context.SetSpansTagged([snapshotSpan]);
 
-                // Store the semantic version and text-image-version we used to produce these tags.  We can use this in
+                // Store the semantic version and text version we used to produce these tags.  We can use this in
                 // the future to try to limit what we classify, if all edits were made within a single member.
-                context.State = (currentSemanticVersion, GetTextImageVersion(snapshotSpan));
+                context.State = (currentSemanticVersion, snapshot.Version);
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
