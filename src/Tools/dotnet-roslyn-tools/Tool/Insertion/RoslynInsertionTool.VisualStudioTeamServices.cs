@@ -40,10 +40,6 @@ internal static partial class RoslynInsertionTool
         ? Connections.DevDivConnection
         : Connections.DncEngConnection;
 
-    private static string ComponentAzdoToken => s_lazyComponentConnectionKind.Value == ComponentConnectionKind.DevDiv
-        ? Options.DevDivAzdoToken
-        : Options.DncEngAzdoToken;
-
     private static async Task EnsureAuthenticatedAsync(AzDOConnection connection, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
