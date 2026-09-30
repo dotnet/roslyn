@@ -201,10 +201,6 @@ namespace RunTests
                         ConsoleUtil.Error(timeoutMessage);
                         await collectTimeoutDumpsAsync(resultsFilePath, timeoutMessage).ConfigureAwait(false);
                     }
-                    else
-                    {
-                        cancellationSource.Cancel();
-                    }
 
                     try
                     {
