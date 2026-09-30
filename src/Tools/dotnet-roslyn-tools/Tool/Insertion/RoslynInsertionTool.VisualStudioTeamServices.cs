@@ -573,6 +573,7 @@ internal static partial class RoslynInsertionTool
     internal static async Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsFromAzDOAsync(GitHttpClient gitClient, string project, string repoId, string repoUrl, string fromSHA, string toSHA, CancellationToken cancellationToken = default)
     {
         const int PageSize = 1000;
+        const int CommitDetailBatchSize = 16;
         var commitRefs = new List<GitCommitRef>();
         var criteria = new GitQueryCommitsCriteria()
         {
@@ -591,10 +592,15 @@ internal static partial class RoslynInsertionTool
         }
 
         // AzDO does not provide the full commit message, so query each commit for PR merge messages.
-        var getCommits = commitRefs.Select(c => gitClient.GetCommitAsync(project, c.CommitId, repoId, cancellationToken: cancellationToken));
-        var commits = (await Task.WhenAll(getCommits))
-            .Select(c =>
-                new GitCommit()
+        var commits = new List<GitCommit>(commitRefs.Count);
+        foreach (var batch in commitRefs.Chunk(CommitDetailBatchSize))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var getCommits = batch.Select(c => gitClient.GetCommitAsync(project, c.CommitId, repoId, cancellationToken: cancellationToken));
+            var details = await Task.WhenAll(getCommits);
+            foreach (var c in details)
+            {
+                commits.Add(new GitCommit()
                 {
                     Author = c.Author.Name,
                     Committer = c.Committer.Name,
@@ -603,8 +609,9 @@ internal static partial class RoslynInsertionTool
                     CommitId = c.CommitId,
                     RemoteUrl = ((ReferenceLink)c.Links.Links["web"]).Href,
                     Parents = c.Parents.ToArray(),
-                })
-            .ToList();
+                });
+            }
+        }
 
         commits = await CommitHistoryFilter.FilterAsync(commits, toSHA, async (commitId, token) =>
         {

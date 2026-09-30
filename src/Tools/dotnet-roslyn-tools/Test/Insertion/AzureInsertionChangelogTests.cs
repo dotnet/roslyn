@@ -67,12 +67,150 @@ public class AzureInsertionChangelogTests
         var commits = Enumerable.Range(1, 1001).Reverse()
             .Select(i => Commit($"commit-{i}", $"Update (#{i})", i == 1 ? "base" : $"commit-{i - 1}"))
             .ToArray();
-        using var client = new Client(commits, new Dictionary<string, string>());
+        var releaseDetails = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var pendingDetails = 0;
+        using var client = new Client(commits, new Dictionary<string, string>())
+        {
+            BeforeCommitDetailsAsync = async (_, token) =>
+            {
+                var pending = Interlocked.Increment(ref pendingDetails);
+                try
+                {
+                    Assert.InRange(pending, 1, 16);
+                    await releaseDetails.Task.WaitAsync(token);
+                    await Task.Yield();
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref pendingDetails);
+                }
+            },
+        };
 
-        var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "commit-1001");
+        var getChanges = RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "commit-1001");
+        try
+        {
+            Assert.Equal(16, client.CommitDetailRequests.Count);
+            Assert.Equal(16, Volatile.Read(ref pendingDetails));
+        }
+        finally
+        {
+            releaseDetails.SetResult();
+        }
+
+        var (changes, _) = await getChanges;
 
         Assert.Equal(commits.Select(commit => commit.CommitId), changes.Select(commit => commit.CommitId));
+        Assert.Equal(commits.Select(commit => commit.CommitId), client.CommitDetailRequests);
+        Assert.Equal(0, pendingDetails);
         Assert.Equal([0, 1000], client.PageOffsets);
+        Assert.Empty(client.TreeLookups);
+    }
+
+    [Fact]
+    public async Task OutOfOrderDetailResponsesPreserveCommitOrder()
+    {
+        var commits = new[]
+        {
+            Commit("head", "Latest update (#3)", "middle"),
+            Commit("middle", "Middle update (#2)", "first"),
+            Commit("first", "First update (#1)", "base"),
+        };
+        var responses = commits.ToDictionary(
+            commit => commit.CommitId,
+            _ => new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously));
+        using var client = new Client(commits, new Dictionary<string, string>())
+        {
+            BeforeCommitDetailsAsync = (id, token) => responses[id].Task.WaitAsync(token),
+        };
+
+        var getChanges = RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "head");
+        Assert.Equal(["head", "middle", "first"], client.CommitDetailRequests);
+        responses["first"].SetResult();
+        responses["middle"].SetResult();
+        Assert.False(getChanges.IsCompleted);
+        responses["head"].SetResult();
+        var (changes, _) = await getChanges;
+
+        Assert.Equal(["head", "middle", "first"], changes.Select(commit => commit.CommitId));
+    }
+
+    [Fact]
+    public async Task DetailFailurePreventsLaterBatches()
+    {
+        var commits = Enumerable.Range(1, 33).Reverse()
+            .Select(i => Commit($"commit-{i}", $"Update (#{i})", i == 1 ? "base" : $"commit-{i - 1}"))
+            .ToArray();
+        var releaseDetails = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var failure = new IOException("Commit details unavailable.");
+        using var client = new Client(commits, new Dictionary<string, string>())
+        {
+            BeforeCommitDetailsAsync = (id, token) => id == "commit-33"
+                ? Task.FromException(failure)
+                : releaseDetails.Task.WaitAsync(token),
+        };
+
+        var getChanges = RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "commit-33");
+        Assert.Equal(16, client.CommitDetailRequests.Count);
+        Assert.False(getChanges.IsCompleted);
+        releaseDetails.SetResult();
+        var actualFailure = await Assert.ThrowsAsync<IOException>(() => getChanges);
+
+        Assert.Same(failure, actualFailure);
+        Assert.Equal(commits.Take(16).Select(commit => commit.CommitId), client.CommitDetailRequests);
+        Assert.Empty(client.TreeLookups);
+    }
+
+    [Fact]
+    public async Task CancellationDuringDetailsPreventsLaterBatches()
+    {
+        var commits = Enumerable.Range(1, 33).Reverse()
+            .Select(i => Commit($"commit-{i}", $"Update (#{i})", i == 1 ? "base" : $"commit-{i - 1}"))
+            .ToArray();
+        using var cancellation = new CancellationTokenSource();
+        var releaseDetails = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var client = new Client(commits, new Dictionary<string, string>())
+        {
+            BeforeCommitDetailsAsync = (_, token) =>
+            {
+                Assert.Equal(cancellation.Token, token);
+                return releaseDetails.Task.WaitAsync(token);
+            },
+        };
+
+        var getChanges = RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "commit-33", cancellation.Token);
+        Assert.Equal(16, client.CommitDetailRequests.Count);
+        cancellation.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => getChanges);
+
+        Assert.Equal(commits.Take(16).Select(commit => commit.CommitId), client.CommitDetailRequests);
+        Assert.Empty(client.TreeLookups);
+    }
+
+    [Fact]
+    public async Task CancellationBetweenBatchesPreventsFurtherRequests()
+    {
+        var commits = Enumerable.Range(1, 33).Reverse()
+            .Select(i => Commit($"commit-{i}", $"Update (#{i})", i == 1 ? "base" : $"commit-{i - 1}"))
+            .ToArray();
+        using var cancellation = new CancellationTokenSource();
+        using var client = new Client(commits, new Dictionary<string, string>())
+        {
+            BeforeCommitDetailsAsync = (id, _) =>
+            {
+                if (id == "commit-18")
+                {
+                    cancellation.Cancel();
+                }
+
+                return Task.CompletedTask;
+            },
+        };
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "commit-33", cancellation.Token));
+
+        Assert.Equal(commits.Take(16).Select(commit => commit.CommitId), client.CommitDetailRequests);
         Assert.Empty(client.TreeLookups);
     }
 
@@ -133,8 +271,10 @@ public class AzureInsertionChangelogTests
         private readonly IReadOnlyDictionary<string, string> _trees;
 
         public List<int> PageOffsets { get; } = [];
+        public List<string> CommitDetailRequests { get; } = [];
         public List<string> TreeLookups { get; } = [];
         public GitObjectType RootType { get; init; } = GitObjectType.Tree;
+        public Func<string, CancellationToken, Task>? BeforeCommitDetailsAsync { get; init; }
 
         public Client(IReadOnlyList<GitCommit> commits, IReadOnlyDictionary<string, string> trees)
             : base(new Uri("https://dev.azure.com/example"), new VssBasicCredential("", "test-token"))
@@ -162,7 +302,7 @@ public class AzureInsertionChangelogTests
             return Task.FromResult(_commits.Skip(skip ?? 0).Take(top ?? 1000).Cast<GitCommitRef>().ToList());
         }
 
-        public override Task<GitCommit> GetCommitAsync(
+        public override async Task<GitCommit> GetCommitAsync(
             string project,
             string commitId,
             string repositoryId,
@@ -171,7 +311,13 @@ public class AzureInsertionChangelogTests
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult(_commitsById[commitId]);
+            CommitDetailRequests.Add(commitId);
+            if (BeforeCommitDetailsAsync is not null)
+            {
+                await BeforeCommitDetailsAsync(commitId, cancellationToken);
+            }
+
+            return _commitsById[commitId];
         }
 
         public override Task<GitItem> GetItemAsync(
