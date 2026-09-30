@@ -72,13 +72,13 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
         foreach (var diagnostic in diagnostics)
         {
             var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-            editor.ReplaceNode(node, AddSafetyComment(node, sourceText, options.NewLine));
+            editor.ReplaceNode(node, EnsureSafetyComment(node, sourceText, options.NewLine));
         }
 
         return document.WithSyntaxRoot(editor.GetChangedRoot());
     }
 
-    private static SyntaxNode AddSafetyComment(SyntaxNode node, SourceText sourceText, string newLine)
+    private static SyntaxNode EnsureSafetyComment(SyntaxNode node, SourceText sourceText, string newLine)
     {
         var leadingTrivia = node.GetLeadingTrivia();
         for (var i = leadingTrivia.Count - 1; i >= 0; i--)
@@ -87,27 +87,27 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
             if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationComment &&
                 documentationComment.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
             {
-                return node.WithLeadingTrivia(leadingTrivia.Replace(trivia, AddSafetyElement(trivia, newLine)));
+                // Add the safety element to the existing multiline documentation comment.
+                return node.WithLeadingTrivia(leadingTrivia.Replace(trivia, AddSafetyElementToExistingDocComment(trivia, newLine)));
             }
         }
 
+        // If no multiline documentation comment is present, add a new single-line documentation comment.
         var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.SpanStart);
         var safetyComment = SyntaxFactory.ParseLeadingTrivia($"/// <safety></safety>{newLine}").Single();
         var newLeadingTrivia = SyntaxFactory.TriviaList(
             SyntaxFactory.Whitespace(indentation),
             safetyComment);
 
-        var finalLeadingTrivia = leadingTrivia.ToList();
-        var insertionIndex = finalLeadingTrivia.Count;
+        var insertionIndex = leadingTrivia.Count;
 
-        if (finalLeadingTrivia.Count > 0 && finalLeadingTrivia[^1].IsKind(SyntaxKind.WhitespaceTrivia))
+        if (leadingTrivia.Count > 0 && leadingTrivia[^1].IsKind(SyntaxKind.WhitespaceTrivia))
             insertionIndex--;
 
-        finalLeadingTrivia.InsertRange(insertionIndex, newLeadingTrivia);
-        return node.WithLeadingTrivia(finalLeadingTrivia);
+        return node.WithLeadingTrivia(leadingTrivia.InsertRange(insertionIndex, newLeadingTrivia));
     }
 
-    private static SyntaxTrivia AddSafetyElement(SyntaxTrivia documentationComment, string newLine)
+    private static SyntaxTrivia AddSafetyElementToExistingDocComment(SyntaxTrivia documentationComment, string newLine)
     {
         var text = documentationComment.ToFullString();
         var closingDelimiterIndex = text.LastIndexOf("*/", StringComparison.Ordinal);
