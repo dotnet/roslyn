@@ -6075,6 +6075,52 @@ enum E { }
             Assert.Equal(0, members.Length);
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85788")]
+        public void CrefTypeParameterExtensionMemberLookup(
+            bool useExtensionBlock,
+            [CombinatorialValues(null, "GetAwaiter")] string name)
+        {
+            var source = """
+                class C<T>
+                {
+                    public T Copy() => default;
+                }
+
+                /// <see cref="C{U}.Copy()"/>
+                class D { }
+                """;
+            var extensions = useExtensionBlock ? """
+                static class Extensions
+                {
+                    extension(object value)
+                    {
+                        public int GetAwaiter() => 0;
+                    }
+                }
+                """ : """
+                static class Extensions
+                {
+                    public static int GetAwaiter(this object value) => 0;
+                }
+                """;
+
+            var compilation = CreateCompilation([source, extensions], parseOptions: TestOptions.RegularWithDocumentationComments);
+            compilation.VerifyEmitDiagnostics();
+
+            var cref = GetCrefSyntaxes(compilation).Single();
+            var model = compilation.GetSemanticModel(cref.SyntaxTree);
+            var method = (IMethodSymbol)model.GetSymbolInfo(cref).Symbol;
+            var typeParameter = (ITypeParameterSymbol)method.ReturnType;
+            Assert.Equal(TypeParameterKind.Cref, typeParameter.TypeParameterKind);
+
+            Assert.Empty(model.LookupSymbols(cref.SpanStart, typeParameter, name, includeReducedExtensionMethods: true));
+
+            var declaredTypeParameter = compilation.GetMember<NamedTypeSymbol>("C").TypeParameters.Single().GetPublicSymbol();
+            Assert.Equal("GetAwaiter", model.LookupSymbols(
+                cref.SpanStart, declaredTypeParameter, "GetAwaiter", includeReducedExtensionMethods: true).Single().Name);
+        }
+
         [WorkItem(598371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598371")]
         [Fact]
         public void CrefParameterOrReturnTypeLookup1()

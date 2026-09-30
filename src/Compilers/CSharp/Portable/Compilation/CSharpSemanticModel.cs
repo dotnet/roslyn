@@ -1590,7 +1590,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken token;
             position = CheckAndAdjustPosition(position, out token);
 
-            if ((object)container == null || container.Kind == SymbolKind.Namespace)
+            // Cref type parameters do not support the constraint checks required to reduce extensions.
+            if ((object)container == null || container.Kind == SymbolKind.Namespace ||
+                container is TypeParameterSymbol { TypeParameterKind: TypeParameterKind.Cref })
             {
                 includeExtensionMembers = false;
             }
