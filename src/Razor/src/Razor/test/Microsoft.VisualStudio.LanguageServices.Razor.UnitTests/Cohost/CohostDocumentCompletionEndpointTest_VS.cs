@@ -1,7 +1,15 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Remote.Razor.Completion;
+using Microsoft.VisualStudio.Razor.Snippets;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,6 +17,40 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public partial class CohostDocumentCompletionEndpointTest
 {
+    [Fact]
+    public void AddSnippets_DoesNotMutateSharedCompletionList()
+    {
+        var snippetCache = new SnippetCache();
+        var snippetCompletionItemProvider = new SnippetCompletionItemProvider(snippetCache);
+        var endpoint = new CohostDocumentCompletionEndpoint(
+            IncompatibleProjectService,
+            RemoteServiceInvoker,
+            ClientSettingsManager,
+            ClientCapabilitiesService,
+            snippetCompletionItemProvider,
+            new TestHtmlRequestInvoker((Methods.TextDocumentCompletionName, (object?)null)),
+            new CompletionListCache(),
+            NoOpTelemetryReporter.Instance,
+            LoggerFactory);
+        var testAccessor = endpoint.GetTestAccessor();
+        var sharedCompletionList = new RazorVSInternalCompletionList() { Items = [] };
+        var options = new RazorCompletionOptions(
+            SnippetsSupported: true,
+            AutoInsertAttributeQuotes: false,
+            CommitElementsWithSpace: false,
+            IsVsCode: false);
+
+        snippetCache.Update(SnippetLanguage.Html, [new SnippetInfo("first", "first", "", "", SnippetLanguage.Html)]);
+        var firstResult = testAccessor.AddSnippets(sharedCompletionList, RazorLanguageKind.Html, "<", isStartTagContext: true, options);
+
+        snippetCache.Update(SnippetLanguage.Html, [new SnippetInfo("second", "second", "", "", SnippetLanguage.Html)]);
+        var secondResult = testAccessor.AddSnippets(sharedCompletionList, RazorLanguageKind.Html, "<", isStartTagContext: true, options);
+
+        Assert.Empty(sharedCompletionList.Items);
+        Assert.Equal(["first"], firstResult!.Items.Select(item => item.Label));
+        Assert.Equal(["second"], secondResult!.Items.Select(item => item.Label));
+    }
+
     [Fact]
     public async Task HtmlAttributeNamesAndTagHelpersCompletion_TriggerWithSpace()
     {
