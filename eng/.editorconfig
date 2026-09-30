@@ -4,5 +4,8 @@ charset = utf-8
 [generate-compiler-code.cs]
 charset = utf-8
 
+[generate-vssdk-versions.cs]
+charset = utf-8
+
 [validate-bom.cs]
 charset = utf-8
