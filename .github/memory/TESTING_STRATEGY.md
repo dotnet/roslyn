@@ -60,11 +60,13 @@ for a single project.
 Local RunTests work items are whole assemblies: VSTest has a fixed 10-minute
 inactivity timeout, and the global deadline remains 90 minutes. There is no
 assembly-duration limit. The global deadline stops scheduling and collects
-helper-process dumps from owned processes in all active work items, writing a
+helper-process dumps from launcher trees in all active work items, writing a
 synthetic failed result even without a dump. Dump collection has no timeout;
 blocked helpers wait for external process/job termination. `eng/test-vsi.ps1`
 selects the fixed 25-minute `--integration` inactivity allowance; Helix timeouts
-are managed separately. See the RunTests README for diagnostics locations.
+are managed separately. Process discovery is a parent-PID snapshot traversed at
+cancellation, not a background tracker; already-reparented children are not
+included. See the RunTests README for diagnostics locations.
 
 The build scripts also accept `-test`, `-testSet:<name>`, `-testKind:<name>`, or
 `-testFramework:<name>` (also with `--` on Unix) to invoke RunTests after successful

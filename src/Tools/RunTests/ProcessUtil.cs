@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -14,10 +15,6 @@ namespace RunTests
 {
     internal static class ProcessUtil
     {
-        private static readonly object s_snapshotGate = new();
-        private static Dictionary<int, int> s_parentProcessIds = new();
-        private static long s_snapshotTimestamp;
-
         internal static long GetProcessStartIdentity(Process process)
         {
             if (OperatingSystem.IsLinux())
@@ -44,8 +41,14 @@ namespace RunTests
             {
                 if (!process.HasExited)
                 {
-                    process.Kill(entireProcessTree: true);
+                    using var current = Process.GetProcessById(process.Id);
+                    if (current.StartTime == process.StartTime)
+                        process.Kill(entireProcessTree: true);
                 }
+            }
+            catch (ArgumentException)
+            {
+                // The process exited before its identity could be checked.
             }
             catch (InvalidOperationException)
             {
@@ -57,23 +60,53 @@ namespace RunTests
             }
         }
 
-        internal static Dictionary<int, int> GetParentProcessIds()
+        /// <summary>
+        /// Finds descendants using a single parent-process snapshot. The caller owns the returned
+        /// Process instances. Children that have already been reparented are not included.
+        /// </summary>
+        internal static List<Process> GetChildProcesses(Process root)
         {
-            lock (s_snapshotGate)
+            var parents = GetParentProcessIds();
+            var children = new List<Process>();
+            var pending = new Queue<Process>();
+            var visited = new HashSet<int> { root.Id };
+            pending.Enqueue(root);
+            while (pending.TryDequeue(out var parent))
             {
-                // All parallel work items can share this read-only snapshot instead of issuing
-                // a machine-wide WMI query per work item each second.
-                if (Stopwatch.GetElapsedTime(s_snapshotTimestamp) >= TimeSpan.FromSeconds(1))
+                foreach (var (pid, parentId) in parents)
                 {
-                    s_parentProcessIds = ReadParentProcessIds();
-                    s_snapshotTimestamp = Stopwatch.GetTimestamp();
-                }
+                    if (parentId != parent.Id || !visited.Add(pid))
+                        continue;
 
-                return s_parentProcessIds;
+                    Process? child = null;
+                    try
+                    {
+                        child = Process.GetProcessById(pid);
+                        // A parent PID can refer to a newer process after PID reuse.
+                        if (!parent.HasExited && child.StartTime >= parent.StartTime)
+                        {
+                            children.Add(child);
+                            pending.Enqueue(child);
+                            child = null;
+                        }
+                    }
+                    catch (ArgumentException) { }
+                    catch (InvalidOperationException) { }
+                    catch (Win32Exception ex)
+                    {
+                        ConsoleUtil.Warning($"Unable to inspect child process {pid}: {ex.Message}");
+                    }
+                    finally
+                    {
+                        child?.Dispose();
+                    }
+                }
             }
+
+            return children;
         }
 
-        private static Dictionary<int, int> ReadParentProcessIds()
+        private static Dictionary<int, int> GetParentProcessIds()
         {
             if (OperatingSystem.IsWindows())
             {

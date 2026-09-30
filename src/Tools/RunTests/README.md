@@ -125,10 +125,10 @@ waits for external termination, such as the CI job timeout. Completed collection
 is followed by up to ten seconds for process exit/output draining. Reported dump
 failures do not prevent attempts on the remaining candidates or failure reporting.
 
-Process ancestry is sampled during execution; only the
-launcher and its observed descendants are considered, never machine-wide
-testhost-name matches. As with any sampled ancestry tracking, a child that starts
-and becomes orphaned between samples can escape observation.
+At cancellation, RunTests takes a parent-process snapshot and traverses each
+launcher's descendants, then dumps that process list. It does not track processes
+during normal execution or select machine-wide testhost-name matches. Children
+that have already been reparented before the snapshot are not included.
 
 Diagnostics live beneath `TestResults/<configuration>/WorkItem_<index>_<arch>/`
 in an invocation-specific directory (or beneath `--out`). Synthetic failure XML

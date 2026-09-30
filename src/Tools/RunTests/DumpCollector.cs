@@ -51,26 +51,20 @@ namespace RunTests
         }
 
         /// <summary>
-        /// Attempts full dumps of the launcher and supported processes in its owned process tree,
+        /// Attempts full dumps of the supplied process list,
         /// prioritizing test hosts. Starts a separate RunTests helper subprocess for each dump
         /// and waits for it without a timeout. Collection continues until the helpers finish or
         /// the processes are externally terminated; only successfully completed dumps are published.
         /// </summary>
-        internal static async Task CollectAsync(OwnedProcessTree tree, Options options, string directory)
+        internal static async Task CollectAsync(IReadOnlyList<Process> processes, Options options, string directory)
         {
             Directory.CreateDirectory(directory);
             var candidates = new List<(Process Process, string Name)>();
-            var processes = tree.GetProcesses();
             foreach (var process in processes)
             {
                 try
                 {
-                    var name = process.ProcessName;
-                    if (process == tree.Root || name.StartsWith("testhost", StringComparison.Ordinal) ||
-                        name is "dotnet" or "devenv")
-                    {
-                        candidates.Add((process, name));
-                    }
+                    candidates.Add((process, process.ProcessName));
                 }
                 catch (InvalidOperationException) { }
             }

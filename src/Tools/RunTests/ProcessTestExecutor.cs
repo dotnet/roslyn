@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -144,7 +145,6 @@ namespace RunTests
                         captureOutput: true,
                         environmentVariables: options.EnvironmentVariables),
                     lowPriority: false);
-                using var tree = new OwnedProcessTree(dotnetProcessInfo.Process);
                 Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName}");
 
                 using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -154,10 +154,12 @@ namespace RunTests
                 {
                     timeoutMessage = $"Run cancelled or global deadline exceeded while running {workItemInfo.DisplayName}.";
                     ConsoleUtil.Error(timeoutMessage);
-                    WriteSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
+                    var processes = new List<Process> { dotnetProcessInfo.Process };
                     try
                     {
-                        await DumpCollector.CollectAsync(tree, options, workItemDirectory).ConfigureAwait(false);
+                        WriteSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
+                        processes.AddRange(ProcessUtil.GetChildProcesses(dotnetProcessInfo.Process));
+                        await DumpCollector.CollectAsync(processes, options, workItemDirectory).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -165,7 +167,12 @@ namespace RunTests
                     }
                     finally
                     {
-                        tree.Kill();
+                        foreach (var process in processes)
+                        {
+                            ProcessUtil.KillTree(process);
+                            if (process != dotnetProcessInfo.Process)
+                                process.Dispose();
+                        }
                     }
                 }
                 else
