@@ -191,9 +191,10 @@ EmitNoneIf(failedJobs.Count == 0, $"No failed or canceled jobs in the timeline f
 // Orchestration legs such as `Monitor Helix Jobs` fail without producing one -
 // that is how a Helix test failure surfaces - and demanding an artifact for
 // those would skip most real failures rather than analyze them. Roslyn spells
-// the task `Publish Logs`, and `Publish BuildLogs` in Source-Build.
+// the task `Publish Logs`, and `Publish BuildLogs` in Source-Build. The tasks
+// use continueOnError, so a publish with warnings is `succeededWithIssues`.
 var publishedLogs = records
-    .Where(record => record.At("result").Text() == "succeeded")
+    .Where(record => record.At("result").Text() is "succeeded" or "succeededWithIssues")
     .Select(record => (Task: record.At("name").Text(), Parent: record.At("parentId").Text()))
     .Where(record => record.Task.StartsWith("Publish", StringComparison.Ordinal) && record.Task.EndsWith("Logs", StringComparison.Ordinal))
     .Select(record => record.Parent)
@@ -253,9 +254,10 @@ var maxAttempt = TimeSpan.FromSeconds(120);
 var maxRetryWindow = TimeSpan.FromSeconds(240);
 var remainingBytes = MaxTotalBytes;
 
-// A fixed /tmp name is a pre-created symlink, or a second job on the same
-// runner, away from being someone else's file.
-var zipTmp = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+// Download into a private (0700) directory: in shared /tmp another process
+// could plant a symlink at the download path and redirect the write.
+var zipDir = Directory.CreateTempSubdirectory("binlog-fetch-").FullName;
+var zipTmp = Path.Combine(zipDir, "artifact.zip");
 // Only binlogs extracted by this run may be analyzed, so make the reset
 // authoritative rather than best-effort. `binlogDir` was confined to a scratch
 // root at startup, which is what makes a recursive delete here safe to do -
@@ -353,6 +355,7 @@ foreach (var (node, name) in selectedArtifacts)
 }
 
 TryDelete(zipTmp);
+try { Directory.Delete(zipDir); } catch (Exception) { }
 
 Console.WriteLine($"Extracted {count} binlog(s) from {stagedLegs}/{selectedArtifacts.Count} selected artifacts into {binlogDir}:");
 foreach (var staged in Directory.EnumerateFiles(binlogDir).Order(StringComparer.Ordinal))
