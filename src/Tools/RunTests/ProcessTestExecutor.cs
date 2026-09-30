@@ -300,18 +300,22 @@ namespace RunTests
 
         private static void WriteSyntheticFailure(string resultsFilePath, string displayName, string message)
         {
-            var doc = new XDocument(
-                new XElement("assemblies",
-                    new XElement("assembly", new XAttribute("name", displayName),
-                        new XAttribute("total", 1), new XAttribute("passed", 0), new XAttribute("failed", 1), new XAttribute("skipped", 0),
-                        new XElement("collection", new XAttribute("name", "RunTests"),
-                            new XAttribute("total", 1), new XAttribute("passed", 0), new XAttribute("failed", 1), new XAttribute("skipped", 0),
-                            new XElement("test", new XAttribute("name", displayName),
-                                new XAttribute("type", "RunTests.WorkItem"), new XAttribute("method", "Execute"),
-                                new XAttribute("time", 0), new XAttribute("result", "Fail"),
-                                new XElement("failure", new XAttribute("exception-type", "WorkItemFailure"),
-                                    new XElement("message", message)))))));
-            doc.Save(GetSyntheticFailurePath(resultsFilePath));
+            var escapedDisplayName = SecurityElement.Escape(displayName);
+            var xml = $"""
+                <?xml version="1.0" encoding="utf-8"?>
+                <assemblies>
+                  <assembly name="{escapedDisplayName}" total="1" passed="0" failed="1" skipped="0">
+                    <collection name="RunTests" total="1" passed="0" failed="1" skipped="0">
+                      <test name="{escapedDisplayName}" type="RunTests.WorkItem" method="Execute" time="0" result="Fail">
+                        <failure exception-type="WorkItemFailure">
+                          <message>{SecurityElement.Escape(message)}</message>
+                        </failure>
+                      </test>
+                    </collection>
+                  </assembly>
+                </assemblies>
+                """;
+            File.WriteAllText(GetSyntheticFailurePath(resultsFilePath), xml);
         }
 
         /// <summary>
