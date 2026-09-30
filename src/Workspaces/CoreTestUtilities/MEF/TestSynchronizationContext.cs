@@ -16,9 +16,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities;
 /// test framework's per-test cleanup — runs on top of that operation's stack frames. Cleanup then blocks waiting
 /// for the very operation it is nested inside, deadlocking the test process.</para>
 ///
-/// <para>Posting continuations elsewhere keeps test bodies and cleanup off Roslyn worker threads. When an outer
-/// context exists (for example the dispatcher context of a WPF test), continuations are forwarded to it so its
-/// thread affinity is preserved; otherwise they are queued to the thread pool.</para>
+/// <para>Posting continuations that capture this context elsewhere keeps them off the worker completing the
+/// awaited operation. When an outer context exists (for example the dispatcher context of a WPF test),
+/// continuations are forwarded to it so its thread affinity is preserved; otherwise they are queued to the
+/// thread pool. Awaits using <c>ConfigureAwait(false)</c> do not capture this context.</para>
 /// </remarks>
 internal sealed class TestSynchronizationContext : SynchronizationContext
 {

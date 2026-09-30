@@ -63,9 +63,11 @@ task. When that is a Roslyn worker draining an operation tracked by
 `IAsynchronousOperationListener`, the rest of the test — and
 `UseExportProviderAttribute.After` — runs nested inside that operation's stack,
 and cleanup then blocks forever waiting for the operation it is nested inside.
-`TestSynchronizationContext` posts continuations to the outer context when one
-exists (preserving WPF dispatcher affinity) and to the thread pool otherwise, so
-test bodies and cleanup never resume on a Roslyn worker thread.
+`TestSynchronizationContext` posts continuations that capture it to the outer
+context when one exists (preserving WPF dispatcher affinity) and to the thread
+pool otherwise, so those continuations do not run inline on the worker that
+completes the awaited operation. Awaits using `ConfigureAwait(false)` do not
+capture the context.
 
 Consequences to keep in mind when writing or debugging tests:
 
