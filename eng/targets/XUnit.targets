@@ -118,17 +118,20 @@
   </Target>
 
   <!--
-    .NET Framework test assemblies are executables whose own PE header determines the default
-    stack size of every thread in the test process, including the thread pool threads that
-    xunit.v3 runs tests on. csc always emits a 1 MB stack reserve, which deep-recursion compiler
-    tests overflow in Debug builds. Raising it to 4 MB matches the testhost.net47x.exe that
-    previously hosted these tests.
+    Windows takes the default thread stack size from the PE header of the executable that starts
+    the process, so for .NET Framework tests it comes from the app host that xunit.v3 launches
+    (see CreateXunitV3AppHost below), including the thread pool threads that xunit.v3 runs tests
+    on. csc emits a 1 MB stack reserve for 32-bit and AnyCPU outputs (it only emits 4 MB for
+    outputs that require 64-bit), which deep-recursion compiler tests overflow in Debug builds.
+    Raising it to 4 MB matches the testhost.net47x.exe that previously hosted these tests.
 
-    Only the copies in the output directory are patched. The intermediate assembly is left exactly
-    as csc emitted it, so rebuild validation (eng/test-rebuild.ps1) can still reproduce it from
-    source. Patched files are recreated rather than written in place, because CI builds
-    (ROSLYNUSEHARDLINKS) hard link the output copy to the intermediate assembly. The last write time is restored after patching so the incremental copies that produce
-    these files keep skipping them and downstream targets see no spurious change.
+    Only the generated app host in the output directory is patched. The intermediate assembly and
+    the primary test artifact are left exactly as csc emitted them, so rebuild validation
+    (eng/test-rebuild.ps1) can still reproduce them from source. The patched file is recreated
+    rather than written in place, because CI builds (ROSLYNUSEHARDLINKS) hard link output copies
+    to the intermediate assembly. The last write time is restored after patching so the
+    incremental copies that produce these files keep skipping them and downstream targets see no
+    spurious change.
   -->
   <UsingTask TaskName="SetPEStackReserve"
              TaskFactory="RoslynCodeTaskFactory"
@@ -208,11 +211,5 @@
     <Copy SourceFiles="$(_TargetConfigPath)" DestinationFiles="$(_XunitV3AppHostConfig)" SkipUnchangedFiles="true" Condition="Exists('$(_TargetConfigPath)')" />
 
     <SetPEStackReserve FilePath="$(_XunitV3AppHost)" StackReserve="$(TestAssemblyStackReserve)" Condition="Exists('$(_XunitV3AppHost)')" />
-  </Target>
-
-  <Target Name="SetTestAssemblyStackReserve"
-          AfterTargets="CopyFilesToOutputDirectory"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(DotNetBuildSourceOnly)' != 'true'">
-    <SetPEStackReserve FilePath="$(TargetPath)" StackReserve="$(TestAssemblyStackReserve)" Condition="Exists('$(TargetPath)')" />
   </Target>
 </Project>
