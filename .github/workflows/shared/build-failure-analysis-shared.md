@@ -122,7 +122,7 @@ safe-outputs:
           const reviewIds = new Set(submitted.map(review => review.id));
           // Include review bodies: gh-aw moves unanchorable findings there.
           const published = [...comments.filter(isBot), ...submitted,
-            ...inline.filter(item => isBot(item) && reviewIds.has(item.pull_request_review_id))];
+            ...inline.filter(item => isBot(item) && (item.pull_request_review_id == null || reviewIds.has(item.pull_request_review_id)))];
           const markers = new Set(published.flatMap(item =>
             [...(item.body || "").matchAll(/^Build-analysis output: `(\d+:[a-f0-9]{64})`$/gm)].map(match => match[1])));
           output.items = output.items.filter(item => {

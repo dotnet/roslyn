@@ -291,16 +291,11 @@ foreach (var (node, name) in selectedArtifacts)
         continue;
     }
 
-    // The build that produced this artifact ran PR code, so treat its metadata
-    // as untrusted and require a URL this workflow is willing to fetch. ADO does
-    // not serve artifacts from one host: across 612 artifacts in 33 real builds,
-    // `Container` downloads came from dev.azure.com and `PipelineArtifact` ones
-    // from a regional artprod*.artifacts.visualstudio.com, so match those
-    // domains rather than a single origin. An unexpected host skips the
-    // artifact, which fails closed on the run rather than fetching it.
+    // The build ran PR code, so its artifact URL is untrusted; anything outside
+    // dnceng-public/public is skipped, which fails the run closed.
     if (!IsTrustedArtifactUrl(url))
     {
-        Console.WriteLine($"::warning::Skipping {safeName}: download URL is not an Azure DevOps artifact URL.");
+        Console.WriteLine($"::warning::Skipping {safeName}: download URL is not a dnceng-public/public artifact URL.");
         continue;
     }
 
@@ -578,39 +573,40 @@ static bool IsTransient(HttpStatusCode status)
         or HttpStatusCode.InternalServerError or HttpStatusCode.BadGateway
         or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout;
 
-// The leading dot is load-bearing: a bare suffix test would also accept a
-// lookalike host such as `notvisualstudio.com`.
-//
-// `.artifacts.visualstudio.com` rather than `.visualstudio.com`, because the
-// latter is the legacy per-organization namespace - anyone can register an
-// Azure DevOps organization and be handed `theirorg.visualstudio.com`, which
-// would make the allowlist self-service. The artifact service lives on the
-// regional `artprod*.artifacts.visualstudio.com` hosts, which is where the 612
-// `PipelineArtifact` downloads sampled across 33 real builds came from.
+// Only dnceng-public/public artifacts: `Container` URLs are
+// dev.azure.com/dnceng-public/<project>/..., and `PipelineArtifact` URLs (and
+// ADO's redirects to them) are artprod<region>.artifacts.visualstudio.com/
+// A<dnceng-public collection id>/<project id>/... Any other organization,
+// project or tenant is refused.
 static bool IsTrustedArtifactUrl(string url)
-    => Uri.TryCreate(url, UriKind.Absolute, out var uri)
-        && uri.Scheme == Uri.UriSchemeHttps
-        && (uri.Host.Equals("dev.azure.com", StringComparison.OrdinalIgnoreCase)
-            || uri.Host.EndsWith(".dev.azure.com", StringComparison.OrdinalIgnoreCase)
-            || uri.Host.EndsWith(".artifacts.visualstudio.com", StringComparison.OrdinalIgnoreCase));
+{
+    const string CollectionId = "6fcc92e5-73a7-4f88-8d13-d9045b45fb27";
+    const string ProjectId = "cbb18261-c48f-4abb-8651-8cdcb5474649";
+
+    if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || !uri.IsDefaultPort)
+    {
+        return false;
+    }
+
+    var path = uri.AbsolutePath;
+    if (uri.Host.Equals("dev.azure.com", StringComparison.OrdinalIgnoreCase))
+    {
+        return path.StartsWith("/dnceng-public/public/", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith($"/dnceng-public/{ProjectId}/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    return Regex.IsMatch(uri.Host, @"^artprod[a-z0-9]+\.artifacts\.visualstudio\.com$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+        && path.StartsWith($"/A{CollectionId}/{ProjectId}/", StringComparison.OrdinalIgnoreCase);
+}
 
 static bool IsRedirect(HttpStatusCode status)
     => status is HttpStatusCode.MovedPermanently or HttpStatusCode.Found or HttpStatusCode.SeeOther
         or HttpStatusCode.TemporaryRedirect or HttpStatusCode.PermanentRedirect;
 
-// Checking the artifact's own URL only constrains the first hop. A handler that
-// follows redirects on its own would then let a URL that passed the allowlist
-// hand the transfer to any host at all, which is the whole restriction gone.
-// The hops cannot simply be refused either: ADO really does redirect artifact
-// downloads, from dev.azure.com to a regional artprod*.artifacts.visualstudio.com.
-//
-// So the `ado` client has auto-redirect switched off and follows them here,
-// where every `Location` goes through the same allowlist the first URL passed.
-// An untrusted hop ends the attempt with a status the caller reports and does
-// not retry, so an artifact that tries to send this job elsewhere is skipped
-// rather than fetched. The `github` client keeps the handler's own redirect
-// handling - which drops the Authorization header across hosts - so no redirect
-// status reaches this loop for it.
+// ADO redirects artifact downloads (dev.azure.com -> artprod*), so the `ado`
+// client follows redirects here and checks every `Location` against the same
+// allowlist; an untrusted hop is refused and not retried. The `github` client
+// keeps the handler's redirects, which drop Authorization across hosts.
 static async Task<HttpResponseMessage> Get(
     HttpClient client, string url, HttpCompletionOption completion, CancellationToken cancellation)
 {
@@ -627,7 +623,7 @@ static async Task<HttpResponseMessage> Get(
 
         if (next is null || !IsTrustedArtifactUrl(next.AbsoluteUri))
         {
-            Console.WriteLine($"::warning::Refusing a redirect to '{Extractor.Sanitize(next?.Host ?? "an unparseable location")}': not an Azure DevOps artifact host.");
+            Console.WriteLine($"::warning::Refusing a redirect to '{Extractor.Sanitize(next?.Host ?? "an unparseable location")}': not a dnceng-public/public artifact URL.");
             return new HttpResponseMessage(HttpStatusCode.Forbidden);
         }
 
