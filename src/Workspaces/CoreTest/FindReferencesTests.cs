@@ -906,8 +906,8 @@ public sealed class FindReferencesTests : TestBase
         var referencedNames = references
             .SelectMany(r => r.Locations)
             .Select(l => l.Location.SourceTree.GetText().ToString(l.Location.SourceSpan))
-            .Order(StringComparer.Ordinal);
-        Assert.Equal(new[] { implementationName, "value" }.Order(StringComparer.Ordinal), referencedNames);
+            .OrderBy(n => n, StringComparer.Ordinal);
+        Assert.Equal(new[] { implementationName, "value" }.OrderBy(n => n, StringComparer.Ordinal), referencedNames);
     }
 
     private static void Verify(ReferencedSymbol reference, HashSet<int> expectedMatchedLines)

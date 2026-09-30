@@ -1987,7 +1987,7 @@ public sealed class SymbolEquivalenceComparerTests
             }
             """;
 
-        var compilation = CS.CSharpCompilation.Create(
+        var compilation = (Compilation)CS.CSharpCompilation.Create(
             "comp",
             [CS.CSharpSyntaxTree.ParseText(source, CS.CSharpParseOptions.Default.WithLanguageVersion(CS.LanguageVersion.Preview))],
             [NetFramework.mscorlib],
