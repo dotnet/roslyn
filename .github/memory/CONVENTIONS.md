@@ -23,7 +23,7 @@ From `.editorconfig`:
 - `*.cs`/`*.vb`: `insert_final_newline = true`, `charset = utf-8-bom`.
 - `src/Workspaces/CSharp/Portable/SyncedSource/FileBasedPrograms/.editorconfig` is copied from the pinned `dotnet/sdk` source package and has `root = true` without a charset. Keep it synchronized; `eng/validate-bom.cs` enforces UTF-8 BOM for the synced C# files when that setting is absent.
 - Executable file-based C# apps with `#!` use the scoped `eng/.editorconfig` `utf-8` rules; shebangs must be at byte zero without a BOM. The PR correctness check rejects BOM-prefixed shebangs for tracked files.
-- The BOM correctness job installs the preview SDK by exact version in `azure-pipelines.yml`; keep that version in sync with `global.json` when updating the SDK.
+- The BOM correctness job reads `sdk.version` from `global.json` and passes that exact version to UseDotNet; its prerelease SDK cannot be installed using UseDotNet's `useGlobalJson` mode with the repository's `rollForward: patch` setting.
 - **Blank lines must contain no whitespace** (no spaces/tabs) — this is a hard lint failure.
 - **No trailing whitespace.**
 - File-scoped namespaces and `var`/expression-body preferences are enforced via editorconfig analyzers — follow the file you are editing.

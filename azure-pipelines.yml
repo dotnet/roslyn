@@ -501,11 +501,17 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
+      - powershell: |
+          $sdkVersion = (Get-Content global.json -Raw | ConvertFrom-Json).sdk.version
+          if (-not $sdkVersion) { throw 'global.json does not specify an SDK version.' }
+          Write-Host "##vso[task.setvariable variable=SdkVersion]$sdkVersion"
+        displayName: Read pinned .NET SDK version
+
       - task: UseDotNet@2
         displayName: Install pinned .NET SDK
         inputs:
           packageType: sdk
-          version: 11.0.100-rc.1.26425.128
+          version: $(SdkVersion)
 
       - powershell: eng/todo-check.ps1
         displayName: Validate TODO/PROTOTYPE comments are not present
