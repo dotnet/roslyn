@@ -18,15 +18,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
 public class FirstClassSpanTests : CSharpTestBase
 {
-    public static IEnumerable<object[]> LangVersions()
-    {
-        yield return [LanguageVersion.CSharp13];
-        yield return [LanguageVersion.CSharp14];
-        yield return [LanguageVersion.Preview];
-    }
+    public static TheoryDataRow<LanguageVersion>[] LangVersions() =>
+    [
+        new(LanguageVersion.CSharp13),
+        new(LanguageVersion.CSharp14),
+        new(LanguageVersion.Preview),
+    ];
 
     private sealed class CombinatorialLangVersions()
-        : CombinatorialValuesAttribute(((IEnumerable<object[]>)LangVersions()).Select(d => d.Single()).ToArray());
+        : CombinatorialValuesAttribute(LanguageVersion.CSharp13, LanguageVersion.CSharp14, LanguageVersion.Preview);
 
     [Fact, WorkItem("https://github.com/dotnet/runtime/issues/101261")]
     public void Example_StringValuesAmbiguity()

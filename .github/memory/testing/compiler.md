@@ -39,9 +39,8 @@ public class MyTests : CSharpTestBase
   `Single()` instead of checking counts then indexing.
 - **Prefer raw string literals** (`"""..."""`) over verbatim strings (`@"..."`)
   for test source code.
-- **Localized command-line diagnostics**: compare message arguments using the
-  corresponding `CodeAnalysisResources` format string, not hard-coded English
-  punctuation. Analyzer-config descriptors cache resource strings at their
-  first use, which may happen in another test running under the host UI culture
-  before a compiler with `/preferreduilang:en` runs. Account for both cultures
-  when checking output from those diagnostics.
+- **Localized command-line diagnostics**: compare messages using the
+  corresponding `CodeAnalysisResources` format string rather than hard-coded
+  punctuation. When an in-process compiler test depends on localized output,
+  pin the test's culture with `UseCulture` so the expected resource and the
+  compiler's current UI culture are deterministic.

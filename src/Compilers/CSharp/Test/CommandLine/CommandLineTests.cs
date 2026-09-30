@@ -327,7 +327,7 @@ my_option2 = my_val2");
             Assert.False(options.TryGetValue("dotnet_diagnostic.cs0169.severity", out _));
         }
 
-        [Fact]
+        [Fact, UseCulture("en-US")]
         public void AnalyzerConfigBadSeverity()
         {
             var dir = Temp.CreateDirectory();
@@ -362,14 +362,9 @@ dotnet_diagnostic.cs0169.severity = garbage");
 
         private static void AssertLocalizedAnalyzerConfigMessage(string output, string resourceName, params object[] args)
         {
-            // Another test can initialize the descriptor under the host UI culture before this compiler runs.
-            var english = CultureInfo.GetCultureInfo("en-US");
-            var expectedEnglish = string.Format(english, CodeAnalysisResources.ResourceManager.GetString(resourceName, english), args);
-            var expectedCurrent = string.Format(CultureInfo.CurrentUICulture,
-                CodeAnalysisResources.ResourceManager.GetString(resourceName, CultureInfo.CurrentUICulture), args);
-            Assert.True(
-                output.Contains(expectedEnglish, StringComparison.Ordinal) || output.Contains(expectedCurrent, StringComparison.Ordinal),
-                $"Expected '{expectedEnglish}' or '{expectedCurrent}' in:{Environment.NewLine}{output}");
+            var culture = CultureInfo.CurrentUICulture;
+            var messageFormat = CodeAnalysisResources.ResourceManager.GetString(resourceName, culture);
+            Assert.Contains(string.Format(culture, messageFormat, args), output, StringComparison.Ordinal);
         }
 
         [Fact]
@@ -15125,7 +15120,7 @@ is_global = true
             Assert.Equal(0, exitCode);
         }
 
-        [Fact]
+        [Fact, UseCulture("en-US")]
         public void GlobalAnalyzerConfigMultipleSetKeys()
         {
             var dir = Temp.CreateDirectory();
