@@ -51,6 +51,12 @@ namespace RunTests
             }
         }
 
+        /// <summary>
+        /// Attempts full dumps of the launcher and supported processes in its owned process tree,
+        /// prioritizing test hosts. Starts a separate RunTests helper subprocess for each dump so
+        /// a blocked dump API can be terminated without blocking this runner. All helpers share
+        /// the work item's dump timeout budget; only successfully completed dumps are published.
+        /// </summary>
         internal static async Task CollectAsync(OwnedProcessTree tree, Options options, string directory)
         {
             Directory.CreateDirectory(directory);
