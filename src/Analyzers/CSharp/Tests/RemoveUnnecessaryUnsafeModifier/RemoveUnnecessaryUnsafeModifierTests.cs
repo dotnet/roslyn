@@ -390,6 +390,29 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task AddSafetyCommentToSingleLineBlockDocumentationInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /** */
+                    public [|unsafe|] void M() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    /** <safety></safety> */
+                    public unsafe void M() { }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
     public Task AddSafetyCommentToMultilineDocumentationWithLeadingAsterisksInV2()
         => new VerifyCS.Test
         {

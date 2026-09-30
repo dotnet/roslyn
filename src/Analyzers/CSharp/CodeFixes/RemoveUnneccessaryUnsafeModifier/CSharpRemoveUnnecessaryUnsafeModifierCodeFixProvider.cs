@@ -112,8 +112,24 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
         var text = documentationComment.ToFullString();
         var closingDelimiterIndex = text.LastIndexOf("*/", StringComparison.Ordinal);
 
+        // For a comment contained entirely on one line, insert the element directly before the closing delimiter.
+        // Preserve an existing space before the delimiter and add one after the new element.
         var closingLineStart = text.LastIndexOf('\n', closingDelimiterIndex) + 1;
+        if (closingLineStart == 0)
+        {
+            var leadingSpace = closingDelimiterIndex > 0 && char.IsWhiteSpace(text[closingDelimiterIndex - 1])
+                ? ""
+                : " ";
+            var updatedSingleLineText = text.Insert(closingDelimiterIndex, $"{leadingSpace}<safety></safety> ");
+            return SyntaxFactory.ParseLeadingTrivia(updatedSingleLineText)
+                .Single(static trivia => trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
+        }
+
+        // The closing delimiter is on its own line. Look at the preceding content line to determine the comment's
+        // indentation and whether each line starts with an asterisk.
         var previousLineEnd = closingLineStart - 1;
+
+        // Exclude the carriage return when the comment uses CRLF line endings.
         if (previousLineEnd > 0 && text[previousLineEnd - 1] == '\r')
             previousLineEnd--;
 
@@ -121,6 +137,9 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
             ? text.LastIndexOf('\n', previousLineEnd - 1) + 1
             : 0;
         var previousLine = text[previousLineStart..previousLineEnd];
+
+        // Capture the whitespace before the previous line's content. If the line starts with an asterisk, also
+        // capture that asterisk and its following space so the new element matches the existing comment style.
         var contentStart = 0;
         while (contentStart < previousLine.Length && char.IsWhiteSpace(previousLine[contentStart]))
             contentStart++;
