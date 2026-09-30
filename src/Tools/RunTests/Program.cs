@@ -108,7 +108,6 @@ namespace RunTests
             {
                 ConsoleUtil.Error("Global test timeout exceeded; collecting owned work-item dumps before termination.");
                 cts.Cancel();
-                await CaptureTimeoutScreenshotAsync(options);
 
                 try
                 {
@@ -126,28 +125,6 @@ namespace RunTests
             }
 
             return await runTask;
-        }
-
-        private static async Task CaptureTimeoutScreenshotAsync(Options options)
-        {
-            if (!OperatingSystem.IsWindows())
-                return;
-
-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            try
-            {
-                Directory.CreateDirectory(options.LogFilesDirectory);
-                var path = Path.Combine(options.LogFilesDirectory, "timeout.png").Replace("'", "''");
-                var output = await ProcessRunner.CreateProcess("Powershell.exe",
-                    $"-NoProfile -command \"& {{ . .\\eng\\build-utils-win.ps1; Capture-Screenshot '{path}' }}\"",
-                    displayWindow: false, captureOutput: true, cancellationToken: timeout.Token).Result.WaitAsync(timeout.Token);
-                Logger.Log(string.Join(Environment.NewLine, output.OutputLines));
-                Logger.Log(string.Join(Environment.NewLine, output.ErrorLines));
-            }
-            catch (Exception ex)
-            {
-                ConsoleUtil.Warning($"Unable to capture timeout screenshot: {ex.Message}");
-            }
         }
 
         private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)

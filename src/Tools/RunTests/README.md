@@ -137,7 +137,9 @@ Windows WER crash collection when running as administrator; timeout dump attempt
 do not require that option and do not require changing the registry.
 
 The local inactivity allowance also accommodates VSIX/hive setup for integration
-tests. Helix retains its existing 15-minute VSTest timeout and infrastructure
+tests. On a failed test run, `eng/test-vsi.ps1` captures `TestFailure.png` in the
+artifact log directory before its cleanup. RunTests itself does not take screenshots.
+Helix retains its existing 15-minute VSTest timeout and infrastructure
 deadline; `--timeout` is rejected with `--helix`.
 
 For a global-deadline probe, run multiple hanging assemblies with `--timeout 1`.
