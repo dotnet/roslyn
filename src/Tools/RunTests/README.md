@@ -121,7 +121,7 @@ binary: Windows uses `MiniDumpWriteDump` for both Framework and Core; Linux uses
 `DiagnosticsClient`. Collection has no timeout: helpers are awaited until they
 finish or the processes are externally terminated. A blocked helper therefore
 waits for external termination, such as the CI job timeout. Completed collection
-is followed by up to ten seconds for process exit/output draining. Reported dump
+is followed by awaiting process exit and output draining. Reported dump
 failures do not prevent attempts on the remaining candidates or failure reporting.
 
 At cancellation, RunTests takes a parent-process snapshot and traverses each

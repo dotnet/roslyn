@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -202,20 +201,8 @@ namespace RunTests
                         await collectTimeoutDumpsAsync(resultsFilePath, timeoutMessage).ConfigureAwait(false);
                     }
 
-                    try
-                    {
-                        var result = timeoutMessage is null
-                            ? await dotnetProcessInfo.Result
-                            : await dotnetProcessInfo.Result.WaitAsync(TimeSpan.FromSeconds(10));
-                        return (result, timeoutMessage);
-                    }
-                    catch (TimeoutException)
-                    {
-                        ConsoleUtil.Warning($"Process {dotnetProcessInfo.Id} did not finish cleanup within 10 seconds.");
-                        var result = new ProcessResult(dotnetProcessInfo.Process, Program.ExitFailure,
-                            new ReadOnlyCollection<string>([]), new ReadOnlyCollection<string>([timeoutMessage!]));
-                        return (result, timeoutMessage);
-                    }
+                    var result = await dotnetProcessInfo.Result;
+                    return (result, timeoutMessage);
                 }
 
                 async Task collectTimeoutDumpsAsync(string resultsFilePath, string timeoutMessage)
