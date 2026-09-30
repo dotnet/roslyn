@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryUnsafeModifier;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : CodeFixProvider
 {
+    private const string AddSafetyCommentEquivalenceKey = nameof(AddSafetyCommentEquivalenceKey);
+
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryUnsafeModifier];
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -34,6 +37,16 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
             cancellationToken => FixAllAsync(context.Document, context.Diagnostics, cancellationToken),
             nameof(AnalyzersResources.Remove_unnecessary_unsafe_modifier)),
             context.Diagnostics);
+
+        var compilation = await context.Document.Project.GetRequiredCompilationAsync(context.CancellationToken).ConfigureAwait(false);
+        if (compilation.SourceModule.MemorySafetyRulesVersion is MemorySafetyRulesVersion.Version2)
+        {
+            context.RegisterCodeFix(CodeAction.Create(
+                CSharpCodeFixesResources.Add_safety_documentation,
+                cancellationToken => AddSafetyCommentsAsync(context.Document, context.Diagnostics, cancellationToken),
+                AddSafetyCommentEquivalenceKey),
+                context.Diagnostics);
+        }
     }
 
     private static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
@@ -43,6 +56,36 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
         FixAll(editor, diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan));
+
+        return document.WithSyntaxRoot(editor.GetChangedRoot());
+    }
+
+    private static async Task<Document> AddSafetyCommentsAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var options = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        var safetyComment = SyntaxFactory.ParseLeadingTrivia($"/// <safety></safety>{options.NewLine}").Single();
+
+        var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+        foreach (var diagnostic in diagnostics)
+        {
+            var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+            var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.SpanStart);
+            var newLeadingTrivia = SyntaxFactory.TriviaList(
+                SyntaxFactory.Whitespace(indentation),
+                safetyComment);
+
+            var finalLeadingTrivia = node.GetLeadingTrivia().ToList();
+            var insertionIndex = finalLeadingTrivia.Count;
+
+            if (finalLeadingTrivia.Count > 0 && finalLeadingTrivia[^1].IsKind(SyntaxKind.WhitespaceTrivia))
+                insertionIndex--;
+
+            finalLeadingTrivia.InsertRange(insertionIndex, newLeadingTrivia);
+            editor.ReplaceNode(node, node.WithLeadingTrivia(finalLeadingTrivia));
+        }
 
         return document.WithSyntaxRoot(editor.GetChangedRoot());
     }
@@ -71,7 +114,17 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
     }
 
     public override FixAllProvider? GetFixAllProvider()
-        => new RemoveUnnecessaryUnsafeModifierSuppressionsFixAllProvider();
+        => new RemoveUnnecessaryUnsafeModifierFixAllProvider();
+
+    private sealed class RemoveUnnecessaryUnsafeModifierFixAllProvider : FixAllProvider
+    {
+        private readonly RemoveUnnecessaryUnsafeModifierSuppressionsFixAllProvider _removeUnsafeFixAllProvider = new();
+
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            => fixAllContext.CodeActionEquivalenceKey == AddSafetyCommentEquivalenceKey
+                ? WellKnownFixAllProviders.BatchFixer.GetFixAsync(fixAllContext)
+                : _removeUnsafeFixAllProvider.GetFixAsync(fixAllContext);
+    }
 
     /// <summary>
     /// Fix-all for removing unnecessary `unsafe` modifiers works in a fairly specialized fashion.  The core problem is
