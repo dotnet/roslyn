@@ -28,7 +28,8 @@ public abstract class MSBuildWorkspaceTestBase : WorkspaceTestBase
     private readonly TestOutputLoggerProvider _testOutputLoggerProvider;
     protected readonly ILoggerFactory LoggerFactory;
 
-    protected MSBuildWorkspaceTestBase(ITestOutputHelper testOutput)
+    protected MSBuildWorkspaceTestBase(ITestOutputHelper testOutput, ProjectGuardFiles projectGuardFiles)
+        : base(projectGuardFiles)
     {
         _testOutputHelper = testOutput;
         _testOutputLoggerProvider = new TestOutputLoggerProvider(testOutput);

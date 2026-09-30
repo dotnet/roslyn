@@ -15,7 +15,8 @@ internal sealed class WorkspaceProjectFactoryService(
     LanguageServerWorkspaceFactory workspaceFactory,
     ProjectTargetFrameworkManager targetFrameworkManager,
     ProjectInitializationHandler projectInitializationHandler,
-    ILoggerFactory loggerFactory) : IWorkspaceProjectFactoryService
+    ILoggerFactory loggerFactory,
+    VSCodeRequestTelemetryLogger requestTelemetryLogger) : IWorkspaceProjectFactoryService
 {
     private readonly LanguageServerWorkspaceFactory _workspaceFactory = workspaceFactory;
     private readonly ProjectInitializationHandler _projectInitializationHandler = projectInitializationHandler;
@@ -27,7 +28,7 @@ internal sealed class WorkspaceProjectFactoryService(
 
     public async Task<IWorkspaceProject> CreateAndAddProjectAsync(WorkspaceProjectCreationInfo creationInfo, CancellationToken cancellationToken)
     {
-        VSCodeRequestTelemetryLogger.ReportProjectLoadStarted();
+        requestTelemetryLogger.ReportProjectLoadStarted();
         try
         {
             if (creationInfo.BuildSystemProperties.TryGetValue("SolutionPath", out var solutionPath))

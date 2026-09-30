@@ -16,7 +16,7 @@ internal sealed partial class RenameTrackingTaggerProvider
     {
         private readonly StateMachine _stateMachine;
 
-        public event EventHandler<SnapshotSpanEventArgs> TagsChanged = delegate { };
+        public event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
         public Tagger(StateMachine stateMachine)
         {
@@ -27,13 +27,13 @@ internal sealed partial class RenameTrackingTaggerProvider
         }
 
         private void StateMachine_TrackingSessionCleared(ITrackingSpan trackingSpanToClear)
-            => TagsChanged(this, new SnapshotSpanEventArgs(trackingSpanToClear.GetSpan(_stateMachine.Buffer.CurrentSnapshot)));
+            => TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(trackingSpanToClear.GetSpan(_stateMachine.Buffer.CurrentSnapshot)));
 
         private void StateMachine_TrackingSessionUpdated()
         {
             if (_stateMachine.TrackingSession != null)
             {
-                TagsChanged(this, new SnapshotSpanEventArgs(_stateMachine.TrackingSession.TrackingSpan.GetSpan(_stateMachine.Buffer.CurrentSnapshot)));
+                TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_stateMachine.TrackingSession.TrackingSpan.GetSpan(_stateMachine.Buffer.CurrentSnapshot)));
             }
         }
 

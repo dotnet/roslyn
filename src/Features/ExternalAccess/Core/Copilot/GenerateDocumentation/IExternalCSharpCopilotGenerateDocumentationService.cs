@@ -10,5 +10,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Copilot;
 
 internal interface IExternalCSharpCopilotGenerateDocumentationService
 {
+    Task<bool> IsAvailableAsync(CancellationToken cancellationToken);
+    Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
     Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(CopilotDocumentationCommentProposalWrapper proposal, CancellationToken cancellationToken);
 }

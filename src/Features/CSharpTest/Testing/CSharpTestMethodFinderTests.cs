@@ -112,6 +112,68 @@ public sealed class CSharpTestMethodFinderTests
             """);
 
     [Fact]
+    public Task TestSemanticDiscoveryFindsXUnitAliasedFactMethod()
+        => TestXunitSemanticAsync("""
+            using Xunit;
+            using test = Xunit.FactAttribute;
+            public class TestClass
+            {
+                [test]
+                public void Test$$Method1() { }
+            }
+            """, "TestMethod1");
+
+    [Fact]
+    public Task TestSyntaxDiscoveryDoesNotFindDerivedXUnitFactMethod()
+        => TestXunitAsync("""
+            using Xunit;
+            public sealed class ConditionalFactAttribute : FactAttribute { }
+
+            public class TestClass
+            {
+                [ConditionalFact]
+                public void Test$$Method1() { }
+            }
+            """);
+
+    [Fact]
+    public Task TestSemanticDiscoveryFindsDerivedXUnitFactMethod()
+        => TestXunitSemanticAsync("""
+            using Xunit;
+            public class ConditionalFactAttribute : FactAttribute { }
+            public sealed class WindowsOnlyFactAttribute : ConditionalFactAttribute { }
+
+            public class TestClass
+            {
+                [WindowsOnlyFact]
+                public void Test$$Method1() { }
+            }
+            """, "TestMethod1");
+
+    [Fact]
+    public Task TestSemanticDiscoveryDoesNotFindUnrelatedFactAttribute()
+        => TestAsync("""
+            using System;
+            namespace Other
+            {
+                public sealed class FactAttribute : Attribute { }
+            }
+
+            public class TestClass
+            {
+                [Other.Fact]
+                public void Test$$Method1() { }
+            }
+            """, """
+            using System;
+            namespace Xunit
+            {
+                public class FactAttribute : Attribute { }
+                public class TheoryAttribute : FactAttribute { }
+            }
+            """, useSemanticDiscovery: true);
+
+    [Fact]
     public Task TestFindsXUnitFactOnlySelectedMethod()
         => TestXunitAsync("""
             using Xunit;
@@ -292,6 +354,18 @@ public sealed class CSharpTestMethodFinderTests
             }
             """, "TestMethod1", "TestMethod2", "TestMethod3", "TestMethod4");
 
+    [Fact]
+    public Task TestSemanticDiscoveryFindsNUnitTestMethod()
+        => TestNUnitSemanticAsync("""
+            using NUnit.Framework;
+
+            public class TestClass
+            {
+                [Test]
+                public void Test$$Method1() { }
+            }
+            """, "TestMethod1");
+
     #endregion
 
     #region MSTest
@@ -335,6 +409,19 @@ public sealed class CSharpTestMethodFinderTests
                 public void NotTestMethod() { }
             }
             """, "TestMethod1", "TestMethod2");
+
+    [Fact]
+    public Task TestSemanticDiscoveryFindsDerivedMSTestMethod()
+        => TestMSTestSemanticAsync("""
+            using Microsoft.VisualStudio.TestTools.UnitTesting;
+            public sealed class CustomTestMethodAttribute : TestMethodAttribute { }
+
+            public class TestClass
+            {
+                [CustomTestMethod]
+                public void Test$$Method1() { }
+            }
+            """, "TestMethod1");
 
     #endregion
 
@@ -404,7 +491,22 @@ public sealed class CSharpTestMethodFinderTests
                 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
                 public class TheoryAttribute : FactAttribute { }
             }
-            """, expectedTestNames);
+            """, false, expectedTestNames);
+    }
+
+    private static Task TestXunitSemanticAsync(string code, params string[] expectedTestNames)
+    {
+        return TestAsync(code, """
+            using System;
+            namespace Xunit
+            {
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class FactAttribute : Attribute { }
+
+                [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
+                public class TheoryAttribute : FactAttribute { }
+            }
+            """, true, expectedTestNames);
     }
 
     private static Task TestXunitMatchAsync(string code, params string[] expectedQualifiedTestNames)
@@ -443,7 +545,7 @@ public sealed class CSharpTestMethodFinderTests
                     public TestCaseSourceAttribute(string sourceName) { }
                 }
             }
-            """, expectedTestNames);
+            """, false, expectedTestNames);
     }
 
     private static Task TestMSTestAsync(string code, params string[] expectedTestNames)
@@ -455,10 +557,39 @@ public sealed class CSharpTestMethodFinderTests
                 [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
                 public class TestMethodAttribute : Attribute { }
             }
-            """, expectedTestNames);
+            """, false, expectedTestNames);
     }
 
-    private static async Task TestAsync(string code, string testAttributeDefinitionsCode, params string[] expectedTestNames)
+    private static Task TestNUnitSemanticAsync(string code, params string[] expectedTestNames)
+    {
+        return TestAsync(code, """
+            using System;
+            namespace NUnit.Framework
+            {
+                public sealed class TestAttribute : Attribute { }
+                public sealed class TheoryAttribute : Attribute { }
+                public sealed class TestCaseAttribute : Attribute { }
+                public sealed class TestCaseSourceAttribute : Attribute { }
+            }
+            """, true, expectedTestNames);
+    }
+
+    private static Task TestMSTestSemanticAsync(string code, params string[] expectedTestNames)
+    {
+        return TestAsync(code, """
+            using System;
+            namespace Microsoft.VisualStudio.TestTools.UnitTesting
+            {
+                public class TestMethodAttribute : Attribute { }
+            }
+            """, true, expectedTestNames);
+    }
+
+    private static async Task TestAsync(
+        string code,
+        string testAttributeDefinitionsCode,
+        bool useSemanticDiscovery,
+        params string[] expectedTestNames)
     {
         var workspace = TestWorkspace.CreateCSharp([code, testAttributeDefinitionsCode]);
 
@@ -466,7 +597,8 @@ public sealed class CSharpTestMethodFinderTests
         var span = testDocument.CursorPosition != null ? new TextSpan(testDocument.CursorPosition.Value, 0) : testDocument.SelectedSpans.Single();
 
         var testMethodFinder = workspace.CurrentSolution.Projects.Single().GetRequiredLanguageService<ITestMethodFinder>();
-        var testMethods = await testMethodFinder.GetPotentialTestMethodsAsync(workspace.CurrentSolution.GetRequiredDocument(testDocument.Id), span, CancellationToken.None);
+        var testMethods = await testMethodFinder.GetPotentialTestMethodsAsync(
+            workspace.CurrentSolution.GetRequiredDocument(testDocument.Id), span, useSemanticDiscovery, CancellationToken.None);
         var testMethodNames = testMethods.Cast<MethodDeclarationSyntax>().Select(m => m.Identifier.Text).ToArray();
 
         AssertEx.Equal(expectedTestNames, testMethodNames);
@@ -480,7 +612,8 @@ public sealed class CSharpTestMethodFinderTests
         var span = testDocument.CursorPosition != null ? new TextSpan(testDocument.CursorPosition.Value, 0) : testDocument.SelectedSpans.Single();
 
         var testMethodFinder = workspace.CurrentSolution.Projects.Single().GetRequiredLanguageService<ITestMethodFinder>();
-        var testMethods = await testMethodFinder.GetPotentialTestMethodsAsync(workspace.CurrentSolution.GetRequiredDocument(testDocument.Id), span, CancellationToken.None);
+        var testMethods = await testMethodFinder.GetPotentialTestMethodsAsync(
+            workspace.CurrentSolution.GetRequiredDocument(testDocument.Id), span, false, CancellationToken.None);
         var semanticModel = await workspace.CurrentSolution.GetRequiredDocument(testDocument.Id).GetRequiredSemanticModelAsync(CancellationToken.None);
 
         List<string> unmatchedTestNames = [];

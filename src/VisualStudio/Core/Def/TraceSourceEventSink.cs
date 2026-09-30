@@ -1,11 +1,13 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.VisualStudio.LanguageServices;
@@ -44,6 +46,10 @@ internal sealed class TraceSourceEventSink : IEventSink
 
     public bool IsEnabled(FunctionId functionId)
         => !_traceSources.IsEmpty;
+
+    public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
+    {
+    }
 
     public void Log(FunctionId functionId, LogMessage logMessage)
     {

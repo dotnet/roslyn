@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -49,6 +50,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
     private readonly List<Target> _targets = [];
     private (ProjectSystemProjectFactory ProjectFactory, ProjectId Id)? _primordialProjectInfo;
+    private readonly TaskCompletionSource _initialLoadCompletionSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
     private bool _reportedTelemetry = false;
     private Guid? _projectGuidForTelemetry = null;
@@ -77,6 +79,26 @@ internal sealed partial class LoadedProject : IAsyncDisposable
     /// Raised any time this project (or any of its targets) needs a reload. The parameter includes the file path that triggered a reload.
     /// </summary>
     public event EventHandler<string>? NeedsReload;
+
+    /// <summary>
+    /// Waits for the initial project load to settle.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if the project remains loaded and contains a primordial project or at least one evaluated
+    /// target; otherwise, <see langword="false"/>.
+    /// </returns>
+    public async ValueTask<bool> WaitForLoadAsync(CancellationToken cancellationToken)
+    {
+        await _initialLoadCompletionSource.Task.WaitAsync(cancellationToken);
+
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            return !_disposed && (_primordialProjectInfo.HasValue || _targets.Count > 0);
+        }
+    }
+
+    public void CompleteInitialLoad()
+        => _initialLoadCompletionSource.TrySetResult();
 
     private void ProjectFileChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
     {
@@ -187,6 +209,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         bool hasAllInformation,
         ProjectSystemProjectFactory projectFactory,
         ProjectTargetFrameworkManager targetFrameworkManager,
+        ProjectCapabilityManager projectCapabilityManager,
         LanguageServerWorkspaceFactory workspaceFactory,
         ILogger logger,
         CancellationToken cancellationToken,
@@ -205,7 +228,8 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
             foreach (var loadedProjectInfo in loadedProjectInfos)
             {
-                var target = await GetOrCreateProjectTargetAsync(loadedProjectInfo, projectFactory, workspaceFactory, cancellationToken);
+                var target = await GetOrCreateProjectTargetAsync(
+                    loadedProjectInfo, projectFactory, projectCapabilityManager, workspaceFactory, cancellationToken);
                 staleTargets.Remove(target);
                 await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, hasAllInformation, targetFrameworkManager, logger);
             }
@@ -231,7 +255,12 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         }
     }
 
-    private async Task<Target> GetOrCreateProjectTargetAsync(ProjectFileInfo loadedProjectInfo, ProjectSystemProjectFactory projectFactory, LanguageServerWorkspaceFactory workspaceFactory, CancellationToken cancellationToken)
+    private async Task<Target> GetOrCreateProjectTargetAsync(
+        ProjectFileInfo loadedProjectInfo,
+        ProjectSystemProjectFactory projectFactory,
+        ProjectCapabilityManager projectCapabilityManager,
+        LanguageServerWorkspaceFactory workspaceFactory,
+        CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
@@ -256,7 +285,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             workspaceFactory.ProjectSystemHostInfo,
             cancellationToken).ConfigureAwait(false);
 
-        var target = new Target(this, projectSystemProject, projectFactory);
+        var target = new Target(this, projectSystemProject, projectFactory, projectCapabilityManager);
         _targets.Add(target);
         return target;
     }
@@ -322,6 +351,8 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             if (_disposed)
                 return;
 
+            _initialLoadCompletionSource.TrySetResult();
+
             _sourceFileCreatedOrDeletedChangeContext?.Dispose();
             _projectFileChangeContext.Dispose();
 
@@ -338,6 +369,13 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
             _disposed = true;
         }
+    }
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(LoadedProject loadedProject)
+    {
+        public void RaiseNeedsReload() => loadedProject.NeedsReload?.Invoke(loadedProject, loadedProject.ProjectFilePath);
     }
 
     private sealed class DocumentFileInfoComparer : IEqualityComparer<DocumentFileInfo>

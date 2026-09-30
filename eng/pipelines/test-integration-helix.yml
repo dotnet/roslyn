@@ -14,6 +14,10 @@ parameters:
   - name: warnAsError
     type: boolean
     default: false
+  - name: testPlatform
+    type: string
+    default: x64
+    values: [ x86, x64 ]
   - name: testRuns
     type: object
     default:
@@ -41,6 +45,9 @@ stages:
 - stage: ${{ parameters.configuration }}_Integration
   dependsOn: Windows_${{ parameters.configuration }}_Build
   variables:
+  # Use the producer's artifact name even when only the test job is retried.
+  - name: testArtifactName
+    value: $[stageDependencies.Windows_${{ parameters.configuration }}_Build.Build_Windows_${{ parameters.configuration }}.outputs['SetTestArtifactName.testArtifactName']]
   - name: XUNIT_LOGS
     value: $(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}
   jobs:
@@ -55,7 +62,7 @@ stages:
       - task: DownloadPipelineArtifact@2
         displayName: Download Test Payload
         inputs:
-          artifact: Transport_Artifacts_Windows_${{ parameters.configuration }}
+          artifact: $(testArtifactName)
           path: '$(Build.SourcesDirectory)'
 
       - task: BatchScript@1
@@ -110,19 +117,11 @@ stages:
         env:
           HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
-      - task: UseDotNet@2
-        displayName: 'Install .NET 9 Runtime'
-        inputs:
-          packageType: runtime
-          version: '9.0.0'
-          includePreviewVersions: true
-          installationPath: '$(Build.SourcesDirectory)/.dotnet'
-
       - task: PowerShell@2
         displayName: Run Integration Tests
         inputs:
-          filePath: eng/build.ps1
-          arguments: -ci -warnAsError:$${{ parameters.warnAsError }} -prepareMachine -testVsi -configuration ${{ parameters.configuration }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
+          filePath: eng/test-vsi.ps1
+          arguments: -ci -configuration ${{ parameters.configuration }} -testPlatform ${{ parameters.testPlatform }} -oop64bit:$${{ testParameters.oop64bit }} -collectDumps -lspEditor:$${{ testParameters.lspEditor }}
 
       # These are temporary publishing steps - once the tests run on helix, the artifacts will be attached to the helix payload.
       - task: PublishTestResults@2

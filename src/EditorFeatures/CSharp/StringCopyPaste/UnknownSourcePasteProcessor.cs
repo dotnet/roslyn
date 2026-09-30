@@ -107,7 +107,7 @@ internal sealed class UnknownSourcePasteProcessor(
 
         // If all we're going to do is insert whitespace, then don't make any adjustments to the text. We don't want
         // to end up inserting nothing and having the user very confused why their paste did nothing.
-        if (AllWhitespace(SnapshotBeforePaste.Version.Changes))
+        if (AllWhitespace(Changes))
             return default;
 
         // if the content we're going to add itself contains quotes, then figure out how many start/end quotes the

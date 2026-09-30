@@ -24,6 +24,24 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     {
     }
 
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void HelpLinkToCodeDescription_NullOrEmpty(string? helpLinkUri)
+    {
+        Assert.Null(ProtocolConversions.HelpLinkToCodeDescription(helpLinkUri));
+    }
+
+    [Fact]
+    public void HelpLinkToCodeDescription_Valid()
+    {
+        const string helpLinkUri = "https://example.com/help";
+
+        var codeDescription = ProtocolConversions.HelpLinkToCodeDescription(helpLinkUri);
+
+        Assert.Equal(helpLinkUri, codeDescription?.Href.ToString());
+    }
+
     [Fact]
     public void CreateAbsoluteUri_LocalPaths_AllAscii()
     {

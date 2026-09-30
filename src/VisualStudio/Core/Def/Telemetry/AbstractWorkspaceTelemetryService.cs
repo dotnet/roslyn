@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
@@ -40,8 +39,6 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
             metricSink,
         ];
 
-        FaultReporter.RegisterTelemetrySesssion(telemetrySession);
-
         CurrentSession = telemetrySession;
 
         TelemetrySessionInitialized();
@@ -60,12 +57,6 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
 
     public string? SerializeCurrentSessionSettings()
         => CurrentSession?.SerializeSettings();
-
-    public void RegisterUnexpectedExceptionLogger(TraceSource logger)
-        => FaultReporter.RegisterLogger(logger);
-
-    public void UnregisterUnexpectedExceptionLogger(TraceSource logger)
-        => FaultReporter.UnregisterLogger(logger);
 
     public void Dispose()
     {
