@@ -92,7 +92,7 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
             }
         }
 
-        // If no multiline documentation comment is present, add a new single-line documentation comment.
+        // Otherwise, add a new /// documentation comment before the declaration.
         var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.SpanStart);
         var safetyComment = SyntaxFactory.ParseLeadingTrivia($"/// <safety></safety>{newLine}").Single();
         var newLeadingTrivia = SyntaxFactory.TriviaList(
