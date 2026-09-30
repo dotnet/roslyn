@@ -286,6 +286,23 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenSafetyElementIsNestedInSummaryInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /// <summary>
+                    /// <safety>Calling this member requires unsafe code.</safety>
+                    /// </summary>
+                    public unsafe void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
     public Task KeepWhenMultilineSafetyElementHasLeadingAsterisksInV2()
         => new VerifyCS.Test
         {
