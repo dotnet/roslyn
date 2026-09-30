@@ -29,7 +29,7 @@ public abstract class CohostEndpointTestBase(ITestOutputHelper testOutputHelper)
     private protected override TestComposition LocalComposition => TestComposition.RoslynFeatures
         .AddAssemblies(typeof(RazorSourceGeneratedDocumentSpanMappingService).Assembly);
 
-    protected override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

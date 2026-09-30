@@ -92,14 +92,17 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
         Thread.CurrentThread.Name ??= "Main Thread";
     }
 
-    ValueTask IAsyncLifetime.InitializeAsync() => new(InitializeAsync());
+    /// <summary>
+    ///  Override to provide custom initialization logic for all tests in this test class.
+    /// </summary>
+    public virtual ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    async ValueTask IAsyncDisposable.DisposeAsync()
+    /// <summary>
+    ///  Override to provide custom disposal logic for all tests in this test class.
+    /// </summary>
+    public virtual async ValueTask DisposeAsync()
     {
-        // First, call the protected DisposeAsync() to let test classes to run custom logic.
-        await DisposeAsync();
-
-        // Next, dispose any IAsyncDisposables that were registered by the current test.
+        // Dispose any IAsyncDisposables that were registered by the current test.
         if (_asyncDisposables is { } asyncDisposables)
         {
             foreach (var asyncDisposable in asyncDisposables)
@@ -141,15 +144,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     }
 
     /// <summary>
-    ///  Override to provide custom initialization logic for all tests in this test class.
-    /// </summary>
-    protected virtual Task InitializeAsync() => Task.CompletedTask;
-
-    /// <summary>
-    ///  Override to provide custom initialization logic for all tests in this test class.
-    /// </summary>
-    protected virtual Task DisposeAsync() => Task.CompletedTask;
-
     /// <summary>
     ///  Register an <see cref="IDisposable"/> instance to be disposed when the test completes.
     /// </summary>

@@ -26,19 +26,10 @@ public partial class TestExportJoinableTaskContext
     //[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public TestExportJoinableTaskContext()
     {
-        var synchronizationContext = SynchronizationContext.Current;
-        try
-        {
-            SynchronizationContext.SetSynchronizationContext(GetEffectiveSynchronizationContext());
-            (JoinableTaskContext, SynchronizationContext) = CreateJoinableTaskContext();
+        (JoinableTaskContext, SynchronizationContext) = CreateJoinableTaskContext();
 #if false
         ResetThreadAffinity(JoinableTaskContext.Factory);
 #endif
-        }
-        finally
-        {
-            SynchronizationContext.SetSynchronizationContext(synchronizationContext);
-        }
     }
 
     private static (JoinableTaskContext joinableTaskContext, SynchronizationContext synchronizationContext) CreateJoinableTaskContext()
@@ -79,9 +70,6 @@ public partial class TestExportJoinableTaskContext
     {
         get;
     }
-
-    internal static SynchronizationContext? GetEffectiveSynchronizationContext()
-        => SynchronizationContext.Current;
 
 #if false
 /// <summary>

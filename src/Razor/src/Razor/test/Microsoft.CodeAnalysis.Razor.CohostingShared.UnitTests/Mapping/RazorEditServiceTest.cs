@@ -25,7 +25,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
 {
     private RazorEditService? _razorEditService;
 
-    protected override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

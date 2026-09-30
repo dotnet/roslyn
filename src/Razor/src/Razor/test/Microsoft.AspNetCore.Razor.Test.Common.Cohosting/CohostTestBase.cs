@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.AspNetCore.Razor;
@@ -62,7 +61,7 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
     /// </summary>
     private protected ExportProvider OOPExportProvider => _exportProvider.AssumeNotNull();
 
-    protected override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 
@@ -94,7 +93,7 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
 
         // Force initialization and creation of the remote workspace. It will be filled in later.
         var traceSource = new TraceSource("Cohost test remote initialization");
-        traceSource.Listeners.Add(new TestOutputTraceListener(TestOutputHelper));
+        traceSource.Listeners.Add(new XunitTraceListener(TestOutputHelper));
         await RemoteWorkspaceProvider.TestAccessor.InitializeRemoteExportProviderBuilderAsync(Path.GetTempPath(), traceSource, DisposalToken);
         _ = RemoteWorkspaceProvider.Instance.GetWorkspace();
 
@@ -112,11 +111,10 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
         remoteClientManager.Update(_clientSettingsManager.AssumeNotNull().GetClientSettings());
     }
 
-    protected override Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         _clientSettingsManager?.ClientSettingsChanged -= ClientSettingsManager_ClientSettingsChanged;
-
-        return base.DisposeAsync();
+        await base.DisposeAsync();
     }
 
     private AdhocWorkspace CreateLocalWorkspace()
@@ -286,34 +284,6 @@ public abstract class CohostTestBase(ITestOutputHelper testOutputHelper) : Tooli
 
     private static bool IsEditorConfig(string fileName)
         => Path.GetFileName(fileName).Equals(".editorconfig", StringComparison.OrdinalIgnoreCase);
-
-    private sealed class TestOutputTraceListener(ITestOutputHelper logger) : TraceListener
-    {
-        private readonly StringBuilder _lineInProgress = new();
-        private bool _disposed;
-
-        public override bool IsThreadSafe => false;
-
-        public override void Write(string? message)
-            => _lineInProgress.Append(message);
-
-        public override void WriteLine(string? message)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            logger.WriteLine(_lineInProgress.ToString() + message);
-            _lineInProgress.Clear();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            _disposed = true;
-            base.Dispose(disposing);
-        }
-    }
 
     private static ImmutableArray<PortableExecutableReference> CreateMetadataReferences(bool net461)
     {
