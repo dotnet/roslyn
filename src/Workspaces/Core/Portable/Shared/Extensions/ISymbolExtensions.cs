@@ -722,9 +722,12 @@ internal static partial class ISymbolExtensions
         bool caseSensitive,
         MetadataUnifyingSymbolHashSet overriddenSymbols)
     {
-        foreach (var member in baseType.GetMembers(hidingMethod.Name))
+        var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+        foreach (var member in baseType.GetMembers())
         {
             if (member is IMethodSymbol baseMethod &&
+                string.Equals(member.Name, hidingMethod.Name, comparison) &&
                 (hidesByName || HidesBaseMethodBySignature(hidingMethod, baseMethod, caseSensitive)))
             {
                 overriddenSymbols.Add(baseMethod);
