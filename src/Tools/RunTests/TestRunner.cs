@@ -83,7 +83,7 @@ namespace RunTests
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    // Executors collect bounded diagnostics before killing their owned process trees.
+                    // Executors collect diagnostics before killing their owned process trees.
                     // Do not leave those operations running when the global deadline exits the runner.
                     await Task.WhenAll(running).ConfigureAwait(false);
                     cancellationToken.ThrowIfCancellationRequested();

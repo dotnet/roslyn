@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -45,7 +44,7 @@ namespace RunTests
             // Helix work items have a separate infrastructure deadline. Local integration runs can
             // explicitly allow longer VSIX deployment/hive setup with --integration.
             // https://github.com/dotnet/roslyn/issues/59851
-            var timeout = options.UseHelix ? "15minutes" : $"{options.TestInactivityTimeout.TotalSeconds.ToString(CultureInfo.InvariantCulture)}s";
+            var timeout = options.UseHelix ? "15minutes" : options.Integration ? "25minutes" : "10minutes";
             fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout={timeout};DumpType=full");
 
             // Specifies the results directory - this is where dumps from the blame options will get published.
@@ -148,14 +147,12 @@ namespace RunTests
                 using var tree = new OwnedProcessTree(dotnetProcessInfo.Process);
                 Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName}");
 
-                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                var deadlineTask = Task.Delay(options.WorkItemTimeout ?? Timeout.InfiniteTimeSpan, deadline.Token);
+                using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                var cancellationTask = Task.Delay(Timeout.InfiniteTimeSpan, cancellationSource.Token);
                 string? timeoutMessage = null;
-                if (await Task.WhenAny(dotnetProcessInfo.Result, deadlineTask).ConfigureAwait(false) == deadlineTask)
+                if (await Task.WhenAny(dotnetProcessInfo.Result, cancellationTask).ConfigureAwait(false) == cancellationTask)
                 {
-                    timeoutMessage = cancellationToken.IsCancellationRequested
-                        ? $"Run cancelled or global deadline exceeded while running {workItemInfo.DisplayName}."
-                        : $"Work-item deadline of {options.WorkItemTimeout} exceeded for {workItemInfo.DisplayName}.";
+                    timeoutMessage = $"Run cancelled or global deadline exceeded while running {workItemInfo.DisplayName}.";
                     ConsoleUtil.Error(timeoutMessage);
                     WriteSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
                     try
@@ -173,7 +170,7 @@ namespace RunTests
                 }
                 else
                 {
-                    deadline.Cancel();
+                    cancellationSource.Cancel();
                 }
 
                 ProcessResult xunitProcessResult;

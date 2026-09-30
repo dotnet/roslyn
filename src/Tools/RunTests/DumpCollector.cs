@@ -9,15 +9,14 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Diagnostics.NETCore.Client;
 
 namespace RunTests
 {
     /// <summary>
-    /// Collects dumps in a separate, bounded helper so a broken diagnostics endpoint cannot hang
-    /// the test runner. Windows uses MiniDumpWriteDump for both Framework and Core processes.
+    /// Collects dumps in separate helper processes. Windows uses MiniDumpWriteDump for both
+    /// Framework and Core processes.
     /// </summary>
     internal static class DumpCollector
     {
@@ -53,14 +52,13 @@ namespace RunTests
 
         /// <summary>
         /// Attempts full dumps of the launcher and supported processes in its owned process tree,
-        /// prioritizing test hosts. Starts a separate RunTests helper subprocess for each dump so
-        /// a blocked dump API can be terminated without blocking this runner. All helpers share
-        /// the work item's dump timeout budget; only successfully completed dumps are published.
+        /// prioritizing test hosts. Starts a separate RunTests helper subprocess for each dump
+        /// and waits for it without a timeout. Collection continues until the helpers finish or
+        /// the processes are externally terminated; only successfully completed dumps are published.
         /// </summary>
         internal static async Task CollectAsync(OwnedProcessTree tree, Options options, string directory)
         {
             Directory.CreateDirectory(directory);
-            using var budget = new CancellationTokenSource(options.DumpTimeout);
             var candidates = new List<(Process Process, string Name)>();
             var processes = tree.GetProcesses();
             foreach (var process in processes)
@@ -80,14 +78,11 @@ namespace RunTests
             // Prioritize test hosts over the launcher and other owned .NET processes.
             foreach (var (process, name) in candidates.OrderByDescending(p => p.Name.StartsWith("testhost", StringComparison.Ordinal)))
             {
-                if (budget.IsCancellationRequested)
-                    break;
-
                 string? path = null;
                 try
                 {
                     var dumpPath = Path.GetFullPath(Path.Combine(directory, $"{name}-{process.Id}-hangdump.dmp"));
-                    // Never publish a dump interrupted by the helper deadline as a complete .dmp.
+                    // Never publish an interrupted dump as a complete .dmp.
                     path = dumpPath + ".partial";
                     var startInfo = new ProcessStartInfo(options.DotnetFilePath)
                     {
@@ -102,9 +97,9 @@ namespace RunTests
                     startInfo.ArgumentList.Add(ProcessUtil.GetProcessStartIdentity(process).ToString(CultureInfo.InvariantCulture));
                     startInfo.ArgumentList.Add(path);
                     ConsoleUtil.WriteLine($"Dumping owned process {process.Id} to {dumpPath}");
-                    var helper = ProcessRunner.CreateProcess(startInfo, cancellationToken: budget.Token);
+                    var helper = ProcessRunner.CreateProcess(startInfo);
                     Logger.Log($"Dump helper {helper.Id} for owned process {process.Id}");
-                    var result = await helper.Result.WaitAsync(budget.Token).ConfigureAwait(false);
+                    var result = await helper.Result.ConfigureAwait(false);
                     Logger.Log(string.Join(Environment.NewLine, result.OutputLines));
                     Logger.Log(string.Join(Environment.NewLine, result.ErrorLines));
                     if (result.ExitCode != 0)
