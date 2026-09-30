@@ -146,80 +146,17 @@ namespace RunTests
                     lowPriority: false);
                 Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName}");
 
-                using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                var cancellationTask = Task.Delay(Timeout.InfiniteTimeSpan, cancellationSource.Token);
-                string? timeoutMessage = null;
-                if (await Task.WhenAny(dotnetProcessInfo.Result, cancellationTask).ConfigureAwait(false) == cancellationTask)
-                {
-                    timeoutMessage = $"Run cancelled or global deadline exceeded while running {workItemInfo.DisplayName}.";
-                    ConsoleUtil.Error(timeoutMessage);
-                    var processes = new List<Process> { dotnetProcessInfo.Process };
-                    try
-                    {
-                        writeSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
-                        processes.AddRange(ProcessUtil.GetChildProcesses(dotnetProcessInfo.Process));
-                        await DumpCollector.CollectAsync(processes, options, workItemDirectory).ConfigureAwait(false);
-                    }
-                    catch (Exception ex)
-                    {
-                        ConsoleUtil.Warning($"Unable to collect timeout dumps: {ex.Message}");
-                    }
-                    finally
-                    {
-                        foreach (var process in processes)
-                        {
-                            ProcessUtil.KillTree(process);
-                            if (process != dotnetProcessInfo.Process)
-                                process.Dispose();
-                        }
-                    }
-                }
-                else
-                {
-                    cancellationSource.Cancel();
-                }
-
-                ProcessResult xunitProcessResult;
-                try
-                {
-                    xunitProcessResult = timeoutMessage is null
-                        ? await dotnetProcessInfo.Result
-                        : await dotnetProcessInfo.Result.WaitAsync(TimeSpan.FromSeconds(10));
-                }
-                catch (TimeoutException)
-                {
-                    ConsoleUtil.Warning($"Process {dotnetProcessInfo.Id} did not finish cleanup within 10 seconds.");
-                    xunitProcessResult = new ProcessResult(dotnetProcessInfo.Process, Program.ExitFailure,
-                        new ReadOnlyCollection<string>([]), new ReadOnlyCollection<string>([timeoutMessage!]));
-                }
+                var (xunitProcessResult, timeoutMessage) = await waitForCompletionAsync(resultsFilePath);
                 var span = DateTime.UtcNow - start;
 
                 Logger.Log($"Exit xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName} with code {xunitProcessResult.ExitCode}");
                 processResultList.Add(xunitProcessResult);
 
-                if (timeoutMessage is not null || xunitProcessResult.ExitCode != 0)
+                if ((timeoutMessage is not null || xunitProcessResult.ExitCode != 0) &&
+                    removeEmptyResultsFile(resultsFilePath))
                 {
-                    // On occasion we get a non-0 output but no actual data in the result file.  The could happen
-                    // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
-                    // To avoid losing information, write the process output to the console.  In addition, delete the results
-                    // file to avoid issues with any tool attempting to interpret the (potentially malformed) text.
-                    var resultData = string.Empty;
-                    try
-                    {
-                        resultData = File.ReadAllText(resultsFilePath).Trim();
-                    }
-                    catch
-                    {
-                        // Happens if xunit didn't produce a log file
-                    }
-
-                    if (resultData.Length == 0)
-                    {
-                        // Delete the output file.
-                        File.Delete(resultsFilePath);
-                        resultsFilePath = null;
-                        htmlResultsFilePath = null;
-                    }
+                    resultsFilePath = null;
+                    htmlResultsFilePath = null;
                 }
 
                 Logger.Log($"Command line {workItemInfo.DisplayName} completed in {span.TotalSeconds} seconds: {options.DotnetFilePath} {commandLineArguments}");
@@ -253,6 +190,82 @@ namespace RunTests
                     testResultInfo,
                     commandLineArguments,
                     processResults: ImmutableArray.CreateRange(processResultList));
+
+                async Task<(ProcessResult Result, string? TimeoutMessage)> waitForCompletionAsync(string resultsFilePath)
+                {
+                    using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    var cancellationTask = Task.Delay(Timeout.InfiniteTimeSpan, cancellationSource.Token);
+                    string? timeoutMessage = null;
+                    if (await Task.WhenAny(dotnetProcessInfo.Result, cancellationTask).ConfigureAwait(false) == cancellationTask)
+                    {
+                        timeoutMessage = $"Run cancelled or global deadline exceeded while running {workItemInfo.DisplayName}.";
+                        ConsoleUtil.Error(timeoutMessage);
+                        await collectTimeoutDumpsAsync(resultsFilePath, timeoutMessage).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        cancellationSource.Cancel();
+                    }
+
+                    try
+                    {
+                        var result = timeoutMessage is null
+                            ? await dotnetProcessInfo.Result
+                            : await dotnetProcessInfo.Result.WaitAsync(TimeSpan.FromSeconds(10));
+                        return (result, timeoutMessage);
+                    }
+                    catch (TimeoutException)
+                    {
+                        ConsoleUtil.Warning($"Process {dotnetProcessInfo.Id} did not finish cleanup within 10 seconds.");
+                        var result = new ProcessResult(dotnetProcessInfo.Process, Program.ExitFailure,
+                            new ReadOnlyCollection<string>([]), new ReadOnlyCollection<string>([timeoutMessage!]));
+                        return (result, timeoutMessage);
+                    }
+                }
+
+                async Task collectTimeoutDumpsAsync(string resultsFilePath, string timeoutMessage)
+                {
+                    var processes = new List<Process> { dotnetProcessInfo.Process };
+                    try
+                    {
+                        writeSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
+                        processes.AddRange(ProcessUtil.GetChildProcesses(dotnetProcessInfo.Process));
+                        await DumpCollector.CollectAsync(processes, options, workItemDirectory).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleUtil.Warning($"Unable to collect timeout dumps: {ex.Message}");
+                    }
+                    finally
+                    {
+                        foreach (var process in processes)
+                        {
+                            ProcessUtil.KillTree(process);
+                            if (process != dotnetProcessInfo.Process)
+                                process.Dispose();
+                        }
+                    }
+                }
+
+                static bool removeEmptyResultsFile(string resultsFilePath)
+                {
+                    // A crashed test host may leave an empty result file that must not be published.
+                    var resultData = string.Empty;
+                    try
+                    {
+                        resultData = File.ReadAllText(resultsFilePath).Trim();
+                    }
+                    catch
+                    {
+                        // Happens if xunit didn't produce a log file
+                    }
+
+                    if (resultData.Length != 0)
+                        return false;
+
+                    File.Delete(resultsFilePath);
+                    return true;
+                }
 
                 string getRspDirectory()
                 {
