@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Test-only packages must not bring their runner and entry-point targets into projects that reference these tests. -->
     <PackageReference Include="XunitXml.TestLogger" PrivateAssets="all" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="xunit.v3.mtp-off" PrivateAssets="all" />
@@ -62,6 +63,9 @@
     <Copy SourceFiles="@(_XunitRunnerUtility)"
           DestinationFolder="$(TargetDir)"
           SkipUnchangedFiles="true" />
+    <ItemGroup>
+      <FileWrites Include="@(_XunitRunnerUtility->'$(TargetDir)%(Filename)%(Extension)')" />
+    </ItemGroup>
   </Target>
 
   <ItemGroup>
