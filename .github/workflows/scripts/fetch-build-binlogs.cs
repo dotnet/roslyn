@@ -11,8 +11,8 @@
 // workflow inert. It will not analyze a partial or stale picture, so a missing
 // failed-job artifact or a moved PR revision fails closed instead.
 //
-// Environment: RESOLVE_MODE, PR_NUMBER, GH_TOKEN, GH_AW_REPO, ADO_API,
-// ADO_BUILD_UI, ADO_BUILD_DEFINITION_ID, BINLOG_DIR, GITHUB_OUTPUT.
+// Environment: RESOLVE_MODE, PR_NUMBER, GH_TOKEN, GH_AW_REPO, BINLOG_DIR,
+// GITHUB_OUTPUT.
 // BINLOG_DIR must name a directory inside /tmp, TMPDIR or RUNNER_TEMP; the run
 // is refused otherwise, because that directory is reset with a recursive delete.
 //
@@ -39,8 +39,11 @@ if (githubOutput.Length == 0 || !TryAppendOutput(string.Empty))
 }
 
 var repo = Env("GH_AW_REPO");
-var adoApi = Env("ADO_API");
-var adoDefinitionId = Env("ADO_BUILD_DEFINITION_ID");
+
+// roslyn-CI in dnceng-public/public (public project; read anonymously).
+const string AdoApi = "https://dev.azure.com/dnceng-public/public/_apis";
+const string AdoBuildUi = "https://dev.azure.com/dnceng-public/public/_build/results";
+const string AdoDefinitionId = "95";
 
 // The staging directory is reset with a recursive delete, so it is the one
 // environment value that can destroy something outside this run. Confine it to
@@ -99,20 +102,9 @@ if (prNumber.Length == 0 && Regex.IsMatch(checkHeadSha, "^[0-9a-f]{40}$"))
 // Interpolated into API paths and into the `refs/pull/<n>/merge` comparison.
 EmitNoneIf(!Regex.IsMatch(prNumber, "^[0-9]+$"), $"Resolved PR number '{prNumber}' is not numeric or empty; refusing.");
 
-// --- 2. Scope check: only PRs that roslyn-CI targets ------------------------
-var prJson = await GitHubGet($"repos/{repo}/pulls/{prNumber}");
-var baseRef = prJson.At("base", "ref").Text();
-// An empty base ref means the API call failed, not that the PR is out of scope.
-EmitNoneIf(baseRef.Length == 0, $"Could not resolve the base ref for PR #{prNumber}; treating as a data-resolution failure.");
-EmitNoneIf(
-    baseRef is not ("main" or "main-vs-deps" or "community")
-        && !baseRef.StartsWith("release/", StringComparison.Ordinal)
-        && !baseRef.StartsWith("features/", StringComparison.Ordinal)
-        && !baseRef.StartsWith("demos/", StringComparison.Ordinal),
-    $"PR #{prNumber} base '{baseRef}' is not targeted by roslyn-CI; skipping.");
-Console.WriteLine($"PR #{prNumber} base '{baseRef}' is in scope.");
-
-// --- 3. Resolve and validate the Azure DevOps build id ----------------------
+// --- 2. Resolve and validate the Azure DevOps build id ----------------------
+// Branch scope is not restated here: a failed roslyn-CI build for this PR's
+// merge ref (validated below) is the evidence that roslyn-CI covers the PR.
 var resolveMode = Env("RESOLVE_MODE");
 var buildId = string.Empty;
 switch (resolveMode)
@@ -132,7 +124,7 @@ switch (resolveMode)
         // e.g. right after a force-push - skip rather than pair an older failure
         // with the PR's current head.
         var newest = (await AdoGet($"build list for PR #{prNumber}",
-            $"{adoApi}/build/builds?definitions={adoDefinitionId}&branchName=refs/pull/{prNumber}/merge&queryOrder=queueTimeDescending&$top=1&api-version=7.1"))
+            $"{AdoApi}/build/builds?definitions={AdoDefinitionId}&branchName=refs/pull/{prNumber}/merge&queryOrder=queueTimeDescending&$top=1&api-version=7.1"))
             .At("value").Items().FirstOrDefault();
         buildId = newest.At("id").Text();
         var buildStatus = newest.At("status").Text();
@@ -149,25 +141,26 @@ switch (resolveMode)
 // Interpolated into ADO API URLs.
 EmitNoneIf(!Regex.IsMatch(buildId, "^[0-9]+$"), $"Resolved ADO build id '{buildId}' is not numeric or empty; refusing.");
 
-// --- 4. Validate the build on every trigger path ---------------------------
+// --- 3. Validate the build on every trigger path ---------------------------
 // On `check_run` the build id comes from a payload we don't fully trust; on
 // dispatch the build id and PR number are independent inputs. Either way the
 // build must be roslyn-CI, must have failed, and must belong to this PR.
-var buildJson = await AdoGet($"details of build {buildId}", $"{adoApi}/build/builds/{buildId}?api-version=7.1");
+var buildJson = await AdoGet($"details of build {buildId}", $"{AdoApi}/build/builds/{buildId}?api-version=7.1");
 var result = buildJson.At("result").Text();
 var definitionId = buildJson.At("definition", "id").Text();
 var sourceBranch = buildJson.At("sourceBranch").Text();
 Console.WriteLine($"ADO build {buildId}: result='{result}' definition='{definitionId}' sourceBranch='{sourceBranch}'");
-EmitNoneIf(definitionId != adoDefinitionId,
-    $"ADO build {buildId} is definition '{definitionId}', not roslyn-CI ({adoDefinitionId}); refusing.");
+EmitNoneIf(definitionId != AdoDefinitionId,
+    $"ADO build {buildId} is definition '{definitionId}', not roslyn-CI ({AdoDefinitionId}); refusing.");
 EmitNoneIf(result != "failed", $"ADO build {buildId} did not fail (result='{result}'); nothing to analyze.");
 EmitNoneIf(sourceBranch != $"refs/pull/{prNumber}/merge",
     $"ADO build {buildId} sourceBranch '{sourceBranch}' does not match PR #{prNumber}; refusing to avoid posting to the wrong PR.");
 
-// --- 5. Require the build to describe the PR's current revision ------------
+// --- 4. Require the build to describe the PR's current revision ------------
 // ADO builds GitHub's `refs/pull/<n>/merge`, so `sourceVersion` is the merge
 // commit as of build time. Comparing it as well as the head catches a base
 // branch that advanced while the PR head stayed put.
+var prJson = await GitHubGet($"repos/{repo}/pulls/{prNumber}");
 var buildPrSha = buildJson.At("triggerInfo", "pr.sourceSha").Text();
 var buildMergeSha = buildJson.At("sourceVersion").Text();
 var currentHead = prJson.At("head", "sha").Text();
@@ -181,11 +174,11 @@ EmitNoneIf(buildMergeSha != currentMerge,
 var headSha = currentHead;
 Console.WriteLine($"Analyzing build {buildId} at PR head revision '{headSha}'.");
 
-// --- 6. Select the log artifacts of failed or canceled jobs ----------------
+// --- 5. Select the log artifacts of failed or canceled jobs ----------------
 // Roslyn publishes "<job> Attempt <N> Logs" for most jobs, with explicit
 // exceptions for Source Build and the bootstrap-correctness leg. Bases are
 // matched exactly, and every retry attempt is kept.
-var records = (await AdoGet($"timeline of build {buildId}", $"{adoApi}/build/builds/{buildId}/timeline?api-version=7.1"))
+var records = (await AdoGet($"timeline of build {buildId}", $"{AdoApi}/build/builds/{buildId}/timeline?api-version=7.1"))
     .At("records").Items().ToList();
 var failedJobs = records
     .Where(record => record.At("type").Text() == "Job" && record.At("result").Text() is "failed" or "canceled")
@@ -213,7 +206,7 @@ var expectedJobNames = failedJobs
 
 var attemptLogs = new Regex(@"^(.+) Attempt ([0-9]+) Logs$");
 var sourceBuildLogs = new Regex(@"^BuildLogs_SourceBuild_Managed_Attempt[0-9]+$");
-var allArtifacts = (await AdoGet($"artifact list of build {buildId}", $"{adoApi}/build/builds/{buildId}/artifacts?api-version=7.1"))
+var allArtifacts = (await AdoGet($"artifact list of build {buildId}", $"{AdoApi}/build/builds/{buildId}/artifacts?api-version=7.1"))
     .At("value").Items()
     .Select(artifact => (Node: artifact, Name: artifact.At("name").Text()))
     .Where(artifact => attemptLogs.IsMatch(artifact.Name) || sourceBuildLogs.IsMatch(artifact.Name))
@@ -244,7 +237,7 @@ EmitNoneIf(selectedArtifacts.Count == 0,
     $"No build-log artifacts matched the failed or canceled jobs in build {buildId}; the failure is likely outside a build leg.");
 Console.WriteLine($"Selected {selectedArtifacts.Count} of {allArtifacts.Count} build-log artifacts for {expectedJobNames.Count} log-publishing jobs of {failedJobs.Count} failed or canceled.");
 
-// --- 7. Download and extract each selected artifact ------------------------
+// --- 6. Download and extract each selected artifact ------------------------
 // Roslyn's `Correctness_Analyzers` log artifact is routinely ~600 MB, so the
 // per-artifact cap has to be well clear of that or the workflow silently skips
 // exactly the correctness legs it exists to diagnose. Only one archive is on
@@ -371,7 +364,7 @@ EmitNoneIf(count == 0, $"No *.binlog found in the selected build-log artifacts o
 EmitNoneIf(stagedLegs != selectedArtifacts.Count,
     $"Only {stagedLegs} of {selectedArtifacts.Count} selected artifacts produced a usable binlog; skipping incomplete failed-job data.");
 
-// --- 8. Re-check the revision after a download that can take minutes -------
+// --- 7. Re-check the revision after a download that can take minutes -------
 // A force-push or base advance during the download would leave the binlogs
 // stale relative to the diff that inline comments are pinned to.
 var latestPr = await GitHubGet($"repos/{repo}/pulls/{prNumber}");
@@ -388,7 +381,7 @@ TryAppendOutput(
     $"pr-head-sha={headSha}\n" +
     $"pr-merge-sha={buildMergeSha}\n" +
     $"ado-build-id={buildId}\n" +
-    $"ado-build-url={Env("ADO_BUILD_UI")}?buildId={buildId}\n");
+    $"ado-build-url={AdoBuildUi}?buildId={buildId}\n");
 return 0;
 
 static string Env(string name) => Environment.GetEnvironmentVariable(name) ?? string.Empty;
