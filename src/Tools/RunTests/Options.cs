@@ -74,7 +74,7 @@ namespace RunTests
 
         public TimeSpan TestInactivityTimeout { get; set; } = TimeSpan.FromMinutes(10);
 
-        public TimeSpan WorkItemTimeout { get; set; } = TimeSpan.FromMinutes(25);
+        public TimeSpan? WorkItemTimeout { get; set; }
 
         public TimeSpan DumpTimeout { get; set; } = TimeSpan.FromMinutes(2);
 
@@ -202,9 +202,9 @@ namespace RunTests
                 { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", s => testFilter = s },
                 { "timeout=", "Minute timeout to limit the tests to (default: 90, not supported with --helix)", (int i) => timeout = i },
                 { "testInactivityTimeout=", "Local VSTest inactivity timeout in seconds (default: 600)", (int i) => testInactivityTimeout = i },
-                { "workItemTimeout=", "Local work-item process deadline in seconds (default: 1500)", (int i) => workItemTimeout = i },
+                { "workItemTimeout=", "Optional local work-item process deadline in seconds (default: no separate deadline)", (int i) => workItemTimeout = i },
                 { "dumpTimeout=", "Maximum total seconds collecting dumps per timed-out work item (default: 120)", (int i) => dumpTimeout = i },
-                { "integration", "Allow local VS integration setup: inactivity 25 minutes, work item 45 minutes (overrides may be supplied)", o => integration = o is object },
+                { "integration", "Allow local VS integration setup: inactivity 25 minutes (an explicit inactivity timeout overrides this)", o => integration = o is object },
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", s => resultFileDirectory = s },
                 { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", s => logFileDirectory = s },
                 { "artifactspath=", "Path to the artifacts directory (auto-detected from binary location if not set)", s => artifactsPath = s },
@@ -443,7 +443,7 @@ namespace RunTests
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
                 TestInactivityTimeout = TimeSpan.FromSeconds(testInactivityTimeout ?? (integration ? 1500 : 600)),
-                WorkItemTimeout = TimeSpan.FromSeconds(workItemTimeout ?? (integration ? 2700 : 1500)),
+                WorkItemTimeout = workItemTimeout is { } w ? TimeSpan.FromSeconds(w) : null,
                 DumpTimeout = TimeSpan.FromSeconds(dumpTimeout ?? 120),
                 EnvironmentVariables = environmentVariables,
                 AccessToken = accessToken,

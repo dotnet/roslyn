@@ -80,9 +80,9 @@ Key options:
 | `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |
 | `--timeout` | Global local-run deadline in minutes (default: 90) |
 | `--testInactivityTimeout` | Local VSTest inactivity timeout in seconds (default: 600) |
-| `--workItemTimeout` | Local work-item process deadline in seconds (default: 1500) |
+| `--workItemTimeout` | Optional local work-item process deadline in seconds (default: no separate deadline) |
 | `--dumpTimeout` | Total dump-helper budget per timed-out work item in seconds (default: 120) |
-| `--integration` | Allow VS integration setup: 25-minute inactivity and 45-minute work-item deadlines; explicit timeout options override these defaults |
+| `--integration` | Allow VS integration setup: 25-minute inactivity timeout; an explicit inactivity timeout overrides this default |
 | `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
 
@@ -110,12 +110,14 @@ these use the corresponding Azure Pipelines environment variables.
 ## Local timeout diagnostics
 
 Each local work item currently runs one **whole assembly**, not a method-sized
-partition. Two independent deadlines apply:
+partition. By default:
 
 - VSTest blame aborts after **10 minutes without test progress**, collecting a full
   hang dump. This is an inactivity timeout, not an assembly-duration limit.
-- RunTests limits each launcher to **25 minutes total**, even if discovery,
-  the test host, or VSTest's own dump collector stops responding.
+- RunTests limits the **whole run to 90 minutes**, even if discovery,
+  the test host, or VSTest's own dump collector stops responding. There is no
+  separate assembly-duration limit. Use `--workItemTimeout` to opt into a
+  per-work-item deadline.
 
 On the work-item deadline, RunTests first writes a synthetic failed xUnit result,
 then attempts full dumps before killing the owned process tree. Dump APIs execute
@@ -126,7 +128,8 @@ exit/output draining. Dump failures do not prevent termination or reporting the
 failure. Other queued assemblies continue, but the overall run fails.
 
 The global deadline stops scheduling new work and uses the same bounded cleanup
-for active work items. Process ancestry is sampled during execution; only the
+for every active work item, including when no work-item deadline was specified.
+Process ancestry is sampled during execution; only the
 launcher and its observed descendants are considered, never machine-wide
 testhost-name matches. As with any sampled ancestry tracking, a child that starts
 and becomes orphaned between samples can escape observation.
@@ -145,7 +148,10 @@ deadline; local timeout options are rejected with `--helix`.
 For a short local watchdog probe, use e.g.
 `--workItemTimeout 30 --testInactivityTimeout 120 --dumpTimeout 10`.
 For an inactivity probe instead, make `--testInactivityTimeout` shorter than
-`--workItemTimeout`. All timeout values must be positive.
+`--workItemTimeout`. For a global-deadline probe, run multiple hanging assemblies
+with `--timeout 1` and no work-item override; the default inactivity timeout is
+longer, so the global deadline initiates dump collection. All supplied timeout
+values must be positive.
 
 ## Exit Codes
 

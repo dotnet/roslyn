@@ -149,7 +149,7 @@ namespace RunTests
                 Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName}");
 
                 using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                var deadlineTask = Task.Delay(options.WorkItemTimeout, deadline.Token);
+                var deadlineTask = Task.Delay(options.WorkItemTimeout ?? Timeout.InfiniteTimeSpan, deadline.Token);
                 string? timeoutMessage = null;
                 if (await Task.WhenAny(dotnetProcessInfo.Result, deadlineTask).ConfigureAwait(false) == deadlineTask)
                 {
