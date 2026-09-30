@@ -79,7 +79,6 @@ Key options:
 | `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies`; `runtimeasync` requires `--testFramework:core` |
 | `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |
 | `--timeout` | Global local-run deadline in minutes (default: 90) |
-| `--integration` | Allow VS integration setup: fixed 25-minute inactivity timeout |
 | `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
 
@@ -109,7 +108,7 @@ these use the corresponding Azure Pipelines environment variables.
 Each local work item currently runs one **whole assembly**, not a method-sized
 partition. The timeout policy is:
 
-- VSTest blame aborts after **10 minutes without test progress**, collecting a full
+- VSTest blame aborts after **25 minutes without test progress**, collecting a full
   hang dump. This fixed inactivity timeout is not an assembly-duration limit.
 - RunTests limits the **whole run to 90 minutes**, even if discovery,
   the test host, or VSTest's own dump collector stops responding. There is no
@@ -137,9 +136,9 @@ includes these dumps and sequence files. `--collectdumps` additionally enables
 Windows WER crash collection when running as administrator; timeout dump attempts
 do not require that option and do not require changing the registry.
 
-`eng/test-vsi.ps1` passes `--integration` to preserve additional VSIX/hive setup
-time. Helix retains its existing 15-minute VSTest timeout and infrastructure
-deadline; `--timeout` and `--integration` are rejected with `--helix`.
+The local inactivity allowance also accommodates VSIX/hive setup for integration
+tests. Helix retains its existing 15-minute VSTest timeout and infrastructure
+deadline; `--timeout` is rejected with `--helix`.
 
 For a global-deadline probe, run multiple hanging assemblies with `--timeout 1`.
 The fixed inactivity timeout is longer, so the global deadline initiates dump

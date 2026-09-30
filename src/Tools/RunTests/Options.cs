@@ -72,8 +72,6 @@ namespace RunTests
         /// </summary>
         public TimeSpan? Timeout { get; set; }
 
-        public bool Integration { get; set; }
-
         /// <summary>
         /// Enable additional Windows WER crash collection. Timeout collection is always enabled.
         /// </summary>
@@ -163,7 +161,6 @@ namespace RunTests
             string? helixApiAccessToken = null;
             string? testFilter = null;
             int? timeout = null;
-            var integration = false;
             string? resultFileDirectory = null;
             string? logFileDirectory = null;
             var collectDumps = false;
@@ -194,7 +191,6 @@ namespace RunTests
                 { "helixApiAccessToken=", "Access token for internal helix queues", s => helixApiAccessToken = s },
                 { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", s => testFilter = s },
                 { "timeout=", "Minute timeout to limit the tests to (default: 90, not supported with --helix)", (int i) => timeout = i },
-                { "integration", "Allow local VS integration setup (25-minute inactivity timeout)", o => integration = o is object },
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", s => resultFileDirectory = s },
                 { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", s => logFileDirectory = s },
                 { "artifactspath=", "Path to the artifacts directory (auto-detected from binary location if not set)", s => artifactsPath = s },
@@ -353,12 +349,6 @@ namespace RunTests
 
             if (helix)
             {
-                if (integration)
-                {
-                    ConsoleUtil.Error("--integration is not supported with --helix.");
-                    return null;
-                }
-
                 if (collectDumps)
                 {
                     ConsoleUtil.Error("--collectdumps is not supported with --helix. Dump collection is only available for process-based test execution.");
@@ -432,7 +422,6 @@ namespace RunTests
                 IncludeHtml = includeHtml,
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
-                Integration = integration,
                 EnvironmentVariables = environmentVariables,
                 AccessToken = accessToken,
                 ProjectUri = projectUri,

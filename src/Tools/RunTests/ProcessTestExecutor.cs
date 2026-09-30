@@ -42,10 +42,9 @@ namespace RunTests
             // crashes and hangs, matching the Helix configuration.
             var blameOption = "CollectDump;CollectHangDump";
 
-            // Helix work items have a separate infrastructure deadline. Local integration runs can
-            // explicitly allow longer VSIX deployment/hive setup with --integration.
+            // Local runs allow longer VSIX deployment/hive setup.
             // https://github.com/dotnet/roslyn/issues/59851
-            var timeout = options.UseHelix ? "15minutes" : options.Integration ? "25minutes" : "10minutes";
+            var timeout = options.UseHelix ? "15minutes" : "25minutes";
             fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout={timeout};DumpType=full");
 
             // Specifies the results directory - this is where dumps from the blame options will get published.

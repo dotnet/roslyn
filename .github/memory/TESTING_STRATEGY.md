@@ -57,14 +57,14 @@ efficiently; build the test projects first. See the tool's
 framework selection, and environment-variable options. Use `dotnet test` directly
 for a single project.
 
-Local RunTests work items are whole assemblies: VSTest has a fixed 10-minute
+Local RunTests work items are whole assemblies: VSTest has a fixed 25-minute
 inactivity timeout, and the global deadline remains 90 minutes. There is no
 assembly-duration limit. The global deadline stops scheduling and collects
 helper-process dumps from launcher trees in all active work items, writing a
 synthetic failed result even without a dump. Dump collection has no timeout;
-blocked helpers wait for external process/job termination. `eng/test-vsi.ps1`
-selects the fixed 25-minute `--integration` inactivity allowance; Helix timeouts
-are managed separately. Process discovery is a parent-PID snapshot traversed at
+blocked helpers wait for external process/job termination. The local inactivity
+allowance also accommodates VS integration setup; Helix timeouts are managed
+separately. Process discovery is a parent-PID snapshot traversed at
 cancellation, not a background tracker; already-reparented children are not
 included. See the RunTests README for diagnostics locations.
 
