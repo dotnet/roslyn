@@ -10,9 +10,10 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
 
 - Use `TestCode` with `[|...|]` span markers for before/after scenarios. Access
   `input.Text` (cleaned) and `input.Span` (the marked range).
-- Razor shared test-common projects reference split xUnit v3 packages, which do
-  not add implicit `Xunit` namespaces. Import `Xunit`, `Xunit.Sdk`, or `Xunit.v3`
-  in each source file that uses them.
+- Razor shared test-common projects reference xUnit v3 packages but do not
+  define a global using for its namespaces. Each source file that uses xUnit
+  APIs must import the appropriate namespace, such as `Xunit`, `Xunit.Sdk`, or
+  `Xunit.v3`.
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`).
 - Test end-user scenarios, not implementation details.
 - Verify/helper methods go at the bottom of test files; new test methods go above

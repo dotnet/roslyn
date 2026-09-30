@@ -41,6 +41,16 @@ public class MyTests : CSharpTestBase
   for test source code.
 - **Localized command-line diagnostics**: compare messages using the
   corresponding `CodeAnalysisResources` format string rather than hard-coded
-  punctuation. When an in-process compiler test depends on localized output,
-  pin the test's culture with `UseCulture` so the expected resource and the
-  compiler's current UI culture are deterministic.
+  English punctuation. When an in-process compiler test depends on localized
+  output, pin the test's culture with `UseCulture` so the expected resource and
+  the compiler's current UI culture are deterministic.
+- **Why pinning is required for analyzer-config diagnostics (underlying bug)**:
+  the static descriptors in `AnalyzerConfigSet` are built from already-localized
+  `CodeAnalysisResources` strings, so whichever culture first initializes the
+  type wins for the rest of the process. If another test initializes it under
+  the host UI culture, a later compiler run with `/preferreduilang:en` still
+  reports host-culture text. That makes the observed message depend on test
+  order, which xUnit v3's different ordering exposed. Pinning the culture makes
+  these tests deterministic, but it does not fix the underlying issue: these
+  warnings do not consistently honor `/preferreduilang`. Do not read the pinned
+  culture as evidence that the behavior is correct.

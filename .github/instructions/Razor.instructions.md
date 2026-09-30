@@ -39,6 +39,12 @@ their original sub-tree layout
 - **Razor engine concurrency**: Hosts can process multiple documents concurrently through one
   `RazorProjectEngine`. Phase and pass instances are shared, so keep per-document state in locals
   or an execution context rather than mutable instance fields.
+- **Source-generator/project-engine boundary**: The source generator supplies its project-wide
+  tag-helper collection to `SourceGeneratorProjectEngine.ProcessTagHelpers`, which attaches it to
+  `RazorCodeDocument` before discovery and resolution. The compiler phases consume tag helpers
+  from the document rather than source-generator-specific state. Direct project-engine tests that
+  need the collection attached must opt into the test harness's `AttachTagHelpersToCodeDocument`
+  phase; do not change production phases to preserve that test-only setup.
 - **Razor documents in Roslyn**: Stored as additional documents. Resolve via
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
 - **Razor documents with virtual URIs**: Remote Razor document classification preserves the full

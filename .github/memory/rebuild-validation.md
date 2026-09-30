@@ -6,14 +6,16 @@ coverage: How the Correctness_Rebuild leg validates deterministic rebuilds, and 
 
 The `Correctness_Rebuild` CI leg runs `eng/test-rebuild.cmd -ci -configuration Release -bootstrap`,
 which does a bootstrap Release build and then runs `artifacts/bin/BuildValidator/Release/net10.0/BuildValidator.exe`
-over `artifacts/obj`. BuildValidator recompiles each assembly from the compilation metadata stored in
-its PDB and requires the result to be byte-identical to the original.
+over `artifacts/obj`. For each included assembly, BuildValidator reconstructs a compilation from
+metadata in its PDB and compares the emitted PE bytes with the original.
 
 ## Reference resolution
 
 `src/Tools/BuildValidator/LocalReferenceResolver.cs` indexes candidate files by file name across
 `--assembliesPath artifacts/obj`, the NuGet cache, `--referencesPath artifacts/bin`, and the SDK
-`packs` directory, then maps MVID → the first matching file (`_mvidMap`, first wins).
+`packs` directory. For each requested file name, it caches the first non-ReadyToRun candidate
+encountered for each MVID that is not already in the global `_mvidMap`, then considers
+ReadyToRun candidates as fallbacks. The first cached entry for an MVID is never replaced.
 
 Two properties of that mapping matter:
 
@@ -42,18 +44,19 @@ restore the original last write time so incremental copies keep skipping the pat
 CI builds pass `ROSLYNUSEHARDLINKS=true`, so bin copies are hard links to `artifacts/obj` files:
 delete and recreate the bin file before writing, or the edit also changes the intermediate assembly.
 
-`eng/targets/XUnit.targets` does this for .NET Framework test executables: `SetTestAssemblyStackReserve`
-raises the PE `SizeOfStackReserve` to 4 MB on the bin assembly after `CopyFilesToOutputDirectory`,
-and `CreateXunitV3AppHost` does the same for the `.exe` app host that xunit.v3's VSTest adapter
-launches. Note that csc already emits a 4 MB reserve for 64-bit images, so only the 32-bit/AnyCPU
-output is actually changed.
+`eng/targets/XUnit.targets` does this for .NET Framework xUnit v3 tests in the
+`CreateXunitV3AppHost` target: it copies the test assembly to the `.exe` app host launched by the
+VSTest adapter, then applies the `SetPEStackReserve` task to that copy. It does not patch the
+primary test assembly or its intermediate. The task changes the 32-bit/AnyCPU app host from its
+1 MB reserve to 4 MB; a 64-bit app host already has a 4 MB reserve and is left unchanged.
 
 ## Investigating failures
 
-- Every rebuild diff is retained for the whole run (`Program.ValidateFiles` accumulates
-  `CompilationDiff` values that hold both PE images and the rebuild `Compilation`), so a large
-  number of failures can end the run with `Insufficient memory` messages and an
-  `OutOfMemoryException`. Treat memory exhaustion as a symptom of mass failures, not a separate bug.
+- `Program.ValidateFiles` retains each `CompilationDiff` until the run ends. A binary-difference
+  result retains both PE images and the rebuilt `Compilation`, so many mismatched outputs can
+  consume substantial memory and lead to `OutOfMemoryException` or `Insufficient memory` messages.
+  This accumulation is one possible cause of memory exhaustion; it does not establish that every
+  out-of-memory failure is just a symptom of mass output differences.
 - On failure CI publishes the `BuildValidator_DebugOut` artifact from `artifacts/BuildValidator`,
   which contains per-assembly diffs.
 - To reproduce locally without a bootstrap build, publish the language server for one RID
