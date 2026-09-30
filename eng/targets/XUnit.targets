@@ -6,13 +6,13 @@
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
 
     <!--
-      xunit.v3 test projects build an executable capable of running under either VSTest or
-      Microsoft.Testing.Platform (MTP). Roslyn's test infrastructure (CI harnesses, custom
-      runners, xunit.runner.visualstudio) still targets VSTest, so opt out of MTP for now.
+      xunit.v3 validates that test projects build executables, and its VSTest adapter launches
+      those executable assemblies through an app host. Roslyn's test infrastructure still discovers
+      and validates unit tests as .dll assemblies: RunTests probes project outputs for <project>.dll
+      or *.UnitTests.dll, and Imports.targets enforces the .UnitTests.dll/.IntegrationTests.dll
+      naming convention. Build as an Exe to satisfy xunit.v3, but keep TargetExt as .dll so the
+      VSTest-based RunTests/test-rebuild infrastructure continues to find these test assemblies.
     -->
-    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
-
-    <!-- xunit.v3 test projects must build an executable; keep the .dll extension for VSTest discovery. -->
     <OutputType>Exe</OutputType>
     <TargetExt>.dll</TargetExt>
   </PropertyGroup>
@@ -21,7 +21,6 @@
     <PackageReference Include="XunitXml.TestLogger" PrivateAssets="all" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="xunit.v3.mtp-off" PrivateAssets="all" />
-    <PackageReference Include="xunit.analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>
 

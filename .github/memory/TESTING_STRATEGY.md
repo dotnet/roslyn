@@ -97,10 +97,9 @@ executable above its hosting runtime directory, so `--dotnet` is unnecessary.
 Repo unit-test projects use xUnit v3 through `eng/targets/XUnit.targets`. Test
 projects build as executables for xUnit v3 but keep a `.dll` target extension so
 Roslyn's test naming/discovery checks and VSTest-based infrastructure continue
-to work. The common target adds `xunit.v3.mtp-off` and sets
-`IsTestingPlatformApplication=false` because Roslyn still uses VSTest rather
-than Microsoft.Testing.Platform for these tests. All projects importing this
-target use the centrally pinned xUnit v3 4.0.0 packages.
+to work. The common target adds `xunit.v3.mtp-off`; Roslyn still uses VSTest
+rather than Microsoft.Testing.Platform for these tests. All projects importing
+this target use the centrally pinned xUnit v3 4.0.0 packages.
 
 The runner-only package references in `XUnit.targets` use `PrivateAssets="all"`.
 Keep them private so xUnit's `buildTransitive` entry-point targets do not flow
