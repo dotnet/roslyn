@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -66,28 +67,78 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var options = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-        var safetyComment = SyntaxFactory.ParseLeadingTrivia($"/// <safety></safety>{options.NewLine}").Single();
 
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
         foreach (var diagnostic in diagnostics)
         {
             var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-            var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.SpanStart);
-            var newLeadingTrivia = SyntaxFactory.TriviaList(
-                SyntaxFactory.Whitespace(indentation),
-                safetyComment);
-
-            var finalLeadingTrivia = node.GetLeadingTrivia().ToList();
-            var insertionIndex = finalLeadingTrivia.Count;
-
-            if (finalLeadingTrivia.Count > 0 && finalLeadingTrivia[^1].IsKind(SyntaxKind.WhitespaceTrivia))
-                insertionIndex--;
-
-            finalLeadingTrivia.InsertRange(insertionIndex, newLeadingTrivia);
-            editor.ReplaceNode(node, node.WithLeadingTrivia(finalLeadingTrivia));
+            editor.ReplaceNode(node, AddSafetyComment(node, sourceText, options.NewLine));
         }
 
         return document.WithSyntaxRoot(editor.GetChangedRoot());
+    }
+
+    private static SyntaxNode AddSafetyComment(SyntaxNode node, SourceText sourceText, string newLine)
+    {
+        var leadingTrivia = node.GetLeadingTrivia();
+        for (var i = leadingTrivia.Count - 1; i >= 0; i--)
+        {
+            var trivia = leadingTrivia[i];
+            if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationComment &&
+                documentationComment.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+            {
+                return node.WithLeadingTrivia(leadingTrivia.Replace(trivia, AddSafetyElement(trivia, newLine)));
+            }
+        }
+
+        var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.SpanStart);
+        var safetyComment = SyntaxFactory.ParseLeadingTrivia($"/// <safety></safety>{newLine}").Single();
+        var newLeadingTrivia = SyntaxFactory.TriviaList(
+            SyntaxFactory.Whitespace(indentation),
+            safetyComment);
+
+        var finalLeadingTrivia = leadingTrivia.ToList();
+        var insertionIndex = finalLeadingTrivia.Count;
+
+        if (finalLeadingTrivia.Count > 0 && finalLeadingTrivia[^1].IsKind(SyntaxKind.WhitespaceTrivia))
+            insertionIndex--;
+
+        finalLeadingTrivia.InsertRange(insertionIndex, newLeadingTrivia);
+        return node.WithLeadingTrivia(finalLeadingTrivia);
+    }
+
+    private static SyntaxTrivia AddSafetyElement(SyntaxTrivia documentationComment, string newLine)
+    {
+        var text = documentationComment.ToFullString();
+        var closingDelimiterIndex = text.LastIndexOf("*/", StringComparison.Ordinal);
+        if (closingDelimiterIndex < 0)
+            return documentationComment;
+
+        var closingLineStart = text.LastIndexOf('\n', closingDelimiterIndex) + 1;
+        var previousLineEnd = closingLineStart - 1;
+        if (previousLineEnd > 0 && text[previousLineEnd - 1] == '\r')
+            previousLineEnd--;
+
+        var previousLineStart = previousLineEnd > 0
+            ? text.LastIndexOf('\n', previousLineEnd - 1) + 1
+            : 0;
+        var previousLine = text[previousLineStart..previousLineEnd];
+        var contentStart = 0;
+        while (contentStart < previousLine.Length && char.IsWhiteSpace(previousLine[contentStart]))
+            contentStart++;
+
+        var prefixLength = contentStart;
+        if (contentStart < previousLine.Length && previousLine[contentStart] == '*')
+        {
+            prefixLength++;
+            if (prefixLength < previousLine.Length && previousLine[prefixLength] == ' ')
+                prefixLength++;
+        }
+
+        var prefix = previousLine[..prefixLength];
+        var updatedText = text.Insert(closingLineStart, $"{prefix}<safety></safety>{newLine}");
+        return SyntaxFactory.ParseLeadingTrivia(updatedText)
+            .Single(static trivia => trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
     }
 
     private static void FixAll(SyntaxEditor editor, IEnumerable<TextSpan> spans)

@@ -270,6 +270,58 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenSafetyElementFollowsExistingDocumentationInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /// <summary>Does something.</summary>
+                    /// <safety>Calling this member requires unsafe code.</safety>
+                    public unsafe void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenMultilineSafetyElementHasLeadingAsterisksInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /**
+                     * <summary>Does something.</summary>
+                     * <safety>Calling this member requires unsafe code.</safety>
+                     */
+                    public unsafe void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenMultilineSafetyElementHasNoLeadingAsterisksInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /**
+                    <summary>Does something.</summary>
+                    <safety>Calling this member requires unsafe code.</safety>
+                    */
+                    public unsafe void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
     public Task SafetyCommentDoesNotChangeV1Behavior()
         => new VerifyCS.Test
         {
@@ -329,6 +381,62 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
                     /// <summary>Does something.</summary>
                     /// <safety></safety>
                     [System.Obsolete]
+                    public unsafe void M() { }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task AddSafetyCommentToMultilineDocumentationWithLeadingAsterisksInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /**
+                     * <summary>Does something.</summary>
+                     */
+                    public [|unsafe|] void M() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    /**
+                     * <summary>Does something.</summary>
+                     * <safety></safety>
+                     */
+                    public unsafe void M() { }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task AddSafetyCommentToMultilineDocumentationWithoutLeadingAsterisksInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /**
+                    <summary>Does something.</summary>
+                    */
+                    public [|unsafe|] void M() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    /**
+                    <summary>Does something.</summary>
+                    <safety></safety>
+                    */
                     public unsafe void M() { }
                 }
                 """,
