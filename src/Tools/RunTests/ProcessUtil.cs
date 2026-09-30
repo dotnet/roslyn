@@ -90,9 +90,7 @@ namespace RunTests
                             child = null;
                         }
                     }
-                    catch (ArgumentException) { }
-                    catch (InvalidOperationException) { }
-                    catch (Win32Exception ex)
+                    catch (Exception ex)
                     {
                         ConsoleUtil.Warning($"Unable to inspect child process {pid}: {ex.Message}");
                     }
