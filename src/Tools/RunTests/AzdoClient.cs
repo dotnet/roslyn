@@ -97,26 +97,17 @@ internal sealed class AzdoClient : IDisposable
 
     /// <summary>
     /// Gets test results for a run with pagination support.
-    /// When <paramref name="includeSubResults"/> is true, the request includes
-    /// <c>detailsToInclude=SubResults</c> which populates <see cref="AzdoTestResult.SubResultsCount"/>
-    /// with the number of sub-results (e.g. individual xUnit theory instances) for grouped tests.
     /// </summary>
     public async Task<List<AzdoTestResult>> GetTestResultsAsync(
         string project,
         int runId,
         int skip,
         int top,
-        bool includeSubResults,
         CancellationToken cancellationToken)
     {
         var url = $"{project}/_apis/test/Runs/{runId}/results?api-version=7.1" +
             $"&$skip={skip}" +
             $"&$top={top}";
-
-        if (includeSubResults)
-        {
-            url += "&detailsToInclude=SubResults";
-        }
 
         return await GetListAsync<AzdoTestResult>(url, cancellationToken);
     }
@@ -170,8 +161,6 @@ internal sealed record AzdoTestRun
 
 /// <summary>
 /// Represents an individual test result from the Azure DevOps REST API.
-/// Includes <see cref="SubResultsCount"/> which exposes the number of sub-results
-/// (e.g. xUnit theory instances) that are not available through the old TFS client library.
 /// </summary>
 internal sealed record AzdoTestResult
 {
@@ -179,15 +168,6 @@ internal sealed record AzdoTestResult
     public required string AutomatedTestName { get; init; }
     public double DurationInMs { get; init; }
     public string? Outcome { get; init; }
-
-    /// <summary>
-    /// The number of sub-results for this test result. For grouped tests (e.g. xUnit theories),
-    /// this indicates how many individual theory instances were executed under this parent result.
-    /// This is only populated when the request includes <c>detailsToInclude=SubResults</c>.
-    /// This field is only available through the REST API and was the motivation for removing
-    /// the Microsoft.TeamFoundationServer.Client dependency.
-    /// </summary>
-    public int SubResultsCount { get; init; }
 
     public string? ResultGroupType { get; init; }
 }

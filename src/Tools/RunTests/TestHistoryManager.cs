@@ -21,13 +21,9 @@ internal class TestHistoryManager
 
     /// <summary>
     /// Looks up the last passing test run for the current build to estimate execution times for each
-    /// tests. The dictionary is indexed by test full name and contains the body duration and theory instance count.
-    /// The theory instance count is sourced from the AzDO <c>subResultsCount</c> field which represents individual
-    /// theory invocations reported under a grouped test result.
-    ///
-    /// The duration returned is the sum of execution times reported by xUnit.
+    /// tests. The dictionary is indexed by test full name and contains the execution time reported by xUnit.
     /// </summary>
-    public static async Task<Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>?> GetTestHistoryAsync(Options options, string testRunNamePrefix, CancellationToken cancellationToken)
+    public static async Task<Dictionary<string, TimeSpan>?> GetTestHistoryAsync(Options options, string testRunNamePrefix, CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
         var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");
@@ -82,14 +78,14 @@ internal class TestHistoryManager
 
         ConsoleUtil.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and test run {testRunName}");
 
-        Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testInfos = new();
+        Dictionary<string, TimeSpan> testInfos = new();
 
         // Get runtimes for all tests.
         var timer = new Stopwatch();
         timer.Start();
         foreach (var testRun in testRuns.OrderByDescending(r => r.Id))
         {
-            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testInfosForRun = new();
+            Dictionary<string, TimeSpan> testInfosForRun = new();
             var duplicateCount = 0;
 
             for (var i = 0; i < testRun.TotalTests; i += MaxTestsReturnedPerRequest)
@@ -106,7 +102,7 @@ internal class TestHistoryManager
 
                     var testName = CleanTestName(testResult.AutomatedTestName);
 
-                    if (testInfosForRun.TryGetValue(testName, out var existing))
+                    if (testInfosForRun.ContainsKey(testName))
                     {
                         // We can get duplicate tests if a test file is included in multiple assemblies (e.g. analyzer codestyle tests).
                         // This is fine, we'll just capture one of the run times since it is the same test being run in both cases and unlikely to have different run times.
@@ -115,13 +111,11 @@ internal class TestHistoryManager
                         // a test that applies to both VB and C#, but the tests in both the C# and VB assembly accidentally use the C# namespace.
                         // It may have a different run time, but ADO does not let us differentiate by assembly name, so we just have to pick one.
                         //
-                        // Accumulate theory instance counts across the duplicate entries.
-                        testInfosForRun[testName] = (existing.Duration, existing.TestTheoryInstances + testResult.SubResultsCount);
                         duplicateCount++;
                     }
                     else
                     {
-                        testInfosForRun[testName] = (TimeSpan.FromMilliseconds(testResult.DurationInMs), testResult.SubResultsCount);
+                        testInfosForRun[testName] = TimeSpan.FromMilliseconds(testResult.DurationInMs);
                     }
                 }
             }
@@ -131,8 +125,7 @@ internal class TestHistoryManager
                 Logger.Log($"Found {duplicateCount} duplicate tests in run {testRun.Name} ({testRun.Id}).");
             }
 
-            // Runs are processed newest-first, so successful retry results take precedence over
-            // results from earlier attempts and theory instance counts are not counted twice.
+            // Runs are processed newest-first, so successful retry results take precedence over earlier attempts.
             foreach (var (testName, testInfo) in testInfosForRun)
             {
                 testInfos.TryAdd(testName, testInfo);
@@ -147,7 +140,7 @@ internal class TestHistoryManager
             return null;
         }
 
-        var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.Duration.TotalMilliseconds));
+        var totalTestRuntime = TimeSpan.FromMilliseconds(testInfos.Values.Sum(t => t.TotalMilliseconds));
         ConsoleUtil.WriteLine($"Retrieved {testInfos.Keys.Count} tests from AzureDevops in {timer.Elapsed}.  Total runtime of all tests is {totalTestRuntime}");
         return testInfos;
     }
@@ -202,7 +195,7 @@ internal class TestHistoryManager
     {
         try
         {
-            return await azdoClient.GetTestResultsAsync("public", testRun.Id, skip, top, includeSubResults: true, cancellationToken);
+            return await azdoClient.GetTestResultsAsync("public", testRun.Id, skip, top, cancellationToken);
         }
         catch (Exception ex)
         {

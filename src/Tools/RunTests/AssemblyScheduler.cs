@@ -35,7 +35,7 @@ namespace RunTests
         public static ImmutableArray<HelixWorkItem> Schedule(
             IEnumerable<string> assemblyFilePaths,
             string platform,
-            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>? testHistory)
+            Dictionary<string, TimeSpan>? testHistory)
         {
             var orderedTypeInfos = assemblyFilePaths.ToImmutableSortedDictionary(x => x, GetTypeInfoList);
             ConsoleUtil.WriteLine($"Scheduling {orderedTypeInfos.Count} assemblies");
@@ -85,7 +85,7 @@ namespace RunTests
         /// </summary>
         private static ImmutableArray<HelixWorkItem> ScheduleByTime(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> orderedTypeInfos,
-            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory,
+            Dictionary<string, TimeSpan> testHistory,
             int? maxAssembliesPerWorkItem)
         {
             LogLongTests(testHistory);
@@ -106,16 +106,16 @@ namespace RunTests
             return workItems;
         }
 
-        private static void LogLongTests(Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+        private static void LogLongTests(Dictionary<string, TimeSpan> testHistory)
         {
             var longTests = testHistory
-                .Where(kvp => kvp.Value.Duration > HelixTestRunner.WorkItemScheduleTime)
+                .Where(kvp => kvp.Value > HelixTestRunner.WorkItemScheduleTime)
                 .OrderBy(kvp => kvp.Key)
                 .ToList();
             if (longTests.Count > 0)
             {
                 ConsoleUtil.Warning($"There are {longTests.Count} tests have execution times greater than the maximum execution time of {HelixTestRunner.WorkItemScheduleTime:hh\\:mm\\:ss}.  These tests will be scheduled in their own individual work items and may indicate tests that should be optimized or removed if they are no longer providing value.");
-                foreach (var (test, (time, _)) in longTests)
+                foreach (var (test, time) in longTests)
                 {
                     ConsoleUtil.WriteLine($"\t{test} - {time:hh\\:mm\\:ss}");
                 }
@@ -124,10 +124,10 @@ namespace RunTests
 
         private static ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> assemblyTypes,
-            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testHistory)
+            Dictionary<string, TimeSpan> testHistory)
         {
             // Determine the average execution time so that we can use it for tests that do not have any history.
-            var averageExecutionTime = TimeSpan.FromMilliseconds(testHistory.Values.Average(t => t.Duration.TotalMilliseconds));
+            var averageExecutionTime = TimeSpan.FromMilliseconds(testHistory.Values.Average(t => t.TotalMilliseconds));
 
             // Store the tests we found locally that were missing remote historical data.
             var unmatchedLocalTests = new HashSet<string>();
@@ -156,7 +156,7 @@ namespace RunTests
                 if (testHistory.TryGetValue(methodInfo.FullyQualifiedName, out var historyEntry))
                 {
                     matchedRemoteTests.Add(methodInfo.FullyQualifiedName);
-                    return methodInfo with { ExecutionTime = historyEntry.Duration };
+                    return methodInfo with { ExecutionTime = historyEntry };
                 }
 
                 // We didn't find the local type from our assembly in test run historical data.
