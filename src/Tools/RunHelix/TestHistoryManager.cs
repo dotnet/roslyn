@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RunTests;
+namespace TestRunner.Helix;
 
 internal class TestHistoryManager
 {

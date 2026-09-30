@@ -10,7 +10,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 
-namespace RunTests
+namespace TestRunner.RunTests
 {
     internal static class ProcessUtil
     {

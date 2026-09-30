@@ -60,7 +60,8 @@ internal static class MinimizeUtil
                 Path.Combine(sourceDirectory, "artifacts", "VSSetup"),
                 .. Directory.EnumerateDirectories(artifactsDir, "*.UnitTests"),
                 .. Directory.EnumerateDirectories(artifactsDir, "*.IntegrationTests"),
-                .. Directory.EnumerateDirectories(artifactsDir, "RunTests")
+                .. Directory.EnumerateDirectories(artifactsDir, "RunTests"),
+                .. Directory.EnumerateDirectories(artifactsDir, "RunHelix")
             ];
 
             var idToFilePathMap = directories.AsParallel()

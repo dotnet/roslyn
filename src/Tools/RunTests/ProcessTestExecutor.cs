@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace RunTests
+namespace TestRunner.RunTests
 {
     internal sealed class ProcessTestExecutor
     {
@@ -44,11 +44,7 @@ namespace RunTests
             // configuration can take significant time (seems to vary from ~10 seconds to ~15 minutes), and the blame
             // functionality cannot separate this configuration overhead from the first test which will eventually run.
             // https://github.com/dotnet/roslyn/issues/59851
-            //
-            // Helix timeout is 15 minutes as helix jobs fully timeout in 30minutes.  So in order to capture dumps we need the timeout
-            // to be 2x shorter than the expected test run time (15min) in case only the last test hangs.
-            var timeout = options.UseHelix ? "15minutes" : "25minutes";
-            fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout={timeout};DumpType=full");
+            fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout=25minutes;DumpType=full");
 
             // Specifies the results directory - this is where dumps from the blame options will get published.
             fileContentsBuilder.AppendLine($"/ResultsDirectory:{options.TestResultsDirectory}");
@@ -197,12 +193,6 @@ namespace RunTests
 
                 string getRspDirectory()
                 {
-                    // There is no artifacts directory on Helix, just use the current directory
-                    if (options.UseHelix)
-                    {
-                        return Directory.GetCurrentDirectory();
-                    }
-
                     var dirPath = Path.Combine(options.ArtifactsDirectory, "tmp", options.Configuration, "vstest-rsp");
                     Directory.CreateDirectory(dirPath);
                     return dirPath;

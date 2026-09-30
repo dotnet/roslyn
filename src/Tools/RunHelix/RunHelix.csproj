@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <RootNamespace>TestRunner.RunTests</RootNamespace>
+    <RootNamespace>TestRunner.Helix</RootNamespace>
     <TargetFramework>$(NetRoslyn)</TargetFramework>
     <RollForward>Major</RollForward>
     <SignAssembly>false</SignAssembly>
@@ -12,12 +12,13 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Management" />
-    <PackageReference Include="Microsoft.Diagnostics.NETCore.Client" />
+    <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="Mono.Options" />
+    <PackageReference Include="Newtonsoft.Json" />
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\TestRunnerCommon\*.cs" LinkBase="TestRunnerCommon" />
   </ItemGroup>
+  <Import Project="..\..\Dependencies\Contracts\Microsoft.CodeAnalysis.Contracts.projitems" />
 </Project>

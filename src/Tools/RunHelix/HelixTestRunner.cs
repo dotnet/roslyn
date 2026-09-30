@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Newtonsoft.Json;
 
-namespace RunTests;
+namespace TestRunner.Helix;
 
 public sealed class HelixWorkItem(
     int id,
@@ -110,9 +110,6 @@ internal sealed class HelixTestRunner
     /// </summary>
     internal static async Task<string> CreateHelixArtifactsAsync(Options options, ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfFalse(options.UseHelix);
-        Contract.ThrowIfTrue(options.IncludeHtml);
-        Contract.ThrowIfFalse(string.IsNullOrEmpty(options.TestFilter));
         Contract.ThrowIfFalse(!string.IsNullOrEmpty(options.ArtifactsDirectory));
         Contract.ThrowIfFalse(!string.IsNullOrEmpty(options.HelixQueueName));
         Contract.ThrowIfFalse(!string.IsNullOrEmpty(options.Configuration));
@@ -232,9 +229,9 @@ internal sealed class HelixTestRunner
         //
         // https://github.com/dotnet/arcade/blob/e7cb34898a1b610eb2a22591a2178da6f1fb7e3c/src/Microsoft.DotNet.Helix/Sdk/Readme.md#developing-helix-sdk
         //
-        // Note: rather than setting these variables in the RunTests program it would be better to 
+        // Note: rather than setting these variables in the RunHelix program it would be better to
         // emit a .cmd / .sh file that sets these variables and then calls the dotnet command. The current
-        // setup makes running the RunTests program destructive to the environment variables
+        // setup makes running the RunHelix program destructive to the environment variables
         // of the runner
         //
         _ = SetEnv("BUILD_SOURCEBRANCH", "local");

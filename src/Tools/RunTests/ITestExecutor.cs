@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Immutable;
 
-namespace RunTests
+namespace TestRunner.RunTests
 {
     internal readonly struct TestExecutionOptions
     {
