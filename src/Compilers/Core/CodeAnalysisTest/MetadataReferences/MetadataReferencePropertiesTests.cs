@@ -17,6 +17,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Constructor()
         {
+            if (Environment.GetEnvironmentVariable("ROSLYN_VALIDATE_HANG_DUMPS") == "true")
+            {
+                Console.WriteLine($"Intentional dump validation hang: PID {System.Diagnostics.Process.GetCurrentProcess().Id}");
+                System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+            }
+
             var m = new MetadataReferenceProperties();
             Assert.True(m.Aliases.IsEmpty);
             Assert.False(m.EmbedInteropTypes);
