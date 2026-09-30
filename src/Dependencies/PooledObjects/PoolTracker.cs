@@ -124,12 +124,6 @@ internal sealed class PoolTrackingContext
             return;
 
         _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), poolName, filePath, lineNumber, _traceLeaks ? Environment.StackTrace : null));
-
-        // If StopTrackingAllocations ran concurrently with this call, it may have already inspected the outstanding set
-        // without seeing this object. Remove it so allocations that race with stopping are never reported as leaks.
-        Interlocked.MemoryBarrier();
-        if (Volatile.Read(ref _allocationTrackingStopped) != 0)
-            _outstanding.TryRemove(obj, out _);
     }
 
     /// <summary>
