@@ -66,6 +66,8 @@ steps:
       } >> "$GITHUB_ENV"
 
 tools:
+  # Drops --allow-all-paths: file access stays in the workspace and temp dir.
+  edit: false
   github:
     # External PRs must be readable; their content is untrusted, like binlogs.
     min-integrity: none
