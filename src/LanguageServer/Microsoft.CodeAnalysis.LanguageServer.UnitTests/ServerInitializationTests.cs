@@ -81,6 +81,7 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
         var logMessages = new List<string>();
         await using (var server = await CreateLanguageServerAsync())
         {
+            // Completing this from an event callback must not run test cleanup inline on that callback thread.
             var logCompletionSource = new TaskCompletionSource<LogMessageParams>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             server.LogMessageReceived += logMessage =>

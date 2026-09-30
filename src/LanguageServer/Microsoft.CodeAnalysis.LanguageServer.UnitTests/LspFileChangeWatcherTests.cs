@@ -113,6 +113,7 @@ public sealed class LspFileChangeWatcherTests(ITestOutputHelper testOutputHelper
         var filePath = Path.Combine(tempDirectory.Path, "File.cs");
 
         using var context = lspFileChangeWatcher.CreateContext([new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilters: [])]);
+        // Completing this from an event callback must not run test cleanup inline on that callback thread.
         var fileChangedSource = new TaskCompletionSource<FileChangedEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
         context.FileChanged += (_, e) => fileChangedSource.TrySetResult(e);
 

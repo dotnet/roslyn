@@ -524,6 +524,7 @@ public sealed class DefaultFileChangeWatcherTests : IDisposable
 
     private static FileChangeTask ListenForFileChangeAsync(IFileChangeContext context, string filePath)
     {
+        // Completing this from an event callback must not run test cleanup inline on that callback thread.
         var eventSource = new TaskCompletionSource<FileChangeKind>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         context.FileChanged += (sender, e) =>
