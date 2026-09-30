@@ -248,17 +248,19 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         => _distinguishPartialParts && symbol.PartialDefinitionPart != null;
 
     private bool IsPartialEventDefinitionPart(IEventSymbol symbol)
+        => _distinguishPartialParts &&
 #if !OLDER_ROSLYN
-        => _distinguishPartialParts && symbol.PartialImplementationPart != null;
+           symbol.PartialImplementationPart != null;
 #else
-        => false;
+           false;
 #endif
 
     private bool IsPartialEventImplementationPart(IEventSymbol symbol)
+        => _distinguishPartialParts &&
 #if !OLDER_ROSLYN
-        => _distinguishPartialParts && symbol.PartialDefinitionPart != null;
+           symbol.PartialDefinitionPart != null;
 #else
-        => false;
+           false;
 #endif
 
     private static TypeKind GetTypeKind(INamedTypeSymbol x)
