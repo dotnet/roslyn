@@ -32,6 +32,9 @@ internal sealed partial class SmartIndent(ITextView textView, EditorOptionsServi
         if (line == null)
             throw new ArgumentNullException(nameof(line));
 
+        if (!_editorOptionsService.GlobalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter))
+            return null;
+
         using (Logger.LogBlock(FunctionId.SmartIndentation_Start, cancellationToken))
         {
             var document = line.Snapshot.GetOpenDocumentInCurrentContextWithChanges();

@@ -59,7 +59,7 @@ internal abstract class ExportProviderBuilder(
 
                 CachedComposition cachedComposition = new();
                 using FileStream cacheStream = new(compositionCacheFile, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: true);
-                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, Resolver, cancellationToken).ConfigureAwait(false);
+                var exportProviderFactory = await cachedComposition.LoadExportProviderFactoryAsync(cacheStream, Resolver, joinableTaskFactory: null, cancellationToken).ConfigureAwait(false);
 
                 return exportProviderFactory;
             }
@@ -95,7 +95,7 @@ internal abstract class ExportProviderBuilder(
         }
 
         // Prepare an ExportProvider factory based on this graph.
-        return config.CreateExportProviderFactory();
+        return config.CreateExportProviderFactory(joinableTaskFactory: null);
     }
 
     /// <summary>

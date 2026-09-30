@@ -51,12 +51,42 @@ Targeted runs are strongly preferred — the full suite is large and slow. Tests
 ./test.sh        # or Test.cmd on Windows
 ```
 
+These entry points invoke `src/Tools/RunTests` to run already-built assemblies
+efficiently; build the test projects first. See the tool's
+[`README.md`](../../src/Tools/RunTests/README.md) for assembly filters, test
+framework selection, and environment-variable options. Use `dotnet test` directly
+for a single project.
+
+The build scripts also accept `-test`, `-testSet:<name>`, `-testKind:<name>`, or
+`-testFramework:<name>` (also with `--` on Unix) to invoke RunTests after successful
+build actions. They forward the build configuration and supplied test-option
+values; test discovery, selection, and validation remain in RunTests.
+
+CI test-only jobs use `eng/pipelines/install-dotnet.yml` to install the SDK
+from `global.json` with `UseDotNet@2`. The template reads `sdk.version` into a
+read-only job variable on every run and passes that exact version to the task.
+PrepareTests includes the checked-in
+`global.json` in the downloaded test payload for jobs without a source checkout.
+The task adds the SDK to `PATH`, and test steps call `dotnet exec` directly;
+the template also installs the .NET 10 runtime for the runner and testhosts,
+without requiring job-wide roll-forward environment overrides.
+build-then-test jobs reuse the SDK already
+installed and added to `PATH` by the build step. RunTests defaults to the dotnet
+executable above its hosting runtime directory, so `--dotnet` is unnecessary.
+
 ### Test types to be aware of
 - VS integration tests (`azure-pipelines-integration*.yml`) require a VS install, so they run only on **Windows** hosts (not CI-only — they can be run locally on Windows). Prefer unit tests for the inner development loop; reach for integration tests when validating end-to-end VS behavior.
+- `eng/test-vsi.ps1` selects the testhost architecture with `-testPlatform`,
+  independently of the `-oop64bit` setting for Visual Studio's out-of-process
+  services. It configures architecture-specific `DOTNET_ROOT` variables so
+  native testhosts use the repository's SDK runtime.
 - A handful of tests fail only for environmental reasons:
   - `RuntimeHostInfoTests.DotNetInPath_Symlinked` requires symlink-creation privilege (run elevated).
   - `Workspaces.MSBuild` `NewlyCreatedProjectsFromDotNetNew.Validate*TemplateProjects` fail without mobile (ios/tvos/macos/maccatalyst) dotnet workloads installed.
 
 ## CI
 
-PR validation runs via `azure-pipelines-pr-validation.yml` (Azure DevOps + Helix). For investigating failures, use the `ci-analysis` and `integration-test-analysis` skills.
+PR test CI runs via `azure-pipelines.yml` (Azure DevOps + Helix).
+`azure-pipelines-pr-validation.yml` builds and publishes insertion-validation
+artifacts; it does not build or run tests. For investigating failures, use the
+`ci-analysis` and `integration-test-analysis` skills.

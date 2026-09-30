@@ -33,6 +33,10 @@ Running the formatter:
 
 ## Patterns in Active Use
 
+### Contract explanations
+
+- Put explanations for `Contract.ThrowIfNull` invariants in its string message argument rather than a preceding comment, so the explanation is included in the exception.
+
 ### Immutability (all layers)
 ```csharp
 // Use With*/Add*/Replace* to produce new instances — never mutate.
