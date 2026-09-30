@@ -13,13 +13,12 @@ using Xunit.v3;
 
 namespace Roslyn.Test.Utilities;
 
+#pragma warning disable RS0030 // SemaphoreSlim is banned; the runner only acquires this gate asynchronously before starting a WPF test.
 internal static class WpfTestCaseRunner
 {
     private static readonly DispatcherSynchronizationContext s_dispatcherSynchronizationContext = CreateDispatcherSynchronizationContext();
     private static readonly TaskScheduler s_taskScheduler = new SynchronizationContextTaskScheduler(s_dispatcherSynchronizationContext);
-#pragma warning disable RS0030 // The runner acquires this gate asynchronously before starting a WPF test.
     private static readonly SemaphoreSlim s_testSerializationGate = new(1, 1);
-#pragma warning restore RS0030
 
     internal static ValueTask<RunSummary> Run(
         IXunitTestCase testCase,
@@ -197,3 +196,4 @@ internal static class WpfTestCaseRunner
         public override int MaximumConcurrencyLevel => 1;
     }
 }
+#pragma warning restore RS0030
