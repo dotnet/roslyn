@@ -102,8 +102,7 @@ namespace RunTests
         }
 
         private static string GetWorkItemDirectory(WorkItemInfo workItemInfo, Options options)
-            => options.UseHelix ? options.TestResultsDirectory :
-                Path.Combine(options.TestResultsDirectory, $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}");
+            => Path.Combine(options.TestResultsDirectory, $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}");
 
         public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, Options options, CancellationToken cancellationToken)
         {
