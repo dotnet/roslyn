@@ -5,25 +5,34 @@
   <PropertyGroup>
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
 
+    <RoslynTestRunner Condition="'$(RoslynTestRunner)' == ''">VSTest</RoslynTestRunner>
+    <_RoslynUseMicrosoftTestingPlatform Condition="'$(RoslynTestRunner)' == 'Microsoft.Testing.Platform'">true</_RoslynUseMicrosoftTestingPlatform>
+    <_XunitMicrosoftTestingPlatformRunner Condition="'$(_RoslynUseMicrosoftTestingPlatform)' != 'true'">off</_XunitMicrosoftTestingPlatformRunner>
+    <_XunitMicrosoftTestingPlatformRunner Condition="'$(_RoslynUseMicrosoftTestingPlatform)' == 'true'">true</_XunitMicrosoftTestingPlatformRunner>
+
     <!--
       xunit.v3 test projects build an executable capable of running under either VSTest or
       Microsoft.Testing.Platform (MTP). Roslyn's test infrastructure (CI harnesses, custom
-      runners, xunit.runner.visualstudio) still targets VSTest, so opt out of MTP for now.
+      runners, xunit.runner.visualstudio) still targets VSTest by default. The opt-in MTP mode
+      allows individual projects to validate the native runner while that infrastructure is migrated.
     -->
-    <IsTestingPlatformApplication>false</IsTestingPlatformApplication>
+    <IsTestingPlatformApplication Condition="'$(_RoslynUseMicrosoftTestingPlatform)' != 'true'">false</IsTestingPlatformApplication>
+    <IsTestingPlatformApplication Condition="'$(_RoslynUseMicrosoftTestingPlatform)' == 'true'">true</IsTestingPlatformApplication>
 
     <!-- xunit.v3 test projects must build an executable; keep the .dll extension for VSTest discovery. -->
     <OutputType>Exe</OutputType>
-    <TargetExt>.dll</TargetExt>
+    <TargetExt Condition="'$(_RoslynUseMicrosoftTestingPlatform)' != 'true'">.dll</TargetExt>
+    <TargetExt Condition="'$(_RoslynUseMicrosoftTestingPlatform)' == 'true' and '$(TargetFrameworkIdentifier)' == '.NETFramework'">.exe</TargetExt>
 
     <!-- 4 MB, matching the stack reserve of the testhost.net47x.exe that VSTest uses for non-xunit.v3 projects. -->
     <TestAssemblyStackReserve>4194304</TestAssemblyStackReserve>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="XunitXml.TestLogger" PrivateAssets="all" />
-    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
-    <PackageReference Include="xunit.v3.mtp-off" PrivateAssets="all" />
+    <PackageReference Include="XunitXml.TestLogger" PrivateAssets="all" Condition="'$(_RoslynUseMicrosoftTestingPlatform)' != 'true'" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" Condition="'$(_RoslynUseMicrosoftTestingPlatform)' != 'true'" />
+    <PackageReference Include="xunit.v3.mtp-off" PrivateAssets="all" Condition="'$(_RoslynUseMicrosoftTestingPlatform)' != 'true'" />
+    <PackageReference Include="xunit.v3" PrivateAssets="all" Condition="'$(_RoslynUseMicrosoftTestingPlatform)' == 'true'" />
     <PackageReference Include="xunit.analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>
@@ -39,7 +48,7 @@
         RootNamespace="$(RootNamespace)"
         SuffixSeed="$(MSBuildProjectName)"
         Language="$(Language)"
-        UseMicrosoftTestingPlatformRunner="off" />
+        UseMicrosoftTestingPlatformRunner="$(_XunitMicrosoftTestingPlatformRunner)" />
     <ItemGroup>
       <FileWrites Include="$(_XunitEntryPointPath)" />
     </ItemGroup>
@@ -51,7 +60,7 @@
   -->
   <Target Name="_XunitCopyRunnerDependencies"
           AfterTargets="Build"
-          Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework' or '$(TargetFrameworkIdentifier)' == '.NETCoreApp') and '$(DotNetBuildSourceOnly)' != 'true'">
+          Condition="'$(_RoslynUseMicrosoftTestingPlatform)' != 'true' and ('$(TargetFrameworkIdentifier)' == '.NETFramework' or '$(TargetFrameworkIdentifier)' == '.NETCoreApp') and '$(DotNetBuildSourceOnly)' != 'true'">
     <ItemGroup>
       <_XunitRunnerUtilityPackageReference Include="@(PackageReference)"
                                            Condition="'%(PackageReference.Identity)' == 'xunit.v3.runner.utility'" />
@@ -72,6 +81,11 @@
     <!-- Include BannedSymbols covering all test projects -->
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\test\BannedSymbols.txt" />
   </ItemGroup>
+
+  <Target Name="ValidateRoslynTestRunner" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(RoslynTestRunner)' != 'VSTest' and '$(RoslynTestRunner)' != 'Microsoft.Testing.Platform'"
+           Text="Unsupported RoslynTestRunner value '$(RoslynTestRunner)'. Expected 'VSTest' or 'Microsoft.Testing.Platform'." />
+  </Target>
 
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework' AND '$(SkipRoslynTestTraceListener)' != 'true'">
     <!--
@@ -197,7 +211,7 @@
   -->
   <Target Name="CreateXunitV3AppHost"
           AfterTargets="Build"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(TargetExt)' == '.dll' and '$(DotNetBuildSourceOnly)' != 'true'">
+          Condition="'$(_RoslynUseMicrosoftTestingPlatform)' != 'true' and '$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(TargetExt)' == '.dll' and '$(DotNetBuildSourceOnly)' != 'true'">
     <PropertyGroup>
       <_XunitV3AppHost>$(TargetDir)$(TargetName).exe</_XunitV3AppHost>
       <_TargetConfigPath>$(TargetPath).config</_TargetConfigPath>
@@ -210,9 +224,33 @@
     <SetPEStackReserve FilePath="$(_XunitV3AppHost)" StackReserve="$(TestAssemblyStackReserve)" Condition="Exists('$(_XunitV3AppHost)')" />
   </Target>
 
+  <!--
+    XUnit.targets is imported after MSBuild has named the generated app config from the
+    project's original library output. Native MTP launches the .exe, so give it the same
+    binding redirects that MSBuild emitted for the historical .dll name.
+  -->
+  <Target Name="CreateXunitV3MtpAppConfig"
+          AfterTargets="Build"
+          Condition="'$(_RoslynUseMicrosoftTestingPlatform)' == 'true' and '$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(DotNetBuildSourceOnly)' != 'true'">
+    <PropertyGroup>
+      <_XunitV3MtpSourceConfig>$(TargetDir)$(TargetName).dll.config</_XunitV3MtpSourceConfig>
+      <_XunitV3MtpAppConfig>$(TargetDir)$(TargetName).exe.config</_XunitV3MtpAppConfig>
+    </PropertyGroup>
+
+    <Copy SourceFiles="$(_XunitV3MtpSourceConfig)"
+          DestinationFiles="$(_XunitV3MtpAppConfig)"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(_XunitV3MtpSourceConfig)')" />
+  </Target>
+
   <Target Name="SetTestAssemblyStackReserve"
           AfterTargets="CopyFilesToOutputDirectory"
           Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(DotNetBuildSourceOnly)' != 'true'">
-    <SetPEStackReserve FilePath="$(TargetPath)" StackReserve="$(TestAssemblyStackReserve)" Condition="Exists('$(TargetPath)')" />
+    <PropertyGroup>
+      <_TestExecutablePath Condition="'$(_RoslynUseMicrosoftTestingPlatform)' != 'true'">$(TargetPath)</_TestExecutablePath>
+      <_TestExecutablePath Condition="'$(_RoslynUseMicrosoftTestingPlatform)' == 'true'">$(TargetDir)$(TargetName).exe</_TestExecutablePath>
+    </PropertyGroup>
+
+    <SetPEStackReserve FilePath="$(_TestExecutablePath)" StackReserve="$(TestAssemblyStackReserve)" Condition="Exists('$(_TestExecutablePath)')" />
   </Target>
 </Project>

@@ -102,6 +102,27 @@ to work. The common target adds `xunit.v3.mtp-off` and sets
 than Microsoft.Testing.Platform for these tests. All projects importing this
 target use the centrally pinned xUnit v3 4.0.0 packages.
 
+Individual projects can opt into the native Microsoft.Testing.Platform runner
+with `-p:RoslynTestRunner=Microsoft.Testing.Platform`. This replaces
+`xunit.v3.mtp-off` with `xunit.v3`, generates the native MTP entry point, and
+omits the VSTest adapter and logger packages for that build. With the repository's
+.NET 11 SDK, restore the isolated MTP assets and select the native `dotnet test`
+experience for the test command:
+
+```bash
+dotnet restore <project> -p:RoslynTestRunner=Microsoft.Testing.Platform
+DOTNET_TEST_RUNNER=Microsoft.Testing.Platform \
+  dotnet test <project> -p:RoslynTestRunner=Microsoft.Testing.Platform --no-restore
+```
+
+MTP builds use `artifacts/bin-mtp` and `artifacts/obj-mtp`, so switching between
+the opt-in and default VSTest modes cannot reuse an incompatible entry point or
+restore graph.
+
+The opt-in is currently for standalone project migration and validation.
+`RunTests`, Helix, and VS integration-test execution still invoke VSTest, so do
+not enable MTP for solution-wide or CI runs yet.
+
 The runner-only package references in `XUnit.targets` use `PrivateAssets="all"`.
 Keep them private so xUnit's `buildTransitive` entry-point targets do not flow
 through project references into non-test consumers such as benchmark projects.

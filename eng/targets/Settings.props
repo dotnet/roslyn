@@ -27,6 +27,12 @@
     <ToolsetPackagesDir>$(RepoRoot)build\ToolsetPackages\</ToolsetPackagesDir>
     <UseSharedCompilation>true</UseSharedCompilation>
 
+    <!-- Keep opt-in MTP builds isolated from the default VSTest outputs and restore assets. -->
+    <BaseOutputPath Condition="'$(RoslynTestRunner)' == 'Microsoft.Testing.Platform'">$(RepoRoot)artifacts\bin-mtp\$(MSBuildProjectName)\</BaseOutputPath>
+    <BaseIntermediateOutputPath Condition="'$(RoslynTestRunner)' == 'Microsoft.Testing.Platform'">$(RepoRoot)artifacts\obj-mtp\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <OutputPath Condition="'$(RoslynTestRunner)' == 'Microsoft.Testing.Platform'">$(BaseOutputPath)$(Configuration)\</OutputPath>
+    <IntermediateOutputPath Condition="'$(RoslynTestRunner)' == 'Microsoft.Testing.Platform'">$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+
     <Features>strict</Features>
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
