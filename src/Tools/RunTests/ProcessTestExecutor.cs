@@ -291,8 +291,10 @@ namespace RunTests
                         return true;
                 }
             }
-            catch (IOException) { }
-            catch (XmlException) { }
+            catch (Exception ex)
+            {
+                ConsoleUtil.Warning($"Unable to check test results '{resultsFilePath}' for failures: {ex.Message}");
+            }
 
             return false;
         }
