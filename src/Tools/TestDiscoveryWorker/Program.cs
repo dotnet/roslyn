@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
@@ -45,40 +44,11 @@ try
         return ExitFailure;
     }
 
-    // Resolve to an absolute path up front: xUnit changes the current directory to the test
-    // assembly's own directory during discovery, so any relative path computed from
-    // assemblyFilePath later on would otherwise silently break.
     assemblyFilePath = Path.GetFullPath(assemblyFilePath);
 
-    // Same reasoning as above: normalize an explicit --out path too, since discovery changes
-    // the current directory before the output file is written.
     outputFilePath = outputFilePath is null
         ? Path.Combine(Path.GetDirectoryName(assemblyFilePath)!, "testlist.json")
         : Path.GetFullPath(outputFilePath);
-
-#if NET
-    var resolver = new System.Runtime.Loader.AssemblyDependencyResolver(assemblyFilePath);
-    System.Runtime.Loader.AssemblyLoadContext.Default.Resolving += (context, assemblyName) =>
-    {
-        var assemblyPath = resolver.ResolveAssemblyToPath(assemblyName);
-        if (assemblyPath is not null)
-        {
-            return context.LoadFromAssemblyPath(assemblyPath);
-        }
-
-        return null;
-    };
-#else
-    // .NET Framework only probes its own directory (and the GAC) for dependencies, but the test
-    // assembly's dependencies live alongside it, not alongside this worker. Resolve them from
-    // there instead.
-    string testAssemblyDirectory = Path.GetDirectoryName(assemblyFilePath)!;
-    AppDomain.CurrentDomain.AssemblyResolve += (sender, resolveArgs) =>
-    {
-        var candidatePath = Path.Combine(testAssemblyDirectory, new AssemblyName(resolveArgs.Name).Name + ".dll");
-        return File.Exists(candidatePath) ? Assembly.LoadFrom(candidatePath) : null;
-    };
-#endif
 
     string assemblyFileName = Path.GetFileName(assemblyFilePath);
 #if NET
@@ -93,25 +63,7 @@ try
         ?? throw new InvalidOperationException($"Could not determine the xUnit test framework used by '{assemblyFilePath}'.");
     var projectAssembly = new XunitProjectAssembly(new XunitProject(), assemblyFilePath, assemblyMetadata);
 
-    // InProcessTestProcessLauncher requires xunit.v3.runner.inproc.console to already be loaded
-    // into this process, but .NET only loads assemblies on first use. Since nothing else in this
-    // worker references that assembly, force-load it from the test assembly's own output
-    // directory before creating the front controller.
-    string inProcConsolePath = Path.Combine(Path.GetDirectoryName(assemblyFilePath)!, "xunit.v3.runner.inproc.console.dll");
-    if (File.Exists(inProcConsolePath))
-    {
-#if NET
-        System.Runtime.Loader.AssemblyLoadContext.Default.LoadFromAssemblyPath(inProcConsolePath);
-#else
-        Assembly.LoadFrom(inProcConsolePath);
-#endif
-    }
-
-    // Roslyn's xUnit v3 test projects override TargetExt to .dll (to satisfy the repo's
-    // *.UnitTests.dll naming requirement), so they never produce the native apphost executable
-    // that the default out-of-process launcher requires. Use the in-process launcher instead,
-    // which loads the test assembly via reflection and requires no apphost.
-    var controller = XunitFrontController.Create(projectAssembly, testProcessLauncher: InProcessTestProcessLauncher.Instance)
+    var controller = XunitFrontController.Create(projectAssembly)
         ?? throw new InvalidOperationException($"Could not create a test framework front controller for '{assemblyFilePath}'.");
     await using var controllerDisposer = controller.ConfigureAwait(false);
     var sink = new Sink();
