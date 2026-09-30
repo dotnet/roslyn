@@ -57,6 +57,14 @@ efficiently; build the test projects first. See the tool's
 framework selection, and environment-variable options. Use `dotnet test` directly
 for a single project.
 
+Local RunTests work items are whole assemblies: VSTest has a 10-minute inactivity
+timeout and RunTests has an independent 25-minute work-item deadline. Timeout
+cleanup collects bounded helper-process dumps from owned processes, writes a
+synthetic failed result even without a dump, and continues queued work. The global
+deadline remains 90 minutes. `eng/test-vsi.ps1` explicitly selects the longer
+`--integration` defaults; Helix timeouts are separate. See the RunTests README for
+second-based overrides and diagnostics locations.
+
 The build scripts also accept `-test`, `-testSet:<name>`, `-testKind:<name>`, or
 `-testFramework:<name>` (also with `--` on Unix) to invoke RunTests after successful
 build actions. They forward the build configuration and supplied test-option

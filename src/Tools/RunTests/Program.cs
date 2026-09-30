@@ -24,6 +24,9 @@ namespace RunTests
 
         internal static async Task<int> Main(string[] args)
         {
+            if (args.Length > 0 && args[0] == "--dump-process")
+                return DumpCollector.RunHelper(args);
+
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
             var options = Options.Parse(args, out var helpShown);
@@ -43,7 +46,7 @@ namespace RunTests
                 return await HelixTestRunner.RunAsync(options, assemblyFilePaths);
             }
 
-            if (options.CollectDumps)
+            if (options.CollectDumps && OperatingSystem.IsWindows())
             {
                 if (!DumpUtil.IsAdministrator())
                 {
@@ -59,10 +62,10 @@ namespace RunTests
             {
                 // Setup cancellation for ctrl-c key presses
                 using var cts = new CancellationTokenSource();
-                Console.CancelKeyPress += delegate
+                Console.CancelKeyPress += (_, e) =>
                 {
+                    e.Cancel = true;
                     cts.Cancel();
-                    DisableRegistryDumpCollection();
                 };
 
                 int result;
@@ -85,7 +88,7 @@ namespace RunTests
 
             void DisableRegistryDumpCollection()
             {
-                if (options.CollectDumps && DumpUtil.IsAdministrator())
+                if (options.CollectDumps && OperatingSystem.IsWindows() && DumpUtil.IsAdministrator())
                 {
                     DumpUtil.DisableRegistryDumpCollection();
                 }
@@ -101,8 +104,9 @@ namespace RunTests
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
             {
-                await HandleTimeout(options, cancellationToken);
+                ConsoleUtil.Error("Global test timeout exceeded; collecting owned work-item dumps before termination.");
                 cts.Cancel();
+                await CaptureTimeoutScreenshotAsync(options);
 
                 try
                 {
@@ -115,10 +119,33 @@ namespace RunTests
                     // Cancellation exceptions expected here. 
                 }
 
+                WriteLogFile(options);
                 return ExitFailure;
             }
 
             return await runTask;
+        }
+
+        private static async Task CaptureTimeoutScreenshotAsync(Options options)
+        {
+            if (!OperatingSystem.IsWindows())
+                return;
+
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            try
+            {
+                Directory.CreateDirectory(options.LogFilesDirectory);
+                var path = Path.Combine(options.LogFilesDirectory, "timeout.png").Replace("'", "''");
+                var output = await ProcessRunner.CreateProcess("Powershell.exe",
+                    $"-NoProfile -command \"& {{ . .\\eng\\build-utils-win.ps1; Capture-Screenshot '{path}' }}\"",
+                    displayWindow: false, captureOutput: true, cancellationToken: timeout.Token).Result.WaitAsync(timeout.Token);
+                Logger.Log(string.Join(Environment.NewLine, output.OutputLines));
+                Logger.Log(string.Join(Environment.NewLine, output.ErrorLines));
+            }
+            catch (Exception ex)
+            {
+                ConsoleUtil.Warning($"Unable to capture timeout screenshot: {ex.Message}");
+            }
         }
 
         private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
@@ -162,7 +189,7 @@ namespace RunTests
                 var startInfo = process.StartInfo;
                 Logger.Log($"### Begin {process.Id}");
                 Logger.Log($"### {startInfo.FileName} {startInfo.Arguments}");
-                Logger.Log($"### Exit code {process.ExitCode}");
+                Logger.Log($"### Exit code {processResult.ExitCode}");
                 Logger.Log("### Standard Output");
                 foreach (var line in processResult.OutputLines)
                 {
@@ -197,52 +224,6 @@ namespace RunTests
             }
 
             Logger.Clear();
-        }
-
-        /// <summary>
-        /// Invoked when a timeout occurs and we need to dump all of the test processes and shut down 
-        /// the runnner.
-        /// </summary>
-        private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
-        {
-            ConsoleUtil.Error("Test timeout exceeded, dumping remaining processes");
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                var screenshotPath = Path.Combine(options.LogFilesDirectory, $"timeout.png");
-                ConsoleUtil.WriteLine($"Taking screenshot on timeout at {screenshotPath}");
-                var output = await ProcessRunner.CreateProcess("Powershell.exe", $"-command \"& {{ . .\\eng\\build-utils-win.ps1; Capture-Screenshot {screenshotPath} }}\"", displayWindow: false, cancellationToken: cancellationToken).Result;
-                ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.OutputLines));
-                ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.ErrorLines));
-            }
-
-            var dumpDir = options.LogFilesDirectory;
-            Directory.CreateDirectory(dumpDir);
-
-            if (options.CollectDumps)
-            {
-                var counter = 0;
-                foreach (var proc in ProcessUtil.GetTestHostProcesses().OrderBy(x => x.ProcessName))
-                {
-                    var name = proc.ProcessName;
-
-                    var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
-                    ConsoleUtil.Write($"Dumping {name} {proc.Id} to {dumpFilePath} ... ");
-
-                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath))
-                    {
-                        ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
-                    }
-                    else
-                    {
-                        ConsoleUtil.WriteLine("FAILED");
-                    }
-
-                    counter++;
-                }
-            }
-
-            WriteLogFile(options);
         }
 
         private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)

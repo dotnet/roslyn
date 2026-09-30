@@ -78,7 +78,11 @@ Key options:
 | `--testSet` | `compiler` adds compiler test assembly patterns to any `--include` patterns |
 | `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies`; `runtimeasync` requires `--testFramework:core` |
 | `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |
-| `--timeout` | Minutes before killing tests (default: 90) |
+| `--timeout` | Global local-run deadline in minutes (default: 90) |
+| `--testInactivityTimeout` | Local VSTest inactivity timeout in seconds (default: 600) |
+| `--workItemTimeout` | Local work-item process deadline in seconds (default: 1500) |
+| `--dumpTimeout` | Total dump-helper budget per timed-out work item in seconds (default: 120) |
+| `--integration` | Allow VS integration setup: 25-minute inactivity and 45-minute work-item deadlines; explicit timeout options override these defaults |
 | `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
 
@@ -102,6 +106,46 @@ configuration, runtime, architecture, and the test kinds selected through
 Historical timing data for Helix partitioning can be selected with `--accessToken`,
 `--projectUri`, `--pipelineDefinitionId`, and `--targetBranchName`. When omitted,
 these use the corresponding Azure Pipelines environment variables.
+
+## Local timeout diagnostics
+
+Each local work item currently runs one **whole assembly**, not a method-sized
+partition. Two independent deadlines apply:
+
+- VSTest blame aborts after **10 minutes without test progress**, collecting a full
+  hang dump. This is an inactivity timeout, not an assembly-duration limit.
+- RunTests limits each launcher to **25 minutes total**, even if discovery,
+  the test host, or VSTest's own dump collector stops responding.
+
+On the work-item deadline, RunTests first writes a synthetic failed xUnit result,
+then attempts full dumps before killing the owned process tree. Dump APIs execute
+in a helper mode of the same RunTests binary: Windows uses `MiniDumpWriteDump` for
+both Framework and Core; Linux uses `DiagnosticsClient`. Collection has a separate
+two-minute total budget per work item, followed by up to ten seconds for process
+exit/output draining. Dump failures do not prevent termination or reporting the
+failure. Other queued assemblies continue, but the overall run fails.
+
+The global deadline stops scheduling new work and uses the same bounded cleanup
+for active work items. Process ancestry is sampled during execution; only the
+launcher and its observed descendants are considered, never machine-wide
+testhost-name matches. As with any sampled ancestry tracking, a child that starts
+and becomes orphaned between samples can escape observation.
+
+Diagnostics live beneath `TestResults/<configuration>/WorkItem_<index>_<arch>/`
+in an invocation-specific directory (or beneath `--out`). Synthetic failure XML
+is next to the normal xUnit results. Existing CI test-result artifact publication
+includes these dumps and sequence files. `--collectdumps` additionally enables
+Windows WER crash collection when running as administrator; timeout dump attempts
+do not require that option and do not require changing the registry.
+
+`eng/test-vsi.ps1` passes `--integration` to preserve additional VSIX/hive setup
+time. Helix retains its existing 15-minute VSTest timeout and infrastructure
+deadline; local timeout options are rejected with `--helix`.
+
+For a short local watchdog probe, use e.g.
+`--workItemTimeout 30 --testInactivityTimeout 120 --dumpTimeout 10`.
+For an inactivity probe instead, make `--testInactivityTimeout` shorter than
+`--workItemTimeout`. All timeout values must be positive.
 
 ## Exit Codes
 

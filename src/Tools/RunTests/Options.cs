@@ -72,8 +72,14 @@ namespace RunTests
         /// </summary>
         public TimeSpan? Timeout { get; set; }
 
+        public TimeSpan TestInactivityTimeout { get; set; } = TimeSpan.FromMinutes(10);
+
+        public TimeSpan WorkItemTimeout { get; set; } = TimeSpan.FromMinutes(25);
+
+        public TimeSpan DumpTimeout { get; set; } = TimeSpan.FromMinutes(2);
+
         /// <summary>
-        /// Whether or not to collect dumps on crashes and timeouts.
+        /// Enable additional Windows WER crash collection. Timeout collection is always enabled.
         /// </summary>
         public bool CollectDumps { get; set; }
 
@@ -161,6 +167,10 @@ namespace RunTests
             string? helixApiAccessToken = null;
             string? testFilter = null;
             int? timeout = null;
+            int? testInactivityTimeout = null;
+            int? workItemTimeout = null;
+            int? dumpTimeout = null;
+            var integration = false;
             string? resultFileDirectory = null;
             string? logFileDirectory = null;
             var collectDumps = false;
@@ -191,10 +201,14 @@ namespace RunTests
                 { "helixApiAccessToken=", "Access token for internal helix queues", s => helixApiAccessToken = s },
                 { "testfilter=", "xUnit string to pass to --filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", s => testFilter = s },
                 { "timeout=", "Minute timeout to limit the tests to (default: 90, not supported with --helix)", (int i) => timeout = i },
+                { "testInactivityTimeout=", "Local VSTest inactivity timeout in seconds (default: 600)", (int i) => testInactivityTimeout = i },
+                { "workItemTimeout=", "Local work-item process deadline in seconds (default: 1500)", (int i) => workItemTimeout = i },
+                { "dumpTimeout=", "Maximum total seconds collecting dumps per timed-out work item (default: 120)", (int i) => dumpTimeout = i },
+                { "integration", "Allow local VS integration setup: inactivity 25 minutes, work item 45 minutes (overrides may be supplied)", o => integration = o is object },
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", s => resultFileDirectory = s },
                 { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", s => logFileDirectory = s },
                 { "artifactspath=", "Path to the artifacts directory (auto-detected from binary location if not set)", s => artifactsPath = s },
-                { "collectdumps", "Gather dumps on timeouts and crashes (process executor only, not supported with --helix)", o => collectDumps = o is object },
+                { "collectdumps", "Enable additional Windows WER crash dumps when elevated (local only; timeout dumps are always attempted)", o => collectDumps = o is object },
                 { "testFramework=", "Test framework to run: core or desktop (can be specified multiple times)", s => testFrameworks.Add(s) },
                 { "testSet=", "Test set to include: compiler (adds compiler test assembly patterns to any --include patterns)", s => testSet = s },
                 { "testKind=", "Test kind to run: ioperation, runtimeasync, usedassemblies. runtimeasync requires --testFramework:core.", s => testKind = s },
@@ -263,6 +277,12 @@ namespace RunTests
                         return null;
                     }
                 }
+            }
+
+            if (timeout <= 0 || testInactivityTimeout <= 0 || workItemTimeout <= 0 || dumpTimeout <= 0)
+            {
+                ConsoleUtil.Error("Timeouts must be positive.");
+                return null;
             }
 
             var testDesktop = (testRuntime & TestRuntime.Framework) != 0;
@@ -343,6 +363,12 @@ namespace RunTests
 
             if (helix)
             {
+                if (testInactivityTimeout is not null || workItemTimeout is not null || dumpTimeout is not null || integration)
+                {
+                    ConsoleUtil.Error("Local timeout options and --integration are not supported with --helix.");
+                    return null;
+                }
+
                 if (collectDumps)
                 {
                     ConsoleUtil.Error("--collectdumps is not supported with --helix. Dump collection is only available for process-based test execution.");
@@ -416,6 +442,9 @@ namespace RunTests
                 IncludeHtml = includeHtml,
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
+                TestInactivityTimeout = TimeSpan.FromSeconds(testInactivityTimeout ?? (integration ? 1500 : 600)),
+                WorkItemTimeout = TimeSpan.FromSeconds(workItemTimeout ?? (integration ? 2700 : 1500)),
+                DumpTimeout = TimeSpan.FromSeconds(dumpTimeout ?? 120),
                 EnvironmentVariables = environmentVariables,
                 AccessToken = accessToken,
                 ProjectUri = projectUri,

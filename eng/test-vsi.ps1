@@ -268,6 +268,7 @@ function TestUsingRunTests() {
 
   $args += " --testFramework:core --testFramework:desktop"
   $args += " --sequential"
+  $args += " --integration"
   $args += " --include '\.IntegrationTests'"
   $args += " --include 'Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests'"
 

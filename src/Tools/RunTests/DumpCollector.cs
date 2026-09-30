@@ -1,21 +1,116 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Diagnostics.NETCore.Client;
 
 namespace RunTests
 {
     /// <summary>
-    /// Collects dump files from processes. Uses <see cref="DiagnosticsClient"/> for .NET Core
-    /// processes and MiniDumpWriteDump P/Invoke for .NET Framework processes.
+    /// Collects dumps in a separate, bounded helper so a broken diagnostics endpoint cannot hang
+    /// the test runner. Windows uses MiniDumpWriteDump for both Framework and Core processes.
     /// </summary>
     internal static class DumpCollector
     {
+        internal static int RunHelper(string[] args)
+        {
+            try
+            {
+                if (args.Length != 4)
+                    return Program.ExitFailure;
+
+                using var process = Process.GetProcessById(int.Parse(args[1]));
+                if (process.StartTime.ToUniversalTime().Ticks != long.Parse(args[2]))
+                    return Program.ExitFailure;
+
+                return TryDumpProcess(process, args[3]) ? Program.ExitSuccess : Program.ExitFailure;
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine(ex);
+                return Program.ExitFailure;
+            }
+            finally
+            {
+                Logger.WriteTo(Console.Out);
+            }
+        }
+
+        internal static async Task CollectAsync(OwnedProcessTree tree, Options options, string directory)
+        {
+            Directory.CreateDirectory(directory);
+            using var budget = new CancellationTokenSource(options.DumpTimeout);
+            var candidates = new List<(Process Process, string Name)>();
+            var processes = tree.GetProcesses();
+            foreach (var process in processes)
+            {
+                try
+                {
+                    var name = process.ProcessName;
+                    if (process == tree.Root || name.StartsWith("testhost", StringComparison.OrdinalIgnoreCase) ||
+                        name is "dotnet" or "devenv")
+                    {
+                        candidates.Add((process, name));
+                    }
+                }
+                catch (InvalidOperationException) { }
+            }
+
+            // Prioritize test hosts over the launcher and other owned .NET processes.
+            foreach (var (process, name) in candidates.OrderByDescending(p => p.Name.StartsWith("testhost", StringComparison.OrdinalIgnoreCase)))
+            {
+                if (budget.IsCancellationRequested)
+                    break;
+
+                string? path = null;
+                try
+                {
+                    var dumpPath = Path.GetFullPath(Path.Combine(directory, $"{name}-{process.Id}-hangdump.dmp"));
+                    // Never publish a dump interrupted by the helper deadline as a complete .dmp.
+                    path = dumpPath + ".partial";
+                    var startInfo = new ProcessStartInfo(options.DotnetFilePath)
+                    {
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true,
+                    };
+                    startInfo.ArgumentList.Add(typeof(Program).Assembly.Location);
+                    startInfo.ArgumentList.Add("--dump-process");
+                    startInfo.ArgumentList.Add(process.Id.ToString());
+                    startInfo.ArgumentList.Add(process.StartTime.ToUniversalTime().Ticks.ToString());
+                    startInfo.ArgumentList.Add(path);
+                    ConsoleUtil.WriteLine($"Dumping owned process {process.Id} to {dumpPath}");
+                    var helper = ProcessRunner.CreateProcess(startInfo, cancellationToken: budget.Token);
+                    Logger.Log($"Dump helper {helper.Id} for owned process {process.Id}");
+                    var result = await helper.Result.WaitAsync(budget.Token).ConfigureAwait(false);
+                    Logger.Log(string.Join(Environment.NewLine, result.OutputLines));
+                    Logger.Log(string.Join(Environment.NewLine, result.ErrorLines));
+                    if (result.ExitCode != 0)
+                        throw new IOException($"Dump helper exited with code {result.ExitCode}");
+
+                    File.Move(path, dumpPath);
+                    ConsoleUtil.WriteLine($"Dump collected: {dumpPath} ({new FileInfo(dumpPath).Length} bytes)");
+                }
+                catch (Exception ex)
+                {
+                    ConsoleUtil.Warning($"Dump collection failed: {ex.Message}");
+                    if (path is not null)
+                    {
+                        try { File.Delete(path); } catch (IOException) { } catch (UnauthorizedAccessException) { }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Attempts to collect a full memory dump from the specified process.
         /// Returns true if the dump was successfully written.
@@ -24,17 +119,17 @@ namespace RunTests
         {
             try
             {
-                if (IsNetCoreProcess(process))
-                {
-                    return TryDumpNetCoreProcess(process, dumpFilePath);
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     return TryDumpWithMiniDumpWriteDump(process, dumpFilePath);
                 }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    return TryDumpNetCoreProcess(process, dumpFilePath);
+                }
                 else
                 {
-                    Logger.Log($"Cannot dump non-.NET Core process {process.ProcessName} ({process.Id}) on non-Windows platform.");
+                    Logger.Log($"Dump collection is not supported on {RuntimeInformation.OSDescription}.");
                     return false;
                 }
             }
@@ -56,34 +151,6 @@ namespace RunTests
             catch (Exception ex)
             {
                 Logger.Log($"DiagnosticsClient.WriteDump failed for process {process.Id}: {ex.Message}");
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Determines if a process is a .NET Core process by checking if the diagnostics
-        /// IPC channel is available (the pipe/socket exists).
-        /// </summary>
-        private static bool IsNetCoreProcess(Process process)
-        {
-            try
-            {
-                // On Windows, .NET Core processes create a named pipe: dotnet-diagnostic-{pid}
-                // On Unix, they create a Unix domain socket in the temp directory.
-                // DiagnosticsClient.GetPublishedProcesses() returns all PIDs with active diagnostic ports.
-                var publishedProcesses = DiagnosticsClient.GetPublishedProcesses();
-                foreach (var pid in publishedProcesses)
-                {
-                    if (pid == process.Id)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-            catch
-            {
                 return false;
             }
         }

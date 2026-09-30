@@ -82,9 +82,7 @@ namespace RunTests
             var errorLines = new List<string>();
             var outputLines = new List<string>();
             var process = new Process();
-            var tcs = new TaskCompletionSource<ProcessResult>();
-
-            process.EnableRaisingEvents = true;
+            cancellationToken.ThrowIfCancellationRequested();
             process.StartInfo = processStartInfo;
 
             process.OutputDataReceived += (s, e) =>
@@ -104,58 +102,6 @@ namespace RunTests
                 }
             };
 
-            process.Exited += (s, e) =>
-            {
-                // We must call WaitForExit to make sure we've received all OutputDataReceived/ErrorDataReceived calls
-                // or else we'll be returning a list we're still modifying. For paranoia, we'll start a task here rather
-                // than enter right back into the Process type and start a wait which isn't guaranteed to be safe.
-                Task.Run(async () =>
-                {
-                    int exitCode;
-                    try
-                    {
-                        exitCode = await GetExitCodeAsync(process);
-                    }
-                    catch (Exception ex)
-                    {
-                        tcs.TrySetException(ex);
-                        throw;
-                    }
-
-                    var result = new ProcessResult(
-                        process,
-                        exitCode,
-                        new ReadOnlyCollection<string>(outputLines),
-                        new ReadOnlyCollection<string>(errorLines));
-                    tcs.TrySetResult(result);
-
-                    static async ValueTask<int> GetExitCodeAsync(Process process)
-                    {
-                        await process.WaitForExitAsync();
-                        return process.ExitCode;
-                    }
-                }, cancellationToken);
-            };
-
-            var registration = cancellationToken.Register(() =>
-            {
-                if (tcs.TrySetCanceled())
-                {
-                    // If the underlying process is still running, we should kill it
-                    if (!process.HasExited)
-                    {
-                        try
-                        {
-                            process.Kill();
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            // Ignore, since the process is already dead
-                        }
-                    }
-                }
-            });
-
             process.Start();
             onProcessStartHandler?.Invoke(process);
 
@@ -174,7 +120,17 @@ namespace RunTests
                 process.BeginErrorReadLine();
             }
 
-            return new ProcessInfo(process, processStartInfo, tcs.Task);
+            return new ProcessInfo(process, processStartInfo, CompleteAsync());
+
+            async Task<ProcessResult> CompleteAsync()
+            {
+                using var registration = cancellationToken.Register(() => ProcessUtil.KillTree(process));
+                // Do not report cancellation before the process has exited and output has drained.
+                await process.WaitForExitAsync().ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                return new ProcessResult(process, process.ExitCode,
+                    new ReadOnlyCollection<string>(outputLines), new ReadOnlyCollection<string>(errorLines));
+            }
         }
 
         public static ProcessStartInfo CreateProcessStartInfo(
