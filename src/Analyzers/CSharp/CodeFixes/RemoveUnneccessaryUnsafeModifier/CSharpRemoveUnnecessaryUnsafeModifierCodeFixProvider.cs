@@ -111,8 +111,6 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
     {
         var text = documentationComment.ToFullString();
         var closingDelimiterIndex = text.LastIndexOf("*/", StringComparison.Ordinal);
-        if (closingDelimiterIndex < 0)
-            return documentationComment;
 
         var closingLineStart = text.LastIndexOf('\n', closingDelimiterIndex) + 1;
         var previousLineEnd = closingLineStart - 1;
