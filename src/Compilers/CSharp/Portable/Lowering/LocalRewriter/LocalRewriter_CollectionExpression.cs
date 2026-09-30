@@ -287,33 +287,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression createImmutableArray(BoundCollectionExpression node, NamedTypeSymbol immutableArrayType)
             {
-                switch (node.Elements)
+                var elements = node.Elements;
+
+                if (elements.IsEmpty &&
+                    _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty, isOptional: true) is FieldSymbol immutableArrayOfTEmpty)
                 {
-                    case []
-                        when _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty, isOptional: true) is FieldSymbol immutableArrayOfTEmpty:
-                        // ImmutableArray<T> value = [];
-                        var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember(immutableArrayType);
-                        return _factory.Field(receiver: null, immutableArrayOfTargetCollectionTypeEmpty);
-                    case [BoundExpression single]
-                        when _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_OneElement, isOptional: true) is MethodSymbol createSingleElementGeneric:
-                        // ImmutableArray<T> value = ImmutableArray.Create<T>(single);
-                        var createSingleElementConstructed = createSingleElementGeneric.Construct([immutableArrayType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]);
-                        return _factory.Call(receiver: null, createSingleElementConstructed, VisitExpression(single));
-                    case [BoundExpression first, BoundExpression second]
-                        when _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_TwoElements, isOptional: true) is MethodSymbol createTwoElementsGeneric:
-                        // ImmutableArray<T> value = ImmutableArray.Create<T>(first, second);
-                        var createTwoElementsConstructed = createTwoElementsGeneric.Construct([immutableArrayType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]);
-                        return _factory.Call(receiver: null, createTwoElementsConstructed, VisitExpression(first), VisitExpression(second));
-                    case [BoundExpression first, BoundExpression second, BoundExpression third]
-                        when _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_ThreeElements, isOptional: true) is MethodSymbol createThreeElementsGeneric:
-                        // ImmutableArray<T> value = ImmutableArray.Create<T>(first, second, third);
-                        var createThreeElementsConstructed = createThreeElementsGeneric.Construct([immutableArrayType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]);
-                        return _factory.Call(receiver: null, createThreeElementsConstructed, VisitExpression(first), VisitExpression(second), VisitExpression(third));
-                    case [BoundExpression first, BoundExpression second, BoundExpression third, BoundExpression fourth]
-                        when _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_FourElements, isOptional: true) is MethodSymbol createFourElementsGeneric:
-                        // ImmutableArray<T> value = ImmutableArray.Create<T>(first, second, third, fourth);
-                        var createFourElementsConstructed = createFourElementsGeneric.Construct([immutableArrayType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]);
-                        return _factory.Call(receiver: null, createFourElementsConstructed, VisitExpression(first), VisitExpression(second), VisitExpression(third), VisitExpression(fourth));
+                    // ImmutableArray<T> value = [];
+                    var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember(immutableArrayType);
+                    return _factory.Field(receiver: null, immutableArrayOfTargetCollectionTypeEmpty);
+                }
+
+                WellKnownMember? specialFactoryMethod = elements.Length switch
+                {
+                    1 => WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_OneElement,
+                    2 => WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_TwoElements,
+                    3 => WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_ThreeElements,
+                    4 => WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_FourElements,
+                    _ => null,
+                };
+
+                if (specialFactoryMethod.HasValue &&
+                    elements.All(e => e is BoundExpression) &&
+                    _factory.WellKnownMember(specialFactoryMethod.Value, isOptional: true) is MethodSymbol factoryMethodGeneric)
+                {
+                    var factoryMethodConstructed = factoryMethodGeneric.Construct([immutableArrayType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]);
+                    return _factory.Call(receiver: null, factoryMethodConstructed, elements.SelectAsArray(e => VisitExpression((BoundExpression)e)));
                 }
 
                 if (CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _))
