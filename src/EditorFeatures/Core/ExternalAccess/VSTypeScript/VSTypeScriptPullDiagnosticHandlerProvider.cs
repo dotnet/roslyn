@@ -7,26 +7,26 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
-[ExportLspServiceFactory(typeof(PublicDocumentPullDiagnosticsHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspServiceFactory(typeof(DocumentPullDiagnosticsHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSTypeScriptPublicDocumentPullDiagnosticHandlerFactory(
+internal sealed class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions)
-    : PublicDocumentPullDiagnosticHandlerFactory(diagnosticSourceManager, diagnosticsRefresher, globalOptions);
+    : DocumentPullDiagnosticHandlerFactory(diagnosticSourceManager, diagnosticsRefresher, globalOptions);
 
-[ExportLspServiceFactory(typeof(PublicWorkspacePullDiagnosticsHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
+[ExportLspServiceFactory(typeof(WorkspacePullDiagnosticsHandler), ProtocolConstants.TypeScriptLanguageContract), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSTypeScriptPublicWorkspacePullDiagnosticHandlerFactory(
+internal sealed class VSTypeScriptWorkspacePullDiagnosticHandlerFactory(
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions)
-    : PublicWorkspacePullDiagnosticHandlerFactory(diagnosticSourceManager, diagnosticsRefresher, globalOptions);
+    : WorkspacePullDiagnosticHandlerFactory(diagnosticSourceManager, diagnosticsRefresher, globalOptions);
