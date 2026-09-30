@@ -234,11 +234,15 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
     {
         List<BuildHostProcess> processesToDispose;
 
-        // Copy the list out while we're in the lock, otherwise as we dispose these events will get fired, which
-        // may try to mutate the list while we're enumerating.
+        // Copy the list and detach the handlers while holding the lock so intentional shutdowns aren't handled as
+        // unexpected disconnects and cannot mutate the list while we're enumerating it.
         using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
         {
             processesToDispose = [.. _processes.Values];
+
+            foreach (var process in processesToDispose)
+                process.Disconnected -= BuildHostProcess_Disconnected;
+
             _processes.Clear();
         }
 
