@@ -62,7 +62,7 @@ namespace RunTests
                 try
                 {
                     var name = process.ProcessName;
-                    if (process == tree.Root || name.StartsWith("testhost", StringComparison.OrdinalIgnoreCase) ||
+                    if (process == tree.Root || name.StartsWith("testhost", StringComparison.Ordinal) ||
                         name is "dotnet" or "devenv")
                     {
                         candidates.Add((process, name));
@@ -72,7 +72,7 @@ namespace RunTests
             }
 
             // Prioritize test hosts over the launcher and other owned .NET processes.
-            foreach (var (process, name) in candidates.OrderByDescending(p => p.Name.StartsWith("testhost", StringComparison.OrdinalIgnoreCase)))
+            foreach (var (process, name) in candidates.OrderByDescending(p => p.Name.StartsWith("testhost", StringComparison.Ordinal)))
             {
                 if (budget.IsCancellationRequested)
                     break;
