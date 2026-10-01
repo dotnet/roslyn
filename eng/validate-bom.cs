@@ -18,7 +18,7 @@ using System.Text;
 var root = Path.GetFullPath(Path.Combine(AppContext.GetData("EntryPointFileDirectoryPath") as string ?? throw new InvalidOperationException(), ".."));
 if (args is ["--self-test"])
 {
-    await RunSelfTestAsync();
+    await RunSelfTestAsync().ConfigureAwait(false);
     return;
 }
 
@@ -26,7 +26,7 @@ if (args.Length != 0)
     throw new InvalidOperationException("Usage: dotnet run --file validate-bom.cs [-- --self-test]");
 
 var maxFailuresToShow = 50;
-var failures = Validate(root, await GetTrackedFilesAsync(root));
+var failures = Validate(root, await GetTrackedFilesAsync(root).ConfigureAwait(false));
 foreach (var (path, charset) in failures.Take(maxFailuresToShow))
     Console.WriteLine($"{path}: expected {charset}");
 
@@ -124,8 +124,8 @@ static async Task<string[]> GetTrackedFilesAsync(string root)
         UseShellExecute = false,
     }) ?? throw new InvalidOperationException("Failed to start git.");
 
-    var output = await process.StandardOutput.ReadToEndAsync();
-    await process.WaitForExitAsync();
+    var output = await process.StandardOutput.ReadToEndAsync().ConfigureAwait(false);
+    await process.WaitForExitAsync().ConfigureAwait(false);
     if (process.ExitCode != 0)
         throw new InvalidOperationException($"git ls-files failed with exit code {process.ExitCode}.");
 
@@ -138,41 +138,41 @@ static async Task RunSelfTestAsync()
     Directory.CreateDirectory(root);
     try
     {
-        await File.WriteAllTextAsync(Path.Combine(root, ".editorconfig"), "root = true\n[*.{cs,vb}]\ncharset = utf-8-bom\n");
-        await File.WriteAllTextAsync(Path.Combine(root, "a.cs"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
-        await File.WriteAllTextAsync(Path.Combine(root, "b.vb"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        await File.WriteAllTextAsync(Path.Combine(root, ".editorconfig"), "root = true\n[*.{cs,vb}]\ncharset = utf-8-bom\n").ConfigureAwait(false);
+        await File.WriteAllTextAsync(Path.Combine(root, "a.cs"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)).ConfigureAwait(false);
+        await File.WriteAllTextAsync(Path.Combine(root, "b.vb"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)).ConfigureAwait(false);
         var failures = Validate(root, ["a.cs", "b.vb"]);
         Assert(failures.SequenceEqual([("a.cs", "utf-8-bom")]), "Missing BOM must fail validation.");
 
-        await File.WriteAllTextAsync(Path.Combine(root, "a.cs"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        await File.WriteAllTextAsync(Path.Combine(root, "a.cs"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)).ConfigureAwait(false);
         Directory.CreateDirectory(Path.Combine(root, "sub"));
-        await File.WriteAllTextAsync(Path.Combine(root, "sub", ".editorconfig"), "[*.cs]\ncharset = utf-8\n");
-        await File.WriteAllTextAsync(Path.Combine(root, "sub", "a.cs"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        await File.WriteAllTextAsync(Path.Combine(root, "sub", ".editorconfig"), "[*.cs]\ncharset = utf-8\n").ConfigureAwait(false);
+        await File.WriteAllTextAsync(Path.Combine(root, "sub", "a.cs"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)).ConfigureAwait(false);
         failures = Validate(root, ["a.cs", "sub/a.cs"]);
         Assert(failures.SequenceEqual([("sub/a.cs", "utf-8")]), "Unexpected BOM must fail validation.");
 
         Directory.CreateDirectory(Path.Combine(root, "fixture"));
-        await File.WriteAllTextAsync(Path.Combine(root, "fixture", ".editorconfig"), "root = true\n[*.cs]\ncharset = unset\n");
-        await File.WriteAllTextAsync(Path.Combine(root, "fixture", "a.cs"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        await File.WriteAllTextAsync(Path.Combine(root, "fixture", ".editorconfig"), "root = true\n[*.cs]\ncharset = unset\n").ConfigureAwait(false);
+        await File.WriteAllTextAsync(Path.Combine(root, "fixture", "a.cs"), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)).ConfigureAwait(false);
         Assert(Validate(root, ["fixture/a.cs"]).Count == 0, "Unset charset must skip validation.");
 
-        await File.WriteAllTextAsync(Path.Combine(root, "fixture", "script.sh"), "#!/usr/bin/env bash\n", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        await File.WriteAllTextAsync(Path.Combine(root, "fixture", "script.sh"), "#!/usr/bin/env bash\n", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)).ConfigureAwait(false);
         failures = Validate(root, ["fixture/script.sh"]);
         Assert(failures.SequenceEqual([("fixture/script.sh", "shebang at byte zero (no BOM)")]),
             "BOM-prefixed shebangs must fail even without a charset setting.");
 
-        await File.WriteAllTextAsync(Path.Combine(root, "fixture", "script.sh"), "#!/usr/bin/env bash\n", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        await File.WriteAllTextAsync(Path.Combine(root, "fixture", "script.sh"), "#!/usr/bin/env bash\n", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)).ConfigureAwait(false);
         Assert(Validate(root, ["fixture/script.sh"]).Count == 0, "BOM-free shebang must pass.");
 
         const string syncedPath = "src/Workspaces/CSharp/Portable/SyncedSource/FileBasedPrograms/a.cs";
         var syncedDirectory = Path.GetDirectoryName(Path.Combine(root, syncedPath))!;
         Directory.CreateDirectory(syncedDirectory);
-        await File.WriteAllTextAsync(Path.Combine(syncedDirectory, ".editorconfig"), "root = true\n[*.cs]\ngenerated_code = true\n");
-        await File.WriteAllTextAsync(Path.Combine(root, syncedPath), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+        await File.WriteAllTextAsync(Path.Combine(syncedDirectory, ".editorconfig"), "root = true\n[*.cs]\ngenerated_code = true\n").ConfigureAwait(false);
+        await File.WriteAllTextAsync(Path.Combine(root, syncedPath), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false)).ConfigureAwait(false);
         failures = Validate(root, [syncedPath]);
         Assert(failures.SequenceEqual([(syncedPath, "utf-8-bom")]), "Synced C# source without a BOM must fail validation.");
 
-        await File.WriteAllTextAsync(Path.Combine(root, syncedPath), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true));
+        await File.WriteAllTextAsync(Path.Combine(root, syncedPath), "code", new UTF8Encoding(encoderShouldEmitUTF8Identifier: true)).ConfigureAwait(false);
         Assert(Validate(root, [syncedPath]).Count == 0, "Synced C# source with a BOM must pass validation.");
     }
     finally
