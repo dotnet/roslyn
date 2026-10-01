@@ -35,15 +35,11 @@
   <Target Name="CoreCompile"          
           DependsOnTargets="$(CoreCompileDependsOn);_BeforeVBCSCoreCompile;"
           Returns="@(CscCommandLineArgs)">
-    <CallTarget Targets="_CSharpCoreCompileAndInvokeTriggeredTargets">
-      <Output TaskParameter="TargetOutputs"
-              ItemName="CscCommandLineArgs" />
-    </CallTarget>
+    <CallTarget Targets="_CSharpCoreCompileAndInvokeTriggeredTargets" />
   </Target>
 
   <Target Name="_CSharpCoreCompileAndInvokeTriggeredTargets"
-          DependsOnTargets="_CSharpCoreCompile;_InvokeTargetsTriggeredAfterCSharpCompilation"
-          Returns="@(CscCommandLineArgs)" />
+          DependsOnTargets="_CSharpCoreCompile;_InvokeTargetsTriggeredAfterCSharpCompilation" />
 
   <PropertyGroup>
     <TargetsTriggeredByCSharpCompilationContinueOnError Condition="'$(TargetsTriggeredByCSharpCompilationContinueOnError)' == ''">false</TargetsTriggeredByCSharpCompilationContinueOnError>
