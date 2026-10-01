@@ -66,7 +66,7 @@ steps:
       } >> "$GITHUB_ENV"
 
 tools:
-  # Drops --allow-all-paths: file access stays in the workspace and temp dir.
+  # Read-only agent: no write tool (honored by gh-aw >= v0.87.10).
   edit: false
   github:
     # External PRs must be readable; their content is untrusted, like binlogs.

@@ -12,9 +12,7 @@
 // failed-job artifact or a moved PR revision fails closed instead.
 //
 // Environment: RESOLVE_MODE, PR_NUMBER, GH_TOKEN, GH_AW_REPO, BINLOG_DIR,
-// GITHUB_OUTPUT.
-// BINLOG_DIR must name a directory inside /tmp, TMPDIR or RUNNER_TEMP; the run
-// is refused otherwise, because that directory is reset with a recursive delete.
+// GITHUB_OUTPUT. BINLOG_DIR must not exist yet; the run creates it.
 //
 // Usage: dotnet run --file ./fetch-build-binlogs.cs
 //        dotnet run --file ./fetch-build-binlogs.cs -- --extract <archive> <dest> <prefix> <budget> [label]
@@ -45,17 +43,16 @@ const string AdoApi = "https://dev.azure.com/dnceng-public/public/_apis";
 const string AdoBuildUi = "https://dev.azure.com/dnceng-public/public/_build/results";
 const string AdoDefinitionId = "95";
 
-// The staging directory is reset with a recursive delete, so it is the one
-// environment value that can destroy something outside this run. Confine it to
-// a scratch root instead of trusting whatever is set: `/`, `$HOME` or the
-// workspace must not be reachable, whether by misconfiguration or by an edit to
-// the workflow's `env:` block.
-var binlogDir = ResolveScratchDir(Env("BINLOG_DIR")) ?? string.Empty;
-if (binlogDir.Length == 0)
+// The runner is fresh, so an existing directory means something is wrong;
+// refusing it also guarantees only this run's binlogs are uploaded.
+var binlogDir = Env("BINLOG_DIR");
+if (binlogDir.Length == 0 || Directory.Exists(binlogDir) || File.Exists(binlogDir))
 {
-    Console.Error.WriteLine("::error::BINLOG_DIR must be a fully-qualified directory inside /tmp, TMPDIR or RUNNER_TEMP; refusing to run.");
+    Console.Error.WriteLine("::error::BINLOG_DIR is unset or already exists; refusing to run.");
     return 1;
 }
+
+Directory.CreateDirectory(binlogDir);
 
 using var github = new HttpClient();
 github.DefaultRequestHeaders.UserAgent.ParseAdd("roslyn-build-failure-analysis");
@@ -67,7 +64,7 @@ if (token.Length != 0)
     github.DefaultRequestHeaders.Authorization = new("Bearer", token);
 }
 
-using var ado = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+using var ado = new HttpClient();
 ado.DefaultRequestHeaders.UserAgent.ParseAdd("roslyn-build-failure-analysis");
 
 // --- 1. Resolve and validate the PR number ---------------------------------
@@ -103,8 +100,6 @@ if (prNumber.Length == 0 && Regex.IsMatch(checkHeadSha, "^[0-9a-f]{40}$"))
 EmitNoneIf(!Regex.IsMatch(prNumber, "^[0-9]+$"), $"Resolved PR number '{prNumber}' is not numeric or empty; refusing.");
 
 // --- 2. Resolve and validate the Azure DevOps build id ----------------------
-// Branch scope is not restated here: a failed roslyn-CI build for this PR's
-// merge ref (validated below) is the evidence that roslyn-CI covers the PR.
 var resolveMode = Env("RESOLVE_MODE");
 var buildId = string.Empty;
 switch (resolveMode)
@@ -249,32 +244,12 @@ const long MaxZipBytes = 2147483648;       // 2 GB compressed per artifact
 const long MaxTotalBytes = 4294967296;     // 4 GB extracted across all artifacts
 const long MaxTotalZipBytes = 3221225472;  // 3 GB compressed across all artifacts
 var totalZipBytes = 0L;
-// Per-transfer bounds only; the phase is bounded by the workflow's `timeout 600`.
-var maxAttempt = TimeSpan.FromSeconds(120);
-var maxRetryWindow = TimeSpan.FromSeconds(240);
 var remainingBytes = MaxTotalBytes;
 
 // Download into a private (0700) directory: in shared /tmp another process
 // could plant a symlink at the download path and redirect the write.
 var zipDir = Directory.CreateTempSubdirectory("binlog-fetch-").FullName;
 var zipTmp = Path.Combine(zipDir, "artifact.zip");
-// Only binlogs extracted by this run may be analyzed, so make the reset
-// authoritative rather than best-effort. `binlogDir` was confined to a scratch
-// root at startup, which is what makes a recursive delete here safe to do -
-// re-checked on the spot, because minutes of API calls have passed since, and
-// the check is worth more immediately before the delete than it is at startup.
-if (ResolveScratchDir(binlogDir) is null)
-{
-    Console.Error.WriteLine("::error::BINLOG_DIR stopped resolving inside a scratch directory; refusing to delete it.");
-    return 1;
-}
-
-if (Directory.Exists(binlogDir))
-{
-    Directory.Delete(binlogDir, recursive: true);
-}
-
-Directory.CreateDirectory(binlogDir);
 
 var count = 0;
 var stagedLegs = 0;
@@ -299,10 +274,6 @@ foreach (var (node, name) in selectedArtifacts)
         continue;
     }
 
-    // Start empty, so a body retained by a previous artifact can never be
-    // measured, charged or extracted twice.
-    File.WriteAllBytes(zipTmp, []);
-
     // Bound this transfer by what is left of the cumulative budget as well as by
     // the per-artifact cap, so the caps compose by the smaller of the two rather
     // than granting every artifact the full per-artifact allowance.
@@ -314,12 +285,10 @@ foreach (var (node, name) in selectedArtifacts)
     }
 
     var (zipBytes, downloadError) = await Download(url, zipTmp, zipCap);
-    // Charge the bytes retained on disk, including an artifact about to be
-    // skipped. This is a disk and extraction budget, not a meter of egress.
     totalZipBytes += zipBytes;
     if (downloadError is not null || zipBytes == 0)
     {
-        Console.WriteLine($"::warning::Skipping {safeName}: download failed, was truncated or was empty ({downloadError ?? "empty body"}).");
+        Console.WriteLine($"::warning::Skipping {safeName}: download failed or was empty ({downloadError ?? "empty body"}).");
         continue;
     }
 
@@ -384,98 +353,6 @@ return 0;
 
 static string Env(string name) => Environment.GetEnvironmentVariable(name) ?? string.Empty;
 
-// Accepts a path only if it is a proper descendant of a scratch root, and
-// returns it normalized; null otherwise. The root itself is refused along with
-// `/`, because the caller deletes this directory whole and a temp root holds
-// this script's own zip as well as every other job's files on the same runner.
-//
-// Three roots count, because the runner has three names for scratch space and
-// the workflow is entitled to use any of them: `Path.GetTempPath()`, which
-// follows `TMPDIR`; `RUNNER_TEMP`, the per-job directory Actions hands out; and
-// `/tmp`, the path the workflow actually names. `/tmp` is listed rather than
-// left to `Path.GetTempPath()` so that an image which starts setting `TMPDIR`
-// elsewhere cannot quietly turn every fetch into a refusal. It is not fully
-// qualified on Windows, so it drops out of the loop there.
-static string? ResolveScratchDir(string value)
-{
-    if (value.Length == 0 || !Path.IsPathFullyQualified(value))
-    {
-        return null;
-    }
-
-    var candidate = Path.TrimEndingDirectorySeparator(Path.GetFullPath(value));
-    if (!IsUnderScratchRoot(candidate))
-    {
-        return null;
-    }
-
-    // `GetFullPath` is purely lexical, so passing that test means the *spelling*
-    // is inside a root, not the directory. Every component from the leaf down to
-    // the root has to be judged as well: `/tmp/link/binlogs`, where `link` points
-    // outside and `binlogs` does not exist yet, spells out as contained while the
-    // reset would land somewhere else entirely. A link at any depth therefore has
-    // to resolve back inside a root. The OS expands the earlier components while
-    // stat-ing each ancestor, so a chain of links needs no special handling here.
-    //
-    // The roots themselves are left out of the walk: `/tmp` is a link to
-    // `/private/tmp` on macOS, and a root is configuration rather than something
-    // an artifact can influence.
-    for (var path = candidate; path is not null && IsUnderScratchRoot(path); path = Path.GetDirectoryName(path))
-    {
-        if (!ResolvesInside(path))
-        {
-            return null;
-        }
-    }
-
-    return candidate;
-
-    // True when the path holds no link - an ordinary entry, or nothing at all,
-    // the latter being the normal case since the caller creates the directory -
-    // or holds one whose final target is still inside a root.
-    static bool ResolvesInside(string path)
-    {
-        try
-        {
-            var entry = Directory.Exists(path)
-                ? (FileSystemInfo)new DirectoryInfo(path)
-                : new FileInfo(path);
-            if (entry.LinkTarget is null)
-            {
-                return true;
-            }
-
-            // Null for a link that resolves to nothing legible - dangling or
-            // cyclic - which no root contains, so it is refused.
-            var target = entry.ResolveLinkTarget(returnFinalTarget: true)?.FullName;
-            return target is not null && IsUnderScratchRoot(Path.TrimEndingDirectorySeparator(target));
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    static bool IsUnderScratchRoot(string path)
-    {
-        foreach (var root in new[] { Path.GetTempPath(), Environment.GetEnvironmentVariable("RUNNER_TEMP"), "/tmp" })
-        {
-            if (string.IsNullOrEmpty(root) || !Path.IsPathFullyQualified(root))
-            {
-                continue;
-            }
-
-            var prefix = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root)) + Path.DirectorySeparatorChar;
-            if (path.Length > prefix.Length && path.StartsWith(prefix, StringComparison.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-}
-
 bool TryAppendOutput(string text)
 {
     try
@@ -528,11 +405,10 @@ void DeletePartials(int prefix)
 }
 
 // A failure is reported as an absent document, so the caller reads empty fields
-// and takes its own data-resolution branch. A zero window means one attempt.
+// and takes its own data-resolution branch.
 async Task<JsonNode?> GitHubGet(string path)
 {
     var (body, error) = await Fetch(github, $"https://api.github.com/{path}", TimeSpan.FromSeconds(60),
-        TimeSpan.Zero, _ => TimeSpan.Zero, HttpCompletionOption.ResponseContentRead,
         (response, cancellation) => response.Content.ReadAsStringAsync(cancellation));
     return error is null ? Parse(body!) : null;
 }
@@ -542,8 +418,7 @@ async Task<JsonNode?> GitHubGet(string path)
 // through to an empty `records`/`value` and a misleading "no failed jobs".
 async Task<JsonNode?> AdoGet(string what, string url)
 {
-    var (body, error) = await Fetch(ado, url, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(40),
-        attempt => TimeSpan.FromSeconds(1 << attempt), HttpCompletionOption.ResponseContentRead,
+    var (body, error) = await Fetch(ado, url, TimeSpan.FromSeconds(20),
         (response, cancellation) => response.Content.ReadAsStringAsync(cancellation));
     var document = error is null && body!.Length != 0 ? Parse(body!) : null;
     if (document is null)
@@ -566,16 +441,15 @@ static JsonNode? Parse(string body)
     }
 }
 
-// A 404 is an answer, and asking again just spends the window. A programming or
-// disk error must not trigger another multi-gigabyte transfer either.
+// A 404 is an answer; retry only statuses that can change.
 static bool IsTransient(HttpStatusCode status)
     => status is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests
         or HttpStatusCode.InternalServerError or HttpStatusCode.BadGateway
         or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout;
 
 // Only dnceng-public/public artifacts: `Container` URLs are
-// dev.azure.com/dnceng-public/<project>/..., and `PipelineArtifact` URLs (and
-// ADO's redirects to them) are artprod<region>.artifacts.visualstudio.com/
+// dev.azure.com/dnceng-public/<project>/..., and `PipelineArtifact` URLs are
+// artprod<region>.artifacts.visualstudio.com/
 // A<dnceng-public collection id>/<project id>/... Any other organization,
 // project or tenant is refused.
 static bool IsTrustedArtifactUrl(string url)
@@ -599,100 +473,32 @@ static bool IsTrustedArtifactUrl(string url)
         && path.StartsWith($"/A{CollectionId}/{ProjectId}/", StringComparison.OrdinalIgnoreCase);
 }
 
-static bool IsRedirect(HttpStatusCode status)
-    => status is HttpStatusCode.MovedPermanently or HttpStatusCode.Found or HttpStatusCode.SeeOther
-        or HttpStatusCode.TemporaryRedirect or HttpStatusCode.PermanentRedirect;
-
-// ADO redirects artifact downloads (dev.azure.com -> artprod*), so the `ado`
-// client follows redirects here and checks every `Location` against the same
-// allowlist; an untrusted hop is refused and not retried. The `github` client
-// keeps the handler's redirects, which drop Authorization across hosts.
-static async Task<HttpResponseMessage> Get(
-    HttpClient client, string url, HttpCompletionOption completion, CancellationToken cancellation)
-{
-    var response = await client.GetAsync(url, completion, cancellation);
-
-    // Bounded so a redirect cycle cannot spin. The attempt timeout covers it too.
-    for (var hop = 0; hop < 5 && IsRedirect(response.StatusCode); hop++)
-    {
-        // Resolves a relative `Location` against the URL that produced it, and
-        // leaves an absolute one alone.
-        var location = response.Headers.Location;
-        var next = location is null ? null : new Uri(new Uri(url), location);
-        response.Dispose();
-
-        if (next is null || !IsTrustedArtifactUrl(next.AbsoluteUri))
-        {
-            Console.WriteLine($"::warning::Refusing a redirect to '{Extractor.Sanitize(next?.Host ?? "an unparseable location")}': not a dnceng-public/public artifact URL.");
-            return new HttpResponseMessage(HttpStatusCode.Forbidden);
-        }
-
-        url = next.AbsoluteUri;
-        response = await client.GetAsync(url, completion, cancellation);
-    }
-
-    if (!IsRedirect(response.StatusCode))
-    {
-        return response;
-    }
-
-    response.Dispose();
-    Console.WriteLine("::warning::Refusing to follow any further redirects for this artifact.");
-    return new HttpResponseMessage(HttpStatusCode.Forbidden);
-}
-
-// Runs `consume` against a successful response, retrying under a per-attempt
-// timeout and an overall window. `consume` runs inside the attempt's
-// cancellation scope, so the timeout covers reading the body too. Every attempt
-// is clamped to what is left of the window, so one URL cannot outlast it.
-// `window == TimeSpan.Zero` means "one attempt, no retries".
+// Retries transient failures twice; the workflow's `timeout 600` bounds the run.
+// `read` runs under the attempt's timeout, so a stalled body is covered too.
 static async Task<(T? Value, string? Error)> Fetch<T>(
-    HttpClient client, string url, TimeSpan perAttempt, TimeSpan window, Func<int, TimeSpan> backoff,
-    HttpCompletionOption completion, Func<HttpResponseMessage, CancellationToken, Task<T>> consume)
+    HttpClient client, string url, TimeSpan timeout, Func<HttpResponseMessage, CancellationToken, Task<T>> read)
 {
-    var deadline = DateTime.UtcNow + window;
     var error = "no attempt was made";
-    for (var attempt = 0; attempt <= 3; attempt++)
+    for (var attempt = 1; attempt <= 3; attempt++)
     {
-        if (attempt != 0)
+        if (attempt != 1)
         {
-            var wait = backoff(attempt - 1);
-            if (DateTime.UtcNow + wait >= deadline)
-            {
-                break;
-            }
-
-            await Task.Delay(wait);
-        }
-
-        // Clamp the attempt to what is left of the window, so neither a slow
-        // first transfer nor a retry can overrun it. A zero window means "one
-        // attempt, no retries" and does not bound that attempt.
-        var timeout = perAttempt;
-        if (window != TimeSpan.Zero)
-        {
-            var remaining = deadline - DateTime.UtcNow;
-            if (remaining <= TimeSpan.Zero)
-            {
-                break;
-            }
-
-            timeout = remaining < perAttempt ? remaining : perAttempt;
+            await Task.Delay(TimeSpan.FromSeconds(2 * attempt));
         }
 
         try
         {
             using var cts = new CancellationTokenSource(timeout);
-            using var response = await Get(client, url, completion, cts.Token);
+            using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
             if (response.IsSuccessStatusCode)
             {
-                return (await consume(response, cts.Token), null);
+                return (await read(response, cts.Token), null);
             }
 
             error = $"HTTP {(int)response.StatusCode}";
             if (!IsTransient(response.StatusCode))
             {
-                return (default, error);
+                break;
             }
         }
         catch (Exception ex) when (ex is OperationCanceledException or HttpRequestException or IOException)
@@ -704,58 +510,31 @@ static async Task<(T? Value, string? Error)> Fetch<T>(
     return (default, error);
 }
 
-// Streams the artifact to disk, stopping at `cap` bytes actually written rather
-// than at any length the response declares, so a missing or lying Content-Length
-// cannot fill the disk. Reaching the cap is an error because the caller skips
-// any artifact that large. Returns the bytes retained on disk either way.
+// Streams the artifact to disk and stops at `cap` bytes written, whatever
+// Content-Length says.
 async Task<(long Bytes, string? Error)> Download(string url, string path, long cap)
 {
-    var capped = false;
-    var (bytes, error) = await Fetch(ado, url, maxAttempt, maxRetryWindow, _ => TimeSpan.FromSeconds(2),
-        HttpCompletionOption.ResponseHeadersRead,
-        async (response, cancellation) =>
+    var (bytes, error) = await Fetch(ado, url, TimeSpan.FromMinutes(2), async (response, cancellation) =>
+    {
+        await using var source = await response.Content.ReadAsStreamAsync(cancellation);
+        await using var output = File.Create(path);
+        var buffer = new byte[1 << 20];
+        long written = 0;
+        int read;
+        while ((read = await source.ReadAsync(buffer, cancellation)) > 0)
         {
-            using var source = await response.Content.ReadAsStreamAsync(cancellation);
-            // Truncate per attempt so a partial body is never prepended to a retry.
-            using var output = new FileStream(path, FileMode.Create, FileAccess.Write);
-            var buffer = new byte[1024 * 1024];
-            var written = 0L;
-            int read;
-            while ((read = await source.ReadAsync(buffer, cancellation)) > 0)
+            if ((written += read) > cap)
             {
-                if (written + read >= cap)
-                {
-                    output.Write(buffer, 0, (int)(cap - written));
-                    capped = true;
-                    return cap;
-                }
-
-                output.Write(buffer, 0, read);
-                written += read;
+                return -1;
             }
 
-            return written;
-        });
+            await output.WriteAsync(buffer.AsMemory(0, read), cancellation);
+        }
 
-    if (error is not null)
-    {
-        return (RetainedBytes(path), error);
-    }
+        return written;
+    });
 
-    return capped ? (bytes, $"reached the {cap}-byte transfer cap") : (bytes, null);
-}
-
-static long RetainedBytes(string path)
-{
-    try
-    {
-        var info = new FileInfo(path);
-        return info.Exists ? info.Length : 0;
-    }
-    catch (Exception)
-    {
-        return 0;
-    }
+    return error is not null ? (0, error) : bytes < 0 ? (0, $"exceeded the {cap}-byte size cap") : (bytes, null);
 }
 
 // Not reachable from the workflow; a manual seam for running archive handling

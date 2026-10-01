@@ -8,8 +8,7 @@ description: >-
   `build-failure-analysis.agent.md`.
 
 on:
-  # fetch-binlog checks the command position: the slash_command trigger's
-  # generated predicate does not accept all JavaScript whitespace.
+  # fetch-binlog's `if:` requires the comment to start with the command.
   issue_comment:
     types: [created, edited]
   roles: [admin, maintainer, write]
@@ -42,15 +41,14 @@ engine: copilot
 jobs:
   fetch-binlog:
     name: Fetch binlogs (Azure Pipelines)
-    # Coarse pre-filter: this job runs before gh-aw's role check, so keep other
-    # commenters from starting downloads. The first step applies the exact
-    # command and permission rules. KEEP IN SYNC with `roles:`.
+    # Runs before gh-aw's `roles:` check, so keep other commenters from starting
+    # downloads. KEEP IN SYNC with `roles:`.
     if: >-
       github.event_name == 'issue_comment' &&
       github.event.repository.fork == false &&
       github.event.issue.pull_request &&
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
-      contains(github.event.comment.body, '/analyze-build-failure')
+      startsWith(github.event.comment.body, '/analyze-build-failure')
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -65,54 +63,8 @@ jobs:
       ado-build-id: ${{ steps.fetch.outputs.ado-build-id }}
       ado-build-url: ${{ steps.fetch.outputs.ado-build-url }}
     steps:
-      # Uses `.permission`, not `role_name`: a custom role can reuse a base
-      # role's name.
-      - name: Verify the comment invokes the command and the commenter has write access
-        id: perm
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-          COMMENTER: ${{ github.event.comment.user.login }}
-          COMMENT_BODY: ${{ github.event.comment.body }}
-          COMMAND_NAME: "analyze-build-failure"
-        run: |
-          set +e
-          # Same command-position rule as gh-aw's runtime, including trim().
-          command_matches=$(node -e '
-            const match = process.env.COMMENT_BODY.trim().match(/^\/([a-zA-Z0-9][a-zA-Z0-9._-]*)(?=$|\s)/);
-            console.log(match?.[1] === process.env.COMMAND_NAME);
-          ') || {
-            echo "::error::Unable to check command position."
-            exit 1
-          }
-          if [ "${command_matches}" != "true" ]; then
-            echo "Comment does not start with '/${COMMAND_NAME}'; skipping the binlog download."
-            echo "authorized=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # Reject malformed and bot logins before using it in an API path.
-          if ! printf '%s' "${COMMENTER}" | grep -qE '^[A-Za-z0-9-]+$'; then
-            echo "::warning::Commenter login is missing or malformed; skipping the binlog download."
-            echo "authorized=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # `jq`, not `gh api --jq`: gh prints error bodies unfiltered. Errors deny.
-          resp=$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${COMMENTER}/permission" 2>/dev/null)
-          perm=$(printf '%s' "${resp}" | jq -r '.permission // empty' 2>/dev/null)
-          case "${perm}" in
-            admin|maintain|write) authorized=true ;;
-            *)                    authorized=false ;;
-          esac
-          if [ "${authorized}" = "true" ]; then
-            echo "'${COMMENTER}' has '${perm}' access to ${GITHUB_REPOSITORY}; proceeding."
-          else
-            echo "::warning::'${COMMENTER}' does not have write access to ${GITHUB_REPOSITORY} (resolved permission '${perm:-none}'); skipping the binlog download."
-          fi
-          echo "authorized=${authorized}" >> "$GITHUB_OUTPUT"
-
       - name: Check for completed command publication
         id: command
-        if: steps.perm.outputs.authorized == 'true'
         uses: actions/github-script@v9.0.0
         env:
           WORKFLOW_FILE: build-failure-analysis-command.agent.lock.yml
