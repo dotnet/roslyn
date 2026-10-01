@@ -7,8 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.Extensions;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using static Microsoft.AspNetCore.Razor.Language.Syntax.GreenNodeExtensions;
 
 using CSharpSyntaxFacts = Microsoft.CodeAnalysis.CSharp.SyntaxFacts;
@@ -1203,6 +1205,15 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             return true;
         }
 
+        if (Context.Options.LanguageVersion < RazorLanguageVersion.Version_12_0 &&
+            directive == DocumentationDirective.Directive.Directive)
+        {
+            // Warn at the same point where Razor 12 recognises the directive, but keep parsing the expression.
+            Context.ErrorSink.OnError(
+                RazorDiagnosticFactory.CreateParsing_DocumentationDirectiveWillChangeMeaning(
+                    new SourceSpan(CurrentStart, CurrentToken.Content.Length)));
+        }
+
         return false;
     }
 
@@ -1889,6 +1900,12 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
                         ParseDirectiveBlock(directiveBuilder, descriptor, parseChildren: (childBuilder, startingBraceLocation) =>
                         {
+                            if (descriptor == DocumentationDirective.Directive)
+                            {
+                                ParseDocumentationBody(childBuilder, startingBraceLocation.AbsoluteIndex + 1);
+                                return;
+                            }
+
                             NextToken();
 
                             var existingEditHandler = editHandlerBuilder;
@@ -1927,7 +1944,7 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 builder.Add(OutputAsMetaCode(Output(), Context.CurrentAcceptedCharacters));
             }
 
-            RazorDirectiveSyntax BuildDirective(SyntaxKind expectedTokenKindIfMissing)
+            BaseRazorDirectiveSyntax BuildDirective(SyntaxKind expectedTokenKindIfMissing)
             {
                 var node = OutputTokensAsStatementLiteral();
                 if (node == null && directiveBuilder.Count == 0)
@@ -1939,7 +1956,9 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
                 var directiveCodeBlock = SyntaxFactory.CSharpCodeBlock(directiveBuilder.ToList());
 
                 var directiveBody = SyntaxFactory.RazorDirectiveBody(keywordBlock, directiveCodeBlock);
-                var directive = SyntaxFactory.RazorDirective(transition, directiveBody, descriptor);
+                BaseRazorDirectiveSyntax directive = descriptor == DocumentationDirective.Directive
+                    ? SyntaxFactory.RazorDocumentationDirective(transition, directiveBody, descriptor)
+                    : SyntaxFactory.RazorDirective(transition, directiveBody, descriptor);
 
                 var diagnostics = directiveErrorSink.GetErrorsAndClear();
                 directive = directive.WithDiagnosticsGreen(diagnostics);
@@ -2022,6 +2041,142 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
 
             EnsureCurrent();
             return false;
+        }
+    }
+
+    private void ParseDocumentationBody(in SyntaxListBuilder<RazorSyntaxNode> builder, int start)
+    {
+        var source = Context.SourceDocument.Text;
+        var end = FindDocumentationEnd(start);
+        // SyntaxFactory.Token needs a string even for invalid bodies, so materialise it once
+        // and reuse it for the diagnostic checks below.
+        var content = source.ToString(TextSpan.FromBounds(start, end));
+        var terminator = content.IndexOf("*/", StringComparison.Ordinal);
+        if (terminator >= 0)
+        {
+            var absoluteIndex = start + terminator;
+            var position = source.Lines.GetLinePosition(absoluteIndex);
+            Context.ErrorSink.OnError(
+                RazorDiagnosticFactory.CreateParsing_DocumentationCommentTerminator(
+                    new SourceSpan(
+                        new SourceLocation(Context.SourceDocument.GetFilePathForDisplay(), absoluteIndex, position.Line, position.Character),
+                        contentLength: 2)));
+        }
+        else
+        {
+            var trimmedContent = content.AsSpan().TrimStart();
+            if (!trimmedContent.IsEmpty && trimmedContent[0] != '<')
+            {
+                var absoluteIndex = start + content.Length - trimmedContent.Length;
+                var position = source.Lines.GetLinePosition(absoluteIndex);
+                Context.ErrorSink.OnError(
+                    RazorDiagnosticFactory.CreateParsing_DocumentationShouldStartWithTag(
+                        new SourceSpan(
+                            new SourceLocation(Context.SourceDocument.GetFilePathForDisplay(), absoluteIndex, position.Line, position.Character),
+                            contentLength: 1)));
+            }
+        }
+
+        builder.Add(SyntaxFactory.CSharpStatementLiteral(
+            SyntaxFactory.Token(SyntaxKind.Text, content),
+            StatementChunkGenerator.Instance,
+            editHandler: null));
+
+        _tokenizer.Reset(end);
+        NextToken();
+    }
+
+    private int FindDocumentationEnd(int start)
+    {
+        var sourceDocument = Context.SourceDocument;
+        var source = sourceDocument.Text;
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(sourceDocument, start, Context.Options, CancellationToken);
+        int? recoveryPosition = null;
+        int? recoveryDirectivePosition = null;
+
+        // Malformed XML can make the markup parser reach EOF or close on text in following C#.
+        // Remember earlier braces and Razor directives so recovery can leave that code untouched.
+        for (var position = start; position < end; position++)
+        {
+            CancellationToken.ThrowIfCancellationRequested();
+
+            ConsiderRecoveryDirective(position);
+            if (source[position] == '}')
+            {
+                ConsiderRecoveryBrace(position);
+            }
+        }
+
+        if (end < source.Length && (recoveryDirectivePosition is null || isComplete))
+        {
+            return end;
+        }
+
+        // Prefer a documentation brace to one belonging to a following Razor construct. If no brace
+        // was found before that construct, leave it for the normal parser and report the missing brace.
+        return recoveryPosition ?? recoveryDirectivePosition ?? end;
+
+        // Keep the first brace that ends its line or precedes markup/Razor, provided it comes
+        // before any candidate for a following Razor construct.
+        void ConsiderRecoveryBrace(int position)
+        {
+            if (recoveryPosition is not null || recoveryDirectivePosition is not null)
+            {
+                return;
+            }
+
+            var line = source.Lines.GetLineFromPosition(position);
+            for (var i = position + 1; i < line.End; i++)
+            {
+                if (!char.IsWhiteSpace(source[i]))
+                {
+                    if (source[i] is not ('<' or '@'))
+                    {
+                        return;
+                    }
+
+                    break;
+                }
+            }
+
+            recoveryPosition = position;
+        }
+
+        // Look for the first line-leading @{, registered directive or keyword. Inline transitions
+        // and unknown names may be documentation text rather than the next Razor construct.
+        void ConsiderRecoveryDirective(int position)
+        {
+            if (recoveryDirectivePosition is not null || source[position] != '@' || position + 1 == source.Length)
+            {
+                return;
+            }
+
+            var line = source.Lines.GetLineFromPosition(position);
+            for (var i = line.Start; i < position; i++)
+            {
+                if (!char.IsWhiteSpace(source[i]))
+                {
+                    return;
+                }
+            }
+
+            var nameStart = position + 1;
+            var nameEnd = nameStart;
+            while (nameEnd < source.Length && CSharpSyntaxFacts.IsIdentifierPartCharacter(source[nameEnd]))
+            {
+                nameEnd++;
+            }
+
+            if (source[nameStart] != '{')
+            {
+                var name = source.ToString(TextSpan.FromBounds(nameStart, nameEnd));
+                if (!_directiveParserMap.ContainsKey(name) && !Keywords.Contains(name))
+                {
+                    return;
+                }
+            }
+
+            recoveryDirectivePosition = position;
         }
     }
 
