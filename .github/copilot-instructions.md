@@ -62,6 +62,7 @@ Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerat
 
 ## Code Style
 
+- Use terminology from the repository when possible.
 - 4-space indent for code; 2-space for project/XML/JSON. Never tabs. UTF-8-BOM, final newline for `*.cs`/`*.vb`.
 - **Blank lines must be completely empty** (no spaces/tabs); no trailing whitespace — both are hard lint failures.
 - Private fields `_camelCase`; namespaces `Microsoft.CodeAnalysis.[Language].[Area]`.
