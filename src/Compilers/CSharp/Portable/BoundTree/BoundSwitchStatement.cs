@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We get here when there is an explicit 'default:' label
                     // By definition, the switch is exhaustive, but it is possible, that according to
                     // the reachability Dag, the label is not reachable through the Dag (it might still
-                    // be reachable through anexplicit goto).
+                    // be reachable through an explicit goto).
 
                     if (decisionDag.ReachableLabels.Contains(defaultSwitchLabel.Label))
                     {

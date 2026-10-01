@@ -57065,7 +57065,7 @@ public readonly union Choice(A, B);
             comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
             verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
                 // (20,17): warning CS0162: Unreachable code detected
-                //                 System.Console.WriteLine("unreachable");
+                //                 System.Console.WriteLine("unreachable1");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(20, 17)
                 );
             verifier.VerifyIL("Program.Pick", @"
