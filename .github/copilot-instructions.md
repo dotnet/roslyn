@@ -1,6 +1,8 @@
 # Roslyn (.NET Compiler Platform) — Copilot Instructions
 
 > This is the **canonical** repo-wide agent entry point. `AGENTS.md` at the repo root points here. Path-scoped rules in `.github/instructions/{Compiler,IDE,Razor}.instructions.md` apply automatically by area and supplement this file. This file establishes the memory-first orientation protocol and doc-maintenance obligation.
+>
+> Across AI-generated output (code, documentation, and user-facing prose), prefer terminology already used in this repository.
 
 ## Project Overview
 
