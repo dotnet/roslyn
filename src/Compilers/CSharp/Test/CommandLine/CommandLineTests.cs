@@ -361,9 +361,9 @@ dotnet_diagnostic.cs0169.severity = garbage");
 
         private static void AssertDiagnosticContainsArguments(string output, string diagnosticId, params string[] arguments)
         {
-            var diagnosticLine = Assert.Single(output
-                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                .Where(line => line.Contains("warning " + diagnosticId + ":", StringComparison.Ordinal)));
+            var diagnosticLine = Assert.Single(
+                output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries),
+                line => line.Contains("warning " + diagnosticId + ":", StringComparison.Ordinal));
 
             foreach (var argument in arguments)
             {
