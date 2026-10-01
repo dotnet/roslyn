@@ -17,7 +17,11 @@
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" />
   </ItemGroup>
 
-  <!-- Avoid xUnit's default path-dependent namespace suffix for its generated test entry point. -->
+  <!--
+    xUnit seeds the generated entry point's namespace suffix with $(MSBuildProjectFullPath), so the emitted IL depends on
+    the checkout path. eng/test-determinism.ps1 rebuilds from a different root (via subst) and requires identical
+    binaries, so seed from the project name instead. xUnit declined to change the seed: https://github.com/xunit/xunit/issues/3624
+  -->
   <Target Name="_XunitGenerateEntryPoint"
           Inputs="@(XunitEntryPointCachePath)"
           Outputs="$(_XunitEntryPointPath)"
