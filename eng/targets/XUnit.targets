@@ -7,7 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Test-only packages must not bring their runner and entry-point targets into projects that reference these tests. -->
+    <!--
+      Test-only packages must not flow their runner and entry-point build assets into projects that reference test
+      projects, e.g. IdeCoreBenchmarks and IdeBenchmarks reference the LanguageServer unit test projects.
+    -->
     <PackageReference Include="XunitXml.TestLogger" PrivateAssets="all" />
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="xunit.v3.mtp-off" PrivateAssets="all" />
