@@ -352,18 +352,22 @@ dotnet_diagnostic.cs0169.severity = garbage");
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
             var output = outWriter.ToString();
-            Assert.Contains("warning InvalidSeverityInAnalyzerConfig:", output, StringComparison.Ordinal);
-            AssertAnalyzerConfigMessageArguments(output, "cs0169", "garbage", analyzerConfig.Path);
-            Assert.Contains("test.cs(4,9): warning CS0169:", output, StringComparison.Ordinal);
+            Assert.Equal(2, output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length);
+            AssertDiagnosticContainsArguments(output, "InvalidSeverityInAnalyzerConfig", "cs0169", "garbage", analyzerConfig.Path);
+            AssertDiagnosticContainsArguments(output, "CS0169", "test.cs(4,9)");
 
             Assert.Null(cmd.AnalyzerOptions);
         }
 
-        private static void AssertAnalyzerConfigMessageArguments(string output, params string[] args)
+        private static void AssertDiagnosticContainsArguments(string output, string diagnosticId, params string[] arguments)
         {
-            foreach (var arg in args)
+            var diagnosticLine = Assert.Single(output
+                .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(line => line.Contains("warning " + diagnosticId + ":", StringComparison.Ordinal)));
+
+            foreach (var argument in arguments)
             {
-                Assert.Contains(arg, output, StringComparison.Ordinal);
+                Assert.Contains(argument, diagnosticLine, StringComparison.Ordinal);
             }
         }
 
@@ -15141,9 +15145,8 @@ option1 = def");
 
             var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
 
-            // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'Global Section'. It has been unset. Key was set by the following files: ...
-            Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
-            AssertAnalyzerConfigMessageArguments(output, "option1", "Global Section", analyzerConfig.Path, analyzerConfig2.Path);
+            AssertDiagnosticContainsArguments(output, "MultipleGlobalAnalyzerKeys",
+                "option1", "Global Section", analyzerConfig.Path, analyzerConfig2.Path);
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
@@ -15159,9 +15162,8 @@ option1 = def");
 
             output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
 
-            // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
-            Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
-            AssertAnalyzerConfigMessageArguments(output, "option1", "/file.cs", analyzerConfig.Path, analyzerConfig2.Path);
+            AssertDiagnosticContainsArguments(output, "MultipleGlobalAnalyzerKeys",
+                "option1", "/file.cs", analyzerConfig.Path, analyzerConfig2.Path);
         }
 
         [Fact]

@@ -39,18 +39,14 @@ public class MyTests : CSharpTestBase
   `Single()` instead of checking counts then indexing.
 - **Prefer raw string literals** (`"""..."""`) over verbatim strings (`@"..."`)
   for test source code.
-- **Localized command-line diagnostics**: compare messages using the
-  corresponding `CodeAnalysisResources` format string rather than hard-coded
-  English punctuation. When an in-process compiler test depends on localized
-  output, pin the test's culture with `UseCulture` so the expected resource and
-  the compiler's current UI culture are deterministic.
-- **Why pinning is required for analyzer-config diagnostics (underlying bug)**:
-  the static descriptors in `AnalyzerConfigSet` are built from already-localized
-  `CodeAnalysisResources` strings, so whichever culture first initializes the
-  type wins for the rest of the process. If another test initializes it under
-  the host UI culture, a later compiler run with `/preferreduilang:en` still
-  reports host-culture text. That makes the observed message depend on test
-  order, which xUnit v3's different ordering exposed. Pinning the culture makes
-  these tests deterministic, but it does not fix the underlying issue: these
-  warnings do not consistently honor `/preferreduilang`. Do not read the pinned
-  culture as evidence that the behavior is correct.
+- **Localized command-line diagnostics**: when testing the translation itself,
+  compare messages using the corresponding `CodeAnalysisResources` format
+  string rather than hard-coded English punctuation.
+- **Command-line analyzer-config diagnostics** can contain localized resource
+  text even when the compiler requests English: `AnalyzerConfigSet` initializes
+  static descriptors with resource strings on first use. Whichever UI culture
+  first initializes the type wins for the rest of the process, so these warnings
+  do not consistently honor `/preferreduilang`. When testing the diagnostic
+  rather than its translation, assert its invariant ID and arguments on the
+  same output line instead of English message punctuation. `UseCulture` alone
+  cannot change descriptors already initialized under a different culture.
