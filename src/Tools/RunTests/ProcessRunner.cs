@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace RunTests
@@ -63,26 +62,22 @@ namespace RunTests
             bool displayWindow = true,
             Dictionary<string, string>? environmentVariables = null,
             Action<Process>? onProcessStartHandler = null,
-            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
-            CancellationToken cancellationToken = default)
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null)
             => CreateProcess(
                 CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
                 lowPriority: lowPriority,
                 onProcessStartHandler: onProcessStartHandler,
-                onOutputDataReceived: onOutputDataReceived,
-                cancellationToken: cancellationToken);
+                onOutputDataReceived: onOutputDataReceived);
 
         public static ProcessInfo CreateProcess(
             ProcessStartInfo processStartInfo,
             bool lowPriority = false,
             Action<Process>? onProcessStartHandler = null,
-            Action<DataReceivedEventArgs>? onOutputDataReceived = null,
-            CancellationToken cancellationToken = default)
+            Action<DataReceivedEventArgs>? onOutputDataReceived = null)
         {
             var errorLines = new List<string>();
             var outputLines = new List<string>();
             var process = new Process();
-            cancellationToken.ThrowIfCancellationRequested();
             process.StartInfo = processStartInfo;
 
             process.OutputDataReceived += (s, e) =>
@@ -124,10 +119,7 @@ namespace RunTests
 
             async Task<ProcessResult> CompleteAsync()
             {
-                using var registration = cancellationToken.Register(() => ProcessUtil.KillTree(process));
-                // Do not report cancellation before the process has exited and output has drained.
                 await process.WaitForExitAsync().ConfigureAwait(false);
-                cancellationToken.ThrowIfCancellationRequested();
                 return new ProcessResult(process, process.ExitCode,
                     new ReadOnlyCollection<string>(outputLines), new ReadOnlyCollection<string>(errorLines));
             }

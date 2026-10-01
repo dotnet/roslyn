@@ -19,7 +19,14 @@ namespace RunTests
 {
     internal sealed class ProcessTestExecutor
     {
-        public static string BuildRspFileContents(WorkItemInfo workItem, Options options, string xmlResultsFilePath, string? htmlResultsFilePath, string? diagnosticsDirectory = null)
+        private readonly CancellationToken _userCancellationToken;
+
+        public ProcessTestExecutor(CancellationToken userCancellationToken)
+        {
+            _userCancellationToken = userCancellationToken;
+        }
+
+        public static string BuildRspFileContents(WorkItemInfo workItem, Options options, string xmlResultsFilePath, string? htmlResultsFilePath, string diagnosticsDirectory)
         {
             var fileContentsBuilder = new StringBuilder();
 
@@ -47,7 +54,7 @@ namespace RunTests
             fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout={timeout};DumpType=full");
 
             // Specifies the results directory - this is where dumps from the blame options will get published.
-            fileContentsBuilder.AppendLine($"/ResultsDirectory:\"{diagnosticsDirectory ?? GetWorkItemDirectory(workItem, options)}\"");
+            fileContentsBuilder.AppendLine($"/ResultsDirectory:\"{diagnosticsDirectory}\"");
 
             // Build the filter string
             var filterStringBuilder = new StringBuilder();
@@ -164,15 +171,20 @@ namespace RunTests
                 var exitCode = timeoutMessage is not null ? Program.ExitFailure : xunitProcessResult.ExitCode;
                 if (exitCode != 0)
                 {
-                    if (timeoutMessage is null && !ContainsFailedTest(resultsFilePath))
+                    var syntheticPath = GetSyntheticFailurePath(GetResultsFilePath(workItemInfo, options));
+                    if (!_userCancellationToken.IsCancellationRequested)
+                    {
+                        CheckForCrashes(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName,
+                            workItemDirectory, timeoutMessage);
+                    }
+
+                    if (!File.Exists(syntheticPath) && !ContainsFailedTest(resultsFilePath))
                     {
                         writeSyntheticFailure(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName,
                             $"Test runner exited with code {exitCode} without a failed test result.{Environment.NewLine}{errorOutput}");
                     }
 
-                    CheckForCrashes(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName,
-                        workItemDirectory, timeoutMessage);
-                    resultsFilePath ??= GetSyntheticFailurePath(GetResultsFilePath(workItemInfo, options));
+                    resultsFilePath ??= syntheticPath;
                 }
 
                 var testResultInfo = new TestResultInfo(
@@ -191,26 +203,30 @@ namespace RunTests
 
                 async Task<(ProcessResult Result, string? TimeoutMessage)> waitForCompletionAsync(string resultsFilePath)
                 {
-                    using var cancellationSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-                    var cancellationTask = Task.Delay(Timeout.InfiniteTimeSpan, cancellationSource.Token);
-                    string? timeoutMessage = null;
-                    if (await Task.WhenAny(dotnetProcessInfo.Result, cancellationTask).ConfigureAwait(false) == cancellationTask)
+                    try
                     {
-                        timeoutMessage = $"Run cancelled or global deadline exceeded while running {workItemInfo.DisplayName}.";
-                        ConsoleUtil.Error(timeoutMessage);
-                        await collectTimeoutDumpsAsync(resultsFilePath, timeoutMessage).ConfigureAwait(false);
+                        return (await dotnetProcessInfo.Result.WaitAsync(cancellationToken), null);
                     }
-
-                    var result = await dotnetProcessInfo.Result;
-                    return (result, timeoutMessage);
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        var timeoutMessage = _userCancellationToken.IsCancellationRequested
+                            ? $"Run cancelled by user while running {workItemInfo.DisplayName}."
+                            : $"Global deadline exceeded while running {workItemInfo.DisplayName}.";
+                        ConsoleUtil.Error(timeoutMessage);
+                        await handleCancellationAsync(resultsFilePath, timeoutMessage).ConfigureAwait(false);
+                        return (await dotnetProcessInfo.Result, timeoutMessage);
+                    }
                 }
 
-                async Task collectTimeoutDumpsAsync(string resultsFilePath, string timeoutMessage)
+                async Task handleCancellationAsync(string resultsFilePath, string timeoutMessage)
                 {
                     var processes = new List<Process> { dotnetProcessInfo.Process };
                     try
                     {
                         writeSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
+                        if (_userCancellationToken.IsCancellationRequested)
+                            return;
+
                         processes.AddRange(ProcessUtil.GetChildProcesses(dotnetProcessInfo.Process));
                         await DumpCollector.CollectAsync(processes, options, workItemDirectory).ConfigureAwait(false);
                     }
@@ -348,7 +364,8 @@ namespace RunTests
             // Copy sequence files to the test results directory so they are included in artifacts
             copySequenceFilesToArtifacts(sequenceFiles, testResultsDirectory);
 
-            writeSyntheticFailure(resultsFilePath, dumpFiles, crashingTest, isHang);
+            if (!File.Exists(GetSyntheticFailurePath(resultsFilePath)))
+                writeSyntheticFailure(resultsFilePath, dumpFiles, crashingTest, isHang);
 
             (string[] DumpFiles, string[] SequenceFiles, string? CrashingTest, bool IsHang) detectDumpFiles()
             {

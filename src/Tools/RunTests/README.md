@@ -105,46 +105,20 @@ these use the corresponding Azure Pipelines environment variables.
 
 ## Local timeout diagnostics
 
-Each local work item currently runs one **whole assembly**, not a method-sized
-partition. The timeout policy is:
+Local work items run whole assemblies, with no per-assembly deadline. VSTest
+collects hang dumps after **25 minutes without test progress**. The global
+`--timeout` (positive minutes, default **90**) triggers dumps of active test
+process trees before terminating them and reporting failures. Dump collection
+can extend beyond that deadline; a stuck collector requires external termination.
+Ctrl+C stops tests without initiating dumps.
 
-- VSTest blame aborts after **25 minutes without test progress**, collecting a full
-  hang dump. This fixed inactivity timeout is not an assembly-duration limit.
-- RunTests limits the **whole run to 90 minutes**, even if discovery,
-  the test host, or VSTest's own dump collector stops responding. There is no
-  separate assembly-duration limit.
+Dumps and sequence files are included in CI artifacts beneath
+`TestResults/<configuration>/WorkItem_<index>_<arch>/` (or `--out`).
+Timeout dumps work on Windows and Linux without `--collectdumps`; that option
+additionally enables Windows WER crash collection when elevated.
+`eng/test-vsi.ps1` also captures `TestFailure.png` in the artifact logs on failure.
 
-The global deadline stops scheduling new work and writes a synthetic failed xUnit
-result for every active work item, then attempts full dumps before killing its
-owned process tree. Dump APIs execute in helper subprocesses of the same RunTests
-binary: Windows uses `MiniDumpWriteDump` for both Framework and Core; Linux uses
-`DiagnosticsClient`. Collection has no timeout: helpers are awaited until they
-finish or the processes are externally terminated. A blocked helper therefore
-waits for external termination, such as the CI job timeout. Completed collection
-is followed by awaiting process exit and output draining. Reported dump
-failures do not prevent attempts on the remaining candidates or failure reporting.
-
-At cancellation, RunTests takes a parent-process snapshot and traverses each
-launcher's descendants, then dumps that process list. It does not track processes
-during normal execution or select machine-wide testhost-name matches. Children
-that have already been reparented before the snapshot are not included.
-
-Diagnostics live beneath `TestResults/<configuration>/WorkItem_<index>_<arch>/`
-in an invocation-specific directory (or beneath `--out`). Synthetic failure XML
-is next to the normal xUnit results. Existing CI test-result artifact publication
-includes these dumps and sequence files. `--collectdumps` additionally enables
-Windows WER crash collection when running as administrator; timeout dump attempts
-do not require that option and do not require changing the registry.
-
-The local inactivity allowance also accommodates VSIX/hive setup for integration
-tests. On a failed test run, `eng/test-vsi.ps1` captures `TestFailure.png` in the
-artifact log directory before its cleanup. RunTests itself does not take screenshots.
-Helix retains its existing 15-minute VSTest timeout and infrastructure
-deadline; `--timeout` is rejected with `--helix`.
-
-For a global-deadline probe, run multiple hanging assemblies with `--timeout 1`.
-The fixed inactivity timeout is longer, so the global deadline initiates dump
-collection. The `--timeout` value must be positive.
+Helix manages its own deadlines and retains a 15-minute VSTest inactivity timeout.
 
 ## Exit Codes
 

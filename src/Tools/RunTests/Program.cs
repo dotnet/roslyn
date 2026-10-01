@@ -68,6 +68,7 @@ namespace RunTests
                 {
                     e.Cancel = true;
                     cts.Cancel();
+                    DisableRegistryDumpCollection();
                 };
 
                 int result;
@@ -77,7 +78,7 @@ namespace RunTests
                 }
                 else
                 {
-                    result = await RunAsync(options, cts.Token);
+                    result = await RunAsync(options, cts.Token, cts.Token);
                 }
 
                 CheckTotalDumpFilesSize();
@@ -100,13 +101,14 @@ namespace RunTests
         private static async Task<int> RunCoreAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var runTask = RunAsync(options, cts.Token);
+            var runTask = RunAsync(options, cts.Token, cancellationToken);
             var timeoutTask = Task.Delay(timeout, cancellationToken);
 
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
             {
-                ConsoleUtil.Error("Global test timeout exceeded; collecting owned work-item dumps before termination.");
+                if (!cancellationToken.IsCancellationRequested)
+                    ConsoleUtil.Error("Global test timeout exceeded; collecting owned work-item dumps before termination.");
                 cts.Cancel();
 
                 try
@@ -127,11 +129,11 @@ namespace RunTests
             return await runTask;
         }
 
-        private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken, CancellationToken userCancellationToken)
         {
             var assemblyFilePaths = GetAssemblyFilePaths(options);
 
-            var testExecutor = new ProcessTestExecutor();
+            var testExecutor = new ProcessTestExecutor(userCancellationToken);
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
             if (assemblyFilePaths.Length == 0)
