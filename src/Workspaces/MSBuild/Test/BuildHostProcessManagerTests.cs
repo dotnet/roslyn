@@ -54,10 +54,40 @@ public sealed class BuildHostProcessManagerTests
             loggerFactory: loggerFactory);
 
         await manager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
-        await manager.DisposeAsync();
+        var accessor = manager.GetTestAccessor();
+        var callbackClaimedProcess = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var continueCallback = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        accessor.BeforeLogProcessFailureAsync = async () =>
+        {
+            callbackClaimedProcess.SetResult();
+            await continueCallback.Task;
+        };
 
-        await Task.Delay(500);
+        var disconnectTask = accessor.DisconnectAsync(BuildHostProcessKind.NetCore);
+        await callbackClaimedProcess.Task;
+        var disposeTask = manager.DisposeAsync();
+        continueCallback.SetResult();
+
+        await disconnectTask;
+        await disposeTask;
         Assert.Empty(workspace.Diagnostics);
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    public async Task UnexpectedDisconnect_ReportsBuildHostFailure()
+    {
+        using var workspace = MSBuildWorkspace.Create();
+        var diagnosticReporter = new DiagnosticReporter(workspace);
+        using var loggerFactory = new LoggerFactory([new DiagnosticReporterLoggerProvider(diagnosticReporter)]);
+        await using var manager = new BuildHostProcessManager(
+            knownCommandLineParserLanguages: [LanguageNames.CSharp],
+            globalMSBuildProperties: ImmutableDictionary<string, string>.Empty,
+            loggerFactory: loggerFactory);
+
+        await manager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
+        await manager.GetTestAccessor().DisconnectAsync(BuildHostProcessKind.NetCore);
+
+        Assert.NotEmpty(workspace.Diagnostics);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85194")]
