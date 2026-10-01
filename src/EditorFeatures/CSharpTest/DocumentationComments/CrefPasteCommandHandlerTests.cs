@@ -197,6 +197,46 @@ public sealed class CrefPasteCommandHandlerTests
             """);
 
     [WpfFact]
+    public void NoChangeWhenCrefMissingEndQuote()
+        => TestPaste("""
+            /// <see cref="$$
+            class C { }
+            """, "List<int>", """
+            /// <see cref="List<int>$$
+            class C { }
+            """);
+
+    [WpfFact]
+    public void NoChangeWhenCrefMissingEndQuoteBeforeTagEnd()
+        => TestPaste("""
+            /// <see cref="$$/>
+            class C { }
+            """, "List<int>", """
+            /// <see cref="List<int>$$/>
+            class C { }
+            """);
+
+    [WpfFact]
+    public void NoChangeWhenCrefMissingQuotes()
+        => TestPaste("""
+            /// <see cref=$$/>
+            class C { }
+            """, "List<int>", """
+            /// <see cref=List<int>$$/>
+            class C { }
+            """);
+
+    [WpfFact]
+    public void NoChangeWhenCrefMissingQuotesWithValue()
+        => TestPaste("""
+            /// <see cref=Goo$$/>
+            class C { }
+            """, "List<int>", """
+            /// <see cref=GooList<int>$$/>
+            class C { }
+            """);
+
+    [WpfFact]
     public void NoChangeWhenPastedTextContainsQuote()
         => TestPaste("""
             /// <see cref="$$"/>

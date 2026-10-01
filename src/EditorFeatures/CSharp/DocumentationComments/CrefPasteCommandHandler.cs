@@ -51,17 +51,23 @@ internal sealed class CrefPasteCommandHandler(
         var subjectBuffer = args.SubjectBuffer;
         var snapshotBeforePaste = subjectBuffer.CurrentSnapshot;
 
+        // Always let the real paste go through.  That way we always have a version of the document that doesn't
+        // include our changes that we can undo back to.
         nextCommandHandler();
 
+        // If we don't even see any changes from the paste, there's nothing we can do.
+        var changes = snapshotBeforePaste.Version.Changes;
+        if (changes is null)
+            return;
+
+        // If the user has the option off, then don't bother doing anything once we've sent the paste through.
         if (!_globalOptions.GetOption(CrefPasteOptionsStorage.FixCrefOnPaste, LanguageNames.CSharp))
             return;
 
-        var changes = snapshotBeforePaste.Version.Changes;
-        if (changes is null || changes.Count == 0)
-            return;
-
-        // Bail if another component also edited the buffer.
         var snapshotAfterPaste = subjectBuffer.CurrentSnapshot;
+
+        // If there were multiple changes that already happened, then don't make any changes.  Some other component
+        // already did something advanced.
         if (snapshotAfterPaste.Version != snapshotBeforePaste.Version.Next)
             return;
 
@@ -99,7 +105,7 @@ internal sealed class CrefPasteCommandHandler(
             args.TextView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
         // Same-length replacement, so the caret doesn't move.
-        var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
+        using var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
         foreach (var change in changes)
             edit.Replace(change.NewSpan, change.NewText.Replace('<', '{').Replace('>', '}'));
 
@@ -111,7 +117,7 @@ internal sealed class CrefPasteCommandHandler(
     {
         var token = root.FindToken(span.Start, findInsideTrivia: true);
         var crefAttribute = token.GetAncestor<XmlCrefAttributeSyntax>();
-        if (crefAttribute is null || crefAttribute.EndQuoteToken.IsMissing)
+        if (crefAttribute is null || crefAttribute.StartQuoteToken.IsMissing || crefAttribute.EndQuoteToken.IsMissing)
             return false;
 
         var valueSpan = TextSpan.FromBounds(crefAttribute.StartQuoteToken.Span.End, crefAttribute.EndQuoteToken.SpanStart);
