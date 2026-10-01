@@ -40,6 +40,7 @@ src/Interactive/ @dotnet/roslyn-interactive
 src/LanguageServer/ @dotnet/roslyn-ide
 src/NuGet/ @dotnet/roslyn-infrastructure
 src/Razor/ @dotnet/razor-tooling @dotnet/roslyn-ide
+src/Razor/src/Compiler/ @dotnet/razor-tooling @dotnet/roslyn-ide @dotnet/razor-compiler
 src/RoslynAnalyzers/ @dotnet/roslyn-ide
 src/Scripting/ @dotnet/roslyn-interactive
 src/Setup/ @dotnet/roslyn-infrastructure
