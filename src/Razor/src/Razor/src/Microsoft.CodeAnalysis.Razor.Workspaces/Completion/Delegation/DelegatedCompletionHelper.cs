@@ -143,10 +143,17 @@ internal static class DelegatedCompletionHelper
         var token = root.FindToken(absoluteIndex, includeWhitespace: true);
 
         // At EOF after an incomplete start tag, the parser doesn't place EOF inside the tag.
+        // In a truly empty document, the EOF token has no previous token — GetPreviousToken()
+        // returns a default (Kind == None) token in that case, so keep the original EOF token.
         var atEof = token.Kind == SyntaxKind.EndOfFile;
-        token = atEof
-            ? token.GetPreviousToken()
-            : token;
+        if (atEof)
+        {
+            var previousToken = token.GetPreviousToken();
+            if (previousToken.Kind != SyntaxKind.None)
+            {
+                token = previousToken;
+            }
+        }
 
         // Empty document — allow snippets on explicit invocation.
         if (token.Kind == SyntaxKind.EndOfFile)
@@ -166,14 +173,16 @@ internal static class DelegatedCompletionHelper
             return isStartTagContext;
         }
 
-        if (atEof)
+        // At the true end of the document, only treat the position as (empty) text content when
+        // the preceding token closes a *complete* end tag (e.g., "</div>$$"). An incomplete end
+        // tag (e.g., "</di$$", missing '>') falls through to the checks below, which correctly
+        // suppress snippets since the caret is still inside markup, not past it.
+        if (atEof && token.Parent is BaseMarkupEndTagSyntax { CloseAngle.IsMissing: false } endTag)
         {
-            // We were at the true end of the document, and the preceding token isn't part of an
-            // in-progress start tag (e.g., the document ends right after a complete "</div>").
-            // This is equivalent to being in (empty) text content, so snippets are available on
-            // explicit invocation — unless we're ending a <script> or <style> block.
-            return token.Parent?.FirstAncestorOrSelf<BaseMarkupElementSyntax>() is not { } eofElement
-                || !RazorSyntaxFacts.IsScriptOrStyleBlock(eofElement);
+            // Snippets are available here unless the tag we just closed is nested inside
+            // a <script> or <style> block — the closed tag's own element doesn't count, since the
+            // caret is now past it, not inside it.
+            return endTag.Parent?.Parent?.FirstAncestorOrSelf<BaseMarkupElementSyntax>(RazorSyntaxFacts.IsScriptOrStyleBlock) is null;
         }
 
         // In text content (element body), snippets are available on explicit invocation only

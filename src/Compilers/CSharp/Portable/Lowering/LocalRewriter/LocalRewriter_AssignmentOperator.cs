@@ -246,6 +246,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DiscardExpression:
                     {
+                        if (isRef && !used)
+                        {
+                            Debug.Assert(rewrittenRight.Type is not null);
+                            return new BoundRefAccess(syntax, RefKindExtensions.StrictIn, rewrittenRight, rewrittenRight.Type);
+                        }
+
                         return rewrittenRight;
                     }
 

@@ -34,7 +34,7 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
-        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
         Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
@@ -43,7 +43,6 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
 
         results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(),
-            useVSDiagnostics,
             previousResultId: results[0].ResultId);
 
         // Assert diagnostics were calculated again even though we got an unchanged result.
@@ -64,7 +63,7 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
-        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
         Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
@@ -74,7 +73,6 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
 
         results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(),
-            useVSDiagnostics,
             previousResultId: results[0].ResultId);
 
         // Assert diagnostics were calculated again even though we got an unchanged result.
@@ -95,14 +93,13 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
         var document = testLspServer.GetCurrentSolution().Projects.Single().Documents.Single();
 
         await OpenDocumentAsync(testLspServer, document);
-        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics);
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI());
         Assert.Equal(TestDiagnosticSource.Id, results[0].Diagnostics!.Single().Code);
         Assert.Equal(1, testProvider.DiagnosticsRequestedCount);
 
         // Make another request without modifying anything and assert we did not re-calculate anything.
         results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(),
-            useVSDiagnostics,
             previousResultId: results[0].ResultId);
 
         // Assert diagnostics were not recalculated.
