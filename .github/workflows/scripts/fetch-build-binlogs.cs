@@ -511,7 +511,7 @@ static async Task<(T? Value, string? Error)> Fetch<T>(
 }
 
 // Streams the artifact to disk and stops at `cap` bytes written, whatever
-// Content-Length says.
+// Content-Length says. An oversized artifact is charged the full `cap`.
 async Task<(long Bytes, string? Error)> Download(string url, string path, long cap)
 {
     var (bytes, error) = await Fetch(ado, url, TimeSpan.FromMinutes(2), async (response, cancellation) =>
@@ -534,7 +534,7 @@ async Task<(long Bytes, string? Error)> Download(string url, string path, long c
         return written;
     });
 
-    return error is not null ? (0, error) : bytes < 0 ? (0, $"exceeded the {cap}-byte size cap") : (bytes, null);
+    return error is not null ? (0, error) : bytes < 0 ? (cap, $"exceeded the {cap}-byte size cap") : (bytes, null);
 }
 
 // Not reachable from the workflow; a manual seam for running archive handling
