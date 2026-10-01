@@ -55,18 +55,18 @@ public sealed class BuildHostProcessManagerTests
 
         await manager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
         var accessor = manager.GetTestAccessor();
-        var callbackClaimedProcess = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var continueCallback = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var callbackClaimedProcess = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var continueCallback = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         accessor.BeforeLogProcessFailureAsync = async () =>
         {
-            callbackClaimedProcess.SetResult();
+            callbackClaimedProcess.SetResult(true);
             await continueCallback.Task;
         };
 
         var disconnectTask = accessor.DisconnectAsync(BuildHostProcessKind.NetCore);
         await callbackClaimedProcess.Task;
         var disposeTask = manager.DisposeAsync();
-        continueCallback.SetResult();
+        continueCallback.SetResult(true);
 
         await disconnectTask;
         await disposeTask;
