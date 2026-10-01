@@ -42,7 +42,8 @@ versions can opt in by raising their warning level. Use an explicit expression s
 
 The body is documentation text, not Razor markup or C# code. Razor transitions,
 braces inside XML elements, XML comments, and CDATA are preserved. The body is
-excluded from rendered HTML.
+excluded from rendered HTML. Formatting uses Roslyn's documentation-comment
+formatter, which adjusts comment indentation without reflowing the XML text.
 
 Parsing uses Razor's HTML parser in an XML-only mode. Razor transitions remain
 literal in text, attributes, comments, CDATA and processing instructions.
@@ -62,6 +63,10 @@ documentation text. A missing documentation brace reports `RZ1006`. Recovery is
 best-effort for malformed XML. A literal `*/` does not end documentation parsing:
 Razor finds the body boundary first, then reports `RZ1047` on the terminator and
 does not emit the invalid documentation.
+
+`CodeBlockBraceOnNextLine` also applies to `@documentation`. When enabled, it
+moves the opening brace to the next line without moving XML away from either
+brace. When disabled, existing brace placement is preserved.
 
 Only one `@documentation` block is allowed per file. Additional blocks produce
 error `RZ2001`. Put all documentation tags in the same block. For error recovery,
