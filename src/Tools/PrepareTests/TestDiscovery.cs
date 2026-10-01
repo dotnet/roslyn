@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -79,6 +80,7 @@ internal class TestDiscovery
         {
             arguments.Append($"exec {pathToWorker}");
             worker.StartInfo.FileName = dotnetPath;
+            AddDotNetRootEnvironmentVariables(worker.StartInfo, dotnetPath);
         }
         else
         {
@@ -100,6 +102,31 @@ internal class TestDiscovery
         worker.Close();
 
         return (success, output.ToString());
+    }
+
+    private static void AddDotNetRootEnvironmentVariables(ProcessStartInfo startInfo, string dotnetPath)
+    {
+        var dotnetDirectory = Path.GetDirectoryName(dotnetPath);
+        if (string.IsNullOrEmpty(dotnetDirectory))
+        {
+            return;
+        }
+
+        dotnetDirectory = Path.GetFullPath(dotnetDirectory);
+        startInfo.EnvironmentVariables["DOTNET_ROOT"] = dotnetDirectory;
+
+        var architectureSuffix = RuntimeInformation.ProcessArchitecture switch
+        {
+            Architecture.X86 => "X86",
+            Architecture.X64 => "X64",
+            Architecture.Arm64 => "ARM64",
+            _ => null,
+        };
+
+        if (architectureSuffix is not null)
+        {
+            startInfo.EnvironmentVariables[$"DOTNET_ROOT_{architectureSuffix}"] = dotnetDirectory;
+        }
     }
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)
