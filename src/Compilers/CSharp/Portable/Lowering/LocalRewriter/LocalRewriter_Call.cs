@@ -684,8 +684,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!forceReceiverCapturing || (requiresInstanceReceiver && rewrittenReceiver != null && storesOpt is object));
             Debug.Assert(!forceReceiverCapturing || methodOrIndexer is PropertySymbol);
 
-            BoundLocal? receiverTemp = null;
-            BoundAssignmentOperator? assignmentToTemp = null;
+            BoundExpression? capturedReceiver = null;
+            bool ownStoresOpt = false;
 
             if (forceReceiverCapturing ||
                 (requiresInstanceReceiver && arguments.Any(a => usesReceiver(a))))
@@ -699,6 +699,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (methodOrIndexer.IsExtensionBlockMember())
                 {
                     refKind = GetExtensionBlockMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
+                    Debug.Assert(refKind != RefKind.Ref ||
+                                 (rewrittenReceiver.Type.IsValueType &&
+                                     (rewrittenReceiver is not BoundArrayAccess { Expression.Type: var arrayType } || IsInvariantArray(arrayType))));
                 }
                 else
                 {
@@ -713,6 +716,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // SPEC VIOLATION: as value types.
 
                         refKind = rewrittenReceiver.Type.IsValueType || rewrittenReceiver.Type.Kind == SymbolKind.TypeParameter ? RefKind.Ref : RefKind.None;
+
+                        if (refKind == RefKind.Ref &&
+                            rewrittenReceiver is BoundArrayAccess { Expression.Type: var arrayType } &&
+                            !IsInvariantArray(arrayType) &&
+                            rewrittenReceiver.Type.IsReferenceType)
+                        {
+                            refKind = RefKind.None;
+                        }
                     }
                     else
                     {
@@ -737,10 +748,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind is RefKind.RefReadOnlyParameter ? RefKind.In : refKind);
-
                 tempsOpt ??= ArrayBuilder<LocalSymbol>.GetInstance();
-                tempsOpt.Add(receiverTemp.LocalSymbol);
+                if (storesOpt is null)
+                {
+                    storesOpt = ArrayBuilder<BoundExpression>.GetInstance();
+                    ownStoresOpt = true;
+                }
+
+                BoundAssignmentOperator? assignmentToTemp = null;
+
+                if (refKind == RefKind.Ref &&
+                    rewrittenReceiver is BoundArrayAccess arrayAccess &&
+                    !IsInvariantArray(arrayAccess.Expression.Type))
+                {
+                    Debug.Assert(!rewrittenReceiver.Type.IsReferenceType);
+                    Debug.Assert(!rewrittenReceiver.Type.IsValueType);
+                    Debug.Assert(rewrittenReceiver.Type.IsTypeParameter());
+                    capturedReceiver = SpillArrayElementAccess(arrayAccess.Expression, arrayAccess.Indices, storesOpt, tempsOpt);
+                    Debug.Assert(IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(methodOrIndexer, capturedReceiver));
+                    Debug.Assert(!CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(capturedReceiver));
+                }
+                else
+                {
+                    BoundLocal receiverTemp = _factory.StoreToTemp(rewrittenReceiver, out assignmentToTemp, refKind is RefKind.RefReadOnlyParameter ? RefKind.In : refKind);
+                    capturedReceiver = receiverTemp;
+                }
+
+                int insertTempHere = tempsOpt.Count;
+
+                if (capturedReceiver is not BoundLocal { LocalSymbol.IsRef: false } &&
+                    IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(methodOrIndexer, capturedReceiver) &&
+                    !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(capturedReceiver))
+                {
+                    capturedReceiver = ReferToTempIfReferenceTypeReceiver(capturedReceiver, ref assignmentToTemp, storesOpt, tempsOpt);
+                }
+
+                Debug.Assert(capturedReceiver is BoundLocal);
+                Debug.Assert(assignmentToTemp is object);
+
+                if (assignmentToTemp is object)
+                {
+                    // We want to keep this temp at this position in order to avoid too much churn in test baselines due to the order.
+                    tempsOpt.Insert(insertTempHere, ((BoundLocal)capturedReceiver).LocalSymbol);
+                    storesOpt.Add(assignmentToTemp);
+                }
+                else
+                {
+                    ExceptionUtilities.UnexpectedValue(capturedReceiver);
+                }
             }
 
             ImmutableArray<BoundExpression> rewrittenArguments;
@@ -774,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         parameters,
                         visitedArgumentsBuilder,
                         i,
-                        receiverTemp,
+                        capturedReceiver,
                         ref tempsOpt,
                         ref argumentsAssignedToTemp);
 
@@ -800,39 +855,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenArguments = visitedArgumentsBuilder.ToImmutableAndFree();
             }
 
-            if (receiverTemp is object)
+            if (capturedReceiver is object)
             {
-                Debug.Assert(assignmentToTemp is object);
                 Debug.Assert(tempsOpt is object);
+                Debug.Assert(storesOpt is object);
 
-                BoundAssignmentOperator? extraRefInitialization = null;
-
-                if (receiverTemp.LocalSymbol.IsRef &&
-                    IsPossibleReferenceTypeReceiverOfConstrainedOrExtensionCall(methodOrIndexer, receiverTemp) &&
-                    !CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp) &&
-                    (forceReceiverCapturing ||
-                     !CodeGenerator.IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(rewrittenArguments)))
+                if (!ownStoresOpt)
                 {
-                    ReferToTempIfReferenceTypeReceiver(receiverTemp, ref assignmentToTemp, out extraRefInitialization, tempsOpt);
-                }
-
-                if (storesOpt is object)
-                {
-                    if (extraRefInitialization is object)
-                    {
-                        storesOpt.Add(extraRefInitialization);
-                    }
-
-                    storesOpt.Add(assignmentToTemp);
-                    rewrittenReceiver = receiverTemp;
+                    rewrittenReceiver = capturedReceiver;
                 }
                 else
                 {
                     rewrittenReceiver = _factory.Sequence(
                         ImmutableArray<LocalSymbol>.Empty,
-                        extraRefInitialization is object ? ImmutableArray.Create<BoundExpression>(extraRefInitialization, assignmentToTemp) : ImmutableArray.Create<BoundExpression>(assignmentToTemp),
-                        receiverTemp);
+                        storesOpt.ToImmutableAndFree(),
+                        capturedReceiver);
                 }
+            }
+            else
+            {
+                Debug.Assert(!ownStoresOpt);
             }
 
             return rewrittenArguments;
@@ -851,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<ParameterSymbol> parameters,
                 ArrayBuilder<BoundExpression> visitedArgumentsBuilder,
                 int argumentIndex,
-                BoundLocal? receiverTemp,
+                BoundExpression? capturedReceiver,
                 ref ArrayBuilder<LocalSymbol>? tempsOpt,
                 ref BitVector argumentsAssignedToTemp)
             {
@@ -879,19 +921,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var argIndex = placeholder.ArgumentIndex;
                             Debug.Assert(argIndex < argumentIndex);
 
-                            BoundLocal local;
+                            BoundExpression replacement;
                             switch (argIndex)
                             {
                                 case BoundInterpolatedStringArgumentPlaceholder.InstanceParameter:
                                 case BoundInterpolatedStringArgumentPlaceholder.ExtensionReceiver:
                                     Debug.Assert(usesReceiver(argument));
                                     Debug.Assert(requiresInstanceReceiver);
-                                    Debug.Assert(receiverTemp is object);
-                                    local = receiverTemp;
+                                    Debug.Assert(capturedReceiver is object);
+                                    replacement = capturedReceiver;
                                     break;
 
                                 case >= 0 when argumentsAssignedToTemp[argIndex]:
-                                    local = visitedArgumentsBuilder[argIndex] switch
+                                    replacement = visitedArgumentsBuilder[argIndex] switch
                                     {
                                         BoundSequence { Value: BoundLocal l } => l,
                                         BoundLocal l => l, // Can happen for discard arguments
@@ -905,10 +947,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     RefKind argRefKind = argumentRefKindsOpt.RefKinds(argIndex);
                                     RefKind paramRefKind = parameters[paramIndex].RefKind;
                                     var visitedArgument = visitedArgumentsBuilder[argIndex];
-                                    local = _factory.StoreToTemp(visitedArgument, out var store, refKind: paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter ? RefKind.In : argRefKind);
+                                    BoundLocal local = _factory.StoreToTemp(visitedArgument, out var store, refKind: paramRefKind is RefKind.In or RefKind.RefReadOnlyParameter ? RefKind.In : argRefKind);
                                     tempsOpt.Add(local.LocalSymbol);
                                     visitedArgumentsBuilder[argIndex] = _factory.Sequence(ImmutableArray<LocalSymbol>.Empty, ImmutableArray.Create<BoundExpression>(store), local);
                                     argumentsAssignedToTemp[argIndex] = true;
+                                    replacement = local;
                                     break;
 
                                 case BoundInterpolatedStringArgumentPlaceholder.TrailingConstructorValidityParameter:
@@ -919,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     throw ExceptionUtilities.UnexpectedValue(argIndex);
                             }
 
-                            AddPlaceholderReplacement(placeholder, local);
+                            AddPlaceholderReplacement(placeholder, replacement);
                         }
 
                         return interpolationData.ArgumentPlaceholders;
@@ -955,44 +998,54 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private RefKind GetExtensionBlockMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
         {
-            Debug.Assert(rewrittenReceiver.Type is { });
-            Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is { });
+            var refKind = getExtensionBlockMemberReceiverCaptureRefKind(rewrittenReceiver, methodOrIndexer);
+            Debug.Assert(refKind != RefKind.Ref ||
+                         (rewrittenReceiver.Type?.IsValueType == true &&
+                             (rewrittenReceiver is not BoundArrayAccess { Expression.Type: var arrayType } || IsInvariantArray(arrayType))));
 
-            RefKind receiverRefKind = methodOrIndexer.ContainingType.ExtensionParameter.RefKind;
-            bool isReceiverTakenByValue = receiverRefKind == RefKind.None;
+            return refKind;
 
-            if (rewrittenReceiver.Type.IsReferenceType ||
-                (isReceiverTakenByValue && methodOrIndexer is MethodSymbol)) // Extension methods with by-value receivers capture by value as classic extension methods do.
+            RefKind getExtensionBlockMemberReceiverCaptureRefKind(BoundExpression rewrittenReceiver, Symbol methodOrIndexer)
             {
-                return RefKind.None;
-            }
+                Debug.Assert(rewrittenReceiver.Type is { });
+                Debug.Assert(methodOrIndexer.ContainingType.ExtensionParameter is { });
 
-            if (isReceiverTakenByValue)
-            {
+                RefKind receiverRefKind = methodOrIndexer.ContainingType.ExtensionParameter.RefKind;
+                bool isReceiverTakenByValue = receiverRefKind == RefKind.None;
+
+                if (rewrittenReceiver.Type.IsReferenceType ||
+                    (isReceiverTakenByValue && methodOrIndexer is MethodSymbol)) // Extension methods with by-value receivers capture by value as classic extension methods do.
+                {
+                    return RefKind.None;
+                }
+
+                if (isReceiverTakenByValue)
+                {
+                    if (CodeGenerator.HasHome(rewrittenReceiver,
+                                        CodeGenerator.AddressKind.ReadOnly,
+                                        _factory.CurrentFunction,
+                                        peVerifyCompatEnabled: false,
+                                        stackLocalsOpt: null))
+                    {
+                        return RefKindExtensions.StrictIn;
+                    }
+
+                    return RefKind.None;
+                }
+
+                RefKind refKind = ExtensionMethodReferenceRewriter.ReceiverArgumentRefKindFromReceiverRefKind(receiverRefKind);
+
                 if (CodeGenerator.HasHome(rewrittenReceiver,
-                                    CodeGenerator.AddressKind.ReadOnly,
+                                    getArgumentAddressKind(refKind),
                                     _factory.CurrentFunction,
                                     peVerifyCompatEnabled: false,
                                     stackLocalsOpt: null))
                 {
-                    return RefKindExtensions.StrictIn;
+                    return refKind;
                 }
 
                 return RefKind.None;
             }
-
-            RefKind refKind = ExtensionMethodReferenceRewriter.ReceiverArgumentRefKindFromReceiverRefKind(receiverRefKind);
-
-            if (CodeGenerator.HasHome(rewrittenReceiver,
-                                getArgumentAddressKind(refKind),
-                                _factory.CurrentFunction,
-                                peVerifyCompatEnabled: false,
-                                stackLocalsOpt: null))
-            {
-                return refKind;
-            }
-
-            return RefKind.None;
 
             static CodeGenerator.AddressKind getArgumentAddressKind(RefKind refKind)
             {
@@ -1013,11 +1066,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReferToTempIfReferenceTypeReceiver(BoundLocal receiverTemp, ref BoundAssignmentOperator assignmentToTemp, out BoundAssignmentOperator? extraRefInitialization, ArrayBuilder<LocalSymbol> temps)
+        private BoundLocal ReferToTempIfReferenceTypeReceiver(BoundExpression receiver, [NotNull] ref BoundAssignmentOperator? assignmentToTemp, ArrayBuilder<BoundExpression> stores, ArrayBuilder<LocalSymbol> temps)
         {
-            Debug.Assert(assignmentToTemp.IsRef);
+            Debug.Assert(receiver is BoundArrayAccess { Type.IsReferenceType: false } or BoundLocal);
+            Debug.Assert(receiver is not BoundArrayAccess { Expression: var array, Indices: var indices } ||
+                         (array is BoundLocal && indices.All(e => e is BoundLocal or BoundLiteral)));
+            Debug.Assert(assignmentToTemp is not null == receiver is BoundLocal);
+            Debug.Assert(assignmentToTemp?.IsRef != false);
+            Debug.Assert(assignmentToTemp is null ||
+                         (assignmentToTemp.Left is BoundLocal { LocalSymbol: { } var1 } &&
+                          receiver is BoundLocal { LocalSymbol: { } var2 } &&
+                          var1 == (object)var2));
 
-            var receiverType = receiverTemp.Type;
+            var receiverType = receiver.Type;
             Debug.Assert(receiverType is object);
 
             // A case where T is actually a class must be handled specially.
@@ -1027,51 +1088,75 @@ namespace Microsoft.CodeAnalysis.CSharp
             // reference to the stack. So, for a class we need to emit a reference to a temporary
             // location, rather than to the original location
 
-            BoundLocal cache = _factory.Local(_factory.SynthesizedLocal(receiverType));
-
-            temps.Add(cache.LocalSymbol);
+            BoundLocal result;
 
             if (!receiverType.IsReferenceType)
             {
-                // Store receiver ref to a different ref local - intermediate ref
-                var intermediateRef = _factory.Local(_factory.SynthesizedLocal(receiverType, refKind: receiverTemp.LocalSymbol.RefKind));
-                temps.Add(intermediateRef.LocalSymbol);
-                extraRefInitialization = assignmentToTemp.Update(intermediateRef, assignmentToTemp.Right, assignmentToTemp.IsRef, assignmentToTemp.Type);
+                BoundLocal cache = _factory.Local(_factory.SynthesizedLocal(receiverType));
+                temps.Add(cache.LocalSymbol);
 
-                // `receiverTemp` initialization is adjusted as follows:
-                // If we are dealing with a value type, use value of the intermediate ref.
-                // Otherwise, use an address of a temp where we store the underlying reference type instance.
+                RefKind refKind;
+                if (receiver is BoundLocal receiverTemp)
+                {
+                    Debug.Assert(assignmentToTemp is not null);
+                    stores.Add(assignmentToTemp);
+                    temps.Add(receiverTemp.LocalSymbol);
+                    refKind = receiverTemp.LocalSymbol.RefKind;
+                }
+                else
+                {
+                    Debug.Assert(receiver is BoundArrayAccess);
+                    Debug.Assert(assignmentToTemp is null);
+                    refKind = RefKind.Ref;
+                }
+
+                receiverTemp = _factory.Local(_factory.SynthesizedLocal(receiverType, refKind: refKind));
+
+                // `receiverTemp` is initialized as follows:
+                // If we are dealing with a value type, use receiver ref.
+                // Otherwise, use an address of a temp where we store the receiver value.
                 assignmentToTemp =
-                    assignmentToTemp.Update(
-                        assignmentToTemp.Left,
+                    new BoundAssignmentOperator(
+                        receiver.Syntax,
+                        receiverTemp,
 #pragma warning disable format
-                        new BoundComplexConditionalReceiver(receiverTemp.Syntax,
-                                                            intermediateRef,
-                                                            _factory.Sequence(new BoundExpression[] { _factory.AssignmentExpression(cache, intermediateRef) }, cache),
+                        new BoundComplexConditionalReceiver(receiver.Syntax,
+                                                            receiver,
+                                                            _factory.Sequence(new BoundExpression[] { _factory.AssignmentExpression(cache, receiver) }, cache),
                                                             receiverType) { WasCompilerGenerated = true },
 #pragma warning restore format
-                        assignmentToTemp.IsRef,
-                        assignmentToTemp.Type);
+                        isRef: true,
+                        receiverType);
 
+                result = receiverTemp;
                 // SpillSequenceSpiller should be able to recognize this node in order to handle its spilling. 
                 Debug.Assert(SpillSequenceSpiller.IsComplexConditionalInitializationOfReceiverRef(assignmentToTemp, out _, out _, out _, out _));
             }
+            else if (receiver is BoundLocal receiverTemp)
+            {
+                Debug.Assert(assignmentToTemp is not null);
+
+                // We are dealing with a reference type. We can simply capture the instance instead of its address.  
+                receiverTemp = _factory.Local(_factory.SynthesizedLocal(receiverType, refKind: RefKind.None));
+
+                assignmentToTemp =
+                    new BoundAssignmentOperator(
+                        receiver.Syntax,
+                        receiverTemp,
+                        assignmentToTemp.Right,
+                        isRef: false,
+                        receiverType);
+
+                result = receiverTemp;
+            }
             else
             {
-                extraRefInitialization = null;
-
-                // We are dealing with a reference type. We can simply copy the instance into a temp and 
-                // use its address instead.  
-                assignmentToTemp =
-                    assignmentToTemp.Update(
-                        assignmentToTemp.Left,
-                        _factory.Sequence(new BoundExpression[] { _factory.AssignmentExpression(cache, assignmentToTemp.Right) }, cache),
-                        assignmentToTemp.IsRef,
-                        assignmentToTemp.Type);
+                throw ExceptionUtilities.UnexpectedValue(receiver);
             }
 
-            ((SynthesizedLocal)receiverTemp.LocalSymbol).SetIsKnownToReferToTempIfReferenceType();
-            Debug.Assert(CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(receiverTemp));
+            ((SynthesizedLocal)result.LocalSymbol).SetIsKnownToReferToTempIfReferenceType();
+            Debug.Assert(CodeGenerator.ReceiverIsKnownToReferToTempIfReferenceType(result));
+            return result;
         }
 
         /// <summary>

@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     assignment,
                                     out LocalSymbol receiverRefLocal,
                                     out BoundComplexConditionalReceiver complexReceiver,
-                                    out BoundLocal valueTypeReceiver,
+                                    out BoundExpression valueTypeReceiver,
                                     out BoundLocal referenceTypeReceiver))
                             {
                                 Debug.Assert(receiverRefLocal.IsKnownToReferToTempIfReferenceType);
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAssignmentOperator assignment,
             out LocalSymbol outReceiverRefLocal,
             out BoundComplexConditionalReceiver outComplexReceiver,
-            out BoundLocal outValueTypeReceiver,
+            out BoundExpression outValueTypeReceiver,
             out BoundLocal outReferenceTypeReceiver)
         {
             if (assignment is
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } receiverRefLocal },
                     Right: BoundComplexConditionalReceiver
                     {
-                        ValueTypeReceiver: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } } valueTypeReceiver,
+                        ValueTypeReceiver: var valueTypeReceiver,
                         ReferenceTypeReceiver: BoundSequence
                         {
                             Locals.IsEmpty: true,
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 IsRef: false,
                                 Left: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.None } referenceTypeClone },
-                                Right: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } originalReceiverReference }
+                                Right: var originalReceiver
                             }
                             ],
                             Value: BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: RefKind.None } } referenceTypeReceiver
@@ -556,14 +556,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     } complexReceiver,
                 }
                 && (object)referenceTypeClone == referenceTypeReceiver.LocalSymbol
-                && (object)originalReceiverReference == valueTypeReceiver.LocalSymbol
-                && (object)receiverRefLocal != valueTypeReceiver.LocalSymbol
+                && (object)receiverRefLocal != (valueTypeReceiver as BoundLocal)?.LocalSymbol
                 && (object)receiverRefLocal != referenceTypeClone
                 && receiverRefLocal.Type.IsTypeParameter()
                 && !receiverRefLocal.Type.IsReferenceType
                 && !receiverRefLocal.Type.IsValueType
                 && valueTypeReceiver.Type.Equals(receiverRefLocal.Type, TypeCompareKind.AllIgnoreOptions)
-                && receiverRefLocal.RefKind == valueTypeReceiver.LocalSymbol.RefKind
                 && referenceTypeReceiver.Type.Equals(receiverRefLocal.Type, TypeCompareKind.AllIgnoreOptions)
             )
             {
@@ -571,9 +569,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outComplexReceiver = complexReceiver;
                 outValueTypeReceiver = valueTypeReceiver;
                 outReferenceTypeReceiver = referenceTypeReceiver;
-                return true;
+
+                if (valueTypeReceiver is BoundLocal valueTypeReceiverLocal)
+                {
+                    if (valueTypeReceiverLocal is { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } }
+                        && originalReceiver is BoundLocal { LocalSymbol: { SynthesizedKind: SynthesizedLocalKind.LoweringTemp, RefKind: not RefKind.None } } originalReceiverLocal
+                        && (object)originalReceiverLocal.LocalSymbol == valueTypeReceiverLocal.LocalSymbol
+                        && receiverRefLocal.RefKind == valueTypeReceiverLocal.LocalSymbol.RefKind
+                    )
+                    {
+                        return true;
+                    }
+                }
+                else if (valueTypeReceiver is BoundArrayAccess valueTypeReceiverArrayAccess
+                         && originalReceiver is BoundArrayAccess originalReceiverArrayAccess
+                         && receiverRefLocal.RefKind == RefKind.Ref
+                )
+                {
+                    if (originalReceiverArrayAccess.Expression is not BoundLocal originalReceiverArrayAccessExpressionLocal
+                        || valueTypeReceiverArrayAccess.Expression is not BoundLocal valueTypeReceiverArrayAccessExpressionLocal
+                        || (object)originalReceiverArrayAccessExpressionLocal.LocalSymbol != valueTypeReceiverArrayAccessExpressionLocal.LocalSymbol
+                        || originalReceiverArrayAccess.Indices.Length != valueTypeReceiverArrayAccess.Indices.Length
+                    )
+                    {
+                        goto doesNotMatch;
+                    }
+
+                    for (int i = 0; i < originalReceiverArrayAccess.Indices.Length; i++)
+                    {
+                        BoundExpression originalReceiverIndex = originalReceiverArrayAccess.Indices[i];
+                        BoundExpression valueTypeReceiverIndex = valueTypeReceiverArrayAccess.Indices[i];
+
+                        if (originalReceiverIndex.ConstantValueOpt is { } originalReceiverIndexConstant
+                            && valueTypeReceiverIndex.ConstantValueOpt is { } valueTypeReceiverIndexConstant
+                            && originalReceiverIndexConstant == valueTypeReceiverIndexConstant
+                            )
+                        {
+                            continue;
+                        }
+
+                        if (originalReceiverIndex is not BoundLocal originalReceiverIndexLocal
+                            || valueTypeReceiverIndex is not BoundLocal valueTypeReceiverIndexLocal
+                            || (object)originalReceiverIndexLocal.LocalSymbol != valueTypeReceiverIndexLocal.LocalSymbol)
+                        {
+                            goto doesNotMatch;
+                        }
+                    }
+
+                    return true;
+                }
             }
 
+doesNotMatch:
             outReceiverRefLocal = null;
             outComplexReceiver = null;
             outValueTypeReceiver = null;
@@ -907,10 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.ArrayAccess:
                         var arrayAccess = (BoundArrayAccess)left;
                         // array and indices are pushed on stack so need to spill that
-                        var expression = VisitExpression(ref leftBuilder, arrayAccess.Expression);
-                        expression = Spill(leftBuilder, expression, RefKind.None);
-                        var indices = this.VisitExpressionList(ref leftBuilder, arrayAccess.Indices, forceSpill: true);
-                        left = arrayAccess.Update(expression, indices, arrayAccess.Type);
+                        left = SpillArrayAccessConstituentParts(ref leftBuilder, arrayAccess);
                         break;
 
                     default:
@@ -954,10 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (field.ReceiverOpt is BoundArrayAccess arrayAccess)
                     {
                         // an arrayAccess returns a ref so can only be called after the await, but spill expression and indices
-                        var expression = VisitExpression(ref leftBuilder, arrayAccess.Expression);
-                        expression = Spill(leftBuilder, expression, RefKind.None);
-                        var indices = this.VisitExpressionList(ref leftBuilder, arrayAccess.Indices, forceSpill: true);
-                        receiver = arrayAccess.Update(expression, indices, arrayAccess.Type);
+                        receiver = SpillArrayAccessConstituentParts(ref leftBuilder, arrayAccess);
                         // dummy array access to trigger IndexOutRangeException or NRE
                         // we only need this if the array access is a receiver since
                         // a[0] = b triggers a NRE/IORE on assignment
@@ -983,6 +1024,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return field;
             }
+        }
+
+        private BoundArrayAccess SpillArrayAccessConstituentParts(ref BoundSpillSequenceBuilder builder, BoundArrayAccess arrayAccess)
+        {
+            var expression = VisitExpression(ref builder, arrayAccess.Expression);
+            expression = Spill(builder, expression, RefKind.None);
+            var indices = this.VisitExpressionList(ref builder, arrayAccess.Indices, forceSpill: true);
+            return arrayAccess.Update(expression, indices, arrayAccess.Type);
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -1054,7 +1103,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(refKind == RefKind.None || !receiver.Type.IsReferenceType);
 
-                receiver = Spill(receiverBuilder, VisitExpression(ref receiverBuilder, receiver), refKind: refKind);
+                if (refKind == RefKind.Ref &&
+                    receiver is BoundArrayAccess arrayAccess &&
+                    !LocalRewriter.IsInvariantArray(arrayAccess.Expression.Type))
+                {
+                    receiver = SpillArrayAccessConstituentParts(ref receiverBuilder, arrayAccess);
+                    // dummy array access to trigger IndexOutRangeException or NRE
+                    Spill(receiverBuilder, receiver, sideEffectsOnly: true);
+                }
+                else
+                {
+                    receiver = Spill(receiverBuilder, VisitExpression(ref receiverBuilder, receiver), refKind: refKind);
+                }
 
                 if (refKind != RefKind.None &&
                     CodeGenerator.IsPossibleReferenceTypeReceiverOfConstrainedCall(receiver) &&
@@ -1074,9 +1134,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var save_Syntax = _F.Syntax;
                     _F.Syntax = node.Syntax;
 
+                    //  (object)default(T) == null
+                    var isClass = _F.IsNullReference(_F.Default(receiverType));
+
                     var cache = _F.Local(_F.SynthesizedLocal(receiverType));
                     receiverBuilder.AddLocal(cache.LocalSymbol);
-                    receiverBuilder.AddStatement(_F.ExpressionStatement(new BoundComplexConditionalReceiver(node.Syntax, cache, _F.Sequence(new[] { _F.AssignmentExpression(cache, receiver) }, cache), receiverType) { WasCompilerGenerated = true }));
+                    receiverBuilder.AddStatement(_F.If(isClass, _F.Assignment(cache, receiver)));
 
                     receiver = _F.ComplexConditionalReceiver(receiver, cache);
                     _F.Syntax = save_Syntax;
