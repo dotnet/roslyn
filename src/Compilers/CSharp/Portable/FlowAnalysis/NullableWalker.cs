@@ -2101,18 +2101,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
                     }
-                case PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property when
-                        variable.ContainingSlot is > 0 and var containingSlot &&
-                        _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
-                        Binder.IsUnionTypeValueProperty(unionType, property):
-                    {
-                        return unionType.UnionValueDeclaredNullableFlowState;
-                    }
 
                 case FieldSymbol:
                 case PropertySymbol:
                 case EventSymbol:
-                    return GetDefaultState(symbol);
+                    return GetDefaultState(variable.ContainingSlot, symbol);
                 case { Kind: SymbolKind.ErrorType }:
                     return NullableFlowState.NotNull;
                 default:
@@ -2959,7 +2952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var (variable, slot) in members)
             {
                 var symbol = AsMemberOfType(targetType, variable.Symbol);
-                SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(symbol));
+                SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(targetSlot, symbol));
                 InheritDefaultState(GetTypeOrReturnType(symbol), slot);
             }
             members.Free();
@@ -3003,8 +2996,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeWithAnnotations;
         }
 
-        private NullableFlowState GetDefaultState(Symbol symbol)
+        private NullableFlowState GetDefaultState(int containingSlot, Symbol symbol)
         {
+            if (symbol is PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property &&
+                containingSlot > 0 &&
+                _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
+                Binder.IsUnionTypeValueProperty(unionType, property))
+            {
+                return unionType.UnionValueDeclaredNullableFlowState;
+            }
+
             return ApplyUnconditionalAnnotations(GetTypeOrReturnTypeWithAnnotations(symbol).ToTypeWithState(), GetRValueAnnotations(symbol)).State;
         }
 
