@@ -19,6 +19,10 @@ is emitted as a C# `/** ... */` comment, with source mappings back to the Razor 
 C# handles XML documentation validation and symbol references, including `cref`
 and `typeparamref`.
 
+With ordinary `#line` pragmas, Razor puts the comment opener on the preceding
+mapped line when it cannot fit before the body, keeping C# diagnostic columns
+aligned with the original XML.
+
 Braces are required. `@documentation foo` reports `RZ1017` because it expects an
 opening `{`; it isn't shorthand for a summary.
 

@@ -157,6 +157,8 @@ public class DocumentationDirectiveIntegrationTest : RazorIntegrationTestBase
     [InlineData("@documentation\r\n{\r\n<summary>Hello</summary>\r\n}", false)]
     [InlineData("@documentation\n{\n<summary>Hello</summary>\n}", true)]
     [InlineData("@documentation\n{\n<summary>Hello</summary>\n}", false)]
+    [InlineData("@documentation\n{<summary>Hello</summary>}", true)]
+    [InlineData("@documentation\n{<summary>Hello</summary>}", false)]
     public void SourceMappingPreservesXml(string source, bool enhanced)
     {
         var result = CompileToCSharp(source, csharpParseOptions: CSharpParseOptions.WithLanguageVersion(
@@ -178,6 +180,16 @@ public class DocumentationDirectiveIntegrationTest : RazorIntegrationTestBase
     [InlineData("@documentation {<summary>See <see cref=\"MissingType\"/>.</summary>}", false)]
     [InlineData("@documentation {\n<summary>See <see cref=\"MissingType\"/>.</summary>\n}", true)]
     [InlineData("@documentation {\n<summary>See <see cref=\"MissingType\"/>.</summary>\n}", false)]
+    [InlineData("@documentation\n{<summary><see cref=\"MissingType\"/></summary>}", true)]
+    [InlineData("@documentation\n{<summary><see cref=\"MissingType\"/></summary>}", false)]
+    [InlineData("@documentation\n\t{<summary><see cref=\"MissingType\"/></summary>}", true)]
+    [InlineData("@documentation\n\t{<summary><see cref=\"MissingType\"/></summary>}", false)]
+    [InlineData("@documentation\n  {<summary><see cref=\"MissingType\"/></summary>}", true)]
+    [InlineData("@documentation\n  {<summary><see cref=\"MissingType\"/></summary>}", false)]
+    [InlineData("@documentation\n   {<summary><see cref=\"MissingType\"/></summary>}", true)]
+    [InlineData("@documentation\n   {<summary><see cref=\"MissingType\"/></summary>}", false)]
+    [InlineData("@documentation{<summary><see cref=\"MissingType\"/></summary>}", true)]
+    [InlineData("@documentation{<summary><see cref=\"MissingType\"/></summary>}", false)]
     public void DocumentationDiagnosticsMapToRazor(string source, bool enhanced)
     {
         var result = CompileToCSharp(source, csharpParseOptions: CSharpParseOptions

@@ -38,23 +38,38 @@ internal sealed class DocumentationIntermediateNode : ExtensionIntermediateNode
         }
 
         // Keep a leading '*' or '/' in the content separate from the comment opener.
-        const string commentStart = "/** ";
+        const string commentStart = "/**";
+        const string commentEnd = "*/";
+        var inlineCommentStartLength = commentStart.Length + 1;
         var writer = context.CodeWriter;
         if (context.Options.UseEnhancedLinePragma)
         {
-            using (context.BuildEnhancedLinePragma(Source, characterOffset: commentStart.Length))
+            using (context.BuildEnhancedLinePragma(Source, characterOffset: inlineCommentStartLength))
             {
-                writer.Write(commentStart).Write(Content).WriteLine("*/");
+                writer.Write(commentStart).Write(" ").Write(Content).WriteLine(commentEnd);
+            }
+        }
+        else if (Source is { LineIndex: > 0 } source && source.CharacterIndex < inlineCommentStartLength)
+        {
+            // For "@documentation\n{<summary>...</summary>}", the XML follows just the opening brace.
+            // An inline "/** " shifts it three columns right, which ordinary pragmas cannot correct.
+            // Put the opener on the preceding mapped line to preserve the XML's column.
+            using (context.BuildLinePragma(source.WithLineIndex(source.LineIndex - 1)))
+            {
+                writer.WriteLine(commentStart);
+                writer.WritePadding(offset: 0, source, context);
+                context.AddSourceMappingFor(this);
+                writer.Write(Content).WriteLine(commentEnd);
             }
         }
         else
         {
             using (context.BuildLinePragma(Source))
             {
-                writer.WritePadding(offset: commentStart.Length, Source, context);
-                writer.Write(commentStart);
+                writer.WritePadding(offset: inlineCommentStartLength, Source, context);
+                writer.Write(commentStart).Write(" ");
                 context.AddSourceMappingFor(this);
-                writer.Write(Content).WriteLine("*/");
+                writer.Write(Content).WriteLine(commentEnd);
             }
         }
     }
