@@ -5,6 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("RunTests.UnitTests")]
 
 namespace RunTests;
 

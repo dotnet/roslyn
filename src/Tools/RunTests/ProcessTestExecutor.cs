@@ -105,10 +105,15 @@ namespace RunTests
         /// to other install-location probing. On CI agents where those variables are not set for the
         /// architecture actually in use (observed on some Linux legs), the test host fails to start
         /// with a "libhostfxr" load failure. We already know exactly which dotnet install we want
-        /// (<paramref name="dotnetPath"/>), so set DOTNET_ROOT and the current architecture's
-        /// DOTNET_ROOT_* variable explicitly rather than relying on the ambient environment.
+        /// (<paramref name="dotnetPath"/>), so set DOTNET_ROOT explicitly and set the current
+        /// architecture's DOTNET_ROOT_* variable only when neither test options nor the ambient
+        /// environment already specifies it.
         /// </summary>
-        private static void AddDotNetRootEnvironmentVariables(Dictionary<string, string> environmentVariables, string dotnetPath, string architecture)
+        internal static void AddDotNetRootEnvironmentVariables(
+            Dictionary<string, string> environmentVariables,
+            string dotnetPath,
+            string architecture,
+            Func<string, string?> getEnvironmentVariable)
         {
             var dotnetDir = Path.GetDirectoryName(dotnetPath)!;
             environmentVariables["DOTNET_ROOT"] = dotnetDir;
@@ -123,7 +128,11 @@ namespace RunTests
 
             if (archSuffix is not null)
             {
-                environmentVariables[$"DOTNET_ROOT_{archSuffix}"] = dotnetDir;
+                var variableName = $"DOTNET_ROOT_{archSuffix}";
+                if (!environmentVariables.ContainsKey(variableName) && string.IsNullOrEmpty(getEnvironmentVariable(variableName)))
+                {
+                    environmentVariables[variableName] = dotnetDir;
+                }
             }
         }
 
@@ -155,7 +164,7 @@ namespace RunTests
 
                 // Define environment variables for processes started via ProcessRunner.
                 var environmentVariables = new Dictionary<string, string>(options.EnvironmentVariables);
-                AddDotNetRootEnvironmentVariables(environmentVariables, options.DotnetFilePath, options.Architecture);
+                AddDotNetRootEnvironmentVariables(environmentVariables, options.DotnetFilePath, options.Architecture, Environment.GetEnvironmentVariable);
 
                 // NOTE: xUnit seems to have an occasional issue creating logs create
                 // an empty log just in case, so our runner will still fail.
