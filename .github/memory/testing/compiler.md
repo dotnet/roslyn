@@ -48,3 +48,5 @@ The resolver prefers IL candidates for a given MVID and retains ReadyToRun
 candidates as fallbacks when no IL candidate has that MVID. Its tests use
 synthetic PE header markers to exercise selection without invoking crossgen2
 or executing native code.
+An IL candidate discovered under another filename replaces an already cached
+ReadyToRun fallback for the same MVID.

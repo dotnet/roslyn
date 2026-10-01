@@ -64,6 +64,27 @@ namespace BuildValidator.UnitTests
             Assert.Equal(otherILPath, otherInfo.FilePath);
         }
 
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void PrefersILAcrossFileNames(bool readyToRunFirst)
+        {
+            var (ilPath, readyToRunPath, reference) = CreateCandidates();
+            var renamedILPath = Temp.CreateDirectory().CreateFile("Renamed.dll").WriteAllBytes(File.ReadAllBytes(ilPath)).Path;
+            var ilReference = reference with { FileName = "Renamed.dll" };
+            var resolver = new LocalReferenceResolver(
+                new Dictionary<string, List<string>>
+                {
+                    [reference.FileName] = new List<string> { readyToRunPath },
+                    [ilReference.FileName] = new List<string> { renamedILPath },
+                }, NullLogger.Instance);
+
+            Assert.True(resolver.TryGetAssemblyInfo(readyToRunFirst ? reference : ilReference, out _));
+            Assert.True(resolver.TryGetAssemblyInfo(readyToRunFirst ? ilReference : reference, out var info));
+            Assert.Equal(renamedILPath, info.FilePath);
+            Assert.Equal(renamedILPath, resolver.GetCachedReferencePath(reference));
+        }
+
         [Fact]
         public void DoesNotResolveUnknownMvid()
         {

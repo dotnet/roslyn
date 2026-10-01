@@ -24,6 +24,7 @@ namespace BuildValidator
         /// This maps MVID to the <see cref="AssemblyInfo"/> we are using for that particular MVID.
         /// </summary>
         private readonly Dictionary<Guid, AssemblyInfo> _mvidMap = new();
+        private readonly HashSet<Guid> _readyToRunMvids = new();
 
         /// <summary>
         /// Map file names to all of the paths it exists at. This map is depopulated as we realize
@@ -174,20 +175,26 @@ namespace BuildValidator
                     continue;
                 }
 
-                TryCacheMvid(currentInfo);
+                TryCacheMvid(currentInfo, isReadyToRun: false);
             }
 
             foreach (var readyToRunInfo in readyToRunInfoList)
             {
-                TryCacheMvid(readyToRunInfo);
+                TryCacheMvid(readyToRunInfo, isReadyToRun: true);
             }
 
-            void TryCacheMvid(AssemblyInfo assemblyInfo)
+            void TryCacheMvid(AssemblyInfo assemblyInfo, bool isReadyToRun)
             {
-                if (!_mvidMap.ContainsKey(assemblyInfo.Mvid))
+                // A different filename can expose an IL copy after an R2R fallback was cached.
+                if (!_mvidMap.ContainsKey(assemblyInfo.Mvid) ||
+                    (!isReadyToRun && _readyToRunMvids.Remove(assemblyInfo.Mvid)))
                 {
                     _logger.LogTrace($"Caching [{assemblyInfo.Mvid}, {assemblyInfo.FilePath}]");
                     _mvidMap[assemblyInfo.Mvid] = assemblyInfo;
+                    if (isReadyToRun)
+                    {
+                        _readyToRunMvids.Add(assemblyInfo.Mvid);
+                    }
                 }
             }
 
