@@ -21,9 +21,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments;
 [Trait(Traits.Feature, Traits.Features.DocumentationComments)]
 public sealed class CrefPasteCommandHandlerTests
 {
-    private static void TestPaste(string markup, string pasteText, string expectedMarkup, string? afterUndoMarkup = null)
+    private static void TestPaste(string markup, string pasteText, string expectedMarkup, string? afterUndoMarkup = null, bool fixCrefOnPaste = true)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(markup);
+        workspace.GlobalOptions.SetGlobalOption(CrefPasteOptionsStorage.FixCrefOnPaste, LanguageNames.CSharp, fixCrefOnPaste);
         var document = workspace.Documents.Single();
         var textView = document.GetTextView();
         var textBuffer = document.GetTextBuffer();
@@ -144,6 +145,16 @@ public sealed class CrefPasteCommandHandlerTests
             /// <see cref="List<int>$$"/>
             class C { }
             """);
+
+    [WpfFact]
+    public void NoChangeWhenOptionDisabled()
+        => TestPaste("""
+            /// <see cref="$$"/>
+            class C { }
+            """, "List<int>", """
+            /// <see cref="List<int>$$"/>
+            class C { }
+            """, fixCrefOnPaste: false);
 
     [WpfFact]
     public void NoChangeWithoutGenericBrackets()

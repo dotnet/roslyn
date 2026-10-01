@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -30,11 +31,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 internal sealed class CrefPasteCommandHandler(
     IThreadingContext threadingContext,
     ITextUndoHistoryRegistry undoHistoryRegistry,
-    IEditorOperationsFactoryService editorOperationsFactoryService) : IChainedCommandHandler<PasteCommandArgs>
+    IEditorOperationsFactoryService editorOperationsFactoryService,
+    IGlobalOptionService globalOptions) : IChainedCommandHandler<PasteCommandArgs>
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
     private readonly IEditorOperationsFactoryService _editorOperationsFactoryService = editorOperationsFactoryService;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     public string DisplayName => nameof(CrefPasteCommandHandler);
 
@@ -49,6 +52,9 @@ internal sealed class CrefPasteCommandHandler(
         var snapshotBeforePaste = subjectBuffer.CurrentSnapshot;
 
         nextCommandHandler();
+
+        if (!_globalOptions.GetOption(CrefPasteOptionsStorage.FixCrefOnPaste, LanguageNames.CSharp))
+            return;
 
         var changes = snapshotBeforePaste.Version.Changes;
         if (changes is null || changes.Count == 0)
