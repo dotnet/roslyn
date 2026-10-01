@@ -1,6 +1,8 @@
 # Roslyn (.NET Compiler Platform) — Copilot Instructions
 
 > This is the **canonical** repo-wide agent entry point. `AGENTS.md` at the repo root points here. Path-scoped rules in `.github/instructions/{Compiler,IDE,Razor}.instructions.md` apply automatically by area and supplement this file. This file establishes the memory-first orientation protocol and doc-maintenance obligation.
+>
+> Across AI-generated output—including code, documentation, and user-facing prose—prefer terminology already used in this repository when possible.
 
 ## Project Overview
 
@@ -72,10 +74,6 @@ Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerat
 - It is acceptable to have async methods with no awaits. CS1998 is not active for this repository.
 
 Full conventions: `.github/memory/CONVENTIONS.md` and `.github/instructions/{Compiler,IDE,Razor}.instructions.md`.
-
-## AI-Generated User-Facing Prose
-
-When writing user-facing prose on behalf of project contributors—such as GitHub comments, pull request summaries, and issues—prefer terminology used by the repository when possible. This guidance applies to prose, not source-code identifiers or code style.
 
 ## Agent Orientation
 
