@@ -204,6 +204,7 @@ namespace TestRunner.RunTests
             ConsoleUtil.WriteLine($"Command: {testResult.CommandLine}");
             ConsoleUtil.WriteLine($"xUnit output log: {outputLogPath}");
 
+            Directory.CreateDirectory(_options.LogFilesDirectory);
             File.WriteAllText(outputLogPath, testResult.StandardOutput ?? "");
 
             if (!string.IsNullOrEmpty(testResult.ErrorOutput))

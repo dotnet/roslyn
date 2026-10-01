@@ -30,6 +30,7 @@ internal static class RegressionHarness
             Check(Process(s_dotnet, root, succeeds: false, assembly.Location, "--helix").Contains("Unrecognized arguments"), "Retired mode switch must exit unsuccessfully");
         }
         CheckLocalResponse(local);
+        CheckFailureLogging(local);
         CheckScheduling(helix);
         await CheckHelixArtifacts(helix, repo);
         CheckPreparedPayload(repo, localPath, helixPath, includeHelix: true);
@@ -198,6 +199,29 @@ internal static class RegressionHarness
         foreach (var text in new[] { $"\"{file}\"", "TestTimeout=25minutes", "/Logger:html;LogFileName=results.html", "/TestCaseFilter:\"FullyQualifiedName~Example\"", "/ResultsDirectory:" + Property(options, "TestResultsDirectory") })
             Check(rsp.Contains(text, StringComparison.Ordinal), "Missing local response content: " + text);
         Check((bool)Property(options, "Sequential") && (bool)Property(options, "CollectDumps") && (TimeSpan)Property(options, "Timeout") == TimeSpan.FromMinutes(2), "Local execution flags");
+    }
+
+    private static void CheckFailureLogging(Assembly assembly)
+    {
+        var root = Path.Combine(s_root, "failure-logging");
+        Fixture(root, "Failure.UnitTests", "net10.0");
+        var logs = Path.Combine(root, "missing", "logs");
+        var options = Options(assembly, root, "--testFramework=core", "--logs=" + logs);
+        var runnerType = Type(assembly, Prefix(assembly) + "TestRunner");
+        var workItem = Items(Call(runnerType, "CreateWorkItemsForFullAssemblies", Discover(assembly, options))!)[0];
+        var resultInfo = Activator.CreateInstance(Type(assembly, Prefix(assembly) + "TestResultInfo"), All, null,
+            [1, null, null, TimeSpan.Zero, "failure output", "failure error"], null)!;
+        var resultType = Type(assembly, Prefix(assembly) + "TestResult");
+        var constructor = resultType.GetConstructors(All).Single();
+        var processes = Activator.CreateInstance(constructor.GetParameters()[3].ParameterType);
+        var result = constructor.Invoke([workItem, resultInfo, "test command", processes, null]);
+        var executor = Activator.CreateInstance(Type(assembly, Prefix(assembly) + "ProcessTestExecutor"), nonPublic: true);
+        var runner = Activator.CreateInstance(runnerType, All, null, [options, executor], null);
+
+        Check(!Directory.Exists(logs), "Failure logging fixture must start without a log directory");
+        runnerType.GetMethod("PrintFailedTestResult", All)!.Invoke(runner, [result]);
+        var log = Path.Combine(logs, $"xUnitFailure-{Property(result, "DisplayName")}.log");
+        Check(File.ReadAllText(log) == "failure output", "Failure output must be written to a newly created log directory");
     }
 
     private static string[] SchedulerFixtures(string root)
