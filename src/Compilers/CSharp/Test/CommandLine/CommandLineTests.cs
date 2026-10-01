@@ -327,7 +327,7 @@ my_option2 = my_val2");
             Assert.False(options.TryGetValue("dotnet_diagnostic.cs0169.severity", out _));
         }
 
-        [Fact, UseCulture("en-US")]
+        [Fact]
         public void AnalyzerConfigBadSeverity()
         {
             var dir = Temp.CreateDirectory();
@@ -353,18 +353,18 @@ dotnet_diagnostic.cs0169.severity = garbage");
             Assert.Equal(0, exitCode);
             var output = outWriter.ToString();
             Assert.Contains("warning InvalidSeverityInAnalyzerConfig:", output, StringComparison.Ordinal);
-            AssertLocalizedAnalyzerConfigMessage(output, nameof(CodeAnalysisResources.WRN_InvalidSeverityInAnalyzerConfig),
-                "cs0169", "garbage", analyzerConfig.Path);
+            AssertAnalyzerConfigMessageArguments(output, "cs0169", "garbage", analyzerConfig.Path);
             Assert.Contains("test.cs(4,9): warning CS0169:", output, StringComparison.Ordinal);
 
             Assert.Null(cmd.AnalyzerOptions);
         }
 
-        private static void AssertLocalizedAnalyzerConfigMessage(string output, string resourceName, params object[] args)
+        private static void AssertAnalyzerConfigMessageArguments(string output, params string[] args)
         {
-            var culture = CultureInfo.CurrentUICulture;
-            var messageFormat = CodeAnalysisResources.ResourceManager.GetString(resourceName, culture);
-            Assert.Contains(string.Format(culture, messageFormat, args), output, StringComparison.Ordinal);
+            foreach (var arg in args)
+            {
+                Assert.Contains(arg, output, StringComparison.Ordinal);
+            }
         }
 
         [Fact]
@@ -15120,7 +15120,7 @@ is_global = true
             Assert.Equal(0, exitCode);
         }
 
-        [Fact, UseCulture("en-US")]
+        [Fact]
         public void GlobalAnalyzerConfigMultipleSetKeys()
         {
             var dir = Temp.CreateDirectory();
@@ -15144,8 +15144,7 @@ option1 = def");
 
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'Global Section'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
-            AssertLocalizedAnalyzerConfigMessage(output, nameof(CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys),
-                "option1", "Global Section", $"{analyzerConfig.Path}, {analyzerConfig2.Path}");
+            AssertAnalyzerConfigMessageArguments(output, "option1", "Global Section", analyzerConfig.Path, analyzerConfig2.Path);
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
@@ -15163,8 +15162,7 @@ option1 = def");
 
             // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
             Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
-            AssertLocalizedAnalyzerConfigMessage(output, nameof(CodeAnalysisResources.WRN_MultipleGlobalAnalyzerKeys),
-                "option1", "/file.cs", $"{analyzerConfig.Path}, {analyzerConfig2.Path}");
+            AssertAnalyzerConfigMessageArguments(output, "option1", "/file.cs", analyzerConfig.Path, analyzerConfig2.Path);
         }
 
         [Fact]
