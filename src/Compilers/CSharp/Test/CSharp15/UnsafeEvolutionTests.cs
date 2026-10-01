@@ -5728,9 +5728,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         if (!callerAllowUnsafe && compilationReference is null && unsafeModifier != "")
         {
             expectedDiagnostics.Add(
-                // (3,24): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (3,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe public void M() => System.Console.Write(111);
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(3, 24));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 5));
         }
 
         if (apiUnsafe && apiUpdatedRules && callerUpdatedRules && !callerUnsafeBlock)
@@ -8505,9 +8505,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """,
             options: TestOptions.ReleaseDll)
             .VerifyDiagnostics(
-            // (3,16): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // (3,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     unsafe int P => field;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P").WithLocation(3, 16));
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 5));
     }
 
     [Fact]
@@ -14594,27 +14594,27 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         DiagnosticDescription[] expectedUnsafeDiagnostics = allowUnsafe ? [] :
         [
-            // (4,29): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // (4,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public extern void M();
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(4, 29),
-            // (5,28): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(4, 5),
+            // (5,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public extern int P { get; set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P").WithLocation(5, 28),
-            // (6,51): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(5, 5),
+            // (6,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public static extern event System.Action E;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E").WithLocation(6, 51),
-            // (7,24): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(6, 5),
+            // (7,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public extern C(int x);
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(7, 24),
-            // (10,33): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(7, 5),
+            // (10,9): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //         safe static extern void Local();
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Local").WithLocation(10, 33),
-            // (12,28): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(10, 9),
+            // (12,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public extern int A { get; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "A").WithLocation(12, 28),
-            // (13,18): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(12, 5),
+            // (13,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe extern ~C();
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(13, 18),
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(13, 5),
         ];
 
         CreateCompilation(source,
@@ -14694,54 +14694,54 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         DiagnosticDescription[] expectedUnsafeDiagnostics = allowUnsafe ? [] :
         [
-            // (3,15): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // (3,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe void M();
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(3, 15),
-            // (4,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(3, 5),
+            // (4,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe int P { get; set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P").WithLocation(4, 14),
-            // (5,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(4, 5),
+            // (5,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe event System.Action E;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E").WithLocation(5, 30),
-            // (6,18): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(5, 5),
+            // (6,13): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     int A { safe get; set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "get").WithLocation(6, 18),
-            // (10,18): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(6, 13),
+            // (10,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe void I1.M() { }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(10, 18),
-            // (11,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(10, 5),
+            // (11,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe int I1.P { get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P").WithLocation(11, 17),
-            // (12,33): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(11, 5),
+            // (12,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe event System.Action I1.E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E").WithLocation(12, 33),
-            // (13,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(12, 5),
+            // (13,16): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     int I1.A { safe get => 0; set { } }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "get").WithLocation(13, 21),
-            // (18,25): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(13, 16),
+            // (18,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe extern void I1.M();
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(18, 25),
-            // (19,24): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(18, 5),
+            // (19,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe extern int I1.P { get; set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P").WithLocation(19, 24),
-            // (20,40): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(19, 5),
+            // (20,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe extern event System.Action I1.E;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E").WithLocation(20, 40),
-            // (21,28): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(20, 5),
+            // (21,16): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     int I1.A { safe extern get; safe extern set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "get").WithLocation(21, 28),
-            // (21,45): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(21, 16),
+            // (21,33): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     int I1.A { safe extern get; safe extern set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "set").WithLocation(21, 45),
-            // (25,24): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(21, 33),
+            // (25,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe extern int I1.A { safe get; safe set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "A").WithLocation(25, 24),
-            // (25,33): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(25, 5),
+            // (25,28): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe extern int I1.A { safe get; safe set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "get").WithLocation(25, 33),
-            // (25,43): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(25, 28),
+            // (25,38): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe extern int I1.A { safe get; safe set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "set").WithLocation(25, 43),
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(25, 38),
         ];
 
         CreateCompilation(source,
@@ -14804,54 +14804,54 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         DiagnosticDescription[] expectedUnsafeDiagnostics = allowUnsafe ? [] :
         [
-            // (4,22): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // (4,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public void M1() { }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M1").WithLocation(4, 22),
-            // (5,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(4, 5),
+            // (5,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public int P1 { get; set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P1").WithLocation(5, 21),
-            // (6,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(5, 5),
+            // (6,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public int this[int i] { get => i; set { } }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "this").WithLocation(6, 21),
-            // (7,37): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(6, 5),
+            // (7,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public event System.Action E1;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E1").WithLocation(7, 37),
-            // (8,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(7, 5),
+            // (8,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public C() { }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(8, 17),
-            // (9,35): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(8, 5),
+            // (9,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public static C operator +(C x, C y) => x;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "+").WithLocation(9, 35),
-            // (10,42): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(9, 5),
+            // (10,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public static explicit operator int(C c) => 0;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "int").WithLocation(10, 42),
-            // (11,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(10, 5),
+            // (11,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public int F;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "F").WithLocation(11, 21),
-            // (12,23): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(11, 5),
+            // (12,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public class NestedClass { }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "NestedClass").WithLocation(12, 23),
-            // (13,24): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(12, 5),
+            // (13,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public struct NestedStruct { }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "NestedStruct").WithLocation(13, 24),
-            // (14,27): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(13, 5),
+            // (14,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public interface INested { }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "INested").WithLocation(14, 27),
-            // (16,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(14, 5),
+            // (16,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe public delegate void D();
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "D").WithLocation(16, 31),
-            // (19,19): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(16, 5),
+            // (19,9): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //         safe void Local() { }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Local").WithLocation(19, 19),
-            // (21,26): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(19, 9),
+            // (21,21): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     public int P2 { safe get; set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "get").WithLocation(21, 26),
-            // (22,41): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(21, 21),
+            // (22,36): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     public string this[string s] { safe get => s; set { } }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "get").WithLocation(22, 41),
-            // (23,11): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(22, 36),
+            // (23,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     safe ~C() { }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(23, 11),
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(23, 5),
         ];
 
         CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules)).VerifyEmitDiagnostics(
@@ -14880,24 +14880,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         DiagnosticDescription[] expectedUnsafeDiagnostics = allowUnsafe ? [] :
         [
-            // (1,12): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // (1,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             // safe class C;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 12),
-            // (2,13): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(1, 1),
+            // (2,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             // safe struct S;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S").WithLocation(2, 13),
-            // (3,16): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(2, 1),
+            // (3,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             // safe interface I;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "I").WithLocation(3, 16),
-            // (4,20): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(3, 1),
+            // (4,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             // safe delegate void D();
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "D").WithLocation(4, 20),
-            // (5,13): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(4, 1),
+            // (5,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             // safe record R;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R").WithLocation(5, 13),
-            // (6,20): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(5, 1),
+            // (6,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             // safe record struct RS;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "RS").WithLocation(6, 20),
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(6, 1),
         ];
 
         CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules))
@@ -15043,22 +15043,50 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         comp.VerifyEmitDiagnostics(allowUnsafe ? [] :
         [
-            // (3,28): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // (3,21): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     public int P1 { unsafe get; set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "get").WithLocation(3, 22 + modifier.Length),
-            // (4,33): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(3, 21),
+            // (4,26): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     public int P2 { get; unsafe set; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "set").WithLocation(4, 27 + modifier.Length),
-            // (5,33): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(4, 26),
+            // (5,26): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     public int P3 { get; unsafe init; }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "init").WithLocation(5, 27 + modifier.Length),
-            // (6,37): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(5, 26),
+            // (6,30): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     public int this[int i] { unsafe get => i; set { } }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "get").WithLocation(6, 31 + modifier.Length),
-            // (7,50): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(6, 30),
+            // (7,43): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     public int this[string s] { get => 0; unsafe set { } }
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "set").WithLocation(7, 44 + modifier.Length)
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(7, 43)
         ]);
+    }
+
+    [Theory, CombinatorialData]
+    public void SafeOrUnsafeModifier_PartialType(
+        [CombinatorialValues("safe", "unsafe")] string modifier,
+        bool updatedRules,
+        bool separateTrees)
+    {
+        var firstPart = "partial class C;";
+        var secondPart = $"{modifier} partial class C;";
+        string[] sources = separateTrees ? [firstPart, secondPart] : [$"{firstPart}\n{secondPart}"];
+
+        DiagnosticDescription[] expectedDiagnostics = modifier == "unsafe" && updatedRules ?
+        [
+            // (1,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // partial class C;
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(1, 15)
+        ] : [];
+
+        CreateCompilation(sources, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
+        [
+            .. expectedDiagnostics,
+            // (2,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            // unsafe partial class C;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(separateTrees ? 1 : 2, 1)
+        ]);
+
+        CreateCompilation(sources, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]

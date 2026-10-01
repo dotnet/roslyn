@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                   MakeModifiersAndFlags(
                       containingType, syntax, methodKind, isNullableAnalysisEnabled, syntax.Initializer?.Kind() == SyntaxKind.ThisConstructorInitializer, location, diagnostics, out bool modifierErrors, out bool report_ERR_StaticConstructorWithAccessModifiers))
         {
-            this.CheckUnsafeOptionForModifiers(DeclarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(DeclarationModifiers, diagnostics, syntax.Modifiers);
 
             if (report_ERR_StaticConstructorWithAccessModifiers)
             {

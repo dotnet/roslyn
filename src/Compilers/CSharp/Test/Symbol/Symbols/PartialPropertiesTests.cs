@@ -2071,15 +2071,15 @@ public partial class C
 
             comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (1,15): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                // partial class C
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(1, 15),
-                // (4,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (7,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+                // unsafe partial class C
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(7, 1),
+                // (4,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     public unsafe partial int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P2").WithLocation(4, 31),
-                // (9,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(4, 12),
+                // (9,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     public unsafe partial int P1 { get => 1; set { } }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P1").WithLocation(9, 31));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(9, 12));
         }
 
         [Fact]

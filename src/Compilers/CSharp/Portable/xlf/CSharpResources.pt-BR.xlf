@@ -1187,6 +1187,11 @@
         <target state="translated">O operador de supressão não é permitido neste contexto</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalUnsafeModifier">
+        <source>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</source>
+        <target state="new">Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</target>
+        <note>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</note>
+      </trans-unit>
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
         <target state="translated">Um operador de conversão 'implicit' definido pelo usuário não pode ser declarado verificado</target>

@@ -5872,12 +5872,12 @@ class @c
 ";
 
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class F<T> : A where T : F<object*>.I
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "F").WithLocation(6, 14),
-                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 1),
+                // (10,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class G<T> : A where T : G<void*>.I
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "G").WithLocation(10, 14));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(10, 1));
 
             CreateCompilation(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
         }
@@ -7052,9 +7052,9 @@ class Program
 
             compilation = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             compilation.VerifyDiagnostics(
-                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class R2 : R1<int*>
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "R2").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 1),
                 // (6,14): error CS0306: The type 'int*' may not be used as a type argument
                 // unsafe class R2 : R1<int*>
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "R2").WithArguments("int*").WithLocation(6, 14));

@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ModifierUtils.CheckFeatureAvailabilityForStaticAbstractMembersInInterfacesIfNeeded(mods, explicitInterfaceImplementation, location, diagnostics);
 
-            this.CheckUnsafeOptionForModifiers(mods, diagnostics);
+            this.CheckUnsafeOptionForModifiers(mods, diagnostics, modifiers);
 
             ModifierUtils.ReportDefaultInterfaceImplementationModifiers(!isFieldLike, mods,
                                                                         defaultInterfaceImplementationModifiers,
