@@ -16,7 +16,7 @@ internal interface IExtensionMessageHandlerFactory : IWorkspaceService
 {
     /// <summary>
     /// Creates <see cref="IExtensionMessageHandlerWrapper{Solution}"/> instances for each
-    /// <c>IExtensionWorkspaceMessageHandler</c> type in <paramref name="assembly"/>.
+    /// <see cref="IExtensionWorkspaceMessageHandler{TMessage, TResponse}"/> type in <paramref name="assembly"/>.
     /// </summary>
     /// <param name="assembly">The assembly to scan for handlers.</param>
     /// <param name="extensionIdentifier">Unique identifier of the extension owning this handler.</param>
