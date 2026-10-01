@@ -6,7 +6,6 @@
     <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
     <TargetFramework>$(NetFxVS)</TargetFramework>
     <Nullable>enable</Nullable>
-    <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.Razor.IntegrationTests</RootNamespace>
     <!-- VS integration tests require Visual Studio and never participate in the source-only (VMR) build. -->
     <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>

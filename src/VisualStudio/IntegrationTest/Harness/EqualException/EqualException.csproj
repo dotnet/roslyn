@@ -6,6 +6,7 @@
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <Nullable>disable</Nullable>
     <IsTestProject>true</IsTestProject>
+    <OutputType>Exe</OutputType>
     <AppConfig>app.config</AppConfig>
   </PropertyGroup>
 

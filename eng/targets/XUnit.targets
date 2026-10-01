@@ -4,13 +4,6 @@
 
   <PropertyGroup>
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
-
-    <!-- xunit.v3 validates that test projects build executables. -->
-    <OutputType>Exe</OutputType>
-    <!-- The SDK computes the target filename before this import, while OutputType is still Library. -->
-    <TargetExt Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">.exe</TargetExt>
-    <TargetFileName Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(TargetName)$(TargetExt)</TargetFileName>
-    <TargetPath Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(TargetDir)$(TargetFileName)</TargetPath>
   </PropertyGroup>
 
   <ItemGroup>

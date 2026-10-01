@@ -96,6 +96,9 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(IsTestProject)' == 'true'" >
+    <!-- xunit.v3 test projects are executables: .exe on .NET Framework, .dll plus an app host on .NET Core. -->
+    <OutputType Condition="'$(OutputType)' == ''">Exe</OutputType>
+
     <!--
       Choose default target frameworks to use for testing on Mono and Core.
       These may be overridden by projects that need to be skipped.

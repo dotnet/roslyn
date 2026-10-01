@@ -96,8 +96,12 @@ executable above its hosting runtime directory, so `--dotnet` is unnecessary.
 ### xUnit v3 unit-test infrastructure
 
 Repo unit-test projects use xUnit v3 through `eng/targets/XUnit.targets`. Test
-projects build as executables for xUnit v3: .NET Framework uses `.exe` and .NET
-Core keeps its default `.dll` extension. The test naming and discovery paths
+projects build as executables for xUnit v3: `eng/targets/Settings.props` defaults
+`OutputType=Exe` when Arcade has set `IsTestProject=true`, so .NET Framework
+produces `.exe` and .NET Core keeps its default `.dll` (plus an app host). Test
+project files should not set `<OutputType>Library</OutputType>`; projects that set
+`IsTestProject=true` in their own body (too late for that default) must also set
+`<OutputType>Exe</OutputType>`. The test naming and discovery paths
 accept both where appropriate. The common target adds `xunit.v3.mtp-off`; Roslyn still uses VSTest
 rather than Microsoft.Testing.Platform for these tests. All projects importing
 this target use the centrally pinned xUnit v3 4.0.0 packages.
