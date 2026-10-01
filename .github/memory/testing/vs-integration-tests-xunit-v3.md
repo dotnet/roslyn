@@ -27,7 +27,7 @@ leaking into the shared Razor test-utility projects.
 
 The VS integration projects are conventional test projects: their `.IntegrationTests`
 names make Arcade set `IsTestProject=true`, and `eng/targets/XUnit.targets` supplies
-`OutputType=Exe`, the `.dll` target extension plus `.exe` app host, `xunit.v3.mtp-off`,
+`OutputType=Exe` (so the net472 output is `<Name>.IntegrationTests.exe`), `xunit.v3.mtp-off`,
 and `xunit.runner.visualstudio`. Do **not** set `IsTestProject=false` on them: without
 the VSTest adapter, `vstest.console` finds no tests and RunTests reports every
 integration work item as passed in about a second while nothing runs. Each project sets

@@ -5,16 +5,12 @@
   <PropertyGroup>
     <PrepareForBuildDependsOn>$(PrepareForBuildDependsOn);AddDefaultTestAppConfig</PrepareForBuildDependsOn>
 
-    <!--
-      xunit.v3 validates that test projects build executables, and its VSTest adapter launches
-      those executable assemblies through an app host. Roslyn's test infrastructure still discovers
-      and validates unit tests as .dll assemblies: RunTests probes project outputs for <project>.dll
-      or *.UnitTests.dll, and Imports.targets enforces the .UnitTests.dll/.IntegrationTests.dll
-      naming convention. Build as an Exe to satisfy xunit.v3, but keep TargetExt as .dll so the
-      VSTest-based RunTests/test-rebuild infrastructure continues to find these test assemblies.
-    -->
+    <!-- xunit.v3 validates that test projects build executables. -->
     <OutputType>Exe</OutputType>
-    <TargetExt>.dll</TargetExt>
+    <!-- The SDK computes the target filename before this import, while OutputType is still Library. -->
+    <TargetExt Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">.exe</TargetExt>
+    <TargetFileName Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(TargetName)$(TargetExt)</TargetFileName>
+    <TargetPath Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">$(TargetDir)$(TargetFileName)</TargetPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -114,29 +110,6 @@
       <None Include="$(_DefaultAppConfigFile)" Condition="'$(_DefaultAppConfigFile)' != ''">
         <Link>app.config</Link>
       </None>
-    </ItemGroup>
-  </Target>
-
-  <!--
-    xunit.v3's VSTest adapter launches .NET Framework test assemblies through an app host.
-    Roslyn test projects use a .dll target extension to satisfy test naming checks, so provide
-    a matching .exe host without changing the primary test artifact. Create it before
-    IncrementalClean records FileWrites so Clean removes the copied files.
-  -->
-  <Target Name="CreateXunitV3AppHost"
-          BeforeTargets="_CleanGetCurrentAndPriorFileWrites"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and '$(TargetExt)' == '.dll' and '$(DotNetBuildSourceOnly)' != 'true'">
-    <PropertyGroup>
-      <_XunitV3AppHost>$(TargetDir)$(TargetName).exe</_XunitV3AppHost>
-      <_TargetConfigPath>$(TargetPath).config</_TargetConfigPath>
-      <_XunitV3AppHostConfig>$(_XunitV3AppHost).config</_XunitV3AppHostConfig>
-    </PropertyGroup>
-
-    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(_XunitV3AppHost)" SkipUnchangedFiles="true" />
-    <Copy SourceFiles="$(_TargetConfigPath)" DestinationFiles="$(_XunitV3AppHostConfig)" SkipUnchangedFiles="true" Condition="Exists('$(_TargetConfigPath)')" />
-    <ItemGroup>
-      <FileWrites Include="$(_XunitV3AppHost)" />
-      <FileWrites Include="$(_XunitV3AppHostConfig)" Condition="Exists('$(_TargetConfigPath)')" />
     </ItemGroup>
   </Target>
 </Project>

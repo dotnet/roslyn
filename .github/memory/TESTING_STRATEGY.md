@@ -96,9 +96,9 @@ executable above its hosting runtime directory, so `--dotnet` is unnecessary.
 ### xUnit v3 unit-test infrastructure
 
 Repo unit-test projects use xUnit v3 through `eng/targets/XUnit.targets`. Test
-projects build as executables for xUnit v3 but keep a `.dll` target extension so
-Roslyn's test naming/discovery checks and VSTest-based infrastructure continue
-to work. The common target adds `xunit.v3.mtp-off`; Roslyn still uses VSTest
+projects build as executables for xUnit v3: .NET Framework uses `.exe` and .NET
+Core keeps its default `.dll` extension. The test naming and discovery paths
+accept both where appropriate. The common target adds `xunit.v3.mtp-off`; Roslyn still uses VSTest
 rather than Microsoft.Testing.Platform for these tests. All projects importing
 this target use the centrally pinned xUnit v3 4.0.0 packages.
 
@@ -115,8 +115,9 @@ its dependencies load in the test process rather than in `TestDiscoveryWorker`.
 `PrepareTests` sets `DOTNET_ROOT` and the current architecture's `DOTNET_ROOT_*`
 variable for the `TestDiscoveryWorker` process from the selected dotnet
 executable so the xUnit test apphost can locate the same runtime.
-Out-of-process discovery needs the test project's `.exe` app host, so
-`PrepareTests` only discovers `*UnitTests.dll`/`*IntegrationTests.dll` under
+Out-of-process discovery needs the test executable (`.exe` on .NET Framework, the
+`.dll` plus its `.exe` app host on .NET Core), so `PrepareTests` only discovers
+`*UnitTests`/`*IntegrationTests` `.exe` (net472) and `.dll` assemblies under
 `artifacts/bin/<project>` folders whose name contains `UnitTests` or
 `IntegrationTests` (matching RunTests' default include filter). Copies that a
 `ProjectReference` drops into non-test outputs (e.g. `IdeBenchmarks` referencing

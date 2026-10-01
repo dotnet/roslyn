@@ -131,15 +131,15 @@ internal class TestDiscovery
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)
     {
-        var unitTestAssemblies = Directory.GetFiles(binDirectory, "*UnitTests.dll", SearchOption.AllDirectories);
-        var integrationTestAssemblies = Directory.GetFiles(binDirectory, "*IntegrationTests.dll", SearchOption.AllDirectories);
-        var assemblies = unitTestAssemblies.Concat(integrationTestAssemblies).Where(ShouldInclude);
+        var assemblies = new[] { "*UnitTests.dll", "*UnitTests.exe", "*IntegrationTests.dll", "*IntegrationTests.exe" }
+            .SelectMany(pattern => Directory.GetFiles(binDirectory, pattern, SearchOption.AllDirectories))
+            .Where(ShouldInclude);
         return assemblies.ToList();
 
         bool ShouldInclude(string path)
         {
             // Test assemblies are also copied into the output of non-test projects that reference them
-            // (e.g. IdeBenchmarks references a unit test project). Those copies are never run and lack the
+            // (e.g. IdeBenchmarks references a unit test project). Those copies are never run and may lack the
             // app host xUnit v3 needs for discovery, so only consider assemblies under test project folders.
             var projectDirName = Path.GetRelativePath(binDirectory, path).Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)[0];
             if (!projectDirName.Contains("UnitTests", StringComparison.Ordinal) &&
@@ -148,10 +148,22 @@ internal class TestDiscovery
                 return false;
             }
 
+            // .NET Framework test assemblies are native executables. On .NET Core the .exe is only an app host
+            // for the managed .dll.
+            var dirName = Path.GetFileName(Path.GetDirectoryName(path));
+            if (path.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) && dirName is not "net472")
+            {
+                return false;
+            }
+
+            if (dirName is "net472" && path.EndsWith(".dll", StringComparison.OrdinalIgnoreCase) &&
+                File.Exists(Path.ChangeExtension(path, ".exe")))
+            {
+                return false;
+            }
+
             if (isUnix)
             {
-                var dirName = Path.GetFileName(Path.GetDirectoryName(path));
-
                 // Our unix build will build net framework dlls for multi-targeted projects.
                 // These are not valid testing on unix and discovery will throw if we try.
                 if (dirName is "net472")

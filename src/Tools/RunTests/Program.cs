@@ -258,8 +258,6 @@ namespace RunTests
                     continue;
                 }
 
-                var fileName = $"{name}.dll";
-
                 var configDirectory = Path.Combine(project, options.Configuration);
                 if (!Directory.Exists(configDirectory))
                 {
@@ -276,26 +274,37 @@ namespace RunTests
                         continue;
                     }
 
-                    var filePath = Path.Combine(targetFrameworkDirectory, fileName);
-                    if (File.Exists(filePath))
+                    var found = false;
+                    var extensions = tfm == "net472" ? new[] { ".exe", ".dll" } : new[] { ".dll" };
+                    foreach (var extension in extensions)
                     {
-                        list.Add(new AssemblyInfo(filePath));
-                    }
-                    else if (Directory.GetFiles(targetFrameworkDirectory, searchPattern: "*.UnitTests.dll") is { Length: > 0 } matches)
-                    {
+                        var filePath = Path.Combine(targetFrameworkDirectory, $"{name}{extension}");
+                        if (File.Exists(filePath))
+                        {
+                            list.Add(new AssemblyInfo(filePath));
+                            found = true;
+                            break;
+                        }
+
                         // If the unit test assembly name doesn't match the project folder name, but still matches our "unit test" name pattern, we want to run it.
-                        // If more than one such assembly is present in a project output folder, we assume something is wrong with the build configuration.
-                        // For example, one unit test project might be referencing another unit test project.
+                        // If more than one such unit test assembly is present, something is wrong with the build configuration.
+                        var matches = Directory.GetFiles(targetFrameworkDirectory, searchPattern: $"*.UnitTests{extension}");
                         if (matches.Length > 1)
                         {
                             var message = $"Multiple unit test assemblies found in '{targetFrameworkDirectory}'. Please adjust the build to prevent this. Matches:{Environment.NewLine}{string.Join(Environment.NewLine, matches)}";
                             throw new Exception(message);
                         }
 
-                        Console.WriteLine($"Found unit test assembly '{matches[0]}' in '{targetFrameworkDirectory}'");
-                        list.Add(new AssemblyInfo(matches[0]));
+                        if (matches.Length == 1)
+                        {
+                            Console.WriteLine($"Found unit test assembly '{matches[0]}' in '{targetFrameworkDirectory}'");
+                            list.Add(new AssemblyInfo(matches[0]));
+                            found = true;
+                            break;
+                        }
                     }
-                    else
+
+                    if (!found)
                     {
                         Console.WriteLine($"{targetFrameworkDirectory} does not contain unit tests");
                     }
