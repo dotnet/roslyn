@@ -38,32 +38,6 @@
     </ItemGroup>
   </Target>
 
-  <!--
-    xunit.runner.visualstudio copies xunit.abstractions.dll. Direct runners also need the
-    framework-specific runner utility.
-  -->
-  <Target Name="_XunitCopyRunnerDependencies"
-          AfterTargets="Build"
-          Condition="('$(TargetFrameworkIdentifier)' == '.NETFramework' or '$(TargetFrameworkIdentifier)' == '.NETCoreApp') and '$(DotNetBuildSourceOnly)' != 'true'">
-    <ItemGroup>
-      <_XunitRunnerUtilityPackageReference Include="@(PackageReference)"
-                                           Condition="'%(PackageReference.Identity)' == 'xunit.v3.runner.utility'" />
-      <_XunitRunnerUtility
-          Include="$(NuGetPackageRoot)xunit.v3.core.mtp-off\$(_xunitVersion)\_content\runners\netfx\xunit.v3.runner.utility.netfx.dll"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '@(_XunitRunnerUtilityPackageReference)' == ''" />
-      <_XunitRunnerUtility
-          Include="$(NuGetPackageRoot)xunit.v3.core.mtp-off\$(_xunitVersion)\_content\runners\netcore\xunit.v3.runner.utility.netcore.dll"
-          Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' and '@(_XunitRunnerUtilityPackageReference)' == ''" />
-    </ItemGroup>
-
-    <Copy SourceFiles="@(_XunitRunnerUtility)"
-          DestinationFolder="$(TargetDir)"
-          SkipUnchangedFiles="true" />
-    <ItemGroup>
-      <FileWrites Include="@(_XunitRunnerUtility->'$(TargetDir)%(Filename)%(Extension)')" />
-    </ItemGroup>
-  </Target>
-
   <ItemGroup>
     <!-- Include BannedSymbols covering all test projects -->
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\test\BannedSymbols.txt" />
