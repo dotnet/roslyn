@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests;
 
@@ -26,7 +27,7 @@ public class FirstClassSpanTests : CSharpTestBase
     ];
 
     private sealed class CombinatorialLangVersions()
-        : CombinatorialValuesAttribute(LanguageVersion.CSharp13, LanguageVersion.CSharp14, LanguageVersion.Preview);
+        : CombinatorialValuesAttribute(LangVersions().Select(row => ((ITheoryDataRow)row).GetData()[0]).ToArray());
 
     [Fact, WorkItem("https://github.com/dotnet/runtime/issues/101261")]
     public void Example_StringValuesAmbiguity()
