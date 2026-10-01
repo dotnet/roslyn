@@ -35,7 +35,7 @@ namespace RunTests
         public static ImmutableArray<HelixWorkItem> Schedule(
             IEnumerable<string> assemblyFilePaths,
             string platform,
-            Dictionary<string, TimeSpan>? testHistory)
+            Dictionary<string, TimeSpan>? testDurations)
         {
             var orderedTypeInfos = assemblyFilePaths.ToImmutableSortedDictionary(x => x, GetTypeInfoList);
             ConsoleUtil.WriteLine($"Scheduling {orderedTypeInfos.Count} assemblies");
@@ -50,13 +50,13 @@ namespace RunTests
                 ? MaxAssembliesPerWorkItemX86
                 : (int?)null;
 
-            if (testHistory is null)
+            if (testDurations is null)
             {
                 ConsoleUtil.Warning($"Could not look up test history - partitioning based on test count instead");
                 return ScheduleByCount(orderedTypeInfos, maxAssembliesPerWorkItem);
             }
 
-            return ScheduleByTime(orderedTypeInfos, testHistory, maxAssembliesPerWorkItem);
+            return ScheduleByTime(orderedTypeInfos, testDurations, maxAssembliesPerWorkItem);
         }
 
         /// <summary>
@@ -85,14 +85,14 @@ namespace RunTests
         /// </summary>
         private static ImmutableArray<HelixWorkItem> ScheduleByTime(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> orderedTypeInfos,
-            Dictionary<string, TimeSpan> testHistory,
+            Dictionary<string, TimeSpan> testDurations,
             int? maxAssembliesPerWorkItem)
         {
-            LogLongTests(testHistory);
+            LogLongTests(testDurations);
 
             // Now for our current set of test methods we got from the assemblies we built, match them to tests from our test run history
             // so that we can extract an estimate of the test execution time for each test.
-            orderedTypeInfos = UpdateTestsWithExecutionTimes(orderedTypeInfos, testHistory);
+            orderedTypeInfos = UpdateTestsWithExecutionTimes(orderedTypeInfos, testDurations);
 
             // Create work items by partitioning tests by historical execution time with the goal of running under our time limit.
             // While we do our best to run tests from the same assembly together (by building work items in assembly order) it is expected
@@ -106,9 +106,9 @@ namespace RunTests
             return workItems;
         }
 
-        private static void LogLongTests(Dictionary<string, TimeSpan> testHistory)
+        private static void LogLongTests(Dictionary<string, TimeSpan> testDurations)
         {
-            var longTests = testHistory
+            var longTests = testDurations
                 .Where(kvp => kvp.Value > HelixTestRunner.WorkItemScheduleTime)
                 .OrderBy(kvp => kvp.Key)
                 .ToList();
@@ -124,10 +124,10 @@ namespace RunTests
 
         private static ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> UpdateTestsWithExecutionTimes(
             ImmutableSortedDictionary<string, ImmutableArray<TypeInfo>> assemblyTypes,
-            Dictionary<string, TimeSpan> testHistory)
+            Dictionary<string, TimeSpan> testDurations)
         {
             // Determine the average execution time so that we can use it for tests that do not have any history.
-            var averageExecutionTime = TimeSpan.FromMilliseconds(testHistory.Values.Average(t => t.TotalMilliseconds));
+            var averageExecutionTime = TimeSpan.FromMilliseconds(testDurations.Values.Average(t => t.TotalMilliseconds));
 
             // Store the tests we found locally that were missing remote historical data.
             var unmatchedLocalTests = new HashSet<string>();
@@ -153,7 +153,7 @@ namespace RunTests
                 // Match by fully qualified test method name to azure devops historical data.
                 // Note for combinatorial tests, azure devops helpfully groups all sub-runs under a top level method (with combined test run times) with the same fully qualified method name
                 // that we get during test discovery.  Since we only filter by the single method name (and not individual combinatorial runs) we do want the combined execution time.
-                if (testHistory.TryGetValue(methodInfo.FullyQualifiedName, out var historyEntry))
+                if (testDurations.TryGetValue(methodInfo.FullyQualifiedName, out var historyEntry))
                 {
                     matchedRemoteTests.Add(methodInfo.FullyQualifiedName);
                     return methodInfo with { ExecutionTime = historyEntry };
@@ -172,7 +172,7 @@ namespace RunTests
                     ConsoleUtil.WriteLine($"Could not find test execution history for test {unmatchedLocalTest}");
                 }
 
-                var unmatchedRemoteTests = testHistory.Keys.Where(type => !matchedRemoteTests.Contains(type));
+                var unmatchedRemoteTests = testDurations.Keys.Where(type => !matchedRemoteTests.Contains(type));
                 foreach (var unmatchedRemoteTest in unmatchedRemoteTests)
                 {
                     ConsoleUtil.WriteLine($"Found historical data for test {unmatchedRemoteTest} that was not present in local assemblies");
