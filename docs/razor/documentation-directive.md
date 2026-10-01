@@ -33,6 +33,10 @@ The warning highlights the first non-whitespace character (`T` in this example).
 It remains plain text in the generated documentation; Razor does not add a
 `<summary>` element. Write the tags explicitly when you want a summary.
 
+The **Wrap in `<summary>`** quick fix wraps the whole documentation body in a
+summary element. Leading and trailing whitespace stay outside the tags; text,
+line breaks and any existing XML inside the body stay unchanged.
+
 The check only requires a leading `<`, ignoring whitespace. Empty bodies don't
 warn, and XML comments, CDATA, processing instructions and incomplete tags satisfy
 the prefix check. C# still handles XML validation. The warning is always on
@@ -44,6 +48,10 @@ text ` foo`. Warning `RZ1048` flags this syntax when `RazorWarningLevel` is 11 o
 higher because it changes meaning in Razor 12. Projects using older language
 versions can opt in by raising their warning level. Use an explicit expression such as
 `@(documentation) foo` or `@(documentation.Length)` to preserve the expression.
+The **Use explicit expression** quick fix wraps the whole expression, including
+calls and member access. Any following braces, XML or text stay outside the
+parentheses and keep their existing meaning. The fix is not offered for Razor 12
+documentation directives.
 
 The body is documentation text, not Razor markup or C# code. Razor transitions,
 braces inside XML elements, XML comments, and CDATA are preserved. The body is
@@ -81,6 +89,10 @@ those tags are valid; Razor doesn't merge or validate them.
 A literal `*/` in the parsed documentation body would end the generated C#
 comment, so it produces error `RZ1047` and the block isn't emitted. In XML text,
 use a character reference such as `*&#47;` instead.
+
+The **Escape documentation comment terminator** quick fix makes this change for
+the reported occurrence. Inside CDATA, it closes and reopens the section around
+the character reference so the displayed documentation stays unchanged.
 
 The directive is file-local. It works in `.razor` and `.cshtml` files, but can't be
 imported from `_Imports.razor` or `_ViewImports.cshtml`.
