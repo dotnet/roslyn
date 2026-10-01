@@ -38,6 +38,22 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     }
 
     [Theory]
+    [InlineData("<summary>Text</summary>")]
+    [InlineData("<summary><see/></summary>")]
+    [InlineData("<see/>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyAcceptsTrailingTextAfterCompletedElement(string markup)
+    {
+        var source = markup + " Extra information.\n}";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+        Assert.True(isComplete);
+    }
+
+    [Theory]
     [InlineData("summary", "summary", true)]
     [InlineData("Summary", "Summary", true)]
     [InlineData("summary", "Summary", false)]

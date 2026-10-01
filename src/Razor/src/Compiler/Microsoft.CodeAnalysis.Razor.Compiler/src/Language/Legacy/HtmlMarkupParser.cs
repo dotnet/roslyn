@@ -30,6 +30,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
     // A recovery hint, not XML validation.
     private bool _isMarkupComplete = true;
+    private bool _hasCompletedXmlElement;
 
     public HtmlMarkupParser(ParserContext context)
         : this(context, parseAsXml: false)
@@ -520,6 +521,11 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 // For cases like <foo />, <input> or invalid cases like |<|<p>
                 var element = SyntaxFactory.MarkupElement(startTag, EmptySyntaxList, markupEndTag: null);
                 builder.Add(element);
+                if (_parseAsXml && isWellFormed && tagMode == MarkupTagMode.SelfClosing && _tagTracker.Count == 0)
+                {
+                    _hasCompletedXmlElement = true;
+                }
+
                 return;
             }
             else
@@ -548,6 +554,11 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 var element = SyntaxFactory.MarkupElement(tracker.StartTag, builder.Consume(), endTag);
                 builder.AddRange(tracker.PreviousNodes);
                 builder.Add(element);
+                if (_parseAsXml && isWellFormed && _tagTracker.Count == 0)
+                {
+                    _hasCompletedXmlElement = true;
+                }
+
                 return;
             }
             else
@@ -2263,7 +2274,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             }
         }
 
-        if (_parseAsXml && !string.IsNullOrWhiteSpace(CurrentToken.Content))
+        if (_parseAsXml && !_hasCompletedXmlElement && !string.IsNullOrWhiteSpace(CurrentToken.Content))
         {
             _isMarkupComplete = false;
         }
@@ -2292,11 +2303,15 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 Debug.Assert(right != null);
                 var (sequenceToken, _) = Language.SplitToken(right, sequence.Length, SyntaxKind.Text);
                 var postSequenceBookmark = bookmark.AbsoluteIndex + preSequence.Content.Length + sequenceToken.Content.Length;
+                var closesBlock = currentNesting + retIfMatched == 0;
 
-                if (_parseAsXml &&
-                    (!string.IsNullOrWhiteSpace(preSequence.Content) || currentNesting + retIfMatched != 0))
+                if (_parseAsXml)
                 {
-                    _isMarkupComplete = false;
+                    var hasLeadingText = !_hasCompletedXmlElement && !string.IsNullOrWhiteSpace(preSequence.Content);
+                    if (hasLeadingText || !closesBlock)
+                    {
+                        _isMarkupComplete = false;
+                    }
                 }
 
                 // Accept the first chunk (up to the nesting sequence we just saw)
@@ -2305,7 +2320,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     Accept(preSequence);
                 }
 
-                if (currentNesting + retIfMatched == 0)
+                if (closesBlock)
                 {
                     // This is 'popping' the final entry on the stack of nesting sequences
                     // A caller higher in the parsing stack will accept the sequence token, so advance

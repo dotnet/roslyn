@@ -713,6 +713,34 @@ public class DocumentationDirectiveIntegrationTest : RazorIntegrationTestBase
         Assert.Single(CompileToComponent(compiled, "Test.TestComponent").GetMembers("EndTag"));
     }
 
+    [Theory]
+    [InlineData(true, "")]
+    [InlineData(false, "")]
+    [InlineData(true, "\n")]
+    [InlineData(false, "\n")]
+    public void DocumentationPreservesTrailingTextAfterCodeExample(bool enableMarkupSplit, string beforeClosingBrace)
+    {
+        _enableMarkupSplit = enableMarkupSplit;
+        var source = $$"""
+            @documentation {<summary>
+            }
+            @code { public int Example => 1; }
+            </summary> Extra information.{{beforeClosingBrace}}}
+            <p>After</p>
+            """;
+        var result = CompileToCSharp(source, csharpParseOptions: CSharpParseOptions.WithDocumentationMode(DocumentationMode.Diagnose));
+
+        Assert.Empty(result.RazorDiagnostics);
+        var directive = Assert.Single<RazorDocumentationDirectiveSyntax>(
+            [.. result.CodeDocument.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorDocumentationDirectiveSyntax>()]);
+        var body = Assert.Single<CSharpStatementLiteralSyntax>(
+            [.. directive.DescendantNodes().OfType<CSharpStatementLiteralSyntax>()]).GetContent();
+        Assert.Equal(source[(source.IndexOf('{') + 1)..source.LastIndexOf('}')], body);
+        Assert.Contains(body, GetDocumentationDocument(result).Text.ToString());
+        Assert.Contains("<p>After</p>", result.Code);
+        Assert.Empty(CompileToComponent(result, "Test.TestComponent").GetMembers("Example"));
+    }
+
     [Fact]
     public void DocumentationDiagnosticsMapPastIncompleteCodeExamples()
     {

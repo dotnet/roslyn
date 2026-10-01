@@ -57,7 +57,9 @@ issue a decoration-specific diagnostic. C# can still ignore them when processing
 the emitted comment.
 
 Recovery uses closing braces and following Razor directives to avoid consuming
-unrelated markup or code. Incomplete C# examples inside complete XML remain
+unrelated markup or code. Plain trailing text after a completed XML element,
+such as `</summary> Extra information.}`, is kept in the documentation and does
+not trigger recovery. Incomplete C# examples inside complete XML remain
 documentation text. A missing documentation brace reports `RZ1006`. Recovery is
 best-effort for malformed XML. A literal `*/` does not end documentation parsing:
 Razor finds the body boundary first, then reports `RZ1047` on the terminator and

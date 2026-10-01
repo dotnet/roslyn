@@ -99,6 +99,20 @@ public class DocumentationDirectiveCodeGenerationTest()
     }
 
     [Fact]
+    public void TrailingTextAfterCodeExample()
+    {
+        var result = VerifyBaseline("""
+            @documentation {<summary>
+            }
+            @code { public int Example => 1; }
+            </summary> Extra information.}
+            <p>After</p>
+            """);
+
+        Assert.Empty(result.RazorDiagnostics);
+    }
+
+    [Fact]
     public void MalformedInlineXml()
     {
         var result = VerifyBaseline("""
