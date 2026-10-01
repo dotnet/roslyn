@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -1135,7 +1134,7 @@ public sealed class ParsedUriTests
         Assert.Equal(value.ToString(), clone.ToString());
     }
 
-    public sealed class UriCase : IXunitSerializable
+    public sealed class UriCase
     {
         public UriCase()
         {
@@ -1157,37 +1156,9 @@ public sealed class ParsedUriTests
         public string? UnixFsPath { get; set; }
         public string? ExpectedToString { get; set; }
         public bool SkipFsPathRoundTrip { get; set; }
-
-        public void Serialize(IXunitSerializationInfo info)
-        {
-            info.AddValue(nameof(Input), Input);
-            info.AddValue(nameof(Scheme), Scheme);
-            info.AddValue(nameof(Authority), Authority);
-            info.AddValue(nameof(Path), Path);
-            info.AddValue(nameof(Query), Query);
-            info.AddValue(nameof(Fragment), Fragment);
-            info.AddValue(nameof(WindowsFsPath), WindowsFsPath);
-            info.AddValue(nameof(UnixFsPath), UnixFsPath);
-            info.AddValue(nameof(ExpectedToString), ExpectedToString);
-            info.AddValue(nameof(SkipFsPathRoundTrip), SkipFsPathRoundTrip);
-        }
-
-        public void Deserialize(IXunitSerializationInfo info)
-        {
-            Input = info.GetValue<string>(nameof(Input)) ?? throw new InvalidOperationException($"Missing value for {nameof(Input)}.");
-            Scheme = info.GetValue<string>(nameof(Scheme)) ?? throw new InvalidOperationException($"Missing value for {nameof(Scheme)}.");
-            Authority = info.GetValue<string>(nameof(Authority)) ?? throw new InvalidOperationException($"Missing value for {nameof(Authority)}.");
-            Path = info.GetValue<string>(nameof(Path)) ?? throw new InvalidOperationException($"Missing value for {nameof(Path)}.");
-            Query = info.GetValue<string>(nameof(Query)) ?? throw new InvalidOperationException($"Missing value for {nameof(Query)}.");
-            Fragment = info.GetValue<string>(nameof(Fragment)) ?? throw new InvalidOperationException($"Missing value for {nameof(Fragment)}.");
-            WindowsFsPath = info.GetValue<string?>(nameof(WindowsFsPath));
-            UnixFsPath = info.GetValue<string?>(nameof(UnixFsPath));
-            ExpectedToString = info.GetValue<string?>(nameof(ExpectedToString));
-            SkipFsPathRoundTrip = info.GetValue<bool>(nameof(SkipFsPathRoundTrip));
-        }
     }
 
-    public sealed class FormattingCase : IXunitSerializable
+    public sealed class FormattingCase
     {
         public FormattingCase()
         {
@@ -1205,23 +1176,9 @@ public sealed class ParsedUriTests
         public string UriString { get; set; }
         public string ExpectedToString { get; set; }
         public string? ExpectedToStringSkipEncoding { get; set; }
-
-        public void Serialize(IXunitSerializationInfo info)
-        {
-            info.AddValue(nameof(UriString), UriString);
-            info.AddValue(nameof(ExpectedToString), ExpectedToString);
-            info.AddValue(nameof(ExpectedToStringSkipEncoding), ExpectedToStringSkipEncoding);
-        }
-
-        public void Deserialize(IXunitSerializationInfo info)
-        {
-            UriString = info.GetValue<string>(nameof(UriString)) ?? throw new InvalidOperationException($"Missing value for {nameof(UriString)}.");
-            ExpectedToString = info.GetValue<string>(nameof(ExpectedToString)) ?? throw new InvalidOperationException($"Missing value for {nameof(ExpectedToString)}.");
-            ExpectedToStringSkipEncoding = info.GetValue<string?>(nameof(ExpectedToStringSkipEncoding));
-        }
     }
 
-    public sealed class EqualityCase : IXunitSerializable
+    public sealed class EqualityCase
     {
         public EqualityCase()
         {
@@ -1239,19 +1196,5 @@ public sealed class ParsedUriTests
         public string Left { get; set; }
         public string Right { get; set; }
         public bool AreEqual { get; set; }
-
-        public void Serialize(IXunitSerializationInfo info)
-        {
-            info.AddValue(nameof(Left), Left);
-            info.AddValue(nameof(Right), Right);
-            info.AddValue(nameof(AreEqual), AreEqual);
-        }
-
-        public void Deserialize(IXunitSerializationInfo info)
-        {
-            Left = info.GetValue<string>(nameof(Left)) ?? throw new InvalidOperationException($"Missing value for {nameof(Left)}.");
-            Right = info.GetValue<string>(nameof(Right)) ?? throw new InvalidOperationException($"Missing value for {nameof(Right)}.");
-            AreEqual = info.GetValue<bool>(nameof(AreEqual));
-        }
     }
 }

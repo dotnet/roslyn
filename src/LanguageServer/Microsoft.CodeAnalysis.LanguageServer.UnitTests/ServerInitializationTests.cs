@@ -82,8 +82,7 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
         var logMessages = new ConcurrentBag<string>();
         await using (var server = await CreateLanguageServerAsync())
         {
-            // Completing this from an event callback must not run test cleanup inline on that callback thread.
-            var logCompletionSource = new TaskCompletionSource<LogMessageParams>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var logCompletionSource = new TaskCompletionSource<LogMessageParams>();
 
             server.LogMessageReceived += logMessage =>
             {
@@ -112,8 +111,6 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
             await logCompletionSource.Task;
         }
 
-        // Disposing the client does not wait for in-flight window/logMessage handlers (e.g. for messages logged
-        // during shutdown), so they may still be adding to the list; assert against a snapshot.
         var logMessagesSnapshot = logMessages.ToArray();
 
         Assert.Contains(debugOne, logMessagesSnapshot);
