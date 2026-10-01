@@ -138,6 +138,16 @@ internal class TestDiscovery
 
         bool ShouldInclude(string path)
         {
+            // Test assemblies are also copied into the output of non-test projects that reference them
+            // (e.g. IdeBenchmarks references a unit test project). Those copies are never run and lack the
+            // app host xUnit v3 needs for discovery, so only consider assemblies under test project folders.
+            var projectDirName = Path.GetRelativePath(binDirectory, path).Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)[0];
+            if (!projectDirName.Contains("UnitTests", StringComparison.Ordinal) &&
+                !projectDirName.Contains("IntegrationTests", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
             if (isUnix)
             {
                 var dirName = Path.GetFileName(Path.GetDirectoryName(path));

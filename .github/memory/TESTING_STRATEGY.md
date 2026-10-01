@@ -115,6 +115,13 @@ dependencies load in the test process rather than in the worker. `PrepareTests`
 sets `DOTNET_ROOT` and the current architecture's `DOTNET_ROOT_*` variable for
 the worker from the selected dotnet executable so the xUnit test apphost can
 locate the same runtime.
+Out-of-process discovery needs the test project's `.exe` app host, so
+`PrepareTests` only discovers `*UnitTests.dll`/`*IntegrationTests.dll` under
+`artifacts/bin/<project>` folders whose name contains `UnitTests` or
+`IntegrationTests` (matching RunTests' default include filter). Copies that a
+`ProjectReference` drops into non-test outputs (e.g. `IdeBenchmarks` referencing
+`Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests`) have no app host and
+are skipped.
 
 VS integration projects keep `IsTestProject=true` so `XUnit.targets` supplies
 their xUnit v3 package references and VSTest discovery works; see
