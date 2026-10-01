@@ -18,7 +18,7 @@ namespace TestRunner.RunTests
 {
     internal sealed class ProcessTestExecutor
     {
-        public static string BuildRspFileContents(WorkItemInfo workItem, Options options, string xmlResultsFilePath, string? htmlResultsFilePath)
+        public static string BuildRspFileContents(WorkItemInfo workItem, RunTestOptions options, string xmlResultsFilePath, string? htmlResultsFilePath)
         {
             var fileContentsBuilder = new StringBuilder();
 
@@ -94,13 +94,13 @@ namespace TestRunner.RunTests
             return vsTestConsolePath;
         }
 
-        public static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
+        public static string GetResultsFilePath(WorkItemInfo workItemInfo, RunTestOptions options, string suffix = "xml")
         {
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
             return Path.Combine(options.TestResultsDirectory, fileName);
         }
 
-        public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, Options options, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, RunTestOptions options, CancellationToken cancellationToken)
         {
             try
             {

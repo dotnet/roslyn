@@ -72,7 +72,7 @@ internal sealed class HelixTestRunner
         Mac,
     }
 
-    internal static async Task<int> RunAsync(Options options, ImmutableArray<AssemblyInfo> assemblies)
+    internal static async Task<int> RunAsync(RunHelixOptions options, ImmutableArray<AssemblyInfo> assemblies)
     {
         using var cts = new CancellationTokenSource();
         Console.CancelKeyPress += delegate
@@ -108,7 +108,7 @@ internal sealed class HelixTestRunner
     /// Creates the helix project file and payload artifacts on disk. Returns the path to the
     /// generated helix project file.
     /// </summary>
-    internal static async Task<string> CreateHelixArtifactsAsync(Options options, ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
+    internal static async Task<string> CreateHelixArtifactsAsync(RunHelixOptions options, ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(!string.IsNullOrEmpty(options.ArtifactsDirectory));
         Contract.ThrowIfFalse(!string.IsNullOrEmpty(options.HelixQueueName));
@@ -157,7 +157,7 @@ internal sealed class HelixTestRunner
     /// <summary>
     /// Constructs the dotnet build arguments and launches the Helix submission process.
     /// </summary>
-    internal static Process StartHelixJob(Options options, string helixProjectFilePath)
+    internal static Process StartHelixJob(RunHelixOptions options, string helixProjectFilePath)
     {
         var logsDir = Path.Combine(options.ArtifactsDirectory, "log", options.Configuration);
         var arguments = $"build -bl:{Path.Combine(logsDir, "helix.binlog")} {helixProjectFilePath}";
@@ -469,7 +469,7 @@ internal sealed class HelixTestRunner
         }
     }
 
-    private static string GetTestRunName(Options options)
+    private static string GetTestRunName(RunHelixOptions options)
     {
         var runtime = options.TestRuntime switch
         {

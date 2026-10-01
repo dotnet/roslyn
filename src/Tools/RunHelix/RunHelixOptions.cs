@@ -4,7 +4,7 @@
 
 namespace TestRunner.Helix;
 
-internal sealed class Options : CommonOptions
+internal sealed class RunHelixOptions : Options
 {
     public string HelixQueueName { get; private set; } = "";
     public string? HelixApiAccessToken { get; set; }
@@ -13,9 +13,9 @@ internal sealed class Options : CommonOptions
     public string? PipelineDefinitionId { get; set; }
     public string? TargetBranchName { get; set; }
 
-    internal static Options? Parse(string[] args, out bool helpShown)
+    internal static RunHelixOptions? Parse(string[] args, out bool helpShown)
     {
-        var options = new Options();
+        var options = new RunHelixOptions();
         var optionSet = options.GetOptionSet();
         optionSet.Add("helixQueueName=", "Name of the Helix queue to run tests on (required)", s => options.HelixQueueName = s);
         optionSet.Add("helixApiAccessToken=", "Access token for internal Helix queues", s => options.HelixApiAccessToken = s);

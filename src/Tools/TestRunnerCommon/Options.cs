@@ -17,7 +17,7 @@ internal enum TestRuntime
     Framework = 2,
 }
 
-internal abstract class CommonOptions
+internal abstract class Options
 {
     internal static readonly string[] CompilerTestAssemblyPatterns = new[]
     {

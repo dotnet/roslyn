@@ -69,7 +69,8 @@ internal static class RegressionHarness
         {
             Console.SetOut(output);
             object?[] parameters = [arguments, false];
-            var result = Call(Type(assembly, Prefix(assembly) + "Options"), "Parse", parameters);
+            var optionsTypeName = assembly.GetName().Name == "RunTests" ? "RunTestOptions" : "RunHelixOptions";
+            var result = Call(Type(assembly, Prefix(assembly) + optionsTypeName), "Parse", parameters);
             return (result, (bool)parameters[1]!, output.ToString());
         }
         finally

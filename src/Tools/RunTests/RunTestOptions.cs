@@ -7,7 +7,7 @@ using System.IO;
 
 namespace TestRunner.RunTests;
 
-internal sealed class Options : CommonOptions
+internal sealed class RunTestOptions : Options
 {
     public bool IncludeHtml { get; set; }
     public string? TestFilter { get; set; }
@@ -17,9 +17,9 @@ internal sealed class Options : CommonOptions
     public string TestResultsDirectory { get; private set; } = "";
     public string LogFilesDirectory { get; private set; } = "";
 
-    internal static Options? Parse(string[] args, out bool helpShown)
+    internal static RunTestOptions? Parse(string[] args, out bool helpShown)
     {
-        var options = new Options();
+        var options = new RunTestOptions();
         string? resultsDirectory = null;
         string? logsDirectory = null;
         var optionSet = options.GetOptionSet();

@@ -24,7 +24,7 @@ namespace TestRunner.RunTests
         {
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
-            var options = Options.Parse(args, out var helpShown);
+            var options = RunTestOptions.Parse(args, out var helpShown);
             if (options == null)
             {
                 return helpShown ? ExitSuccess : ExitFailure;
@@ -76,7 +76,7 @@ namespace TestRunner.RunTests
             }
         }
 
-        private static async Task<int> RunCoreAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
+        private static async Task<int> RunCoreAsync(RunTestOptions options, TimeSpan timeout, CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunAsync(options, cts.Token);
@@ -105,7 +105,7 @@ namespace TestRunner.RunTests
             return await runTask;
         }
 
-        private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunAsync(RunTestOptions options, CancellationToken cancellationToken)
         {
             var assemblyFilePaths = AssemblyDiscovery.GetAssemblyFilePaths(options);
 
@@ -163,7 +163,7 @@ namespace TestRunner.RunTests
             Logger.Log("End logging executed process details");
         }
 
-        private static void WriteLogFile(Options options)
+        private static void WriteLogFile(RunTestOptions options)
         {
             var logFilePath = Path.Combine(options.LogFilesDirectory, "runtests.log");
             try
@@ -187,7 +187,7 @@ namespace TestRunner.RunTests
         /// Invoked when a timeout occurs and we need to dump all of the test processes and shut down 
         /// the runnner.
         /// </summary>
-        private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
+        private static async Task HandleTimeout(RunTestOptions options, CancellationToken cancellationToken)
         {
             ConsoleUtil.Error("Test timeout exceeded, dumping remaining processes");
 

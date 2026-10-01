@@ -11,7 +11,7 @@ internal static class Program
 {
     internal static async Task<int> Main(string[] args)
     {
-        var options = Options.Parse(args, out var helpShown);
+        var options = RunHelixOptions.Parse(args, out var helpShown);
         if (options is null)
         {
             return helpShown ? 0 : 1;

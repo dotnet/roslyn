@@ -13,7 +13,7 @@ namespace TestRunner;
 
 internal static class AssemblyDiscovery
 {
-    internal static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(CommonOptions options)
+    internal static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)
     {
         var list = new List<AssemblyInfo>();
         var binDirectory = Path.Combine(options.ArtifactsDirectory, "bin");
@@ -75,7 +75,7 @@ internal static class AssemblyDiscovery
         list.Sort();
         return list.ToImmutableArray();
 
-        static bool shouldInclude(string name, CommonOptions options)
+        static bool shouldInclude(string name, Options options)
         {
             foreach (var pattern in options.IncludeFilter)
             {
@@ -88,7 +88,7 @@ internal static class AssemblyDiscovery
             return false;
         }
 
-        static bool shouldExclude(string name, CommonOptions options)
+        static bool shouldExclude(string name, Options options)
         {
             foreach (var pattern in options.ExcludeFilter)
             {

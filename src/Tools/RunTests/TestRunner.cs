@@ -48,9 +48,9 @@ namespace TestRunner.RunTests
     internal sealed class TestRunner
     {
         private readonly ProcessTestExecutor _testExecutor;
-        private readonly Options _options;
+        private readonly RunTestOptions _options;
 
-        internal TestRunner(Options options, ProcessTestExecutor testExecutor)
+        internal TestRunner(RunTestOptions options, ProcessTestExecutor testExecutor)
         {
             _testExecutor = testExecutor;
             _options = options;
