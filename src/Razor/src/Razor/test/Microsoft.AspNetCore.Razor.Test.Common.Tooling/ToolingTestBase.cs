@@ -144,7 +144,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
     }
 
     /// <summary>
-    /// <summary>
     ///  Register an <see cref="IDisposable"/> instance to be disposed when the test completes.
     /// </summary>
     protected void AddDisposable(IDisposable disposable)
