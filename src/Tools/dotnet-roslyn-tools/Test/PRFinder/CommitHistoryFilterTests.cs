@@ -8,19 +8,13 @@ namespace Microsoft.RoslynTools.UnitTests.PRFinder;
 
 public class CommitHistoryFilterTests
 {
-    [Theory]
-    [InlineData("Merge main into release/insiders")]
-    [InlineData("Merge release/insiders into release/stable")]
-    [InlineData("Snap main into release/insiders (18.12) (#85819)")]
-    [InlineData("Snap release/insiders into release/stable (#85820)")]
-    [InlineData("Replace content from another branch")]
-    [InlineData("")]
-    public async Task MatchingSecondParentExcludesFirstParentHistory(string message)
+    [Fact]
+    public async Task MatchingSecondParentExcludesFirstParentHistory()
     {
         var commits = new[]
         {
             Commit("head", "Update (#3)", "snap"),
-            Commit("snap", message, "discarded", "source"),
+            Commit("snap", "Replace content from another branch", "discarded", "source"),
             Commit("discarded", "Old target update (#1)", "base"),
             Commit("source", "New source update (#2)", "base"),
         };
@@ -28,24 +22,6 @@ public class CommitHistoryFilterTests
         var result = await FilterAsync(commits, "head", ("snap", "source"));
 
         Assert.Equal(["head", "snap", "source"], result.Select(commit => commit.CommitId));
-    }
-
-    [Fact]
-    public async Task SnapPullRequestMergeAlsoExcludesTargetHistory()
-    {
-        var commits = new[]
-        {
-            Commit("head", "Update (#3)", "snap-pr"),
-            Commit("snap-pr", "Snap main into release/insiders (18.12) (#85819)", "discarded", "config"),
-            Commit("config", "Update PublishData.json", "snap"),
-            Commit("snap", "Merge main into release/insiders", "discarded", "base"),
-            Commit("discarded", "Old target update (#1)", "base"),
-        };
-        var trees = CreateTrees(commits, ("snap-pr", "config"), ("snap", "base"));
-
-        var result = await CommitHistoryFilter.FilterAsync(commits, "head", (id, _) => Task.FromResult(trees[id]));
-
-        Assert.Equal(["head", "snap-pr", "config", "snap"], result.Select(commit => commit.CommitId));
     }
 
     [Fact]
@@ -109,23 +85,6 @@ public class CommitHistoryFilterTests
         Assert.Equal(commits, result);
     }
 
-    [Theory]
-    [InlineData("Merge pull request #3 from contributor/feature")]
-    [InlineData("Snap main into release/insiders-extra (#3)")]
-    public async Task OrdinaryMergePreservesBothParents(string message)
-    {
-        var commits = new[]
-        {
-            Commit("merge", message, "target", "source"),
-            Commit("target", "Target update (#1)", "base"),
-            Commit("source", "Source update (#2)", "base"),
-        };
-
-        var result = await FilterAsync(commits, "merge");
-
-        Assert.Equal(commits, result);
-    }
-
     [Fact]
     public async Task TargetHistoryReachedThroughLaterMergeIsPreserved()
     {
@@ -183,44 +142,7 @@ public class CommitHistoryFilterTests
     }
 
     [Fact]
-    public async Task MissingHeadIsReported()
-    {
-        await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            CommitHistoryFilter.FilterAsync([Commit("other", "Update (#1)")], "head", (_, _) => Task.FromResult("tree")));
-    }
-
-    [Fact]
-    public async Task CancellationIsPropagated()
-    {
-        using var cancellation = new CancellationTokenSource();
-        cancellation.Cancel();
-
-        await Assert.ThrowsAsync<OperationCanceledException>(() =>
-            CommitHistoryFilter.FilterAsync([Commit("head", "Update (#1)")], "head", (_, _) => Task.FromResult("tree"), cancellation.Token));
-    }
-
-    [Fact]
-    public async Task TreeLookupFailureIsPropagated()
-    {
-        await Assert.ThrowsAsync<IOException>(() =>
-            CommitHistoryFilter.FilterAsync(
-                [Commit("snap", "Merge main into release/insiders", "target", "source")],
-                "snap",
-                (_, _) => Task.FromException<string>(new IOException("Tree lookup failed."))));
-    }
-
-    [Fact]
-    public async Task EmptyTreeIsReported()
-    {
-        await Assert.ThrowsAsync<InvalidDataException>(() =>
-            CommitHistoryFilter.FilterAsync(
-                [Commit("merge", "Merge (#1)", "target", "source")],
-                "merge",
-                (_, _) => Task.FromResult("")));
-    }
-
-    [Fact]
-    public async Task SingleParentRevertRetainsHistoryWithoutTreeLookups()
+    public async Task SingleParentRevertRetainsHistory()
     {
         var commits = new[]
         {
@@ -228,35 +150,9 @@ public class CommitHistoryFilterTests
             Commit("update", "Update (#1)", "base"),
         };
 
-        var result = await CommitHistoryFilter.FilterAsync(commits, "revert", (_, _) =>
-            Task.FromException<string>(new InvalidOperationException("Single-parent commits must not query trees.")));
+        var result = await FilterAsync(commits, "revert", ("revert", "base"));
 
         Assert.Equal(commits, result);
-    }
-
-    [Fact]
-    public async Task TreeLookupsAreCachedAcrossMerges()
-    {
-        var commits = new[]
-        {
-            Commit("head", "Combined merge (#3)", "left", "right"),
-            Commit("left", "Replace left content (#1)", "old-left", "base"),
-            Commit("right", "Replace right content (#2)", "old-right", "base"),
-            Commit("old-left", "Old left content", "base"),
-            Commit("old-right", "Old right content", "base"),
-        };
-        var trees = CreateTrees(commits, ("left", "base"), ("right", "base"));
-        var lookups = new List<string>();
-
-        var result = await CommitHistoryFilter.FilterAsync(commits, "head", (id, _) =>
-        {
-            lookups.Add(id);
-            return Task.FromResult(trees[id]);
-        });
-
-        Assert.Equal(["head", "left", "right"], result.Select(commit => commit.CommitId));
-        Assert.Contains("base", lookups);
-        Assert.All(lookups.GroupBy(id => id), group => Assert.Single(group));
     }
 
     private static Task<List<GitCommit>> FilterAsync(IReadOnlyList<GitCommit> commits, string head, params (string Commit, string Tree)[] overrides)

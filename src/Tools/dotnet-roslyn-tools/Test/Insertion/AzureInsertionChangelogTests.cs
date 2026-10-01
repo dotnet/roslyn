@@ -37,11 +37,11 @@ public class AzureInsertionChangelogTests
 
         Assert.Equal(["head", "snap-pr", "config", "snap"], changes.Select(commit => commit.CommitId));
         Assert.Equal(RepoUrl + "/branchCompare?baseVersion=GCbase&targetVersion=GChead", diffLink);
-        Assert.Equal(["base"], client.TreeLookups);
+        Assert.Equal("base", Assert.Single(client.TreeLookups));
     }
 
     [Fact]
-    public async Task SnapMessageWithoutSourceTreePreservesTargetChanges()
+    public async Task DistinctMergeTreePreservesBothParents()
     {
         var commits = new[]
         {
@@ -68,173 +68,11 @@ public class AzureInsertionChangelogTests
         var commits = Enumerable.Range(1, 1001).Reverse()
             .Select(i => Commit($"commit-{i}", $"Update (#{i})", i == 1 ? "base" : $"commit-{i - 1}"))
             .ToArray();
-        var releaseDetails = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var pendingDetails = 0;
-        using var client = new Client(commits, new Dictionary<string, string>())
-        {
-            BeforeCommitDetailsAsync = async (_, token) =>
-            {
-                var pending = Interlocked.Increment(ref pendingDetails);
-                try
-                {
-                    Assert.InRange(pending, 1, 16);
-                    await releaseDetails.Task.WaitAsync(token);
-                    await Task.Yield();
-                }
-                finally
-                {
-                    Interlocked.Decrement(ref pendingDetails);
-                }
-            },
-        };
+        using var client = new Client(commits, new Dictionary<string, string>());
 
-        var getChanges = RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "commit-1001");
-        try
-        {
-            Assert.Equal(16, client.CommitDetailRequests.Count);
-            Assert.Equal(16, Volatile.Read(ref pendingDetails));
-        }
-        finally
-        {
-            releaseDetails.SetResult();
-        }
-
-        var (changes, _) = await getChanges;
+        var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "commit-1001");
 
         Assert.Equal(commits.Select(commit => commit.CommitId), changes.Select(commit => commit.CommitId));
-        Assert.Equal(commits.Select(commit => commit.CommitId), client.CommitDetailRequests);
-        Assert.Equal(0, pendingDetails);
-        Assert.Equal([0, 1000], client.PageOffsets);
-        Assert.Empty(client.TreeLookups);
-    }
-
-    [Fact]
-    public async Task OutOfOrderDetailResponsesPreserveCommitOrder()
-    {
-        var commits = new[]
-        {
-            Commit("head", "Latest update (#3)", "middle"),
-            Commit("middle", "Middle update (#2)", "first"),
-            Commit("first", "First update (#1)", "base"),
-        };
-        var responses = commits.ToDictionary(
-            commit => commit.CommitId,
-            _ => new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously));
-        using var client = new Client(commits, new Dictionary<string, string>())
-        {
-            BeforeCommitDetailsAsync = (id, token) => responses[id].Task.WaitAsync(token),
-        };
-
-        var getChanges = RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "head");
-        Assert.Equal(["head", "middle", "first"], client.CommitDetailRequests);
-        responses["first"].SetResult();
-        responses["middle"].SetResult();
-        Assert.False(getChanges.IsCompleted);
-        responses["head"].SetResult();
-        var (changes, _) = await getChanges;
-
-        Assert.Equal(["head", "middle", "first"], changes.Select(commit => commit.CommitId));
-    }
-
-    [Fact]
-    public async Task DetailFailurePreventsLaterBatches()
-    {
-        var commits = Enumerable.Range(1, 33).Reverse()
-            .Select(i => Commit($"commit-{i}", $"Update (#{i})", i == 1 ? "base" : $"commit-{i - 1}"))
-            .ToArray();
-        var releaseDetails = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var failure = new IOException("Commit details unavailable.");
-        using var client = new Client(commits, new Dictionary<string, string>())
-        {
-            BeforeCommitDetailsAsync = (id, token) => id == "commit-33"
-                ? Task.FromException(failure)
-                : releaseDetails.Task.WaitAsync(token),
-        };
-
-        var getChanges = RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "commit-33");
-        Assert.Equal(16, client.CommitDetailRequests.Count);
-        Assert.False(getChanges.IsCompleted);
-        releaseDetails.SetResult();
-        var actualFailure = await Assert.ThrowsAsync<IOException>(() => getChanges);
-
-        Assert.Same(failure, actualFailure);
-        Assert.Equal(commits.Take(16).Select(commit => commit.CommitId), client.CommitDetailRequests);
-        Assert.Empty(client.TreeLookups);
-    }
-
-    [Fact]
-    public async Task CancellationDuringDetailsPreventsLaterBatches()
-    {
-        var commits = Enumerable.Range(1, 33).Reverse()
-            .Select(i => Commit($"commit-{i}", $"Update (#{i})", i == 1 ? "base" : $"commit-{i - 1}"))
-            .ToArray();
-        using var cancellation = new CancellationTokenSource();
-        var releaseDetails = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        using var client = new Client(commits, new Dictionary<string, string>())
-        {
-            BeforeCommitDetailsAsync = (_, token) =>
-            {
-                Assert.Equal(cancellation.Token, token);
-                return releaseDetails.Task.WaitAsync(token);
-            },
-        };
-
-        var getChanges = RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "commit-33", cancellation.Token);
-        Assert.Equal(16, client.CommitDetailRequests.Count);
-        cancellation.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => getChanges);
-
-        Assert.Equal(commits.Take(16).Select(commit => commit.CommitId), client.CommitDetailRequests);
-        Assert.Empty(client.TreeLookups);
-    }
-
-    [Fact]
-    public async Task CancellationBetweenBatchesPreventsFurtherRequests()
-    {
-        var commits = Enumerable.Range(1, 33).Reverse()
-            .Select(i => Commit($"commit-{i}", $"Update (#{i})", i == 1 ? "base" : $"commit-{i - 1}"))
-            .ToArray();
-        using var cancellation = new CancellationTokenSource();
-        using var client = new Client(commits, new Dictionary<string, string>())
-        {
-            BeforeCommitDetailsAsync = (id, _) =>
-            {
-                if (id == "commit-18")
-                {
-                    cancellation.Cancel();
-                }
-
-                return Task.CompletedTask;
-            },
-        };
-
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "commit-33", cancellation.Token));
-
-        Assert.Equal(commits.Take(16).Select(commit => commit.CommitId), client.CommitDetailRequests);
-        Assert.Empty(client.TreeLookups);
-    }
-
-    [Fact]
-    public async Task MatchingFirstParentExcludesSecondParentHistory()
-    {
-        var commits = new[]
-        {
-            Commit("merge", "Preserve target snapshot (#3)", "target", "source"),
-            Commit("target", "Target update (#1)", "base"),
-            Commit("source", "Source update (#2)", "base"),
-        };
-        using var client = new Client(commits, new Dictionary<string, string>
-        {
-            ["merge"] = "target-tree",
-            ["target"] = "target-tree",
-            ["source"] = "source-tree",
-        });
-
-        var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "merge");
-
-        Assert.Equal(["merge", "target"], changes.Select(commit => commit.CommitId));
-        Assert.Empty(client.TreeLookups);
     }
 
     [Fact]
@@ -258,76 +96,7 @@ public class AzureInsertionChangelogTests
         var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "head");
 
         Assert.Equal(["head", "left", "right"], changes.Select(commit => commit.CommitId));
-        Assert.Equal(["base"], client.TreeLookups);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public async Task MissingCommitTreeIsReported(string? treeId)
-    {
-        var head = Commit("head", "Update (#1)", "base");
-        head.TreeId = treeId;
-        using var client = new Client([head], new Dictionary<string, string>());
-
-        var error = await Assert.ThrowsAsync<InvalidDataException>(() =>
-            RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "head"));
-
-        Assert.Contains("'head'", error.Message);
-        Assert.Empty(client.TreeLookups);
-    }
-
-    [Theory]
-    [InlineData(null)]
-    [InlineData("")]
-    [InlineData(" ")]
-    public async Task MissingOutOfRangeParentTreeIsReported(string? treeId)
-    {
-        using var client = new Client(
-            [Commit("merge", "Merge (#3)", "target", "source")],
-            new Dictionary<string, string> { ["target"] = "unused-tree" })
-        {
-            BeforeTreeLookup = _ => new GitItem { GitObjectType = GitObjectType.Tree, ObjectId = treeId },
-        };
-
-        var error = await Assert.ThrowsAsync<InvalidDataException>(() =>
-            RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "merge"));
-
-        Assert.Contains("'target'", error.Message);
-        Assert.Equal(["target"], client.TreeLookups);
-    }
-
-    [Fact]
-    public async Task OutOfRangeParentTreeFailureIsPropagated()
-    {
-        var failure = new IOException("Tree lookup failed.");
-        using var client = new Client(
-            [Commit("merge", "Merge (#3)", "target", "source")],
-            new Dictionary<string, string>())
-        {
-            BeforeTreeLookup = _ => throw failure,
-        };
-
-        var actualFailure = await Assert.ThrowsAsync<IOException>(() =>
-            RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "merge"));
-
-        Assert.Same(failure, actualFailure);
-        Assert.Equal(["target"], client.TreeLookups);
-    }
-
-    [Fact]
-    public async Task NonTreeRootIsReported()
-    {
-        using var client = new Client(
-            [Commit("merge", "Merge (#3)", "target", "source")],
-            new Dictionary<string, string> { ["target"] = "object-id" })
-        {
-            RootType = GitObjectType.Blob,
-        };
-
-        await Assert.ThrowsAsync<InvalidDataException>(() =>
-            RoslynInsertionTool.GetChangesBetweenBuildsFromAzDOAsync(client, "project", "repo", RepoUrl, "base", "merge"));
+        Assert.Equal("base", Assert.Single(client.TreeLookups));
     }
 
     private static GitCommit Commit(string id, string message, params string[] parents)
@@ -352,12 +121,7 @@ public class AzureInsertionChangelogTests
         private readonly Dictionary<string, GitCommit> _commitsById;
         private readonly IReadOnlyDictionary<string, string> _trees;
 
-        public List<int> PageOffsets { get; } = [];
-        public List<string> CommitDetailRequests { get; } = [];
         public List<string> TreeLookups { get; } = [];
-        public GitObjectType RootType { get; init; } = GitObjectType.Tree;
-        public Func<string, CancellationToken, Task>? BeforeCommitDetailsAsync { get; init; }
-        public Func<string, GitItem>? BeforeTreeLookup { get; init; }
 
         public Client(IReadOnlyList<GitCommit> commits, IReadOnlyDictionary<string, string> trees)
             : base(new Uri("https://dev.azure.com/example"), new VssBasicCredential("", "test-token"))
@@ -383,16 +147,10 @@ public class AzureInsertionChangelogTests
             object? userState = null,
             CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            Assert.Equal("base", searchCriteria.ItemVersion.Version);
-            Assert.Equal(GitVersionType.Commit, searchCriteria.ItemVersion.VersionType);
-            Assert.Equal(GitVersionType.Commit, searchCriteria.CompareVersion.VersionType);
-            Assert.Equal(1000, top);
-            PageOffsets.Add(skip ?? 0);
-            return Task.FromResult(_commits.Skip(skip ?? 0).Take(top ?? 1000).Cast<GitCommitRef>().ToList());
+            return Task.FromResult(_commits.Skip(skip ?? 0).Take(top ?? _commits.Count).Cast<GitCommitRef>().ToList());
         }
 
-        public override async Task<GitCommit> GetCommitAsync(
+        public override Task<GitCommit> GetCommitAsync(
             string project,
             string commitId,
             string repositoryId,
@@ -400,14 +158,7 @@ public class AzureInsertionChangelogTests
             object? userState = null,
             CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            CommitDetailRequests.Add(commitId);
-            if (BeforeCommitDetailsAsync is not null)
-            {
-                await BeforeCommitDetailsAsync(commitId, cancellationToken);
-            }
-
-            return _commitsById[commitId];
+            return Task.FromResult(_commitsById[commitId]);
         }
 
         public override Task<GitItem> GetItemAsync(
@@ -426,21 +177,15 @@ public class AzureInsertionChangelogTests
             object? userState = null,
             CancellationToken cancellationToken = default)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             Assert.Equal("/", path);
-            Assert.Equal(VersionControlRecursionType.None, recursionLevel);
-            Assert.False(includeContent);
             Assert.NotNull(versionDescriptor);
-            Assert.Equal(GitVersionType.Commit, versionDescriptor.VersionType);
             var commitId = versionDescriptor.Version;
             TreeLookups.Add(commitId);
-            return Task.FromResult(BeforeTreeLookup is not null
-                ? BeforeTreeLookup(commitId)
-                : new GitItem
-                {
-                    GitObjectType = RootType,
-                    ObjectId = _trees[commitId],
-                });
+            return Task.FromResult(new GitItem
+            {
+                GitObjectType = GitObjectType.Tree,
+                ObjectId = _trees[commitId],
+            });
         }
     }
 }

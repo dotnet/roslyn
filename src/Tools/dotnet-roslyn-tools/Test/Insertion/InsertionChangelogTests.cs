@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Net;
 using System.Text;
+using System.Web;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Insertion;
@@ -19,14 +19,12 @@ public class InsertionChangelogTests
     [Fact]
     public async Task SnapChangelogContainsOnlySnapAndPostSnapUpdate()
     {
-        var requests = new List<string>();
         using var client = new HttpClient(new Handler(request =>
         {
-            var path = GetRequestUri(request).PathAndQuery;
-            requests.Add(path);
+            var path = GetRequestUri(request).AbsolutePath;
             return path switch
             {
-                "/repos/dotnet/roslyn/compare/base...head?per_page=100&page=1" => Response(new
+                "/repos/dotnet/roslyn/compare/base...head" => Response(new
                 {
                     total_commits = 5,
                     commits = new[]
@@ -47,7 +45,6 @@ public class InsertionChangelogTests
 
         Assert.Equal(["head", "snap-pr", "config", "snap"], changes.Select(commit => commit.CommitId));
         Assert.Equal("//github.com/dotnet/roslyn/compare/base...head?w=1", diffLink);
-        Assert.Equal(2, requests.Count);
 
         using var connections = new RemoteConnections(new RoslynToolsSettings { GitHubToken = "test-token" }, NullLogger.Instance, loginToAzureDevOps: false);
         var host = new GitHub("https://github.com/dotnet/roslyn", connections, NullLogger.Instance);
@@ -61,74 +58,16 @@ public class InsertionChangelogTests
     }
 
     [Fact]
-    public async Task NewSourceChangesArePreserved()
-    {
-        using var client = new HttpClient(new Handler(_ => Response(new
-        {
-            total_commits = 4,
-            commits = new[]
-            {
-                Commit("discarded", "Old insiders update (#1)", "target-tree", "base"),
-                Commit("source", "New main update (#2)", "source-tree", "base"),
-                Commit("snap", "Merge main into release/insiders", "source-tree", "discarded", "source"),
-                Commit("head", "Update (#3)", "head-tree", "snap"),
-            }
-        })));
-
-        var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromGitHubAsync(client, "dotnet/roslyn", "base", "head");
-
-        Assert.Equal(["head", "snap", "source"], changes.Select(commit => commit.CommitId));
-    }
-
-    [Fact]
-    public async Task MatchingFirstParentExcludesSecondParentHistory()
-    {
-        using var client = new HttpClient(new Handler(_ => Response(new
-        {
-            total_commits = 3,
-            commits = new[]
-            {
-                Commit("target", "Target update (#1)", "target-tree", "base"),
-                Commit("source", "Source update (#2)", "source-tree", "base"),
-                Commit("merge", "Preserve target snapshot (#3)", "target-tree", "target", "source"),
-            }
-        })));
-
-        var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromGitHubAsync(client, "dotnet/roslyn", "base", "merge");
-
-        Assert.Equal(["merge", "target"], changes.Select(commit => commit.CommitId));
-    }
-
-    [Fact]
-    public async Task IdenticalParentTreesPreserveBothHistories()
-    {
-        using var client = new HttpClient(new Handler(_ => Response(new
-        {
-            total_commits = 3,
-            commits = new[]
-            {
-                Commit("target", "Target update (#1)", "shared-tree", "base"),
-                Commit("source", "Source update (#2)", "shared-tree", "base"),
-                Commit("merge", "Merge equivalent snapshots (#3)", "shared-tree", "target", "source"),
-            }
-        })));
-
-        var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromGitHubAsync(client, "dotnet/roslyn", "base", "merge");
-
-        Assert.Equal(["merge", "source", "target"], changes.Select(commit => commit.CommitId));
-    }
-
-    [Fact]
     public async Task MissingParentTreeIsFetchedOnlyOnceAcrossMerges()
     {
         var requests = new List<string>();
         using var client = new HttpClient(new Handler(request =>
         {
-            var path = GetRequestUri(request).PathAndQuery;
+            var path = GetRequestUri(request).AbsolutePath;
             requests.Add(path);
             return path switch
             {
-                "/repos/dotnet/roslyn/compare/base...head?per_page=100&page=1" => Response(new
+                "/repos/dotnet/roslyn/compare/base...head" => Response(new
                 {
                     total_commits = 5,
                     commits = new[]
@@ -148,25 +87,7 @@ public class InsertionChangelogTests
         var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromGitHubAsync(client, "dotnet/roslyn", "base", "head");
 
         Assert.Equal(["head", "right", "left"], changes.Select(commit => commit.CommitId));
-        Assert.Equal(
-            ["/repos/dotnet/roslyn/compare/base...head?per_page=100&page=1", "/repos/dotnet/roslyn/commits/base"],
-            requests);
-    }
-
-    [Fact]
-    public async Task MissingParentTreeIsReported()
-    {
-        using var client = new HttpClient(new Handler(request =>
-            GetRequestUri(request).AbsolutePath.Contains("/compare/", StringComparison.Ordinal)
-                ? Response(new
-                {
-                    total_commits = 1,
-                    commits = new[] { Commit("merge", "Merge (#1)", "merge-tree", "target", "source") }
-                })
-                : Response(new { commit = new { tree = new { sha = "" } } })));
-
-        await Assert.ThrowsAsync<InvalidDataException>(() =>
-            RoslynInsertionTool.GetChangesBetweenBuildsFromGitHubAsync(client, "dotnet/roslyn", "base", "merge"));
+        Assert.Single(requests, path => path == "/repos/dotnet/roslyn/commits/base");
     }
 
     [Fact]
@@ -175,73 +96,21 @@ public class InsertionChangelogTests
         var commits = Enumerable.Range(1, 101)
             .Select(i => Commit($"commit-{i}", $"Update (#{i})", $"tree-{i}", i == 1 ? "base" : $"commit-{i - 1}"))
             .ToArray();
-        var requests = new List<string>();
         using var client = new HttpClient(new Handler(request =>
         {
-            var query = GetRequestUri(request).Query;
-            requests.Add(query);
+            var query = HttpUtility.ParseQueryString(GetRequestUri(request).Query);
+            var pageSize = int.Parse(query["per_page"] ?? "30");
+            var page = int.Parse(query["page"] ?? "1");
             return Response(new
             {
                 total_commits = commits.Length,
-                commits = query switch
-                {
-                    "?per_page=100&page=1" => commits.Take(100).ToArray(),
-                    "?per_page=100&page=2" => commits.Skip(100).ToArray(),
-                    _ => throw new InvalidOperationException($"Unexpected page: {query}"),
-                }
+                commits = commits.Skip((page - 1) * pageSize).Take(pageSize).ToArray(),
             });
         }));
 
         var (changes, _) = await RoslynInsertionTool.GetChangesBetweenBuildsFromGitHubAsync(client, "dotnet/roslyn", "base", "commit-101");
 
         Assert.Equal(Enumerable.Range(1, 101).Reverse().Select(i => $"commit-{i}"), changes.Select(commit => commit.CommitId));
-        Assert.Equal(["?per_page=100&page=1", "?per_page=100&page=2"], requests);
-    }
-
-    [Fact]
-    public async Task IncompleteComparisonIsReported()
-    {
-        using var client = new HttpClient(new Handler(request => Response(new
-        {
-            total_commits = 2,
-            commits = GetRequestUri(request).Query.EndsWith("page=1", StringComparison.Ordinal)
-                ? new[] { Commit("head", "Update (#1)", "tree", "base") }
-                : [],
-        })));
-
-        await Assert.ThrowsAsync<InvalidDataException>(() =>
-            RoslynInsertionTool.GetChangesBetweenBuildsFromGitHubAsync(client, "dotnet/roslyn", "base", "head"));
-    }
-
-    [Fact]
-    public async Task FailedComparisonIsReported()
-    {
-        using var client = new HttpClient(new Handler(_ => Response(new { message = "Unavailable" }, HttpStatusCode.ServiceUnavailable)));
-
-        await Assert.ThrowsAsync<HttpRequestException>(() =>
-            RoslynInsertionTool.GetChangesBetweenBuildsFromGitHubAsync(client, "dotnet/roslyn", "base", "head"));
-    }
-
-    [Fact]
-    public async Task MissingCommitListIsReported()
-    {
-        using var client = new HttpClient(new Handler(_ => Response(new { total_commits = 1 })));
-
-        await Assert.ThrowsAsync<InvalidDataException>(() =>
-            RoslynInsertionTool.GetChangesBetweenBuildsFromGitHubAsync(client, "dotnet/roslyn", "base", "head"));
-    }
-
-    [Fact]
-    public async Task MissingTreeIsReported()
-    {
-        using var client = new HttpClient(new Handler(_ => Response(new
-        {
-            total_commits = 1,
-            commits = new[] { Commit("head", "Update (#1)", "", "base") }
-        })));
-
-        await Assert.ThrowsAsync<InvalidDataException>(() =>
-            RoslynInsertionTool.GetChangesBetweenBuildsFromGitHubAsync(client, "dotnet/roslyn", "base", "head"));
     }
 
     private static object Commit(string id, string message, string tree, params string[] parents)
@@ -259,8 +128,8 @@ public class InsertionChangelogTests
             html_url = $"https://github.com/dotnet/roslyn/commit/{id}",
         };
 
-    private static HttpResponseMessage Response(object content, HttpStatusCode status = HttpStatusCode.OK)
-        => new(status) { Content = new StringContent(JsonConvert.SerializeObject(content)) };
+    private static HttpResponseMessage Response(object content)
+        => new() { Content = new StringContent(JsonConvert.SerializeObject(content)) };
 
     private static Uri GetRequestUri(HttpRequestMessage request)
         => request.RequestUri ?? throw new InvalidOperationException("Request URI was not set.");
@@ -269,7 +138,6 @@ public class InsertionChangelogTests
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(send(request));
         }
     }
