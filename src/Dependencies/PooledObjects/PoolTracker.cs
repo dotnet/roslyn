@@ -110,8 +110,11 @@ internal static class PoolTracker
 internal sealed class PoolTrackingContext
 {
     private readonly ConcurrentDictionary<object, AllocationInfo> _outstanding = new ConcurrentDictionary<object, AllocationInfo>(ReferenceEqualityComparer.Instance);
+    private readonly object _allocationGate = new();
     private readonly bool _traceLeaks;
-    private int _allocationTrackingStopped;
+    private bool _allocationTrackingStopped;
+
+    internal Action? BeforeAllocationRecordedForTesting { get; set; }
 
     internal PoolTrackingContext(bool traceLeaks)
     {
@@ -120,10 +123,14 @@ internal sealed class PoolTrackingContext
 
     internal void OnAllocate(object obj, string? poolName, string filePath, int lineNumber)
     {
-        if (Volatile.Read(ref _allocationTrackingStopped) != 0)
-            return;
+        lock (_allocationGate)
+        {
+            if (_allocationTrackingStopped)
+                return;
 
-        _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), poolName, filePath, lineNumber, _traceLeaks ? Environment.StackTrace : null));
+            BeforeAllocationRecordedForTesting?.Invoke();
+            _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), poolName, filePath, lineNumber, _traceLeaks ? Environment.StackTrace : null));
+        }
     }
 
     /// <summary>
@@ -133,7 +140,10 @@ internal sealed class PoolTrackingContext
     /// </summary>
     internal void StopTrackingAllocations()
     {
-        Interlocked.Exchange(ref _allocationTrackingStopped, 1);
+        lock (_allocationGate)
+        {
+            _allocationTrackingStopped = true;
+        }
     }
 
     internal void OnFree(object obj)
