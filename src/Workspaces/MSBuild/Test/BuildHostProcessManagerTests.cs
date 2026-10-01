@@ -42,6 +42,14 @@ public sealed class BuildHostProcessManagerTests
         Assert.StartsWith("dotnet", processStartInfo.FileName);
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void ShouldReportFailureOnShutdownTimeout(bool shutdownSucceeded, bool expected)
+    {
+        Assert.Equal(expected, BuildHostProcessManager.ShouldReportFailureOnShutdownTimeout(shutdownSucceeded));
+    }
+
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     public async Task DisposeAsync_DoesNotReportSuccessfulShutdownAsFailure()
     {

@@ -230,6 +230,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         });
     }
 
+    internal static bool ShouldReportFailureOnShutdownTimeout(bool shutdownSucceeded)
+        => !shutdownSucceeded;
+
     public async ValueTask DisposeAsync()
     {
         List<BuildHostProcess> processesToDispose;
@@ -560,13 +563,13 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
                     if (!_process.HasExited)
                     {
-                        if (shutdownSucceeded)
+                        if (ShouldReportFailureOnShutdownTimeout(shutdownSucceeded))
                         {
-                            _logger?.LogTrace("BuildHost did not exit after a successful shutdown request; terminating the process.");
+                            LogProcessFailure();
                         }
                         else
                         {
-                            LogProcessFailure();
+                            _logger?.LogTrace("BuildHost did not exit after a successful shutdown request; terminating the process.");
                         }
 
                         _process.Kill();
