@@ -97,11 +97,6 @@ namespace Roslyn.Test.Utilities
         {
         }
 
-        public ConditionalFactAttribute(Type skipCondition1, Type skipCondition2, params Type[] additionalSkipConditions)
-        {
-            Initialize(Combine(skipCondition1, skipCondition2, additionalSkipConditions));
-        }
-
         public ConditionalFactAttribute(
             Type[] skipConditions,
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
@@ -131,14 +126,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static Type[] Combine(Type skipCondition1, Type skipCondition2, Type[] additionalSkipConditions)
-        {
-            var skipConditions = new Type[additionalSkipConditions.Length + 2];
-            skipConditions[0] = skipCondition1;
-            skipConditions[1] = skipCondition2;
-            Array.Copy(additionalSkipConditions, 0, skipConditions, 2, additionalSkipConditions.Length);
-            return skipConditions;
-        }
     }
 
     public class ConditionalTheoryAttribute : TheoryAttribute
@@ -184,11 +171,6 @@ namespace Roslyn.Test.Utilities
         {
         }
 
-        public ConditionalTheoryAttribute(Type skipCondition1, Type skipCondition2, params Type[] additionalSkipConditions)
-        {
-            Initialize(Combine(skipCondition1, skipCondition2, additionalSkipConditions));
-        }
-
         public ConditionalTheoryAttribute(
             Type[] skipConditions,
             [System.Runtime.CompilerServices.CallerFilePath] string sourceFilePath = null,
@@ -218,14 +200,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static Type[] Combine(Type skipCondition1, Type skipCondition2, Type[] additionalSkipConditions)
-        {
-            var skipConditions = new Type[additionalSkipConditions.Length + 2];
-            skipConditions[0] = skipCondition1;
-            skipConditions[1] = skipCondition2;
-            Array.Copy(additionalSkipConditions, 0, skipConditions, 2, additionalSkipConditions.Length);
-            return skipConditions;
-        }
     }
 
     public abstract class ExecutionCondition
