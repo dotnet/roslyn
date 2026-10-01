@@ -68,8 +68,8 @@ public class UseExportProviderAttribute : BeforeAfterTestAttribute
 
     public override void Before(MethodInfo? methodUnderTest, IXunitTest test)
     {
-        // Ensure continuations in the test body do not resume inline on Roslyn worker threads. See
-        // TestSynchronizationContext for why this is required.
+        // Ensure continuations in the test body do not resume inline on threads completing operations tracked by
+        // IAsynchronousOperationListener. See TestSynchronizationContext for why this is required.
         if (SynchronizationContext.Current is not TestSynchronizationContext)
         {
             _synchronizationContext = new TestSynchronizationContext(SynchronizationContext.Current);
