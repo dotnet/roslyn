@@ -36212,6 +36212,7 @@ partial class Program
         // On .NET Framework, the deep operation walk requires a larger stack than the default xUnit v3 test host provides.
         [ConditionalFact(typeof(CoreClrOnly), typeof(WindowsOrLinuxOnly), Reason = "Requires a larger test-host stack on .NET Framework.")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/70381")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85874")]
         public void ExtremelyNestedCollectionExpressionDoesNotOverflow_1()
         {
             var code = $$"""
