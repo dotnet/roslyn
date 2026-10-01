@@ -40,7 +40,7 @@ namespace BuildValidator
         private readonly HashSet<DirectoryInfo> _indexDirectories = new();
         private readonly ILogger _logger;
 
-        private LocalReferenceResolver(Dictionary<string, List<string>> nameToLocationsMap, ILogger logger)
+        internal LocalReferenceResolver(Dictionary<string, List<string>> nameToLocationsMap, ILogger logger)
         {
             _nameToLocationsMap = nameToLocationsMap;
             _logger = logger;
@@ -153,6 +153,7 @@ namespace BuildValidator
 
             using var _ = _logger.BeginScope($"Populating {fileName}");
             var assemblyInfoList = new List<AssemblyInfo>();
+            var readyToRunInfoList = new List<AssemblyInfo>();
             foreach (var filePath in locations)
             {
                 if (Util.GetPortableExecutableInfo(filePath) is not { } peInfo)
@@ -161,19 +162,32 @@ namespace BuildValidator
                     continue;
                 }
 
-                if (peInfo.IsReadyToRun)
-                {
-                    _logger.LogInformation($@"Skipping ReadyToRun image ""{filePath}""");
-                    continue;
-                }
-
                 var currentInfo = new AssemblyInfo(filePath, peInfo.Mvid);
                 assemblyInfoList.Add(currentInfo);
 
-                if (!_mvidMap.ContainsKey(peInfo.Mvid))
+                // ReadyToRun images can share an MVID with their IL input but have different PE
+                // headers, which are recorded in the PDB. Prefer IL, retaining ReadyToRun as a
+                // fallback for references that are only available in that form.
+                if (peInfo.IsReadyToRun)
                 {
-                    _logger.LogTrace($"Caching [{peInfo.Mvid}, {filePath}]");
-                    _mvidMap[peInfo.Mvid] = currentInfo;
+                    readyToRunInfoList.Add(currentInfo);
+                    continue;
+                }
+
+                TryCacheMvid(currentInfo);
+            }
+
+            foreach (var readyToRunInfo in readyToRunInfoList)
+            {
+                TryCacheMvid(readyToRunInfo);
+            }
+
+            void TryCacheMvid(AssemblyInfo assemblyInfo)
+            {
+                if (!_mvidMap.ContainsKey(assemblyInfo.Mvid))
+                {
+                    _logger.LogTrace($"Caching [{assemblyInfo.Mvid}, {assemblyInfo.FilePath}]");
+                    _mvidMap[assemblyInfo.Mvid] = assemblyInfo;
                 }
             }
 
