@@ -62,7 +62,6 @@ Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerat
 
 ## Code Style
 
-- Use terminology from the repository when possible.
 - 4-space indent for code; 2-space for project/XML/JSON. Never tabs. UTF-8-BOM, final newline for `*.cs`/`*.vb`.
 - **Blank lines must be completely empty** (no spaces/tabs); no trailing whitespace — both are hard lint failures.
 - Private fields `_camelCase`; namespaces `Microsoft.CodeAnalysis.[Language].[Area]`.
@@ -73,6 +72,10 @@ Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerat
 - It is acceptable to have async methods with no awaits. CS1998 is not active for this repository.
 
 Full conventions: `.github/memory/CONVENTIONS.md` and `.github/instructions/{Compiler,IDE,Razor}.instructions.md`.
+
+## AI-Generated User-Facing Prose
+
+When writing user-facing prose on behalf of project contributors—such as GitHub comments, pull request summaries, and issues—prefer terminology used by the repository when possible. This guidance applies to prose, not source-code identifiers or code style.
 
 ## Agent Orientation
 
