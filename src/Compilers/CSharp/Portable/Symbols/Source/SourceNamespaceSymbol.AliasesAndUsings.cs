@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 else
                                 {
                                     MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, unsafeKeywordLocation);
-                                    declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, unsafeKeywordLocation, diagnostics);
+                                    declaringSymbol.CheckUnsafeOptionForModifiers(DeclarationModifiers.Unsafe, unsafeKeywordLocation, diagnostics);
                                 }
 
                                 needsUnsafeBinder = true;

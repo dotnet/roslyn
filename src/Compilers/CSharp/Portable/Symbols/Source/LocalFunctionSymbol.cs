@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(diagnostics.DiagnosticBag is { });
             Debug.Assert(diagnostics.DependenciesBag is { });
 
-            this.CheckUnsafeModifier(_declarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(_declarationModifiers, diagnostics);
 
             if ((_declarationModifiers & DeclarationModifiers.Safe) != 0)
             {

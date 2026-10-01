@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceType = explicitInterfaceType;
             _name = name;
 
-            this.CheckUnsafeModifier(declarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(declarationModifiers, diagnostics);
 
             if (isCompoundAssignmentOrIncrementAssignment)
             {
