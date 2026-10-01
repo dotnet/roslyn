@@ -47,9 +47,6 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
         serverCapabilities.BreakableRangeProvider = true;
         serverCapabilities.DataTipRangeProvider = true;
 
-        var diagnosticOptions = (serverCapabilities.DiagnosticOptions ??= new DiagnosticOptions());
-        diagnosticOptions.Unify().WorkspaceDiagnostics = true;
-
         serverCapabilities.DiagnosticProvider ??= new();
 
         // VS does not distinguish between document and workspace diagnostics, so we need to merge them.
