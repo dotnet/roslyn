@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -355,6 +355,115 @@ Block[B2] - Exit
 ";
             ControlFlowGraphVerifier.VerifyGraph(compilation, expectedCfg, cfgFromSyntax, cfgSymbol);
             ControlFlowGraphVerifier.VerifyGraph(compilation, expectedCfg, cfgFromOperation, cfgSymbol);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Descendants_NullOperation_ReturnsEmpty()
+        {
+            IOperation nullOperation = null;
+            Assert.Empty(nullOperation.Descendants(static _ => true));
+            Assert.Empty(nullOperation.Descendants(static _ => false));
+            Assert.Empty(nullOperation.DescendantsAndSelf(static _ => true));
+            Assert.Empty(nullOperation.DescendantsAndSelf(static _ => false));
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Descendants_NullPredicate_MatchesParameterlessOverload()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int x = 1;
+        int y = x + 2;
+    }
+}";
+            var tree = CSharpTestSource.Parse(source);
+            var compilation = CSharpCompilation.Create("c", new[] { tree });
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            var operation = model.GetOperation(methodBodySyntax);
+
+            Assert.NotNull(operation);
+
+            var descendantsWithoutPredicate = operation.Descendants().ToList();
+            var descendantsWithNullPredicate = operation.Descendants(descendIntoChildren: null).ToList();
+            Assert.Equal(descendantsWithoutPredicate, descendantsWithNullPredicate);
+
+            var descendantsAndSelfWithoutPredicate = operation.DescendantsAndSelf().ToList();
+            var descendantsAndSelfWithNullPredicate = operation.DescendantsAndSelf(descendIntoChildren: null).ToList();
+            Assert.Equal(descendantsAndSelfWithoutPredicate, descendantsAndSelfWithNullPredicate);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Descendants_WithPredicate_PrunesSubtree()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        System.Action act = () => { int b = 2; };
+        int c = 3;
+    }
+}";
+            var tree = CSharpTestSource.Parse(source);
+            var compilation = CSharpCompilation.Create("c", new[] { tree });
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            var operation = model.GetOperation(methodBodySyntax);
+
+            Assert.NotNull(operation);
+
+            // All descendants without predicate contains operations inside the lambda (e.g. literal '2')
+            var allDescendants = operation.Descendants().ToList();
+            Assert.Contains(allDescendants, op => op is ILiteralOperation { ConstantValue: { HasValue: true, Value: 2 } });
+
+            // Descendants with predicate cutting off anonymous functions
+            var prunedDescendants = operation.Descendants(descendIntoChildren: static op => op is not IAnonymousFunctionOperation).ToList();
+
+            // The anonymous function itself is yielded
+            Assert.Contains(prunedDescendants, op => op is IAnonymousFunctionOperation);
+            // But operations inside the lambda (like literal '2') are pruned
+            Assert.DoesNotContain(prunedDescendants, op => op is ILiteralOperation { ConstantValue: { HasValue: true, Value: 2 } });
+            // And operations outside the lambda (literal '1' and '3') are present
+            Assert.Contains(prunedDescendants, op => op is ILiteralOperation { ConstantValue: { HasValue: true, Value: 1 } });
+            Assert.Contains(prunedDescendants, op => op is ILiteralOperation { ConstantValue: { HasValue: true, Value: 3 } });
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void DescendantsAndSelf_WithPredicate_PrunesRootChildrenWhenPredicateReturnsFalseForRoot()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int x = 1;
+    }
+}";
+            var tree = CSharpTestSource.Parse(source);
+            var compilation = CSharpCompilation.Create("c", new[] { tree });
+            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            var methodBodySyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            var operation = model.GetOperation(methodBodySyntax);
+
+            Assert.NotNull(operation);
+
+            // When predicate returns false for root, Descendants yields nothing
+            var descendants = operation.Descendants(descendIntoChildren: static _ => false).ToList();
+            Assert.Empty(descendants);
+
+            // When predicate returns false for root, DescendantsAndSelf yields only the root itself
+            var descendantsAndSelf = operation.DescendantsAndSelf(descendIntoChildren: static _ => false).ToList();
+            var single = Assert.Single(descendantsAndSelf);
+            Assert.Same(operation, single);
         }
     }
 }
