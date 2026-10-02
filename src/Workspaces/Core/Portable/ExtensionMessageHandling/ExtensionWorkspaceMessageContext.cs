@@ -2,14 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace Microsoft.CodeAnalysis.Extensions;
 
 /// <summary>
-/// Represents the context of an extension message handler.
+/// Represents the context of a workspace extension message handler.
 /// </summary>
-public sealed class ExtensionMessageContext
+[Experimental("RSEXPERIMENTAL008", UrlFormat = "https://github.com/dotnet/roslyn/pull/85209")]
+public readonly struct ExtensionWorkspaceMessageContext
 {
-    internal ExtensionMessageContext(Solution solution)
+    internal ExtensionWorkspaceMessageContext(Solution solution)
     {
         Solution = solution;
     }
