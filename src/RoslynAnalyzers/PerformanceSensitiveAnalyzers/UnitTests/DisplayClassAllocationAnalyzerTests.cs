@@ -166,4 +166,200 @@ public sealed class DisplayClassAllocationAnalyzerTests
             // Test0.cs(10,32): warning HAA0301: Heap allocation of closure Captures: z
 #pragma warning disable RS0030 // Do not use banned APIs
             VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(10, 32).WithArguments("z"));
+
+    [Fact]
+    public Task DisplayClassAllocation_ReportForLambdaCapturingLocalAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                [PerformanceSensitive("uri")]
+                public void SomeMethod()
+                {
+                    int local = 1;
+                    Action action = () => Console.WriteLine(local);
+                }
+            }
+            """,
+            // Test0.cs(9,13): warning HAA0302: The compiler will emit a class that will hold this as a field to allow capturing of this closure
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureCaptureRule).WithLocation(9, 13),
+#pragma warning restore RS0030 // Do not use banned APIs
+            // Test0.cs(10,28): warning HAA0301: Heap allocation of closure Captures: local
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(10, 28).WithArguments("local"));
+
+    [Fact]
+    public Task DisplayClassAllocation_DoNotReportForStaticLambdaAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                [PerformanceSensitive("uri")]
+                public void SomeMethod()
+                {
+                    Action action = static () => Console.WriteLine("no capture");
+                }
+            }
+            """);
+
+    // Documents current behavior for a lambda that captures only 'this': HAA0301 names 'this' as
+    // the captured symbol, and HAA0302 is reported on the enclosing method's identifier, because
+    // the location of the implicit 'this' parameter symbol is the method declaration itself rather
+    // than a variable declarator.
+    [Fact]
+    public Task DisplayClassAllocation_ReportForLambdaCapturingThisAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                private int _field;
+
+                [PerformanceSensitive("uri")]
+                public void SomeMethod()
+                {
+                    Action action = () => Console.WriteLine(_field);
+                }
+            }
+            """,
+            // Test0.cs(9,17): warning HAA0302: The compiler will emit a class that will hold this as a field to allow capturing of this closure
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureCaptureRule).WithSpan(9, 17, 9, 27),
+#pragma warning restore RS0030 // Do not use banned APIs
+            // Test0.cs(11,28): warning HAA0301: Heap allocation of closure Captures: this
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(11, 28).WithArguments("this"));
+
+    // Documents current behavior for nested lambdas capturing the same outer local: the analyzer
+    // runs data flow analysis once per lambda, and the outer lambda's region also contains the
+    // inner one, so the capture of 'local' is reported once per enclosing lambda.
+    [Fact]
+    public Task DisplayClassAllocation_ReportForNestedLambdasCapturingOuterLocalAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                [PerformanceSensitive("uri")]
+                public void SomeMethod()
+                {
+                    int local = 1;
+                    Action outer = () =>
+                    {
+                        Action inner = () => Console.WriteLine(local);
+                        inner();
+                    };
+                }
+            }
+            """,
+            // Test0.cs(9,13): warning HAA0302: The compiler will emit a class that will hold this as a field to allow capturing of this closure
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureCaptureRule).WithLocation(9, 13),
+#pragma warning restore RS0030 // Do not use banned APIs
+            // Test0.cs(9,13): warning HAA0302: The compiler will emit a class that will hold this as a field to allow capturing of this closure
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureCaptureRule).WithLocation(9, 13),
+#pragma warning restore RS0030 // Do not use banned APIs
+            // Test0.cs(10,27): warning HAA0301: Heap allocation of closure Captures: local
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(10, 27).WithArguments("local"),
+#pragma warning restore RS0030 // Do not use banned APIs
+            // Test0.cs(12,31): warning HAA0301: Heap allocation of closure Captures: local
+#pragma warning disable RS0030 // Do not use banned APIs
+            VerifyCS.Diagnostic(DisplayClassAllocationAnalyzer.ClosureDriverRule).WithLocation(12, 31).WithArguments("local"));
+
+    // A local function that is only ever invoked directly needs no heap allocation: the compiler
+    // emits the captured state as a by-ref struct passed to the local function. Reporting a
+    // closure allocation here would be a false positive, so this must never produce a diagnostic.
+    [Fact]
+    public Task DisplayClassAllocation_DoNotReportForDirectlyInvokedLocalFunctionAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                [PerformanceSensitive("uri")]
+                public void SomeMethod()
+                {
+                    int local = 1;
+                    void LocalFunction() => Console.WriteLine(local);
+                    LocalFunction();
+                }
+            }
+            """);
+
+    // Converting a capturing local function to a delegate does force the compiler to allocate a
+    // display class, but the analyzer only looks at lambda and anonymous method syntax, so nothing
+    // is reported today. Documents the gap tracked by dotnet/roslyn-analyzers#1438; HAA0304
+    // (follow-up PR) will cover this. HAA0603 fires on the conversion itself and is asserted in
+    // TypeConversionAllocationAnalyzerTests.
+    [Fact]
+    public Task DisplayClassAllocation_DoNotReportForLocalFunctionConvertedToDelegate_InitializerAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                [PerformanceSensitive("uri")]
+                public void SomeMethod()
+                {
+                    int local = 1;
+                    void LocalFunction() => Console.WriteLine(local);
+                    Action action = LocalFunction;
+                }
+            }
+            """);
+
+    // Documents the gap tracked by dotnet/roslyn-analyzers#1438; HAA0304 (follow-up PR) will
+    // cover this.
+    [Fact]
+    public Task DisplayClassAllocation_DoNotReportForLocalFunctionConvertedToDelegate_ArgumentAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                private static void Consume(Action action)
+                {
+                }
+
+                [PerformanceSensitive("uri")]
+                public void SomeMethod()
+                {
+                    int local = 1;
+                    void LocalFunction() => Console.WriteLine(local);
+                    Consume(LocalFunction);
+                }
+            }
+            """);
+
+    // Documents the gap tracked by dotnet/roslyn-analyzers#1438; HAA0304 (follow-up PR) will
+    // cover this.
+    [Fact]
+    public Task DisplayClassAllocation_DoNotReportForLocalFunctionConvertedToDelegate_ReturnAsync()
+        => VerifyCS.VerifyAnalyzerAsync("""
+            using System;
+            using Roslyn.Utilities;
+
+            public class MyClass
+            {
+                [PerformanceSensitive("uri")]
+                public Action SomeMethod()
+                {
+                    int local = 1;
+                    void LocalFunction() => Console.WriteLine(local);
+                    return LocalFunction;
+                }
+            }
+            """);
 }
