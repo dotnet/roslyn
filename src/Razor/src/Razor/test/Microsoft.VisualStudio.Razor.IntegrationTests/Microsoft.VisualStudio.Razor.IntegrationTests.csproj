@@ -7,8 +7,6 @@
     <TargetFramework>$(NetFxVS)</TargetFramework>
     <Nullable>enable</Nullable>
     <RootNamespace>Microsoft.VisualStudio.Razor.IntegrationTests</RootNamespace>
-    <!-- VS integration tests require Visual Studio and never participate in the source-only (VMR) build. -->
-    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
 
     <!-- Must use "dotnet test" to get blame-hang options -->
     <UseVSTestRunner>true</UseVSTestRunner>

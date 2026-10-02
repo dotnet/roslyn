@@ -3,8 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <!-- VS integration tests require Visual Studio and never participate in the source-only (VMR) build. -->
-    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
   </PropertyGroup>
 
   <ItemGroup>

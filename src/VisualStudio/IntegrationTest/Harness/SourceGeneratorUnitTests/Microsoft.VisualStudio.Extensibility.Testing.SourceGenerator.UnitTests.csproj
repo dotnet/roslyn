@@ -3,7 +3,6 @@
 
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
   </PropertyGroup>
 
   <ItemGroup>

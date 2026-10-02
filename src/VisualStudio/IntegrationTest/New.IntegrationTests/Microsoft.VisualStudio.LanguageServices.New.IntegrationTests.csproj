@@ -6,8 +6,6 @@
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <!-- VS integration tests require Visual Studio and never participate in the source-only (VMR) build. -->
-    <ExcludeFromDotNetBuild>true</ExcludeFromDotNetBuild>
     
     <!-- this project is also used as a test input for Go To Definition tests in it, so needs some test data embedded -->
     <DebugType>embedded</DebugType>
