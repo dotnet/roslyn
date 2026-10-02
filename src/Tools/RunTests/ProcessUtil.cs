@@ -4,134 +4,176 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Management;
-using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Threading.Tasks;
 
 namespace RunTests
 {
     internal static class ProcessUtil
     {
-        /// <summary>
-        /// Get the command line of the provided <paramref name="process"/>, or <see langword="null"/>
-        /// if it can't be determined.
-        /// </summary>
-        /// <remarks>
-        /// This is a best effort API. The process may exit while the command line is being read, or the
-        /// current platform may not be supported.
-        /// </remarks>
-        internal static string? TryGetCommandLine(Process process)
+        internal static long GetProcessStartIdentity(Process process)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (OperatingSystem.IsLinux())
             {
-                return TryGetCommandLineWindows(process);
+                // Process.StartTime on Linux uses a boot-time estimate cached independently in
+                // each caller. Use kernel clock ticks so identities match across dump helpers.
+                var fields = ReadLinuxProcessStat(process.Id);
+                return long.Parse(fields[19], CultureInfo.InvariantCulture);
             }
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            return process.StartTime.ToUniversalTime().Ticks;
+        }
+
+        private static string[] ReadLinuxProcessStat(int pid)
+        {
+            var stat = File.ReadAllText($"/proc/{pid}/stat");
+            // The comm field may itself contain spaces and parentheses.
+            return stat.Substring(stat.LastIndexOf(')') + 2).Split(' ');
+        }
+
+        internal static void KillTree(Process process)
+        {
+            try
             {
-                return TryGetCommandLineLinux(process);
+                if (!process.HasExited)
+                {
+                    using var current = Process.GetProcessById(process.Id);
+                    if (current.StartTime == process.StartTime)
+                        process.Kill(entireProcessTree: true);
+                }
+            }
+            catch (ArgumentException)
+            {
+                // The process exited before its identity could be checked.
+            }
+            catch (InvalidOperationException)
+            {
+                // The process exited between checking and killing it.
+            }
+            catch (Exception ex)
+            {
+                ConsoleUtil.Warning($"Failed to kill process tree {process.Id}: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Finds descendants using a single parent-process snapshot. The caller owns the returned
+        /// Process instances. Children that have already been reparented are not included.
+        /// </summary>
+        internal static async Task<List<Process>> GetChildProcessesAsync(Process root)
+        {
+            var parents = await GetParentProcessIdsAsync().ConfigureAwait(false);
+            var children = new List<Process>();
+            var pending = new Queue<Process>();
+            var visited = new HashSet<int> { root.Id };
+            pending.Enqueue(root);
+            while (pending.TryDequeue(out var parent))
+            {
+                foreach (var (pid, parentId) in parents)
+                {
+                    if (parentId != parent.Id || !visited.Add(pid))
+                        continue;
+
+                    Process? child = null;
+                    try
+                    {
+                        child = Process.GetProcessById(pid);
+                        // A parent PID can refer to a newer process after PID reuse.
+                        if (!parent.HasExited && child.StartTime >= parent.StartTime)
+                        {
+                            children.Add(child);
+                            pending.Enqueue(child);
+                            child = null;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleUtil.Warning($"Unable to inspect child process {pid}: {ex.Message}");
+                    }
+                    finally
+                    {
+                        child?.Dispose();
+                    }
+                }
             }
 
-            return null;
+            return children;
+        }
+
+        private static async Task<Dictionary<int, int>> GetParentProcessIdsAsync()
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                return GetParentProcessIdsWindows();
+            }
+
+            if (OperatingSystem.IsMacOS())
+            {
+                return await GetParentProcessIdsMacAsync().ConfigureAwait(false);
+            }
+
+            var result = new Dictionary<int, int>();
+            if (OperatingSystem.IsLinux())
+            {
+                foreach (var directory in Directory.EnumerateDirectories("/proc"))
+                {
+                    if (!int.TryParse(Path.GetFileName(directory), out var pid))
+                        continue;
+
+                    try
+                    {
+                        var fields = ReadLinuxProcessStat(pid);
+                        result[pid] = int.Parse(fields[1]);
+                    }
+                    catch (IOException) { }
+                    catch (UnauthorizedAccessException) { }
+                }
+            }
+
+            return result;
+        }
+
+        private static async Task<Dictionary<int, int>> GetParentProcessIdsMacAsync()
+        {
+            var info = ProcessRunner.CreateProcess("/bin/ps", "-A -o pid= -o ppid=", captureOutput: true, displayWindow: false);
+            using var process = info.Process;
+            var output = await info.Result.ConfigureAwait(false);
+            if (output.ExitCode != 0)
+                throw new IOException($"ps exited with code {output.ExitCode}: {string.Join(Environment.NewLine, output.ErrorLines)}");
+
+            var result = new Dictionary<int, int>();
+            foreach (var line in output.OutputLines)
+            {
+                var fields = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+                if (fields.Length != 2)
+                    throw new IOException($"Unexpected ps output: '{line}'");
+
+                result.Add(int.Parse(fields[0], CultureInfo.InvariantCulture), int.Parse(fields[1], CultureInfo.InvariantCulture));
+            }
+
+            return result;
         }
 
         [SupportedOSPlatform("windows")]
-        private static string? TryGetCommandLineWindows(Process process)
+        private static Dictionary<int, int> GetParentProcessIdsWindows()
         {
-            try
+            var result = new Dictionary<int, int>();
+            using var searcher = new ManagementObjectSearcher("SELECT ProcessId, ParentProcessId FROM Win32_Process");
+            using var processes = searcher.Get();
+            foreach (ManagementObject process in processes)
             {
-                using var mo = new ManagementObject("win32_process.handle='" + process.Id + "'");
-                mo.Get();
-                return mo["CommandLine"] as string;
-            }
-            catch (Exception ex)
-            {
-                ConsoleUtil.Warning($"Failed to get command line for process {process.Id}: {ex.Message}");
-                return null;
-            }
-        }
-
-        [SupportedOSPlatform("linux")]
-        private static string? TryGetCommandLineLinux(Process process)
-        {
-            try
-            {
-                // /proc/<pid>/cmdline contains the arguments separated by null characters.
-                var raw = File.ReadAllText($"/proc/{process.Id}/cmdline");
-                return raw.Replace('\0', ' ').Trim();
-            }
-            catch (Exception ex)
-            {
-                ConsoleUtil.Warning($"Failed to get command line for process {process.Id}: {ex.Message}");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Return the set of <c>testhost</c> processes spawned by <c>dotnet test</c>. A process is
-        /// considered a test host when either:
-        /// <list type="number">
-        /// <item>its process name starts with <c>testhost</c>; or</item>
-        /// <item>its process name is <c>dotnet</c> and its command line references <c>testhost</c>.</item>
-        /// </list>
-        /// </summary>
-        /// <remarks>
-        /// This is a best effort API.  It can be thwarted by process instances starting / stopping during
-        /// the building of this list.
-        /// </remarks>
-        internal static List<Process> GetTestHostProcesses()
-        {
-            var list = new List<Process>();
-            foreach (var process in Process.GetProcesses())
-            {
-                if (IsTestHostProcess(process))
+                using (process)
                 {
-                    list.Add(process);
+                    result[checked((int)(uint)process["ProcessId"])] = checked((int)(uint)process["ParentProcessId"]);
                 }
             }
 
-            return list;
-        }
-
-        private static bool IsTestHostProcess(Process process)
-        {
-            string name;
-            try
-            {
-                name = process.ProcessName;
-            }
-            catch
-            {
-                ConsoleUtil.Warning($"Failed to get process name for process {process.Id}");
-                // The process may have exited between enumeration and inspection.
-                return false;
-            }
-
-            // Process.ProcessName omits the file extension, but normalize defensively in case a future
-            // runtime change includes it.
-            if (name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
-            {
-                name = name.Substring(0, name.Length - 4);
-            }
-
-            if (name.StartsWith("testhost", StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            if (string.Equals(name, "dotnet", StringComparison.OrdinalIgnoreCase))
-            {
-                var commandLine = TryGetCommandLine(process);
-                if (commandLine is not null &&
-                    commandLine.IndexOf("testhost", StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return result;
         }
     }
 }
