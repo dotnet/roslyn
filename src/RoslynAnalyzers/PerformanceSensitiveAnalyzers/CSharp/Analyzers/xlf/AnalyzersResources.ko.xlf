@@ -42,6 +42,16 @@
         <target state="translated">제네릭 메서드의 람다 또는 무명 메서드는 대리자 인스턴스를 할당합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="LocalFunctionClosureRuleMessage">
+        <source>Heap allocation of closure for local function '{0}' Captures: {1}</source>
+        <target state="new">Heap allocation of closure for local function '{0}' Captures: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LocalFunctionClosureRuleTitle">
+        <source>Local function converted to a delegate captures variables</source>
+        <target state="new">Local function converted to a delegate captures variables</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
         <target state="translated">이렇게 하면 대리자 인스턴스가 할당됩니다.</target>
