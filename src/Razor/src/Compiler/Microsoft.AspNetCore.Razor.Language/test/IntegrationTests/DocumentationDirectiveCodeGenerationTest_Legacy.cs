@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Roslyn.Test.Utilities;
 using Xunit;
 using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
@@ -387,7 +388,7 @@ public class DocumentationDirectiveCodeGenerationTest_Legacy()
             [.. document.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorDocumentationDirectiveSyntax>()]);
         var body = Assert.Single<CSharpStatementLiteralSyntax>(
             [.. directive.DescendantNodes().OfType<CSharpStatementLiteralSyntax>()]);
-        Assert.Equal(expected, body.GetContent());
+        Assert.Equal(expected.NormalizeLineEndings(), body.GetContent());
     }
 
     private CompiledCSharpCode VerifyBaselineWithSourceMappings([CallerMemberName] string testName = "")
