@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.Composition;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
+using DiagnosticLogItemKind = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DiagnosticLogItemKind;
 using LSP = Roslyn.LanguageServer.Protocol;
 using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
 
@@ -107,6 +108,42 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         secondDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
 
         Assert.Equal(2, loader.DesignTimeBuildCount);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task BuildErrorsOnlyLoadEvaluatedFileBasedProjects(bool isFileBasedProgram, bool isEmpty)
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var designTimeBuild = loader.QueueDesignTimeBuild();
+        var projectPath = Path.Combine(TempRoot.Root, isFileBasedProgram ? "App.cs" : "Project.csproj");
+
+        var loadedProject = await loader.BeginLoadAsync(projectPath);
+        await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        designTimeBuild.Result.SetResult(new()
+        {
+            ProjectFileInfos = [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+            {
+                IsEmpty = isEmpty,
+                CommandLineArgs = ["/target:library"],
+            }],
+            DiagnosticLogItems = [new(DiagnosticLogItemKind.Error, "Expected design-time build error", projectPath)],
+            ProjectRestorePath = null,
+            ProjectFactory = loader.WorkspaceFactory.HostProjectFactory,
+            IsFileBasedProgram = isFileBasedProgram,
+            IsMiscellaneousFile = false,
+            HasFileBasedAppDirectives = isFileBasedProgram,
+            HasAllInformation = true,
+            PreferredBuildHostKind = BuildHostProcessKind.NetCore,
+            ActualBuildHostKind = BuildHostProcessKind.NetCore,
+        });
+
+        var loaded = await loadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(isFileBasedProgram && !isEmpty, loaded);
+        if (loaded)
+            Assert.False(Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects).State.HasAllInformation);
+        else
+            Assert.Empty(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
     }
 
     [Fact]
