@@ -601,11 +601,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // `new List<T>(capacity)` call.
                 Debug.Assert(node.CollectionCreation is null or BoundObjectCreationExpression);
 
-                arrayOrList = CreateAndPopulateList(
-                    node, elementType, elements,
-                    // Ensure we recurse into the receiver (if passed one), so any arguments passed to to the collection
-                    // construction are properly lowered as well.
-                    rewrittenReceiver: VisitExpression(node.CollectionCreation));
+                if (node.CollectionCreation is null &&
+                    TryRewriteSingleElementSpreadToList(node, elementType, out var result))
+                {
+                    arrayOrList = result;
+                }
+                else
+                {
+                    arrayOrList = CreateAndPopulateList(
+                        node, elementType, elements,
+                        // Ensure we recurse into the receiver (if passed one), so any arguments passed to to the collection
+                        // construction are properly lowered as well.
+                        rewrittenReceiver: VisitExpression(node.CollectionCreation));
+                }
             }
 
             Conversion c = _factory.ClassifyEmitConversion(arrayOrList, collectionType);
