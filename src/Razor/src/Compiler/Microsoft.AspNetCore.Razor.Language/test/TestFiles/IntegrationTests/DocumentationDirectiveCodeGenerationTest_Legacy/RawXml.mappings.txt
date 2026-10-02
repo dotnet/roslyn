@@ -1,0 +1,13 @@
+﻿Source Location: (16:0,16 [159] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/RawXml.cshtml)
+|
+    <summary>It's raw XML with @transitions and }.</summary>
+    <remarks><![CDATA[<p>{ content }</p>]]></remarks>
+    <!-- @* Not a Razor comment *@ -->
+|
+Generated Location: (1123:18,4 [159] )
+|
+    <summary>It's raw XML with @transitions and }.</summary>
+    <remarks><![CDATA[<p>{ content }</p>]]></remarks>
+    <!-- @* Not a Razor comment *@ -->
+|
+
