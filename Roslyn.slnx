@@ -412,6 +412,7 @@
     <Project Path="src/Tools/BuildActionTelemetryTable/BuildActionTelemetryTable.csproj" />
     <Project Path="src/Tools/BuildBoss/BuildBoss.csproj" />
     <Project Path="src/Tools/BuildValidator/BuildValidator.csproj" />
+    <Project Path="src/Tools/BuildValidator.UnitTests/BuildValidator.UnitTests.csproj" />
     <Project Path="src/Tools/GenerateRulesMissingDocumentation/GenerateRulesMissingDocumentation.csproj" />
     <Project Path="src/Tools/IdeBenchmarks/IdeBenchmarks.csproj" />
     <Project Path="src/Tools/Benchmarks/Benchmarks.csproj" />
