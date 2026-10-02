@@ -1010,6 +1010,33 @@ fruit.Skip(1).Where(s => s.Length > 4).Count()", options).Result;
         }
 
         [Fact]
+        public void ExtensionBlock()
+        {
+            // An extension block declared at script top level is usable later in the same script.
+            var result = CSharpScript.EvaluateAsync<string>(@"
+extension(string)
+{
+    public static string Hello => ""Hello!"";
+}
+string.Hello").Result;
+
+            Assert.Equal("Hello!", result);
+        }
+
+        [Fact]
+        public void ExtensionBlock_AcrossSubmissions()
+        {
+            // An extension block declared in one submission is usable in a later submission.
+            var result = CSharpScript.Create(@"
+extension(string s)
+{
+    public bool IsEmpty => s.Length == 0;
+}").ContinueWith<bool>("\"\".IsEmpty").EvaluateAsync().Result;
+
+            Assert.True(result);
+        }
+
+        [Fact]
         public void ImplicitlyTypedFields()
         {
             var result = CSharpScript.EvaluateAsync<object[]>(@"
