@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddSpace();
             }
 
-            Builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, symbol, "_"));
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, "_"));
         }
 
         public override void VisitRangeVariable(IRangeVariableSymbol symbol)
