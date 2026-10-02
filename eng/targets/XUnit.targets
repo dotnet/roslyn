@@ -66,6 +66,68 @@
     </ItemGroup>
   </Target>
 
+  <!--
+    xUnit v3 runs .NET Framework tests inside the test executable, so test and worker threads get the
+    stack reserve from its PE header. The compiler only emits a 4 MB stack reserve for 64-bit-only
+    executables and uses 1 MB for AnyCPU. The VSTest x64 .NET Framework testhost previously used to run
+    these tests reserves 4 MB, and deep recursion tests (e.g. deeply nested initializers) depend on that
+    headroom. Patch only the copy in the output directory: determinism and rebuild validation compare
+    the unpatched compiler output in the obj directory.
+  -->
+  <UsingTask TaskName="SetStackReserveSize"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <FilePath ParameterType="System.String" Required="true" />
+      <StackReserveSize ParameterType="System.Int64" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System" />
+      <Using Namespace="System.IO" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        var lastWriteTimeUtc = File.GetLastWriteTimeUtc(FilePath);
+        using (var stream = new FileStream(FilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
+        using (var reader = new BinaryReader(stream))
+        using (var writer = new BinaryWriter(stream))
+        {
+            stream.Position = 0x3C;
+            var peHeaderOffset = reader.ReadInt32();
+            stream.Position = peHeaderOffset;
+            if (reader.ReadUInt32() != 0x00004550)
+            {
+                Log.LogError("'{0}' is not a PE file.", FilePath);
+                return false;
+            }
+
+            // The optional header follows the 4-byte signature and 20-byte COFF header.
+            // SizeOfStackReserve is at offset 72 for both PE32 and PE32+.
+            var optionalHeaderOffset = peHeaderOffset + 24;
+            stream.Position = optionalHeaderOffset;
+            var isPE32Plus = reader.ReadUInt16() == 0x20B;
+            stream.Position = optionalHeaderOffset + 72;
+            var currentSize = isPE32Plus ? (long)reader.ReadUInt64() : reader.ReadUInt32();
+            if (currentSize < StackReserveSize)
+            {
+                stream.Position = optionalHeaderOffset + 72;
+                if (isPE32Plus)
+                    writer.Write((ulong)StackReserveSize);
+                else
+                    writer.Write((uint)StackReserveSize);
+            }
+        }
+
+        // Keep the timestamp so incremental copies from obj still treat the file as up to date.
+        File.SetLastWriteTimeUtc(FilePath, lastWriteTimeUtc);
+]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="_SetTestExecutableStackReserveSize"
+          AfterTargets="CopyFilesToOutputDirectory"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(OutputType)' == 'Exe' and Exists('$(TargetPath)')">
+    <SetStackReserveSize FilePath="$(TargetPath)" StackReserveSize="4194304" />
+  </Target>
+
   <ItemGroup>
     <!-- Include BannedSymbols covering all test projects -->
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)..\config\test\BannedSymbols.txt" />
