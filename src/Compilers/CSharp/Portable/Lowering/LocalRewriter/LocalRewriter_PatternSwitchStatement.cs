@@ -101,9 +101,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(node.InnerLocals);
 
                 // Evaluate the input and set up sharing for dag temps with user variables
+                BoundDecisionDag loweringDag = node.GetDecisionDagForLowering(_factory.Compilation, out LabelSymbol? unreachableDefaultLabel);
                 BoundDecisionDag decisionDag = ShareTempsIfPossibleAndEvaluateInput(
-                    node.GetDecisionDagForLowering(_factory.Compilation),
-                    loweredSwitchGoverningExpression, result, out _);
+                    loweringDag,
+                    loweredSwitchGoverningExpression, result, out BoundExpression savedInputExpression);
 
                 // In a switch statement, there is a hidden sequence point after evaluating the input at the start of
                 // the code to handle the decision dag. This is necessary so that jumps back from a `when` clause into
@@ -173,6 +174,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outerVariables.AddRange(_tempAllocator.AllTemps());
 
                 _factory.Syntax = node.Syntax;
+
+                if (unreachableDefaultLabel is not null)
+                {
+                    // This label wasn't reachable during binding, but it is reachable according to loweringDag.
+                    Debug.Assert(!node.ReachabilityDecisionDag.ReachableLabels.Contains(unreachableDefaultLabel));
+                    Debug.Assert(loweringDag.ReachableLabels.Contains(unreachableDefaultLabel));
+                    result.Add(_factory.Label(unreachableDefaultLabel));
+                    // Need to throw in order to emit a valid IL.
+                    throwUnreachableDefaultLabelException(result, savedInputExpression);
+                }
+
                 if (GenerateInstrumentation)
                     result.Add(_factory.HiddenSequencePoint());
 
@@ -183,6 +195,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     translatedSwitch = _localRewriter.Instrumenter.InstrumentSwitchStatement(node, translatedSwitch);
 
                 return translatedSwitch;
+
+                void throwUnreachableDefaultLabelException(ArrayBuilder<BoundStatement> result, BoundExpression savedInputExpression)
+                {
+                    (UnreachableDefaultLabelExceptionCreationStrategy strategy, Conversion inputToObjectConversion) = DetermineUnreachableDefaultLabelExceptionCreationStrategy(savedInputExpression);
+                    BoundThrowStatement throwStmt;
+
+                    switch (strategy)
+                    {
+                        case UnreachableDefaultLabelExceptionCreationStrategy.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject:
+                            Debug.Assert(inputToObjectConversion.IsImplicit);
+                            Debug.Assert(inputToObjectConversion.IsBoxing || inputToObjectConversion.IsReference || inputToObjectConversion.IsIdentity);
+                            var objectType = _factory.SpecialType(SpecialType.System_Object);
+                            throwStmt = SynthesizedThrowSwitchExpressionExceptionMethod.GenerateThrow(_factory, _factory.Convert(objectType, savedInputExpression, inputToObjectConversion));
+                            break;
+                        case UnreachableDefaultLabelExceptionCreationStrategy.System_Runtime_CompilerServices_SwitchExpressionException__ctor:
+                            throwStmt = SynthesizedParameterlessThrowMethod.GenerateThrow(_factory, _factory.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor));
+                            break;
+                        default:
+                            Debug.Assert(strategy == UnreachableDefaultLabelExceptionCreationStrategy.System_InvalidOperationException__ctor);
+                            throwStmt = SynthesizedParameterlessThrowMethod.GenerateThrow(_factory, _factory.WellKnownMethod(WellKnownMember.System_InvalidOperationException__ctor));
+                            break;
+                    }
+
+                    result.Add(_factory.HiddenSequencePoint(throwStmt));
+                }
             }
         }
     }
