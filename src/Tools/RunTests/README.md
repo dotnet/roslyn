@@ -78,7 +78,7 @@ Key options:
 | `--testSet` | `compiler` adds compiler test assembly patterns to any `--include` patterns |
 | `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies`; `runtimeasync` requires `--testFramework:core` |
 | `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |
-| `--timeout` | Global local-run deadline in minutes (default: 90) |
+| `--timeout` | Minutes before killing tests (default: 90) |
 | `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
 
@@ -102,23 +102,6 @@ configuration, runtime, architecture, and the test kinds selected through
 Historical timing data for Helix partitioning can be selected with `--accessToken`,
 `--projectUri`, `--pipelineDefinitionId`, and `--targetBranchName`. When omitted,
 these use the corresponding Azure Pipelines environment variables.
-
-## Local timeout diagnostics
-
-Local work items run whole assemblies, with no per-assembly deadline. VSTest
-collects hang dumps after **25 minutes without test progress**. The global
-`--timeout` (positive minutes, default **90**) triggers dumps of active test
-process trees before terminating them and reporting failures. Dump collection
-can extend beyond that deadline; a stuck collector requires external termination.
-Ctrl+C stops tests without initiating dumps.
-
-Dumps and sequence files are included in CI artifacts beneath
-`TestResults/<configuration>/WorkItem_<index>_<arch>/` (or `--out`).
-Timeout dumps work on Windows and Linux without `--collectdumps`; that option
-additionally enables Windows WER crash collection when elevated.
-`eng/test-vsi.ps1` also captures `TestFailure.png` in the artifact logs on failure.
-
-Helix manages its own deadlines and retains a 15-minute VSTest inactivity timeout.
 
 ## Exit Codes
 
