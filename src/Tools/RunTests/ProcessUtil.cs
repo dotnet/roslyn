@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Management;
 using System.Runtime.Versioning;
+using System.Threading.Tasks;
 
 namespace RunTests
 {
@@ -64,9 +65,9 @@ namespace RunTests
         /// Finds descendants using a single parent-process snapshot. The caller owns the returned
         /// Process instances. Children that have already been reparented are not included.
         /// </summary>
-        internal static List<Process> GetChildProcesses(Process root)
+        internal static async Task<List<Process>> GetChildProcessesAsync(Process root)
         {
-            var parents = GetParentProcessIds();
+            var parents = await GetParentProcessIdsAsync().ConfigureAwait(false);
             var children = new List<Process>();
             var pending = new Queue<Process>();
             var visited = new HashSet<int> { root.Id };
@@ -104,11 +105,16 @@ namespace RunTests
             return children;
         }
 
-        private static Dictionary<int, int> GetParentProcessIds()
+        private static async Task<Dictionary<int, int>> GetParentProcessIdsAsync()
         {
             if (OperatingSystem.IsWindows())
             {
                 return GetParentProcessIdsWindows();
+            }
+
+            if (OperatingSystem.IsMacOS())
+            {
+                return await GetParentProcessIdsMacAsync().ConfigureAwait(false);
             }
 
             var result = new Dictionary<int, int>();
@@ -127,6 +133,27 @@ namespace RunTests
                     catch (IOException) { }
                     catch (UnauthorizedAccessException) { }
                 }
+            }
+
+            return result;
+        }
+
+        private static async Task<Dictionary<int, int>> GetParentProcessIdsMacAsync()
+        {
+            var info = ProcessRunner.CreateProcess("/bin/ps", "-A -o pid= -o ppid=", captureOutput: true, displayWindow: false);
+            using var process = info.Process;
+            var output = await info.Result.ConfigureAwait(false);
+            if (output.ExitCode != 0)
+                throw new IOException($"ps exited with code {output.ExitCode}: {string.Join(Environment.NewLine, output.ErrorLines)}");
+
+            var result = new Dictionary<int, int>();
+            foreach (var line in output.OutputLines)
+            {
+                var fields = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+                if (fields.Length != 2)
+                    throw new IOException($"Unexpected ps output: '{line}'");
+
+                result.Add(int.Parse(fields[0], CultureInfo.InvariantCulture), int.Parse(fields[1], CultureInfo.InvariantCulture));
             }
 
             return result;

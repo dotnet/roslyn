@@ -134,7 +134,7 @@ namespace RunTests
                 {
                     return TryDumpWithMiniDumpWriteDump(process, dumpFilePath);
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     return TryDumpNetCoreProcess(process, dumpFilePath);
                 }

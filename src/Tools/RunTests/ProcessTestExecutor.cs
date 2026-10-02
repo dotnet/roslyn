@@ -227,7 +227,7 @@ namespace RunTests
                         if (_userCancellationToken.IsCancellationRequested)
                             return;
 
-                        processes.AddRange(ProcessUtil.GetChildProcesses(dotnetProcessInfo.Process));
+                        processes.AddRange(await ProcessUtil.GetChildProcessesAsync(dotnetProcessInfo.Process).ConfigureAwait(false));
                         await DumpCollector.CollectAsync(processes, options, workItemDirectory).ConfigureAwait(false);
                     }
                     catch (Exception ex)
