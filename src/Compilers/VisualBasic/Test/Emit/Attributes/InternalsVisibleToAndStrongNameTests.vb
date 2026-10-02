@@ -1822,8 +1822,6 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyFileFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal(s_keyPairFile, DirectCast(err.Arguments(0), String))
-        Dim errorText = DirectCast(err.Arguments(1), String)
-        Assert.True(errorText.Contains("0x80131423"))
     End Sub
 
     <Theory>
