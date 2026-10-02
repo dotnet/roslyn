@@ -637,10 +637,13 @@ internal static partial class ISymbolExtensions
     /// First, remove symbols from the set if they are overridden by other symbols in the set.
     /// If a symbol is overridden only by symbols outside of the set, then it is not removed. 
     /// This is useful for filtering out symbols that cannot be accessed in a given context due
-    /// to the existence of overriding members. Second, remove remaining symbols that are
-    /// unsupported (e.g. pointer types in VB) or not editor browsable based on the EditorBrowsable
-    /// attribute. Finally, keep only remaining symbols which the given inclusionFilter indicates
-    /// should be included.
+    /// to the existence of overriding members. Base methods hidden (by signature or by name) by a
+    /// non-browsable method in the set are removed as well, so they don't show up in its place.
+    /// That includes methods on base classes and, when the hiding method is declared on an
+    /// interface, methods on its base interfaces.
+    /// Second, remove remaining symbols that are unsupported (e.g. pointer types in VB) or not
+    /// editor browsable based on the EditorBrowsable attribute. Finally, keep only remaining
+    /// symbols which the given inclusionFilter indicates should be included.
     /// </summary>
     public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
         this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation, Func<T, bool> inclusionFilter) where T : ISymbol
@@ -660,6 +663,33 @@ internal static partial class ISymbolExtensions
         // Since all symbols are from the same compilation, find the required attribute
         // constructors once and reuse.
         var editorBrowsableInfo = new EditorBrowsableInfo(compilation);
+
+        // Methods hidden by a non-browsable method must not show up in its place.
+        // See https://github.com/dotnet/roslyn/issues/4434#issuecomment-546428317
+        foreach (var symbol in symbols)
+        {
+            if (symbol is IMethodSymbol hidingMethod &&
+                !hidingMethod.IsEditorBrowsable(hideAdvancedMembers, compilation, editorBrowsableInfo))
+            {
+                // VB reports HidesBaseMethodsByName as true for every method, so only C# symbols can be trusted.
+                var hidesByName = hidingMethod.Language == LanguageNames.CSharp && hidingMethod.HidesBaseMethodsByName;
+                var caseSensitive = compilation.IsCaseSensitive;
+
+                // Interface BaseType is null, but completion lookup still includes every base interface.
+                // See Binder.AddMemberLookupSymbolsInfoInInterface.
+                var containingType = hidingMethod.ContainingType;
+                if (containingType.TypeKind == TypeKind.Interface)
+                {
+                    foreach (var baseInterface in containingType.AllInterfaces)
+                        CollectHiddenBaseMethods(baseInterface, hidingMethod, hidesByName, caseSensitive, overriddenSymbols);
+                }
+                else
+                {
+                    for (var baseType = containingType.BaseType; baseType != null; baseType = baseType.BaseType)
+                        CollectHiddenBaseMethods(baseType, hidingMethod, hidesByName, caseSensitive, overriddenSymbols);
+                }
+            }
+        }
 
         // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
         // check to see if we're referencing a symbol defined in source.
@@ -683,5 +713,57 @@ internal static partial class ISymbolExtensions
         this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation) where T : ISymbol
     {
         return symbols.FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, compilation, static s => !s.RequiresUnsafeModifier());
+    }
+
+    private static void CollectHiddenBaseMethods(
+        INamedTypeSymbol baseType,
+        IMethodSymbol hidingMethod,
+        bool hidesByName,
+        bool caseSensitive,
+        MetadataUnifyingSymbolHashSet overriddenSymbols)
+    {
+        var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+        foreach (var member in baseType.GetMembers())
+        {
+            if (member is IMethodSymbol baseMethod &&
+                string.Equals(member.Name, hidingMethod.Name, comparison) &&
+                (hidesByName || HidesBaseMethodBySignature(hidingMethod, baseMethod, caseSensitive)))
+            {
+                overriddenSymbols.Add(baseMethod);
+            }
+        }
+    }
+
+    /// <summary>
+    /// True when <paramref name="hidingMethod"/> hides <paramref name="baseMethod"/> under C# hiding rules.
+    /// <see cref="SignatureComparer"/> treats every non-value <see cref="RefKind"/> as equivalent, but C#
+    /// treats inherited ref, out, and in signatures as distinct. <see cref="RefKind.In"/> and
+    /// <see cref="RefKind.RefReadOnlyParameter"/> still match, as they do for override and hiding comparison.
+    /// </summary>
+    private static bool HidesBaseMethodBySignature(IMethodSymbol hidingMethod, IMethodSymbol baseMethod, bool caseSensitive)
+    {
+        if (!SignatureComparer.Instance.HaveSameSignature(hidingMethod, baseMethod, caseSensitive))
+            return false;
+
+        var hidingParameters = hidingMethod.Parameters;
+        var baseParameters = baseMethod.Parameters;
+        for (var i = 0; i < hidingParameters.Length; i++)
+        {
+            if (!AreHidingRefKindsEquivalent(hidingParameters[i].RefKind, baseParameters[i].RefKind))
+                return false;
+        }
+
+        return true;
+    }
+
+    private static bool AreHidingRefKindsEquivalent(RefKind hidingRefKind, RefKind baseRefKind)
+    {
+        if (hidingRefKind == baseRefKind)
+            return true;
+
+        // Match MemberSignatureComparer.RefKindCompareMode.AllowRefReadonlyVsInMismatch.
+        return (hidingRefKind, baseRefKind) is (RefKind.RefReadOnlyParameter, RefKind.In)
+            or (RefKind.In, RefKind.RefReadOnlyParameter);
     }
 }
