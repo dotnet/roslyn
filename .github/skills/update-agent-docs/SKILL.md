@@ -27,6 +27,9 @@ Correct inaccuracies encountered in task-relevant docs; do not expand the task i
 freshness audit. Apply these criteria before making documentation changes in the checklist below.
 Required API, diagnostic, and resource updates remain required.
 
+When adding or changing a workaround for a known issue, document why it is needed inline at the
+workaround. Do not rely on or update the repo knowledge base as the explanation for a code-specific workaround. Include a link to the issue when possible.
+
 ## Checklist
 
 **Memory file added, removed, renamed, or had its purpose change?** → Update `.github/memory/INDEX.md` and any memory files that reference it.
