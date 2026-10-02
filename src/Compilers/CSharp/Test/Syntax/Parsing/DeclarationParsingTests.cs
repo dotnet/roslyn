@@ -13373,18 +13373,15 @@ I1(x);";
                 // (1,10): error CS1001: Identifier expected
                 // class C<[] partial class D { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "]").WithLocation(1, 10),
-                // (1,12): error CS1001: Identifier expected
+                // (1,20): error CS1003: Syntax error, '>' expected
                 // class C<[] partial class D { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "partial").WithLocation(1, 12),
-                // (1,12): error CS1003: Syntax error, '>' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "class").WithArguments(">").WithLocation(1, 20),
+                // (1,20): error CS1514: { expected
                 // class C<[] partial class D { }
-                Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(">").WithLocation(1, 12),
-                // (1,12): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "class").WithLocation(1, 20),
+                // (1,20): error CS1513: } expected
                 // class C<[] partial class D { }
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "partial").WithLocation(1, 12),
-                // (1,12): error CS1513: } expected
-                // class C<[] partial class D { }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "partial").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "class").WithLocation(1, 20));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -13409,7 +13406,7 @@ I1(x);";
                                 }
                                 N(SyntaxKind.CloseBracketToken);
                             }
-                            M(SyntaxKind.IdentifierToken);
+                            N(SyntaxKind.IdentifierToken, "partial");
                         }
                         M(SyntaxKind.GreaterThanToken);
                     }
@@ -13418,7 +13415,6 @@ I1(x);";
                 }
                 N(SyntaxKind.ClassDeclaration);
                 {
-                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "D");
                     N(SyntaxKind.OpenBraceToken);

@@ -2659,7 +2659,13 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
     {
         const string source = "class C { int P { get; } partial unknown; }";
 
-        UsingDeclaration(source);
+        UsingDeclaration(source, options: null,
+            // (1,41): error CS1519: Invalid token ';' in a member declaration
+            // class C { int P { get; } partial unknown; }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 41),
+            // (1,41): error CS1519: Invalid token ';' in a member declaration
+            // class C { int P { get; } partial unknown; }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 41));
         N(SyntaxKind.ClassDeclaration);
         {
             N(SyntaxKind.ClassKeyword);
@@ -2683,20 +2689,13 @@ public sealed class AccessorDeclarationParsingTests(ITestOutputHelper output) : 
                     N(SyntaxKind.CloseBraceToken);
                 }
             }
-            N(SyntaxKind.FieldDeclaration);
+            N(SyntaxKind.IncompleteMember);
             {
-                N(SyntaxKind.VariableDeclaration);
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.IdentifierName);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
-                    N(SyntaxKind.VariableDeclarator);
-                    {
-                        N(SyntaxKind.IdentifierToken, "unknown");
-                    }
+                    N(SyntaxKind.IdentifierToken, "unknown");
                 }
-                N(SyntaxKind.SemicolonToken);
             }
             N(SyntaxKind.CloseBraceToken);
         }
