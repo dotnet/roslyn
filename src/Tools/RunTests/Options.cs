@@ -150,7 +150,8 @@ namespace RunTests
             helpShown = false;
             string? dotnetFilePath = null;
             var platform = Microsoft.CodeAnalysis.Test.Utilities.IlasmUtilities.Architecture;
-            var includeHtml = false;
+            bool? includeHtml = null;
+            var ci = false;
             var testRuntime = TestRuntime.Core | TestRuntime.Framework;
             var configuration = "Debug";
             var includeFilter = new List<string>();
@@ -184,7 +185,7 @@ namespace RunTests
                 { "include=", "Regex for including unit test dlls (can be specified multiple times). Default: .*UnitTests.*", s => includeFilter.Add(s) },
                 { "exclude=", "Regex for excluding unit test dlls (can be specified multiple times)", s => excludeFilter.Add(s) },
                 { "testPlatform=", "Architecture to test on: x86, x64 or arm64", s => platform = s },
-                { "html", "Include HTML file output", o => includeHtml = o is object },
+                { "html", "Include HTML output and open failed results in the browser (default: on locally, off with --ci or --helix; --html- disables)", o => includeHtml = o is object },
                 { "sequential", "Run tests sequentially", o => sequential = o is object },
                 { "helix", "Submit tests to Helix for the external job monitor", o => helix = o is object },
                 { "helixQueueName=", "Name of the Helix queue to run tests on", s => helixQueueName = s },
@@ -198,10 +199,7 @@ namespace RunTests
                 { "testFramework=", "Test framework to run: core or desktop (can be specified multiple times)", s => testFrameworks.Add(s) },
                 { "testSet=", "Test set to include: compiler (adds compiler test assembly patterns to any --include patterns)", s => testSet = s },
                 { "testKind=", "Test kind to run: ioperation, runtimeasync, usedassemblies. runtimeasync requires --testFramework:core.", s => testKind = s },
-                { "ci", "Running in CI - sets ROSLYN_TEST_CI=true in test processes", o => {
-                    if (o is object)
-                        environmentVariables["ROSLYN_TEST_CI"] = "true";
-                }},
+                { "ci", "Running in CI - disables HTML output by default and sets ROSLYN_TEST_CI=true in test processes", o => ci = o is object },
                 { "env=", "Set an environment variable in test processes (format: --env:KEY=VALUE or --env:KEY for KEY=true)", s => {
                     var eqIndex = s.IndexOf('=');
                     if (eqIndex >= 0)
@@ -242,6 +240,11 @@ namespace RunTests
                 optionSet.WriteOptionDescriptions(Console.Out);
                 helpShown = true;
                 return null;
+            }
+
+            if (ci)
+            {
+                environmentVariables["ROSLYN_TEST_CI"] = "true";
             }
 
             if (testFrameworks.Count > 0)
@@ -355,7 +358,7 @@ namespace RunTests
                     return null;
                 }
 
-                if (includeHtml)
+                if (includeHtml == true)
                 {
                     ConsoleUtil.Error("--html is not supported with --helix.");
                     return null;
@@ -413,7 +416,7 @@ namespace RunTests
                 UseHelix = helix,
                 HelixQueueName = helixQueueName,
                 HelixApiAccessToken = helixApiAccessToken,
-                IncludeHtml = includeHtml,
+                IncludeHtml = includeHtml ?? (!ci && !helix),
                 TestFilter = testFilter,
                 Timeout = timeout is { } t ? TimeSpan.FromMinutes(t) : null,
                 EnvironmentVariables = environmentVariables,
