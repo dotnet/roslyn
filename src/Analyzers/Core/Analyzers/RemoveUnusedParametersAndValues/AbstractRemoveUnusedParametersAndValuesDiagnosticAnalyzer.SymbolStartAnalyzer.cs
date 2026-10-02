@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -26,6 +27,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
         ImmutableHashSet<INamedTypeSymbol> attributeSetForMethodsToIgnore,
         DeserializationConstructorCheck deserializationConstructorCheck,
         INamedTypeSymbol? iCustomMarshaler,
+        INamedTypeSymbol? interpolatedStringHandlerArgumentAttribute,
         SymbolStartAnalysisContext symbolStartAnalysisContext)
     {
         private readonly AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer _compilationAnalyzer = compilationAnalyzer;
@@ -35,6 +37,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
         private readonly DeserializationConstructorCheck _deserializationConstructorCheck = deserializationConstructorCheck;
         private readonly ConcurrentDictionary<IMethodSymbol, bool> _methodsUsedAsDelegates = [];
         private readonly INamedTypeSymbol? _iCustomMarshaler = iCustomMarshaler;
+        private readonly INamedTypeSymbol? _interpolatedStringHandlerArgumentAttribute = interpolatedStringHandlerArgumentAttribute;
         private readonly SymbolStartAnalysisContext _symbolStartAnalysisContext = symbolStartAnalysisContext;
 
         /// <summary>
@@ -52,6 +55,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             var eventsArgType = context.Compilation.EventArgsType();
             var deserializationConstructorCheck = new DeserializationConstructorCheck(context.Compilation);
             var iCustomMarshaler = context.Compilation.GetTypeByMetadataName(typeof(ICustomMarshaler).FullName!);
+            var interpolatedStringHandlerArgumentAttribute = context.Compilation.GetTypeByMetadataName(typeof(InterpolatedStringHandlerArgumentAttribute).FullName!);
 
             context.RegisterSymbolStartAction(symbolStartContext =>
             {
@@ -66,7 +70,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 // as that would lead to duplicate diagnostics being reported from symbol end action callbacks
                 // for unrelated named types.
                 var symbolAnalyzer = new SymbolStartAnalyzer(analyzer, eventsArgType, attributeSetForMethodsToIgnore,
-                    deserializationConstructorCheck, iCustomMarshaler, symbolStartContext);
+                    deserializationConstructorCheck, iCustomMarshaler, interpolatedStringHandlerArgumentAttribute, symbolStartContext);
                 symbolAnalyzer.OnSymbolStart(symbolStartContext);
             }, SymbolKind.NamedType);
 
@@ -260,6 +264,14 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 return false;
             }
 
+            // A parameter named by an 'InterpolatedStringHandlerArgument' attribute on another parameter is
+            // passed to the handler's constructor at the call site, so it is used even when the method body
+            // contains no reference to it.
+            if (IsInterpolatedStringHandlerArgument(parameter, method, _interpolatedStringHandlerArgumentAttribute))
+            {
+                return false;
+            }
+
             var methodSyntax = method.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax(cancellationToken);
             if (_compilationAnalyzer.ReturnsThrow(methodSyntax))
             {
@@ -285,6 +297,41 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             }
 
             return true;
+
+            static bool IsInterpolatedStringHandlerArgument(
+                IParameterSymbol parameter,
+                IMethodSymbol method,
+                INamedTypeSymbol? interpolatedStringHandlerArgumentAttributeType)
+            {
+                if (interpolatedStringHandlerArgumentAttributeType is null)
+                    return false;
+
+                foreach (var otherParameter in method.Parameters)
+                {
+                    if (otherParameter.Equals(parameter))
+                        continue;
+
+                    foreach (var attribute in otherParameter.GetAttributes())
+                    {
+                        // Both constructors of the attribute take a single argument: either one parameter
+                        // name, or an array of them.
+                        if (!interpolatedStringHandlerArgumentAttributeType.Equals(attribute.AttributeClass) ||
+                            attribute.ConstructorArguments is not [var argument])
+                        {
+                            continue;
+                        }
+
+                        if (argument.Kind is TypedConstantKind.Array
+                                ? argument.Values.Any(static (value, name) => Equals(value.Value, name), parameter.Name)
+                                : Equals(argument.Value, parameter.Name))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
 
             static bool IsInterpolatedStringHandlerMandatoryConstructorParameter(
                 IParameterSymbol parameter,
