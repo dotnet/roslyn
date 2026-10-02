@@ -684,6 +684,45 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            // SPEC: If T has element type KeyValuePair<Kₑ, Vₑ>, or T is a nullable value type T0?
+            // and T0 has element type KeyValuePair<Kₑ, Vₑ>, then for each Eᵢ:
+            if (TryGetKeyValuePairTypeArguments(binder, targetElementType.Type, out var targetKeyType, out var targetValueType))
+            {
+                foreach (var element in argument.Elements)
+                {
+                    switch (element)
+                    {
+                        // SPEC: If Eᵢ is a key value pair element Kᵢ:Vᵢ, input type inferences are made
+                        // from Kᵢ to Kₑ and from Vᵢ to Vₑ.
+                        case BoundKeyValuePairElement keyValuePair:
+                            MakeExplicitParameterTypeInferences(binder, keyValuePair.Key, targetKeyType, kind, ref useSiteInfo);
+                            MakeExplicitParameterTypeInferences(binder, keyValuePair.Value, targetValueType, kind, ref useSiteInfo);
+                            break;
+
+                        // SPEC: If Eᵢ is a spread element with iteration type KeyValuePair<Kᵢ, Vᵢ>,
+                        // lower-bound inferences are made from Kᵢ to Kₑ and from Vᵢ to Vₑ.
+                        case BoundCollectionExpressionSpreadElement spread:
+                            if (spread.EnumeratorInfoOpt is { } enumeratorInfo &&
+                                TryGetKeyValuePairTypeArguments(binder, enumeratorInfo.ElementType, out var spreadKeyType, out var spreadValueType))
+                            {
+                                LowerBoundInference(spreadKeyType, targetKeyType, ref useSiteInfo);
+                                LowerBoundInference(spreadValueType, targetValueType, ref useSiteInfo);
+                            }
+                            break;
+
+                        // SPEC: If Eᵢ is an expression element with type KeyValuePair<Kᵢ, Vᵢ>,
+                        // lower-bound inferences are made from Kᵢ to Kₑ and from Vᵢ to Vₑ.
+                        case BoundExpression expression when
+                            TryGetKeyValuePairTypeArguments(binder, expression.Type, out var sourceKeyType, out var sourceValueType):
+                            LowerBoundInference(sourceKeyType, targetKeyType, ref useSiteInfo);
+                            LowerBoundInference(sourceValueType, targetValueType, ref useSiteInfo);
+                            break;
+                    }
+                }
+
+                return;
+            }
+
             foreach (var element in argument.Elements)
             {
                 switch (element)
@@ -691,15 +730,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundCollectionExpressionSpreadElement spread:
                         MakeSpreadElementTypeInferences(spread, targetElementType, ref useSiteInfo);
                         break;
-                    case BoundKeyValuePairElement:
-                    case BoundKeyValuePairConversion:
-                        // PROTOTYPE: Handle input type inference for key:value elements.
-                        break;
-                    default:
-                        MakeExplicitParameterTypeInferences(binder, (BoundExpression)element, targetElementType, kind, ref useSiteInfo);
+                    case BoundExpression expression:
+                        MakeExplicitParameterTypeInferences(binder, expression, targetElementType, kind, ref useSiteInfo);
                         break;
                 }
             }
+        }
+
+        private static bool TryGetKeyValuePairTypeArguments(
+            Binder binder,
+            TypeSymbol? type,
+            out TypeWithAnnotations keyType,
+            out TypeWithAnnotations valueType)
+        {
+            if (binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDictionaryExpressions) &&
+                type is NamedTypeSymbol namedType &&
+                ConversionsBase.IsKeyValuePairTypeWithAnnotations(binder.Compilation, namedType, out keyType, out valueType))
+            {
+                return true;
+            }
+
+            keyType = default;
+            valueType = default;
+            return false;
         }
 
         private void MakeSpreadElementTypeInferences(
@@ -909,14 +962,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, formalType.Type, out TypeWithAnnotations targetElementType))
+            if (!binder.TryGetCollectionIterationType((ExpressionSyntax)argument.Syntax, formalType.Type.StrippedType(), out TypeWithAnnotations targetElementType))
             {
+                return;
+            }
+
+            // SPEC: If T has element type KeyValuePair<Kₑ, Vₑ>, or T is a nullable value type T0?
+            // and T0 has element type KeyValuePair<Kₑ, Vₑ>, then for each Eᵢ:
+            if (TryGetKeyValuePairTypeArguments(binder, targetElementType.Type, out var targetKeyType, out var targetValueType))
+            {
+                foreach (var element in argument.Elements)
+                {
+                    // SPEC: If Eᵢ is a key value pair element Kᵢ:Vᵢ, output type inferences are made
+                    // from Kᵢ to Kₑ and from Vᵢ to Vₑ. No inference is made for expression or spread elements.
+                    if (element is BoundKeyValuePairElement keyValuePair)
+                    {
+                        MakeOutputTypeInferences(binder, keyValuePair.Key, targetKeyType, ref useSiteInfo);
+                        MakeOutputTypeInferences(binder, keyValuePair.Value, targetValueType, ref useSiteInfo);
+                    }
+                }
+
                 return;
             }
 
             foreach (var element in argument.Elements)
             {
-                // PROTOTYPE: Handle output type inference for key:value elements.
                 if (element is BoundExpression expression)
                 {
                     MakeOutputTypeInferences(binder, expression, targetElementType, ref useSiteInfo);
@@ -3537,4 +3607,3 @@ OuterBreak:
         }
     }
 }
-

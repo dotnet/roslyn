@@ -4154,7 +4154,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case BoundKeyValuePairElement keyValuePair:
                         VisitRvalue(keyValuePair.Key);
+                        var keyResult = _visitResult;
                         VisitRvalue(keyValuePair.Value);
+                        var valueResult = _visitResult;
+
+                        _visitResult = new VisitResult(default, default, [keyResult, valueResult]);
                         // PROTOTYPE: Check nullability from conversions of key and value.
                         break;
                     case BoundKeyValuePairConversion keyValuePairConversion:
@@ -4177,6 +4181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                 }
+
             }
 
             TypeWithState convertCollection(
@@ -8914,6 +8919,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             var (elementNoConversion, _) = RemoveConversion(elementExpression, includeExplicitConversions: false);
                             elementsBuilder.Add(getArgumentForMethodTypeInference(elementNoConversion, collectionExpressionVisitResults[i]));
+                        }
+                        else if (collection.Elements[i] is BoundKeyValuePairElement keyValuePair)
+                        {
+                            var keyValuePairVisitResults = collectionExpressionVisitResults[i].NestedVisitResults;
+                            Debug.Assert(keyValuePairVisitResults is { Length: 2 });
+                            elementsBuilder.Add(keyValuePair.Update(
+                                getArgumentForMethodTypeInference(keyValuePair.Key, keyValuePairVisitResults[0]),
+                                getArgumentForMethodTypeInference(keyValuePair.Value, keyValuePairVisitResults[1])));
                         }
                         else
                         {

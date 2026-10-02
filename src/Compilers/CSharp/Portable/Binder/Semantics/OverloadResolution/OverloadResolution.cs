@@ -3121,7 +3121,8 @@ outerDefault:
                 }
             }
 
-            // - `E₁` does not have an identity conversion to `E₂`, and the element conversions to `E₁` are better than the element conversions to `E₂`, or
+            // - Both or neither of `T₁` and `T₂` have element type `KeyValuePair<,>`, `E₁` does not have an identity conversion to `E₂`,
+            //   and the element conversions to `E₁` are better than the element conversions to `E₂`, or
             // - `E₁` has an identity conversion to `E₂`, and one of the following holds:
 
             // `E₁` is compared to `E₂` as follows:
@@ -3132,8 +3133,16 @@ outerDefault:
             // Otherwise, neither set of element conversions is better than the other, and they are also not as good as each other.  
             // Conversion comparisons are made using better conversion from expression if `ELᵢ` is not a spread element. If `ELᵢ` is a spread element, we use better conversion from the element type of the spread collection to `E₁` or `E₂`, respectively.
 
+            var keyValueTypes1 = ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, elementType1);
+            var keyValueTypes2 = ConversionsBase.TryGetCollectionKeyValuePairTypes(Compilation, elementType2);
+
             if (!Conversions.HasIdentityConversion(elementType1, elementType2))
             {
+                if ((keyValueTypes1 is null) != (keyValueTypes2 is null))
+                {
+                    return BetterResult.Neither;
+                }
+
                 var betterResult = BetterResult.Neither;
                 Debug.Assert(underlyingElementConversions1.Length == underlyingElementConversions2.Length && underlyingElementConversions1.Length == collectionExpressionElements.Length);
 
@@ -3146,13 +3155,38 @@ outerDefault:
                     var conversionToE2 = underlyingElementConversions2[i];
 
                     BetterResult elementBetterResult;
-                    if (element is BoundCollectionExpressionSpreadElement spread)
+                    bool conflictingElementConversions;
+                    if (keyValueTypes1 is { } targetKeyValueTypes1 &&
+                        keyValueTypes2 is { } targetKeyValueTypes2)
+                    {
+                        elementBetterResult = BetterKeyValuePairElementConversion(
+                            element,
+                            targetKeyValueTypes1,
+                            conversionToE1,
+                            targetKeyValueTypes2,
+                            conversionToE2,
+                            ref useSiteInfo,
+                            out conflictingElementConversions);
+                    }
+                    else if (element is BoundCollectionExpressionSpreadElement spread)
                     {
                         elementBetterResult = BetterConversionTarget(spread, elementType1, conversionToE1, elementType2, conversionToE2, ref useSiteInfo, okToDowngradeToNeither: out _);
+                        conflictingElementConversions = false;
+                    }
+                    else if (element is BoundExpression expression)
+                    {
+                        elementBetterResult = BetterConversionFromExpression(expression, elementType1, conversionToE1, elementType2, conversionToE2, ref useSiteInfo, okToDowngradeToNeither: out _);
+                        conflictingElementConversions = false;
                     }
                     else
                     {
-                        elementBetterResult = BetterConversionFromExpression((BoundExpression)element, elementType1, conversionToE1, elementType2, conversionToE2, ref useSiteInfo, okToDowngradeToNeither: out _);
+                        elementBetterResult = BetterResult.Neither;
+                        conflictingElementConversions = false;
+                    }
+
+                    if (conflictingElementConversions)
+                    {
+                        return BetterResult.Neither;
                     }
 
                     if (elementBetterResult == BetterResult.Neither)
@@ -3194,6 +3228,100 @@ outerDefault:
             }
 
             return BetterResult.Neither;
+        }
+
+        private BetterResult BetterKeyValuePairElementConversion(
+            BoundNode element,
+            (TypeSymbol Key, TypeSymbol Value) targetTypes1,
+            Conversion conversion1,
+            (TypeSymbol Key, TypeSymbol Value) targetTypes2,
+            Conversion conversion2,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo,
+            out bool conflictingConversions)
+        {
+            BetterResult keyResult;
+            BetterResult valueResult;
+
+            switch (element)
+            {
+                // SPEC: For a key value pair element Kᵢ:Vᵢ, compare better conversion from expression
+                // from Kᵢ to Kₑ and from Vᵢ to Vₑ.
+                case BoundKeyValuePairElement keyValuePair:
+                    if (!conversion1.TryGetKeyValueConversions(out var keyConversion1, out var valueConversion1) ||
+                        !conversion2.TryGetKeyValueConversions(out var keyConversion2, out var valueConversion2))
+                    {
+                        conflictingConversions = false;
+                        return BetterResult.Neither;
+                    }
+
+                    keyResult = BetterConversionFromExpression(
+                        keyValuePair.Key,
+                        targetTypes1.Key,
+                        keyConversion1,
+                        targetTypes2.Key,
+                        keyConversion2,
+                        ref useSiteInfo,
+                        okToDowngradeToNeither: out _);
+                    valueResult = BetterConversionFromExpression(
+                        keyValuePair.Value,
+                        targetTypes1.Value,
+                        valueConversion1,
+                        targetTypes2.Value,
+                        valueConversion2,
+                        ref useSiteInfo,
+                        okToDowngradeToNeither: out _);
+                    break;
+
+                // SPEC: For a spread element with element type KeyValuePair<Kᵢ, Vᵢ>, compare better
+                // conversion from type from Kᵢ to Kₑ and from Vᵢ to Vₑ.
+                case BoundCollectionExpressionSpreadElement spread when
+                    spread.EnumeratorInfoOpt is { ElementType: { } sourceType } &&
+                    ConversionsBase.IsKeyValuePairType(Compilation, sourceType, out var sourceKeyType, out var sourceValueType):
+                    keyResult = BetterConversionFromType(sourceKeyType, targetTypes1.Key, targetTypes2.Key, ref useSiteInfo);
+                    valueResult = BetterConversionFromType(sourceValueType, targetTypes1.Value, targetTypes2.Value, ref useSiteInfo);
+                    break;
+
+                // SPEC: For an expression element with type KeyValuePair<Kᵢ, Vᵢ>, compare better
+                // conversion from type from Kᵢ to Kₑ and from Vᵢ to Vₑ.
+                case BoundExpression expression when
+                    ConversionsBase.IsKeyValuePairType(Compilation, expression.Type, out var sourceKeyType, out var sourceValueType):
+                    keyResult = BetterConversionFromType(sourceKeyType, targetTypes1.Key, targetTypes2.Key, ref useSiteInfo);
+                    valueResult = BetterConversionFromType(sourceValueType, targetTypes1.Value, targetTypes2.Value, ref useSiteInfo);
+                    break;
+
+                default:
+                    conflictingConversions = false;
+                    return BetterResult.Neither;
+            }
+
+            conflictingConversions =
+                keyResult is not BetterResult.Neither &&
+                valueResult is not BetterResult.Neither &&
+                keyResult != valueResult;
+
+            if (conflictingConversions)
+            {
+                return BetterResult.Neither;
+            }
+
+            return keyResult is BetterResult.Neither ? valueResult : keyResult;
+        }
+
+        private BetterResult BetterConversionFromType(
+            TypeSymbol sourceType,
+            TypeSymbol targetType1,
+            TypeSymbol targetType2,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var matchesTarget1 = Conversions.HasIdentityConversion(sourceType, targetType1);
+            var matchesTarget2 = Conversions.HasIdentityConversion(sourceType, targetType2);
+
+            if (matchesTarget1 != matchesTarget2)
+            {
+                return matchesTarget1 ? BetterResult.Left : BetterResult.Right;
+            }
+
+            return BetterConversionTargetCore(targetType1, targetType2, ref useSiteInfo, BetterConversionTargetRecursionLimit);
         }
 
         private bool IsBetterCollectionExpressionConversion_CSharp12(
