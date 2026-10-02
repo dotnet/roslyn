@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
@@ -337,8 +338,15 @@ internal static class CodeWriterExtensions
             .WriteLine("\"");
     }
 
-    private static CodeWriter WriteFilePath(this CodeWriter writer, string filePath, bool ensurePathBackslashes)
+    public static CodeWriter WriteFilePath(this CodeWriter writer, string filePath, bool ensurePathBackslashes)
     {
+        var filePathMemory = filePath.AsMemory();
+        if (FileUtilities.IsUriShapedFilePath(filePathMemory.Span))
+        {
+            // Backslash normalization applies to file-system paths, not URIs.
+            return writer.WriteEscapedFilePath(filePathMemory);
+        }
+
         if (!ensurePathBackslashes)
         {
             return writer.Write(filePath);
@@ -349,7 +357,6 @@ internal static class CodeWriterExtensions
         // If you try and use the line pragma in the design time docs to map back to the original file it will fail,
         // as the path isn't actually valid on windows. As a workaround we apply a simple heuristic to switch the
         // paths back when writing out the design time paths.
-        var filePathMemory = filePath.AsMemory();
         var forwardSlashIndex = filePathMemory.Span.IndexOf('/');
         while (forwardSlashIndex >= 0)
         {
@@ -363,6 +370,31 @@ internal static class CodeWriterExtensions
         writer.Write(filePathMemory);
 
         return writer;
+    }
+
+    private static CodeWriter WriteEscapedFilePath(this CodeWriter writer, ReadOnlyMemory<char> filePathMemory)
+    {
+        // Directive filenames don't support C# string escapes. Percent-encode quotes and line breaks without
+        // parsing or changing the rest of the URI, including its query and forward slashes.
+        int index;
+        while ((index = filePathMemory.Span.IndexOfAny(['"', '\r', '\n', '\u0085', '\u2028', '\u2029'])) >= 0)
+        {
+            writer.Write(filePathMemory[..index]);
+            writer.Write(filePathMemory.Span[index] switch
+            {
+                '"' => "%22",
+                '\r' => "%0D",
+                '\n' => "%0A",
+                '\u0085' => "%C2%85",
+                '\u2028' => "%E2%80%A8",
+                '\u2029' => "%E2%80%A9",
+                _ => throw new InvalidOperationException(),
+            });
+
+            filePathMemory = filePathMemory[(index + 1)..];
+        }
+
+        return writer.Write(filePathMemory);
     }
 
     public static CodeWriter WriteStartMethodInvocation(this CodeWriter writer, string methodName)

@@ -50,8 +50,11 @@ their original sub-tree layout
   source-generator `RelativePhysicalPath` for document and generated-source identity.
   Use `FileUtilities.AdjustToUsableFilePath` for file-kind classification, project-item paths, and
   source-document `RelativePath`; URI queries and fragments aren't part of logical filenames.
-- **Generated C# metadata literals**: Use `WriteVerbatimStringLiteral` for verbatim metadata
-  literals so embedded quotes are escaped without changing their values.
+- **Generated C# filenames**: Use `CodeWriterExtensions.WriteFilePath` for `#line` and checksum
+  directive filenames. URI quotes and line breaks need percent encoding, not C# string escaping;
+  preserve the rest of the URI and its forward slashes without URI parsing.
+  Use `WriteVerbatimStringLiteral` for verbatim metadata literals so
+  embedded quotes are escaped without changing their values.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
 - **Formatting options across OOP**: Cohost endpoints must resolve
