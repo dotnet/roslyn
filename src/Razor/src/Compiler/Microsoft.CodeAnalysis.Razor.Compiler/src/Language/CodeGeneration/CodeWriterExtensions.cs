@@ -889,7 +889,7 @@ internal static class CodeWriterExtensions
         return writer;
     }
 
-    private static void WriteVerbatimStringLiteral(CodeWriter writer, ReadOnlyMemory<char> literal, bool utf8 = false)
+    public static void WriteVerbatimStringLiteral(this CodeWriter writer, ReadOnlyMemory<char> literal, bool utf8 = false)
     {
         writer.Write("@\"");
 

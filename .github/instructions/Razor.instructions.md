@@ -50,6 +50,8 @@ their original sub-tree layout
   source-generator `RelativePhysicalPath` for document and generated-source identity.
   Use `FileUtilities.AdjustToUsableFilePath` for file-kind classification, project-item paths, and
   source-document `RelativePath`; URI queries and fragments aren't part of logical filenames.
+- **Generated C# metadata literals**: Use `WriteVerbatimStringLiteral` for verbatim metadata
+  literals so embedded quotes are escaped without changing their values.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
 - **Formatting options across OOP**: Cohost endpoints must resolve
