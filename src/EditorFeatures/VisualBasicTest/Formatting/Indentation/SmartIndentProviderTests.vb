@@ -42,9 +42,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 
                 Dim document = workspace.Documents.Single()
                 Dim provider = workspace.ExportProvider.GetExportedValues(Of ISmartIndentProvider)().OfType(Of SmartIndentProvider)().Single()
-                Dim smartIndenter = provider.CreateSmartIndent(document.GetTextView())
+                Dim textView = document.GetTextView()
+                Dim smartIndenter = provider.CreateSmartIndent(textView)
 
-                Assert.Null(smartIndenter)
+                Assert.NotNull(smartIndenter)
+                Assert.Null(smartIndenter.GetDesiredIndentation(textView.TextSnapshot.GetLineFromLineNumber(0)))
             End Using
         End Sub
     End Class

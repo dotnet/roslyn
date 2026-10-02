@@ -124,7 +124,6 @@ internal partial class CodeGenerator
                     }
                     else if (localRefKind == RefKindExtensions.StrictIn)
                     {
-                        Debug.Assert(localRefKind != RefKindExtensions.StrictIn, "Add a test if this assert fails for the scenario.");
                         return false;
                     }
                 }
@@ -153,7 +152,6 @@ internal partial class CodeGenerator
                     }
                     else if (dupRefKind == RefKindExtensions.StrictIn)
                     {
-                        Debug.Assert(dupRefKind != RefKindExtensions.StrictIn, "Add a test if this assert fails for the scenario.");
                         return true;
                     }
                 }
@@ -176,9 +174,16 @@ internal partial class CodeGenerator
                 return lhsRefKind == RefKind.Ref ||
                     (IsAnyReadOnly(addressKind) && lhsRefKind is RefKind.RefReadOnly or RefKind.RefReadOnlyParameter);
 
-            case BoundKind.RefArrayAccess:
-                var right = (BoundRefArrayAccess)expression;
-                return HasHome(right.ArrayAccess, AddressKind.Writeable, containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
+            case BoundKind.RefAccess:
+                var right = (BoundRefAccess)expression;
+
+                if (!IsAnyReadOnly(addressKind) && right.RefKind is (RefKind.RefReadOnly or RefKindExtensions.StrictIn))
+                {
+                    Debug.Assert(false, "Please add a unit-test that observes effect of this code path.");
+                    return false;
+                }
+
+                return HasHome(right.Expression, RefAssignmentValueAddressKind(right.RefKind), containingSymbol, peVerifyCompatEnabled, stackLocalsOpt);
 
             case BoundKind.ComplexConditionalReceiver:
                 Debug.Assert(HasHome(

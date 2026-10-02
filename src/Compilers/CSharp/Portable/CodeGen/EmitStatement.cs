@@ -880,7 +880,7 @@ oneMoreTime:
             {
                 // NOTE: passing "ReadOnlyStrict" here.
                 //       we should never return an address of a copy
-                var unexpectedTemp = this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                var unexpectedTemp = this.EmitAddress(expressionOpt, this._method.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable, used: true);
                 Debug.Assert(unexpectedTemp == null, "ref-returning a temp?");
             }
 

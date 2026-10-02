@@ -4,12 +4,15 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 // A document diagnostic partial report is defined as having the first literal send = DocumentDiagnosticReport (aka changed / unchanged) followed
 // by n DocumentDiagnosticPartialResult literals.
@@ -18,30 +21,56 @@ using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticRep
 using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>;
 
 [Method(Methods.TextDocumentDiagnosticName)]
-internal sealed partial class PublicDocumentPullDiagnosticsHandler(
+internal sealed partial class DocumentPullDiagnosticsHandler(
     IClientLanguageServerManager clientLanguageServerManager,
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions)
-    : AbstractDocumentPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport>(
-        diagnosticsRefresher, diagnosticSourceManager, globalOptions)
+    : AbstractPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport>(
+        diagnosticsRefresher, globalOptions), ITextDocumentIdentifierHandler<DocumentDiagnosticParams, TextDocumentIdentifier>
 {
     private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager;
+    private readonly IDiagnosticSourceManager _diagnosticSourceManager = diagnosticSourceManager;
 
     protected override string? GetRequestDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;
 
-    public override TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(DocumentDiagnosticParams diagnosticsParams)
         => diagnosticsParams.TextDocument;
 
-    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
+    protected override async ValueTask<ImmutableArray<IDiagnosticSource>> GetOrderedDiagnosticSourcesAsync(DocumentDiagnosticParams diagnosticsParams, string? requestDiagnosticCategory, RequestContext context, CancellationToken cancellationToken)
+    {
+        // Note: the document may be null in the case where the client is asking about a document that we have
+        // since removed from the workspace.  In this case, we don't really have anything to process.
+        // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
+        //
+        // Only consider open documents here (and only closed ones in WorkspacePullDiagnosticsHandler).  Each
+        // handler treats those as separate worlds that they are responsible for.
+        var identifier = GetTextDocumentIdentifier(diagnosticsParams);
+        var textDocument = await context.GetTextDocumentAsync(cancellationToken).ConfigureAwait(false);
+        if (textDocument is null)
+        {
+            context.TraceDebug("Ignoring diagnostics request because the text document was not found");
+            return [];
+        }
+
+        if (!context.IsTracking(identifier.DocumentUri))
+        {
+            context.TraceWarning($"Ignoring diagnostics request for untracked document: {identifier.DocumentUri}");
+            return [];
+        }
+
+        return await _diagnosticSourceManager.CreateDocumentDiagnosticSourcesAsync(context, requestDiagnosticCategory, cancellationToken).ConfigureAwait(false);
+    }
+
+    protected override DocumentDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId, ClientCapabilities clientCapabilities)
         => new(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = resultId,
             Items = diagnostics,
         });
 
-    protected override DocumentDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier)
+    protected override DocumentDiagnosticPartialReport CreateRemovedReport(TextDocumentIdentifier identifier, ClientCapabilities clientCapabilities)
         => new(new RelatedFullDocumentDiagnosticReport
         {
             ResultId = null,

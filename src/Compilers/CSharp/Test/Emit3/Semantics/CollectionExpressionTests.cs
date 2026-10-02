@@ -5620,44 +5620,11 @@ static class Program
 
             verifier.VerifyIL("Program.M", """
                 {
-                  // Code size       72 (0x48)
-                  .maxstack  4
-                  .locals init (int V_0,
-                                System.Collections.Generic.List<dynamic> V_1,
-                                System.Span<dynamic> V_2,
-                                int V_3,
-                                System.Span<object> V_4)
+                  // Code size        7 (0x7)
+                  .maxstack  1
                   IL_0000:  ldarg.0
-                  IL_0001:  dup
-                  IL_0002:  callvirt   "int System.Collections.Generic.List<object>.Count.get"
-                  IL_0007:  stloc.0
-                  IL_0008:  ldloc.0
-                  IL_0009:  newobj     "System.Collections.Generic.List<dynamic>..ctor(int)"
-                  IL_000e:  stloc.1
-                  IL_000f:  ldloc.1
-                  IL_0010:  ldloc.0
-                  IL_0011:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<dynamic>(System.Collections.Generic.List<dynamic>, int)"
-                  IL_0016:  ldloc.1
-                  IL_0017:  call       "System.Span<dynamic> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<dynamic>(System.Collections.Generic.List<dynamic>)"
-                  IL_001c:  stloc.2
-                  IL_001d:  ldc.i4.0
-                  IL_001e:  stloc.3
-                  IL_001f:  call       "System.Span<object> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<object>(System.Collections.Generic.List<object>)"
-                  IL_0024:  stloc.s    V_4
-                  IL_0026:  ldloca.s   V_4
-                  IL_0028:  ldloca.s   V_2
-                  IL_002a:  ldloc.3
-                  IL_002b:  ldloca.s   V_4
-                  IL_002d:  call       "int System.Span<object>.Length.get"
-                  IL_0032:  call       "System.Span<dynamic> System.Span<dynamic>.Slice(int, int)"
-                  IL_0037:  call       "void System.Span<object>.CopyTo(System.Span<object>)"
-                  IL_003c:  ldloc.3
-                  IL_003d:  ldloca.s   V_4
-                  IL_003f:  call       "int System.Span<object>.Length.get"
-                  IL_0044:  add
-                  IL_0045:  stloc.3
-                  IL_0046:  ldloc.1
-                  IL_0047:  ret
+                  IL_0001:  call       "System.Collections.Generic.List<dynamic> System.Linq.Enumerable.ToList<dynamic>(System.Collections.Generic.IEnumerable<dynamic>)"
+                  IL_0006:  ret
                 }
                 """);
         }
@@ -6057,13 +6024,16 @@ static class Program
                 """);
         }
 
-        [Theory, WorkItem("https://github.com/dotnet/runtime/issues/114074")]
-        [InlineData("ICollection")]
-        [InlineData("IList")]
-        public void ListInterface_Mutable_DirectArrayWhere_UsesToList(string listInterface)
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/85777")]
+        [InlineData("IList", "int[]")]
+        [InlineData("ICollection", "int[]")]
+        [InlineData("IList", "List<int>")]
+        [InlineData("ICollection", "List<int>")]
+        [InlineData("IList", "IEnumerable<int>")]
+        [InlineData("ICollection", "IEnumerable<int>")]
+        public void ListInterface_Mutable_SingleSpread_UsesToList(string listInterface, string sourceType)
         {
             var source = $$"""
-                using System;
                 using System.Collections.Generic;
                 using System.Linq;
 
@@ -6071,248 +6041,185 @@ static class Program
                 {
                     static void Main()
                     {
-                        M(new[] { 1, 2, 3, 4 }, x => x % 2 == 0).Report();
-                        M(new[] { "a", "bb" }, x => x.Length == 1).Report();
+                        {{sourceType}} source = [1, 2, 3];
+                        Direct(source).Report();
+                        WhereSelect(source).Report();
+                        IndexedWhere(source).Report();
+                        CustomMethod(source).Report();
+                        SkipTake(source).Report();
+                        Assignment(source).Report();
                     }
 
-                    static {{listInterface}}<T> M<T>(T[] source, Func<T, bool> predicate) => [.. source.Where(predicate)];
+                    static {{listInterface}}<int> Direct({{sourceType}} source) => [.. source];
+                    static {{listInterface}}<int> WhereSelect({{sourceType}} source) => [.. source.Where(x => x > 1).Select(x => x * 2)];
+                    static {{listInterface}}<int> IndexedWhere({{sourceType}} source) => [.. source.Where((x, i) => i != 1)];
+                    static IEnumerable<int> GetValues({{sourceType}} source) => source;
+                    static {{listInterface}}<int> CustomMethod({{sourceType}} source) => [.. GetValues(source)];
+                    static {{listInterface}}<int> SkipTake({{sourceType}} source) => [.. source.Skip(1).Take(1)];
+                    static {{listInterface}}<int> Assignment({{sourceType}} source)
+                    {
+                        IEnumerable<int> saved;
+                        {{listInterface}}<int> result = [.. (saved = source.Where(x => x > 1))];
+                        saved.Report();
+                        return result;
+                    }
                 }
                 """;
 
-            var verifier = CompileAndVerify(
-                [source, s_collectionExtensions],
-                targetFramework: TargetFramework.Net90,
-                expectedOutput: IncludeExpectedOutput("[2, 4], [a], "),
+            var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net90,
+                expectedOutput: IncludeExpectedOutput("[1, 2, 3], [4, 6], [1, 3], [1, 2, 3], [2], [2, 3], [2, 3], "),
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("Program.M<T>", """
+            foreach (var method in new[] { "Direct", "WhereSelect", "IndexedWhere", "CustomMethod", "SkipTake", "Assignment" })
+            {
+                Assert.Contains("System.Linq.Enumerable.ToList<int>", verifier.VisualizeIL("Program." + method));
+            }
+
+            verifier.VerifyIL("Program.Direct", """
                 {
-                  // Code size       13 (0xd)
-                  .maxstack  2
+                  // Code size        7 (0x7)
+                  .maxstack  1
                   IL_0000:  ldarg.0
-                  IL_0001:  ldarg.1
-                  IL_0002:  call       "System.Collections.Generic.IEnumerable<T> System.Linq.Enumerable.Where<T>(System.Collections.Generic.IEnumerable<T>, System.Func<T, bool>)"
-                  IL_0007:  call       "System.Collections.Generic.List<T> System.Linq.Enumerable.ToList<T>(System.Collections.Generic.IEnumerable<T>)"
-                  IL_000c:  ret
+                  IL_0001:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0006:  ret
                 }
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/114074")]
-        public void ListInterface_Mutable_DirectArrayWhere_PreservesEvaluationAndExceptions()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/85777")]
+        [InlineData("IList")]
+        [InlineData("ICollection")]
+        public void ListInterface_Mutable_SingleSpread_EvaluationAndDisposal(string listInterface)
         {
-            var source = """
+            var source = $$"""
                 using System;
                 using System.Collections.Generic;
-                using System.Linq;
 
                 class Program
                 {
-                    static IList<int> result = [9];
+                    static {{listInterface}}<int> result = [9];
 
                     static void Main()
                     {
-                        var values = new[] { 1, 2, 3 };
-                        result = [.. GetArray(values).Where(GetPredicate(values))];
+                        result = [.. Source(false)];
                         result.Report();
-                        values.Report();
-
                         result = [9];
-                        try
-                        {
-                            int[] values2 = null;
-                            result = [.. values2.Where(x => true)];
-                        }
-                        catch (ArgumentNullException e)
-                        {
-                            Console.Write($"{e.ParamName}:{result[0]};");
-                        }
-
-                        result = [9];
-                        try
-                        {
-                            Func<int, bool> predicate = null;
-                            result = [.. new[] { 1 }.Where(predicate)];
-                        }
-                        catch (ArgumentNullException e)
-                        {
-                            Console.Write($"{e.ParamName}:{result[0]};");
-                        }
-
-                        result = [9];
-                        try
-                        {
-                            result = [.. new[] { 1, 2, 3 }.Where(x => ThrowAtTwo(x))];
-                        }
-                        catch (Exception e)
-                        {
-                            Console.Write($"{e.Message}:{result[0]};");
-                        }
+                        try { result = [.. Source(true)]; }
+                        catch (Exception e) { Console.Write($"{e.Message}:{((IList<int>)result)[0]};"); }
                     }
 
-                    static int[] GetArray(int[] values)
+                    static IEnumerable<int> Source(bool fail)
                     {
-                        Console.Write("array;");
-                        return values;
+                        Console.Write("source;");
+                        return Values(fail);
                     }
 
-                    static Func<int, bool> GetPredicate(int[] values)
+                    static IEnumerable<int> Values(bool fail)
                     {
-                        Console.Write("predicate;");
-                        return value =>
+                        try
                         {
-                            Console.Write($"{value}:{result[0]};");
-                            if (value == 1)
-                            {
-                                values[1] = 4;
-                            }
-                            return value % 2 == 0;
-                        };
-                    }
-
-                    static bool ThrowAtTwo(int value)
-                    {
-                        Console.Write($"{value};");
-                        if (value == 2)
-                        {
-                            throw new Exception("boom");
+                            Console.Write($"first:{((IList<int>)result)[0]};");
+                            yield return 1;
+                            if (fail) throw new Exception("boom");
+                            Console.Write("second;");
+                            yield return 2;
                         }
-                        return true;
+                        finally { Console.Write("dispose;"); }
                     }
                 }
                 """;
 
-            CompileAndVerify(
-                [source, s_collectionExtensions],
-                targetFramework: TargetFramework.Net90,
-                expectedOutput: IncludeExpectedOutput("array;predicate;1:9;4:9;3:9;[4], [1, 4, 3], source:9;predicate:9;1;2;boom:9;"),
+            CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net90,
+                expectedOutput: IncludeExpectedOutput("source;first:9;second;dispose;[1, 2], source;first:9;dispose;boom:9;"),
                 verify: Verification.Skipped).VerifyDiagnostics();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/114074")]
-        public void ListInterface_Mutable_DirectArrayWhere_Exclusions()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/85777")]
+        [InlineData("IList")]
+        [InlineData("ICollection")]
+        public void ListInterface_Mutable_SingleSpread_Conversions(string listInterface)
         {
-            var source = """
-                using System;
+            var source = $$"""
                 using System.Collections.Generic;
-                using System.Linq;
-
-                static class Helpers
-                {
-                    public static IEnumerable<T> Where<T>(T[] source, Func<T, bool> predicate) => source;
-                }
 
                 class Program
                 {
-                    static ICollection<int> FromList(List<int> source, Func<int, bool> predicate) => [.. source.Where(predicate)];
-                    static ICollection<int> FromSaved(IEnumerable<int> iterator) => [.. iterator];
-
-                    static ICollection<int> FromAssignment(int[] source, Func<int, bool> predicate)
-                    {
-                        IEnumerable<int> iterator;
-                        ICollection<int> result = [.. (iterator = source.Where(predicate))];
-                        GC.KeepAlive(iterator);
-                        return result;
-                    }
-
-                    static ICollection<int> FromIndexed(int[] source, Func<int, int, bool> predicate) => [.. source.Where(predicate)];
-                    static ICollection<int> FromUserMethod(int[] source, Func<int, bool> predicate) => [.. Helpers.Where(source, predicate)];
-                    static ICollection<object> FromElementConversion(string[] source, Func<string, bool> predicate) => [.. source.Where(predicate)];
-                    static ICollection<int> FromMixed(int[] source, Func<int, bool> predicate) => [0, .. source.Where(predicate)];
-                    static ICollection<int> FromWithCapacity(int[] source, Func<int, bool> predicate) => [with(10), .. source.Where(predicate)];
-                    static IReadOnlyList<int> FromReadOnly(int[] source, Func<int, bool> predicate) => [.. source.Where(predicate)];
-                }
-                """;
-
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net90, verify: Verification.Skipped);
-            verifier.VerifyDiagnostics();
-
-            foreach (var method in new[]
-            {
-                "Program.FromList",
-                "Program.FromSaved",
-                "Program.FromAssignment",
-                "Program.FromIndexed",
-                "Program.FromUserMethod",
-                "Program.FromElementConversion",
-                "Program.FromMixed",
-                "Program.FromWithCapacity",
-                "Program.FromReadOnly"
-            })
-            {
-                Assert.DoesNotContain("System.Linq.Enumerable.ToList", verifier.VisualizeIL(method));
-            }
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/114074")]
-        public void ListInterface_Mutable_DirectArrayWhere_OptionalMembersMissing()
-        {
-            var source = """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-
-                class Program
-                {
-                    static void Main() => M(new[] { 1, 2, 3 }, x => x > 1).Report();
-                    static ICollection<int> M(int[] source, Func<int, bool> predicate) => [.. source.Where(predicate)];
-                }
-                """;
-
-            foreach (var missingMember in new[]
-            {
-                WellKnownMember.System_Linq_Enumerable__Where,
-                WellKnownMember.System_Linq_Enumerable__ToList
-            })
-            {
-                var comp = CreateCompilation([source, s_collectionExtensions], targetFramework: TargetFramework.Net90, options: TestOptions.ReleaseExe);
-                comp.MakeMemberMissing(missingMember);
-
-                var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[2, 3], "), verify: Verification.Skipped);
-                verifier.VerifyDiagnostics();
-                var il = verifier.VisualizeIL("Program.M");
-                Assert.DoesNotContain("System.Linq.Enumerable.ToList", il);
-                Assert.Contains("System.Collections.Generic.List<int>.AddRange", il);
-            }
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/runtime/issues/114074")]
-        public void ListInterface_Mutable_ListWhereMutation_RemainsObservable()
-        {
-            var source = """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-
-                class Program
-                {
-                    static IList<int> result = [9];
-
                     static void Main()
                     {
-                        var source = new List<int> { 1, 2 };
-                        try
-                        {
-                            result = [.. source.Where(x => Mutate(source, x))];
-                        }
-                        catch (InvalidOperationException)
-                        {
-                            Console.Write($"{source.Count}:{result[0]}");
-                        }
+                        Reference(new[] { "a", "b" }).Report();
+                        Numeric(new[] { 1, 2 }).Report();
+                        Boxing(new[] { 1, 2 }).Report();
                     }
 
-                    static bool Mutate(List<int> source, int value)
-                    {
-                        if (value == 1)
-                        {
-                            source.Add(3);
-                        }
-                        return true;
-                    }
+                    static {{listInterface}}<object> Reference(IEnumerable<string> source) => [.. source];
+                    static {{listInterface}}<long> Numeric(IEnumerable<int> source) => [.. source];
+                    static {{listInterface}}<object> Boxing(IEnumerable<int> source) => [.. source];
                 }
                 """;
 
-            CompileAndVerify(source, targetFramework: TargetFramework.Net90, expectedOutput: IncludeExpectedOutput("3:9"), verify: Verification.Skipped).VerifyDiagnostics();
+            var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net90,
+                expectedOutput: IncludeExpectedOutput("[a, b], [1, 2], [1, 2], "), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            Assert.Contains("System.Linq.Enumerable.ToList<object>", verifier.VisualizeIL("Program.Reference"));
+            Assert.DoesNotContain("System.Linq.Enumerable.ToList", verifier.VisualizeIL("Program.Numeric"));
+            Assert.DoesNotContain("System.Linq.Enumerable.ToList", verifier.VisualizeIL("Program.Boxing"));
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/85777")]
+        [InlineData("IList")]
+        [InlineData("ICollection")]
+        public void ListInterface_Mutable_SingleSpread_MissingToList(string listInterface)
+        {
+            var source = $$"""
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main() => M(new[] { 1, 2, 3 }).Report();
+                    static {{listInterface}}<int> M(IEnumerable<int> source) => [.. source];
+                }
+                """;
+            var comp = CreateCompilation([source, s_collectionExtensions], targetFramework: TargetFramework.Net90, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Linq_Enumerable__ToList);
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            var il = verifier.VisualizeIL("Program.M");
+            Assert.DoesNotContain("System.Linq.Enumerable.ToList", il);
+            Assert.Contains("System.Collections.Generic.List<int>.AddRange", il);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/85777")]
+        [InlineData("IList")]
+        [InlineData("ICollection")]
+        public void ListInterface_Mutable_SingleSpread_Fallbacks(string listInterface)
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var source = new[] { 1, 2 };
+                        Mixed(source).Report();
+                        Multiple(source).Report();
+                        var result = WithCapacity(source);
+                        Console.Write($"{((List<int>)result).Capacity};");
+                        result.Report();
+                        ReadOnly(source).Report();
+                    }
+                    static {{listInterface}}<int> Mixed(IEnumerable<int> source) => [0, .. source];
+                    static {{listInterface}}<int> Multiple(IEnumerable<int> source) => [.. source, .. source];
+                    static {{listInterface}}<int> WithCapacity(IEnumerable<int> source) => [with(10), .. source];
+                    static IReadOnlyList<int> ReadOnly(IEnumerable<int> source) => [.. source];
+                }
+                """;
+            var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net90,
+                expectedOutput: IncludeExpectedOutput("[0, 1, 2], [1, 2, 1, 2], 10;[1, 2], [1, 2], "), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            foreach (var method in new[] { "Mixed", "Multiple", "WithCapacity", "ReadOnly" })
+            {
+                Assert.DoesNotContain("System.Linq.Enumerable.ToList", verifier.VisualizeIL("Program." + method));
+            }
         }
 
         [Fact]
@@ -39299,14 +39206,10 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size      140 (0x8c)
-                  .maxstack  4
+                  // Code size       71 (0x47)
+                  .maxstack  3
                   .locals init (int V_0,
-                                System.Span<int> V_1,
-                                System.Collections.Generic.List<int> V_2,
-                                System.Span<int> V_3,
-                                int V_4,
-                                System.Span<int> V_5)
+                                System.Span<int> V_1)
                   IL_0000:  ldc.i4.3
                   IL_0001:  stloc.0
                   IL_0002:  ldloc.0
@@ -39335,38 +39238,10 @@ partial class Program
                   IL_0034:  dup
                   IL_0035:  ldc.i4.0
                   IL_0036:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_003b:  dup
-                  IL_003c:  callvirt   "int System.Collections.Generic.List<int>.Count.get"
-                  IL_0041:  stloc.0
-                  IL_0042:  ldloc.0
-                  IL_0043:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
-                  IL_0048:  stloc.2
-                  IL_0049:  ldloc.2
-                  IL_004a:  ldloc.0
-                  IL_004b:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
-                  IL_0050:  ldloc.2
-                  IL_0051:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_0056:  stloc.3
-                  IL_0057:  ldc.i4.0
-                  IL_0058:  stloc.s    V_4
-                  IL_005a:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                  IL_005f:  stloc.s    V_5
-                  IL_0061:  ldloca.s   V_5
-                  IL_0063:  ldloca.s   V_3
-                  IL_0065:  ldloc.s    V_4
-                  IL_0067:  ldloca.s   V_5
-                  IL_0069:  call       "int System.Span<int>.Length.get"
-                  IL_006e:  call       "System.Span<int> System.Span<int>.Slice(int, int)"
-                  IL_0073:  call       "void System.Span<int>.CopyTo(System.Span<int>)"
-                  IL_0078:  ldloc.s    V_4
-                  IL_007a:  ldloca.s   V_5
-                  IL_007c:  call       "int System.Span<int>.Length.get"
-                  IL_0081:  add
-                  IL_0082:  stloc.s    V_4
-                  IL_0084:  ldloc.2
-                  IL_0085:  ldc.i4.0
-                  IL_0086:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_008b:  ret
+                  IL_003b:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0040:  ldc.i4.0
+                  IL_0041:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0046:  ret
                 }
                 """);
         }
@@ -40177,10 +40052,13 @@ partial class Program
                 """);
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74615")]
-        public void List_SingleSpread_CustomCollection_NotICollectionAndStructEnumerator()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74615")]
+        [InlineData("List")]
+        [InlineData("IList")]
+        [InlineData("ICollection")]
+        public void List_SingleSpread_CustomCollection_NotICollectionAndStructEnumerator(string collectionType)
         {
-            var source = """
+            var source = $$"""
                 using System.Collections;
                 using System.Collections.Generic;
 
@@ -40213,7 +40091,7 @@ partial class Program
                         M(new([1, 2, 3])).Report();
                     }
 
-                    static List<int> M(MyCollection c) => [..c];
+                    static {{collectionType}}<int> M(MyCollection c) => [..c];
                 }
                 """;
 

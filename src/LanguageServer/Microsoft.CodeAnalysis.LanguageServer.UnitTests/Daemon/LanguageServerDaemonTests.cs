@@ -92,17 +92,21 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         });
         using var daemonEventRegistration = daemon.DaemonTelemetry.AddEventSink(daemonEvents);
 
-        var first = await daemon.CreateClientAsync();
-        await using var second = await daemon.CreateClientAsync();
+        var first = await daemon.CreateClientAsync(clientInfo: new ClientInfo { Name = "GitHub Copilot CLI" });
+        await using var second = await daemon.CreateClientAsync(clientInfo: new ClientInfo { Name = "Visual Studio Code" });
 
         var firstTelemetry = first.GetRequiredLspService<RoslynTelemetry>();
         var secondTelemetry = second.GetRequiredLspService<RoslynTelemetry>();
         var firstSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(firstTelemetry));
         var secondSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(secondTelemetry));
+        var rootSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(daemon.DaemonTelemetry));
 
         // Each server has a distinct child session correlated to the shared daemon session.
         Assert.NotNull(daemon.DaemonSessionId);
         Assert.NotEqual(firstSession.SessionId, secondSession.SessionId);
+        Assert.False(rootSession.TryGetCommonPropertyValue(LanguageServerTelemetry.ClientNamePropertyName, out _));
+        Assert.Equal("GitHub Copilot CLI", GetClientName(firstSession));
+        Assert.Equal("Visual Studio Code", GetClientName(secondSession));
         Assert.Equal(
             daemon.DaemonSessionId,
             GetDaemonSessionId(firstSession));
@@ -164,6 +168,12 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         {
             Assert.True(telemetrySession.TryGetCommonPropertyValue(LanguageServerTelemetry.DaemonSessionIdPropertyName, out var daemonSessionId));
             return Assert.IsType<string>(daemonSessionId);
+        }
+
+        static string GetClientName(TelemetrySession telemetrySession)
+        {
+            Assert.True(telemetrySession.TryGetCommonPropertyValue(LanguageServerTelemetry.ClientNamePropertyName, out var clientName));
+            return Assert.IsType<string>(clientName);
         }
     }
 

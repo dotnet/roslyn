@@ -30,6 +30,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
     internal const string ServerVersionPropertyName = CommonPropertyPrefix + "serverVersion";
     internal const string ServerPackageVersionPropertyName = CommonPropertyPrefix + "serverPackageVersion";
     internal const string ServerPlatformPropertyName = CommonPropertyPrefix + "serverPlatform";
+    internal const string ClientNamePropertyName = CommonPropertyPrefix + "clientName";
 
     /// <summary>
     /// Collector key used by C# Dev Kit to send language server telemetry to the VS Code cluster.
@@ -146,6 +147,15 @@ internal sealed class LanguageServerTelemetry : IDisposable
 
     public RoslynTelemetry Telemetry => _telemetry;
     public string? SessionId => _telemetrySession?.SessionId;
+
+    internal void SetClientName(string? clientName)
+    {
+        var session = _telemetrySession;
+        Contract.ThrowIfNull(session);
+
+        Contract.ThrowIfFalse(session.TryAddCommonProperty(
+            ClientNamePropertyName, string.IsNullOrWhiteSpace(clientName) ? "unknown" : clientName));
+    }
 
     internal static string GetServerVersion()
         => typeof(LanguageServerTelemetry).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion

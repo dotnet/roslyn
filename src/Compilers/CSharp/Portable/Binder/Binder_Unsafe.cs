@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, callerUnsafeMode, arg, location, forConstructorConstraint: false);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, callerUnsafeMode, arg, location);
 
             if (useUpdatedMemorySafetyRules)
             {
@@ -91,39 +91,53 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
                     typeArgument is NamedTypeSymbol namedTypeArgument)
                 {
-                    foreach (var constructor in namedTypeArgument.InstanceConstructors)
-                    {
-                        if (constructor.ParameterCount == 0)
-                        {
-                            if (constructor.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
-                            {
-                                // An unsafe context is required for constructor '{0}' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter '{1}' in '{2}'
-                                @this.ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, constructor, CallerUnsafeMode.Explicit, arg, location, forConstructorConstraint: true, additionalArgs: [typeParameter, targetSymbol.OriginalDefinition]);
-                            }
+                    // Looking up constructors while binding declarations can reenter member synthesis.
+                    DiagnosticInfo? diagnosticInfo = @this.ShouldCheckConstraints
+                        ? @this.GetUnsafeConstructorConstraintDiagnosticInfo(typeParameter, namedTypeArgument, targetSymbol)
+                        : new LazyUnsafeConstructorConstraintDiagnosticInfo(@this, typeParameter, namedTypeArgument, targetSymbol);
 
-                            break;
-                        }
+                    if (diagnosticInfo is not null)
+                    {
+                        diagnostics.Add(new CSDiagnostic(diagnosticInfo, location(arg)));
                     }
                 }
             }
         }
 
-        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, CallerUnsafeMode callerUnsafeMode, T arg, Func<T, Location?> location, bool forConstructorConstraint, ReadOnlySpan<object> additionalArgs = default)
+        internal CSDiagnosticInfo? GetUnsafeConstructorConstraintDiagnosticInfo(TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol)
+        {
+            foreach (var constructor in typeArgument.InstanceConstructors)
+            {
+                if (constructor.ParameterCount == 0)
+                {
+                    return constructor.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit
+                        ? GetUnsafeDiagnosticInfo(
+                            disallowedUnder: MemorySafetyRulesVersion.Version2,
+                            ignoreUnsafeDiagnosticsSuppression: true,
+                            sizeOfTypeOpt: null,
+                            customErrorCode: ErrorCode.ERR_UnsafeConstructorConstraint,
+                            customArgs: [constructor, typeParameter, targetSymbol.OriginalDefinition])
+                        : null;
+                }
+            }
+
+            return null;
+        }
+
+        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, CallerUnsafeMode callerUnsafeMode, T arg, Func<T, Location?> location)
         {
             Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules || callerUnsafeMode == CallerUnsafeMode.Implicit);
 
             if (callerUnsafeMode != CallerUnsafeMode.None)
             {
-                Debug.Assert(callerUnsafeMode == CallerUnsafeMode.Explicit || !forConstructorConstraint);
                 ReportUnsafeIfNotAllowed(arg, location, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version2,
-                    ignoreUnsafeDiagnosticsSuppression: forConstructorConstraint,
                     customErrorCode: callerUnsafeMode switch
                     {
-                        CallerUnsafeMode.Explicit => forConstructorConstraint ? ErrorCode.ERR_UnsafeConstructorConstraint : ErrorCode.ERR_UnsafeMemberOperation,
+                        CallerUnsafeMode.Explicit => ErrorCode.ERR_UnsafeMemberOperation,
                         CallerUnsafeMode.Implicit => ErrorCode.ERR_UnsafeMemberOperationCompat,
                         _ => throw ExceptionUtilities.UnexpectedValue(callerUnsafeMode),
                     },
-                    customArgs: [symbol, .. additionalArgs]);
+                    customArgs: [symbol]);
             }
         }
 
@@ -203,7 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 static node => node.GetLocation(),
                 diagnostics,
                 disallowedUnder,
-                ignoreUnsafeDiagnosticsSuppression: false,
                 sizeOfTypeOpt,
                 customErrorCode,
                 customArgs);
@@ -232,7 +245,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 static l => l,
                 diagnostics,
                 disallowedUnder,
-                ignoreUnsafeDiagnosticsSuppression: false,
                 sizeOfTypeOpt: null,
                 customErrorCode,
                 customArgs);
@@ -247,12 +259,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Func<T, Location?> location,
             DiagnosticBag diagnostics,
             MemorySafetyRulesVersion disallowedUnder,
-            bool ignoreUnsafeDiagnosticsSuppression,
             TypeSymbol? sizeOfTypeOpt = null,
             ErrorCode? customErrorCode = null,
             object[]? customArgs = null)
         {
-            var diagnosticInfo = GetUnsafeDiagnosticInfo(disallowedUnder, ignoreUnsafeDiagnosticsSuppression, sizeOfTypeOpt, customErrorCode, customArgs);
+            var diagnosticInfo = GetUnsafeDiagnosticInfo(disallowedUnder, ignoreUnsafeDiagnosticsSuppression: false, sizeOfTypeOpt, customErrorCode, customArgs);
             if (diagnosticInfo == null)
             {
                 return false;

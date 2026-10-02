@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 // A document diagnostic partial report is defined as having the first literal send = DocumentDiagnosticReport (aka changed / unchanged) followed
 // by n DocumentDiagnosticPartialResult literals.
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
 
-internal sealed partial class PublicDocumentPullDiagnosticsHandler : IOnInitialized
+internal sealed partial class DocumentPullDiagnosticsHandler : IOnInitialized
 {
     public async Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
@@ -24,8 +24,8 @@ internal sealed partial class PublicDocumentPullDiagnosticsHandler : IOnInitiali
             // TODO: Hookup an option changed handler for changes to BackgroundAnalysisScopeOption
             //       to dynamically register/unregister the non-local document diagnostic source.
 
-            var documentSources = DiagnosticSourceManager.GetDocumentSourceProviderNames(clientCapabilities);
-            var workspaceSources = DiagnosticSourceManager.GetWorkspaceSourceProviderNames(clientCapabilities);
+            var documentSources = _diagnosticSourceManager.GetDocumentSourceProviderNames(clientCapabilities);
+            var workspaceSources = _diagnosticSourceManager.GetWorkspaceSourceProviderNames(clientCapabilities);
 
             // All diagnostic sources have to be registered under the document pull method name,
             // See https://github.com/microsoft/language-server-protocol/issues/1723
