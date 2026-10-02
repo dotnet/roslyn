@@ -33,5 +33,6 @@ internal enum Modifiers
     File        = 1 << 17,
     Fixed       = 1 << 18,
     Closed      = 1 << 19,
+    Iterator    = 1 << 20,
 #pragma warning restore format
 }
