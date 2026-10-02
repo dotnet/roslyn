@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
-using System.IO;
 using Microsoft.AspNetCore.Razor.Language.Components;
+using Microsoft.AspNetCore.Razor.Utilities;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 
@@ -38,23 +38,23 @@ public static class FileKinds
     {
         ArgHelper.ThrowIfNull(filePath);
 
-        var fileName = Path.GetFileName(filePath);
+        var adjustedPath = FileUtilities.AdjustToUsableFilePath(filePath.AsSpan());
+        // Handle both separators regardless of OS, keeping the file name as a span to avoid an allocation.
+        var fileName = adjustedPath[(adjustedPath.LastIndexOfAny('/', '\\') + 1)..];
 
-        if (string.Equals(ComponentHelpers.ImportsFileName, fileName, StringComparison.Ordinal))
+        if (fileName.Equals(ComponentHelpers.ImportsFileName.AsSpan(), StringComparison.Ordinal))
         {
             fileKind = RazorFileKind.ComponentImport;
             return true;
         }
 
-        var extension = Path.GetExtension(filePath);
-
-        if (string.Equals(ComponentFileExtension, extension, StringComparison.OrdinalIgnoreCase))
+        if (fileName.EndsWith(ComponentFileExtension, StringComparison.OrdinalIgnoreCase))
         {
             fileKind = RazorFileKind.Component;
             return true;
         }
 
-        if (string.Equals(LegacyFileExtension, extension, StringComparison.OrdinalIgnoreCase))
+        if (fileName.EndsWith(LegacyFileExtension, StringComparison.OrdinalIgnoreCase))
         {
             fileKind = RazorFileKind.Legacy;
             return true;
