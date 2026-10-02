@@ -1,0 +1,11 @@
+﻿Source Location: (48:2,7 [68] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private MyClass c1 = new();
+    private MyClass c2 = new();
+|
+Generated Location: (557:18,0 [68] )
+|
+    private MyClass c1 = new();
+    private MyClass c2 = new();
+|
+

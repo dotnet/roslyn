@@ -19,6 +19,12 @@ Use this skill when:
 
 ## Review Process
 
+### Review Progress Updates
+
+1. Print your plan before beginning
+2. After each step of your plan, print a quick result and your next step
+3. Print something at least every few minutes so humans can audit activity
+
 ### Step 0: Gather Code Context (No PR Narrative Yet)
 
 Before analyzing anything, collect as much relevant **code** context as you can. **Critically, do NOT read the PR description, linked issues, or existing review comments yet.** You must form your own independent assessment of what the code does, why it might be needed, what problems it has, and whether the approach is sound — before being exposed to the author's framing. Reading the author's narrative first anchors your judgment and makes you less likely to find real problems.
@@ -89,8 +95,8 @@ Code changes frequently outdate the agent knowledge base, but it's easy to miss 
 
 Launch a sub-agent (e.g., the `explore` or `task` agent) with the PR diff and list of changed files, and instruct it to verify whether the change should have updated — but didn't — any of the repo's living documentation:
 
-- **Knowledge base** (`.github/memory/`): `FILE_MAP.md` (files added/moved/renamed), `API_MAP.md`, `ARCHITECTURE.md`, `CONVENTIONS.md` (new patterns), `KNOWN_ISSUES.md` (repo-wide surprising behavior/workarounds), `TESTING_STRATEGY.md` (repo-wide test layout), and `INDEX.md` (if memory files were added/removed/renamed).
-- **Per-layer memory files**: `.github/memory/known-issues/{compiler,ide,razor}.md` (layer-specific quirks/workarounds) and `.github/memory/testing/{compiler,ide,razor}.md` (layer-specific test base classes/conventions) for the area the change touches.
+- **Knowledge base** (`.github/memory/`): `FILE_MAP.md` (files added/moved/renamed), `API_MAP.md`, `ARCHITECTURE.md`, `CONVENTIONS.md` (new patterns), `TESTING_STRATEGY.md` (repo-wide test layout), and `INDEX.md` (if memory files were added/removed/renamed).
+- **Per-layer memory files**: `.github/memory/testing/{compiler,ide,razor}.md` (layer-specific test base classes/conventions) for the area the change touches.
 - **Path-scoped instruction files** (`.github/instructions/{Compiler,IDE,Razor}.instructions.md`): layer-specific directory detail, key files/APIs, diagnostic IDs, and coding conventions for the area the change touches.
 - **Entry points**: `.github/copilot-instructions.md` and `AGENTS.md` when build/test/orientation guidance changes.
 
@@ -304,7 +310,11 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Suppress expected unrelated warnings in tests with `#pragma`.** When test code intentionally triggers unrelated warnings (e.g., CS0649 for unassigned fields), suppress them with `#pragma warning disable` to keep test output clean.
 
-- **Every code path in the changed function should have dedicated test coverage.** Include both positive and negative outcomes. If logic is copied from another place, mention the source.
+- **Assess coverage by observable behavior and regression risk, not by
+  implementation branch count.** Prefer scenario-level tests through production
+  entry points. Request distinct positive, negative, or boundary cases only when
+  they represent materially different behavior worth protecting. If logic is
+  copied from another place, mention the source.
 
 - **Verify that test assertions are strong enough to detect regressions.** Use `SequenceEqual` when order matters, `SetEqual` when it doesn't, but be aware that `SetEqual` may not flag duplicate entries.
 

@@ -26,6 +26,13 @@ namespace BuildBoss
         internal static bool IsTargetsFile(string path) => Path.GetExtension(path) == ".targets";
         internal static bool IsXslt(string path) => Path.GetExtension(path) == ".xslt";
 
+        internal static bool TryGetNuGetPackageId(string packageFilePath, out string packageId)
+        {
+            var match = Regex.Match(Path.GetFileName(packageFilePath), @"^(.*?)\.\d.*\.nupkg$");
+            packageId = match.Success ? match.Groups[1].Value : null;
+            return match.Success;
+        }
+
         /// <summary>
         /// Finds the single NuPkg in <paramref name="directory"/> whose file name begins with
         /// <paramref name="partialName"/> followed by a version.

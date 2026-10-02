@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Threading;
 internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
 {
     /// <summary>
-    /// Delay we wait after finishing the processing of one batch and starting up on then.
+    /// Delay we wait after finishing the processing of one batch and starting up another.
     /// </summary>
     private readonly TimeSpan _delay;
 
@@ -197,9 +197,9 @@ internal class AsyncBatchingWorkQueue<TItem, TResult> : IDisposable
 
             if (!_taskInFlight)
             {
-                // No in-flight task.  Kick one off to process these messages a second from now.
-                // We always attach the task to the previous one so that notifications to the ui
-                // follow the same order as the notification the OOP server sent to us.
+                // No in-flight task.  Kick one off to process the items
+                // We always attach the task to the previous one so that batches are processed
+                // in order.
                 _updateTask = ContinueAfterDelayAsync(_updateTask);
                 _taskInFlight = true;
             }

@@ -1,0 +1,635 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+   ===================================================================================================================
+     Microsoft.NET.ProjectData.targets — emits per-project data used by .NET tooling and
+     language services.
+
+     ProjectDataBuild is the canonical refresh entry point. Normal Build writes project data only when
+     <EnableProjectDataOnBuild>true</EnableProjectDataOnBuild> is also set.
+   ===================================================================================================================
+-->
+<Project>
+
+  <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask"
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+
+  <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.MergeProjectDataSlicesTask"
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+
+  <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.WriteUnsupportedProjectDataMarkerTask"
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+
+  <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.ValidateProjectDataPackagesTask"
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+
+  <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.WriteProjectDataBuildReceiptTask"
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+
+  <!-- Track the task DLL as a property so it can be included in Inputs for incremental build. -->
+  <PropertyGroup>
+    <_ProjectDataTaskAssembly>$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll</_ProjectDataTaskAssembly>
+  </PropertyGroup>
+
+  <!--
+    ============================================================
+      Property defaults
+    ============================================================
+  -->
+  <PropertyGroup>
+    <!--
+      Public switch: allow ordinary Build/CoreCompile to write project data
+      opportunistically. ProjectDataBuild remains the canonical producer because
+      invoking it is already an explicit opt-in and it runs the curated
+      design-time target list.
+    -->
+    <EnableProjectDataOnBuild Condition="'$(EnableProjectDataOnBuild)' == ''">false</EnableProjectDataOnBuild>
+
+    <!--
+      Public switch: where to write the merged project-data file.
+        true  → next to the .csproj (`<project>.csproj.lscache`)
+        false → user-folder layout computed by the MSBuild task itself
+
+      Default is user-folder to avoid writing generated files into arbitrary project
+      trees unless a host or project opts in.
+    -->
+    <EnableProjectDataInProjectFolder Condition="'$(EnableProjectDataInProjectFolder)' == ''">false</EnableProjectDataInProjectFolder>
+
+    <!-- If a project-adjacent output already exists, continue writing there even when
+         the default or user preference is out-of-repo. -->
+    <EnableProjectDataInProjectFolder Condition="Exists('$(MSBuildProjectFullPath).lscache')">true</EnableProjectDataInProjectFolder>
+
+    <!--
+      The SDK cross-targeting outer build does not set $(Language), so use the
+      .csproj extension there to allow dispatch to inner builds. The inner builds
+      validate target-framework-specific reference data at the writer boundary.
+    -->
+    <_ProjectDataTargetFrameworkSupported Condition="'$(TargetFrameworkIdentifier)' == '' or
+                                                          '$(TargetFrameworkIdentifier)' != '.NETFramework' or
+                                                          '$(UsingMicrosoftNETSdk)' == 'true'">true</_ProjectDataTargetFrameworkSupported>
+
+    <_ProjectDataCanWriteOutput Condition="'$(UsingMicrosoftNETSdk)' == 'true' and
+                                           '$(UsingMicrosoftNoTargetsSdk)' != 'true' and
+                                           '$(ExcludeFromBuild)' != 'true' and
+                                           '$(_ProjectDataTargetFrameworkSupported)' == 'true' and
+                                           ('$(Language)' == 'C#' or
+                                            ('$(TargetFrameworks)' != '' and '$(TargetFramework)' == '' and '$(MSBuildProjectExtension)' == '.csproj'))">true</_ProjectDataCanWriteOutput>
+    <_ProjectDataCanRunBuildTargets Condition="'$(UsingMicrosoftNETSdk)' == 'true' and
+                                                '$(UsingMicrosoftNoTargetsSdk)' != 'true' and
+                                                '$(ExcludeFromBuild)' != 'true'">true</_ProjectDataCanRunBuildTargets>
+    <_ProjectDataShouldWriteUnsupportedMarker Condition="'$(_ProjectDataCanWriteOutput)' != 'true'">true</_ProjectDataShouldWriteUnsupportedMarker>
+    <_ProjectDataUnsupportedReason Condition="'$(UsingMicrosoftNETSdk)' != 'true'">UsingMicrosoftNETSdkFalse</_ProjectDataUnsupportedReason>
+    <_ProjectDataUnsupportedReason Condition="'$(_ProjectDataUnsupportedReason)' == '' and '$(UsingMicrosoftNoTargetsSdk)' == 'true'">MicrosoftBuildNoTargetsSdk</_ProjectDataUnsupportedReason>
+    <_ProjectDataUnsupportedReason Condition="'$(_ProjectDataUnsupportedReason)' == '' and '$(ExcludeFromBuild)' == 'true'">ExcludeFromBuildTrue</_ProjectDataUnsupportedReason>
+    <_ProjectDataUnsupportedReason Condition="'$(_ProjectDataUnsupportedReason)' == '' and '$(_ProjectDataTargetFrameworkSupported)' != 'true'">UnsupportedTargetFramework</_ProjectDataUnsupportedReason>
+    <_ProjectDataUnsupportedReason Condition="'$(_ProjectDataUnsupportedReason)' == '' and '$(Language)' != '' and '$(Language)' != 'C#'">LanguageNotCSharp</_ProjectDataUnsupportedReason>
+    <_ProjectDataUnsupportedReason Condition="'$(_ProjectDataUnsupportedReason)' == '' and '$(_ProjectDataShouldWriteUnsupportedMarker)' == 'true'">CannotWriteProjectData</_ProjectDataUnsupportedReason>
+
+    <!--
+      Computed paths.
+      - _ProjectDataPath: the merged (or single-TFM) output the consumer reads.
+        Project-adjacent mode: `<project>.csproj.lscache`. In user-folder mode this
+        property is intentionally left empty; the MSBuild task computes the
+        absolute path itself (single source of truth, shared with the reader).
+      - _ProjectDataSlicePath: per-TFM slice in the SDK-style intermediate
+        layout (e.g. obj/Debug/net8.0/MyApp.csproj.slice, or
+        obj/Debug/net8.0/win-x64/MyApp.csproj.slice when the SDK appends a
+        RuntimeIdentifier). Multi-TFM slices use a deterministic ProjectData
+        path derived from $(TargetFramework) so the outer build can enumerate
+        the expected inner-build slices. The filename is project-prefixed so
+        two projects that share an intermediate directory don't clobber each
+        other's slices and the merge target only picks up its own project's
+        slices.
+    -->
+    <_ProjectDataPath Condition="'$(EnableProjectDataInProjectFolder)' == 'true'">$(MSBuildProjectFullPath).lscache</_ProjectDataPath>
+    <_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath Condition="'$(RuntimeIdentifier)' != '' and
+                                                                            '$(_UsingDefaultRuntimeIdentifier)' != 'true' and
+                                                                            ('$(AppendRuntimeIdentifierToOutputPath)' == 'true' or
+                                                                              ('$(AppendRuntimeIdentifierToOutputPath)' == '' and '$(UsingNETSdkDefaults)' == 'true'))">true</_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath>
+    <_ProjectDataSlicePath>$(IntermediateOutputPath)$(MSBuildProjectFile).slice</_ProjectDataSlicePath>
+    <_ProjectDataSlicePath Condition="'$(TargetFrameworks)' != '' and '$(TargetFramework)' != '' and '$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' != 'true'">$(BaseIntermediateOutputPath)$(Configuration)/$(TargetFramework)/$(MSBuildProjectFile).slice</_ProjectDataSlicePath>
+    <_ProjectDataSlicePath Condition="'$(TargetFrameworks)' != '' and '$(TargetFramework)' != '' and '$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' == 'true'">$(BaseIntermediateOutputPath)$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)/$(MSBuildProjectFile).slice</_ProjectDataSlicePath>
+    <_ProjectDataUserFolderStampPath>$(IntermediateOutputPath)$(MSBuildProjectFile).lscache.stamp</_ProjectDataUserFolderStampPath>
+    <_ProjectDataPreserveExistingProjectFolderOutput Condition="'$(EnableProjectDataInProjectFolder)' == 'true' and '$(OS)' != 'Windows_NT'">true</_ProjectDataPreserveExistingProjectFolderOutput>
+    <_ProjectDataPreserveExistingProjectFolderOutput Condition="'$(_ProjectDataPreserveExistingProjectFolderOutput)' == ''">false</_ProjectDataPreserveExistingProjectFolderOutput>
+    <_ProjectDataMergeOutputs>$(_ProjectDataPath)</_ProjectDataMergeOutputs>
+    <_ProjectDataMergeOutputs Condition="'$(_ProjectDataBuildForce)' == 'true'">$(_ProjectDataMergeOutputs);__NonExistentSubDir__\__NonExistentFile__</_ProjectDataMergeOutputs>
+
+    <!--
+      Only attach the outer-merge target to DispatchToInnerBuilds when this evaluation
+      actually is a multi-TFM outer build. Otherwise leave AfterTargets empty so MSBuild
+      does not log the informational "target ... does not exist in the project, and will
+      be ignored" message on single-TFM builds.
+    -->
+    <_ProjectDataMergeAfterTargets Condition="'$(IsCrossTargetingBuild)' == 'true'">DispatchToInnerBuilds</_ProjectDataMergeAfterTargets>
+
+    <!--
+      Force the Csc task to populate @(CscCommandLineArgs) during ordinary Build
+      only when the normal-build hook is explicitly enabled. ProjectDataBuild sets
+      this property in _PrepareProjectDataBuild before it runs Compile.
+    -->
+    <ProvideCommandLineArgs Condition="'$(EnableProjectDataOnBuild)' == 'true' and
+                                       '$(_ProjectDataCanWriteOutput)' == 'true'">true</ProvideCommandLineArgs>
+  </PropertyGroup>
+
+  <!--
+    ============================================================
+      Build entry point: ProjectDataBuild
+    ============================================================
+
+      Single MSBuild entry point that callers invoke as
+
+          dotnet build <project> /t:ProjectDataBuild /p:DesignTimeBuild=true …
+
+      to produce / refresh the project-data file. The target hides the
+      single-TFM vs cross-targeting dispatch from callers — they don't need
+      to know whether the project is multi-targeting or compose a target
+      list themselves.
+
+      Two shapes:
+
+      - Outer cross-targeting build: depends on `DispatchToInnerBuilds`,
+        with `InnerTargets` defaulted to the curated ProjectData target list so each
+        inner build runs only the project-data-relevant targets (rather than
+        the full `Build`). The outer-level `_MergeProjectDataSlices` target
+        runs after `DispatchToInnerBuilds` and merges per-TFM slices into
+        the final project-data file.
+
+      - Inner / single-TFM build: depends on the curated ProjectData target list
+        directly. `_WriteProjectData` (single-TFM) or
+        `_WriteProjectDataSlice` (inner of cross-targeting) hooks off
+        `CoreCompile` to emit the per-evaluation file.
+
+      Restore is intentionally not part of ProjectDataBuild. The host must
+      provide a restored project/evaluation (for example via
+      `dotnet build -t:ProjectDataBuild` or `msbuild -r -t:ProjectDataBuild`).
+      Running Restore inside the same MSBuild invocation can generate
+      `obj/<project>.nuget.g.props` / `.targets` after this project has already
+      been evaluated, leaving restore-generated imports invisible and producing
+      incomplete design-time data.
+
+      Curated target list rationale:
+      - `ResolveAssemblyReferencesDesignTime`, `ResolveProjectReferencesDesignTime`,
+        `ResolvePackageDependenciesDesignTime`, `CollectFrameworkReferences`:
+        produce the `@(ReferencePath…)`/`@(PackageDependencies)`/etc. items
+        that the writer reads.
+      - `_PrepareProjectDataBuild` sets `$(NonExistentFile)` so `CoreCompile`
+        cannot be skipped. This keeps `@(CscCommandLineArgs)` faithful to the
+        current evaluation, including targets that mutate compiler properties
+        inside CoreCompile (for example Roslyn's NoWarn += 8002).
+      - `Compile` delegates compiler-input setup to the SDK-owned
+        `$(CompileDependsOn)` chain, including targets such as `ResolveKeySource`
+        that populate values consumed by `CoreCompile`. This avoids hand-copying
+        pre-compile targets and drifting from normal design-time compile behavior.
+        The `Csc` task still does not invoke the compiler because
+        `SkipCompilerExecution=true`.
+      - `_WriteProjectData*` targets are included explicitly after the
+        item-producing targets, not only via `AfterTargets="CoreCompile"`, so
+        project-data emission still runs when `CoreCompile` is skipped as up-to-date.
+  -->
+  <PropertyGroup>
+    <_ProjectDataBuildInnerTargets>_DeleteUnsupportedProjectData;_WriteUnsupportedProjectDataMarker;_ValidateProjectDataAssetsFile;ResolveAssemblyReferencesDesignTime;ResolveProjectReferencesDesignTime;ResolvePackageDependenciesDesignTime;_ValidateProjectDataResolvedPackages;_PrepareProjectDataBuild;Compile;_ValidateProjectDataMetadataReferences;_ProjectDataCollectFrameworkReferences;_WriteProjectData;_WriteProjectDataUserFolder;_WriteProjectDataSlice</_ProjectDataBuildInnerTargets>
+    <_ProjectDataBuildUnsupportedTargets>_DeleteUnsupportedProjectData;_WriteUnsupportedProjectDataMarker</_ProjectDataBuildUnsupportedTargets>
+
+    <!--
+      `_ValidateProjectDataAssetsFile` blocks project-data writes if restore outputs
+      are missing, and rejects evaluations where NuGet's generated
+      props/targets exist on disk but were not imported into this evaluation.
+      After SDK package resolution, `_ValidateProjectDataResolvedPackages` also
+      blocks project-data writes when a declared package request differs from the
+      restore graph or a resolved package path is missing on disk.
+    -->
+    <_ProjectDataBuildAssetsFile>$(MSBuildProjectExtensionsPath)project.assets.json</_ProjectDataBuildAssetsFile>
+    <_ProjectDataNuGetGeneratedPropsFile>$(MSBuildProjectExtensionsPath)$(MSBuildProjectFile).nuget.g.props</_ProjectDataNuGetGeneratedPropsFile>
+    <_ProjectDataNuGetGeneratedTargetsFile>$(MSBuildProjectExtensionsPath)$(MSBuildProjectFile).nuget.g.targets</_ProjectDataNuGetGeneratedTargetsFile>
+    <!-- Snapshot RestoreSuccess during project evaluation. The Restore target can set
+         RestoreSuccess=True later in the same MSBuild invocation, but generated NuGet
+         imports written during target execution were still not imported into this evaluation. -->
+    <_ProjectDataNuGetGeneratedPropsImported Condition="'$(RestoreSuccess)' == 'True'">true</_ProjectDataNuGetGeneratedPropsImported>
+
+    <_ProjectDataBuildDependsOn Condition="'$(_ProjectDataCanRunBuildTargets)' == 'true' and '$(_ProjectDataCanWriteOutput)' == 'true' and '$(IsCrossTargetingBuild)' == 'true'">_PrepareProjectDataOuterBuild;DispatchToInnerBuilds</_ProjectDataBuildDependsOn>
+    <_ProjectDataBuildDependsOn Condition="'$(_ProjectDataCanRunBuildTargets)' == 'true' and '$(_ProjectDataCanWriteOutput)' == 'true' and '$(_ProjectDataBuildDependsOn)' == ''">$(_ProjectDataBuildInnerTargets)</_ProjectDataBuildDependsOn>
+    <_ProjectDataBuildDependsOn Condition="'$(_ProjectDataShouldWriteUnsupportedMarker)' == 'true' and '$(_ProjectDataBuildDependsOn)' == ''">$(_ProjectDataBuildUnsupportedTargets)</_ProjectDataBuildDependsOn>
+
+  </PropertyGroup>
+
+  <Target Name="ProjectDataBuild"
+          DependsOnTargets="$(_ProjectDataBuildDependsOn)">
+    <Microsoft.NET.ProjectData.Tasks.WriteProjectDataBuildReceiptTask
+      Condition="'$(ProjectDataBuildReceiptDirectory)' != '' and
+                 '$(ProjectDataBuildReceiptAttemptId)' != ''"
+      ReceiptDirectory="$(ProjectDataBuildReceiptDirectory)"
+      AttemptId="$(ProjectDataBuildReceiptAttemptId)"
+      ProjectFilePath="$(MSBuildProjectFullPath)" />
+  </Target>
+
+  <Target Name="_PrepareProjectDataOuterBuild"
+          Condition="'$(_ProjectDataCanRunBuildTargets)' == 'true' and
+                    '$(_ProjectDataCanWriteOutput)' == 'true' and
+                    '$(IsCrossTargetingBuild)' == 'true'">
+    <PropertyGroup>
+      <_ProjectDataOuterBuildActive>true</_ProjectDataOuterBuildActive>
+      <!-- DispatchToInnerBuilds reads $(InnerTargets) and forwards it to each inner build. -->
+      <InnerTargets Condition="'$(InnerTargets)' == ''">$(_ProjectDataBuildInnerTargets)</InnerTargets>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_DeleteUnsupportedProjectData"
+          Condition="'$(_ProjectDataShouldWriteUnsupportedMarker)' == 'true'">
+    <Delete Files="$(_ProjectDataPath)"
+            TreatErrorsAsWarnings="true"
+            Condition="('$(TargetFrameworks)' == '' or '$(TargetFramework)' == '') and
+                       '$(_ProjectDataPath)' != '' and
+                       Exists('$(_ProjectDataPath)') and
+                       ('$(_ProjectDataPreserveExistingProjectFolderOutput)' != 'true' or '$(_ProjectDataUnsupportedReason)' != 'ExcludeFromBuildTrue')" />
+    <Delete Files="$(_ProjectDataSlicePath)"
+            TreatErrorsAsWarnings="true"
+            Condition="'$(_ProjectDataSlicePath)' != '' and Exists('$(_ProjectDataSlicePath)')" />
+  </Target>
+
+  <Target Name="_WriteUnsupportedProjectDataMarker"
+          Condition="'$(_ProjectDataShouldWriteUnsupportedMarker)' == 'true' and
+                    ('$(TargetFrameworks)' == '' or '$(TargetFramework)' == '')">
+    <Microsoft.NET.ProjectData.Tasks.WriteUnsupportedProjectDataMarkerTask
+      ProjectFilePath="$(MSBuildProjectFullPath)"
+      Reason="$(_ProjectDataUnsupportedReason)" />
+  </Target>
+
+  <Target Name="_ValidateProjectDataAssetsFile"
+          Condition="'$(_ProjectDataCanWriteOutput)' == 'true'">
+    <PropertyGroup>
+      <_ProjectDataResolvedAssetsFile Condition="'$(_ProjectDataResolvedAssetsFile)' == '' and '$(ProjectAssetsFile)' != ''">$(ProjectAssetsFile)</_ProjectDataResolvedAssetsFile>
+      <_ProjectDataResolvedAssetsFile Condition="'$(_ProjectDataResolvedAssetsFile)' == ''">$(_ProjectDataBuildAssetsFile)</_ProjectDataResolvedAssetsFile>
+    </PropertyGroup>
+
+    <Error Condition="'$(_ProjectDataResolvedAssetsFile)' == '' or !Exists('$(_ProjectDataResolvedAssetsFile)')"
+           Text="ProjectData: cannot write project data for '$(MSBuildProjectFullPath)' because restore has not produced '$(_ProjectDataResolvedAssetsFile)'. Run restore successfully before ProjectDataBuild, then rerun ProjectDataBuild. Safe entry points include 'dotnet build -t:ProjectDataBuild' and 'msbuild -r -t:ProjectDataBuild'." />
+    <Error Condition="!Exists('$(_ProjectDataNuGetGeneratedPropsFile)') or !Exists('$(_ProjectDataNuGetGeneratedTargetsFile)')"
+           Text="ProjectData: cannot write project data for '$(MSBuildProjectFullPath)' because restore has not produced one or both NuGet generated imports '$(_ProjectDataNuGetGeneratedPropsFile)' and '$(_ProjectDataNuGetGeneratedTargetsFile)'. Run restore successfully before ProjectDataBuild, then rerun ProjectDataBuild. Safe entry points include 'dotnet build -t:ProjectDataBuild' and 'msbuild -r -t:ProjectDataBuild'." />
+    <Error Condition="Exists('$(_ProjectDataNuGetGeneratedPropsFile)') and '$(_ProjectDataNuGetGeneratedPropsImported)' != 'true'"
+           Text="ProjectData: cannot write project data for '$(MSBuildProjectFullPath)' because NuGet generated props '$(_ProjectDataNuGetGeneratedPropsFile)' were not imported into the current project evaluation. Do not run Restore and ProjectDataBuild in the same MSBuild evaluation. Run restore first, then rerun ProjectDataBuild; safe entry points include 'dotnet build -t:ProjectDataBuild' and 'msbuild -r -t:ProjectDataBuild'." />
+  </Target>
+
+  <Target Name="_ValidateProjectDataResolvedPackages"
+          Condition="'$(_ProjectDataCanWriteOutput)' == 'true'">
+    <!--
+      PackageReference.Version is a requested version expression, not the concrete version selected by
+      restore. It can be floating, ranged, or normalized differently from the global-packages folder, so
+      never reconstruct package paths from it. Compare the current request with restore's request snapshot,
+      validate the range against the concrete resolved version, and use only resolved package paths for
+      file-system validation.
+    -->
+    <Microsoft.NET.ProjectData.Tasks.ValidateProjectDataPackagesTask
+      ProjectFilePath="$(MSBuildProjectFullPath)"
+      AssetsFile="$(_ProjectDataResolvedAssetsFile)"
+      TargetFramework="$(TargetFramework)"
+      TargetFrameworkMoniker="$(TargetFrameworkMoniker)"
+      ManagePackageVersionsCentrally="$(ManagePackageVersionsCentrally)"
+      CentralPackageTransitivePinningEnabled="$(CentralPackageTransitivePinningEnabled)"
+      PackageReferences="@(PackageReference)"
+      PackageVersions="@(PackageVersion)"
+      ResolvedPackages="@(_PackageDependenciesDesignTime)" />
+  </Target>
+
+  <Target Name="_ValidateProjectDataMetadataReferences"
+          Condition="'$(_ProjectDataCanWriteOutput)' == 'true' and '$(TargetFrameworkIdentifier)' != '' and '$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <!--
+      Every compilable managed project must resolve framework reference
+      assemblies (e.g. `netstandard.dll` or `System.Runtime.dll`). A lone
+      project-to-project reference is not enough: that shape can happen when
+      Restore ran inside the same MSBuild invocation and generated imports were
+      not visible to this already-evaluated project.
+
+      We deliberately *do not* gate this on `NoCompilerStandardLib`: SDK-style .NETCoreApp and
+      .NETStandard projects default that property to `true` (the SDK supplies all references
+      explicitly via `PackageReference`/`FrameworkReference` rather than relying on the C#
+      compiler's implicit `mscorlib`). Gating on it would silently skip validation for every
+      modern SDK project — exactly the ones we most need to validate.
+
+      `TargetFrameworkIdentifier != ''` is enough to skip non-managed projects (e.g. shared
+      projects, project types where managed compilation does not apply).
+
+      `.NETFramework` is excluded from this check because the writer task
+      (`WriteProjectDataSliceTask.TryValidateNetFrameworkReferences`) has its own,
+      more rigorous .NETFramework-specific validation that writes a graceful
+      `MissingNetFrameworkReferenceAssemblies` marker (no build error) when the targeting
+      pack is missing. Letting this target fire for `.NETFramework` would short-circuit
+      that graceful skip path with a hard build error and break multi-TFM projects whose
+      `.NETFramework` slice is missing its targeting pack while the .NETCoreApp slice
+      builds fine.
+
+      Projects that explicitly set the standard C# `NoStdLib=true` property are
+      intentionally compiling without framework reference assemblies. In that
+      explicit no-stdlib shape, let the writer emit the project data from the
+      compiler inputs instead of treating missing SDK `FrameworkReferenceName` metadata
+      as proof the project is unsupported.
+
+      FrameworkReferenceName is the SDK-provided evidence for framework reference
+      assemblies regardless of where the reference assemblies physically live. .NETStandard
+      references resolved from NuGet do not carry that metadata, so accept the canonical
+      netstandard.dll reference as equivalent framework evidence for .NETStandard only.
+    -->
+    <ItemGroup>
+      <_ProjectDataFrameworkMetadataReference Include="@(ReferencePathWithRefAssemblies)"
+                                              Condition="'%(ReferencePathWithRefAssemblies.FrameworkReferenceName)' != '' or
+                                                         ('$(TargetFrameworkIdentifier)' == '.NETStandard' and '%(ReferencePathWithRefAssemblies.Filename)%(ReferencePathWithRefAssemblies.Extension)' == 'netstandard.dll')" />
+    </ItemGroup>
+
+    <Error Condition="'$(NoStdLib)' != 'true' and '@(ReferencePathWithRefAssemblies)' == ''"
+           Text="ProjectData: cannot write project data for '$(MSBuildProjectFullPath)' because no metadata references were resolved. This usually means the targeting pack for '$(TargetFramework)' is not installed or restore did not complete successfully. Run 'dotnet restore' and ensure the required SDK is installed." />
+    <Error Condition="'$(NoStdLib)' != 'true' and '@(ReferencePathWithRefAssemblies)' != '' and '@(_ProjectDataFrameworkMetadataReference)' == ''"
+           Text="ProjectData: cannot write project data for '$(MSBuildProjectFullPath)' because metadata references were resolved but no framework reference assemblies were resolved for '$(TargetFramework)'. Project-to-project or package-only references are not sufficient for project-data generation. Run restore successfully before ProjectDataBuild and ensure the required SDK/targeting pack is installed." />
+  </Target>
+
+  <Target Name="_ProjectDataCollectFrameworkReferences"
+          Condition="'$(TargetFrameworkIdentifier)' != '' and '$(TargetFrameworkIdentifier)' != '.NETFramework'">
+    <CallTarget Targets="CollectFrameworkReferences" />
+  </Target>
+
+  <Target Name="_PrepareProjectDataBuild"
+          Condition="'$(_ProjectDataCanWriteOutput)' == 'true'">
+    <PropertyGroup>
+      <_ProjectDataBuildActive>true</_ProjectDataBuildActive>
+      <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
+      <NonExistentFile Condition="'$(NonExistentFile)' == ''">$(IntermediateOutputPath)projectdata.force-corecompile.never</NonExistentFile>
+      <!-- Skip actual compiler invocation — we only need the evaluated inputs, not compiled output. -->
+      <SkipCompilerExecution>true</SkipCompilerExecution>
+    </PropertyGroup>
+  </Target>
+
+
+  <!--
+    ============================================================
+      Property allow-list
+    ============================================================
+
+      Imports the auto-generated allow-list of MSBuild properties that are
+      exported into [properties] in the project-data file. Do not edit the
+      imported .props by hand.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Schema.props" />
+
+  <ItemGroup>
+    <_ProjectDataSdkKnownAnalyzerPack Include="@(KnownILLinkPack)">
+      <PackageId>%(KnownILLinkPack.Identity)</PackageId>
+      <PackageVersion>%(KnownILLinkPack.ILLinkPackVersion)</PackageVersion>
+      <TargetFramework>%(KnownILLinkPack.TargetFramework)</TargetFramework>
+    </_ProjectDataSdkKnownAnalyzerPack>
+  </ItemGroup>
+
+  <Target Name="_ProjectDataPrepareSdkAnalyzerConfigPolicy">
+    <ItemGroup>
+      <!-- Exclude the SDK-generated assembly info file from [sourceFiles] to avoid unnecessary file changes, while preserving user-owned items at the same path. -->
+      <_ProjectDataSourceFiles Include="@(Compile)"
+                               Condition="'%(Compile.DefiningProjectName)%(Compile.DefiningProjectExtension)' != 'Microsoft.NET.GenerateAssemblyInfo.targets'" />
+
+      <_ProjectDataSdkAnalyzerConfigPolicy Remove="@(_ProjectDataSdkAnalyzerConfigPolicy)" />
+      <_ProjectDataSdkAnalyzerConfigPolicy Include="Microsoft.NET.Sdk">
+        <Language>$(Language)</Language>
+        <SkipGlobalAnalyzerConfigForPackage>$(SkipGlobalAnalyzerConfigForPackage)</SkipGlobalAnalyzerConfigForPackage>
+        <!--
+          Gates emitted by the writer: only emit the policy line for an SDK
+          analyzer pack when the SDK actually applies the corresponding analyzer
+          DLLs. The SDK gates the NetAnalyzer DLLs on `$(EnableNETAnalyzers)`
+          (Microsoft.NET.Sdk.Analyzers.targets) and the CodeStyle DLLs on
+          `$(EnforceCodeStyleInBuild) And '$(Language)' == 'C#'` (same file).
+          Without these gates the output contains orphan policy entries
+          referencing analyzer packs that have zero DLLs in `[analyzerReferences]`.
+        -->
+        <EnableNETAnalyzers>$(EnableNETAnalyzers)</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>$(EnforceCodeStyleInBuild)</EnforceCodeStyleInBuild>
+        <AnalysisLevel>$(AnalysisLevel)</AnalysisLevel>
+        <AnalysisLevelSuffix>$(AnalysisLevelSuffix)</AnalysisLevelSuffix>
+        <AnalysisMode>$(AnalysisMode)</AnalysisMode>
+        <EffectiveAnalysisLevel>$(EffectiveAnalysisLevel)</EffectiveAnalysisLevel>
+        <MicrosoftCodeAnalysisNetAnalyzersRulesVersion>$(MicrosoftCodeAnalysisNetAnalyzersRulesVersion)</MicrosoftCodeAnalysisNetAnalyzersRulesVersion>
+        <CodeAnalysisTreatWarningsAsErrors>$(CodeAnalysisTreatWarningsAsErrors)</CodeAnalysisTreatWarningsAsErrors>
+        <EffectiveCodeAnalysisTreatWarningsAsErrors>$(EffectiveCodeAnalysisTreatWarningsAsErrors)</EffectiveCodeAnalysisTreatWarningsAsErrors>
+        <AnalysisLevelStyle>$(AnalysisLevelStyle)</AnalysisLevelStyle>
+        <AnalysisLevelSuffixStyle>$(AnalysisLevelSuffixStyle)</AnalysisLevelSuffixStyle>
+        <AnalysisModeStyle>$(AnalysisModeStyle)</AnalysisModeStyle>
+        <EffectiveAnalysisLevelStyle>$(EffectiveAnalysisLevelStyle)</EffectiveAnalysisLevelStyle>
+      </_ProjectDataSdkAnalyzerConfigPolicy>
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup Condition="'$(IsCrossTargetingBuild)' == 'true'">
+    <_ProjectDataTargetFramework Include="$(TargetFrameworks)" />
+    <!-- Keep this list explicit so target Inputs exclude stale slices from removed TFMs/RIDs.
+         At this import point AppendRuntimeIdentifierToOutputPath can still be empty; match
+         the SDK's later default for SDK-style projects before choosing the expected path. -->
+    <_ProjectDataExpectedSlice Include="@(_ProjectDataTargetFramework->'$(BaseIntermediateOutputPath)$(Configuration)/%(Identity)/$(MSBuildProjectFile).slice')"
+                               Condition="'$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' != 'true'" />
+    <_ProjectDataExpectedSlice Include="@(_ProjectDataTargetFramework->'$(BaseIntermediateOutputPath)$(Configuration)/%(Identity)/$(RuntimeIdentifier)/$(MSBuildProjectFile).slice')"
+                               Condition="'$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' == 'true'" />
+  </ItemGroup>
+
+  <!--
+    ============================================================
+      Multi-TFM inner-build target: write slice to obj/
+      ===========================================================
+
+      Each inner build writes its per-TFM data to $(_ProjectDataSlicePath)
+      (e.g. obj/Debug/net8.0/MyApp.csproj.slice, or
+      obj/Debug/net8.0/win-x64/MyApp.csproj.slice when the SDK appends a
+      RuntimeIdentifier). The outer-build merge target below collects and merges
+      these exact expected paths.
+  -->
+  <Target Name="_WriteProjectDataSlice"
+          AfterTargets="CoreCompile"
+          DependsOnTargets="_ProjectDataPrepareSdkAnalyzerConfigPolicy"
+          Condition="'$(_ProjectDataCanWriteOutput)' == 'true' and
+                     ('$(_ProjectDataBuildActive)' == 'true' or '$(EnableProjectDataOnBuild)' == 'true') and
+                     '$(TargetFrameworks)' != '' and
+                     '$(TargetFramework)' != ''">
+
+    <ItemGroup>
+      <_ProjectDataSliceDimensions Include="TargetFramework">
+        <Value>$(TargetFramework)</Value>
+      </_ProjectDataSliceDimensions>
+    </ItemGroup>
+
+    <Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask
+      ProjectFilePath="$(MSBuildProjectFullPath)"
+      OutputPath="$(_ProjectDataSlicePath)"
+      IntermediateOutputPath="$(IntermediateOutputPath)"
+      WriteHeader="false"
+      IsPrimary="false"
+      LastDtbSucceeded="true"
+      CoreCompileForced="$(_ProjectDataBuildActive)"
+      SliceDimensions="@(_ProjectDataSliceDimensions)"
+      Properties="@(_ProjectDataProperties)"
+      CommandLineArguments="@(CscCommandLineArgs)"
+      SourceFiles="@(_ProjectDataSourceFiles)"
+      MetadataReferences="@(ReferencePathWithRefAssemblies)"
+      AnalyzerReferences="@(Analyzer)"
+      SdkKnownAnalyzerPacks="@(_ProjectDataSdkKnownAnalyzerPack)"
+      SdkAnalyzerConfigPolicy="@(_ProjectDataSdkAnalyzerConfigPolicy)"
+      AnalyzerConfigFiles="@(EditorConfigFiles)"
+      AdditionalFiles="@(AdditionalFiles)"
+      EmbeddedResources="@(EmbeddedResource)"
+      ProjectReferences="@(ProjectReference)"
+      Capabilities="@(ProjectCapability)" />
+  </Target>
+
+  <!--
+    ============================================================
+      Single-TFM target: write directly to the final path
+      ===========================================================
+
+      On a non-multi-TFM project there is no outer/inner split and no merging to
+      do, so we skip the slice indirection entirely and write $(_ProjectDataPath)
+      directly. This inner path writes exactly one slice.
+  -->
+  <Target Name="_WriteProjectData"
+          AfterTargets="CoreCompile"
+          DependsOnTargets="_ProjectDataPrepareSdkAnalyzerConfigPolicy"
+          Condition="'$(_ProjectDataCanWriteOutput)' == 'true' and
+                     ('$(_ProjectDataBuildActive)' == 'true' or '$(EnableProjectDataOnBuild)' == 'true') and
+                     '$(TargetFrameworks)' == '' and
+                     '$(EnableProjectDataInProjectFolder)' == 'true'">
+
+    <Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask
+      ProjectFilePath="$(MSBuildProjectFullPath)"
+      OutputPath="$(_ProjectDataPath)"
+      IntermediateOutputPath="$(IntermediateOutputPath)"
+      WriteHeader="true"
+      IsPrimary="true"
+      LastDtbSucceeded="true"
+      CoreCompileForced="$(_ProjectDataBuildActive)"
+      Properties="@(_ProjectDataProperties)"
+      CommandLineArguments="@(CscCommandLineArgs)"
+      SourceFiles="@(_ProjectDataSourceFiles)"
+      MetadataReferences="@(ReferencePathWithRefAssemblies)"
+      AnalyzerReferences="@(Analyzer)"
+      SdkKnownAnalyzerPacks="@(_ProjectDataSdkKnownAnalyzerPack)"
+      SdkAnalyzerConfigPolicy="@(_ProjectDataSdkAnalyzerConfigPolicy)"
+      AnalyzerConfigFiles="@(EditorConfigFiles)"
+      AdditionalFiles="@(AdditionalFiles)"
+      EmbeddedResources="@(EmbeddedResource)"
+      ProjectReferences="@(ProjectReference)"
+      Capabilities="@(ProjectCapability)" />
+  </Target>
+
+  <!--
+    Same as _WriteProjectData but used in user-folder mode where the resolved
+    output path lives outside the project tree and isn't known at MSBuild
+    evaluation time (the writer task computes it from $(MSBuildProjectFullPath)).
+    Without an evaluable output path we can't drive incremental skip via
+    Inputs/Outputs, so this variant always runs and the writer itself decides
+    whether the on-disk content is unchanged.
+  -->
+  <Target Name="_WriteProjectDataUserFolder"
+          AfterTargets="CoreCompile"
+          DependsOnTargets="_ProjectDataPrepareSdkAnalyzerConfigPolicy"
+          Condition="'$(_ProjectDataCanWriteOutput)' == 'true' and
+                     ('$(_ProjectDataBuildActive)' == 'true' or '$(EnableProjectDataOnBuild)' == 'true') and
+                     '$(TargetFrameworks)' == '' and
+                     '$(EnableProjectDataInProjectFolder)' != 'true'">
+
+    <Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask
+      ProjectFilePath="$(MSBuildProjectFullPath)"
+      OutputPath=""
+      IntermediateOutputPath="$(IntermediateOutputPath)"
+      WriteHeader="true"
+      IsPrimary="true"
+      LastDtbSucceeded="true"
+      CoreCompileForced="$(_ProjectDataBuildActive)"
+      Properties="@(_ProjectDataProperties)"
+      CommandLineArguments="@(CscCommandLineArgs)"
+      SourceFiles="@(_ProjectDataSourceFiles)"
+      MetadataReferences="@(ReferencePathWithRefAssemblies)"
+      AnalyzerReferences="@(Analyzer)"
+      SdkKnownAnalyzerPacks="@(_ProjectDataSdkKnownAnalyzerPack)"
+      SdkAnalyzerConfigPolicy="@(_ProjectDataSdkAnalyzerConfigPolicy)"
+      AnalyzerConfigFiles="@(EditorConfigFiles)"
+      AdditionalFiles="@(AdditionalFiles)"
+      EmbeddedResources="@(EmbeddedResource)"
+      ProjectReferences="@(ProjectReference)"
+      Capabilities="@(ProjectCapability)">
+      <Output TaskParameter="Succeeded" PropertyName="_ProjectDataUserFolderWriteSucceeded" />
+    </Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask>
+
+    <Touch Files="$(_ProjectDataUserFolderStampPath)"
+           AlwaysCreate="true"
+           Condition="'$(_ProjectDataUserFolderWriteSucceeded)' == 'true'" />
+  </Target>
+
+  <!--
+    ============================================================
+      Outer-build merge target: merge slices with deduplication
+    ============================================================
+
+      Runs once per outer build on a multi-TFM project, after all inner builds
+      have completed. Collects this project's slice files from the intermediate
+      output directories (obj/<config>/<tfm>/<project>.csproj.slice or
+      obj/<config>/<tfm>/<rid>/<project>.csproj.slice), merges them with
+      structural deduplication (shared sections at the top, per-TFM diffs after
+      slice separators), and writes the final output to $(_ProjectDataPath).
+      The explicit expected slice paths are project-scoped via
+      $(MSBuildProjectFile) so projects that share an IntermediateOutputPath
+      don't pick up each other's slices.
+
+      Hooked off DispatchToInnerBuilds in the outer multi-TFM evaluation — that's
+      the standard SDK extension point that runs exactly once after all inner
+      builds have completed.
+  -->
+  <Target Name="_MergeProjectDataSlices"
+          AfterTargets="$(_ProjectDataMergeAfterTargets)"
+          Condition="'$(_ProjectDataCanWriteOutput)' == 'true' and
+                      ('$(_ProjectDataOuterBuildActive)' == 'true' or '$(EnableProjectDataOnBuild)' == 'true') and
+                      '$(IsCrossTargetingBuild)' == 'true' and
+                      '$(EnableProjectDataInProjectFolder)' == 'true'"
+          Inputs="$(MSBuildProjectFullPath);
+                  $(MSBuildAllProjects);
+                  $(_ProjectDataTaskAssembly);
+                  @(_ProjectDataExpectedSlice)"
+          Outputs="$(_ProjectDataMergeOutputs)">
+
+    <Microsoft.NET.ProjectData.Tasks.MergeProjectDataSlicesTask
+      OutputPath="$(_ProjectDataPath)"
+      ProjectFilePath="$(MSBuildProjectFullPath)"
+      IntermediateOutputPath="$(IntermediateOutputPath)"
+      TargetFrameworks="$(TargetFrameworks)"
+      PreserveExistingSlices="$(_ProjectDataPreserveExistingProjectFolderOutput)"
+      SliceFiles="@(_ProjectDataExpectedSlice)">
+      <Output TaskParameter="Succeeded" PropertyName="_ProjectDataMergeSucceeded" />
+      <Output TaskParameter="FoundSlices" PropertyName="_ProjectDataMergeFoundSlices" />
+    </Microsoft.NET.ProjectData.Tasks.MergeProjectDataSlicesTask>
+  </Target>
+
+  <Target Name="_MergeProjectDataSlicesUserFolder"
+          AfterTargets="$(_ProjectDataMergeAfterTargets)"
+          Condition="'$(_ProjectDataCanWriteOutput)' == 'true' and
+                     ('$(_ProjectDataOuterBuildActive)' == 'true' or '$(EnableProjectDataOnBuild)' == 'true') and
+                     '$(IsCrossTargetingBuild)' == 'true' and
+                     '$(EnableProjectDataInProjectFolder)' != 'true'">
+
+    <Microsoft.NET.ProjectData.Tasks.MergeProjectDataSlicesTask
+      OutputPath=""
+      ProjectFilePath="$(MSBuildProjectFullPath)"
+      IntermediateOutputPath="$(IntermediateOutputPath)"
+      TargetFrameworks="$(TargetFrameworks)"
+      PreserveExistingSlices="$(_ProjectDataPreserveExistingProjectFolderOutput)"
+      SliceFiles="@(_ProjectDataExpectedSlice)">
+      <Output TaskParameter="Succeeded" PropertyName="_ProjectDataMergeSucceeded" />
+      <Output TaskParameter="FoundSlices" PropertyName="_ProjectDataMergeFoundSlices" />
+    </Microsoft.NET.ProjectData.Tasks.MergeProjectDataSlicesTask>
+
+    <Touch Files="$(_ProjectDataUserFolderStampPath)"
+           AlwaysCreate="true"
+           Condition="'$(_ProjectDataUserFolderStampPath)' != '' and
+                      ('$(_ProjectDataMergeSucceeded)' == 'true' or '$(_ProjectDataMergeFoundSlices)' == 'false')" />
+  </Target>
+
+  <Target Name="_WriteUnsupportedProjectDataMarkerForAllTargetFrameworks"
+          AfterTargets="_MergeProjectDataSlices;_MergeProjectDataSlicesUserFolder"
+          Condition="'$(_ProjectDataCanWriteOutput)' == 'true' and
+                     ('$(_ProjectDataOuterBuildActive)' == 'true' or '$(EnableProjectDataOnBuild)' == 'true') and
+                     '$(IsCrossTargetingBuild)' == 'true' and
+                     '$(_ProjectDataMergeFoundSlices)' == 'false'">
+    <Microsoft.NET.ProjectData.Tasks.WriteUnsupportedProjectDataMarkerTask
+      ProjectFilePath="$(MSBuildProjectFullPath)"
+      Reason="AllTargetFrameworksUnsupported" />
+  </Target>
+
+</Project>

@@ -199,6 +199,11 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
         await firstDaemonProcess.WaitForExitAsync();
         Assert.True(firstDaemonProcess.HasExited);
 
+        // Wait for the first thin client to observe the lost daemon and release its connection. Otherwise, the next
+        // client can briefly observe and connect to the dying daemon before its pipe and server mutex disappear.
+        Assert.NotEqual(0, await WaitForThinClientExitAsync(first));
+        Assert.False(daemon.IsRunning);
+
         // With the stale daemon gone, the next client launches a brand-new daemon (a different process).
         await using var second = await daemon.CreateClientAsync(useNamedPipe: true);
         Assert.NotEqual(firstDaemonProcessId, await daemon.GetDaemonProcessIdAsync(second));

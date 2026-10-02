@@ -13,7 +13,6 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
 
 namespace BuildBoss
@@ -97,20 +96,17 @@ namespace BuildBoss
             var publishDataPackages = publishDataRoot["packages"] as JObject;
 
             // Check all shipping packages have an entry in PublishData.json
-            var regex = new Regex(@"^(.*?)\.\d.*\.nupkg$");
             var packagesDirectory = Path.Combine(ArtifactsDirectory, "packages", Configuration, "Shipping");
             foreach (var packageFullPath in Directory.EnumerateFiles(packagesDirectory, "*.nupkg"))
             {
                 var packageFileName = Path.GetFileName(packageFullPath);
-                var match = regex.Match(packageFileName);
-                if (!match.Success)
+                if (!SharedUtil.TryGetNuGetPackageId(packageFullPath, out var packageId))
                 {
                     allGood = false;
                     textWriter.WriteLine($"Unexpected package file name '{packageFileName}'");
                 }
                 else
                 {
-                    var packageId = match.Groups[1].Value;
                     if (!publishDataPackages.ContainsKey(packageId))
                     {
                         allGood = false;

@@ -31,8 +31,10 @@ public partial class AbstractLanguageServerClientTests
         private readonly string _workspaceRootPath;
         private readonly Dictionary<string, IList<LSP.Location>> _locations;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly object _shutdownGate = new();
         private readonly int? _initializeProcessId;
         private LspWorkspaceContent _workspaceContent;
+        private Task? _shutdownAndExitTask;
 
         private readonly JsonRpc _clientRpc;
 
@@ -53,7 +55,7 @@ public partial class AbstractLanguageServerClientTests
             var serverProcessTaskCompletionSource = new TaskCompletionSource<Process>();
             var lspClient = new SingleServerStdioLspClient(thinClientProcess, serverProcessTaskCompletionSource.Task, workspaceContent, workspaceRootPath, workDoneProgressTarget, locations ?? [], loggerFactory);
 
-            return await InitializeAsync(lspClient, serverProcessTaskCompletionSource, clientCapabilities, workspaceRootPath);
+            return await InitializeAsync(lspClient, serverProcessTaskCompletionSource, clientCapabilities, workspaceRootPath, launchOptions.InitializationOptions);
         }
 
         internal static async Task<SingleServerPipeClient> CreateSingleServerPipeAsync(
@@ -84,17 +86,18 @@ public partial class AbstractLanguageServerClientTests
             var serverProcessTaskCompletionSource = new TaskCompletionSource<Process>();
             var lspClient = new SingleServerPipeClient(thinClientProcess, pipeServer, serverProcessTaskCompletionSource.Task, workspaceContent, workspaceRootPath, workDoneProgressTarget, locations ?? [], loggerFactory);
 
-            return await InitializeAsync(lspClient, serverProcessTaskCompletionSource, clientCapabilities, workspaceRootPath);
+            return await InitializeAsync(lspClient, serverProcessTaskCompletionSource, clientCapabilities, workspaceRootPath, launchOptions.InitializationOptions);
         }
 
         private static async Task<TClient> InitializeAsync<TClient>(
             TClient lspClient,
             TaskCompletionSource<Process> serverProcessTaskCompletionSource,
             ClientCapabilities clientCapabilities,
-            string workspaceRootPath) where TClient : TestLspClient
+            string workspaceRootPath,
+            object? initializationOptions) where TClient : TestLspClient
         {
             // Initialize the capabilities.
-            var initializeResponse = await lspClient.Initialize(clientCapabilities, workspaceRootPath);
+            var initializeResponse = await lspClient.Initialize(clientCapabilities, workspaceRootPath, initializationOptions);
             Assert.NotNull(initializeResponse?.Capabilities);
 
             var serverProcessId = initializeResponse.ProcessId;
@@ -260,9 +263,22 @@ public partial class AbstractLanguageServerClientTests
             _clientRpc.Dispose();
         }
 
-        /// <summary>Performs a clean LSP <c>shutdown</c>/<c>exit</c> so the session ends gracefully.</summary>
-        internal async Task ShutdownAndExitAsync()
+        /// <summary>Performs a clean LSP <c>shutdown</c>/<c>exit</c> once so the session ends gracefully.</summary>
+        internal Task ShutdownAndExitAsync()
         {
+            lock (_shutdownGate)
+            {
+                return _shutdownAndExitTask ??= ShutdownAndExitCoreAsync();
+            }
+        }
+
+        private async Task ShutdownAndExitCoreAsync()
+        {
+            // Ensure the shutdown handshake does not run while holding _shutdownGate.
+            await Task.Yield();
+
+            _loggerFactory.CreateLogger("Shutdown").LogTrace("Sending a Shutdown request to the LSP.");
+
             await _clientRpc.InvokeAsync(Methods.ShutdownName);
             await _clientRpc.NotifyAsync(Methods.ExitName);
         }
@@ -293,10 +309,11 @@ public partial class AbstractLanguageServerClientTests
             _clientRpc.AddLocalRpcMethod(methodName, handler);
         }
 
-        public Task<RoslynInitializeResult?> Initialize(ClientCapabilities clientCapabilities, string workspaceRootPath)
+        public Task<RoslynInitializeResult?> Initialize(ClientCapabilities clientCapabilities, string workspaceRootPath, object? initializationOptions = null)
             => ExecuteRequestAsync<InitializeParams, RoslynInitializeResult>(Methods.InitializeName, new InitializeParams
             {
                 ProcessId = _initializeProcessId,
+                InitializationOptions = initializationOptions,
                 Capabilities = clientCapabilities,
                 WorkspaceFolders =
                 [
@@ -388,7 +405,7 @@ public partial class AbstractLanguageServerClientTests
 
         private string GetRelativePath(DocumentUri documentUri)
         {
-            var localPath = Path.GetFullPath(documentUri.GetRequiredParsedUri().LocalPath);
+            var localPath = Path.GetFullPath(documentUri.GetRequiredParsedUri().FsPath);
             var relativePath = PathUtilities.GetRelativePath(_workspaceRootPath, localPath);
 
             Assert.False(PathUtilities.IsAbsolute(relativePath), $"Document URI is not under the workspace root: {documentUri}");
@@ -427,11 +444,7 @@ public partial class AbstractLanguageServerClientTests
         {
             if (!_thinClientProcess.HasExited && !serverProcess.HasExited)
             {
-                _loggerFactory.CreateLogger("Shutdown").LogTrace("Sending a Shutdown request to the LSP.");
-
-                await _clientRpc.InvokeAsync(Methods.ShutdownName);
-                await _clientRpc.NotifyAsync(Methods.ExitName);
-
+                await ShutdownAndExitAsync();
                 await _clientRpc.Completion;
             }
 
@@ -555,9 +568,10 @@ public partial class AbstractLanguageServerClientTests
         processStartInfo.ArgumentList.Add("--extensionLogDirectory");
         processStartInfo.ArgumentList.Add(extensionLogsPath);
 
-        if (launchOptions.AutoLoadProjects)
+        if (launchOptions.AutoLoadProjects is int autoLoadProjects)
         {
             processStartInfo.ArgumentList.Add("--autoLoadProjects");
+            processStartInfo.ArgumentList.Add(autoLoadProjects.ToString(CultureInfo.InvariantCulture));
         }
 
         if (launchOptions.IncludeDevKitComponents)

@@ -29,6 +29,9 @@ internal static class RazorCodeDocumentFactory
             builder.ConfigureCodeGenerationOptions(builder =>
             {
                 builder.UseEnhancedLinePragma = true;
+
+                // Tests assert against split output, so they opt in like the source generator does.
+                builder.EnableMarkupSplit = true;
             });
 
             builder.ConfigureParserOptions(builder =>

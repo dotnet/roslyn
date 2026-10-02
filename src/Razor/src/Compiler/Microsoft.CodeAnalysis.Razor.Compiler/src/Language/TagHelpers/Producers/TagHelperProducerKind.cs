@@ -16,5 +16,6 @@ internal enum TagHelperProducerKind : ushort
     Splat,
     MvcViewComponent,
     Mvc1_X_ViewComponent,
-    Mvc2_X_ViewComponent
+    Mvc2_X_ViewComponent,
+    AcceptsAssetPath
 }

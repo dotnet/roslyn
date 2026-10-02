@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var outputNode in outputNodes)
                 {
                     // if we're looking for this output kind, and it has not been explicitly disabled
-                    if (outputKind.HasFlag(outputNode.Kind) && !_state.DisabledOutputs.HasFlag(outputNode.Kind))
+                    if ((outputKind & outputNode.Kind) == outputNode.Kind && (_state.DisabledOutputs & outputNode.Kind) != outputNode.Kind)
                     {
                         outputNode.AppendOutputs(context, cancellationToken);
                     }

@@ -158,8 +158,40 @@
     <value>Duplicate directives are not supported: {0}</value>
     <comment>{0} is the directive type and name.</comment>
   </data>
-  <data name="QuoteInDirective" xml:space="preserve">
-    <value>Directives currently cannot contain double quotes (").</value>
+  <data name="UnterminatedQuoteInDirective" xml:space="preserve">
+    <value>Unterminated double quote (") in directive.</value>
+  </data>
+  <data name="InvalidQuoteInDirective" xml:space="preserve">
+    <value>Double quotes (") in a directive must enclose an entire value, for example: 'Name="a b"' or '"a b"'.</value>
+    <comment>{Locked="Name=&quot;a b&quot;"}{Locked="&quot;a b&quot;"}</comment>
+  </data>
+  <data name="InvalidStringLiteralInDirective" xml:space="preserve">
+    <value>Invalid quoted value in directive: {0}</value>
+    <comment>{0} is the underlying C# string literal error message, for example 'Unrecognized escape sequence.'.</comment>
+  </data>
+  <data name="ExpectedSimpleStringLiteralInDirective" xml:space="preserve">
+    <value>Expected a simple string literal in the directive value. Raw and verbatim string literals are not supported in directive values. Found: {0}</value>
+    <comment>{0} is the offending C# token text, for example '"""abc"""'.</comment>
+  </data>
+  <data name="InvalidDirectiveMetadata" xml:space="preserve">
+    <value>Directive metadata must be in the form 'Name=Value'. Invalid metadata: '{0}'.</value>
+    <comment>{Locked="'Name=Value'"}{0} is the offending metadata text.</comment>
+  </data>
+  <data name="DirectiveMetadataInvalidName" xml:space="preserve">
+    <value>Invalid directive metadata name '{0}': {1}</value>
+    <comment>{0} is the metadata name. {1} is the inner exception message.</comment>
+  </data>
+  <data name="ConflictingDirectiveMetadata" xml:space="preserve">
+    <value>Directive metadata '{0}' conflicts with a value already specified by the directive.</value>
+    <comment>{0} is the metadata name.</comment>
+  </data>
+  <data name="DuplicateDirectiveMetadata" xml:space="preserve">
+    <value>Directive metadata name '{0}' is specified more than once.</value>
+    <comment>{0} is the duplicate metadata name.</comment>
+  </data>
+  <data name="UnexpectedDirectiveText" xml:space="preserve">
+    <value>The '{0}' directive has unexpected content. To include whitespace in a value, enclose it in double quotes (").</value>
+    <comment>{0} is the directive kind like 'property' or 'sdk'.</comment>
   </data>
   <data name="InvalidProjectDirective" xml:space="preserve">
     <value>The '#:project' directive is invalid: {0}</value>

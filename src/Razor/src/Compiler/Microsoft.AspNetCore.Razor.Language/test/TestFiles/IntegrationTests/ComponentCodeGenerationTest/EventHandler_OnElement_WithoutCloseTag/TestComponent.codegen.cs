@@ -38,16 +38,6 @@ OnClick
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (5,8)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    void OnClick() {
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

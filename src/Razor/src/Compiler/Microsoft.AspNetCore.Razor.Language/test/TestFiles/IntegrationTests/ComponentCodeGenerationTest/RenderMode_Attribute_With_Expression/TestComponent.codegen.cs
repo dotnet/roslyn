@@ -32,18 +32,6 @@ new MyRenderMode() { Extra = "Hello" }
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,2)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    class MyRenderMode : Microsoft.AspNetCore.Components.IComponentRenderMode
-    {
-        public string Extra {get;set;}
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

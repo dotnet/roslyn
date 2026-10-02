@@ -32,20 +32,6 @@ Container.RenderMode
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,2)-(9,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public class RenderModeContainer
-    {
-        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer;
-    }
-
-    RenderModeContainer? Container => null;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

@@ -9,5 +9,3 @@
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 CSharpCode - (2:0,2 [96] x:\dir\subdir\Test\TestComponent.razor)
                     LazyIntermediateToken - (2:0,2 [96] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    var value = new Example();\n    value.Updated += static () => { };\n    _ = value.Value;\n
-            CSharpCode - (110:6,7 [376] x:\dir\subdir\Test\TestComponent.razor)
-                LazyIntermediateToken - (110:6,7 [376] x:\dir\subdir\Test\TestComponent.razor) - CSharp - \n    public partial class Example\n    {\n        public partial event System.Action Updated;\n        public partial event System.Action Updated\n        {\n            add { }\n            remove { }\n        }\n\n        public int Value { get; }\n\n        public partial Example();\n        public partial Example()\n        {\n            Value = 1;\n        }\n    }\n

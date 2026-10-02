@@ -559,7 +559,7 @@ internal static partial class ConflictResolver
                     var symbolIndex = 0;
                     foreach (var symbol in newReferencedSymbols)
                     {
-                        if (conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].SymbolLocationsCount != symbol.Locations.Length)
+                        if (conflictAnnotation.RenameDeclarationLocationReferences[symbolIndex].SymbolLocationsCount != GetRelevantSymbolLocations(solution, symbol).Length)
                         {
                             hasConflict = true;
                             break;

@@ -168,10 +168,81 @@ public sealed class DocumentHighlightTests(ITestOutputHelper testOutputHelper)
         Assert.NotNull(results);
     }
 
-    private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(TestLspServer testLspServer, LSP.Location caret)
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9716")]
+    public async Task TestGetDocumentHighlightAsync_CharacterPastEndOfLine(bool lspMutatingWorkspace)
     {
-        var results = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(LSP.Methods.TextDocumentDocumentHighlightName,
-            CreateTextDocumentPositionParams(caret), CancellationToken.None);
+        var markup =
+            """
+            class A
+            {
+                void M()
+                {
+                }
+            }{|caret:|}
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+
+        // The LSP spec allows a client to send a character past the end of the line:
+        // "If the character value is greater than the line length it defaults back to the line length."
+        // The caret is on the last line here, so an unclamped offset lands past the end of the document
+        // and SyntaxNode.FindToken throws ArgumentOutOfRangeException.
+        var pastEndOfLine = new LSP.Position { Line = caret.Range.Start.Line, Character = caret.Range.Start.Character + 100 };
+
+        var results = await RunGetDocumentHighlightAsync(testLspServer, caret.DocumentUri, pastEndOfLine);
+        Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9716")]
+    public async Task TestGetDocumentHighlightAsync_KeywordCharacterPastEndOfLine(bool lspMutatingWorkspace)
+    {
+        var markup =
+            """
+            class A
+            {
+                void M()
+                {
+                    if (true)
+                        return;
+                    else{|caret:|}
+                        return;
+                }
+            }
+            """;
+        await using var testLspServer = await CreateTestLspServerAsync(markup, lspMutatingWorkspace);
+
+        var caret = testLspServer.GetLocations("caret").Single();
+
+        // Far enough past the end of the line that the unclamped offset lands past the end of the
+        // document, which is what reaches the throw in SyntaxNode.FindToken via AbstractKeywordHighlighter.
+        var pastEndOfLine = new LSP.Position { Line = caret.Range.Start.Line, Character = caret.Range.Start.Character + 1000 };
+
+        var expected = await RunGetDocumentHighlightAsync(testLspServer, caret);
+
+        // Verify the keyword highlighter is actually what produces results for this position.
+        Assert.NotEmpty(expected);
+        Assert.All(expected, r => Assert.Equal(LSP.DocumentHighlightKind.Text, r.Kind));
+
+        // Clamping the character to the line end must produce the same result as the in-range position.
+        var results = await RunGetDocumentHighlightAsync(testLspServer, caret.DocumentUri, pastEndOfLine);
+        AssertJsonEquals(expected, results);
+    }
+
+    private static Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(TestLspServer testLspServer, LSP.Location caret)
+        => RunGetDocumentHighlightAsync(testLspServer, caret.DocumentUri, caret.Range.Start);
+
+    private static async Task<LSP.DocumentHighlight[]> RunGetDocumentHighlightAsync(
+        TestLspServer testLspServer, LSP.DocumentUri documentUri, LSP.Position position)
+    {
+        var request = new LSP.TextDocumentPositionParams
+        {
+            TextDocument = CreateTextDocumentIdentifier(documentUri),
+            Position = position,
+        };
+
+        var results = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.DocumentHighlight[]>(
+            LSP.Methods.TextDocumentDocumentHighlightName, request, CancellationToken.None);
         Array.Sort(results, (h1, h2) =>
         {
             var compareKind = h1.Kind.CompareTo(h2.Kind);

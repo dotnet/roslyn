@@ -58,29 +58,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol newConstructedFrom = SubstituteTypeDeclaration(oldConstructedFrom);
 
             ImmutableArray<TypeWithAnnotations> oldTypeArguments = previous.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics;
-            bool changed = !ReferenceEquals(oldConstructedFrom, newConstructedFrom);
-            var newTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(oldTypeArguments.Length);
+            ArrayBuilder<TypeWithAnnotations> newTypeArguments = null;
 
             for (int i = 0; i < oldTypeArguments.Length; i++)
             {
                 var oldArgument = oldTypeArguments[i];
                 var newArgument = oldArgument.SubstituteType(this);
 
-                if (!changed && !oldArgument.IsSameAs(newArgument))
+                if (newTypeArguments is null)
                 {
-                    changed = true;
+                    if (oldArgument.IsSameAs(newArgument))
+                    {
+                        continue;
+                    }
+
+                    newTypeArguments = ArrayBuilder<TypeWithAnnotations>.GetInstance(oldTypeArguments.Length);
+                    newTypeArguments.AddRange(oldTypeArguments, i);
                 }
 
                 newTypeArguments.Add(newArgument);
             }
 
-            if (!changed)
+            if (newTypeArguments is null && ReferenceEquals(oldConstructedFrom, newConstructedFrom))
             {
-                newTypeArguments.Free();
                 return previous;
             }
 
-            return newConstructedFrom.ConstructIfGeneric(newTypeArguments.ToImmutableAndFree()).WithTupleDataFrom(previous);
+            var substitutedArguments = newTypeArguments is null ? oldTypeArguments : newTypeArguments.ToImmutableAndFree();
+            return newConstructedFrom.ConstructIfGeneric(substitutedArguments).WithTupleDataFrom(previous);
         }
 
         /// <summary>

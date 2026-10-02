@@ -22,6 +22,11 @@
         <target state="translated">挿入された逐語的文字列を修正します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fixing_cref_after_paste">
+        <source>Fixing cref after paste</source>
+        <target state="new">Fixing cref after paste</target>
+        <note>"cref" is a documentation comment attribute name and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Fixing_string_literal_after_paste">
         <source>Fixing string literal after paste</source>
         <target state="translated">貼り付け後の文字列リテラルを修正しています</target>

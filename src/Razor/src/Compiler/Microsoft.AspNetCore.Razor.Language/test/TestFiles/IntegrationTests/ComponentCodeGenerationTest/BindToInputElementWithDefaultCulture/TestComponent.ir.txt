@@ -24,5 +24,3 @@
                             IntermediateToken -  - CSharp - , 
                             IntermediateToken -  - CSharp - ParentValue
                             IntermediateToken -  - CSharp - )
-            CSharpCode - (121:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (121:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; }\n

@@ -1,0 +1,366 @@
+#nullable enable
+const Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.FileName = "attempt.manifest.json" -> string!
+const Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.SchemaVersion = 1 -> int
+const Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticProtocol.Prefix = "@@CSDEVKIT_PROJECTDATA_DIAGNOSTIC@@" -> string!
+const Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticProtocol.Version = 1 -> int
+const Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.ContextProjectPathSource = "Context" -> string!
+const Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.FileProjectPathSource = "File" -> string!
+const Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.ProjectFileProjectPathSource = "ProjectFile" -> string!
+const Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.UnknownProjectPathSource = "Unknown" -> string!
+const Microsoft.NET.ProjectData.ProjectDataBuildReceipt.AggregateCompletionFileName = "aggregate.completed" -> string!
+const Microsoft.NET.ProjectData.ProjectDataBuildReceipt.SchemaVersion = 2 -> int
+const Microsoft.NET.ProjectData.UnsupportedProjectDataMarker.RulesVersion = 2 -> int
+const Microsoft.NET.ProjectData.UnsupportedProjectDataMarker.SchemaVersion = 1 -> int
+Microsoft.NET.ProjectData.CachedEmbeddedResource
+Microsoft.NET.ProjectData.CachedEmbeddedResource.<Clone>$() -> Microsoft.NET.ProjectData.CachedEmbeddedResource!
+Microsoft.NET.ProjectData.CachedEmbeddedResource.CachedEmbeddedResource() -> void
+Microsoft.NET.ProjectData.CachedEmbeddedResource.CustomToolNamespace.get -> string?
+Microsoft.NET.ProjectData.CachedEmbeddedResource.CustomToolNamespace.init -> void
+Microsoft.NET.ProjectData.CachedEmbeddedResource.Equals(Microsoft.NET.ProjectData.CachedEmbeddedResource? other) -> bool
+Microsoft.NET.ProjectData.CachedEmbeddedResource.FilePath.get -> string!
+Microsoft.NET.ProjectData.CachedEmbeddedResource.FilePath.init -> void
+Microsoft.NET.ProjectData.CachedEmbeddedResource.Generator.get -> string?
+Microsoft.NET.ProjectData.CachedEmbeddedResource.Generator.init -> void
+Microsoft.NET.ProjectData.CachedEmbeddedResource.LastGenOutput.get -> string?
+Microsoft.NET.ProjectData.CachedEmbeddedResource.LastGenOutput.init -> void
+Microsoft.NET.ProjectData.CachedMetadataReference
+Microsoft.NET.ProjectData.CachedMetadataReference.<Clone>$() -> Microsoft.NET.ProjectData.CachedMetadataReference!
+Microsoft.NET.ProjectData.CachedMetadataReference.Aliases.get -> System.Collections.Immutable.ImmutableArray<string!>
+Microsoft.NET.ProjectData.CachedMetadataReference.Aliases.init -> void
+Microsoft.NET.ProjectData.CachedMetadataReference.CachedMetadataReference() -> void
+Microsoft.NET.ProjectData.CachedMetadataReference.EmbedInteropTypes.get -> bool
+Microsoft.NET.ProjectData.CachedMetadataReference.EmbedInteropTypes.init -> void
+Microsoft.NET.ProjectData.CachedMetadataReference.Equals(Microsoft.NET.ProjectData.CachedMetadataReference? other) -> bool
+Microsoft.NET.ProjectData.CachedMetadataReference.FilePath.get -> string!
+Microsoft.NET.ProjectData.CachedMetadataReference.FilePath.init -> void
+Microsoft.NET.ProjectData.CachedProjectReference
+Microsoft.NET.ProjectData.CachedProjectReference.<Clone>$() -> Microsoft.NET.ProjectData.CachedProjectReference!
+Microsoft.NET.ProjectData.CachedProjectReference.CachedProjectReference() -> void
+Microsoft.NET.ProjectData.CachedProjectReference.Equals(Microsoft.NET.ProjectData.CachedProjectReference? other) -> bool
+Microsoft.NET.ProjectData.CachedProjectReference.FilePath.get -> string!
+Microsoft.NET.ProjectData.CachedProjectReference.FilePath.init -> void
+Microsoft.NET.ProjectData.CachedProjectReference.ReferenceOutputAssembly.get -> bool?
+Microsoft.NET.ProjectData.CachedProjectReference.ReferenceOutputAssembly.init -> void
+Microsoft.NET.ProjectData.CachedSliceData
+Microsoft.NET.ProjectData.CachedSliceData.<Clone>$() -> Microsoft.NET.ProjectData.CachedSliceData!
+Microsoft.NET.ProjectData.CachedSliceData.AdditionalFiles.get -> System.Collections.Immutable.ImmutableArray<string!>
+Microsoft.NET.ProjectData.CachedSliceData.AdditionalFiles.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.AnalyzerConfigFiles.get -> System.Collections.Immutable.ImmutableArray<string!>
+Microsoft.NET.ProjectData.CachedSliceData.AnalyzerConfigFiles.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.AnalyzerReferences.get -> System.Collections.Immutable.ImmutableArray<string!>
+Microsoft.NET.ProjectData.CachedSliceData.AnalyzerReferences.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.CachedSliceData() -> void
+Microsoft.NET.ProjectData.CachedSliceData.Capabilities.get -> System.Collections.Immutable.ImmutableArray<string!>
+Microsoft.NET.ProjectData.CachedSliceData.Capabilities.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.CommandLineArguments.get -> System.Collections.Immutable.ImmutableArray<string!>
+Microsoft.NET.ProjectData.CachedSliceData.CommandLineArguments.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.EmbeddedResources.get -> System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedEmbeddedResource!>
+Microsoft.NET.ProjectData.CachedSliceData.EmbeddedResources.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.Equals(Microsoft.NET.ProjectData.CachedSliceData? other) -> bool
+Microsoft.NET.ProjectData.CachedSliceData.IsPrimary.get -> bool
+Microsoft.NET.ProjectData.CachedSliceData.IsPrimary.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.LanguageName.get -> string!
+Microsoft.NET.ProjectData.CachedSliceData.LanguageName.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.LastDesignTimeBuildSucceeded.get -> bool
+Microsoft.NET.ProjectData.CachedSliceData.LastDesignTimeBuildSucceeded.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.MetadataReferences.get -> System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedMetadataReference!>
+Microsoft.NET.ProjectData.CachedSliceData.MetadataReferences.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.ProjectFilePath.get -> string!
+Microsoft.NET.ProjectData.CachedSliceData.ProjectFilePath.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.ProjectReferences.get -> System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedProjectReference!>
+Microsoft.NET.ProjectData.CachedSliceData.ProjectReferences.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string!, string!>!
+Microsoft.NET.ProjectData.CachedSliceData.Properties.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.SliceDimensions.get -> System.Collections.Immutable.ImmutableDictionary<string!, string!>!
+Microsoft.NET.ProjectData.CachedSliceData.SliceDimensions.init -> void
+Microsoft.NET.ProjectData.CachedSliceData.SourceFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedSourceFile!>
+Microsoft.NET.ProjectData.CachedSliceData.SourceFiles.init -> void
+Microsoft.NET.ProjectData.CachedSourceFile
+Microsoft.NET.ProjectData.CachedSourceFile.<Clone>$() -> Microsoft.NET.ProjectData.CachedSourceFile!
+Microsoft.NET.ProjectData.CachedSourceFile.CachedSourceFile() -> void
+Microsoft.NET.ProjectData.CachedSourceFile.Equals(Microsoft.NET.ProjectData.CachedSourceFile? other) -> bool
+Microsoft.NET.ProjectData.CachedSourceFile.FilePath.get -> string!
+Microsoft.NET.ProjectData.CachedSourceFile.FilePath.init -> void
+Microsoft.NET.ProjectData.CachedSourceFile.Link.get -> string?
+Microsoft.NET.ProjectData.CachedSourceFile.Link.init -> void
+Microsoft.NET.ProjectData.CacheFileReader
+Microsoft.NET.ProjectData.CachePathResolver
+Microsoft.NET.ProjectData.CachePathResolver.CachePathResolver() -> void
+Microsoft.NET.ProjectData.CachePathResolver.CachePathResolver(string! sdkVersion) -> void
+Microsoft.NET.ProjectData.CachePathResolver.CachePathResolver(string! sdkVersion, string! sdkPath) -> void
+Microsoft.NET.ProjectData.CachePathResolver.FindNuGetFrameworkPackDirectory(string! packName, string? targetFramework) -> string?
+Microsoft.NET.ProjectData.CachePathResolver.FindRefPackDirectory(string! packName, string? targetFramework) -> string?
+Microsoft.NET.ProjectData.CachePathResolver.FindSdkAnalyzerPackDirectory(string! packageId, string? targetFramework) -> string?
+Microsoft.NET.ProjectData.CachePathResolver.IsNetSdkBound.get -> bool
+Microsoft.NET.ProjectData.CachePathResolver.MakeAbsolute(string! text, string! projectDirectory) -> string!
+Microsoft.NET.ProjectData.CachePathResolver.ResolveNetFrameworkReferenceAssembly(string! entry) -> string?
+Microsoft.NET.ProjectData.CachePathResolver.ResolveSdkAnalyzerConfigPolicy(string! policy, string? targetFramework) -> System.Collections.Generic.IEnumerable<string!>!
+Microsoft.NET.ProjectData.CachePathResolver.ToAbsolute(string! portablePath, string! projectDirectory) -> string!
+Microsoft.NET.ProjectData.CachePathResolver.TryResolveNetFrameworkReferenceAssemblyPath(string! portablePath, out string? resolvedPath) -> bool
+Microsoft.NET.ProjectData.KeySchema
+Microsoft.NET.ProjectData.KeySchema.Count.get -> int
+Microsoft.NET.ProjectData.KeySchema.GetIndexOrNegativeOne(string! key) -> int
+Microsoft.NET.ProjectData.KeySchema.GetKey(int index) -> string!
+Microsoft.NET.ProjectData.KeySchema.KeySchema(System.Collections.Generic.IReadOnlyList<string!>! keys) -> void
+Microsoft.NET.ProjectData.KeySchema.KeySchema(System.Collections.Generic.IReadOnlyList<string!>! keys, System.StringComparer! comparer) -> void
+Microsoft.NET.ProjectData.KeySchema.TryGetIndex(string! key, out int index) -> bool
+Microsoft.NET.ProjectData.KeyValueCollection
+Microsoft.NET.ProjectData.KeyValueCollection.Enumerator
+Microsoft.NET.ProjectData.KeyValueCollection.Enumerator.Current.get -> System.Collections.Generic.KeyValuePair<string!, string!>
+Microsoft.NET.ProjectData.KeyValueCollection.Enumerator.Enumerator() -> void
+Microsoft.NET.ProjectData.KeyValueCollection.Enumerator.MoveNext() -> bool
+Microsoft.NET.ProjectData.KeyValueCollection.GetEnumerator() -> Microsoft.NET.ProjectData.KeyValueCollection.Enumerator
+Microsoft.NET.ProjectData.KeyValueCollection.IsEmpty.get -> bool
+Microsoft.NET.ProjectData.KeyValueCollection.KeyValueCollection() -> void
+Microsoft.NET.ProjectData.KeyValueCollection.KeyValueCollection(Microsoft.NET.ProjectData.KeySchema! schema, System.Collections.Immutable.ImmutableArray<string?> values) -> void
+Microsoft.NET.ProjectData.KeyValueCollection.Schema.get -> Microsoft.NET.ProjectData.KeySchema!
+Microsoft.NET.ProjectData.KeyValueCollection.this[string! key].get -> string?
+Microsoft.NET.ProjectData.KeyValueCollection.ToDictionary() -> System.Collections.Generic.Dictionary<string!, string!>!
+Microsoft.NET.ProjectData.KeyValueCollection.TryGetValue(string! key, out string? value) -> bool
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.AttemptId.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.AttemptId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.BuildCancelled.get -> bool
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.BuildCancelled.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.BuildFinished.get -> bool
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.BuildFinished.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.BuildSucceeded.get -> bool
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.BuildSucceeded.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.CompletedUtc.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.CompletedUtc.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.Contexts.get -> Microsoft.NET.ProjectData.ProjectDataBuildContextRecord![]!
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.Contexts.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.Diagnostics.get -> Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord![]!
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.Diagnostics.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.ProjectDataBuildAttemptManifest() -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.ProjectDataBuildSubmissionObserved.get -> bool
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.ProjectDataBuildSubmissionObserved.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.Submissions.get -> Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord![]!
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.Submissions.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.TruncatedContextCount.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.TruncatedContextCount.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.TruncatedDiagnosticCount.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.TruncatedDiagnosticCount.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.TruncatedSubmissionCount.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.TruncatedSubmissionCount.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.Version.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.Version.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildContextRecord
+Microsoft.NET.ProjectData.ProjectDataBuildContextRecord.Context.get -> Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord?
+Microsoft.NET.ProjectData.ProjectDataBuildContextRecord.Context.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildContextRecord.Kind.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildContextRecord.Kind.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildContextRecord.ParentContext.get -> Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord?
+Microsoft.NET.ProjectData.ProjectDataBuildContextRecord.ParentContext.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildContextRecord.ProjectDataBuildContextRecord() -> void
+Microsoft.NET.ProjectData.ProjectDataBuildContextRecord.ProjectFilePath.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildContextRecord.ProjectFilePath.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticProtocol
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Code.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Code.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Column.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Column.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Context.get -> Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord?
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Context.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.FilePath.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.FilePath.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Line.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Line.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Message.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Message.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Phase.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Phase.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.ProjectDataBuildDiagnosticRecord() -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.ProjectFilePath.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.ProjectFilePath.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.ProjectFilePathSource.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.ProjectFilePathSource.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Severity.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord.Severity.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.BuildRequestId.get -> long
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.BuildRequestId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.EvaluationId.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.EvaluationId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.NodeId.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.NodeId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.ProjectContextId.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.ProjectContextId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.ProjectDataBuildEventContextRecord() -> void
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.ProjectInstanceId.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.ProjectInstanceId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.SubmissionId.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.SubmissionId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.TargetId.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.TargetId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.TaskId.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord.TaskId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildReceipt
+Microsoft.NET.ProjectData.ProjectDataBuildReceiptData
+Microsoft.NET.ProjectData.ProjectDataBuildReceiptData.AttemptId.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildReceiptData.AttemptId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildReceiptData.ProjectDataBuildReceiptData() -> void
+Microsoft.NET.ProjectData.ProjectDataBuildReceiptData.ProjectFilePath.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildReceiptData.ProjectFilePath.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildReceiptData.ReceiptFilePath.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildReceiptData.ReceiptFilePath.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.Context.get -> Microsoft.NET.ProjectData.ProjectDataBuildEventContextRecord?
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.Context.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.EntryProjects.get -> string![]!
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.EntryProjects.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.MSBuildIsRestoring.get -> bool
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.MSBuildIsRestoring.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.Phase.get -> string!
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.Phase.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.ProjectDataBuildSubmissionRecord() -> void
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.SubmissionId.get -> int
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.SubmissionId.set -> void
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.TargetNames.get -> string![]!
+Microsoft.NET.ProjectData.ProjectDataBuildSubmissionRecord.TargetNames.set -> void
+Microsoft.NET.ProjectData.ProjectDataCacheReadResult
+Microsoft.NET.ProjectData.ProjectDataCacheReadResult.ProjectDataCacheReadResult() -> void
+Microsoft.NET.ProjectData.ProjectDataCacheReadResult.ProjectDataCacheReadResult(System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedSliceData!> slices, Microsoft.NET.ProjectData.ProjectDataCacheSource source) -> void
+Microsoft.NET.ProjectData.ProjectDataCacheReadResult.Slices.get -> System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedSliceData!>
+Microsoft.NET.ProjectData.ProjectDataCacheReadResult.Source.get -> Microsoft.NET.ProjectData.ProjectDataCacheSource
+Microsoft.NET.ProjectData.ProjectDataCacheSource
+Microsoft.NET.ProjectData.ProjectDataCacheSource.Donor = 4 -> Microsoft.NET.ProjectData.ProjectDataCacheSource
+Microsoft.NET.ProjectData.ProjectDataCacheSource.None = 0 -> Microsoft.NET.ProjectData.ProjectDataCacheSource
+Microsoft.NET.ProjectData.ProjectDataCacheSource.ProjectFolder = 1 -> Microsoft.NET.ProjectData.ProjectDataCacheSource
+Microsoft.NET.ProjectData.ProjectDataCacheSource.UnsupportedMarker = 3 -> Microsoft.NET.ProjectData.ProjectDataCacheSource
+Microsoft.NET.ProjectData.ProjectDataCacheSource.UserFolder = 2 -> Microsoft.NET.ProjectData.ProjectDataCacheSource
+Microsoft.NET.ProjectData.ProjectDataDonorCandidate
+Microsoft.NET.ProjectData.ProjectDataDonorCandidate.FilePath.get -> string!
+Microsoft.NET.ProjectData.ProjectDataDonorCandidate.ProjectDataDonorCandidate() -> void
+Microsoft.NET.ProjectData.ProjectDataDonorCandidate.ProjectDataDonorCandidate(string! filePath, string! workspaceRoot) -> void
+Microsoft.NET.ProjectData.ProjectDataDonorCandidate.WorkspaceRoot.get -> string!
+Microsoft.NET.ProjectData.ProjectDataDonorIndex
+Microsoft.NET.ProjectData.ProjectDataDonorOptions
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.DiagnosticTraceSource.get -> System.Diagnostics.TraceSource?
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.DiagnosticTraceSource.set -> void
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.Enabled.get -> bool
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.Enabled.set -> void
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.GitDistanceTopK.get -> int
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.GitDistanceTopK.set -> void
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.IndexPath.get -> string?
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.IndexPath.set -> void
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.ProjectDataDonorOptions() -> void
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.WorkspaceRoot.get -> string?
+Microsoft.NET.ProjectData.ProjectDataDonorOptions.WorkspaceRoot.set -> void
+Microsoft.NET.ProjectData.ProjectDataDonorWriteOptions
+Microsoft.NET.ProjectData.ProjectDataDonorWriteOptions.Enabled.get -> bool
+Microsoft.NET.ProjectData.ProjectDataDonorWriteOptions.Enabled.set -> void
+Microsoft.NET.ProjectData.ProjectDataDonorWriteOptions.IndexPath.get -> string?
+Microsoft.NET.ProjectData.ProjectDataDonorWriteOptions.IndexPath.set -> void
+Microsoft.NET.ProjectData.ProjectDataDonorWriteOptions.ProjectDataDonorWriteOptions() -> void
+Microsoft.NET.ProjectData.ProjectDataDonorWriteOptions.WorkspaceRoot.get -> string?
+Microsoft.NET.ProjectData.ProjectDataDonorWriteOptions.WorkspaceRoot.set -> void
+Microsoft.NET.ProjectData.ProjectDataItem
+Microsoft.NET.ProjectData.ProjectDataItem.ItemSpec.get -> string!
+Microsoft.NET.ProjectData.ProjectDataItem.Metadata.get -> Microsoft.NET.ProjectData.KeyValueCollection
+Microsoft.NET.ProjectData.ProjectDataItem.ProjectDataItem() -> void
+Microsoft.NET.ProjectData.ProjectDataItem.ProjectDataItem(string! itemSpec, Microsoft.NET.ProjectData.KeyValueCollection metadata) -> void
+Microsoft.NET.ProjectData.ProjectDataSnapshot
+Microsoft.NET.ProjectData.ProjectDataSnapshot.Capabilities.get -> System.Collections.Immutable.ImmutableArray<string!>
+Microsoft.NET.ProjectData.ProjectDataSnapshot.Dimensions.get -> System.Collections.Immutable.ImmutableDictionary<string!, string!>!
+Microsoft.NET.ProjectData.ProjectDataSnapshot.IsPrimary.get -> bool
+Microsoft.NET.ProjectData.ProjectDataSnapshot.ItemsByType.get -> System.Collections.Immutable.ImmutableDictionary<string!, System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.ProjectDataItem>>!
+Microsoft.NET.ProjectData.ProjectDataSnapshot.LastDesignTimeBuildSucceeded.get -> bool
+Microsoft.NET.ProjectData.ProjectDataSnapshot.ProjectDataSnapshot(string! projectPath, System.Collections.Immutable.ImmutableDictionary<string!, string!>! dimensions, Microsoft.NET.ProjectData.KeyValueCollection properties, System.Collections.Immutable.ImmutableDictionary<string!, System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.ProjectDataItem>>! itemsByType, bool isPrimary, bool lastDesignTimeBuildSucceeded, System.Collections.Immutable.ImmutableArray<string!> capabilities = default(System.Collections.Immutable.ImmutableArray<string!>)) -> void
+Microsoft.NET.ProjectData.ProjectDataSnapshot.ProjectPath.get -> string!
+Microsoft.NET.ProjectData.ProjectDataSnapshot.Properties.get -> Microsoft.NET.ProjectData.KeyValueCollection
+Microsoft.NET.ProjectData.ProjectDataSnapshotFactory
+Microsoft.NET.ProjectData.StringComparers
+Microsoft.NET.ProjectData.StringComparisons
+Microsoft.NET.ProjectData.StringPool
+Microsoft.NET.ProjectData.StringPool.GetOrAdd(string! value) -> string!
+Microsoft.NET.ProjectData.StringPool.StringPool() -> void
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarker
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.InputsFingerprint.get -> string!
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.InputsFingerprint.set -> void
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.MarkerFilePath.get -> string!
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.MarkerFilePath.set -> void
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.ProjectFilePath.get -> string!
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.ProjectFilePath.set -> void
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.ProjectFingerprint.get -> string!
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.ProjectFingerprint.set -> void
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.Reason.get -> string!
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.Reason.set -> void
+Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData.UnsupportedProjectDataMarkerData() -> void
+Microsoft.NET.ProjectData.UserFolderCachePath
+override Microsoft.NET.ProjectData.CachedEmbeddedResource.Equals(object? obj) -> bool
+override Microsoft.NET.ProjectData.CachedEmbeddedResource.GetHashCode() -> int
+override Microsoft.NET.ProjectData.CachedEmbeddedResource.ToString() -> string!
+override Microsoft.NET.ProjectData.CachedMetadataReference.Equals(object? obj) -> bool
+override Microsoft.NET.ProjectData.CachedMetadataReference.GetHashCode() -> int
+override Microsoft.NET.ProjectData.CachedMetadataReference.ToString() -> string!
+override Microsoft.NET.ProjectData.CachedProjectReference.Equals(object? obj) -> bool
+override Microsoft.NET.ProjectData.CachedProjectReference.GetHashCode() -> int
+override Microsoft.NET.ProjectData.CachedProjectReference.ToString() -> string!
+override Microsoft.NET.ProjectData.CachedSliceData.Equals(object? obj) -> bool
+override Microsoft.NET.ProjectData.CachedSliceData.GetHashCode() -> int
+override Microsoft.NET.ProjectData.CachedSliceData.ToString() -> string!
+override Microsoft.NET.ProjectData.CachedSourceFile.Equals(object? obj) -> bool
+override Microsoft.NET.ProjectData.CachedSourceFile.GetHashCode() -> int
+override Microsoft.NET.ProjectData.CachedSourceFile.ToString() -> string!
+static Microsoft.NET.ProjectData.CachedEmbeddedResource.operator !=(Microsoft.NET.ProjectData.CachedEmbeddedResource? left, Microsoft.NET.ProjectData.CachedEmbeddedResource? right) -> bool
+static Microsoft.NET.ProjectData.CachedEmbeddedResource.operator ==(Microsoft.NET.ProjectData.CachedEmbeddedResource? left, Microsoft.NET.ProjectData.CachedEmbeddedResource? right) -> bool
+static Microsoft.NET.ProjectData.CachedMetadataReference.operator !=(Microsoft.NET.ProjectData.CachedMetadataReference? left, Microsoft.NET.ProjectData.CachedMetadataReference? right) -> bool
+static Microsoft.NET.ProjectData.CachedMetadataReference.operator ==(Microsoft.NET.ProjectData.CachedMetadataReference? left, Microsoft.NET.ProjectData.CachedMetadataReference? right) -> bool
+static Microsoft.NET.ProjectData.CachedProjectReference.operator !=(Microsoft.NET.ProjectData.CachedProjectReference? left, Microsoft.NET.ProjectData.CachedProjectReference? right) -> bool
+static Microsoft.NET.ProjectData.CachedProjectReference.operator ==(Microsoft.NET.ProjectData.CachedProjectReference? left, Microsoft.NET.ProjectData.CachedProjectReference? right) -> bool
+static Microsoft.NET.ProjectData.CachedSliceData.operator !=(Microsoft.NET.ProjectData.CachedSliceData? left, Microsoft.NET.ProjectData.CachedSliceData? right) -> bool
+static Microsoft.NET.ProjectData.CachedSliceData.operator ==(Microsoft.NET.ProjectData.CachedSliceData? left, Microsoft.NET.ProjectData.CachedSliceData? right) -> bool
+static Microsoft.NET.ProjectData.CachedSourceFile.operator !=(Microsoft.NET.ProjectData.CachedSourceFile? left, Microsoft.NET.ProjectData.CachedSourceFile? right) -> bool
+static Microsoft.NET.ProjectData.CachedSourceFile.operator ==(Microsoft.NET.ProjectData.CachedSourceFile? left, Microsoft.NET.ProjectData.CachedSourceFile? right) -> bool
+static Microsoft.NET.ProjectData.CacheFileReader.GetCacheBaseDirectory() -> string!
+static Microsoft.NET.ProjectData.CacheFileReader.GetCacheFilePathForWatching(string! projectFilePath, bool cacheInProject) -> string!
+static Microsoft.NET.ProjectData.CacheFileReader.GetProjectFolderCacheFilePath(string! projectFilePath) -> string!
+static Microsoft.NET.ProjectData.CacheFileReader.GetUserFolderCacheFilePath(string! projectFilePath) -> string!
+static Microsoft.NET.ProjectData.CacheFileReader.ReadFromAsync(System.IO.TextReader! reader, Microsoft.NET.ProjectData.CachePathResolver! resolver, string! projectDirectory, string! projectFilePath, string? expectedProjectFilePath, Microsoft.NET.ProjectData.StringPool? stringPool, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedSliceData!>>!
+static Microsoft.NET.ProjectData.CacheFileReader.ReadProjectCacheAsync(string! projectFilePath, bool cacheInProject, Microsoft.NET.ProjectData.CachePathResolver! resolver, System.Threading.CancellationToken cancellationToken, Microsoft.NET.ProjectData.StringPool? stringPool = null, Microsoft.NET.ProjectData.ProjectDataDonorOptions? donorOptions = null) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedSliceData!>>!
+static Microsoft.NET.ProjectData.CacheFileReader.ReadProjectCacheAsync(string! projectFilePath, bool cacheInProject, Microsoft.NET.ProjectData.CachePathResolver! resolver, Microsoft.NET.ProjectData.StringPool? stringPool, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedSliceData!>>!
+static Microsoft.NET.ProjectData.CacheFileReader.ReadProjectCacheAsync(string! projectFilePath, bool cacheInProject, Microsoft.NET.ProjectData.CachePathResolver! resolver, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedSliceData!>>!
+static Microsoft.NET.ProjectData.CacheFileReader.ReadProjectCacheAsync(string! projectFilePath, bool cacheInProject, Microsoft.NET.ProjectData.StringPool? stringPool, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedSliceData!>>!
+static Microsoft.NET.ProjectData.CacheFileReader.ReadProjectCacheAsync(string! projectFilePath, bool cacheInProject, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedSliceData!>>!
+static Microsoft.NET.ProjectData.CacheFileReader.ReadProjectCacheWithSourceAsync(string! projectFilePath, bool cacheInProject, Microsoft.NET.ProjectData.CachePathResolver! resolver, Microsoft.NET.ProjectData.StringPool? stringPool, System.Threading.CancellationToken cancellationToken, Microsoft.NET.ProjectData.ProjectDataDonorOptions? donorOptions) -> System.Threading.Tasks.Task<Microsoft.NET.ProjectData.ProjectDataCacheReadResult>!
+static Microsoft.NET.ProjectData.CacheFileReader.ReadProjectDataSnapshotsAsync(string! projectFilePath, bool cacheInProject, Microsoft.NET.ProjectData.CachePathResolver! resolver, string? solutionPath, Microsoft.NET.ProjectData.StringPool? stringPool, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.ProjectDataSnapshot!>>!
+static Microsoft.NET.ProjectData.CacheFileReader.ReadProjectDataSnapshotsAsync(string! projectFilePath, bool cacheInProject, string? solutionPath, Microsoft.NET.ProjectData.StringPool? stringPool, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.ProjectDataSnapshot!>>!
+static Microsoft.NET.ProjectData.KeyValueCollection.Empty.get -> Microsoft.NET.ProjectData.KeyValueCollection
+static Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.GetManifestFilePath(string! receiptDirectory) -> string!
+static Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest.TryRead(string! receiptDirectory, string! attemptId, out Microsoft.NET.ProjectData.ProjectDataBuildAttemptManifest! manifest) -> bool
+static Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticProtocol.Encode(string! attemptId, Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord! diagnostic) -> string!
+static Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticProtocol.TryDecode(string! line, string! expectedAttemptId, out Microsoft.NET.ProjectData.ProjectDataBuildDiagnosticRecord! diagnostic) -> bool
+static Microsoft.NET.ProjectData.ProjectDataBuildReceipt.GetAggregateCompletionFilePath(string! receiptDirectory) -> string!
+static Microsoft.NET.ProjectData.ProjectDataBuildReceipt.GetReceiptFilePath(string! receiptDirectory, string! projectFilePath) -> string!
+static Microsoft.NET.ProjectData.ProjectDataBuildReceipt.TryRead(string! receiptDirectory, string! attemptId, string! projectFilePath, out Microsoft.NET.ProjectData.ProjectDataBuildReceiptData! receipt) -> bool
+static Microsoft.NET.ProjectData.ProjectDataBuildReceipt.TryReadAggregateCompletion(string! receiptDirectory, string! attemptId) -> bool
+static Microsoft.NET.ProjectData.ProjectDataBuildReceipt.Write(string! receiptDirectory, string! attemptId, string! projectFilePath) -> string!
+static Microsoft.NET.ProjectData.ProjectDataBuildReceipt.WriteAggregateCompletion(string! receiptDirectory, string! attemptId) -> void
+static Microsoft.NET.ProjectData.ProjectDataDonorIndex.EnumerateDonorCandidates(string! recipientProjectFilePath, Microsoft.NET.ProjectData.ProjectDataDonorOptions? options, System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IEnumerable<Microsoft.NET.ProjectData.ProjectDataDonorCandidate>!
+static Microsoft.NET.ProjectData.ProjectDataDonorIndex.TryRecordWrite(string! projectFilePath, string! cacheFilePath, Microsoft.NET.ProjectData.ProjectDataDonorWriteOptions? options, out string? message) -> bool
+static Microsoft.NET.ProjectData.ProjectDataDonorOptions.Default.get -> Microsoft.NET.ProjectData.ProjectDataDonorOptions!
+static Microsoft.NET.ProjectData.ProjectDataSnapshotFactory.CreateSnapshot(Microsoft.NET.ProjectData.CachedSliceData! slice, string? solutionPath = null) -> Microsoft.NET.ProjectData.ProjectDataSnapshot!
+static Microsoft.NET.ProjectData.ProjectDataSnapshotFactory.CreateSnapshots(System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.CachedSliceData!> slices, string? solutionPath = null) -> System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.ProjectDataSnapshot!>
+static Microsoft.NET.ProjectData.ProjectDataSnapshotFactory.ValidateRequiredData(System.Collections.Immutable.ImmutableArray<Microsoft.NET.ProjectData.ProjectDataSnapshot!> snapshots) -> System.Collections.Generic.IReadOnlyList<string!>!
+static Microsoft.NET.ProjectData.StringComparers.Capabilities.get -> System.StringComparer!
+static Microsoft.NET.ProjectData.StringComparers.ItemMetadataName.get -> System.StringComparer!
+static Microsoft.NET.ProjectData.StringComparers.ItemSpec.get -> System.StringComparer!
+static Microsoft.NET.ProjectData.StringComparers.ItemType.get -> System.StringComparer!
+static Microsoft.NET.ProjectData.StringComparers.Paths.get -> System.StringComparer!
+static Microsoft.NET.ProjectData.StringComparers.PropertyName.get -> System.StringComparer!
+static Microsoft.NET.ProjectData.StringComparisons.ItemMetadataName.get -> System.StringComparison
+static Microsoft.NET.ProjectData.StringComparisons.ItemType.get -> System.StringComparison
+static Microsoft.NET.ProjectData.StringComparisons.Paths.get -> System.StringComparison
+static Microsoft.NET.ProjectData.StringComparisons.PropertyName.get -> System.StringComparison
+static Microsoft.NET.ProjectData.UnsupportedProjectDataMarker.ComputeAncestorInputsFingerprint(string! projectFilePath, System.Threading.CancellationToken cancellationToken) -> string!
+static Microsoft.NET.ProjectData.UnsupportedProjectDataMarker.ComputeProjectFingerprint(string! projectFilePath, System.Threading.CancellationToken cancellationToken) -> string!
+static Microsoft.NET.ProjectData.UnsupportedProjectDataMarker.Delete(string! projectFilePath) -> void
+static Microsoft.NET.ProjectData.UnsupportedProjectDataMarker.GetMarkerFilePath(string! projectFilePath) -> string!
+static Microsoft.NET.ProjectData.UnsupportedProjectDataMarker.TryReadValid(string! projectFilePath, System.Threading.CancellationToken cancellationToken, out Microsoft.NET.ProjectData.UnsupportedProjectDataMarkerData! marker) -> bool
+static Microsoft.NET.ProjectData.UnsupportedProjectDataMarker.Write(string! projectFilePath, string! reason) -> string!
+static Microsoft.NET.ProjectData.UserFolderCachePath.Compute(string! projectFilePath) -> string!
+static Microsoft.NET.ProjectData.UserFolderCachePath.FileExtension.get -> string!
+static Microsoft.NET.ProjectData.UserFolderCachePath.GetCacheBaseDirectory() -> string!

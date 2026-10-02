@@ -21,7 +21,7 @@ public class ModelExpressionPassTest : RazorProjectEngineTestBase
 
     protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
+        processor.ExecutePhasesThrough<DefaultRazorTagHelperRewritePhase>();
     }
 
     [Fact]

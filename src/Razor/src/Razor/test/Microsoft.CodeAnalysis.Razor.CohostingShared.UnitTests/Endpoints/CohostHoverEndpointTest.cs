@@ -146,7 +146,7 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
     }
 
     [ConditionalFact(typeof(IsEnglishLocal))]
-    public async Task CSharp()
+    public async Task CSharp_Impl()
     {
         TestCode code = """
             <PageTitle></PageTitle>
@@ -160,6 +160,80 @@ public class CohostHoverEndpointTest(ITestOutputHelper testOutputHelper) : Cohos
             """;
 
         await VerifyHoverAsync(code, async (hover, document) =>
+        {
+            await VerifyRangeAsync(hover, code.Span, document);
+
+            hover.VerifyContents(
+                Container(
+                    Container(
+                        Image,
+                        ClassifiedText( // (local variable) string myVariable
+                            Punctuation("("),
+                            Text("local variable"),
+                            Punctuation(")"),
+                            WhiteSpace(" "),
+                            Keyword("string"),
+                            WhiteSpace(" "),
+                            LocalName("myVariable")))));
+        });
+    }
+
+    [ConditionalFact(typeof(IsEnglishLocal))]
+    public async Task CSharp_Decl()
+    {
+        TestCode code = """
+            <PageTitle></PageTitle>
+            <div></div>
+
+            @code
+            {
+                public void M()
+                {
+                    var $$[|myVariable|] = "Hello";
+    
+                    var length = myVariable.Length;
+                }
+            }
+            """;
+
+        await VerifyHoverAsync(code, async (hover, document) =>
+        {
+            await VerifyRangeAsync(hover, code.Span, document);
+
+            hover.VerifyContents(
+                Container(
+                    Container(
+                        Image,
+                        ClassifiedText( // (local variable) string myVariable
+                            Punctuation("("),
+                            Text("local variable"),
+                            Punctuation(")"),
+                            WhiteSpace(" "),
+                            Keyword("string"),
+                            WhiteSpace(" "),
+                            LocalName("myVariable")))));
+        });
+    }
+
+    [ConditionalFact(typeof(IsEnglishLocal))]
+    public async Task CSharp_Legacy()
+    {
+        TestCode code = """
+            <PageTitle></PageTitle>
+            <div></div>
+
+            @functions
+            {
+                public void M()
+                {
+                    var $$[|myVariable|] = "Hello";
+    
+                    var length = myVariable.Length;
+                }
+            }
+            """;
+
+        await VerifyHoverAsync(code, fileKind: RazorFileKind.Legacy, htmlResponse: null, async (hover, document) =>
         {
             await VerifyRangeAsync(hover, code.Span, document);
 

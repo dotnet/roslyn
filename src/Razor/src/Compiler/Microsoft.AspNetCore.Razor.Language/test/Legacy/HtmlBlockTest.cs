@@ -3,6 +3,7 @@
 
 #nullable disable
 
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,6 +11,154 @@ namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
 public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
 {
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyPreservesLeadingStars()
+    {
+        const string source = "\n* <summary>Text</summary>\n}";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+        Assert.False(isComplete);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyAcceptsLeadingWhitespace()
+    {
+        const string source = "\n  <summary>Text</summary>\n}";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+        Assert.True(isComplete);
+    }
+
+    [Theory]
+    [InlineData("summary", "summary", true)]
+    [InlineData("Summary", "Summary", true)]
+    [InlineData("summary", "Summary", false)]
+    [InlineData("Summary", "summary", false)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyMatchesTagNamesCaseSensitively(string startTagName, string endTagName, bool expectedIsComplete)
+    {
+        var body = $"<root><{startTagName}>Text</{endTagName}></root>";
+        var source = body + "}after";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(body.Length, end);
+        Assert.Equal(expectedIsComplete, isComplete);
+    }
+
+    [Theory]
+    [InlineData("<summary>Text")]
+    [InlineData("<summary><para>Text")]
+    [InlineData("<summary><para>Text</para>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyUnclosedElementsConsumeToEndOfFile(string markup)
+    {
+        var source = markup + "}after";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length, end);
+        Assert.False(isComplete);
+    }
+
+    [Theory]
+    [InlineData("<summary><para>Text</summary>")]
+    [InlineData("<summary><para><c>Text</summary>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyRecoversUnclosedElementsAtAncestorEndTag(string body)
+    {
+        var source = body + "}after";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(body.Length, end);
+        Assert.False(isComplete);
+    }
+
+    [Theory]
+    [InlineData("@")]
+    [InlineData("@@")]
+    [InlineData("@**@")]
+    [InlineData("@{}")]
+    [InlineData("@value")]
+    [InlineData("@* comment")]
+    [InlineData("@{")]
+    [InlineData("@}")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyTreatsRazorTransitionsAsLiteralText(string content)
+    {
+        const string prefix = "before{";
+        var body = "<summary>" + content + "</summary>";
+        var source = prefix + body + "}after";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: prefix.Length, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(prefix.Length + body.Length, end);
+        Assert.True(isComplete);
+    }
+
+    [Theory]
+    [InlineData("<![CDATA[[{}]]]>")]
+    [InlineData("<![CDATA[[[{}]]]]>")]
+    [InlineData("<?example ??>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyHandlesOverlappingTerminators(string markup)
+    {
+        var source = "<summary>" + markup + "</summary>}";
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+        Assert.True(isComplete);
+    }
+
+    [Theory]
+    [InlineData("<![CDATA[[{}]]]>")]
+    [InlineData("<![CDATA[[[{}]]]]>")]
+    [InlineData("<?example ??>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void HtmlBlockHandlesOverlappingTerminators(string markup)
+    {
+        var source = "@{\n" + markup + "\nvar value = 42;\n}";
+
+        var tree = RazorSyntaxTree.Parse(RazorSourceDocument.Create(source, "test.cshtml"), RazorParserOptions.Default);
+
+        Assert.Empty(tree.Diagnostics);
+        Assert.Equal(source, tree.Root.GetContent());
+        Assert.Contains<CSharpStatementLiteralSyntax>(
+            [.. tree.Root.DescendantNodes().OfType<CSharpStatementLiteralSyntax>()],
+            literal => literal.GetContent().Contains("var value = 42;"));
+    }
+
+    [Theory]
+    [InlineData("<![CDATA[text]")]
+    [InlineData("<![CDATA[text]]")]
+    [InlineData("<?example ?")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyHandlesIncompleteSpecialTags(string markup)
+    {
+        var source = "<summary>" + markup;
+
+        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length, end);
+        Assert.False(isComplete);
+    }
+
     [Fact]
     public void HandlesUnbalancedTripleDashHTMLComments()
     {

@@ -21,7 +21,15 @@ public class SectionDirectivePassTest : RazorProjectEngineTestBase
 
     protected override void ConfigureCodeDocumentProcessor(RazorCodeDocumentProcessor processor)
     {
-        processor.ExecutePhasesThrough<IRazorDocumentClassifierPhase>();
+        // Need the document classifier (for the namespace/class/method wrapping the test asserts on) and
+        // tag-helper rewrite (so legacy markup like <p>...</p> is collapsed into HtmlContent rather than
+        // left as an UnresolvedElement). The directive classifier is skipped because SectionDirectivePass
+        // is itself an IRazorDirectiveClassifierPass, and the test wants to call its Execute manually
+        // rather than have the directive classifier convert @section into a SectionIntermediateNode. Decl
+        // lowering is skipped because it would emit C# for a half-processed tree.
+        processor.ExecutePhasesThroughExcept<DefaultRazorTagHelperRewritePhase>(
+            typeof(DefaultRazorDirectiveClassifierPhase),
+            typeof(DefaultRazorDeclCSharpLoweringPhase));
     }
 
     [Fact]

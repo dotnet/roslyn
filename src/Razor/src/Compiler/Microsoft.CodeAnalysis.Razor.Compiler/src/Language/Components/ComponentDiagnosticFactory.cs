@@ -482,4 +482,20 @@ internal static class ComponentDiagnosticFactory
 
     public static RazorDiagnostic Create_UnboundDirectiveAttribute(SourceSpan? source, string attribute)
         => RazorDiagnostic.Create(UnboundDirectiveAttribute, source, attribute);
+
+    public static readonly RazorDiagnosticDescriptor TildePath_MixedContent =
+        new($"{DiagnosticPrefix}10029",
+            "The '~' path prefix in '{0}' cannot be expanded because the attribute value contains mixed content. Use '@(Assets[\"...\"])' for dynamic paths.",
+            RazorDiagnosticSeverity.Warning);
+
+    public static RazorDiagnostic CreateTildePath_MixedContent(SourceSpan? source, string attribute)
+        => RazorDiagnostic.Create(TildePath_MixedContent, source, attribute);
+
+    public static readonly RazorDiagnosticDescriptor AssetPath_NonStringParameter =
+        new($"{DiagnosticPrefix}10030",
+            "[AssetPath] on parameter '{0}' has no effect because its type is not 'string'; '~/' asset-path expansion applies only to string parameters.",
+            RazorDiagnosticSeverity.Warning);
+
+    public static RazorDiagnostic CreateAssetPath_NonStringParameter(SourceSpan? source, string parameter)
+        => RazorDiagnostic.Create(AssetPath_NonStringParameter, source, parameter);
 }

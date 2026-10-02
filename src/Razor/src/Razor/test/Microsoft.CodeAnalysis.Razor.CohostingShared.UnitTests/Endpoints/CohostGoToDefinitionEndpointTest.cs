@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.IO;
@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -22,7 +23,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
     [Fact]
     public async Task CSharp_Method()
     {
-        var input = """
+        TestCode input = """
             <div></div>
             @{
                 var x = Ge$$tX();
@@ -36,7 +37,15 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             }
             """;
 
-        await VerifyGoToDefinitionAsync(input);
+        var document = CreateProjectAndRazorDocument(input.Text);
+        var response = await GetRemoteGoToDefinitionResponseAsync(document, input);
+
+        Assert.False(response.StopHandling);
+        Assumes.NotNull(response.Result);
+        Assert.NotNull(response.Result.Locations);
+        Assert.Null(response.Result.CSharpRequest);
+
+        await VerifyGoToDefinitionAsync(input, razorDocument: document);
     }
 
     [Fact]
@@ -63,7 +72,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
     [Fact]
     public async Task CSharp_MetadataReference()
     {
-        var input = """
+        TestCode input = """
             <div></div>
             @functions
             {
@@ -71,7 +80,15 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             }
             """;
 
-        var result = await GetGoToDefinitionResultAsync(input);
+        var document = CreateProjectAndRazorDocument(input.Text);
+        var response = await GetRemoteGoToDefinitionResponseAsync(document, input);
+
+        Assert.False(response.StopHandling);
+        Assumes.NotNull(response.Result);
+        Assert.Null(response.Result.Locations);
+        Assert.NotNull(response.Result.CSharpRequest);
+
+        var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
 
         Assumes.NotNull(result);
         Assert.NotNull(result.Value.Second);
@@ -1076,7 +1093,7 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
                 ? []
                 : [(Methods.TextDocumentDefinitionName, htmlResponse)]);
 
-        var endpoint = new CohostGoToDefinitionEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker, FilePathService);
+        var endpoint = new CohostGoToDefinitionEndpoint(IncompatibleProjectService, RemoteServiceInvoker, requestInvoker);
 
         var textDocumentPositionParams = new TextDocumentPositionParams
         {
@@ -1085,5 +1102,17 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         };
 
         return await endpoint.GetTestAccessor().HandleRequestAsync(textDocumentPositionParams, document, DisposalToken);
+    }
+
+    private async Task<RemoteResponse<GoToDefinitionResponse?>> GetRemoteGoToDefinitionResponseAsync(TextDocument document, TestCode input)
+    {
+        var inputText = await document.GetTextAsync(DisposalToken);
+        var position = inputText.GetPosition(input.Position);
+
+        return await RemoteServiceInvoker.TryInvokeAsync<IRemoteGoToDefinitionService, RemoteResponse<GoToDefinitionResponse?>>(
+            document.Project.Solution,
+            (service, solutionInfo, cancellationToken) =>
+                service.GetDefinitionsAsync(solutionInfo, document.Id, position, cancellationToken),
+            DisposalToken);
     }
 }

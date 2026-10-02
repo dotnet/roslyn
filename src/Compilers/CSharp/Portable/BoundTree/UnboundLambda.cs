@@ -974,7 +974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (targetParameterTypes[i].Type.ContainsPointerOrFunctionPointer())
                     {
-                        this.Binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics, disallowedUnder: MemorySafetyRules.Legacy);
+                        this.Binder.ReportUnsafeIfNotAllowed(this.ParameterLocation(i), diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
                     }
                 }
             }

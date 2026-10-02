@@ -725,7 +725,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: ';');
     }
 
-    [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/36390")]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
     public async Task NestedHtml_NestedCodeBlock_EndingBrace()
     {
@@ -761,7 +761,7 @@ public class OnTypeFormattingTest(FormattingTestContext context, HtmlFormattingF
             triggerCharacter: '}');
     }
 
-    [Fact(Skip = "https://github.com/dotnet/aspnetcore/issues/36390")]
+    [FormattingTestFact]
     [WorkItem("https://github.com/dotnet/aspnetcore/issues/34319")]
     public async Task NestedHtml_NestedCodeBlock_EndingBrace_WithCode()
     {

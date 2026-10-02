@@ -19,8 +19,6 @@
                         IntermediateToken - (106:3,23 [9] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - () => { }
                     ComponentAttribute - (139:4,21 [1] x:\dir\subdir\Test\TestComponent.cshtml) - ObjectParameter - ObjectParameter - AttributeStructure.DoubleQuotes
                         IntermediateToken - (139:4,21 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - c
-            CSharpCode - (155:6,7 [51] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (155:6,7 [51] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    private readonly MyClass<string> c = new();\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

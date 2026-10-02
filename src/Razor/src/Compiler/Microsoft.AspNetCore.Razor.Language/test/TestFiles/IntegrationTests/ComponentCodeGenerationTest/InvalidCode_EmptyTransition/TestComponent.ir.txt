@@ -15,5 +15,3 @@
                     LazyIntermediateToken - (31:0,31 [4] x:\dir\subdir\Test\TestComponent.cshtml) - Html - \n\n
                 CSharpExpression - (36:2,1 [0] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (36:2,1 [0] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 
-            CSharpCode - (47:4,7 [50] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (47:4,7 [50] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public int Param { get; set; }\n

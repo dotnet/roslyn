@@ -4,7 +4,10 @@
 #nullable disable
 
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
+using Roslyn.Test.Utilities;
 using Xunit;
+
+using CSharpParseOptions = Microsoft.CodeAnalysis.CSharp.CSharpParseOptions;
 
 namespace Microsoft.AspNetCore.Razor.Language.Legacy;
 
@@ -79,6 +82,31 @@ public class CSharpTokenizerTest : CSharpTokenizerTestBase
             SyntaxFactory.Token(SyntaxKind.NewLine, "\r\n"),
             SyntaxFactory.Token(SyntaxKind.NewLine, "\r\n"),
             IgnoreRemaining);
+    }
+
+    [Theory]
+    [InlineData("\r")]
+    [InlineData("\n")]
+    [InlineData("\r\n")]
+    [InlineData("\u0085")]
+    [InlineData("\u2028")]
+    [InlineData("\u2029")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void Reset_After_Newline_Preserves_Line_State(string lineEnding)
+    {
+        using var reader = new SeekableTextReader("a" + lineEnding + "b", "test.cs");
+        using var tokenizer = new RoslynCSharpTokenizer(reader, CSharpParseOptions.Default);
+        tokenizer.StartingBlock();
+
+        Assert.Equal("a", tokenizer.NextToken()?.Content);
+        Assert.Equal(lineEnding, tokenizer.NextToken()?.Content);
+        Assert.Equal("b", tokenizer.NextToken()?.Content);
+
+        reader.Position = 1 + lineEnding.Length;
+        tokenizer.Reset(reader.Position);
+
+        Assert.Equal("b", tokenizer.NextToken()?.Content);
+        Assert.Null(tokenizer.NextToken());
     }
 
     [Fact]

@@ -690,6 +690,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     MergeUseSiteInfo(ref result, new UseSiteInfo<AssemblySymbol>(new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this)));
                 }
                 deriveCompilerFeatureRequiredUseSiteInfo(ref result);
+                if (result.DiagnosticInfo is null &&
+                    PEUtilities.DeriveUnrecognizedMemorySafetyRulesAttributeDiagnostic(this) is { } diagnostic)
+                {
+                    result = result.AdjustDiagnosticInfo(diagnostic);
+                }
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 

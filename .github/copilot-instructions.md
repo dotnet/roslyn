@@ -1,6 +1,8 @@
 # Roslyn (.NET Compiler Platform) — Copilot Instructions
 
 > This is the **canonical** repo-wide agent entry point. `AGENTS.md` at the repo root points here. Path-scoped rules in `.github/instructions/{Compiler,IDE,Razor}.instructions.md` apply automatically by area and supplement this file. This file establishes the memory-first orientation protocol and doc-maintenance obligation.
+>
+> Across AI-generated output (code, documentation, and user-facing prose), prefer terminology already used in this repository.
 
 ## Project Overview
 
@@ -40,6 +42,8 @@ dotnet build Razor.slnf          # Razor compiler & tooling only
 dotnet build <path/to/Project.csproj>
 ```
 
+- In this repository, local `dotnet build` will not run analyzers by default. To include analyzers in the build, use the `-p:RunAnalyzersDuringBuild=true` flag to run them. Consider using this when searching for diagnostics you need to fix, or when you're doing a final build before creating a pull request.
+
 ### Run tests for modified code
 ```bash
 dotnet test <path/to/Specific.UnitTests.csproj>
@@ -53,6 +57,8 @@ Tests can take a while to build and run — monitor output and wait for completi
 ./build.sh   # Build.cmd on Windows
 ./test.sh    # Test.cmd on Windows
 ```
+
+- If you need build.sh to run analyzers, pass `--runAnalyzers`. If you need build.cmd to run analyzers, pass `-runAnalyzers`.
 
 Other entry points: `dotnet run --file eng/generate-compiler-code.cs` (regenerate Syntax/BoundNodes code), `dotnet msbuild <proj> /t:UpdateXlf` (refresh `.xlf` after `.resx` edits).
 
@@ -74,26 +80,33 @@ Full conventions: `.github/memory/CONVENTIONS.md` and `.github/instructions/{Com
 When starting any task or answering any question about this repo:
 1. **Read `.github/memory/INDEX.md` first** — it's the loading map for the knowledge base. Use it to find authoritative answers before searching the file system.
 2. **For any non-trivial task, also read `.github/memory/ARCHITECTURE.md` and `.github/memory/CONVENTIONS.md`** as your baseline.
-3. **Read the path-scoped instruction file for the area you're editing** — `.github/instructions/Compiler.instructions.md`, `IDE.instructions.md`, or `Razor.instructions.md` (these auto-apply to `.cs`/`.vb` under their glob and carry the layer's directory detail, conventions, and key files/APIs). For that layer's **known issues** and **test conventions**, load `.github/memory/known-issues/<area>.md` and `.github/memory/testing/<area>.md` on demand (see the INDEX loading map).
+3. **Read the path-scoped instruction file for the area you're editing** — `.github/instructions/Compiler.instructions.md`, `IDE.instructions.md`, or `Razor.instructions.md` (these auto-apply to `.cs`/`.vb` under their glob and carry the layer's directory detail, conventions, and key files/APIs). For that layer's **test conventions**, load `.github/memory/testing/<area>.md` on demand (see the INDEX loading map).
 4. After completing work, run the `update-agent-docs` skill.
 
 ### Memory
 
-`.github/memory/` is your persistent knowledge base. You may freely create new focused files, update existing ones when you find corrections, and reorganize when structure no longer fits. Use descriptive filenames.
+`.github/memory/` is your persistent knowledge base. Keep changes focused on documentation needs relevant to the task, using the criteria below. Use descriptive filenames.
 
 **Memory freshness is your responsibility.** Files can drift from the code:
 - **Always cross-check memory claims against actual code** before relying on them.
-- **If a memory file is stale, fix it immediately.** If you learn something worth keeping, write it to `.github/memory/` immediately.
+- Correct inaccuracies encountered in task-relevant memory files. Do not expand the task into a general freshness audit or record every discovery.
 
 ### Doc Update Obligation
 
-Every task that changes code must end with a doc pass:
-- Added or moved files? → Update `.github/memory/FILE_MAP.md` (top-level) and the matching `.github/instructions/<area>.instructions.md` (directory detail).
-- Changed a public interface, diagnostic ID, or API? → Update the relevant `.github/instructions/<area>.instructions.md` and `PublicAPI.Unshipped.txt`.
-- Hit something surprising or undocumented? → Repo-wide → `.github/memory/KNOWN_ISSUES.md`; layer-specific → `.github/memory/known-issues/<area>.md`.
-- Established a new pattern? → Repo-wide → `.github/memory/CONVENTIONS.md`; layer-specific → the matching `.github/instructions/<area>.instructions.md`.
-- Changed test base classes or conventions? → Repo-wide layout → `.github/memory/TESTING_STRATEGY.md`; layer-specific → `.github/memory/testing/<area>.md`.
-- Added/removed/renamed a memory file? → Update `.github/memory/INDEX.md`.
+**Assess documentation; do not require a documentation diff.** Edit docs only when the
+change makes existing guidance incorrect or leaves a necessary contributor-facing workflow,
+contract, or architectural decision undocumented. Before editing, identify the specific
+incorrect statement or missing information and who needs it. No documentation change is
+a valid outcome.
+
+Do not add guidance merely to record a fix, repeat an existing rule, describe an implementation
+detail, or remind contributors about requirements already enforced by configuration, analyzers,
+tests, or CI. Prefer links to authoritative configuration or tooling over duplicated rules.
+Document automated checks only when contributors need otherwise-undocumented instructions
+to run them or act on failures.
+
+For the documentation-assessment checklist and routing rules, see the
+[`update-agent-docs` skill](skills/update-agent-docs/SKILL.md).
 
 ### Skills
 
@@ -119,6 +132,8 @@ Write the plan to `plan.md` in your session folder (see the session context) and
 ```
 
 **Post the plan and wait for approval before writing the implementing diff** — the plan is meant to be reviewed now, not after a large diff already exists.
+
+If a pull request already exists when work pauses for plan approval, update its description or add a comment that clearly states the implementation is **not complete**, summarizes what remains, and links to the Copilot session containing the plan and approval request so the user can provide further instructions.
 
 Then implement, keeping the diff **scoped and reviewable** — prefer the smallest change that fully addresses the task over a broad refactor. If the plan changes materially while implementing, update it rather than silently diverging. Only after the plan's **Acceptance** and **Validation** are satisfied (and the Definition of Done below passes) is the work "done."
 
