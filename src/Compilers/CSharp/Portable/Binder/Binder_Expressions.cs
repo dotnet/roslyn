@@ -5920,6 +5920,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Bind member initializer assignment expression
                             return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
                         }
+
+                        if (initializer.Left.Kind() is not (SyntaxKind.TupleExpression or SyntaxKind.DeclarationExpression))
+                        {
+                            return BindInvalidInitializerMemberAssignment(initializer, diagnostics);
+                        }
                         break;
                     }
 
@@ -5956,6 +5961,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             var boundExpression = BindValue(memberInitializer, diagnostics, BindValueKind.RValue);
             Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
             return BindToTypeForErrorRecovery(ToBadExpression(boundExpression, LookupResultKind.NotAValue));
+        }
+
+        /// <summary>
+        /// Binds an assignment in an object or with initializer whose left side is neither a member name nor an indexer,
+        /// e.g. `[0] = 1` in a with initializer, where `[0]` is a collection expression. The member initializer is reported
+        /// as invalid, so errors from checking that the left side is assignable are not reported, since they would only
+        /// cascade from that error.
+        /// </summary>
+        private BoundExpression BindInvalidInitializerMemberAssignment(AssignmentExpressionSyntax initializer, BindingDiagnosticBag diagnostics)
+        {
+            initializer.Left.CheckDeconstructionCompatibleArgument(diagnostics);
+
+            var rhsExpr = initializer.Right.CheckAndUnwrapRefExpression(diagnostics, out RefKind refKind);
+            bool isRef = refKind == RefKind.Ref;
+
+            if (isRef)
+                MessageID.IDS_FeatureRefReassignment.CheckFeatureAvailability(diagnostics, initializer.Right.GetFirstToken());
+
+            BoundExpression boundLeft = BindExpression(initializer.Left, diagnostics, invoked: false, indexed: false);
+
+            // A discard is only bound for a left side that is an identifier or a tuple, which are handled elsewhere.
+            Debug.Assert(boundLeft.Kind != BoundKind.DiscardExpression);
+
+            var valueCheckDiagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: diagnostics.AccumulatesDependencies);
+            boundLeft = CheckValue(boundLeft, isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable, valueCheckDiagnostics);
+            if (valueCheckDiagnostics.HasAnyErrors())
+            {
+                valueCheckDiagnostics.Free();
+            }
+            else
+            {
+                diagnostics.AddRangeAndFree(valueCheckDiagnostics);
+            }
+
+            ReportSuppressionIfNeeded(boundLeft, diagnostics);
+
+            var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(boundLeft) : BindValueKind.RValue;
+            BoundExpression boundRight = BindValue(rhsExpr, diagnostics, rhsKind);
+
+            var boundAssignment = BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
+            Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
+            return BindToTypeForErrorRecovery(ToBadExpression(boundAssignment, LookupResultKind.NotAValue));
         }
 
         // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess

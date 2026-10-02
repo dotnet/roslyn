@@ -9050,9 +9050,6 @@ class C1
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         var x = new C1 { P1 = null, (P1 ?? P2) = null };
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "P1 ?? P2").WithLocation(11, 38),
                 // CS0747: Invalid initializer member declarator
                 //         var x = new C1 { P1 = null, (P1 ?? P2) = null };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "(P1 ?? P2) = null").WithLocation(11, 37)
@@ -9194,9 +9191,6 @@ class C1
 }
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         var x = new C1 { P1 = null, (P1 ?? P2) = null };
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "P1 ?? P2").WithLocation(11, 38),
                 // CS0747: Invalid initializer member declarator
                 //         var x = new C1 { P1 = null, (P1 ?? P2) = null };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "(P1 ?? P2) = null").WithLocation(11, 37),

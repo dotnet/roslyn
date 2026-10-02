@@ -8896,9 +8896,6 @@ public struct S { }
 
         // Tracked by https://github.com/dotnet/roslyn/issues/79451 : consider adjusting receiver requirements for extension members
         CreateCompilation(src).VerifyEmitDiagnostics(
-            // (1,24): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // var c = new S() with { [0] = 1 };
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(1, 24),
             // (1,24): error CS0747: Invalid initializer member declarator
             // var c = new S() with { [0] = 1 };
             Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 1").WithLocation(1, 24));
@@ -8912,12 +8909,7 @@ public struct S
 }
 """;
 
-        // The first diagnostic is unexpected
-        // Tracked by https://github.com/dotnet/roslyn/issues/81666
         CreateCompilation(src).VerifyEmitDiagnostics(
-            // (1,24): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // var c = new S() with { [0] = 1 };
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(1, 24),
             // (1,24): error CS0747: Invalid initializer member declarator
             // var c = new S() with { [0] = 1 };
             Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 1").WithLocation(1, 24));
@@ -17988,9 +17980,6 @@ static class E
 }
 """;
         CreateCompilation(src).VerifyEmitDiagnostics(
-            // (4,14): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = o with { [0] = 42 };
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "[0]").WithLocation(4, 14),
             // (4,14): error CS0747: Invalid initializer member declarator
             // _ = o with { [0] = 42 };
             Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 42").WithLocation(4, 14));
