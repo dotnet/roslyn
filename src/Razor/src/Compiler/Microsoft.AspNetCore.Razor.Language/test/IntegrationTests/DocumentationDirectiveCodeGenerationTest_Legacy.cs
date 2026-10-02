@@ -82,13 +82,12 @@ public class DocumentationDirectiveCodeGenerationTest_Legacy()
     [Fact]
     public void ClosingTagInFollowingCode()
     {
-        var result = VerifyBaselineWithSourceMappings();
+        var result = VerifyBaseline();
 
-        Assert.Empty(result.CodeDocument.GetRequiredImplCSharpDocument().Diagnostics);
-        var compiled = CompileToAssembly(result, throwOnFailure: false);
-        var diagnostics = compiled.Compilation.GetDiagnostics().Where(diagnostic => diagnostic.Severity >= DiagnosticSeverity.Warning);
-        Assert.NotEmpty(diagnostics);
-        Assert.All(diagnostics, diagnostic => Assert.Equal("CS1570", diagnostic.Id));
+        var generated = result.CodeDocument.GetRequiredImplCSharpDocument();
+        Assert.Equal("RZ1047", Assert.Single(generated.Diagnostics).Id);
+        Assert.Empty(generated.SourceMappingsSortedByOriginal);
+        CompileToAssembly(result, ignoreRazorDiagnostics: true);
     }
 
     [Fact]
@@ -112,15 +111,32 @@ public class DocumentationDirectiveCodeGenerationTest_Legacy()
         CompileToAssembly(result, ignoreRazorDiagnostics: true);
     }
 
-    [Theory]
-    [InlineData("</summary>")]
-    [InlineData("</div>")]
-    public void MalformedXmlDoesNotConsumeClosingTagsInFollowingFunctions(string endTag)
+    [Fact]
+    public void XmlBoundaryCanIncludeClosingTagsInFollowingFunctions()
     {
-        var result = CompileToCSharp($$"""
+        const string source = """
             @documentation {<summary>Missing end tag}
             <p>After</p>
-            @functions { /* note */ public string EndTag => "{{endTag}}"; }
+            @functions { /* note */ public string EndTag => "</summary>"; }
+            """;
+        var result = CompileToCSharp(source);
+        var generated = result.CodeDocument.GetRequiredImplCSharpDocument();
+
+        VerifyDocumentationBody(result.CodeDocument, source[(source.IndexOf('{') + 1)..source.LastIndexOf('}')]);
+        Assert.Equal("RZ1047", Assert.Single(generated.Diagnostics).Id);
+        Assert.DoesNotContain("/**", generated.Text.ToString());
+        Assert.DoesNotContain("<p>After</p>", generated.Text.ToString());
+        Assert.DoesNotContain("public string EndTag", generated.Text.ToString());
+        CompileToAssembly(result, ignoreRazorDiagnostics: true);
+    }
+
+    [Fact]
+    public void XmlReachingEofRecoversBeforeUnmatchedClosingTagInFollowingFunctions()
+    {
+        var result = CompileToCSharp("""
+            @documentation {<summary>Missing end tag}
+            <p>After</p>
+            @functions { /* note */ public string EndTag => "</div>"; }
             """);
         var generated = result.CodeDocument.GetRequiredImplCSharpDocument();
 
@@ -159,9 +175,9 @@ public class DocumentationDirectiveCodeGenerationTest_Legacy()
     }
 
     [Fact]
-    public void MalformedXmlDoesNotConsumeFollowingStatementBlock()
+    public void XmlBoundaryCanIncludeFollowingStatementBlock()
     {
-        var result = CompileToCSharp("""
+        const string source = """
             @documentation {<summary>Missing end tag}
             <p>After</p>
             @{
@@ -169,23 +185,22 @@ public class DocumentationDirectiveCodeGenerationTest_Legacy()
                 var endTag = "</summary>";
                 Write(endTag);
             }
-            """);
+            """;
+        var result = CompileToCSharp(source);
         var generated = result.CodeDocument.GetRequiredImplCSharpDocument();
 
-        Assert.Empty(generated.Diagnostics);
-        Assert.Contains("<p>After</p>", generated.Text.ToString());
-        Assert.Contains("/* note */", generated.Text.ToString());
-        Assert.Contains("Write(endTag);", generated.Text.ToString());
-        var compiled = CompileToAssembly(result, throwOnFailure: false);
-        var diagnostics = compiled.Compilation.GetDiagnostics().Where(diagnostic => diagnostic.Severity >= DiagnosticSeverity.Warning);
-        Assert.NotEmpty(diagnostics);
-        Assert.All(diagnostics, diagnostic => Assert.Equal("CS1570", diagnostic.Id));
+        VerifyDocumentationBody(result.CodeDocument, source[(source.IndexOf('{') + 1)..source.LastIndexOf('}')]);
+        Assert.Equal("RZ1047", Assert.Single(generated.Diagnostics).Id);
+        Assert.DoesNotContain("/**", generated.Text.ToString());
+        Assert.DoesNotContain("<p>After</p>", generated.Text.ToString());
+        Assert.DoesNotContain("Write(endTag);", generated.Text.ToString());
+        CompileToAssembly(result, ignoreRazorDiagnostics: true);
     }
 
     [Fact]
-    public void MalformedXmlDoesNotConsumeFollowingSection()
+    public void XmlBoundaryCanIncludeFollowingSection()
     {
-        var result = CompileToCSharp("""
+        const string source = """
             @documentation {<summary>Missing end tag}
             @section Footer
             {
@@ -196,24 +211,23 @@ public class DocumentationDirectiveCodeGenerationTest_Legacy()
                     Write(endTag);
                 }
             }
-            """);
+            """;
+        var result = CompileToCSharp(source);
         var generated = result.CodeDocument.GetRequiredImplCSharpDocument();
 
-        Assert.Empty(generated.Diagnostics);
-        Assert.Contains("DefineSection(\"Footer\"", generated.Text.ToString());
-        Assert.Contains("<p>After</p>", generated.Text.ToString());
-        Assert.Contains("/* note */", generated.Text.ToString());
-        Assert.Contains("Write(endTag);", generated.Text.ToString());
-        var compiled = CompileToAssembly(result, throwOnFailure: false);
-        var diagnostics = compiled.Compilation.GetDiagnostics().Where(diagnostic => diagnostic.Severity >= DiagnosticSeverity.Warning);
-        Assert.NotEmpty(diagnostics);
-        Assert.All(diagnostics, diagnostic => Assert.Equal("CS1570", diagnostic.Id));
+        VerifyDocumentationBody(result.CodeDocument, source[(source.IndexOf('{') + 1)..source.IndexOf('}', source.IndexOf("</summary>", System.StringComparison.Ordinal))]);
+        Assert.Equal("RZ1047", Assert.Single(generated.Diagnostics).Id);
+        Assert.DoesNotContain("/**", generated.Text.ToString());
+        Assert.DoesNotContain("DefineSection(\"Footer\"", generated.Text.ToString());
+        Assert.DoesNotContain("<p>After</p>", generated.Text.ToString());
+        Assert.DoesNotContain("Write(endTag);", generated.Text.ToString());
+        CompileToAssembly(result, ignoreRazorDiagnostics: true);
     }
 
     [Fact]
-    public void MissingDocumentationBraceDoesNotConsumeFollowingFunctions()
+    public void MissingDocumentationBraceCanUseXmlSelectedBraceInFollowingFunctions()
     {
-        var result = CompileToCSharp("""
+        const string source = """
             @documentation {<summary>Missing end tag and brace
             @functions
             {
@@ -221,13 +235,14 @@ public class DocumentationDirectiveCodeGenerationTest_Legacy()
                 public string EndTag => "</summary>";
             }
             <p>After</p>
-            """);
+            """;
+        var result = CompileToCSharp(source);
         var generated = result.CodeDocument.GetRequiredImplCSharpDocument();
 
-        Assert.Equal("RZ1006", Assert.Single(generated.Diagnostics).Id);
+        VerifyDocumentationBody(result.CodeDocument, source[(source.IndexOf('{') + 1)..source.LastIndexOf('}')]);
+        Assert.Equal("RZ1047", Assert.Single(generated.Diagnostics).Id);
         Assert.Contains("<p>After</p>", generated.Text.ToString());
-        Assert.Contains("/* note */", generated.Text.ToString());
-        Assert.Contains("public string EndTag", generated.Text.ToString());
+        Assert.DoesNotContain("public string EndTag", generated.Text.ToString());
         Assert.DoesNotContain("/**", generated.Text.ToString());
         CompileToAssembly(result, ignoreRazorDiagnostics: true);
     }
@@ -364,6 +379,15 @@ public class DocumentationDirectiveCodeGenerationTest_Legacy()
         AssertCSharpDocumentMatchesBaseline(result.CodeDocument.GetRequiredImplCSharpDocument(), testName);
 
         return result;
+    }
+
+    private static void VerifyDocumentationBody(RazorCodeDocument document, string expected)
+    {
+        var directive = Assert.Single<RazorDocumentationDirectiveSyntax>(
+            [.. document.GetRequiredSyntaxTree().Root.DescendantNodes().OfType<RazorDocumentationDirectiveSyntax>()]);
+        var body = Assert.Single<CSharpStatementLiteralSyntax>(
+            [.. directive.DescendantNodes().OfType<CSharpStatementLiteralSyntax>()]);
+        Assert.Equal(expected, body.GetContent());
     }
 
     private CompiledCSharpCode VerifyBaselineWithSourceMappings([CallerMemberName] string testName = "")

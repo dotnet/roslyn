@@ -17,11 +17,10 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     {
         const string source = "\n* <summary>Text</summary>\n}";
 
-        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+        var end = HtmlMarkupParser.ParseXmlBody(
             RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
 
         Assert.Equal(source.Length - 1, end);
-        Assert.False(isComplete);
     }
 
     [Fact]
@@ -30,11 +29,10 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     {
         const string source = "\n  <summary>Text</summary>\n}";
 
-        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+        var end = HtmlMarkupParser.ParseXmlBody(
             RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
 
         Assert.Equal(source.Length - 1, end);
-        Assert.True(isComplete);
     }
 
     [Theory]
@@ -46,29 +44,112 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     {
         var source = markup + " Extra information.\n}";
 
-        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+        var end = HtmlMarkupParser.ParseXmlBody(
             RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
 
         Assert.Equal(source.Length - 1, end);
-        Assert.True(isComplete);
     }
 
     [Theory]
-    [InlineData("summary", "summary", true)]
-    [InlineData("Summary", "Summary", true)]
-    [InlineData("summary", "Summary", false)]
-    [InlineData("Summary", "summary", false)]
+    [InlineData("<summary>Text</summary>")]
+    [InlineData("<summary><see/></summary>")]
+    [InlineData("<see/>")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
-    public void XmlBodyMatchesTagNamesCaseSensitively(string startTagName, string endTagName, bool expectedIsComplete)
+    public void XmlBodyAcceptsTrailingExclamationMarkAfterCompletedElement(string markup)
+    {
+        var source = markup + " Extra information!\n}";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+    }
+
+    [Theory]
+    [InlineData("<summary>Text</summary>")]
+    [InlineData("<summary><see/></summary>")]
+    [InlineData("<see/>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyAcceptsTrailingQuestionMarkAfterCompletedElement(string markup)
+    {
+        var source = markup + " Extra information?\n}";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+    }
+
+    [Theory]
+    [InlineData("/")]
+    [InlineData("[")]
+    [InlineData(">")]
+    [InlineData("]")]
+    [InlineData("=")]
+    [InlineData("\"")]
+    [InlineData("'")]
+    [InlineData("--")]
+    [InlineData("&lt;")]
+    [InlineData("""<see cref="System.String"/>""")]
+    [InlineData("<!-- Extra information -->")]
+    [InlineData("<![CDATA[Extra information]]>")]
+    [InlineData("<?example Extra information?>")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyAcceptsTrailingPunctuationAndMarkup(string suffix)
+    {
+        var source = "<summary>\n}\n@code { public int Example => 1; }\n</summary> " + suffix + "\n}";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length - 1, end);
+    }
+
+    [Theory]
+    [InlineData("summary", "summary")]
+    [InlineData("Summary", "Summary")]
+    [InlineData("summary", "Summary")]
+    [InlineData("Summary", "summary")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyMatchesTagNamesCaseSensitively(string startTagName, string endTagName)
     {
         var body = $"<root><{startTagName}>Text</{endTagName}></root>";
         var source = body + "}after";
 
-        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+        var end = HtmlMarkupParser.ParseXmlBody(
             RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
 
         Assert.Equal(body.Length, end);
-        Assert.Equal(expectedIsComplete, isComplete);
+    }
+
+    [Theory]
+    [InlineData("summary", "summary")]
+    [InlineData("Summary", "Summary")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyMatchingTagNameCaseStopsAtClosingBrace(string startTagName, string endTagName)
+    {
+        var body = $"<{startTagName}>Text</{endTagName}>";
+        var source = body + "}after";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(body.Length, end);
+    }
+
+    [Theory]
+    [InlineData("summary", "Summary")]
+    [InlineData("Summary", "summary")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void XmlBodyDifferentTagNameCaseConsumesToEndOfFile(string startTagName, string endTagName)
+    {
+        var body = $"<{startTagName}>Text</{endTagName}>";
+        var source = body + "}after";
+
+        var end = HtmlMarkupParser.ParseXmlBody(
+            RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
+
+        Assert.Equal(source.Length, end);
     }
 
     [Theory]
@@ -80,11 +161,10 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     {
         var source = markup + "}after";
 
-        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+        var end = HtmlMarkupParser.ParseXmlBody(
             RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
 
         Assert.Equal(source.Length, end);
-        Assert.False(isComplete);
     }
 
     [Theory]
@@ -95,11 +175,10 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     {
         var source = body + "}after";
 
-        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+        var end = HtmlMarkupParser.ParseXmlBody(
             RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
 
         Assert.Equal(body.Length, end);
-        Assert.False(isComplete);
     }
 
     [Theory]
@@ -118,11 +197,10 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
         var body = "<summary>" + content + "</summary>";
         var source = prefix + body + "}after";
 
-        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+        var end = HtmlMarkupParser.ParseXmlBody(
             RazorSourceDocument.Create(source, "test.cshtml"), start: prefix.Length, RazorParserOptions.Default, cancellationToken: default);
 
         Assert.Equal(prefix.Length + body.Length, end);
-        Assert.True(isComplete);
     }
 
     [Theory]
@@ -134,11 +212,10 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     {
         var source = "<summary>" + markup + "</summary>}";
 
-        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+        var end = HtmlMarkupParser.ParseXmlBody(
             RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
 
         Assert.Equal(source.Length - 1, end);
-        Assert.True(isComplete);
     }
 
     [Theory]
@@ -168,11 +245,10 @@ public class HtmlBlockTest() : ParserTestBase(layer: TestProject.Layer.Compiler)
     {
         var source = "<summary>" + markup;
 
-        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(
+        var end = HtmlMarkupParser.ParseXmlBody(
             RazorSourceDocument.Create(source, "test.cshtml"), start: 0, RazorParserOptions.Default, cancellationToken: default);
 
         Assert.Equal(source.Length, end);
-        Assert.False(isComplete);
     }
 
     [Fact]

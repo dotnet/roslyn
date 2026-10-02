@@ -14,13 +14,6 @@ namespace AspNetCoreGeneratedDocument
     using global::Microsoft.AspNetCore.Mvc.ViewFeatures;
     #line default
     #line hidden
-#nullable restore
-#line (1,17)-(1,41) 4 "TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/ClosingTagInFollowingCode.cshtml"
-/** <summary>Missing end tag*/
-
-#line default
-#line hidden
-#nullable disable
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorSourceChecksumAttribute(@"Sha256", @"f17f6da6d14abd84151ba1bfd60b956937bc966a7f7781190fecb3de182547b5", @"/TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/ClosingTagInFollowingCode.cshtml")]
     [global::Microsoft.AspNetCore.Razor.Hosting.RazorCompiledItemMetadataAttribute("Identifier", "/TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/ClosingTagInFollowingCode.cshtml")]
     [global::System.Runtime.CompilerServices.CreateNewOnMetadataUpdateAttribute]
@@ -31,17 +24,8 @@ namespace AspNetCoreGeneratedDocument
         #pragma warning disable 1998
         public async override global::System.Threading.Tasks.Task ExecuteAsync()
         {
-            WriteLiteral("<p>After</p>\r\n");
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,13)-(3,63) "TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/ClosingTagInFollowingCode.cshtml"
- public string EndTag => "</summary>"; /* note */ 
-
-#line default
-#line hidden
-#nullable disable
-
         #nullable restore
         [global::Microsoft.AspNetCore.Mvc.Razor.Internal.RazorInjectAttribute]
         public global::Microsoft.AspNetCore.Mvc.ViewFeatures.IModelExpressionProvider ModelExpressionProvider { get; private set; } = default!;

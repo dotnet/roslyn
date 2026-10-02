@@ -60,14 +60,19 @@ ordinary text for boundary parsing; Razor does not strip or normalise them or
 issue a decoration-specific diagnostic. C# can still ignore them when processing
 the emitted comment.
 
-Recovery uses closing braces and following Razor directives to avoid consuming
-unrelated markup or code. Plain trailing text after a completed XML element,
-such as `</summary> Extra information.}`, is kept in the documentation and does
-not trigger recovery. Incomplete C# examples inside complete XML remain
-documentation text. A missing documentation brace reports `RZ1006`. Recovery is
-best-effort for malformed XML. A literal `*/` does not end documentation parsing:
-Razor finds the body boundary first, then reports `RZ1047` on the terminator and
-does not emit the invalid documentation.
+An XML-selected closing brace before EOF ends the body. Trailing text and
+punctuation after a completed XML element, such as
+`</summary> Extra information!}`, stays in the documentation. Razor-looking
+code examples inside XML stay literal, including incomplete C# examples.
+
+Only when XML parsing reaches EOF does Razor fall back to earlier closing
+braces or line-leading Razor directives. Recovery is best-effort: malformed
+XML can consume following code if that code supplies a matching XML delimiter
+and XML then finds a closing brace. Razor does not scan C# strings or comments
+to distinguish them from documentation text. If recovery cannot find a closing
+documentation brace, Razor reports `RZ1006`. A literal `*/` does not end
+documentation parsing: Razor finds the body boundary first, then reports
+`RZ1047` on the terminator and does not emit the invalid documentation.
 
 Only one `@documentation` block is allowed per file. Additional blocks produce
 error `RZ2001`. Put all documentation tags in the same block. For error recovery,

@@ -2090,12 +2090,17 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
     {
         var sourceDocument = Context.SourceDocument;
         var source = sourceDocument.Text;
-        var (end, isComplete) = HtmlMarkupParser.ParseXmlBody(sourceDocument, start, Context.Options, CancellationToken);
+        var end = HtmlMarkupParser.ParseXmlBody(sourceDocument, start, Context.Options, CancellationToken);
+        if (end < source.Length)
+        {
+            return end;
+        }
+
         int? recoveryPosition = null;
         int? recoveryDirectivePosition = null;
 
-        // Malformed XML can make the markup parser reach EOF or close on text in following C#.
-        // Remember earlier braces and Razor directives so recovery can leave that code untouched.
+        // Only recover when XML reaches EOF. An XML-selected closing brace takes precedence
+        // over braces and Razor-looking examples inside the documentation.
         for (var position = start; position < end; position++)
         {
             CancellationToken.ThrowIfCancellationRequested();
@@ -2105,11 +2110,6 @@ internal class CSharpCodeParser : TokenizerBackedParser<CSharpTokenizer>
             {
                 ConsiderRecoveryBrace(position);
             }
-        }
-
-        if (end < source.Length && (recoveryDirectivePosition is null || isComplete))
-        {
-            return end;
         }
 
         // Prefer a documentation brace to one belonging to a following Razor construct. If no brace

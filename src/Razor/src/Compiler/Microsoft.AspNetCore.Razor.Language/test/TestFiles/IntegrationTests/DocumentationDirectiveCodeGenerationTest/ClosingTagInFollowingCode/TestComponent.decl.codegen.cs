@@ -10,25 +10,10 @@ namespace Test
     using global::Microsoft.AspNetCore.Components;
     #line default
     #line hidden
-#nullable restore
-#line (1,17)-(1,41) 4 "x:\dir\subdir\Test\TestComponent.razor"
-/** <summary>Missing end tag*/
-
-#line default
-#line hidden
-#nullable disable
     #nullable restore
     public partial class TestComponent : global::Microsoft.AspNetCore.Components.ComponentBase
     #nullable disable
     {
-#nullable restore
-#line (3,8)-(3,58) "x:\dir\subdir\Test\TestComponent.razor"
- public string EndTag => "</summary>"; /* note */ 
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

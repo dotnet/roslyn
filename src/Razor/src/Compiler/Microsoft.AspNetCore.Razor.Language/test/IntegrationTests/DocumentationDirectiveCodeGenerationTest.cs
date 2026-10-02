@@ -133,7 +133,7 @@ public class DocumentationDirectiveCodeGenerationTest()
             @code { public string EndTag => "</summary>"; /* note */ }
             """);
 
-        Assert.Empty(result.RazorDiagnostics);
+        Assert.Equal("RZ1047", Assert.Single(result.RazorDiagnostics).Id);
     }
 
     [Fact]
