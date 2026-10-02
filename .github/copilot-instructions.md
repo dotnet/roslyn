@@ -85,15 +85,27 @@ When starting any task or answering any question about this repo:
 
 ### Memory
 
-`.github/memory/` is your persistent knowledge base. You may freely create new focused files, update existing ones when you find corrections, and reorganize when structure no longer fits. Use descriptive filenames.
+`.github/memory/` is your persistent knowledge base. Keep changes focused on documentation needs relevant to the task, using the criteria below. Use descriptive filenames.
 
 **Memory freshness is your responsibility.** Files can drift from the code:
 - **Always cross-check memory claims against actual code** before relying on them.
-- **If a memory file is stale, fix it immediately.** If you learn something worth keeping, write it to `.github/memory/` immediately.
+- Correct inaccuracies encountered in task-relevant memory files. Do not expand the task into a general freshness audit or record every discovery.
 
 ### Doc Update Obligation
 
-For the documentation-maintenance checklist and routing rules, see the
+**Assess documentation; do not require a documentation diff.** Edit docs only when the
+change makes existing guidance incorrect or leaves a necessary contributor-facing workflow,
+contract, or architectural decision undocumented. Before editing, identify the specific
+incorrect statement or missing information and who needs it. No documentation change is
+a valid outcome.
+
+Do not add guidance merely to record a fix, repeat an existing rule, describe an implementation
+detail, or remind contributors about requirements already enforced by configuration, analyzers,
+tests, or CI. Prefer links to authoritative configuration or tooling over duplicated rules.
+Document automated checks only when contributors need otherwise-undocumented instructions
+to run them or act on failures.
+
+For the documentation-assessment checklist and routing rules, see the
 [`update-agent-docs` skill](skills/update-agent-docs/SKILL.md).
 
 ### Skills
