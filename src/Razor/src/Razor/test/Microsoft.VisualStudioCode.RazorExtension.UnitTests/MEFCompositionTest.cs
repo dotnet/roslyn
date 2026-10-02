@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.VisualStudioCode.RazorExtension.Services;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Test;
 

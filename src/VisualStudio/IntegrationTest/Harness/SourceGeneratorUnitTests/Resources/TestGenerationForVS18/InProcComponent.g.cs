@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
     using IAsyncServiceProvider = Microsoft.VisualStudio.Shell.IAsyncServiceProvider;
     using Task = System.Threading.Tasks.Task;
 
-    internal abstract class InProcComponent : IAsyncLifetime
+    internal abstract class InProcComponent : IAsyncLifetime, System.IAsyncDisposable
     {
         protected InProcComponent(TestServices testServices)
         {
@@ -30,19 +30,19 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
 
         protected JoinableTaskFactory JoinableTaskFactory => TestServices.JoinableTaskFactory;
 
-        Task IAsyncLifetime.InitializeAsync()
+        ValueTask IAsyncLifetime.InitializeAsync()
         {
             return InitializeCoreAsync();
         }
 
-        Task IAsyncLifetime.DisposeAsync()
+        ValueTask System.IAsyncDisposable.DisposeAsync()
         {
-            return Task.CompletedTask;
+            return default;
         }
 
-        protected virtual Task InitializeCoreAsync()
+        protected virtual ValueTask InitializeCoreAsync()
         {
-            return Task.CompletedTask;
+            return default;
         }
 
         protected async Task<TInterface> GetRequiredGlobalServiceAsync<TService, TInterface>(CancellationToken cancellationToken)

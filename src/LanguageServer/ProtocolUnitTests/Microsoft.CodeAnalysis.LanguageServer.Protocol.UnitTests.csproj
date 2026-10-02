@@ -4,7 +4,6 @@
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworks>$(NetVSCode);net472</TargetFrameworks>
-    <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.LanguageServer.UnitTests</RootNamespace>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>

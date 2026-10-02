@@ -524,7 +524,7 @@ internal sealed partial class ScreenshotInProcess
         }
     }
 
-    protected override async Task InitializeCoreAsync()
+    protected override async ValueTask InitializeCoreAsync()
     {
         // Release the previous instance, if any
         s_currentInstance?.UnregisterEvents();

@@ -13,7 +13,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
 
 public class CSharpInteractiveFormsAndWpf : AbstractInteractiveWindowTest
 {
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
         await TestServices.InteractiveWindow.SubmitTextAsync("""

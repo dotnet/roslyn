@@ -26,7 +26,7 @@ public class BasicIntelliSense : AbstractEditorTest
     {
     }
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

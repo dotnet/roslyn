@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Mapping;
@@ -26,7 +25,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
 {
     private RazorEditService? _razorEditService;
 
-    protected override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

@@ -5,7 +5,7 @@
 
 using System;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
 

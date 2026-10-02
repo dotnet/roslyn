@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
-using Xunit.Abstractions;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 

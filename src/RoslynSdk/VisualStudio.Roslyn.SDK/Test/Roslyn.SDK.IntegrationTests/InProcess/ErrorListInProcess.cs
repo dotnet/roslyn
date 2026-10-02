@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
+            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken).ConfigureAwait(true);
             ((IVsErrorList)errorList).BringToFront();
 
             errorList.AreBuildErrorSourceEntriesShown = true;
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var errorItems = await GetErrorItemsAsync(cancellationToken);
+            var errorItems = await GetErrorItemsAsync(cancellationToken).ConfigureAwait(true);
             var list = new List<string>();
 
             foreach (var item in errorItems)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var errorItems = await GetErrorItemsAsync(cancellationToken);
+            var errorItems = await GetErrorItemsAsync(cancellationToken).ConfigureAwait(true);
             return errorItems.Count(e => e.GetCategory() <= minimumSeverity);
         }
 
@@ -105,8 +105,8 @@ namespace Microsoft.CodeAnalysis.Testing.InProcess
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken);
-            var args = await errorList.TableControl.ForceUpdateAsync();
+            var errorList = await GetRequiredGlobalServiceAsync<SVsErrorList, IErrorList>(cancellationToken).ConfigureAwait(true);
+            var args = await errorList.TableControl.ForceUpdateAsync().ConfigureAwait(true);
             return args.AllEntries.ToImmutableArray();
         }
     }

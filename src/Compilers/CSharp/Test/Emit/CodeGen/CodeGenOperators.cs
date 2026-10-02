@@ -3905,7 +3905,7 @@ False");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipCondition: typeof(DesktopOnly))]
         public void TestFloatNegativeZero()
         {
             var text = @"
@@ -3945,7 +3945,7 @@ Infinity");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipCondition: typeof(DesktopOnly))]
         public void TestDoubleNegativeZero()
         {
             var text = @"
@@ -3985,7 +3985,7 @@ Infinity");
         // NOTE: decimal doesn't have infinity, so we convert to double.
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [ConditionalFact(typeof(DesktopOnly))]
+        [ConditionalFact(skipCondition: typeof(DesktopOnly))]
         public void TestDecimalNegativeZero()
         {
             var text = @"
@@ -5313,7 +5313,7 @@ class test<T> where T : c0
 ");
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(skipCondition: typeof(NoIOperationValidation))]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_01()
         {
@@ -5373,7 +5373,7 @@ class Test
             return builder.ToString();
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(skipCondition: typeof(NoIOperationValidation))]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
         public void EmitSequenceOfBinaryExpressions_02()
@@ -5408,7 +5408,7 @@ class Test
             ControlFlowGraph.Create((IMethodBodyOperation)model.GetOperation(tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(m => m.Identifier.ValueText == "Calculate").Single()));
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
@@ -5469,7 +5469,7 @@ class Test
             return builder.ToString();
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_04()
         {
@@ -5503,7 +5503,7 @@ class Test
                 );
         }
 
-        [ConditionalFact(typeof(NoIOperationValidation))]
+        [ConditionalFact(skipCondition: typeof(NoIOperationValidation))]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_05()
         {
@@ -5556,7 +5556,7 @@ class Test
 5180801");
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428", AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46361")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428", AlwaysSkip = "https://github.com/dotnet/roslyn/issues/46361")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_06()
         {
@@ -5633,7 +5633,7 @@ struct S1
             return builder.ToString();
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
         [ValidatePooledObjects(LeakReason = "Deep binary expression tree overflows stack guard, leaking ArrayBuilder")]
         public void EmitSequenceOfBinaryExpressions_07()
@@ -5708,7 +5708,7 @@ struct S1
             Assert.True(passed);
         }
 
-        [ConditionalFact(typeof(ClrOnly), typeof(NoIOperationValidation), Reason = "https://github.com/dotnet/roslyn/issues/29428")]
+        [ConditionalFact(skipConditions: [typeof(ClrOnly), typeof(NoIOperationValidation)], Reason = "https://github.com/dotnet/roslyn/issues/29428")]
         [WorkItem(63689, "https://github.com/dotnet/roslyn/issues/63689")]
         public void EmitSequenceOfBinaryExpressions_08()
         {

@@ -30,7 +30,7 @@ namespace IdeBenchmarks.InheritanceMargin
         [IterationSetup]
         public void IterationSetup()
         {
-            _useExportProviderAttribute.Before(null);
+            _useExportProviderAttribute.Before(null, null!);
 
             var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName);
             var solutionPath = Path.Combine(roslynRoot, @"src\Tools\IdeCoreBenchmarks\Assets\Microsoft.CodeAnalysis.sln");
@@ -51,7 +51,7 @@ namespace IdeBenchmarks.InheritanceMargin
         [IterationCleanup]
         public void IterationCleanup()
         {
-            _useExportProviderAttribute.After(null);
+            _useExportProviderAttribute.After(null, null!);
         }
 
         [Benchmark]

@@ -4,7 +4,6 @@
 
 using System.IO;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.Sdk.UnitTests;
 

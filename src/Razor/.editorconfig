@@ -113,6 +113,9 @@ dotnet_diagnostic.RS0023.severity = error
 # xUnit1004: Test methods should not be skipped
 dotnet_diagnostic.xUnit1004.severity = refactoring
 
+# xUnit1051: Calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken
+dotnet_diagnostic.xUnit1051.severity = none
+
 # Non-private static fields are PascalCase
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.severity = suggestion
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.symbols = non_private_static_fields

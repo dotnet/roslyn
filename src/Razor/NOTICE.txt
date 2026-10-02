@@ -1987,7 +1987,7 @@ limitations under the License.
 
 ---------------------------------------------------------
 
-xunit 2.6.3 - Apache-2.0
+xunit.v3 4.0.0 - Apache-2.0
 
 
 Copyright (c) .NET Foundation
@@ -2311,7 +2311,7 @@ limitations under the License.
 
 ---------------------------------------------------------
 
-xunit.assert 2.6.3 - Apache-2.0
+xunit.v3.assert 4.0.0 - Apache-2.0
 
 
 Copyright (c) .NET Foundation
@@ -2419,7 +2419,7 @@ limitations under the License.
 
 ---------------------------------------------------------
 
-xunit.core 2.6.3 - Apache-2.0
+xunit.v3.core.mtp-off 4.0.0 - Apache-2.0
 
 
 Copyright (c) .NET Foundation
@@ -2526,7 +2526,7 @@ limitations under the License.
 
 ---------------------------------------------------------
 
-xunit.extensibility.core 2.6.3 - Apache-2.0
+xunit.v3.extensibility.core 4.0.0 - Apache-2.0
 
 
 Copyright (c) .NET Foundation
@@ -2636,7 +2636,7 @@ limitations under the License.
 
 ---------------------------------------------------------
 
-xunit.extensibility.execution 2.6.3 - Apache-2.0
+xunit.v3.runner.common 4.0.0 - Apache-2.0
 
 
 Copyright (c) .NET Foundation
@@ -2860,7 +2860,7 @@ limitations under the License.
 
 ---------------------------------------------------------
 
-xunit.runner.utility 2.4.1 - Apache-2.0
+xunit.v3.runner.utility 4.0.0 - Apache-2.0
 
 
 
@@ -5535,7 +5535,7 @@ This license governs use of the accompanying software. If you use the software, 
 
 ---------------------------------------------------------
 
-Xunit.StaFact 1.2.46-alpha - MS-PL
+Xunit.StaFact 4.0.23 - MS-PL
 
 
 (c) Andrew Arnott
@@ -5597,4 +5597,3 @@ CopyrightTableDirectory BoundImportTableDirectory DelayImportTableDirectory
 CopyrightAttributesNotFound DefaultArgumentAlreadyDefined DescriptionAttributesNotFound
 
 ---------------------------------------------------------
-

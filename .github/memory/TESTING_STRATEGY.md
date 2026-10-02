@@ -18,10 +18,13 @@ the one for your area):
 | Unit tests | Sibling `*Test` / `*.UnitTests` project next to the product project (e.g., `Workspaces/Core` ↔ `Workspaces/CoreTest`). |
 | Compiler tests | `src/Compilers/*/Test/`. |
 | IDE/analyzer tests | `*Test` projects under `src/Features`, `src/Analyzers`, `src/EditorFeatures`. |
+| RunTests tool tests | `src/Tools/RunTests.UnitTests/`; run with `dotnet test src/Tools/RunTests.UnitTests/RunTests.UnitTests.csproj`. |
 | Project-data tests | `src/ProjectData/Microsoft.NET.ProjectData{,.Generators,.Tasks}.Tests/`; assemblies use the `UnitTests` suffix. |
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
 
-Frameworks: xUnit with Roslyn test utilities.
+Frameworks: Unit and VS integration tests use xUnit v3 4.0.0 with the shared
+Roslyn/Razor test utilities. `eng/Packages.props` centralizes the xUnit v3
+package versions for both suites.
 
 ## Repo-wide Authoring Conventions
 
@@ -48,6 +51,12 @@ Frameworks: xUnit with Roslyn test utilities.
   attribute, e.g. `[Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`
   or `[Theory, WorkItem("https://github.com/dotnet/roslyn/issues/1234")]`.
   Use the originating GitHub issue/PR or Azure DevOps work item URL.
+- Custom xUnit v3 fact/theory attributes need public constructors with optional
+  `[CallerFilePath]` and `[CallerLineNumber]` parameters that forward to the
+  `FactAttribute`/`TheoryAttribute` base constructor. If an attribute retains
+  a variadic `params` conditions constructor, use a caller-aware overload for
+  commonly used positional condition forms; source parameters cannot follow
+  a `params` parameter.
 
 ## Running Tests
 
@@ -99,6 +108,62 @@ executable above its hosting runtime directory, so `--dotnet` is unnecessary.
 - A handful of tests fail only for environmental reasons:
   - `RuntimeHostInfoTests.DotNetInPath_Symlinked` requires symlink-creation privilege (run elevated).
   - `Workspaces.MSBuild` `NewlyCreatedProjectsFromDotNetNew.Validate*TemplateProjects` fail without mobile (ios/tvos/macos/maccatalyst) dotnet workloads installed.
+
+### xUnit v3 unit-test infrastructure
+
+Repo unit-test projects use xUnit v3 through `eng/targets/XUnit.targets`. Test
+projects build as executables for xUnit v3: `eng/targets/Settings.props` defaults
+`OutputType=Exe` when Arcade has set `IsTestProject=true`, so .NET Framework
+produces `.exe` and .NET Core keeps its default `.dll` (plus an app host). Test
+project files should not set `<OutputType>Library</OutputType>`; projects that set
+`IsTestProject=true` in their own body (too late for that default) must also set
+`<OutputType>Exe</OutputType>`. The test naming and discovery paths
+accept both where appropriate. The common target adds `xunit.v3.mtp-off`; Roslyn still uses VSTest
+rather than Microsoft.Testing.Platform for these tests. All projects importing
+this target use the centrally pinned xUnit v3 4.0.0 packages.
+
+The runner-only package references in `XUnit.targets` use `PrivateAssets="all"`.
+Keep them private so xUnit's `buildTransitive` entry-point targets do not flow
+through project references into non-test consumers such as benchmark projects.
+
+`TestDiscoveryWorker` references `xunit.v3.runner.utility` 4.0.0 for
+version-independent discovery. That official v3 runner package has a transitive
+`xunit.abstractions` 2.0.3 compatibility dependency so it can inspect v1/v2
+assemblies; it is not a test-framework-v2 consumer. `TestDiscoveryWorker` uses
+the default out-of-process front controller, so the discovered test assembly and
+its dependencies load in the test process rather than in `TestDiscoveryWorker`.
+`PrepareTests` sets `DOTNET_ROOT` and the current architecture's `DOTNET_ROOT_*`
+variable for the `TestDiscoveryWorker` process from the selected dotnet
+executable so the xUnit test apphost can locate the same runtime.
+Out-of-process discovery needs the test executable (`.exe` on .NET Framework, the
+`.dll` plus its `.exe` app host on .NET Core), so `PrepareTests` only discovers
+`*UnitTests`/`*IntegrationTests` `.exe` (net472) and `.dll` assemblies under
+`artifacts/bin/<project>` folders whose name contains `UnitTests` or
+`IntegrationTests` (matching RunTests' default include filter). Copies that a
+`ProjectReference` drops into non-test outputs (e.g. `IdeBenchmarks` referencing
+`Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests`) have no app host and
+are skipped.
+
+VS integration projects keep `IsTestProject=true` so `XUnit.targets` supplies
+their xUnit v3 package references and VSTest discovery works; see
+`testing/vs-integration-tests-xunit-v3.md`.
+
+### Shared test-infrastructure projects
+
+Unit tests and VS integration tests reference the same shared test-utility
+projects:
+
+| Shared utility project | Used by |
+|---|---|
+| `Compilers/Test/Core` (`Microsoft.CodeAnalysis.Test.Utilities`) | Compiler, IDE, SDK, Razor, and VS integration tests |
+| `Workspaces/CoreTestUtilities` (`Microsoft.CodeAnalysis.Workspaces.Test.Utilities`) | Workspace/IDE tests and `Microsoft.VisualStudio.LanguageServices.New.IntegrationTests` |
+| `Razor/src/Shared/Microsoft.AspNetCore.Razor.Test.Common` | Razor unit and integration test utilities |
+| `Razor/src/Razor/test/Microsoft.AspNetCore.Razor.Test.Common.Tooling` | Razor tooling/unit tests and `Microsoft.VisualStudio.Razor.IntegrationTests` |
+
+If an integration project needs access to internal members in a shared
+test-utility assembly, add the integration test assembly to that utility
+project's `InternalsVisibleTo` list. Do not create a new source-copied
+integration-only fork.
 
 ## CI
 

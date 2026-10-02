@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.IO;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {

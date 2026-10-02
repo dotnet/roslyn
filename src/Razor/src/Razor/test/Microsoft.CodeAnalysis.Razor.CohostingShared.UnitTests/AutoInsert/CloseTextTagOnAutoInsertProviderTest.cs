@@ -3,7 +3,6 @@
 
 using Microsoft.CodeAnalysis.Remote.Razor.AutoInsert;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.AspNetCore.Razor.LanguageServer.AutoInsert;
 

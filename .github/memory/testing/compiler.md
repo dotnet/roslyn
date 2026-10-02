@@ -39,3 +39,14 @@ public class MyTests : CSharpTestBase
   `Single()` instead of checking counts then indexing.
 - **Prefer raw string literals** (`"""..."""`) over verbatim strings (`@"..."`)
   for test source code.
+- **Localized command-line diagnostics**: when testing the translation itself,
+  compare messages using the corresponding `CodeAnalysisResources` format
+  string rather than hard-coded English punctuation.
+- **Command-line analyzer-config diagnostics** can contain localized resource
+  text even when the compiler requests English: `AnalyzerConfigSet` initializes
+  static descriptors with resource strings on first use. Whichever UI culture
+  first initializes the type wins for the rest of the process, so these warnings
+  do not consistently honor `/preferreduilang`. When testing the diagnostic
+  rather than its translation, assert its invariant ID and arguments on the
+  same output line instead of English message punctuation. `UseCulture` alone
+  cannot change descriptors already initialized under a different culture.
