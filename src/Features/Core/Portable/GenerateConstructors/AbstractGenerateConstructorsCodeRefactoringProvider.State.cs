@@ -25,6 +25,7 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
         public TextSpan TextSpan { get; private set; }
         public IMethodSymbol? MatchingConstructor { get; private set; }
         public IMethodSymbol? DelegatedConstructor { get; private set; }
+        public ImmutableArray<(IParameterSymbol? parameter, IParameterSymbol delegatedParameter)> DelegatedConstructorArguments { get; private set; }
         [NotNull]
         public INamedTypeSymbol? ContainingType { get; private set; }
         public ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrProperty)> Parameters { get; private set; }
@@ -72,11 +73,57 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
             var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
             Parameters = DetermineParameters(mappedMembers!, rules);
             MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(ContainingType, Parameters);
-            // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor, so
-            // parameters should be compared based on types since we don't want get a type mismatch error after the
-            // new constructor is generated.
-            DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(ContainingType, Parameters);
+
+            var primaryConstructor = ContainingType.InstanceConstructors.FirstOrDefault(static c => c.IsPrimaryConstructor());
+            if (primaryConstructor != null)
+            {
+                DelegatedConstructor = primaryConstructor;
+                DelegatedConstructorArguments = primaryConstructor.Parameters.SelectAsArray(
+                    p => (FindParameterForPrimaryConstructorParameter(p, Parameters, cancellationToken), p));
+            }
+            else
+            {
+                // We are going to create a new constructor and pass part of the parameters into DelegatedConstructor, so
+                // parameters should be compared based on types since we don't want get a type mismatch error after the
+                // new constructor is generated.
+                DelegatedConstructor = GetDelegatedConstructorBasedOnParameterTypes(ContainingType, Parameters);
+                DelegatedConstructorArguments = DelegatedConstructor == null
+                    ? []
+                    : Parameters.Take(DelegatedConstructor.Parameters.Length).Select(
+                        (p, i) => ((IParameterSymbol?)p.parameter, DelegatedConstructor.Parameters[i])).ToImmutableArray();
+            }
+
             return true;
+        }
+
+        private static IParameterSymbol? FindParameterForPrimaryConstructorParameter(
+            IParameterSymbol primaryConstructorParameter,
+            ImmutableArray<(IParameterSymbol parameter, ISymbol fieldOrProperty)> parameters,
+            CancellationToken cancellationToken)
+        {
+            var associatedProperty = primaryConstructorParameter.GetAssociatedSynthesizedRecordProperty(cancellationToken);
+            if (associatedProperty != null)
+            {
+                foreach (var (parameter, fieldOrProperty) in parameters)
+                {
+                    if (associatedProperty.Equals(fieldOrProperty, SymbolEqualityComparer.Default))
+                        return parameter;
+                }
+            }
+
+            if (!primaryConstructorParameter.ContainingType.IsRecord)
+            {
+                foreach (var (parameter, _) in parameters)
+                {
+                    if (primaryConstructorParameter.Name == parameter.Name &&
+                        primaryConstructorParameter.Type.Equals(parameter.Type, SymbolEqualityComparer.Default))
+                    {
+                        return parameter;
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static ISymbol? TryMapToWritableInstanceFieldOrProperty(
