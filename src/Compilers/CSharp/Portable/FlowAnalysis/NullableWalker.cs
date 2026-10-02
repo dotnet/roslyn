@@ -3994,6 +3994,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var collectionCreationCompletion = visitCollectionCreationArguments(node);
 
             var (collectionKind, targetElementType) = getCollectionDetails(node, node.Type);
+            node.HasSpreadElements(out _, out bool hasKnownLength);
 
             var resultBuilder = ArrayBuilder<VisitResult>.GetInstance(node.Elements.Length);
             var elementConversionCompletions = ArrayBuilder<Action<TypeWithAnnotations /*targetElementType*/, TypeSymbol /*targetCollectionType*/>>.GetInstance();
@@ -4187,7 +4188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         break;
                     case BoundCollectionExpressionSpreadElement spread:
-                        Visit(spread);
+                        VisitCollectionExpressionSpreadElement(spread, hasKnownLength);
                         if (targetElementType.HasType &&
                             spread.ElementPlaceholder is { } elementPlaceholder &&
                             spread.IteratorBody is { })
@@ -4307,13 +4308,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
         {
+            return VisitCollectionExpressionSpreadElement(node, hasKnownLength: false);
+        }
+
+        private BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node, bool hasKnownLength)
+        {
             VisitRvalue(node.Expression);
 
             if (node.Conversion is BoundConversion { Conversion: var conversion })
             {
                 Debug.Assert(node.ExpressionPlaceholder is { });
                 Debug.Assert(node.EnumeratorInfoOpt is { });
-                AddPlaceholderReplacement(node.ExpressionPlaceholder, node.Expression, _visitResult);
+                var expressionResult = _visitResult;
+                AddPlaceholderReplacement(node.ExpressionPlaceholder, node.Expression, expressionResult);
+                Debug.Assert(!hasKnownLength || node.LengthOrCount is { });
+                if (hasKnownLength && node.LengthOrCount is { } lengthOrCount)
+                {
+                    VisitRvalue(lengthOrCount);
+                    RemovePlaceholderReplacement(node.ExpressionPlaceholder);
+                    AddPlaceholderReplacement(node.ExpressionPlaceholder, node.Expression,
+                        new VisitResult(expressionResult.RValueType.WithNotNullState(), expressionResult.LValueType));
+                }
                 VisitForEachExpression(
                     node,
                     node.Conversion,
