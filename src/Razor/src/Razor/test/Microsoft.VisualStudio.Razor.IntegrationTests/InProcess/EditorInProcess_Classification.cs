@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
@@ -39,22 +40,15 @@ internal partial class EditorInProcess
         var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
         var classifier = await GetClassifierAsync(textView, cancellationToken);
 
-        using var semaphore = new SemaphoreSlim(1);
-        await semaphore.WaitAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         classifier.ClassificationChanged += Classifier_ClassificationChanged;
 
-        // Check that we're not ALREADY changed
-        if (HasClassification(classifier, textView, expectedClassification, count, exact))
-        {
-            semaphore.Release();
-            classifier.ClassificationChanged -= Classifier_ClassificationChanged;
-            return;
-        }
-
         try
         {
-            await semaphore.WaitAsync(cancellationToken);
+            CompleteIfResolved();
+            await completionSource.Task.WithCancellation(cancellationToken);
         }
         finally
         {
@@ -62,10 +56,13 @@ internal partial class EditorInProcess
         }
 
         void Classifier_ClassificationChanged(object sender, ClassificationChangedEventArgs e)
+            => CompleteIfResolved();
+
+        void CompleteIfResolved()
         {
             if (HasClassification(classifier, textView, expectedClassification, count, exact))
             {
-                semaphore.Release();
+                completionSource.TrySetResult(true);
             }
         }
 

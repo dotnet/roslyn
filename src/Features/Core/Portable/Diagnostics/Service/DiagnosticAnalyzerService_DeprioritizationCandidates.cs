@@ -57,36 +57,7 @@ internal sealed partial class DiagnosticAnalyzerService
                         project, analyzers, GetOrCreateHostAnalyzerInfo_OnlyCallInProcess(project), this.CrashOnAnalyzerException, cancellationToken).ConfigureAwait(false);
                 }
 
-                // Concurrent cache misses can create multiple candidate lazies, but only the lazy stored in the
-                // ConditionalWeakTable is evaluated. ExecutionAndPublication then ensures that every request through
-                // that lazy shares the same task.
-#pragma warning disable VSTHRD011 // The value factory only queues work; callers never synchronously wait on its task.
-                var createdLazy = new Lazy<Task<ImmutableHashSet<string>?>>(
-                    () => Task.Run(
-                        () => ComputeDeprioritizedDiagnosticIdsAsync(analyzer),
-                        CancellationToken.None),
-                    LazyThreadSafetyMode.ExecutionAndPublication);
-#pragma warning restore VSTHRD011 // The value factory only queues work; callers never synchronously wait on its task.
-                lazyDeprioritizedIds = s_analyzerToDeprioritizedDiagnosticIds.GetValue(analyzer, _ => createdLazy);
-
-                if (ReferenceEquals(lazyDeprioritizedIds, createdLazy))
-                {
-                    var createdComputationTask = GetLazyValueAsync(createdLazy, CancellationToken.None);
-                    _ = createdComputationTask.ContinueWith(
-                        task =>
-                        {
-                            // The exception was already reported inside the computation. If every caller canceled its
-                            // wait, nobody else will observe the shared task's fault, so observe it here. Remove any
-                            // faulted or canceled computation so a later lookup can retry.
-                            if (task.IsFaulted)
-                                _ = task.Exception;
-
-                            s_analyzerToDeprioritizedDiagnosticIds.Remove(analyzer);
-                        },
-                        CancellationToken.None,
-                        TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
-                        TaskScheduler.Default);
-                }
+                lazyDeprioritizedIds = GetOrCreateDeprioritizedDiagnosticIds(analyzer, compilationWithAnalyzers);
             }
 
             var deprioritizedIds = await GetLazyValueAsync(lazyDeprioritizedIds, cancellationToken).ConfigureAwait(false);
@@ -101,8 +72,42 @@ internal sealed partial class DiagnosticAnalyzerService
         }
 
         return false;
+    }
 
-        async Task<ImmutableHashSet<string>?> ComputeDeprioritizedDiagnosticIdsAsync(DiagnosticAnalyzer analyzer)
+    private static Lazy<Task<ImmutableHashSet<string>?>> GetOrCreateDeprioritizedDiagnosticIds(
+        DiagnosticAnalyzer analyzer, CompilationWithAnalyzers? compilationWithAnalyzers)
+    {
+        // Keep the captures in this helper so cache hits don't allocate closures.
+        // Concurrent cache misses can create multiple candidate lazies, but only the lazy stored in the
+        // ConditionalWeakTable is evaluated. ExecutionAndPublication then ensures that every request through
+        // that lazy shares the same task.
+#pragma warning disable VSTHRD011 // The value factory only queues work; callers never synchronously wait on its task.
+        var createdLazy = new Lazy<Task<ImmutableHashSet<string>?>>(
+            () => Task.Run(
+                () => ComputeDeprioritizedDiagnosticIdsAsync(analyzer, compilationWithAnalyzers),
+                CancellationToken.None),
+            LazyThreadSafetyMode.ExecutionAndPublication);
+#pragma warning restore VSTHRD011 // The value factory only queues work; callers never synchronously wait on its task.
+        var lazyDeprioritizedIds = s_analyzerToDeprioritizedDiagnosticIds.GetValue(analyzer, _ => createdLazy);
+
+        if (ReferenceEquals(lazyDeprioritizedIds, createdLazy))
+        {
+            var createdComputationTask = GetLazyValueAsync(createdLazy, CancellationToken.None);
+            _ = createdComputationTask.ContinueWith(
+                _ =>
+                {
+                    // Remove any faulted or canceled computation so a later lookup can retry.
+                    s_analyzerToDeprioritizedDiagnosticIds.Remove(analyzer);
+                },
+                CancellationToken.None,
+                TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously,
+                TaskScheduler.Default);
+        }
+
+        return lazyDeprioritizedIds;
+
+        static async Task<ImmutableHashSet<string>?> ComputeDeprioritizedDiagnosticIdsAsync(
+            DiagnosticAnalyzer analyzer, CompilationWithAnalyzers? compilationWithAnalyzers)
         {
             try
             {

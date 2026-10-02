@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.LanguageServer.Protocol;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
+namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
 [Export(typeof(IDiagnosticSourceProvider)), Shared]
 [method: ImportingConstructor]

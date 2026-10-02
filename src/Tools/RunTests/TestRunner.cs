@@ -71,9 +71,7 @@ namespace RunTests
 
         internal async Task<RunAllResult> RunAllAsync(ImmutableArray<AssemblyInfo> assemblies, CancellationToken cancellationToken)
         {
-            // Use 1.5 times the number of processors for unit tests, but only 1 processor for the open integration tests
-            // since they perform actual UI operations (such as mouse clicks and sending keystrokes) and we don't want two
-            // tests to conflict with one-another.
+            // Limit concurrency to one only when sequential execution is explicitly requested.
             var max = _options.Sequential ? 1 : (int)(Environment.ProcessorCount * 1.5);
             var workItems = CreateWorkItemsForFullAssemblies(assemblies);
             var waiting = new Stack<WorkItemInfo>(workItems);

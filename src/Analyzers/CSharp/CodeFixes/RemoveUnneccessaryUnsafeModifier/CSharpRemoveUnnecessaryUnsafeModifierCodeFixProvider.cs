@@ -11,8 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -25,6 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryUnsafeModifier;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : CodeFixProvider
 {
+    private const string AddSafetyCommentEquivalenceKey = nameof(AddSafetyCommentEquivalenceKey);
+
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveUnnecessaryUnsafeModifier];
 
     public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
@@ -34,6 +38,16 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
             cancellationToken => FixAllAsync(context.Document, context.Diagnostics, cancellationToken),
             nameof(AnalyzersResources.Remove_unnecessary_unsafe_modifier)),
             context.Diagnostics);
+
+        var compilation = await context.Document.Project.GetRequiredCompilationAsync(context.CancellationToken).ConfigureAwait(false);
+        if (compilation.SourceModule.MemorySafetyRulesVersion is MemorySafetyRulesVersion.Version2)
+        {
+            context.RegisterCodeFix(CodeAction.Create(
+                CSharpCodeFixesResources.Add_safety_documentation,
+                cancellationToken => AddSafetyCommentsAsync(context.Document, context.Diagnostics, cancellationToken),
+                AddSafetyCommentEquivalenceKey),
+                context.Diagnostics);
+        }
     }
 
     private static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
@@ -45,6 +59,103 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
         FixAll(editor, diagnostics.Select(static d => d.AdditionalLocations[0].SourceSpan));
 
         return document.WithSyntaxRoot(editor.GetChangedRoot());
+    }
+
+    private static async Task<Document> AddSafetyCommentsAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var options = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
+        var editor = new SyntaxEditor(root, document.Project.Solution.Services);
+        foreach (var diagnostic in diagnostics)
+        {
+            var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
+            editor.ReplaceNode(node, EnsureSafetyComment(node, sourceText, options.NewLine));
+        }
+
+        return document.WithSyntaxRoot(editor.GetChangedRoot());
+    }
+
+    private static SyntaxNode EnsureSafetyComment(SyntaxNode node, SourceText sourceText, string newLine)
+    {
+        var leadingTrivia = node.GetLeadingTrivia();
+        for (var i = leadingTrivia.Count - 1; i >= 0; i--)
+        {
+            var trivia = leadingTrivia[i];
+            if (trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationComment &&
+                documentationComment.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+            {
+                // Insert the safety element into the existing /** */ comment before its closing delimiter.
+                return node.WithLeadingTrivia(leadingTrivia.Replace(trivia, AddSafetyElementToExistingDocComment(trivia, newLine)));
+            }
+        }
+
+        // Otherwise, add a new /// documentation comment before the declaration.
+        var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.SpanStart);
+        var safetyComment = SyntaxFactory.ParseLeadingTrivia($"/// <safety></safety>{newLine}").Single();
+        var newLeadingTrivia = SyntaxFactory.TriviaList(
+            SyntaxFactory.Whitespace(indentation),
+            safetyComment);
+
+        var insertionIndex = leadingTrivia.Count;
+
+        if (leadingTrivia.Count > 0 && leadingTrivia[^1].IsKind(SyntaxKind.WhitespaceTrivia))
+            insertionIndex--;
+
+        return node.WithLeadingTrivia(leadingTrivia.InsertRange(insertionIndex, newLeadingTrivia));
+    }
+
+    private static SyntaxTrivia AddSafetyElementToExistingDocComment(SyntaxTrivia documentationComment, string newLine)
+    {
+        var text = documentationComment.ToFullString();
+        var closingDelimiterIndex = text.LastIndexOf("*/", StringComparison.Ordinal);
+
+        // For a comment contained entirely on one line, insert the element directly before the closing delimiter.
+        // Preserve an existing space before the delimiter and add one after the new element.
+        var closingLineStart = text.LastIndexOf('\n', closingDelimiterIndex) + 1;
+        if (closingLineStart == 0)
+        {
+            var leadingSpace = closingDelimiterIndex > 0 && char.IsWhiteSpace(text[closingDelimiterIndex - 1])
+                ? ""
+                : " ";
+            var updatedSingleLineText = text.Insert(closingDelimiterIndex, $"{leadingSpace}<safety></safety> ");
+            return SyntaxFactory.ParseLeadingTrivia(updatedSingleLineText)
+                .Single(static trivia => trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
+        }
+
+        // The closing delimiter is on its own line. Look at the preceding content line to determine the comment's
+        // indentation and whether each line starts with an asterisk.
+        var previousLineEnd = closingLineStart - 1;
+
+        // Exclude the carriage return when the comment uses CRLF line endings.
+        if (previousLineEnd > 0 && text[previousLineEnd - 1] == '\r')
+            previousLineEnd--;
+
+        var previousLineStart = previousLineEnd > 0
+            ? text.LastIndexOf('\n', previousLineEnd - 1) + 1
+            : 0;
+        var previousLine = text[previousLineStart..previousLineEnd];
+
+        // Capture the whitespace before the previous line's content. If the line starts with an asterisk, also
+        // capture that asterisk and its following space so the new element matches the existing comment style.
+        var contentStart = 0;
+        while (contentStart < previousLine.Length && char.IsWhiteSpace(previousLine[contentStart]))
+            contentStart++;
+
+        var prefixLength = contentStart;
+        if (contentStart < previousLine.Length && previousLine[contentStart] == '*')
+        {
+            prefixLength++;
+            if (prefixLength < previousLine.Length && previousLine[prefixLength] == ' ')
+                prefixLength++;
+        }
+
+        var prefix = previousLine[..prefixLength];
+        var updatedText = text.Insert(closingLineStart, $"{prefix}<safety></safety>{newLine}");
+        return SyntaxFactory.ParseLeadingTrivia(updatedText)
+            .Single(static trivia => trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
     }
 
     private static void FixAll(SyntaxEditor editor, IEnumerable<TextSpan> spans)
@@ -71,7 +182,17 @@ internal sealed class CSharpRemoveUnnecessaryUnsafeModifierCodeFixProvider() : C
     }
 
     public override FixAllProvider? GetFixAllProvider()
-        => new RemoveUnnecessaryUnsafeModifierSuppressionsFixAllProvider();
+        => new RemoveUnnecessaryUnsafeModifierFixAllProvider();
+
+    private sealed class RemoveUnnecessaryUnsafeModifierFixAllProvider : FixAllProvider
+    {
+        private readonly RemoveUnnecessaryUnsafeModifierSuppressionsFixAllProvider _removeUnsafeFixAllProvider = new();
+
+        public override Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
+            => fixAllContext.CodeActionEquivalenceKey == AddSafetyCommentEquivalenceKey
+                ? WellKnownFixAllProviders.BatchFixer.GetFixAsync(fixAllContext)
+                : _removeUnsafeFixAllProvider.GetFixAsync(fixAllContext);
+    }
 
     /// <summary>
     /// Fix-all for removing unnecessary `unsafe` modifiers works in a fairly specialized fashion.  The core problem is

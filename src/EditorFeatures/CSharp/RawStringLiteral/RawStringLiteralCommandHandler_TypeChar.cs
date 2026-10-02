@@ -61,6 +61,8 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         if (textChangeOpt is not TextChange textChange)
             return false;
 
+        Contract.ThrowIfNull(textChange.NewText);
+
         // Looks good.  First, let the quote get added by the normal type char handlers.  Then make our text change.
         // We do this in two steps so that undo can work properly.
         nextCommandHandler();
