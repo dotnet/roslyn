@@ -1970,6 +1970,50 @@ public sealed class SymbolEquivalenceComparerTests
         Assert.True(identityComparer.Equals(f1[3], f2[3]));
     }
 
+    [Fact]
+    public void TestPartialParts()
+    {
+        var source = """
+            partial class C
+            {
+                partial void M();
+                partial void M() { }
+
+                public partial int P { get; }
+                public partial int P => 0;
+
+                public partial event System.Action E;
+                public partial event System.Action E { add { } remove { } }
+            }
+            """;
+
+        var compilation = (Compilation)CS.CSharpCompilation.Create(
+            "comp",
+            [CS.CSharpSyntaxTree.ParseText(source, CS.CSharpParseOptions.Default.WithLanguageVersion(CS.LanguageVersion.Preview))],
+            [NetFramework.mscorlib],
+            CSharpDllOptions);
+        var type = compilation.GetTypeByMetadataName("C");
+        var ignorePartialParts = SymbolEquivalenceComparer.Instance.With(distinguishPartialParts: false);
+
+        var definitionParts = type.GetMembers().Where(m => m.Name is "M" or "P" or "E").ToArray();
+        Assert.Equal(3, definitionParts.Length);
+        foreach (var definitionPart in definitionParts)
+        {
+            ISymbol implementationPart = definitionPart switch
+            {
+                IMethodSymbol method => method.PartialImplementationPart,
+                IPropertySymbol property => property.PartialImplementationPart,
+                IEventSymbol @event => @event.PartialImplementationPart,
+                _ => null,
+            };
+            Assert.NotNull(implementationPart);
+
+            Assert.False(SymbolEquivalenceComparer.Instance.Equals(definitionPart, implementationPart));
+            Assert.True(ignorePartialParts.Equals(definitionPart, implementationPart));
+            Assert.Equal(ignorePartialParts.GetHashCode(definitionPart), ignorePartialParts.GetHashCode(implementationPart));
+        }
+    }
+
     private static void TestReducedExtension<TInvocation>(Compilation comp1, Compilation comp2, string typeName, string methodName)
         where TInvocation : SyntaxNode
     {

@@ -118,8 +118,8 @@ internal sealed partial class SymbolEquivalenceComparer
             }
 
             currentHash =
-                Hash.Combine(IsPartialMethodImplementationPart(x),
-                Hash.Combine(IsPartialMethodDefinitionPart(x),
+                Hash.Combine(_symbolEquivalenceComparer.IsPartialMethodImplementationPart(x),
+                Hash.Combine(_symbolEquivalenceComparer.IsPartialMethodDefinitionPart(x),
                 Hash.Combine(x.IsDefinition,
                 Hash.Combine(IsConstructedFromSelf(x),
                 Hash.Combine(x.Arity,
@@ -245,8 +245,8 @@ internal sealed partial class SymbolEquivalenceComparer
                 Hash.Combine(x.IsIndexer,
                 Hash.Combine(x.Name,
                 Hash.Combine(x.Parameters.Length,
-                Hash.Combine(IsPartialPropertyImplementationPart(x),
-                Hash.Combine(IsPartialPropertyDefinitionPart(x),
+                Hash.Combine(_symbolEquivalenceComparer.IsPartialPropertyImplementationPart(x),
+                Hash.Combine(_symbolEquivalenceComparer.IsPartialPropertyDefinitionPart(x),
                 GetHashCode(x.ContainingSymbol, currentHash))))));
 
             return CombineHashCodes(x.Parameters, currentHash, _parameterAggregator);
@@ -256,8 +256,8 @@ internal sealed partial class SymbolEquivalenceComparer
         {
             return
                 Hash.Combine(x.Name,
-                Hash.Combine(IsPartialEventImplementationPart(x),
-                Hash.Combine(IsPartialEventDefinitionPart(x),
+                Hash.Combine(_symbolEquivalenceComparer.IsPartialEventImplementationPart(x),
+                Hash.Combine(_symbolEquivalenceComparer.IsPartialEventDefinitionPart(x),
                 GetHashCode(x.ContainingSymbol, currentHash))));
         }
 
