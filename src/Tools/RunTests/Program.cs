@@ -24,7 +24,7 @@ namespace RunTests
 
         internal static async Task<int> Main(string[] args)
         {
-            if (args.Length > 0 && args[0] == "--dump-process")
+            if (args is ["--dump-process", ..])
                 return DumpCollector.RunHelper(args);
 
             Logger.Log("RunTest command line");
