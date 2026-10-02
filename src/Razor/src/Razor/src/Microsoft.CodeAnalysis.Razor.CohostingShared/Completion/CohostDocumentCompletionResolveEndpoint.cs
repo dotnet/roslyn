@@ -1,30 +1,25 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Completion.Delegation;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 #pragma warning disable RS0030 // Do not use banned APIs
-#if !VSCODE
-// Visual Studio requires us to register for every method name, VS Code correctly realises that if you
-// register for code actions, and say you have resolve support, then registering for resolve is unnecessary.
-// In fact it's an error.
-[Export(typeof(IDynamicRegistrationProvider))]
-#endif
 [Shared]
 [CohostEndpoint(Methods.TextDocumentCompletionResolveName)]
 [ExportRazorStatelessLspService(typeof(CohostDocumentCompletionResolveEndpoint))]
@@ -34,16 +29,18 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
     IIncompatibleProjectService incompatibleProjectService,
     CompletionListCache completionListCache,
     IRemoteServiceInvoker remoteServiceInvoker,
+    IClientSettingsManager clientSettingsManager,
     IHtmlRequestInvoker requestInvoker,
     IClientCapabilitiesService clientCapabilitiesService,
 #pragma warning disable RS0030 // Do not use banned APIs
     [Import(AllowDefault = true)] ISnippetCompletionItemProvider? snippetCompletionItemProvider,
 #pragma warning restore RS0030 // Do not use banned APIs
     ILoggerFactory loggerFactory)
-    : AbstractCohostDocumentEndpoint<VSInternalCompletionItem, VSInternalCompletionItem?>(incompatibleProjectService), IDynamicRegistrationProvider
+    : AbstractCohostDocumentEndpoint<VSInternalCompletionItem, VSInternalCompletionItem?>(incompatibleProjectService)
 {
     private readonly CompletionListCache _completionListCache = completionListCache;
     private readonly IRemoteServiceInvoker _remoteServiceInvoker = remoteServiceInvoker;
+    private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly IHtmlRequestInvoker _requestInvoker = requestInvoker;
     private readonly IClientCapabilitiesService _clientCapabilitiesService = clientCapabilitiesService;
     private readonly ISnippetCompletionItemProvider? _snippetCompletionItemProvider = snippetCompletionItemProvider;
@@ -52,23 +49,6 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
     protected override bool MutatesSolutionState => false;
 
     protected override bool RequiresLSPSolution => true;
-
-    public ImmutableArray<Registration> GetRegistrations(VSInternalClientCapabilities clientCapabilities, RequestContext requestContext)
-    {
-        if (clientCapabilities.TextDocument?.Completion?.DynamicRegistration is true)
-        {
-            return [new Registration()
-            {
-                Method = Methods.TextDocumentCompletionResolveName,
-                RegisterOptions = new CompletionRegistrationOptions()
-                {
-                    ResolveProvider = true
-                }
-            }];
-        }
-
-        return [];
-    }
 
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalCompletionItem request)
     {
@@ -80,9 +60,19 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         return null;
     }
 
-    protected override async Task<VSInternalCompletionItem?> HandleRequestAsync(
+    protected override Task<VSInternalCompletionItem?> HandleRequestAsync(
         VSInternalCompletionItem completionItem,
         TextDocument razorDocument,
+        CancellationToken cancellationToken)
+    {
+        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
+        return HandleRequestAsync(completionItem, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
+    }
+
+    private async Task<VSInternalCompletionItem?> HandleRequestAsync(
+        VSInternalCompletionItem completionItem,
+        TextDocument razorDocument,
+        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -135,8 +125,11 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
                 return completionItem;
             }
         }
-
         // Couldn't find an associated completion list, so its either Razor or C#. Either way, over to OOP
+        var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions() with
+        {
+            CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
+        };
         var result = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, VSInternalCompletionItem>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken)
@@ -144,6 +137,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
                     solutionInfo,
                     razorDocument.Id,
                     completionItem,
+                    formattingOptions,
                     cancellationToken),
             cancellationToken).ConfigureAwait(false);
 

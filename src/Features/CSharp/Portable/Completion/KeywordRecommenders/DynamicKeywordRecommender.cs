@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using CSharpCompletionUtilities = Microsoft.CodeAnalysis.CSharp.Completion.Providers.CompletionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
@@ -69,6 +70,5 @@ internal sealed class DynamicKeywordRecommender : IKeywordRecommender<CSharpSynt
     }
 
     private static bool IsAfterRefTypeContext(CSharpSyntaxContext context)
-        => context.TargetToken.Kind() is SyntaxKind.RefKeyword or SyntaxKind.ReadOnlyKeyword &&
-           context.TargetToken.Parent.IsKind(SyntaxKind.RefType);
+        => CSharpCompletionUtilities.IsAfterRefTypeContext(context.TargetToken);
 }

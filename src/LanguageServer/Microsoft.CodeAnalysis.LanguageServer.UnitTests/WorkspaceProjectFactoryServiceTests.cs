@@ -3,7 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
@@ -23,6 +25,7 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
         var serviceBrokerFactory = testLspServer.GetRequiredLspService<ServiceBrokerFactory>();
         var projectTargetFrameworkManager = testLspServer.GetRequiredLspService<ProjectTargetFrameworkManager>();
         var clientLanguageServerManager = testLspServer.GetRequiredLspService<IClientLanguageServerManager>();
+        var requestTelemetryLogger = (VSCodeRequestTelemetryLogger)testLspServer.GetRequiredLspService<RequestTelemetryLogger>();
         var container = await serviceBrokerFactory.CreateAsync(workspaceFactory.HostWorkspace);
 
         var workspaceProjectFactoryService = new WorkspaceProjectFactoryService(
@@ -31,8 +34,10 @@ public sealed class WorkspaceProjectFactoryServiceTests(ITestOutputHelper testOu
             new ProjectInitializationHandler(
                 clientLanguageServerManager,
                 container.GetFullAccessServiceBroker(),
-                loggerFactory),
-            loggerFactory);
+                loggerFactory,
+                requestTelemetryLogger),
+            loggerFactory,
+            requestTelemetryLogger);
         using var workspaceProject = await workspaceProjectFactoryService.CreateAndAddProjectAsync(
             new WorkspaceProjectCreationInfo(LanguageNames.CSharp, "DisplayName", FilePath: null, new Dictionary<string, string>()),
             CancellationToken.None);

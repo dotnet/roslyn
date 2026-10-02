@@ -57,6 +57,7 @@ namespace Roslyn.Utilities
 #else
             if (!condition)
             {
+#pragma warning disable RS0030 // Do not use banned APIs
                 if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("HELIX_DUMP_FOLDER")))
                 {
                     message ??= $"{nameof(AssertOrFailFast)} failed";
@@ -74,6 +75,7 @@ namespace Roslyn.Utilities
                     Debug.Assert(false, message);
                 }
             }
+#pragma warning restore RS0030 // Do not use banned APIs
 #endif
         }
 

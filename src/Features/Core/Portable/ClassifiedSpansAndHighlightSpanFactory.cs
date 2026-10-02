@@ -44,7 +44,7 @@ internal static class ClassifiedSpansAndHighlightSpanFactory
     private static TextSpan GetLineSpanForReference(SourceText sourceText, TextSpan referenceSpan)
     {
         var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
-        var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
+        var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition() ?? sourceLine.Start;
 
         // Get the span of the line from the first non-whitespace character to the end of it. Note: the reference
         // span might actually start in the leading whitespace of the line (nothing prevents any of our

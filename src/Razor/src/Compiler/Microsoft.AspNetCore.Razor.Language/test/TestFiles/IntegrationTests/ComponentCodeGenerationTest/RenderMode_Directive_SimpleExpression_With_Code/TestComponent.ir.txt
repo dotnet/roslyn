@@ -9,8 +9,6 @@
             IntermediateToken -  - CSharp - [global::Test.TestComponent.__PrivateComponentRenderModeAttribute]
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
-            CSharpCode - (91:3,1 [55] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (91:3,1 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public int Count { get; set; }\n
             ClassDeclaration -  - private sealed - __PrivateComponentRenderModeAttribute - global::Microsoft.AspNetCore.Components.RenderModeAttribute - 
                 CSharpCode - 
                     IntermediateToken -  - CSharp - private static global::Microsoft.AspNetCore.Components.IComponentRenderMode ModeImpl => 

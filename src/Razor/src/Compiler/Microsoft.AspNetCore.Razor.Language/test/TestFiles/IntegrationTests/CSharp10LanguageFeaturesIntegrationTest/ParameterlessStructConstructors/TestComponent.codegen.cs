@@ -19,23 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(11,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public struct Counter
-    {
-        public int Value { get; }
-    
-        public Counter()
-        {
-            Value = 1;
-        }
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

@@ -21,7 +21,20 @@ internal static class FormattingRangeHelper
     {
         Contract.ThrowIfTrue(endToken.Kind() == SyntaxKind.None);
 
-        return FixupOpenBrace(FindAppropriateRangeWorker(endToken, useDefaultRange));
+        var tokenRange = FixupOpenBrace(FindAppropriateRangeWorker(endToken, useDefaultRange));
+        if (!tokenRange.HasValue || tokenRange.Value.Item2 == endToken)
+            return tokenRange;
+
+        var previousToken = tokenRange.Value.Item2.GetPreviousToken(includeZeroWidth: true);
+        if (!previousToken.IsMissing ||
+            AreTwoTokensOnSameLine(previousToken, tokenRange.Value.Item2))
+        {
+            return tokenRange;
+        }
+
+        // Since this range was expanded past the token that triggered formatting, that token provides a preceding
+        // non-missing token in the same syntax tree.
+        return ValueTuple.Create(tokenRange.Value.Item1, previousToken.GetPreviousToken());
     }
 
     private static ValueTuple<SyntaxToken, SyntaxToken>? FixupOpenBrace(ValueTuple<SyntaxToken, SyntaxToken>? tokenRange)

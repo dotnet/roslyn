@@ -6040,6 +6040,26 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
                 {WorkspacesResources.Variables_captured_colon} this, i
                 """));
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84988")]
+    public Task QuickInfoCapturesOnLocalFunctionWithDefaultParameter()
+        => TestAsync("""
+
+            class C
+            {
+                void M(int x = 1)
+                {
+                    void local$$()
+                    {
+                        x++;
+                    }
+                }
+            }
+            """,
+            Captures($"""
+
+                {WorkspacesResources.Variables_captured_colon} x
+                """));
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23307")]
     public Task QuickInfoCapturesOnLocalFunction2()
         => TestAsync("""

@@ -329,10 +329,22 @@
     "wellformed-html": {
       "patterns": [
         {
+          "include": "#html-embedded-content-tag"
+        },
+        {
           "include": "#void-tag"
         },
         {
           "include": "#non-void-tag"
+        }
+      ]
+    },
+    "html-embedded-content-tag": {
+      "begin": "(?i)(?=<(?:script|style)\\b(?!-))",
+      "end": "(?!\\G)",
+      "patterns": [
+        {
+          "include": "text.html.basic"
         }
       ]
     },

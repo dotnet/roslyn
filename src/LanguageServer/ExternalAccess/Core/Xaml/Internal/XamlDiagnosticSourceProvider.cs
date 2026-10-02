@@ -25,14 +25,14 @@ internal sealed class XamlDiagnosticSourceProvider([Import(AllowDefault = true)]
 
     bool IDiagnosticSourceProvider.IsEnabled(ClientCapabilities clientCapabilities) => true;
 
-    ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
+    async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (xamlDiagnosticSource != null && context.TextDocument is { } document &&
+        if (xamlDiagnosticSource != null && await context.GetTextDocumentAsync(cancellationToken).ConfigureAwait(false) is { } document &&
             document.Project.GetAdditionalDocument(document.Id) != null)
         {
-            return new([new XamlDiagnosticSource(xamlDiagnosticSource, document)]);
+            return [new XamlDiagnosticSource(xamlDiagnosticSource, document)];
         }
 
-        return new([]);
+        return [];
     }
 }

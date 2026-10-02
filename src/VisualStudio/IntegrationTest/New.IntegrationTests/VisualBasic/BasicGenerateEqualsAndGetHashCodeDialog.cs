@@ -21,7 +21,7 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
     {
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task VerifyCodeRefactoringOfferedAndCanceled()
     {
         await SetUpEditorAsync("""
@@ -52,7 +52,7 @@ public class BasicGenerateEqualsAndGetHashCodeDialog : AbstractEditorTest
             """, actualText);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85737")]
     public async Task VerifyCodeRefactoringOfferedAndAccepted()
     {
         await SetUpEditorAsync("""

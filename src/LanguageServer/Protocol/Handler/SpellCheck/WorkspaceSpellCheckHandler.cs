@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.LanguageServer.Protocol;
@@ -28,13 +29,11 @@ internal sealed class WorkspaceSpellCheckHandler : AbstractSpellCheckHandler<VSI
     protected override ImmutableArray<PreviousPullResult>? GetPreviousResults(VSInternalWorkspaceSpellCheckableParams requestParams)
         => requestParams.PreviousResults?.Where(d => d.PreviousResultId != null).SelectAsArray(d => new PreviousPullResult(d.PreviousResultId!, d.TextDocument!));
 
-    protected override ImmutableArray<Document> GetOrderedDocuments(RequestContext context, CancellationToken cancellationToken)
+    protected override async ValueTask<ImmutableArray<Document>> GetOrderedDocumentsAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         using var _ = ArrayBuilder<Document>.GetInstance(out var result);
-
-        var solution = context.Solution;
 
         var documentTrackingService = solution.Services.GetRequiredService<IDocumentTrackingService>();
 

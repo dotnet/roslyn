@@ -12,5 +12,3 @@
                         HtmlAttribute - (15:1,8 [21] x:\dir\subdir\Test\TestComponent.cshtml) -  @bind=" - "
                             CSharpExpressionAttributeValue - (23:1,16 [12] x:\dir\subdir\Test\TestComponent.cshtml) - 
                                 LazyIntermediateToken - (24:1,17 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentValue
-            CSharpCode - (54:3,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (54:3,7 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "hi";\n

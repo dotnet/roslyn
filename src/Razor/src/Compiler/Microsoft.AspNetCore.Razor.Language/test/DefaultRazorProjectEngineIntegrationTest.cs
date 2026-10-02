@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Collections.Immutable;
@@ -87,7 +87,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var csharpDocument = codeDocument.GetRequiredCSharpDocument();
+        var csharpDocument = codeDocument.GetRequiredImplCSharpDocument();
         Assert.NotNull(csharpDocument);
         Assert.Empty(csharpDocument.Diagnostics);
     }
@@ -107,7 +107,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        Assert.Empty(codeDocument.GetRequiredCSharpDocument().Diagnostics);
+        Assert.Empty(codeDocument.GetRequiredImplCSharpDocument().Diagnostics);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/12810")]
@@ -125,7 +125,7 @@ public class DefaultRazorProjectEngineIntegrationTest
         var codeDocument = projectEngine.Process(projectItem);
 
         // Assert
-        var diagnostic = Assert.Single(codeDocument.GetRequiredCSharpDocument().Diagnostics);
+        var diagnostic = Assert.Single(codeDocument.GetRequiredImplCSharpDocument().Diagnostics);
         Assert.Equal("RZ1022", diagnostic.Id);
         Assert.Equal(RazorDiagnosticSeverity.Warning, diagnostic.Severity);
         Assert.Equal(11, diagnostic.WarningLevel);

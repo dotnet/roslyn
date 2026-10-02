@@ -1,0 +1,27 @@
+﻿Source Location: (7:0,7 [203] x:\dir\subdir\Test\TestComponent.razor)
+|
+    public abstract class Base
+    {
+        public abstract Base Clone();
+    }
+    
+    public class Derived : Base
+    {
+        public override Derived Clone()
+            => this;
+    }
+|
+Generated Location: (557:18,0 [203] )
+|
+    public abstract class Base
+    {
+        public abstract Base Clone();
+    }
+    
+    public class Derived : Base
+    {
+        public override Derived Clone()
+            => this;
+    }
+|
+

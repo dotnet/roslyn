@@ -44,6 +44,45 @@ public class GenerateTypeTests(ITestOutputHelper testOutputHelper) : CohostCodeA
             makeDiagnosticsRequest: true);
 
     [Fact]
+    public Task GenerateType_FromCodeBlock_ExistingCodeBlock_UsesEditorConfig()
+        => VerifyCodeActionAsync(
+            input: """
+                @code
+                {
+                    private object M()
+                    {
+                        return new [||]MissingType();
+                    }
+                }
+                """,
+            expected: """
+                @code
+                {
+                    private object M()
+                    {
+                        return new MissingType();
+                    }
+
+                    private class MissingType {
+                        public MissingType() {
+                        }
+                    }
+                }
+                """,
+            codeActionName: PredefinedCodeFixProviderNames.GenerateType,
+            codeActionIndex: 1,
+            makeDiagnosticsRequest: true,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+
+    [Fact]
     public Task GenerateType_FromCodeBlock_ExistingCodeBlock_Struct()
         => VerifyCodeActionAsync(
             input: """

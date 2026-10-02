@@ -271,6 +271,7 @@ internal sealed class CommitManager : IAsyncCompletionCommitManager
         ITextSnapshot updatedCurrentSnapshot;
         using (var edit = subjectBuffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null))
         {
+            Contract.ThrowIfNull(change.TextChange.NewText);
             edit.Replace(mappedSpan.Span, change.TextChange.NewText);
 
             // edit.Apply() may trigger changes made by extensions.

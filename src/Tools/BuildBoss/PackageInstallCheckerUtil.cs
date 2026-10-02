@@ -55,13 +55,11 @@ namespace BuildBoss
 }"),
         };
 
-        internal string RepositoryDirectory { get; }
         internal string ArtifactsDirectory { get; }
         internal string Configuration { get; }
 
-        internal PackageInstallChecker(string repositoryDirectory, string artifactsDirectory, string configuration)
+        internal PackageInstallChecker(string artifactsDirectory, string configuration)
         {
-            RepositoryDirectory = repositoryDirectory;
             ArtifactsDirectory = artifactsDirectory;
             Configuration = configuration;
         }
@@ -141,15 +139,10 @@ namespace BuildBoss
         private static bool RunDotnetAndReport(TextWriter textWriter, string description, string arguments, string workingDirectory)
         {
             var result = ProcessUtil.Run("dotnet", arguments, workingDirectory);
-            if (result.Succeeded)
-            {
-                return true;
-            }
-
-            textWriter.WriteLine($"{description}: 'dotnet {arguments}' failed with exit code {result.ExitCode}");
+            textWriter.WriteLine($"{description}: 'dotnet {arguments}' exited with code {result.ExitCode}");
             textWriter.WriteLine(result.Output);
 
-            return false;
+            return result.Succeeded;
         }
 
         /// <summary>
@@ -182,24 +175,12 @@ namespace BuildBoss
         }
 
         /// <summary>
-        /// Builds a NuGet.config exposing the just built packages alongside the repository's own feeds.
-        /// The local feed supplies our packages and their Roslyn dependencies; the repository feeds
-        /// supply third party dependencies such as Microsoft.Build.Framework.
+        /// Builds a NuGet.config exposing the just built packages alongside the nuget.org mirror.
+        /// The local feed supplies our packages and their Roslyn dependencies; the mirror supplies
+        /// third party dependencies such as Microsoft.Build.Framework.
         /// </summary>
-        private string GenerateNuGetConfig(string packagesDirectory, string globalPackagesDirectory)
+        private static string GenerateNuGetConfig(string packagesDirectory, string globalPackagesDirectory)
         {
-            var sources = new List<XElement>
-            {
-                new XElement("add", new XAttribute("key", "package-install-validation-local"), new XAttribute("value", packagesDirectory))
-            };
-
-            var repositoryConfigPath = Path.Combine(RepositoryDirectory, "NuGet.config");
-            var repositoryConfig = XDocument.Load(repositoryConfigPath);
-            foreach (var element in repositoryConfig.Root.Element("packageSources").Elements("add"))
-            {
-                sources.Add(new XElement(element));
-            }
-
             var document = new XDocument(
                 new XElement("configuration",
                     // A dedicated packages folder, wiped with the scratch directory, keeps this honest.
@@ -209,11 +190,43 @@ namespace BuildBoss
                         new XElement("add", new XAttribute("key", "globalPackagesFolder"), new XAttribute("value", globalPackagesDirectory))),
                     new XElement("packageSources",
                         new XElement("clear"),
-                        sources),
+                        new XElement("add", new XAttribute("key", "package-install-validation-local"), new XAttribute("value", packagesDirectory)),
+                        new XElement("add",
+                            new XAttribute("key", "dotnet-public"),
+                            new XAttribute("value", "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json"))),
+                    new XElement("packageSourceMapping",
+                        new XElement("clear"),
+                        new XElement("packageSource",
+                            new XAttribute("key", "package-install-validation-local"),
+                            GetLocalPackageMappings(packagesDirectory)),
+                        new XElement("packageSource",
+                            new XAttribute("key", "dotnet-public"),
+                            new XElement("package", new XAttribute("pattern", "*")))),
                     new XElement("disabledPackageSources",
                         new XElement("clear"))));
 
             return document.ToString();
+        }
+
+        private static IEnumerable<XElement> GetLocalPackageMappings(string packagesDirectory)
+        {
+            foreach (var packagePath in Directory.EnumerateFiles(packagesDirectory, "*.nupkg"))
+            {
+                var packageFileName = Path.GetFileName(packagePath);
+                if (!SharedUtil.TryGetNuGetPackageId(packagePath, out var packageId))
+                {
+                    throw new Exception($"Unexpected package file name '{packageFileName}'");
+                }
+
+                // The product packages intentionally depend on an older published analyzer package,
+                // not the analyzer package produced by the current build.
+                if (packageId == "Microsoft.CodeAnalysis.Analyzers")
+                {
+                    continue;
+                }
+
+                yield return new XElement("package", new XAttribute("pattern", packageId));
+            }
         }
 
         private static string GenerateProjectFile(string targetFramework) =>

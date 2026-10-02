@@ -44,6 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         ImmutableArray<AssemblyIdentity> IModuleSymbol.ReferencedAssemblies => _underlying.ReferencedAssemblies;
 
+        MemorySafetyRulesVersion IModuleSymbol.MemorySafetyRulesVersion => _underlying.MemorySafetyRulesVersion;
+
         ModuleMetadata IModuleSymbol.GetMetadata() => _underlying.GetMetadata();
 
         #region ISymbol Members

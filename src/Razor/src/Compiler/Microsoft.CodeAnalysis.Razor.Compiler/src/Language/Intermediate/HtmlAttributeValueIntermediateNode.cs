@@ -23,6 +23,17 @@ public sealed class HtmlAttributeValueIntermediateNode : IntermediateNode
         visitor.VisitHtmlAttributeValue(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new HtmlAttributeValueIntermediateNode
+        {
+            Prefix = Prefix,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteChildren(Children);

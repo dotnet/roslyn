@@ -2510,6 +2510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitInFixed = 9398,
         ERR_FeatureNotAvailableInVersion15 = 9399,
 
+        ERR_BadCompilationOptionValueAccepted = 9400,
+
         // PROTOTYPE: compact
         ERR_CollectionExpressionKeyValuePairNotSupported = 9500,
 

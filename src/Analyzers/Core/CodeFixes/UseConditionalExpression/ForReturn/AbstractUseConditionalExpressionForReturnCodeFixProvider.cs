@@ -48,7 +48,9 @@ internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
         CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+
+        // May be at the top level, pass `getInnermostNodeForTie: true` to peer into the global statement.
+        var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var ifOperation = (IConditionalOperation)semanticModel.GetOperation(ifStatement, cancellationToken)!;

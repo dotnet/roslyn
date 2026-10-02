@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "Canonical Data Model schema. Used by both the C# source generator and TypeScript codegen to produce typed accessors, compile-time validated queries, and cache validation.",
+
+  "$comment-properties": "Every property listed here is persisted into the [properties] section of the .lscache file by the writer (it appears in the generated _ProjectDataProperties allow-list) and is part of the typed Data Model contract. The MSBuild value written is \"value\" when present, otherwise $(<name>). This set is also the forward-compat \"known [properties] key\" set (ForwardCompat.KnownPropertyKeys / ProjectProperties.All): a key not in it is treated as data authored by a newer writer and preserved losslessly. 'required' properties are always written and throw if missing on read; 'optional' properties are omitted when empty and read as null.",
+
+  "properties": {
+    "required": [
+      { "name": "AssemblyName", "description": "Assembly output name." },
+      { "name": "OutputType", "description": "Project output type: Library, Exe, WinExe." },
+      { "name": "TargetFramework", "description": "Active target framework moniker (e.g., net10.0)." },
+      { "name": "TargetFrameworkIdentifier", "description": "Framework identifier (e.g., .NETCoreApp)." },
+      { "name": "ProjectAssetsFile", "description": "Path to project.assets.json." },
+      { "name": "TargetPath", "description": "Full path to the primary build output assembly." }
+    ],
+    "optional": [
+      { "name": "RootNamespace", "description": "Root namespace for the project." },
+      { "name": "IsTestProject", "description": "Whether the project should be included in test discovery. An explicit false value opts a project out even when it has the TestContainer capability." },
+      { "name": "TargetFrameworkVersion", "description": "Framework version (e.g., v10.0)." },
+      { "name": "TargetRefPath", "description": "Path to the ref assembly (if produced)." },
+      { "name": "MaxSupportedLangVersion", "description": "Maximum C# language version supported by the SDK." },
+      { "name": "RunAnalyzers", "description": "Whether analyzers run during build." },
+      { "name": "RunAnalyzersDuringLiveAnalysis", "description": "Whether analyzers run during live analysis." },
+      { "name": "CompilerGeneratedFilesOutputPath", "description": "Directory for source-generated files." },
+      { "name": "BaseIntermediateOutputPath", "description": "Root intermediate-output directory (default obj/). Persisted so the redirected location is known when releasing VS Code's recursive watcher handles before a folder rename on Windows." },
+      { "name": "BaseOutputPath", "description": "Root build-output directory (default bin/). Persisted so the redirected location is known when releasing VS Code's recursive watcher handles before a folder rename on Windows." },
+      { "name": "SolutionPath", "description": "Path to the solution file (injected at runtime, not from cache)." },
+      { "name": "TemporaryDependencyNodeTargetIdentifier", "description": "Roslyn/CPS dependency-node TFM identifier. Duplicates TargetFramework's value but Roslyn keys on this exact (intentionally awkward) name to identify a dependency node's target framework, so it must be persisted under this name for cache-load workspace hydration. Not otherwise read as a typed property.", "value": "$(TargetFramework)" }
+    ]
+  },
+
+  "items": {
+    "Compile": {
+      "required": true,
+      "description": "Source files included in compilation.",
+      "metadata": ["Link"]
+    },
+    "MetadataReference": {
+      "required": true,
+      "description": "Assembly references.",
+      "metadata": ["aliases", "embedInteropTypes"]
+    },
+    "AnalyzerReference": {
+      "required": true,
+      "description": "Roslyn analyzer assemblies.",
+      "metadata": []
+    },
+    "AnalyzerConfigFile": {
+      "required": false,
+      "description": "EditorConfig and global analyzer config files.",
+      "metadata": []
+    },
+    "AdditionalFile": {
+      "required": false,
+      "description": "Additional files passed to analyzers.",
+      "metadata": []
+    },
+    "ProjectReference": {
+      "required": true,
+      "description": "Project-to-project references.",
+      "metadata": ["ReferenceOutputAssembly"]
+    },
+    "CommandLineArgument": {
+      "required": true,
+      "description": "Compiler command-line arguments.",
+      "metadata": []
+    },
+    "EmbeddedResource": {
+      "required": false,
+      "description": "Embedded resource files (.resx, etc.).",
+      "metadata": ["Generator", "LastGenOutput", "CustomToolNamespace"]
+    }
+  },
+
+  "cacheFormat": {
+    "$comment": "Wire-format tokens for the on-disk .lscache file. Shared by the writer (Microsoft.NET.ProjectData.Tasks) and the reader (Microsoft.NET.ProjectData) so renames cannot silently drop a section. VERSIONING: 'versionHeader' is 'version=<major>[.<minor>]' (an absent minor means '.0'). The reader accepts any file whose MAJOR matches and ignores the minor, so a newer minor's additive data (new sections / [properties] keys / @metadata) is silently ignored; a different major is a clean cache miss. The minor is a compatibility marker for the file's payload, not a mandatory stamp of the writer binary: when a newer writer produces otherwise identical content, the existing older stamp remains valid and the file is left untouched. The writer preserves any unknown data and newer stamp when it rewrites a file authored by a newer minor (see ForwardCompat) so mixed-version teams don't churn the file. Bump the MINOR for purely additive data an old reader can ignore AND an old writer can round-trip losslessly; bump the MAJOR for anything else (grammar/encoding changes, repurposing or removing meaning, optional->required, or data the old writer cannot carry forward losslessly). It is about the KIND of change, never the amount. 'hashHeaderPrefix' is LEGACY: the writer no longer emits a 'hash=' header (no-op writes are detected by a direct byte compare), but the reader still skips a leading 'hash=' line so pre-migration files keep reading. Do not reintroduce a persisted hash.",
+    "versionHeader": "version=2.2",
+    "hashHeaderPrefix": "hash=",
+    "sliceSeparator": "---",
+    "sectionOpen": "[",
+    "sectionClose": "]",
+    "commentChar": "#",
+    "projectHeaderPrefix": "project=",
+    "languagePrefix": "language=",
+    "primaryMarker": "primary",
+    "lastDtbSucceededMarker": "lastDtbSucceeded",
+    "sections": [
+      { "name": "project", "description": "Project identity, language, and slice markers." },
+      { "name": "sliceDimensions", "description": "Per-slice dimensions (e.g., TargetFramework=net10.0)." },
+      { "name": "properties", "description": "MSBuild properties evaluated for the project/slice." },
+      { "name": "commandLineArguments", "description": "Compiler command-line arguments in evaluation order." },
+      { "name": "sourceFiles", "description": "Source files in the @(Compile) item set.", "itemType": "Compile" },
+      { "name": "metadataReferences", "description": "Assembly references (@(MetadataReference)) with optional aliases/embedInteropTypes.", "itemType": "MetadataReference" },
+      { "name": "analyzerReferences", "description": "Roslyn analyzer assemblies (@(AnalyzerReference))." },
+      { "name": "analyzerConfigFiles", "description": "EditorConfig / global analyzer config files." },
+      { "name": "additionalFiles", "description": "Files passed to analyzers via @(AdditionalFile)." },
+      { "name": "projectReferences", "description": "Resolved project-to-project references.", "itemType": "ProjectReference" },
+      { "name": "embeddedResources", "description": "Embedded resource files (.resx, etc.) with optional Generator/LastGenOutput/CustomToolNamespace metadata.", "itemType": "EmbeddedResource" },
+      { "name": "capabilities", "description": "Project capabilities flags." },
+      { "name": "frameworkPacks", "description": "Ref-pack names (e.g. Microsoft.NETCore.App.Ref); reader probes the SDK install first, then the NuGet cache, so the same cache works whether the writing machine resolved the pack from <DOTNET>/packs/ or from <NUGET>/." },
+      { "name": "sdkAnalyzerPacks", "description": "SDK-shipped analyzer NuGet package IDs; reader enumerates analyzers/dotnet/<lang>/ on disk." },
+      { "name": "sdkAnalyzerConfigPolicy", "description": "Policy entries for SDK-shipped analyzer config files; reader resolves them under the bound SDK." }
+    ]
+  },
+
+  "pathSentinels": {
+    "$comment": "Sentinel prefixes embedded in encoded paths. The writer rewrites version-specific or location-specific paths to these sentinels so the cache is portable across machines and SDK upgrades; the reader resolves them via CachePathResolver.",
+    "netSdk": "<NETSDK>",
+    "path": "<PATH>",
+    "netFxRef": "<NETFXREF>",
+    "nuget": "<NUGET>",
+    "nugetPp": "<NUGETPP>",
+    "dotnet": "<DOTNET>"
+  }
+}

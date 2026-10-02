@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 
         private static int MainCore(string[] args)
         {
-            using var logger = new CompilerServerLogger($"csc {Process.GetCurrentProcess().Id}");
+            using var logger = new CompilerServerLogger($"csc {Process.GetCurrentProcess().Id}", StandardBuildEnvironment.Instance);
 
 #if BOOTSTRAP
             ExitingTraceListener.Install(logger);

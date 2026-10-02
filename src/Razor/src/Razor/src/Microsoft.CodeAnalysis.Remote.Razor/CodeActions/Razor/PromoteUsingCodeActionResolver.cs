@@ -29,7 +29,7 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
 
     public string Action => LanguageServerConstants.CodeActions.PromoteUsingDirective;
 
-    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentContext documentContext, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
+    public async Task<WorkspaceEdit?> ResolveAsync(RemoteDocumentSnapshot documentSnapshot, JsonElement data, RazorFormattingOptions options, CancellationToken cancellationToken)
     {
         var actionParams = data.Deserialize<PromoteToUsingCodeActionParams>();
         if (actionParams is null)
@@ -37,11 +37,11 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
             return null;
         }
 
-        var sourceText = await documentContext.GetSourceTextAsync(cancellationToken).ConfigureAwait(false);
+        var sourceText = await documentSnapshot.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-        var importsFileName = PromoteUsingCodeActionProvider.GetImportsFileName(documentContext.Snapshot.FileKind);
+        var importsFileName = PromoteUsingCodeActionProvider.GetImportsFileName(documentSnapshot.FileKind);
 
-        var file = FilePathNormalizer.Normalize(documentContext.Uri.GetAbsoluteOrUNCPath());
+        var file = FilePathNormalizer.Normalize(documentSnapshot.Uri.GetAbsoluteOrUNCPath());
         var folder = Path.GetDirectoryName(file).AssumeNotNull();
         var importsFile = Path.GetFullPath(Path.Combine(folder, "..", importsFileName));
         var importFileUri = LspFactory.CreateFilePathUri(importsFile);
@@ -78,7 +78,7 @@ internal sealed class PromoteUsingCodeActionResolver(IFileSystem fileSystem) : I
 
         edits.Add(new TextDocumentEdit
         {
-            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentContext.Uri },
+            TextDocument = new OptionalVersionedTextDocumentIdentifier() { DocumentUri = documentSnapshot.Uri },
             Edits = [LspFactory.CreateTextEdit(removeRange, string.Empty)]
         });
 

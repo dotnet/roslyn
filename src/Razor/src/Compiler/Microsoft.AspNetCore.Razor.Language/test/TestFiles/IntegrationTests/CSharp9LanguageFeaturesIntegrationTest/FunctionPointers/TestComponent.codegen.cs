@@ -19,18 +19,6 @@ namespace Test
         {
         }
         #pragma warning restore 1998
-#nullable restore
-#line (1,8)-(6,1) "x:\dir\subdir\Test\TestComponent.razor"
-
-    public static unsafe delegate* managed<int, int> Pointer => &Double;
-    
-    private static int Double(int value)
-        => value * 2;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

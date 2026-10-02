@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -203,9 +204,214 @@ public class CohostCallHierarchyEndpointTest(ITestOutputHelper testOutputHelper)
             }
             """);
 
-    private async Task VerifyCallHierarchyAsync(TestCode input, (string fileName, string contents)[]? additionalFiles = null)
+    [Fact]
+    public Task Prepare_ExplicitStatement_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            @{
+                Get$$Value();
+            }
+
+            @functions
+            {
+                int {|target:GetValue|}() => 1;
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task IncomingCalls_CodeBlock_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            @functions
+            {
+                void {|target:M$$|}()
+                {
+                }
+
+                void {|incoming_caller:Caller|}()
+                {
+                    {|incoming_caller_from:M|}();
+                }
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task OutgoingCalls_CodeBlock_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            @functions
+            {
+                void {|target:Caller$$|}()
+                {
+                    {|outgoing_target_from:Target()|};
+                }
+
+                void {|outgoing_target:Target|}()
+                {
+                }
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task Prepare_ImplicitExpression_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            <div>@Get$$Value()</div>
+
+            @functions
+            {
+                int {|target:GetValue|}() => 1;
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task Prepare_ComponentAttribute_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            <input value="@Get$$Value()" />
+
+            @functions
+            {
+                int {|target:GetValue|}() => 1;
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task IncomingCalls_ImplicitExpression_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            <div>@{|incoming_markup_from:M|}()</div>
+
+            @functions
+            {
+                void {|target:M$$|}()
+                {
+                }
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task IncomingCalls_ExplicitStatement_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            @{
+                {|incoming_markup_from:M|}();
+            }
+
+            @functions
+            {
+                void {|target:M$$|}()
+                {
+                }
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task IncomingCalls_ComponentAttribute_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            <input value="@{|incoming_markup_from:M|}()" />
+
+            @functions
+            {
+                void {|target:M$$|}()
+                {
+                }
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task OutgoingCalls_ImplicitExpression_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            @functions
+            {
+                void {|target:Caller$$|}()
+                {
+                    object fragment = @<div>@{|outgoing_target_from:Target()|}</div>;
+                }
+
+                int {|outgoing_target:Target|}() => 1;
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task OutgoingCalls_ExplicitStatement_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            @functions
+            {
+                void {|target:Caller$$|}()
+                {
+                    object fragment = @<div>@{ {|outgoing_target_from:Target()|}; }</div>;
+                }
+
+                void {|outgoing_target:Target|}()
+                {
+                }
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task OutgoingCalls_ComponentAttribute_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            @functions
+            {
+                void {|target:Caller$$|}()
+                {
+                    object fragment = @<InputText Value="@{|outgoing_target_from:Target()|}" />;
+                }
+
+                int {|outgoing_target:Target|}() => 1;
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    [Fact]
+    public Task IncomingAndOutgoingCalls_Legacy()
+        => VerifyCallHierarchyAsync(
+            """
+            <div>@{|incoming_markup_from:Middle|}()</div>
+
+            @{
+                {|incoming_markup_from:Middle|}();
+            }
+
+            <input value="@{|incoming_markup_from:Middle|}()" />
+
+            @functions
+            {
+                int {|target:Middle$$|}()
+                {
+                    return {|outgoing_first_from:First()|} + {|outgoing_second_from:Second()|};
+                }
+
+                int {|outgoing_first:First|}() => 1;
+
+                int {|outgoing_second:Second|}() => 2;
+
+                void {|incoming_code:CodeCaller|}()
+                {
+                    {|incoming_code_from:Middle|}();
+                }
+            }
+            """,
+            fileKind: RazorFileKind.Legacy);
+
+    private async Task VerifyCallHierarchyAsync(TestCode input, (string fileName, string contents)[]? additionalFiles = null, RazorFileKind? fileKind = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind, additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         var endpoint = new CohostPrepareCallHierarchyEndpoint(IncompatibleProjectService, RemoteServiceInvoker);

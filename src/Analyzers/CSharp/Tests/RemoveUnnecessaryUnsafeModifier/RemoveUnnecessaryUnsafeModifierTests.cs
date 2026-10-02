@@ -154,15 +154,8 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
                     [FieldOffset(4)] public unsafe int F2;
                 }
                 """,
-            SolutionTransforms =
-            {
-                static (solution, projectId) =>
-                {
-                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
-                    return solution.WithProjectParseOptions(
-                        projectId, parseOptions.WithFeature("updated-memory-safety-rules"));
-                },
-            },
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
         }.RunAsync();
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84564")]
@@ -175,22 +168,200 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
                     public unsafe extern void M();
                 }
                 """,
-            SolutionTransforms =
-            {
-                static (solution, projectId) =>
-                {
-                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
-                    return solution.WithProjectParseOptions(
-                        projectId, parseOptions.WithFeature("updated-memory-safety-rules"));
-                },
-            },
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
         }.RunAsync();
 
-    [Fact]
-    public Task KeepWhenItMarksCallerUnsafe()
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public async Task RemoveWhenNoSafetyCommentInV2(
+        [CombinatorialValues(
+            "public [|unsafe|] void M() { }",
+            "public [|unsafe|] C() { }",
+            "public [|unsafe|] int F;",
+            "public [|unsafe|] int P => 0;",
+            "public [|unsafe|] int this[int i] => 0;",
+            "public [|unsafe|] event System.Action E { add { } remove { } }",
+            "public static [|unsafe|] C operator +(C left, C right) => left;",
+            "public static [|unsafe|] explicit operator int(C value) => 0;")] string member)
+    {
+        var testCode = $$"""
+            class C
+            {
+                {{member}}
+            }
+            """;
+
+        await new VerifyCS.Test
+        {
+            TestCode = testCode,
+            FixedCode = testCode.Replace("[|unsafe|] ", ""),
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenItHasSafetyCommentInV2(
+        [CombinatorialValues(
+            "public unsafe void M() { }",
+            "public unsafe C() { }",
+            "public unsafe int F;",
+            "public unsafe int P => 0;",
+            "public unsafe int this[int i] => 0;",
+            "public unsafe event System.Action E { add { } remove { } }",
+            "public static unsafe C operator +(C left, C right) => left;",
+            "public static unsafe explicit operator int(C value) => 0;")] string member)
         => new VerifyCS.Test
         {
-            // https://github.com/dotnet/roslyn/issues/82546: this `unsafe` marks the member as caller-unsafe, it should not be removed
+            TestCode = $$"""
+                class C
+                {
+                    /// <safety>Calling this member requires unsafe code.</safety>
+                    {{member}}
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task RemoveLocalFunctionWhenNoSafetyCommentInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                static [|unsafe|] void Local() { }
+                """,
+            FixedCode = """
+                static void Local() { }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepLocalFunctionWhenItHasSafetyCommentInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                /// <safety>Calling this function requires unsafe code.</safety>
+                static unsafe void Local() { }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            TestState = { OutputKind = OutputKind.ConsoleApplication },
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenItHasEmptySafetyElementInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /// <safety/>
+                    public unsafe void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenSafetyElementFollowsExistingDocumentationInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /// <summary>Does something.</summary>
+                    /// <safety>Calling this member requires unsafe code.</safety>
+                    public unsafe void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenSafetyElementIsNestedInSummaryInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /// <summary>
+                    /// <safety>Calling this member requires unsafe code.</safety>
+                    /// </summary>
+                    public unsafe void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenMultilineSafetyElementHasLeadingAsterisksInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /**
+                     * <summary>Does something.</summary>
+                     * <safety>Calling this member requires unsafe code.</safety>
+                     */
+                    public unsafe void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task KeepWhenMultilineSafetyElementHasNoLeadingAsterisksInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /**
+                    <summary>Does something.</summary>
+                    <safety>Calling this member requires unsafe code.</safety>
+                    */
+                    public unsafe void M() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task SafetyCommentDoesNotChangeV1Behavior()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /// <safety>Calling this member requires unsafe code.</safety>
+                    public [|unsafe|] void M() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    /// <safety>Calling this member requires unsafe code.</safety>
+                    public void M() { }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task AddSafetyCommentInV2()
+        => new VerifyCS.Test
+        {
             TestCode = """
                 class C
                 {
@@ -200,18 +371,181 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
             FixedCode = """
                 class C
                 {
-                    public void M() { }
+                    /// <safety></safety>
+                    public unsafe void M() { }
                 }
                 """,
-            SolutionTransforms =
-            {
-                static (solution, projectId) =>
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task AddSafetyCommentInV2_AfterExistingDocumentationAndBeforeAttributes()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
                 {
-                    var parseOptions = (CSharpParseOptions)solution.GetRequiredProject(projectId).ParseOptions!;
-                    return solution.WithProjectParseOptions(
-                        projectId, parseOptions.WithFeature("updated-memory-safety-rules"));
-                },
-            },
+                    /// <summary>Does something.</summary>
+                    [System.Obsolete]
+                    public [|unsafe|] void M() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    /// <summary>Does something.</summary>
+                    /// <safety></safety>
+                    [System.Obsolete]
+                    public unsafe void M() { }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task AddSafetyCommentToSingleLineBlockDocumentationInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /** */
+                    public [|unsafe|] void M() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    /** <safety></safety> */
+                    public unsafe void M() { }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task AddSafetyCommentToMultilineDocumentationWithLeadingAsterisksInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /**
+                     * <summary>Does something.</summary>
+                     */
+                    public [|unsafe|] void M() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    /**
+                     * <summary>Does something.</summary>
+                     * <safety></safety>
+                     */
+                    public unsafe void M() { }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task AddSafetyCommentToMultilineDocumentationWithoutLeadingAsterisksInV2()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    /**
+                    <summary>Does something.</summary>
+                    */
+                    public [|unsafe|] void M() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    /**
+                    <summary>Does something.</summary>
+                    <safety></safety>
+                    */
+                    public unsafe void M() { }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task AddSafetyCommentInV2_FixAll()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public [|unsafe|] void M() { }
+                    public [|unsafe|] void N() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    /// <safety></safety>
+                    public unsafe void M() { }
+                    /// <safety></safety>
+                    public unsafe void N() { }
+                }
+                """,
+            BatchFixedCode = """
+                class C
+                {
+                    /// <safety></safety>
+                    public unsafe void M() { }
+                    /// <safety></safety>
+                    public unsafe void N() { }
+                }
+                """,
+            CodeActionIndex = 1,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85732")]
+    public Task RemoveUnsafeInV2_FixAll()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    public [|unsafe|] void M() { }
+                    public [|unsafe|] void N() { }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    public void M() { }
+                    public void N() { }
+                }
+                """,
+            BatchFixedCode = """
+                class C
+                {
+                    public void M() { }
+                    public void N() { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+            SolutionTransforms = { EnableUpdatedMemorySafetyRules },
         }.RunAsync();
 
     [Theory, CombinatorialData]
@@ -280,4 +614,11 @@ public sealed class RemoveUnnecessaryUnsafeModifierTests
                 }
                 """,
         }.RunAsync();
+
+    private static Solution EnableUpdatedMemorySafetyRules(Solution solution, ProjectId projectId)
+    {
+        var compilationOptions = (CSharpCompilationOptions)solution.GetRequiredProject(projectId).CompilationOptions!;
+        return solution.WithProjectCompilationOptions(
+                projectId, compilationOptions.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2));
+    }
 }

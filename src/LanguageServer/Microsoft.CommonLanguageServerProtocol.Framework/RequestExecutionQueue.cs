@@ -213,9 +213,9 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
                 {
                     queueItem = await _queue.DequeueAsync(_cancelSource.Token).ConfigureAwait(false);
                 }
-                catch (OperationCanceledException ex) when (ex.CancellationToken == _cancelSource.Token)
+                catch (OperationCanceledException) when (_cancelSource.IsCancellationRequested || _queue.IsCompleted)
                 {
-                    // The queue's cancellation token was invoked which means we are shutting down the queue.
+                    // The queue was cancelled or completed which means we are shutting down the queue.
                     // Exit out of the loop so we stop processing new items.
                     return;
                 }
