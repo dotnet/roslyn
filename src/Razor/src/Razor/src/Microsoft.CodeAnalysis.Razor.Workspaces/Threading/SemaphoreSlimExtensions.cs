@@ -11,7 +11,13 @@ internal static class SemaphoreSlimExtensions
 {
     public static SemaphoreDisposer DisposableWait(this SemaphoreSlim semaphore, CancellationToken cancellationToken = default)
     {
-        semaphore.Wait(cancellationToken);
+        // WaitAsync supports an uncontended synchronous acquisition on single-threaded runtimes. Fall back
+        // to Wait under contention to preserve synchronous waiter priority and blocking behavior.
+        if (!semaphore.WaitAsync(0, cancellationToken).GetAwaiter().GetResult())
+        {
+            semaphore.Wait(cancellationToken);
+        }
+
         return new SemaphoreDisposer(semaphore);
     }
 
