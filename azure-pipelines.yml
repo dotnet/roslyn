@@ -504,8 +504,26 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
+      - script: |
+          sdkVersion=$(awk '/"sdk"[[:space:]]*:/ { inSdk = 1; next } inSdk && /^[[:space:]]*}/ { exit } inSdk && /"version"[[:space:]]*:/ { gsub(/[" ,]/, "", $2); print $2; exit }' global.json)
+          if [ -z "$sdkVersion" ]; then
+            echo "##vso[task.logissue type=error]global.json does not specify an SDK version."
+            exit 1
+          fi
+          echo "##vso[task.setvariable variable=SdkVersion]$sdkVersion"
+        displayName: Read pinned .NET SDK version
+
+      - task: UseDotNet@2
+        displayName: Install pinned .NET SDK
+        inputs:
+          packageType: sdk
+          version: $(SdkVersion)
+
       - powershell: eng/todo-check.ps1
         displayName: Validate TODO/PROTOTYPE comments are not present
+
+      - script: dotnet run --file eng/validate-bom.cs
+        displayName: Validate EditorConfig BOM settings
 
   - job: Correctness_Rebuild
     dependsOn: Determine_Changes
