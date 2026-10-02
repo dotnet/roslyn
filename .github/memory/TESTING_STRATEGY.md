@@ -52,7 +52,9 @@ Targeted runs are strongly preferred — the full suite is large and slow. Tests
 ```
 
 These entry points invoke `src/Tools/RunTests` to run already-built assemblies
-efficiently; build the test projects first. See the tool's
+locally with VSTest, one work item per assembly; build the test projects first.
+They never submit to Helix, and local execution does not require `testlist.json`.
+See the tool's
 [`README.md`](../../src/Tools/RunTests/README.md) for assembly filters, test
 framework selection, and environment-variable options. Use `dotnet test` directly
 for a single project.
@@ -61,6 +63,47 @@ The build scripts also accept `-test`, `-testSet:<name>`, `-testKind:<name>`, or
 `-testFramework:<name>` (also with `--` on Unix) to invoke RunTests after successful
 build actions. They forward the build configuration and supplied test-option
 values; test discovery, selection, and validation remain in RunTests.
+
+### Helix submission
+
+`src/Tools/RunHelix` is the separate submission executable used by
+`eng/pipelines/test-windows-job.yml` and `test-unix-job.yml`. It consumes
+PrepareTests output, partitions tests using historical timings (or test counts),
+and submits work items whose workers invoke VSTest directly. Success means jobs
+were submitted, not tests passed; the external **Monitor Helix Jobs** job handles
+completion and retries. See its [`README.md`](../../src/Tools/RunHelix/README.md)
+for queue, authentication, history, and artifact options.
+
+RunTests accepts local execution options only.
+RunHelix rejects local execution options, including `--out` and `--logs`;
+submission diagnostics remain under `artifacts/log/<Configuration>`.
+Both executables compile the flat `src/Tools/TestRunnerCommon/*.cs` source glob
+(namespace `TestRunner`), with no shared-library project or runner-to-runner
+reference. Local code uses `TestRunner.RunTests`; submission code uses
+`TestRunner.Helix`. Build both executables when changing shared sources.
+
+PrepareTests transports both built runners, their dependencies, and rehydration
+scripts; an absent RunHelix output is allowed for local-only builds.
+Single-machine templates, official pipeline local test steps, and Visual Studio
+integration callers stay on RunTests. Despite its name,
+`eng/pipelines/test-integration-helix.yml` runs integration tests locally through
+`eng/test-vsi.ps1`, not RunHelix.
+
+### Runner regression tests
+
+Build `src/Tools/RunTests/RunTests.csproj`,
+`src/Tools/RunHelix/RunHelix.csproj`, and
+`src/Tools/PrepareTests/PrepareTests.csproj` in the selected configuration first,
+then run:
+
+```powershell
+pwsh -NoProfile -File eng\test-test-runners.ps1 -configuration Debug
+```
+
+This offline suite validates the built tools using temporary harnesses, without
+submitting Helix jobs or requiring production credentials.
+
+### SDK installation in CI
 
 CI test-only jobs use `eng/pipelines/install-dotnet.yml` to install the SDK
 from `global.json` with `UseDotNet@2`. The template reads `sdk.version` into a
@@ -71,7 +114,7 @@ The task adds the SDK to `PATH`, and test steps call `dotnet exec` directly;
 the template also installs the .NET 10 runtime for the runner and testhosts,
 without requiring job-wide roll-forward environment overrides.
 build-then-test jobs reuse the SDK already
-installed and added to `PATH` by the build step. RunTests defaults to the dotnet
+installed and added to `PATH` by the build step. Both runners default to the dotnet
 executable above its hosting runtime directory, so `--dotnet` is unnecessary.
 
 ### Test types to be aware of
