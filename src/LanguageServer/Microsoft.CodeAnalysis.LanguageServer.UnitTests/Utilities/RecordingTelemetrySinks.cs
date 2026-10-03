@@ -45,7 +45,8 @@ internal sealed class RecordingEventSink(
 
 internal sealed class RecordingMetricSink(
     Action? onMeasurement = null,
-    Action? onFlush = null) : IMetricSink
+    Action? onFlush = null,
+    string? method = null) : IMetricSink
 {
     private int _measurementCount;
     private int _flushCount;
@@ -55,14 +56,34 @@ internal sealed class RecordingMetricSink(
 
     public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
+        if (!ShouldRecord(tags))
+            return;
+
         Interlocked.Increment(ref _measurementCount);
         onMeasurement?.Invoke();
     }
 
     public void Record(string eventName, string metricName, long value, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
+        if (!ShouldRecord(tags))
+            return;
+
         Interlocked.Increment(ref _measurementCount);
         onMeasurement?.Invoke();
+    }
+
+    private bool ShouldRecord(ReadOnlySpan<KeyValuePair<string, object?>> tags)
+    {
+        if (method is null)
+            return true;
+
+        foreach (var tag in tags)
+        {
+            if (tag.Key == "method" && Equals(tag.Value, method))
+                return true;
+        }
+
+        return false;
     }
 
     public void Flush()
