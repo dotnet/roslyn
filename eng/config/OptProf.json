@@ -246,6 +246,27 @@
               "testCases":[ "Microsoft.Test.Performance.XamlOptProfCreateTests.UwpCreateProject_SurfaceIsolated" ]
             }
           ]
+        },
+        {
+          "container": "Scale.OrchardCore.WithCache",
+          "filteredTestCases": [
+            {
+              "filename": "/Microsoft.CodeAnalysis.dll",
+              "testCases":[ "Microsoft.Test.Scale.OrchardCoreWithCacheNoPerfTestWarmUp.TestSolutionOpenClose" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.dll",
+              "testCases":[ "Microsoft.Test.Scale.OrchardCoreWithCacheNoPerfTestWarmUp.TestSolutionOpenClose" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.Workspaces.dll",
+              "testCases":[ "Microsoft.Test.Scale.OrchardCoreWithCacheNoPerfTestWarmUp.TestSolutionOpenClose" ]
+            },
+            {
+              "filename": "/Microsoft.CodeAnalysis.CSharp.Workspaces.dll",
+              "testCases":[ "Microsoft.Test.Scale.OrchardCoreWithCacheNoPerfTestWarmUp.TestSolutionOpenClose" ]
+            }
+          ]
         }
       ]
     },
