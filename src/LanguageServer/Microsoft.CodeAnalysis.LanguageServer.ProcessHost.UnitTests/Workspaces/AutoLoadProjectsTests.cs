@@ -7,7 +7,6 @@ using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.Workspaces;
@@ -65,7 +64,7 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
             {
                 using (daemonProcess)
                 {
-                    await daemonProcess.WaitForExitAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+                    await daemonProcess.WaitForExitAsync();
                 }
             }
         }
@@ -236,10 +235,10 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
 
     private static async Task AssertAutoLoadCompletedAsync(TestLspClient testLspServer, string expectedTitle, string expectedEndMessage)
     {
-        var unit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(expectedTitle).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var unit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(expectedTitle);
         Assert.NotNull(unit.CreateParams.Token.Value);
 
-        var end = await unit.WaitForEndAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var end = await unit.WaitForEndAsync();
         // Progress messages can contain URIs whose canonical form changes casing, so compare them case-insensitively.
         Assert.Equal(expectedEndMessage, end.Message, ignoreCase: true);
     }
@@ -248,17 +247,17 @@ public sealed class AutoLoadProjectsTests(ITestOutputHelper testOutputHelper) : 
     {
         if (projectCount > 0)
         {
-            var unit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(LanguageServerResources.Loading_projects).WaitAsync(TestHelpers.HangMitigatingTimeout);
+            var unit = await testLspServer.WorkDoneProgress.WaitForWorkDoneProgressCreation(LanguageServerResources.Loading_projects);
             Assert.NotNull(unit.CreateParams.Token.Value);
 
             if (assertInitialProgressReport)
             {
-                var initialProgress = await unit.WaitForProgressReportAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+                var initialProgress = await unit.WaitForProgressReportAsync();
                 Assert.Equal(GetLoadingProjectsMessage(projectCount), initialProgress.Message);
                 Assert.Equal(0, initialProgress.Percentage);
             }
 
-            var end = await unit.WaitForEndAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+            var end = await unit.WaitForEndAsync();
             Assert.Equal(GetLoadedProjectsMessage(projectCount), end.Message);
         }
 
