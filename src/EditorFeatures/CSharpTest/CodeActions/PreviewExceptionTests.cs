@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -61,6 +62,27 @@ public sealed partial class PreviewTests
 
         // No exception is thrown in the call to GetActionSetsAsync because the preview is only lazily evaluated.
         Assert.False(errorReported);
+    }
+
+    [WpfFact]
+    public void TestCodeActionWithOptionsDoesNotHaveFlavors()
+    {
+        using var workspace = CreateWorkspaceFromOptions("class D {}", TestParameters.Default);
+        var document = GetDocument(workspace);
+        var textBuffer = workspace.GetTestDocument(document.Id).GetTextBuffer();
+        var suggestedAction = EditorSuggestedAction.Create(
+            workspace.ExportProvider.GetExportedValue<IThreadingContext>(),
+            workspace.ExportProvider.GetExportedValue<SuggestedActionsSourceProvider>(),
+            document,
+            textBuffer,
+            provider: this,
+            new TestCodeActionWithOptions(),
+            fixAllFlavors: null,
+            diagnostics: []);
+
+        Assert.IsNotAssignableFrom<ISuggestedActionWithFlavors>(suggestedAction);
+        Assert.False(suggestedAction.HasActionSets);
+        Assert.False(suggestedAction.HasPreview);
     }
 
     private static async Task GetPreview(EditorTestWorkspace workspace, CodeRefactoringProvider provider)
@@ -111,5 +133,13 @@ public sealed partial class PreviewTests
         provider.ComputeRefactoringsAsync(context).Wait();
         var action = codeActions.Single();
         extensionManager = document.Project.Solution.Services.GetService<IExtensionManager>() as EditorLayerExtensionManager.ExtensionManager;
+    }
+
+    private sealed class TestCodeActionWithOptions : CodeActionWithOptions
+    {
+        public override string Title => "Test action with options";
+
+        public override object GetOptions(CancellationToken cancellationToken)
+            => new();
     }
 }
