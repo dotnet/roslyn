@@ -5,6 +5,8 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -18,6 +20,55 @@ public class HotReloadMSBuildWorkspaceTests
 {
     private static HotReloadMSBuildWorkspace CreateWorkspace()
         => new(NullLogger.Instance, getBuildProjects: _ => throw ExceptionUtilities.Unreachable());
+
+    [Fact]
+    public async Task UpdateFileContent_IgnoresAddedFile()
+    {
+        using var workspace = CreateWorkspace();
+
+        var projectId = ProjectId.CreateNewId();
+        var projectInfo = ProjectInfo.Create(
+            projectId,
+            VersionStamp.Create(),
+            name: "P1",
+            assemblyName: "A1",
+            language: LanguageNames.CSharp,
+            filePath: Path.Combine(TempRoot.Root, "P1.csproj"),
+            outputFilePath: Path.Combine(TempRoot.Root, "P1.dll"),
+            compilationOptions: TestOptions.DebugDll,
+            parseOptions: TestOptions.Regular14,
+            documents:
+            [
+                DocumentInfo.Create(
+                    DocumentId.CreateNewId(projectId),
+                    name: "A",
+                    filePath: Path.Combine(TempRoot.Root, "A.cs"),
+                    loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class A;", Encoding.UTF8, SourceHashAlgorithm.Sha256), VersionStamp.Create())))
+            ],
+            projectReferences: [],
+            metadataReferences: [],
+            analyzerReferences: [],
+            additionalDocuments: [],
+            isSubmission: false,
+            hostObjectType: null,
+            outputRefFilePath: Path.Combine(TempRoot.Root, "ref", "P1.dll"))
+            .WithChecksumAlgorithm(SourceHashAlgorithm.Sha256)
+            .WithAnalyzerConfigDocuments([])
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, "obj", "P1.dll"),
+                generatedFilesOutputDirectory: Path.Combine(TempRoot.Root, "obj")));
+
+        var originalSolution = workspace.UpdateSolution([projectInfo]);
+
+        var updatedSolution = await workspace.UpdateFileContentAsync(
+            [(Path.Combine(TempRoot.Root, "wwwroot", "test.txt"), HotReloadFileChangeKind.Add)],
+            CancellationToken.None);
+
+        Assert.Same(originalSolution, updatedSolution);
+        Assert.Same(updatedSolution, workspace.CurrentSolution);
+        Assert.Equal(originalSolution.ProjectIds, updatedSolution.ProjectIds);
+        Assert.Equal(originalSolution.GetProject(projectId)!.DocumentIds, updatedSolution.GetProject(projectId)!.DocumentIds);
+    }
 
     [Fact]
     public void UpdateSolution()
