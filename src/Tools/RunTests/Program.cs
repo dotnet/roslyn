@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 
 namespace RunTests
 {
@@ -229,7 +230,7 @@ namespace RunTests
                     var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
                     ConsoleUtil.Write($"Dumping {name} {proc.Id} to {dumpFilePath} ... ");
 
-                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath))
+                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath, Logger.Log))
                     {
                         ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
                     }
