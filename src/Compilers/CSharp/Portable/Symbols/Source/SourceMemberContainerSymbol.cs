@@ -6197,6 +6197,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             foreach (var member in GetMembersUnordered())
             {
+                if (member is SynthesizedSimpleProgramEntryPointSymbol)
+                {
+                    continue;
+                }
                 member.GetCommonNullableValues(compilation, ref builder);
             }
             // Not including lambdas or local functions.
