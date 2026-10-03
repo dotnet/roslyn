@@ -16,16 +16,33 @@ internal enum StateMachineState
     /// Initial iterator state of an async iterator.
     /// Distinct from <see cref="NotStartedOrRunningState"/> so that DisposeAsync can throw in latter case.
     /// </summary>
-    InitialAsyncIteratorState = -3,
+    InitialAsyncIteratorState = -4,
 
     /// <summary>
-    /// First state of an iterator state machine. State numbers decrease for subsequent finalize states.
+    /// First finalize state of an iterator state machine. State numbers decrease for subsequent finalize states.
     /// </summary>
-    FirstIteratorFinalizeState = -3,
+    FirstIteratorFinalizeState = -4,
 
-    FinishedState = -2,
-    NotStartedOrRunningState = -1,
+    FirstAsyncFinalizeState = -3,
+
+    /// <summary>
+    /// Initial state for enumerables, async-enumerables state machines.
+    /// The state machine for iterators and async-iterators can never re-enter this state.
+    /// </summary>
+    InitialEnumerableState = -2,
+
+    NotStartedOrRunningState = -1, // TODO2 rename to RunningState
     FirstUnusedState = 0,
+
+    /// <summary>
+    /// Finished state for iterators and async-iterators
+    /// </summary>
+    IteratorFinishedState = -3,
+
+    /// <summary>
+    /// Finished state for async
+    /// </summary>
+    AsyncFinishedState = -2,
 
     /// <summary>
     /// First state in async state machine that is used to resume the machine after await.
@@ -34,7 +51,7 @@ internal enum StateMachineState
     FirstResumableAsyncState = 0,
 
     /// <summary>
-    /// Initial iterator state of an iterator.
+    /// Initial iterator state of a (non-async) iterator.
     /// </summary>
     InitialIteratorState = 0,
 
