@@ -40,21 +40,28 @@ namespace Microsoft.CodeAnalysis.Syntax
 
             internal override int GetChildPosition(int index)
             {
-                // If the previous sibling (ignoring separator) is not cached, but the next sibling
-                // (ignoring separator) is cached, use the next sibling to determine position.
-                int valueIndex = (index & 1) != 0 ? index - 1 : index;
-                // The check for valueIndex >= Green.SlotCount - 2 ignores the last item because the last item
-                // is a separator and separators are not cached. In those cases, when the index represents
-                // the last or next to last item, we still want to calculate the position from the end of
-                // the list rather than the start.
-                if (valueIndex > 1
-                    && GetCachedSlot(valueIndex - 2) is null
-                    && (valueIndex >= Green.SlotCount - 2 || GetCachedSlot(valueIndex + 2) is { }))
+                int leftNodeIndex = (index >> 1) - 1;
+                var children = _children;
+
+                // If the closest node on the left is uncached
+                if (unchecked((uint)leftNodeIndex < (uint)children.Length) && children[leftNodeIndex].Value is null)
                 {
-                    return GetChildPositionFromEnd(index);
+                    int rightNodeIndex = leftNodeIndex + 2;
+
+                    // If there is no node on the right or if the closest node on the right is cached
+                    if (unchecked((uint)rightNodeIndex >= (uint)children.Length) || children[rightNodeIndex].Value is not null)
+                    {
+                        // Uses the node on the right (or the end of the parent) to determine position.
+                        return GetChildPositionFromEnd(index);
+                    }
+
                 }
 
-                return base.GetChildPosition(index);
+                // Since the checks above have minimal impact and the following method is inlined
+                // we avoid a perf regression while fixing https://github.com/dotnet/roslyn/issues/66475
+
+                // Uses siblings on the left (and/or the start of the parent) to determine position.
+                return GetChildPositionFromStart(index);
             }
         }
     }
