@@ -19923,5 +19923,34 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
             Assert.Null(typeInfo.Type);
             Assert.Equal("?", typeInfo.ConvertedType.ToTestDisplayString());
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82191")]
+        public void MethodGroup_ToMissingType_WithNamedTypeConstraint()
+        {
+            var source = """
+class C
+{
+    static void M<T>(T x) where T : MissingType { }
+
+    static void Test()
+    {
+        Foo(M<int>);
+    }
+
+    static void Foo(System.Action d) { }
+}
+""";
+
+            var comp = CreateCompilation(source);
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var methodGroup = GetSyntax<GenericNameSyntax>(tree, "M<int>");
+            var symbolInfo = model.GetSymbolInfo(methodGroup);
+            // Verify that GetSymbolInfo returns the method in candidates even though it has a constraint on a missing type
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(1, symbolInfo.CandidateSymbols.Length);
+            Assert.Equal("void C.M<System.Int32>(System.Int32 x)", symbolInfo.CandidateSymbols[0].ToTestDisplayString());
+        }
     }
 }
