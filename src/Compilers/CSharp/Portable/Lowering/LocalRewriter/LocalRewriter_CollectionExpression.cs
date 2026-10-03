@@ -62,19 +62,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // the List<T>.  However, we still still will be able to benefit from calling things
                             // like .AddRange to more efficiently add spread elements.
                             var rewrittenReceiver = node.HasWithElement ? VisitExpression(node.CollectionCreation) : null;
+                            // Check before unwrapping elements to avoid allocating unused bound nodes. This also
+                            // handles compatible spreads whose dynamically bound Add prevents the general optimization.
+                            if (rewrittenReceiver is null && TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
+                            {
+                                return result;
+                            }
+
                             if (useListOptimization(_compilation, node))
                             {
                                 return CreateAndPopulateList(
                                     node, listElementType,
                                     node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node),
                                     rewrittenReceiver);
-                            }
-
-                            // A dynamically bound Add prevents the general list optimization, but a single
-                            // compatible spread can still use ToList without invoking Add.
-                            if (rewrittenReceiver is null && TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
-                            {
-                                return result;
                             }
                         }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
