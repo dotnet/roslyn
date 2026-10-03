@@ -1463,7 +1463,6 @@ class C
         public void ResourceCreatedOutsideUsing()
         {
             var source = @"
-using System;
 class Program
 {
     static void Main(string[] args)
@@ -1477,7 +1476,14 @@ class Program
 " + _managedClass;
 
             var compilation = CreateCompilation(source);
-            VerifyDeclaredSymbolForUsingStatements(compilation);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var usingStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
+            var declaredSymbol = model.GetDeclaredSymbol(tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Single());
+            Assert.Equal("mnObj1", declaredSymbol.Name);
+            Assert.Equal(declaredSymbol, model.GetSymbolInfo(usingStatement.Expression).Symbol);
         }
 
         // The object created inside the "using" statement but declared no variable
@@ -1485,7 +1491,6 @@ class Program
         public void ResourceCreatedInsideUsingWithNoVarDeclared()
         {
             var source = @"
-using System;
 class Program
 {
     static void Main(string[] args)
@@ -1497,7 +1502,14 @@ class Program
 }
 " + _managedStruct;
             var compilation = CreateCompilation(source);
-            VerifyDeclaredSymbolForUsingStatements(compilation);
+            compilation.VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var usingStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
+            var constructor = model.GetSymbolInfo(usingStatement.Expression).Symbol;
+            Assert.Equal(SymbolKind.Method, constructor.Kind);
+            Assert.Equal("MyManagedType", constructor.ContainingType.Name);
         }
 
         // Multiple resource created inside Using
