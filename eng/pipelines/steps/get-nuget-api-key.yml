@@ -1,0 +1,99 @@
+# =====================================================================================================================
+# Reusable STEP TEMPLATE: exchange an Entra ID token for a short-lived NuGet.org API key (trusted publishing / OIDC).
+#
+# Keyless publish to NuGet.org: runs AzureCLI@2 against a Workload Identity Federation (WIF) service connection, gets
+# an Entra ID token for the gallery audience, exchanges it at POST {gallery}/api/v2/token, and publishes the resulting
+# short-lived API key as a masked variable named NuGetApiKey. Steps-only (no pool/extends) => 1ES-safe.
+#
+# Prereqs: (1) a WIF service connection, and (2) a trusted-publishing policy on the nuget.org account matching the
+# token's { tid, oid }. Run once with discoveryOnly=true to print the tid/oid that needs to be registered.
+# =====================================================================================================================
+
+parameters:
+# Name of the Azure Resource Manager service connection configured for Workload Identity Federation.
+- name: azureServiceConnection
+  type: string
+
+# The nuget.org username (account) that owns the trusted publishing policy. Required unless discoveryOnly is true.
+- name: nuGetUsername
+  type: string
+  default: ''
+
+# Base URL of the NuGet gallery the token is exchanged with.
+- name: galleryBaseUrl
+  type: string
+  default: 'https://www.nuget.org'
+
+# Entra ID audience (application id) of the NuGet.org token exchange endpoint.
+- name: entraIdAudience
+  type: string
+  default: 'c0ffee9b-cf8b-45bb-93b5-4d396cebdef3'
+
+# When true, only print the token's tid/oid (needed to register a trusted publishing policy) and skip the exchange.
+- name: discoveryOnly
+  type: boolean
+  default: false
+
+steps:
+- task: AzureCLI@2
+  displayName: Get NuGet.org API key
+  inputs:
+    azureSubscription: ${{ parameters.azureServiceConnection }}
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      set -euo pipefail
+
+      entraIdToken=$(az account get-access-token --resource '${{ parameters.entraIdAudience }}' --query accessToken -o tsv)
+      echo "##vso[task.setsecret]$entraIdToken"
+
+      if [ -z "$entraIdToken" ]; then
+        echo "##vso[task.logissue type=error]Failed to acquire an Entra ID token."
+        exit 1
+      fi
+
+      if [ '${{ lower(parameters.discoveryOnly) }}' = 'true' ]; then
+        # Decode the JWT payload (base64url) so that the tid/oid can be registered as a trusted publishing policy.
+        payload=$(echo "$entraIdToken" | cut -d '.' -f 2)
+        case $(( ${#payload} % 4 )) in
+          2) payload="${payload}==" ;;
+          3) payload="${payload}=" ;;
+        esac
+        claims=$(echo "$payload" | tr '_-' '/+' | base64 -d 2>/dev/null)
+        echo "Tenant Id (tid): $(echo "$claims" | jq -r '.tid')"
+        echo "Object Id (oid): $(echo "$claims" | jq -r '.oid')"
+        echo "Discovery only: no API key was requested."
+        exit 0
+      fi
+
+      if [ -z '${{ parameters.nuGetUsername }}' ]; then
+        echo "##vso[task.logissue type=error]The 'nuGetUsername' parameter is required unless 'discoveryOnly' is true."
+        exit 1
+      fi
+
+      responseFile=$(mktemp "${AGENT_TEMPDIRECTORY:-${TMPDIR:-/tmp}}/nuget-token-response.XXXXXX")
+      cleanup() {
+        rm -f "$responseFile"
+      }
+      trap cleanup EXIT
+
+      statusCode=$(curl --silent --show-error --output "$responseFile" --write-out '%{http_code}' \
+        --request POST '${{ parameters.galleryBaseUrl }}/api/v2/token' \
+        --header "Authorization: Bearer $entraIdToken" \
+        --header 'Content-Type: application/json' \
+        --data "$(jq -n --arg username '${{ parameters.nuGetUsername }}' '{username: $username, tokenType: "ApiKey"}')")
+
+      if [ "$statusCode" != "200" ]; then
+        echo "##vso[task.logissue type=error]NuGet token exchange failed with HTTP status $statusCode."
+        exit 1
+      fi
+
+      apiKey=$(jq -r '.apiKey // empty' "$responseFile")
+      if [ -z "$apiKey" ]; then
+        echo "##vso[task.logissue type=error]NuGet token exchange response did not contain an API key."
+        exit 1
+      fi
+
+      echo "##vso[task.setsecret]$apiKey"
+      echo "##vso[task.setvariable variable=NuGetApiKey;issecret=true]$apiKey"
+      echo "Successfully acquired a short-lived NuGet.org API key."
