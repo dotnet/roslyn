@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Build.Framework;
 using Microsoft.NET.ProjectData;
 
@@ -20,11 +21,6 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 	private const int MaxContexts = 20_000;
 
 	private static readonly Encoding Utf8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
-	private static readonly JsonSerializerOptions SerializerOptions = new()
-	{
-		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-		WriteIndented = false,
-	};
 
 	private readonly object gate = new();
 	private readonly List<ProjectDataBuildSubmissionRecord> submissions = [];
@@ -264,6 +260,32 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 			projectFilePathSource = ProjectDataBuildDiagnosticRecord.UnknownProjectPathSource;
 		}
 
+		ProjectDataBuildDiagnosticRecord diagnostic = new()
+		{
+			Severity = severity,
+			Phase = IsNuGetDiagnosticCode(code) ? "Restore" : this.GetPhase(context),
+			ProjectFilePath = resolvedProjectFile,
+			ProjectFilePathSource = projectFilePathSource,
+			FilePath = file ?? string.Empty,
+			Code = code ?? string.Empty,
+			Message = message ?? string.Empty,
+			Line = line,
+			Column = column,
+			Context = ConvertContext(context),
+		};
+
+		int equivalentIndex = this.diagnostics.FindIndex(existing => AreEquivalentDiagnosticFacts(existing, diagnostic));
+		if (equivalentIndex >= 0)
+		{
+			ProjectDataBuildDiagnosticRecord existing = this.diagnostics[equivalentIndex];
+			if (GetPhasePriority(diagnostic.Phase) > GetPhasePriority(existing.Phase))
+			{
+				existing.Phase = diagnostic.Phase;
+				existing.Context = diagnostic.Context;
+			}
+			return;
+		}
+
 		string diagnosticKey = resolvedProjectFile.Length == 0 ? "<global>" : resolvedProjectFile;
 		this.diagnosticCountByProject.TryGetValue(diagnosticKey, out int projectDiagnosticCount);
 		bool globalCapReached = this.diagnostics.Count >= MaxDiagnostics;
@@ -297,20 +319,6 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 			}
 		}
 
-		ProjectDataBuildDiagnosticRecord diagnostic = new()
-		{
-			Severity = severity,
-			Phase = this.GetPhase(context),
-			ProjectFilePath = resolvedProjectFile,
-			ProjectFilePathSource = projectFilePathSource,
-			FilePath = file ?? string.Empty,
-			Code = code ?? string.Empty,
-			Message = message ?? string.Empty,
-			Line = line,
-			Column = column,
-			Context = ConvertContext(context),
-		};
-
 		if (replacementIndex >= 0)
 		{
 			ProjectDataBuildDiagnosticRecord replaced = this.diagnostics[replacementIndex];
@@ -331,6 +339,22 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 			this.EmitProvisionalDiagnostic(diagnostic);
 		}
 	}
+
+	private static bool AreEquivalentDiagnosticFacts(ProjectDataBuildDiagnosticRecord left, ProjectDataBuildDiagnosticRecord right)
+		=> string.Equals(left.Severity, right.Severity, StringComparison.OrdinalIgnoreCase) &&
+			string.Equals(left.ProjectFilePath, right.ProjectFilePath, StringComparisons.Paths) &&
+			string.Equals(left.FilePath, right.FilePath, StringComparisons.Paths) &&
+			string.Equals(left.Code, right.Code, StringComparison.OrdinalIgnoreCase) &&
+			left.Line == right.Line &&
+			left.Column == right.Column &&
+			string.Equals(left.Message, right.Message, StringComparison.Ordinal);
+
+	private static int GetPhasePriority(string phase)
+		=> string.Equals(phase, "ProjectDataBuild", StringComparison.OrdinalIgnoreCase)
+			? 2
+			: string.Equals(phase, "Restore", StringComparison.OrdinalIgnoreCase)
+				? 1
+				: 0;
 
 	private void EmitProvisionalDiagnostic(ProjectDataBuildDiagnosticRecord diagnostic)
 	{
@@ -365,6 +389,24 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 		return this.latestPhase;
 	}
 
+	private static bool IsNuGetDiagnosticCode(string? code)
+	{
+		if (code is not { Length: > 2 } || !code.StartsWith("NU", StringComparison.OrdinalIgnoreCase))
+		{
+			return false;
+		}
+
+		for (int index = 2; index < code.Length; index++)
+		{
+			if (code[index] is < '0' or > '9')
+			{
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	private void WriteEvidence()
 	{
 		if (!this.initialized)
@@ -391,7 +433,7 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 				Diagnostics = [.. this.diagnostics],
 			};
 			string manifestPath = ProjectDataBuildAttemptManifest.GetManifestFilePath(this.receiptDirectory);
-			WriteJsonAtomically(manifestPath, JsonSerializer.Serialize(manifest, SerializerOptions));
+			WriteJsonAtomically(manifestPath, JsonSerializer.Serialize(manifest, ProjectDataBuildJsonSerializerContext.Default.ProjectDataBuildAttemptManifest));
 			ProjectDataBuildReceipt.WriteAggregateCompletion(this.receiptDirectory, this.attemptId);
 		}
 		catch (Exception ex)
@@ -429,14 +471,16 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 
 	private static string ClassifyPhase(bool isRestoring, IReadOnlyList<string> targetNames)
 	{
-		if (isRestoring || targetNames.Any(static target => string.Equals(target, "Restore", StringComparison.OrdinalIgnoreCase)))
-		{
-			return "Restore";
-		}
-
+		// A folded Restore + ProjectDataBuild submission owns non-NuGet diagnostics as
+		// configuration failures. RecordDiagnostic still assigns NU#### diagnostics to Restore.
 		if (targetNames.Any(static target => string.Equals(target, "ProjectDataBuild", StringComparison.OrdinalIgnoreCase)))
 		{
 			return "ProjectDataBuild";
+		}
+
+		if (isRestoring || targetNames.Any(static target => string.Equals(target, "Restore", StringComparison.OrdinalIgnoreCase)))
+		{
+			return "Restore";
 		}
 
 		return "Unknown";
@@ -533,3 +577,7 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 		}
 	}
 }
+
+[JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSerializable(typeof(ProjectDataBuildAttemptManifest))]
+internal sealed partial class ProjectDataBuildJsonSerializerContext : JsonSerializerContext;
