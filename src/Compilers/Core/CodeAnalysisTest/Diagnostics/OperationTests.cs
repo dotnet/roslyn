@@ -427,13 +427,28 @@ class C
             // Descendants with predicate cutting off anonymous functions
             var prunedDescendants = operation.Descendants(descendIntoChildren: static op => op is not IAnonymousFunctionOperation).ToList();
 
-            // The anonymous function itself is yielded
-            Assert.Contains(prunedDescendants, op => op is IAnonymousFunctionOperation);
-            // But operations inside the lambda (like literal '2') are pruned
-            Assert.DoesNotContain(prunedDescendants, op => op is ILiteralOperation { ConstantValue: { HasValue: true, Value: 2 } });
-            // And operations outside the lambda (literal '1' and '3') are present
-            Assert.Contains(prunedDescendants, op => op is ILiteralOperation { ConstantValue: { HasValue: true, Value: 1 } });
-            Assert.Contains(prunedDescendants, op => op is ILiteralOperation { ConstantValue: { HasValue: true, Value: 3 } });
+            Assert.Equal(
+                new[]
+                {
+                    OperationKind.Block,
+                    OperationKind.VariableDeclarationGroup,
+                    OperationKind.VariableDeclaration,
+                    OperationKind.VariableDeclarator,
+                    OperationKind.VariableInitializer,
+                    OperationKind.Literal,
+                    OperationKind.VariableDeclarationGroup,
+                    OperationKind.VariableDeclaration,
+                    OperationKind.VariableDeclarator,
+                    OperationKind.VariableInitializer,
+                    OperationKind.Conversion,
+                    OperationKind.AnonymousFunction,
+                    OperationKind.VariableDeclarationGroup,
+                    OperationKind.VariableDeclaration,
+                    OperationKind.VariableDeclarator,
+                    OperationKind.VariableInitializer,
+                    OperationKind.Literal,
+                },
+                prunedDescendants.Select(op => op.Kind));
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
