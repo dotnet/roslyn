@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Language.Intellisense.AsyncCompletion;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
@@ -18,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.DocumentationComments;
 [ContentType(ContentTypeNames.CSharpContentType)]
 [Name(PredefinedCommandHandlerNames.DocumentationComments)]
 [Order(After = PredefinedCommandHandlerNames.Rename)]
+[Order(After = PredefinedCommandHandlerNames.StringCopyPaste)]
 [Order(After = PredefinedCompletionNames.CompletionCommandHandler)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -28,7 +30,14 @@ internal sealed class DocumentationCommentCommandHandler(
     EditorOptionsService editorOptionsService,
     CopilotGenerateDocumentationCommentManager generateDocumentationCommentManager)
         : AbstractDocumentationCommentCommandHandler(uiThreadOperationExecutor, undoHistoryRegistry,
-            editorOperationsFactoryService, editorOptionsService, generateDocumentationCommentManager)
+            editorOperationsFactoryService, editorOptionsService, generateDocumentationCommentManager),
+    IChainedCommandHandler<PasteCommandArgs>
 {
     protected override string ExteriorTriviaText => "///";
+
+    public CommandState GetCommandState(PasteCommandArgs args, Func<CommandState> nextHandler)
+        => nextHandler();
+
+    public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
+        => ExecutePasteCommand(args, nextHandler);
 }
