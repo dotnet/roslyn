@@ -214,5 +214,12 @@ internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefacto
                     ? FeaturesResources.Generate_Equals_and_GetHashCode
                     : FeaturesResources.Generate_Equals
                 : FeaturesResources.Generate_GetHashCode;
+
+        internal static string GetAllMembersTitle(bool generateEquals, bool generateGetHashCode)
+            => generateEquals
+                ? generateGetHashCode
+                    ? FeaturesResources.Generate_Equals_and_GetHashCode_from_all_members
+                    : FeaturesResources.Generate_Equals_from_all_members
+                : FeaturesResources.Generate_GetHashCode_from_all_members;
     }
 }

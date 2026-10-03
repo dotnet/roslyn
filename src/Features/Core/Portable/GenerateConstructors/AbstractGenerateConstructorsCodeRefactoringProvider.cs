@@ -257,9 +257,18 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
                 optionValue));
         }
 
-        return (new GenerateConstructorWithDialogCodeAction(
-                this, document, textSpan, containingType, desiredAccessibility, viableMembers,
-                pickMemberOptions.ToImmutable()), typeDeclaration.Span);
+        var options = pickMemberOptions.ToImmutable();
+        var dialogAction = new GenerateConstructorWithDialogCodeAction(
+            this, document, textSpan, containingType, desiredAccessibility, viableMembers, options);
+
+        var pickMembersService = _pickMembersService_forTesting ?? document.Project.Solution.Services.GetService<IPickMembersService>();
+        var codeAction = pickMembersService is not null
+            ? (CodeAction)dialogAction
+            : new PickAllMembersCodeAction(
+                dialogAction, FeaturesResources.Generate_constructor_from_all_members,
+                document.Project.Solution, viableMembers, options);
+
+        return (codeAction, typeDeclaration.Span);
     }
 
     public async Task<ImmutableArray<CodeAction>> GenerateConstructorFromMembersAsync(
