@@ -1,0 +1,24 @@
+﻿RazorDocument - [0..115)::115 - [@documentation {<summary>Missing end tag}LF<p>After</p>LF@code { public string EndTag => "</summary>"; /* note */ }]
+    MarkupBlock - [0..115)::115
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..115)::115
+            RazorDocumentationDirective - [0..115)::115 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring} [RZ1047(111:2,54 [2] TestComponent.razor)]
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..115)::114
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..115)::101
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [15..16)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [16..114)::98
+                            CSharpStatementLiteral - [16..114)::98 - [<summary>Missing end tag}LF<p>After</p>LF@code { public string EndTag => "</summary>"; /* note */ ] - Gen<Stmt>
+                                Text;[<summary>Missing end tag}LF<p>After</p>LF@code { public string EndTag => "</summary>"; /* note */ ];
+                        RazorMetaCode - [114..115)::1 - Gen<None>
+                            RightBrace;[}];
+        MarkupTextLiteral - [115..115)::0 - [] - Gen<Markup>
+            Marker;[];
+    EndOfFile;[];
