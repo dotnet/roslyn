@@ -454,7 +454,7 @@
       </trans-unit>
       <trans-unit id="Fix_generic_type_names_pasted_into_cref_attributes">
         <source>Fix generic type names pasted into cref attributes</source>
-        <target state="new">Fix generic type names pasted into cref attributes</target>
+        <target state="translated">Correggere i nomi dei tipi generici incollati negli attributi cref</target>
         <note>"cref" is a documentation comment attribute name and should not be localized</note>
       </trans-unit>
       <trans-unit id="Fix_text_pasted_into_string_literals">
