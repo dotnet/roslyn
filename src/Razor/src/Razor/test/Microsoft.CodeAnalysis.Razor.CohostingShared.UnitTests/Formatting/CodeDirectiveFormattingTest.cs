@@ -650,21 +650,21 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {<summary>Text</summary>}
 
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation {<summary>Text</summary>}
 
                 {{directive}} {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -686,7 +686,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {<summary>
                 Text
@@ -696,7 +696,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation {<summary>
                 Text
@@ -706,7 +706,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -728,7 +728,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {
                 <summary>
@@ -738,7 +738,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation {
                 <summary>
@@ -748,7 +748,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -768,7 +768,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {<summary>Text
                 </summary>}
@@ -776,7 +776,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation {<summary>Text
                 </summary>}
@@ -784,7 +784,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -804,7 +804,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {
                 <summary>Text</summary>}
@@ -812,7 +812,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation {
                 <summary>Text</summary>}
@@ -820,7 +820,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -844,7 +844,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {
                 <summary>
@@ -856,7 +856,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation {
                 <summary>
@@ -868,7 +868,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -887,21 +887,21 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {}
 
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation {}
 
                 {{directive}} {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -920,14 +920,14 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {<summary>Text</summary>}
 
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation
                 {<summary>Text</summary>}
@@ -936,7 +936,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
@@ -958,7 +958,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {<summary>
                 Text
@@ -968,7 +968,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation
                 {<summary>
@@ -980,7 +980,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
@@ -1002,7 +1002,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {
                 <summary>
@@ -1012,7 +1012,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation
                 {
@@ -1024,7 +1024,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
@@ -1044,7 +1044,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {<summary>Text
                 </summary>}
@@ -1052,7 +1052,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation
                 {<summary>Text
@@ -1062,7 +1062,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
@@ -1082,7 +1082,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {
                 <summary>Text</summary>}
@@ -1090,7 +1090,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation
                 {
@@ -1100,7 +1100,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
@@ -1124,7 +1124,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {
                 <summary>
@@ -1136,7 +1136,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation
                 {
@@ -1150,7 +1150,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
@@ -1169,14 +1169,14 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation {}
 
                 {{directive}} {
                 private   int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: $$"""
                 @documentation
                 {}
@@ -1185,7 +1185,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {
                     private int _count;
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
@@ -1202,7 +1202,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {{directive}} {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1224,7 +1224,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {{directive}} {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1246,7 +1246,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {{directive}} {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1266,7 +1266,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {{directive}} {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1286,7 +1286,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {{directive}} {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1310,7 +1310,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {{directive}} {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1329,7 +1329,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {{directive}} {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1350,7 +1350,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1374,7 +1374,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1398,7 +1398,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1420,7 +1420,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1442,7 +1442,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1468,7 +1468,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1489,7 +1489,7 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             {
                 private int _count;
             }
-            """.Replace("\r\n", "\n");
+            """;
 
         return RunFormattingTestAsync(input: input, htmlFormatted: input, expected: input,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
@@ -1506,17 +1506,17 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 @documentation{
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: """
                 @documentation{
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: """
                 @documentation {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -1531,17 +1531,17 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 @documentation   {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: """
                 @documentation   {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: """
                 @documentation {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -1556,17 +1556,17 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 @documentation	{
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation	{
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: """
                 @documentation {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -1583,20 +1583,20 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: """
                 @documentation
 
                 {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: """
                 @documentation
                 {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: false);
     }
@@ -1611,18 +1611,18 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 @documentation{
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: """
                 @documentation{
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: """
                 @documentation
                 {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
@@ -1637,18 +1637,18 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 @documentation   {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: """
                 @documentation   {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: """
                 @documentation
                 {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
@@ -1663,18 +1663,18 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 @documentation	{
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: $$"""
                 @documentation	{
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: """
                 @documentation
                 {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
@@ -1691,20 +1691,20 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             htmlFormatted: """
                 @documentation
 
                 {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             expected: """
                 @documentation
                 {
                     <summary>Text</summary>
                 }
-                """.Replace("\r\n", "\n"),
+                """,
             fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
             codeBlockBraceOnNextLine: true);
     }
