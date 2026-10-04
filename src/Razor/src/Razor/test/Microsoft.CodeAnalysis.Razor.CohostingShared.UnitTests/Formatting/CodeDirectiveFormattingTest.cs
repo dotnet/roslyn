@@ -266,13 +266,13 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 """,
             expected: $$"""
                 @documentation {
-                {{"\t"}}<summary>
-                {{"\t"}}Keep   this spacing, @transitions, and }.
-                {{"\t"}}</summary>
+                	<summary>
+                	Keep   this spacing, @transitions, and }.
+                	</summary>
                 }
 
                 @code {
-                {{"\t"}}private int _count;
+                	private int _count;
                 }
                 """,
             insertSpaces: false);
@@ -310,13 +310,13 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             expected: $$"""
                 @documentation
                 {
-                {{"\t"}}<summary>
-                {{"\t"}}Keep   this spacing, @transitions, and }.
-                {{"\t"}}</summary>
+                	<summary>
+                	Keep   this spacing, @transitions, and }.
+                	</summary>
                 }
 
                 @code {
-                {{"\t"}}private int _count;
+                	private int _count;
                 }
                 """,
             insertSpaces: false);
@@ -352,14 +352,14 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             expected: $$"""
                 @documentation
                 {
-                {{"\t"}}<summary>
-                {{"\t"}}Keep   this spacing, @transitions, and }.
-                {{"\t"}}</summary>
+                	<summary>
+                	Keep   this spacing, @transitions, and }.
+                	</summary>
                 }
 
                 @code
                 {
-                {{"\t"}}private int _count;
+                	private int _count;
                 }
                 """,
             codeBlockBraceOnNextLine: true,
@@ -398,14 +398,14 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
             expected: $$"""
                 @documentation
                 {
-                {{"\t"}}<summary>
-                {{"\t"}}Keep   this spacing, @transitions, and }.
-                {{"\t"}}</summary>
+                	<summary>
+                	Keep   this spacing, @transitions, and }.
+                	</summary>
                 }
 
                 @code
                 {
-                {{"\t"}}private int _count;
+                	private int _count;
                 }
                 """,
             codeBlockBraceOnNextLine: true,
@@ -479,13 +479,13 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
     {
         const string input = $$"""
             @documentation {
-            {{"\t"}}<summary>
-            {{"\t"}}Keep   this spacing, @transitions, and }.
-            {{"\t"}}</summary>
+            	<summary>
+            	Keep   this spacing, @transitions, and }.
+            	</summary>
             }
 
             @code {
-            {{"\t"}}private int _count;
+            	private int _count;
             }
             """;
 
@@ -500,13 +500,13 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
         const string input = $$"""
             @documentation
             {
-            {{"\t"}}<summary>
-            {{"\t"}}Keep   this spacing, @transitions, and }.
-            {{"\t"}}</summary>
+            	<summary>
+            	Keep   this spacing, @transitions, and }.
+            	</summary>
             }
 
             @code {
-            {{"\t"}}private int _count;
+            	private int _count;
             }
             """;
 
@@ -521,14 +521,14 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
         const string input = $$"""
             @documentation
             {
-            {{"\t"}}<summary>
-            {{"\t"}}Keep   this spacing, @transitions, and }.
-            {{"\t"}}</summary>
+            	<summary>
+            	Keep   this spacing, @transitions, and }.
+            	</summary>
             }
 
             @code
             {
-            {{"\t"}}private int _count;
+            	private int _count;
             }
             """;
 
@@ -599,9 +599,9 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
                 """,
             expected: $$"""
                 @documentation {
-                {{"\t"}}  <summary>
-                {{"\t\t"}}Keep   this text.
-                {{"\t"}}  </summary>
+                	  <summary>
+                		Keep   this text.
+                	  </summary>
                 }
                 <p>After</p>
                 """,
@@ -1553,12 +1553,12 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
     {
         return RunFormattingTestAsync(
             input: $$"""
-                @documentation{{"\t"}}{
+                @documentation	{
                     <summary>Text</summary>
                 }
                 """.Replace("\r\n", "\n"),
             htmlFormatted: $$"""
-                @documentation{{"\t"}}{
+                @documentation	{
                     <summary>Text</summary>
                 }
                 """.Replace("\r\n", "\n"),
@@ -1660,12 +1660,12 @@ public class CodeDirectiveFormattingTest(ITestOutputHelper testOutput) : Documen
     {
         return RunFormattingTestAsync(
             input: $$"""
-                @documentation{{"\t"}}{
+                @documentation	{
                     <summary>Text</summary>
                 }
                 """.Replace("\r\n", "\n"),
             htmlFormatted: $$"""
-                @documentation{{"\t"}}{
+                @documentation	{
                     <summary>Text</summary>
                 }
                 """.Replace("\r\n", "\n"),
