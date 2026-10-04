@@ -340,7 +340,7 @@ public class EscapeDocumentationCommentTerminatorTests(ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task NotOfferedForCSharpCommentAfterClosingTagString()
+    public async Task EscapeTerminatorInFollowingCSharpCommentCapturedAsDocumentation()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -348,7 +348,11 @@ public class EscapeDocumentationCommentTerminatorTests(ITestOutputHelper testOut
                 <p>After</p>
                 @code { public string EndTag => "</summary>"; /* note *[||]/ }
                 """,
-            expected: null,
+            expected: """
+                @documentation {<summary>Missing end tag}
+                <p>After</p>
+                @code { public string EndTag => "</summary>"; /* note *&#47; }
+                """,
             codeActionName: LanguageServerConstants.CodeActions.EscapeDocumentationCommentTerminator,
             makeDiagnosticsRequest: true);
     }
@@ -380,7 +384,7 @@ public class EscapeDocumentationCommentTerminatorTests(ITestOutputHelper testOut
     }
 
     [Fact]
-    public async Task NotOfferedForViewCommentAfterClosingTagString()
+    public async Task EscapeTerminatorInFollowingViewCommentCapturedAsDocumentation()
     {
         await VerifyCodeActionAsync(
             input: """
@@ -388,7 +392,11 @@ public class EscapeDocumentationCommentTerminatorTests(ITestOutputHelper testOut
                 <p>After</p>
                 @functions { public string EndTag => "</summary>"; /* note *[||]/ }
                 """,
-            expected: null,
+            expected: """
+                @documentation {<summary>Missing end tag}
+                <p>After</p>
+                @functions { public string EndTag => "</summary>"; /* note *&#47; }
+                """,
             codeActionName: LanguageServerConstants.CodeActions.EscapeDocumentationCommentTerminator,
             fileKind: RazorFileKind.Legacy,
             makeDiagnosticsRequest: true);
