@@ -27952,7 +27952,7 @@ partial class Program
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"[(byte)'H', .. ""ello""u8, (byte)' ', .. ""World""u8, (byte)'!']").WithArguments("System.ReadOnlySpan`1", ".ctor").WithLocation(7, 36));
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84145")]
+        [ConditionalFact(typeof(CoreClrOnly)), WorkItem("https://github.com/dotnet/roslyn/issues/84145")]
         public void RuntimeHelpers_CreateSpan_Utf8LiteralSpread_InvalidUtf8()
         {
             var source = """
