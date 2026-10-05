@@ -48,7 +48,7 @@ internal sealed class EscapeDocumentationCommentTerminatorCodeActionProvider : I
             }
 
             // End CDATA before the reference so XML decodes it, then resume the original section.
-            var replacement = IsInCData(content, span.Start, cancellationToken)
+            var replacement = IsInCData(context.SourceText, content, span.Start, cancellationToken)
                 ? "*]]>&#47;<![CDATA["
                 : "*&#47;";
             var workspaceEdit = new WorkspaceEdit
@@ -73,13 +73,13 @@ internal sealed class EscapeDocumentationCommentTerminatorCodeActionProvider : I
         return SpecializedTasks.EmptyImmutableArray<RazorVSInternalCodeAction>();
     }
 
-    private static bool IsInCData(CSharpStatementLiteralSyntax content, int position, CancellationToken cancellationToken)
+    private static bool IsInCData(SourceText sourceText, CSharpStatementLiteralSyntax content, int position, CancellationToken cancellationToken)
     {
         // Character references are literal text inside CDATA. Use Roslyn's XML-doc parser to find the
         // context, wrapping each line in "/// " so the offending "*/" cannot end the temporary comment.
         // The space keeps a body line starting with '/' from turning the prefix into an ordinary comment.
         const string commentPrefix = "/// ";
-        var text = SourceText.From(content.GetContent());
+        var text = sourceText.GetSubText(content.Span);
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
         foreach (var line in text.Lines)
         {
