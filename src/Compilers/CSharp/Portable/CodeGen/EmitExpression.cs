@@ -2286,6 +2286,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Sequence:
                     return IsRef(((BoundSequence)receiver).Value);
+
+                case BoundKind.RefAccess:
+                    return true;
+
+                case BoundKind.AssignmentOperator:
+                    return ((BoundAssignmentOperator)receiver).IsRef;
             }
 
             return false;

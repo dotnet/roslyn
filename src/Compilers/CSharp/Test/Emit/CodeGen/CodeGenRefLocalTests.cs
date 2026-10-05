@@ -3176,6 +3176,90 @@ class S
         }
 
         [Fact]
+        public void RefDiscardAssignment_05_Field_09()
+        {
+            var source = """
+class C
+{
+    void M(S x)
+    {
+        ref S s = ref x; 
+        _ = ref (s = ref GetRef()).F;
+    }
+
+    static ref S GetRef() => throw null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (S& V_0) //s
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_1
+  IL_0003:  stloc.0
+  IL_0004:  call       "ref S C.GetRef()"
+  IL_0009:  dup
+  IL_000a:  stloc.0
+  IL_000b:  ldflda     "byte S.F"
+  IL_0010:  pop
+  IL_0011:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       "ref S C.GetRef()"
+  IL_0005:  ldflda     "byte S.F"
+  IL_000a:  pop
+  IL_000b:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefDiscardAssignment_05_Field_10()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M(default);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M(S x)
+    {
+        ref S s = ref x; 
+        _ = ref (s = ref GetRef()).F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
         public void RefDiscardAssignment_06_Field()
         {
             var source = """
