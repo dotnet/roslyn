@@ -47,14 +47,6 @@ namespace RunTests
                         process.Kill(entireProcessTree: true);
                 }
             }
-            catch (ArgumentException)
-            {
-                // The process exited before its identity could be checked.
-            }
-            catch (InvalidOperationException)
-            {
-                // The process exited between checking and killing it.
-            }
             catch (Exception ex)
             {
                 ConsoleUtil.Warning($"Failed to kill process tree {process.Id}: {ex.Message}");
@@ -147,14 +139,14 @@ namespace RunTests
                 using var process = info.Process;
                 var output = await info.Result.ConfigureAwait(false);
                 if (output.ExitCode != 0)
-                    throw new IOException($"ps exited with code {output.ExitCode}: {string.Join(Environment.NewLine, output.ErrorLines)}");
+                    throw new Exception($"ps exited with code {output.ExitCode}: {string.Join(Environment.NewLine, output.ErrorLines)}");
 
                 var result = new Dictionary<int, int>();
                 foreach (var line in output.OutputLines)
                 {
                     var fields = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
                     if (fields.Length != 2)
-                        throw new IOException($"Unexpected ps output: '{line}'");
+                        throw new Exception($"Unexpected ps output: '{line}'");
 
                     result.Add(int.Parse(fields[0], CultureInfo.InvariantCulture), int.Parse(fields[1], CultureInfo.InvariantCulture));
                 }
@@ -175,8 +167,7 @@ namespace RunTests
                         var fields = ReadLinuxProcessStat(pid);
                         result[pid] = int.Parse(fields[1]);
                     }
-                    catch (IOException) { }
-                    catch (UnauthorizedAccessException) { }
+                    catch (Exception) { }
                 }
 
                 return result;
