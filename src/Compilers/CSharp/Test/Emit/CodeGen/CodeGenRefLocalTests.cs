@@ -663,6 +663,190 @@ class C
         }
 
         [Fact]
+        public void UsedResultOfUnusedRefAssignment_01()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(new S { F = 5 }, 7));
+    }
+
+    static int M(S s, int i)
+    {
+        ref int r = ref i;
+        return (r = ref s.F);
+    }
+}
+
+struct S
+{
+    public int F;
+}
+";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"5");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int S.F""
+  IL_0006:  ret
+}
+");
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"5");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (int& V_0, //r
+            int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_1
+  IL_0003:  stloc.0
+  IL_0004:  ldarga.s   V_0
+  IL_0006:  ldflda     ""int S.F""
+  IL_000b:  dup
+  IL_000c:  stloc.0
+  IL_000d:  ldind.i4
+  IL_000e:  stloc.1
+  IL_000f:  br.s       IL_0011
+  IL_0011:  ldloc.1
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UsedResultOfUnusedRefAssignment_02()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Console.WriteLine(M(new int[] { 5 }, 7));
+    }
+
+    static int M(int[] s, int i)
+    {
+        ref int r = ref i;
+        return (r = ref s[0]);
+    }
+}
+
+struct S
+{
+    public int F;
+}
+";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"5");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        4 (0x4)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.i4
+  IL_0003:  ret
+}
+");
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"5");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (int& V_0, //r
+            int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_1
+  IL_0003:  stloc.0
+  IL_0004:  ldarg.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelema    ""int""
+  IL_000b:  dup
+  IL_000c:  stloc.0
+  IL_000d:  ldind.i4
+  IL_000e:  stloc.1
+  IL_000f:  br.s       IL_0011
+  IL_0011:  ldloc.1
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UsedResultOfUnusedRefAssignment_03()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M(new C[1], null);
+        }
+        catch (System.ArrayTypeMismatchException)
+        {
+            System.Console.WriteLine(""Pass"");
+        }
+    }
+
+    static object M(object[] a, object b)
+    {
+        ref object r = ref b;
+        return (r = ref a[0]);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"Pass");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    ""object""
+  IL_0007:  ldind.ref
+  IL_0008:  ret
+}
+");
+
+            verifier = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"Pass");
+            verifier.VerifyIL("C.M", @"
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (object& V_0, //r
+            object V_1)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_1
+  IL_0003:  stloc.0
+  IL_0004:  ldarg.0
+  IL_0005:  ldc.i4.0
+  IL_0006:  ldelema    ""object""
+  IL_000b:  dup
+  IL_000c:  stloc.0
+  IL_000d:  ldind.ref
+  IL_000e:  stloc.1
+  IL_000f:  br.s       IL_0011
+  IL_0011:  ldloc.1
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact]
         public void InReassignmentWithConversion()
         {
             var verifier = CompileAndVerify(@"
@@ -2159,6 +2343,18 @@ class Program
             var text = @"
 class Program
 {
+    static void Main()
+    {
+        try
+        {
+            M(new Program[1]);
+        }
+        catch (System.ArrayTypeMismatchException)
+        {
+            System.Console.WriteLine(""Pass"");
+        }
+    }
+
     static void M(object[] a)
     {
         ref object rl = ref a[0];
@@ -2166,7 +2362,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
+            CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "Pass").VerifyIL("Program.M", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -2179,7 +2375,7 @@ class Program
   IL_0009:  ret
 }");
 
-            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+            CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "Pass").VerifyIL("Program.M", @"
 {
   // Code size        9 (0x9)
   .maxstack  2
@@ -2197,6 +2393,12 @@ class Program
             var text = @"
 class Program
 {
+    static void Main()
+    {
+        M(new Program[1]);
+        System.Console.WriteLine(""Pass"");
+    }
+
     static void M(object[] a)
     {
         ref readonly object rl = ref a[0];
@@ -2204,7 +2406,7 @@ class Program
 }
 ";
 
-            CompileAndVerify(text, options: TestOptions.DebugDll, verify: Verification.Fails).VerifyIL("Program.M", @"
+            CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "Pass", verify: Verification.Fails).VerifyIL("Program.M", @"
 {
   // Code size       12 (0xc)
   .maxstack  2
@@ -2218,7 +2420,7 @@ class Program
   IL_000b:  ret
 }");
 
-            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
+            CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "Pass").VerifyIL("Program.M", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -2232,7 +2434,7 @@ class Program
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
         public void RefAssignArrayAccess_Generic(
-            [CombinatorialValues("", "where T : class")] string constraints)
+            [CombinatorialValues("", "where T : class", "where T : struct")] string constraints)
         {
             var text = $$"""
 class Program
@@ -2266,45 +2468,6 @@ class Program
   IL_0002:  ldelema    ""T""
   IL_0007:  pop
   IL_0008:  ret
-}");
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
-        public void RefAssignArrayAccess_Generic_Struct()
-        {
-            var text = """
-class Program
-{
-    static void M<T>(T[] a) where T : struct
-    {
-        ref T rl = ref a[0];
-    }
-}
-""";
-
-            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M<T>", @"
-{
-  // Code size       10 (0xa)
-  .maxstack  2
-  .locals init (T& V_0) //rl
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldc.i4.0
-  IL_0003:  ldelema    ""T""
-  IL_0008:  stloc.0
-  IL_0009:  ret
-}");
-
-            CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
-{
-  // Code size       11 (0xb)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldc.i4.0
-  IL_0002:  readonly.
-  IL_0004:  ldelema    ""T""
-  IL_0009:  pop
-  IL_000a:  ret
 }");
         }
 
@@ -2377,14 +2540,13 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
 {
-  // Code size       11 (0xb)
+  // Code size        9 (0x9)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
-  IL_0002:  readonly.
-  IL_0004:  ldelema    ""T""
-  IL_0009:  pop
-  IL_000a:  ret
+  IL_0002:  ldelema    ""T""
+  IL_0007:  pop
+  IL_0008:  ret
 }");
         }
 
@@ -2403,26 +2565,26 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
 {
-  // Code size       10 (0xa)
+  // Code size        6 (0x6)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
-  IL_0003:  ldelema    ""int""
-  IL_0008:  pop
-  IL_0009:  ret
+  IL_0003:  ldelem.i4
+  IL_0004:  pop
+  IL_0005:  ret
 }
 ");
 
             CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
 {
-  // Code size        9 (0x9)
+  // Code size        5 (0x5)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
-  IL_0002:  ldelema    ""int""
-  IL_0007:  pop
-  IL_0008:  ret
+  IL_0002:  ldelem.i4
+  IL_0003:  pop
+  IL_0004:  ret
 }
 ");
         }
@@ -2442,28 +2604,26 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
 {
-  // Code size       12 (0xc)
+  // Code size        6 (0x6)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
-  IL_0003:  readonly.
-  IL_0005:  ldelema    ""object""
-  IL_000a:  pop
-  IL_000b:  ret
+  IL_0003:  ldelem.ref
+  IL_0004:  pop
+  IL_0005:  ret
 }
 ");
 
             CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
 {
-  // Code size       11 (0xb)
+  // Code size        5 (0x5)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
-  IL_0002:  readonly.
-  IL_0004:  ldelema    ""object""
-  IL_0009:  pop
-  IL_000a:  ret
+  IL_0002:  ldelem.ref
+  IL_0003:  pop
+  IL_0004:  ret
 }
 ");
         }
@@ -2689,7 +2849,7 @@ class C
         }
 
         [Fact]
-        public void RefDiscardAssignment_05_Field()
+        public void RefDiscardAssignment_05_Field_01()
         {
             var source = """
 class C
@@ -2728,6 +2888,291 @@ struct S
   IL_000b:  ret
 }
 """);
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefDiscardAssignment_05_Field_02()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M()
+    {
+        _ = ref GetRef().F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void RefDiscardAssignment_05_Field_03()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        _ = ref GetRef().S.F;
+    }
+
+    static S1 GetRef() => default;
+}
+
+ref struct S1
+{
+    public ref S S;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll, verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 C.GetRef()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldfld      "ref S S1.S"
+  IL_000e:  ldflda     "byte S.F"
+  IL_0013:  pop
+  IL_0014:  ret
+}
+""");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  call       "S1 C.GetRef()"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldfld      "ref S S1.S"
+  IL_000d:  ldflda     "byte S.F"
+  IL_0012:  pop
+  IL_0013:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefDiscardAssignment_05_Field_04()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M()
+    {
+        _ = ref GetRef().S.F;
+    }
+
+    static S1 GetRef() => default;
+}
+
+ref struct S1
+{
+#pragma warning disable CS9265 // Field 'S1.S' is never ref-assigned to, and will always have its default value (null reference)
+    public ref S S;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass", verify: Verification.Skipped);
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void RefDiscardAssignment_05_Field_05()
+        {
+            var source = """
+class C
+{
+    static unsafe void M()
+    {
+        _ = ref GetRef()->F;
+    }
+
+    static unsafe S* GetRef() => null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  call       "S* C.GetRef()"
+  IL_0006:  ldflda     "byte S.F"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       "S* C.GetRef()"
+  IL_0005:  ldflda     "byte S.F"
+  IL_000a:  pop
+  IL_000b:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefDiscardAssignment_05_Field_06()
+        {
+            var source = """
+class C
+{
+    unsafe static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static unsafe void M()
+    {
+        _ = ref GetRef()->F;
+    }
+
+    static unsafe S* GetRef() => null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass" : null, verify: Verification.Skipped);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass" : null, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void RefDiscardAssignment_05_Field_07()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        _ = ref GetRef().F;
+    }
+
+    static S GetRef() => null;
+}
+
+class S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  call       "S C.GetRef()"
+  IL_0006:  ldflda     "byte S.F"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       "S C.GetRef()"
+  IL_0005:  ldflda     "byte S.F"
+  IL_000a:  pop
+  IL_000b:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void RefDiscardAssignment_05_Field_08()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M()
+    {
+        _ = ref GetRef().F;
+    }
+
+    static S GetRef() => null;
+}
+
+class S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -2878,29 +3323,24 @@ struct S
 """;
             CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
 {
-  // Code size       16 (0x10)
+  // Code size        9 (0x9)
   .maxstack  1
   .locals init (S V_0) //x
   IL_0000:  nop
   IL_0001:  call       "S C.Get()"
   IL_0006:  stloc.0
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  ldflda     "byte S.F"
-  IL_000e:  pop
-  IL_000f:  ret
+  IL_0007:  nop
+  IL_0008:  ret
 }
 """);
             CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
 {
-  // Code size       15 (0xf)
+  // Code size        7 (0x7)
   .maxstack  1
   .locals init (S V_0) //x
   IL_0000:  call       "S C.Get()"
   IL_0005:  stloc.0
-  IL_0006:  ldloca.s   V_0
-  IL_0008:  ldflda     "byte S.F"
-  IL_000d:  pop
-  IL_000e:  ret
+  IL_0006:  ret
 }
 """);
         }
@@ -3285,25 +3725,25 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
 {
-  // Code size       21 (0x15)
+  // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.1
   IL_0002:  brtrue.s   IL_000c
   IL_0004:  call       ""ref int Program.GetRef2()""
   IL_0009:  pop
-  IL_000a:  br.s       IL_0014
+  IL_000a:  br.s       IL_0010
   IL_000c:  ldarg.0
   IL_000d:  ldc.i4.0
-  IL_000e:  ldelema    ""int""
-  IL_0013:  pop
-  IL_0014:  ret
+  IL_000e:  ldelem.i4
+  IL_000f:  pop
+  IL_0010:  ret
 }
 ");
 
             CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
 {
-  // Code size       19 (0x13)
+  // Code size       15 (0xf)
   .maxstack  2
   IL_0000:  ldarg.1
   IL_0001:  brtrue.s   IL_000a
@@ -3312,9 +3752,9 @@ class Program
   IL_0009:  ret
   IL_000a:  ldarg.0
   IL_000b:  ldc.i4.0
-  IL_000c:  ldelema    ""int""
-  IL_0011:  pop
-  IL_0012:  ret
+  IL_000c:  ldelem.i4
+  IL_000d:  pop
+  IL_000e:  ret
 }
 ");
         }
@@ -3336,26 +3776,25 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
 {
-  // Code size       23 (0x17)
+  // Code size       17 (0x11)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.1
   IL_0002:  brtrue.s   IL_000c
   IL_0004:  call       ""ref object Program.GetRef2()""
   IL_0009:  pop
-  IL_000a:  br.s       IL_0016
+  IL_000a:  br.s       IL_0010
   IL_000c:  ldarg.0
   IL_000d:  ldc.i4.0
-  IL_000e:  readonly.
-  IL_0010:  ldelema    ""object""
-  IL_0015:  pop
-  IL_0016:  ret
+  IL_000e:  ldelem.ref
+  IL_000f:  pop
+  IL_0010:  ret
 }
 ");
 
             CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
 {
-  // Code size       21 (0x15)
+  // Code size       15 (0xf)
   .maxstack  2
   IL_0000:  ldarg.1
   IL_0001:  brtrue.s   IL_000a
@@ -3364,10 +3803,9 @@ class Program
   IL_0009:  ret
   IL_000a:  ldarg.0
   IL_000b:  ldc.i4.0
-  IL_000c:  readonly.
-  IL_000e:  ldelema    ""object""
-  IL_0013:  pop
-  IL_0014:  ret
+  IL_000c:  ldelem.ref
+  IL_000d:  pop
+  IL_000e:  ret
 }
 ");
         }
@@ -4081,7 +4519,7 @@ IL_009f:  leave.s    IL_00b6
 
             CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "42").VerifyIL("Program.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      170 (0xaa)
+  // Code size      163 (0xa3)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
@@ -4119,7 +4557,7 @@ IL_009f:  leave.s    IL_00b6
     IL_003f:  ldloca.s   V_2
     IL_0041:  ldarg.0
     IL_0042:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<M>d__0>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<M>d__0)""
-    IL_0047:  leave.s    IL_00a9
+    IL_0047:  leave.s    IL_00a2
     IL_0049:  ldarg.0
     IL_004a:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__0.<>u__1""
     IL_004f:  stloc.2
@@ -4134,33 +4572,30 @@ IL_009f:  leave.s    IL_00b6
     IL_0065:  ldloca.s   V_2
     IL_0067:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
     IL_006c:  ldarg.0
-    IL_006d:  ldflda     ""int Program.<M>d__0.<x>5__2""
-    IL_0072:  pop
-    IL_0073:  ldarg.0
-    IL_0074:  ldfld      ""int Program.<M>d__0.<x>5__2""
-    IL_0079:  stloc.1
-    IL_007a:  leave.s    IL_0095
+    IL_006d:  ldfld      ""int Program.<M>d__0.<x>5__2""
+    IL_0072:  stloc.1
+    IL_0073:  leave.s    IL_008e
   }
   catch System.Exception
   {
-    IL_007c:  stloc.s    V_4
-    IL_007e:  ldarg.0
-    IL_007f:  ldc.i4.s   -2
-    IL_0081:  stfld      ""int Program.<M>d__0.<>1__state""
-    IL_0086:  ldarg.0
-    IL_0087:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M>d__0.<>t__builder""
-    IL_008c:  ldloc.s    V_4
-    IL_008e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
-    IL_0093:  leave.s    IL_00a9
+    IL_0075:  stloc.s    V_4
+    IL_0077:  ldarg.0
+    IL_0078:  ldc.i4.s   -2
+    IL_007a:  stfld      ""int Program.<M>d__0.<>1__state""
+    IL_007f:  ldarg.0
+    IL_0080:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M>d__0.<>t__builder""
+    IL_0085:  ldloc.s    V_4
+    IL_0087:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
+    IL_008c:  leave.s    IL_00a2
   }
-  IL_0095:  ldarg.0
-  IL_0096:  ldc.i4.s   -2
-  IL_0098:  stfld      ""int Program.<M>d__0.<>1__state""
-  IL_009d:  ldarg.0
-  IL_009e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M>d__0.<>t__builder""
-  IL_00a3:  ldloc.1
-  IL_00a4:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
-  IL_00a9:  ret
+  IL_008e:  ldarg.0
+  IL_008f:  ldc.i4.s   -2
+  IL_0091:  stfld      ""int Program.<M>d__0.<>1__state""
+  IL_0096:  ldarg.0
+  IL_0097:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> Program.<M>d__0.<>t__builder""
+  IL_009c:  ldloc.1
+  IL_009d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
+  IL_00a2:  ret
 }
 ");
         }
@@ -4280,7 +4715,7 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "42").VerifyIL("Program.<M>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
-  // Code size      160 (0xa0)
+  // Code size      153 (0x99)
   .maxstack  3
   .locals init (int V_0,
                 System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
@@ -4317,7 +4752,7 @@ class Program
     IL_003f:  ldloca.s   V_1
     IL_0041:  ldarg.0
     IL_0042:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Program.<M>d__0>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref Program.<M>d__0)""
-    IL_0047:  leave.s    IL_009f
+    IL_0047:  leave.s    IL_0098
     IL_0049:  ldarg.0
     IL_004a:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter Program.<M>d__0.<>u__1""
     IL_004f:  stloc.1
@@ -4331,30 +4766,27 @@ class Program
     IL_0060:  stfld      ""int Program.<M>d__0.<>1__state""
     IL_0065:  ldloca.s   V_1
     IL_0067:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_006c:  ldarg.0
-    IL_006d:  ldflda     ""int Program.<M>d__0.<x>5__2""
-    IL_0072:  pop
-    IL_0073:  leave.s    IL_008c
+    IL_006c:  leave.s    IL_0085
   }
   catch System.Exception
   {
-    IL_0075:  stloc.3
-    IL_0076:  ldarg.0
-    IL_0077:  ldc.i4.s   -2
-    IL_0079:  stfld      ""int Program.<M>d__0.<>1__state""
-    IL_007e:  ldarg.0
-    IL_007f:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M>d__0.<>t__builder""
-    IL_0084:  ldloc.3
-    IL_0085:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
-    IL_008a:  leave.s    IL_009f
+    IL_006e:  stloc.3
+    IL_006f:  ldarg.0
+    IL_0070:  ldc.i4.s   -2
+    IL_0072:  stfld      ""int Program.<M>d__0.<>1__state""
+    IL_0077:  ldarg.0
+    IL_0078:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M>d__0.<>t__builder""
+    IL_007d:  ldloc.3
+    IL_007e:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetException(System.Exception)""
+    IL_0083:  leave.s    IL_0098
   }
-  IL_008c:  ldarg.0
-  IL_008d:  ldc.i4.s   -2
-  IL_008f:  stfld      ""int Program.<M>d__0.<>1__state""
-  IL_0094:  ldarg.0
-  IL_0095:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M>d__0.<>t__builder""
-  IL_009a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
-  IL_009f:  ret
+  IL_0085:  ldarg.0
+  IL_0086:  ldc.i4.s   -2
+  IL_0088:  stfld      ""int Program.<M>d__0.<>1__state""
+  IL_008d:  ldarg.0
+  IL_008e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder Program.<M>d__0.<>t__builder""
+  IL_0093:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.SetResult()""
+  IL_0098:  ret
 }
 ");
         }
