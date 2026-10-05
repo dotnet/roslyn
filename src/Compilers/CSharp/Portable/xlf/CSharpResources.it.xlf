@@ -852,11 +852,6 @@
         <target state="translated">L'applicazione esplicita di 'System.Runtime.CompilerServices.NullableAttribute' non è consentita.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
-        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
-        <target state="translated">Il campo in un tipo con layout esplicito o esteso deve essere contrassegnato come 'unsafe' o 'safe'.</target>
-        <note>'unsafe' and 'safe' should not be localized.</note>
-      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">Non usare 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Al suo posto, usare la parola chiave 'params'.</target>
@@ -1541,6 +1536,11 @@
         <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
         <target state="translated">Non è possibile specificare  i modificatori 'unsafe' o 'safe' sia nella proprietà che nell'indicizzatore '{0}' e nelle relative funzioni di accesso. Rimuoverne uno.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_LayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</source>
+        <target state="new">Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>

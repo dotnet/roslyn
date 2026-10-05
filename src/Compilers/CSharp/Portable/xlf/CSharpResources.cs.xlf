@@ -852,11 +852,6 @@
         <target state="translated">Explicitní použití System.Runtime.CompilerServices.NullableAttribute není povolené.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
-        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
-        <target state="translated">Pole v explicitním nebo rozšířeném typu rozložení musí být označené jako „unsafe“ nebo „safe“.</target>
-        <note>'unsafe' and 'safe' should not be localized.</note>
-      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">Nepoužívejte System.ParamArrayAttribute/System.Runtime.CompilerServices.ParamCollectionAttribute. Použijte místo něj klíčové slovo params.</target>
@@ -1541,6 +1536,11 @@
         <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
         <target state="translated">Nelze zadat modifikátory unsafe nebo safe pro vlastnost nebo indexer {0} a jeho přístupový objekt. Odeberte jeden z nich.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_LayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</source>
+        <target state="new">Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>

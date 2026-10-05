@@ -852,11 +852,6 @@
         <target state="translated">'System.Runtime.CompilerServices.NullableAttribute'의 명시적 적용은 허용되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
-        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
-        <target state="translated">명시적 또는 확장된 레이아웃 형식의 필드는 'unsafe' 또는 'safe'로 표시되어야 합니다.</target>
-        <note>'unsafe' and 'safe' should not be localized.</note>
-      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'를 사용하지 마세요. 대신 'params' 키워드를 사용합니다.</target>
@@ -1541,6 +1536,11 @@
         <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
         <target state="translated">'{0}' 속성 또는 인덱서와 해당 접근자 둘 다에 'unsafe' 또는 'safe' 한정자를 지정할 수 없습니다. 둘 중 하나를 제거하세요.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_LayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</source>
+        <target state="new">Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
