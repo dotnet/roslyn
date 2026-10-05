@@ -3260,6 +3260,91 @@ struct S
         }
 
         [Fact]
+        public void RefDiscardAssignment_05_Field_11()
+        {
+            var source = """
+class C
+{
+    void M(bool b)
+    {
+        _ = ref (b ? ref GetRef() : ref GetRef()).F;
+    }
+
+    static ref S GetRef() => throw null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  brtrue.s   IL_000b
+  IL_0004:  call       "ref S C.GetRef()"
+  IL_0009:  br.s       IL_0010
+  IL_000b:  call       "ref S C.GetRef()"
+  IL_0010:  ldflda     "byte S.F"
+  IL_0015:  pop
+  IL_0016:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  brtrue.s   IL_000a
+  IL_0003:  call       "ref S C.GetRef()"
+  IL_0008:  br.s       IL_000f
+  IL_000a:  call       "ref S C.GetRef()"
+  IL_000f:  ldflda     "byte S.F"
+  IL_0014:  pop
+  IL_0015:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefDiscardAssignment_05_Field_12()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M(true);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M(bool b)
+    {
+        _ = ref (b ? ref GetRef() : ref GetRef()).F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
         public void RefDiscardAssignment_06_Field()
         {
             var source = """
