@@ -452,6 +452,11 @@
         <target state="translated">EditorConfig에 설정된 분석기 경고 및 오류 수정</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_generic_type_names_pasted_into_cref_attributes">
+        <source>Fix generic type names pasted into cref attributes</source>
+        <target state="translated">cref 특성에 붙여넣은 제네릭 형식 이름 수정</target>
+        <note>"cref" is a documentation comment attribute name and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Fix_text_pasted_into_string_literals">
         <source>Fix text pasted into string literals</source>
         <target state="translated">문자열 리터럴에 붙여넣은 텍스트 수정</target>

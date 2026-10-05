@@ -85,6 +85,8 @@ Key options:
 | `--sequential` | Execute one assembly at a time |
 | `--out` | Test results directory (default: `artifacts/TestResults/<Configuration>`) |
 | `--logs` | Diagnostic log directory (defaults to the test results directory) |
+| `--html` / `--html-` | Enable/disable HTML reports and opening failed results (default: on locally, off with `--ci`) |
+| `--ci` | Apply CI behavior, including disabling HTML reports by default |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
 
 `--testSet:compiler` selects compiler test assemblies when used alone. With

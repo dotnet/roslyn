@@ -310,7 +310,11 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Suppress expected unrelated warnings in tests with `#pragma`.** When test code intentionally triggers unrelated warnings (e.g., CS0649 for unassigned fields), suppress them with `#pragma warning disable` to keep test output clean.
 
-- **Every code path in the changed function should have dedicated test coverage.** Include both positive and negative outcomes. If logic is copied from another place, mention the source.
+- **Assess coverage by observable behavior and regression risk, not by
+  implementation branch count.** Prefer scenario-level tests through production
+  entry points. Request distinct positive, negative, or boundary cases only when
+  they represent materially different behavior worth protecting. If logic is
+  copied from another place, mention the source.
 
 - **Verify that test assertions are strong enough to detect regressions.** Use `SequenceEqual` when order matters, `SetEqual` when it doesn't, but be aware that `SetEqual` may not flag duplicate entries.
 

@@ -22,12 +22,18 @@ internal sealed class RazorVSInternalCompletionList : VSInternalCompletionList
 
     [SetsRequiredMembers]
     public RazorVSInternalCompletionList(VSInternalCompletionList completionList)
+        : this(completionList, JsonHelpers.ConvertAll<CompletionItem, VSInternalCompletionItem>(completionList.Items))
+    {
+    }
+
+    [SetsRequiredMembers]
+    public RazorVSInternalCompletionList(VSInternalCompletionList completionList, VSInternalCompletionItem[] items)
     {
         this.Data = completionList.Data;
         this.CommitCharacters = completionList.CommitCharacters;
         this.ContinueCharacters = completionList.ContinueCharacters;
         this.IsIncomplete = completionList.IsIncomplete;
-        this.Items = JsonHelpers.ConvertAll<CompletionItem, VSInternalCompletionItem>(completionList.Items);
+        this.Items = items;
         this.ItemDefaults = completionList.ItemDefaults;
         this.SuggestionMode = completionList.SuggestionMode;
     }

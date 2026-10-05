@@ -31,6 +31,7 @@ internal static class RegressionHarness
         }
         CheckLocalResponse(local);
         CheckFailureLogging(local);
+        CheckHtmlDefault(local);
         CheckScheduling(helix);
         await CheckHelixArtifacts(helix, repo);
         CheckPreparedPayload(repo, localPath, helixPath, includeHelix: true);
@@ -222,6 +223,14 @@ internal static class RegressionHarness
         runnerType.GetMethod("PrintFailedTestResult", All)!.Invoke(runner, [result]);
         var log = Path.Combine(logs, $"xUnitFailure-{Property(result, "DisplayName")}.log");
         Check(File.ReadAllText(log) == "failure output", "Failure output must be written to a newly created log directory");
+    }
+
+    private static void CheckHtmlDefault(Assembly assembly)
+    {
+        Check((bool)Property(Options(assembly, s_root), "IncludeHtml"), "HTML output must default on locally");
+        Check(!(bool)Property(Options(assembly, s_root, "--ci"), "IncludeHtml"), "--ci must default HTML output off");
+        Check((bool)Property(Options(assembly, s_root, "--ci", "--html"), "IncludeHtml"), "--html must override --ci default");
+        Check(!(bool)Property(Options(assembly, s_root, "--html-"), "IncludeHtml"), "--html- must disable HTML output");
     }
 
     private static string[] SchedulerFixtures(string root)

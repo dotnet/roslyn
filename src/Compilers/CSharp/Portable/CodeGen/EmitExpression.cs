@@ -151,8 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitArrayElementLoad((BoundArrayAccess)expression, used);
                     break;
 
-                case BoundKind.RefArrayAccess:
-                    EmitArrayElementRefLoad((BoundRefArrayAccess)expression, used);
+                case BoundKind.RefAccess:
+                    EmitRefAccessLoad((BoundRefAccess)expression, used);
                     break;
 
                 case BoundKind.ArrayLength:
@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // push address of variable
             // mkrefany [Type] -- takes address off stack, puts TypedReference on stack
 
-            var temp = EmitAddress(expression.Operand, AddressKind.Writeable);
+            var temp = EmitAddress(expression.Operand, AddressKind.Writeable, used: true);
             Debug.Assert(temp == null, "makeref should not create temps");
 
             _builder.EmitOpCode(ILOpCode.Mkrefany);
@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 default:
                     Debug.Assert(refKind is RefKind.In or RefKind.Ref or RefKind.Out or RefKindExtensions.StrictIn);
-                    var temp = EmitAddress(argument, getArgumentAddressKind(refKind));
+                    var temp = EmitAddress(argument, getArgumentAddressKind(refKind), used: true);
                     if (temp != null)
                     {
                         // interestingly enough "ref dynamic" sometimes is passed via a clone
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             // NOTE: passing "ReadOnlyStrict" here. 
             //       we should not get an address of a copy if at all possible
-            var temp = EmitAddress(expression.Operand, AddressKind.ReadOnlyStrict);
+            var temp = EmitAddress(expression.Operand, AddressKind.ReadOnlyStrict, used);
             Debug.Assert(temp == null, "If the operand is addressable, then a temp shouldn't be required.");
 
             if (used && !expression.IsManaged)
@@ -767,8 +767,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // standard, Partition I section 12.1.1.1).
                 _builder.EmitOpCode(ILOpCode.Conv_u);
             }
-
-            EmitPopIfUnused(used);
         }
 
         private void EmitPointerIndirectionOperator(BoundPointerIndirectionOperator expression, bool used)
@@ -1112,17 +1110,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitPopIfUnused(used);
         }
 
-        private void EmitArrayElementRefLoad(BoundRefArrayAccess refArrayAccess, bool used)
+        private void EmitRefAccessLoad(BoundRefAccess refAccess, bool used)
         {
-            EmitRefAssignmentValue(RefKind.Ref, refArrayAccess.ArrayAccess);
+            EmitRefAssignmentValue(refAccess.RefKind, refAccess.Expression, used);
 
             if (used)
             {
-                EmitLoadIndirect(refArrayAccess.Type, refArrayAccess.Syntax);
-            }
-            else
-            {
-                _builder.EmitOpCode(ILOpCode.Pop);
+                EmitLoadIndirect(refAccess.Type, refAccess.Syntax);
             }
         }
 
@@ -2728,7 +2722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void InPlaceInit(BoundExpression target, bool used)
         {
-            var temp = EmitAddress(target, AddressKind.Writeable);
+            var temp = EmitAddress(target, AddressKind.Writeable, used: true);
             Debug.Assert(temp == null, "in-place init target should not create temps");
 
             _builder.EmitOpCode(ILOpCode.Initobj);    //  initobj  <MyStruct>
@@ -2757,7 +2751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            var temp = EmitAddress(target, AddressKind.Writeable);
+            var temp = EmitAddress(target, AddressKind.Writeable, used: true);
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
 
             var constructor = objCreation.Constructor;
@@ -2935,7 +2929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         var left = (BoundThisReference)assignmentTarget;
 
-                        var temp = EmitAddress(left, AddressKind.Writeable);
+                        var temp = EmitAddress(left, AddressKind.Writeable, used: true);
                         Debug.Assert(temp == null, "taking ref of this should not create a temp");
 
                         lhsUsesStack = true;
@@ -2946,7 +2940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         var left = (BoundDup)assignmentTarget;
 
-                        var temp = EmitAddress(left, AddressKind.Writeable);
+                        var temp = EmitAddress(left, AddressKind.Writeable, used: true);
                         Debug.Assert(temp == null, "taking ref of Dup should not create a temp");
 
                         lhsUsesStack = true;
@@ -2958,7 +2952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var left = (BoundConditionalOperator)assignmentTarget;
                         Debug.Assert(left.IsRef);
 
-                        var temp = EmitAddress(left, AddressKind.Writeable);
+                        var temp = EmitAddress(left, AddressKind.Writeable, used: true);
                         Debug.Assert(temp == null, "taking ref of this should not create a temp");
 
                         lhsUsesStack = true;
@@ -3018,7 +3012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind);
 
                 case BoundKind.PseudoVariable:
-                    EmitPseudoVariableAddress((BoundPseudoVariable)assignmentTarget);
+                    EmitPseudoVariableAddress((BoundPseudoVariable)assignmentTarget, used: true);
                     lhsUsesStack = true;
                     break;
 
@@ -3053,7 +3047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 int exprTempsBefore = _expressionTemps?.Count ?? 0;
                 BoundExpression lhs = assignmentOperator.Left;
 
-                EmitRefAssignmentValue(lhs.GetRefKind(), assignmentOperator.Right);
+                EmitRefAssignmentValue(lhs.GetRefKind(), assignmentOperator.Right, used: true);
 
                 var exprTempsAfter = _expressionTemps?.Count ?? 0;
 
@@ -3076,16 +3070,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitRefAssignmentValue(RefKind refKind, BoundExpression right)
+        private void EmitRefAssignmentValue(RefKind refKind, BoundExpression right, bool used)
         {
             // NOTE: passing "ReadOnlyStrict" here. 
             //       we should not get an address of a copy if at all possible
-            LocalDefinition temp = EmitAddress(right, refKind is RefKind.RefReadOnly or RefKindExtensions.StrictIn or RefKind.RefReadOnlyParameter ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+            LocalDefinition temp = EmitAddress(right, RefAssignmentValueAddressKind(refKind), used);
 
             // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
             // however, there are very rare cases when we need to get a ref off a temp in synthetic code.
             // Retain those temps for the extent of the encompassing expression.
             AddExpressionTemp(temp);
+        }
+
+        private static AddressKind RefAssignmentValueAddressKind(RefKind refKind)
+        {
+            return refKind is RefKind.RefReadOnly or RefKindExtensions.StrictIn or RefKind.RefReadOnlyParameter ? AddressKind.ReadOnlyStrict : AddressKind.Writeable;
         }
 
         private LocalDefinition EmitAssignmentDuplication(BoundAssignmentOperator assignmentOperator, UseKind useKind, bool lhsUsesStack)

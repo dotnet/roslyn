@@ -1,0 +1,9 @@
+﻿Source Location: (27:1,7 [48] x:\dir\subdir\Test\TestComponent.razor)
+|
+    private string documentation => "Value";
+|
+Generated Location: (556:18,0 [48] )
+|
+    private string documentation => "Value";
+|
+

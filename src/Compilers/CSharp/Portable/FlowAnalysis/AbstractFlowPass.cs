@@ -3523,7 +3523,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.VisitLvalue(operand);
             }
 
-            this.WriteArgument(operand, RefKind.Out, null); //Out because we know it will definitely be assigned.
+            this.WriteArgument(operand, RefKind.Out, null); //Out because for the purpose of definite assignment we assume that it is definitely assigned after the address is taken.
+        }
+
+        public override BoundNode VisitRefAccess(BoundRefAccess node)
+        {
+            var operand = node.Expression;
+
+            // Treat operand as right-hand side of a ref assignment. 
+            VisitRvalue(operand, isKnownToBeAnLvalue: true);
+            return null;
         }
 
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)

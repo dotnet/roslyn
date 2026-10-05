@@ -1,0 +1,29 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        Documentation - (16:0,16 [24] SameLineMarkupAfterMalformedXml.cshtml)
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_DocumentationDirectiveCodeGenerationTest_Legacy_SameLineMarkupAfterMalformedXml - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (41:0,41 [14] SameLineMarkupAfterMalformedXml.cshtml)
+                    LazyIntermediateToken - (41:0,41 [2] SameLineMarkupAfterMalformedXml.cshtml) - Html - <p
+                    LazyIntermediateToken - (43:0,43 [1] SameLineMarkupAfterMalformedXml.cshtml) - Html - >
+                    LazyIntermediateToken - (44:0,44 [5] SameLineMarkupAfterMalformedXml.cshtml) - Html - After
+                    LazyIntermediateToken - (49:0,49 [4] SameLineMarkupAfterMalformedXml.cshtml) - Html - </p>
+                    LazyIntermediateToken - (53:0,53 [2] SameLineMarkupAfterMalformedXml.cshtml) - Html - \n
+            CSharpCode - (67:1,12 [36] SameLineMarkupAfterMalformedXml.cshtml)
+                LazyIntermediateToken - (67:1,12 [36] SameLineMarkupAfterMalformedXml.cshtml) - CSharp -  /* note */ public int Value => 42; 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

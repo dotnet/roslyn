@@ -22,8 +22,9 @@ internal sealed class RunTestOptions : Options
         var options = new RunTestOptions();
         string? resultsDirectory = null;
         string? logsDirectory = null;
+        bool? includeHtml = null;
         var optionSet = options.GetOptionSet();
-        optionSet.Add("html", "Include HTML file output", o => options.IncludeHtml = o is object);
+        optionSet.Add("html", "Include HTML output and open failed results in the browser (default: on locally, off with --ci; --html- disables)", o => includeHtml = o is object);
         optionSet.Add("sequential", "Run tests sequentially", o => options.Sequential = o is object);
         optionSet.Add("testfilter=", "VSTest filter, e.g. FullyQualifiedName~TestClass1|Category=CategoryA", s => options.TestFilter = s);
         optionSet.Add<int>("timeout=", "Minute timeout to limit the tests to (default: 90)", i => options.Timeout = TimeSpan.FromMinutes(i));
@@ -36,6 +37,8 @@ internal sealed class RunTestOptions : Options
             return null;
         }
 
+        var ci = options.EnvironmentVariables.ContainsKey("ROSLYN_TEST_CI");
+        options.IncludeHtml = includeHtml ?? !ci;
         options.TestResultsDirectory = resultsDirectory ?? Path.Combine(options.ArtifactsDirectory, "TestResults", options.Configuration);
         options.LogFilesDirectory = logsDirectory ?? options.TestResultsDirectory;
         return options;
