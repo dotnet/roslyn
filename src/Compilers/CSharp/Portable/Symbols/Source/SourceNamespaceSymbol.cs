@@ -32,12 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
+        private Dictionary<SyntaxTree, OneOrMany<SingleNamespaceDeclaration>> _lazyDeclarationsBySyntaxTree;
 
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsings(SingleNamespaceDeclaration)"/>.
         /// </summary>
         private ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly = s_emptyMap;
-        private Dictionary<SyntaxTree, OneOrMany<SingleNamespaceDeclaration>> _lazyDeclarationsBySyntaxTree;
 #if DEBUG
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsingsForAsserts"/>.
