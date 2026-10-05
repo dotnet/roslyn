@@ -230,6 +230,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         });
     }
 
+    internal static bool ShouldReportFailureOnShutdownTimeout(bool shutdownSucceeded)
+        => !shutdownSucceeded;
+
     public async ValueTask DisposeAsync()
     {
         List<BuildHostProcess> processesToDispose;
@@ -525,6 +528,8 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             if (Interlocked.CompareExchange(ref _disposed, value: 1, comparand: 0) != 0)
                 return;
 
+            var shutdownSucceeded = false;
+
             try
             {
                 // If the process is already exited, then we simply have nothing left to do
@@ -535,6 +540,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
                 {
                     _logger?.LogTrace("Sending a Shutdown request to the BuildHost.");
                     await BuildHost.ShutdownAsync(CancellationToken.None).ConfigureAwait(false);
+                    shutdownSucceeded = true;
                 }
 
                 if (_rpcClient is not null)
@@ -553,11 +559,19 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             {
                 try
                 {
-                    _process.WaitForExit(milliseconds: 500);
+                    _process.WaitForExit(milliseconds: 5_000);
 
                     if (!_process.HasExited)
                     {
-                        LogProcessFailure();
+                        if (ShouldReportFailureOnShutdownTimeout(shutdownSucceeded))
+                        {
+                            LogProcessFailure();
+                        }
+                        else
+                        {
+                            _logger?.LogTrace("BuildHost did not exit after a successful shutdown request; terminating the process.");
+                        }
+
                         _process.Kill();
                     }
                 }
