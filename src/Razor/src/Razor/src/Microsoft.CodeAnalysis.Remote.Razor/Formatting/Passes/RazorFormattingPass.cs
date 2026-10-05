@@ -253,10 +253,8 @@ internal sealed class RazorFormattingPass : IFormattingPass
         // 4. The closing brace
         if (node is CSharpCodeBlockSyntax code &&
             node.Parent?.Parent is BaseRazorDirectiveSyntax directive &&
-            directive is RazorDocumentationDirectiveSyntax or RazorDirectiveSyntax { DirectiveDescriptor.Kind: DirectiveKind.CodeBlock } &&
-            (directive is RazorDocumentationDirectiveSyntax
-                ? !directive.GetDiagnostics().Any(static diagnostic => diagnostic.Severity == RazorDiagnosticSeverity.Error)
-                : !directive.ContainsDiagnostics))
+            !directive.ContainsDiagnostics &&
+            directive.IsDirectiveKind(DirectiveKind.CodeBlock))
         {
             // The brace-placement option applies to documentation headers too, without formatting their XML as a C# block.
             var forceNewLine = context.Options.CodeBlockBraceOnNextLine &&
