@@ -18,7 +18,13 @@ Particularly for developers who aren't experienced with .NET Core development on
 5. You can launch a new VS Code instance with the language server from your current code by running the "launch vscode with language server" task.
 
 ## Running Tests
-The unit tests can be executed by running `./build.sh --test`.
+After building, the unit tests can be executed by running `./test.sh`, which runs the already-built test assemblies via `src/Tools/RunTests`.
+
+For a combined build and test run, use `./build.sh --test`, `./build.sh --testSet:compiler`, `./build.sh --testKind:ioperation`, or `./build.sh --testFramework:core` (single-hyphen spellings are also accepted). Each test option independently requests testing. These shortcuts forward the build configuration and any supplied set, kind, and framework values to RunTests; RunTests selects and validates the tests. For example, `./build.sh --configuration Release --testSet:compiler --testFramework:core --testKind:usedassemblies` builds and tests Release compiler binaries with used-assembly validation. Direct calls to `./eng/build.sh` use already-built binaries unless `--build` is also specified.
+
+Repeat `--testFramework:<name>` to forward multiple framework selections, for example `--testFramework:core --testFramework:desktop`; do not combine them into a comma-separated value. RunTests determines which frameworks are supported on the current platform.
+
+Pass other test options to `test.sh`. For example, `./test.sh --testFramework:core --testConfiguration Release --testSet:compiler` tests the Release compiler binaries. Use `--testKind:ioperation`, `--testKind:runtimeasync --testFramework:core`, or `--testKind:usedassemblies` for additional validation, and `--env:KEY=VALUE` to set an environment variable in test processes. Runtime-async validation requires Core-only selection; the default selection includes desktop and is rejected. Run `./test.sh --help` for all options.
 
 To run all tests in a single project, it's recommended to use the `dotnet test path/to/project` command.
 
@@ -111,3 +117,9 @@ Make sure to install the following via `apt install`
 - lldb
 - cmake
 - xrdp
+
+
+## Troubleshooting
+
+See the [Troubleshooting section](Building,%20Debugging,%20and%20Testing%20on%20Windows.md#troubleshooting)
+in the Windows doc, which is not Windows-specific (use `rm -rf` in place of `Remove-Item`).

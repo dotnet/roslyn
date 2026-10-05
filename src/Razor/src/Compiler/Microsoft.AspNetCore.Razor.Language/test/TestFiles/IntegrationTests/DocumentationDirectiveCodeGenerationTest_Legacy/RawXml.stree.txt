@@ -1,0 +1,38 @@
+﻿RazorDocument - [0..192)::192 - [@documentation {LF    <summary>It's raw XML with @transitions and }.</summary>LF    <remarks><![CDATA[<p>{ content }</p>]]></remarks>LF    <!-- @* Not a Razor comment *@ -->LF}LF<p>After</p>LF]
+    MarkupBlock - [0..192)::192
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..178)::178
+            RazorDocumentationDirective - [0..176)::176 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..176)::175
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..176)::162
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [15..16)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [16..175)::159
+                            CSharpStatementLiteral - [16..175)::159 - [LF    <summary>It's raw XML with @transitions and }.</summary>LF    <remarks><![CDATA[<p>{ content }</p>]]></remarks>LF    <!-- @* Not a Razor comment *@ -->LF] - Gen<Stmt>
+                                Text;[LF    <summary>It's raw XML with @transitions and }.</summary>LF    <remarks><![CDATA[<p>{ content }</p>]]></remarks>LF    <!-- @* Not a Razor comment *@ -->LF];
+                        RazorMetaCode - [175..176)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [176..178)::2 - Gen<None>
+                NewLine;[LF];
+        MarkupElement - [178..190)::12
+            MarkupStartTag - [178..181)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [181..186)::5 - [After] - Gen<Markup>
+                Text;[After];
+            MarkupEndTag - [186..190)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+        MarkupTextLiteral - [190..192)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

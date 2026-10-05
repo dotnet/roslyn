@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.Internal.Performance;
 using CodeMarkerId = System.Int32;
@@ -145,6 +146,10 @@ internal sealed class CodeMarkerEventSink : IEventSink
     {
         FireCodeMarkers(s_map, functionId, s_getter);
         FireCodeMarkers(s_blockMap, functionId, s_endGetter);
+    }
+
+    public void ReportFault(Exception exception, ErrorSeverity severity, bool forceDump)
+    {
     }
 
     private static bool CanHandle(FunctionId functionId)

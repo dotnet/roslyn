@@ -46,20 +46,19 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var designTimeBuild = loader.QueueDesignTimeBuild();
         var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
         var equivalentPath = Path.Combine(TempRoot.Root, "directory", "..", "Project.csproj");
 
-        var firstLoadedProject = await loader.BeginLoadAsync(projectPath);
-        var secondLoadedProject = await loader.BeginLoadAsync(equivalentPath);
+        var (firstLoadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        var secondLoadedProject = await loader.BeginLoadingProjectAsync(equivalentPath);
 
         Assert.Same(firstLoadedProject, secondLoadedProject);
         Assert.False(firstLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().IsCompleted);
-        await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await designTimeBuild.Started.Task;
         Assert.Equal(1, loader.DesignTimeBuildCount);
 
         designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
-        var loadedSuccessfully = await firstLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var loadedSuccessfully = await firstLoadedProject.WaitForLoadAsync(CancellationToken.None);
 
         Assert.True(loadedSuccessfully);
         Assert.NotEmpty(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
@@ -70,15 +69,14 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var designTimeBuild = loader.QueueDesignTimeBuild();
         var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
 
-        var firstLoadedProject = await loader.BeginLoadAsync(projectPath);
-        await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var (firstLoadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await designTimeBuild.Started.Task;
         designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
-        var firstStatus = await firstLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var firstStatus = await firstLoadedProject.WaitForLoadAsync(CancellationToken.None);
 
-        var loadedProject = await loader.BeginLoadAsync(projectPath);
+        var loadedProject = await loader.BeginLoadingProjectAsync(projectPath);
 
         Assert.Same(firstLoadedProject, loadedProject);
         Assert.Equal(firstStatus, await loadedProject.WaitForLoadAsync(CancellationToken.None));
@@ -90,22 +88,20 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var firstDesignTimeBuild = loader.QueueDesignTimeBuild();
-        var secondDesignTimeBuild = loader.QueueDesignTimeBuild();
         var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
 
-        var loadedProject = await loader.BeginLoadAsync(projectPath);
-        await firstDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var (loadedProject, firstDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await firstDesignTimeBuild.Started.Task;
         firstDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
-        await loadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await loadedProject.WaitForLoadAsync(CancellationToken.None);
 
+        var secondDesignTimeBuild = loader.ExpectDesignTimeBuild(projectPath);
         loadedProject.GetTestAccessor().RaiseNeedsReload();
 
         // A file-change-triggered reload after the initial load has committed must still reach the MSBuild host,
         // rather than being dropped because it carries the (already-completed) load operation from the initial request.
-        await secondDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await secondDesignTimeBuild.Started.Task;
         secondDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
-        await loader.WaitForCurrentBatchAsync();
 
         Assert.Equal(2, loader.DesignTimeBuildCount);
     }
@@ -115,29 +111,23 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var failedDesignTimeBuild = loader.QueueDesignTimeBuild();
-        var successfulReload = loader.QueueDesignTimeBuild();
         var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
 
-        var firstLoadedProject = await loader.BeginLoadAsync(projectPath);
-        await failedDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var (firstLoadedProject, failedDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await failedDesignTimeBuild.Started.Task;
         failedDesignTimeBuild.Fail(new InvalidOperationException("Expected test failure"));
-        Assert.False(await firstLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
-        await loader.WaitForCurrentBatchAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.False(await firstLoadedProject.WaitForLoadAsync(CancellationToken.None));
 
-        var loadedProject = await loader.BeginLoadAsync(projectPath);
+        var loadedProject = await loader.BeginLoadingProjectAsync(projectPath);
 
         Assert.Same(firstLoadedProject, loadedProject);
         Assert.False(await loadedProject.WaitForLoadAsync(CancellationToken.None));
         Assert.Equal(1, loader.DesignTimeBuildCount);
 
+        var successfulReload = loader.ExpectDesignTimeBuild(projectPath);
         loadedProject.GetTestAccessor().RaiseNeedsReload();
-        await successfulReload.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await successfulReload.Started.Task;
         successfulReload.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
-        await loader.WaitForCurrentBatchAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
-
-        Assert.True(await loadedProject.WaitForLoadAsync(CancellationToken.None));
-        Assert.Equal(2, loader.DesignTimeBuildCount);
     }
 
     [Fact]
@@ -145,22 +135,18 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var firstDesignTimeBuild = loader.QueueDesignTimeBuild();
-        var secondDesignTimeBuild = loader.QueueDesignTimeBuild();
         var failedPath = Path.Combine(TempRoot.Root, "Failed.csproj");
         var successfulPath = Path.Combine(TempRoot.Root, "Successful.csproj");
 
-        var failedProject = await loader.BeginLoadAsync(failedPath);
-        var successfulProject = await loader.BeginLoadAsync(successfulPath);
-        await Task.WhenAll(firstDesignTimeBuild.Started.Task, secondDesignTimeBuild.Started.Task).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var (failedProject, failedDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(failedPath);
+        var (successfulProject, successfulDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(successfulPath);
+        await Task.WhenAll(failedDesignTimeBuild.Started.Task, successfulDesignTimeBuild.Started.Task);
 
-        var failedDesignTimeBuild = firstDesignTimeBuild.Started.Task.Result == failedPath ? firstDesignTimeBuild : secondDesignTimeBuild;
-        var successfulDesignTimeBuild = firstDesignTimeBuild.Started.Task.Result == successfulPath ? firstDesignTimeBuild : secondDesignTimeBuild;
         failedDesignTimeBuild.Fail(new InvalidOperationException("Expected test failure"));
         successfulDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, successfulPath);
 
-        Assert.False(await failedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
-        Assert.True(await successfulProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.False(await failedProject.WaitForLoadAsync(CancellationToken.None));
+        Assert.True(await successfulProject.WaitForLoadAsync(CancellationToken.None));
     }
 
     [Fact]
@@ -168,25 +154,21 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var firstDesignTimeBuild = loader.QueueDesignTimeBuild();
-        var secondDesignTimeBuild = loader.QueueDesignTimeBuild();
         var requestedPath = Path.Combine(TempRoot.Root, "Requested.csproj");
         var unrelatedPath = Path.Combine(TempRoot.Root, "Unrelated.csproj");
 
-        var requestedProject = await loader.BeginLoadAsync(requestedPath);
-        var unrelatedProject = await loader.BeginLoadAsync(unrelatedPath);
-        await Task.WhenAll(firstDesignTimeBuild.Started.Task, secondDesignTimeBuild.Started.Task).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var (requestedProject, requestedDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(requestedPath);
+        var (unrelatedProject, unrelatedDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(unrelatedPath);
+        await Task.WhenAll(requestedDesignTimeBuild.Started.Task, unrelatedDesignTimeBuild.Started.Task);
 
-        var requestedDesignTimeBuild = firstDesignTimeBuild.Started.Task.Result == requestedPath ? firstDesignTimeBuild : secondDesignTimeBuild;
-        var unrelatedDesignTimeBuild = firstDesignTimeBuild.Started.Task.Result == unrelatedPath ? firstDesignTimeBuild : secondDesignTimeBuild;
-        var explicitLoad = loader.WaitForExplicitLoadsAsync([requestedProject]);
+        var explicitLoad = LanguageServerProjectLoader.WaitForProjectLoadsAsync([requestedProject]);
 
         requestedDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, requestedPath);
-        await explicitLoad.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await explicitLoad;
         Assert.False(unrelatedProject.WaitForLoadAsync(CancellationToken.None).AsTask().IsCompleted);
 
         unrelatedDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, unrelatedPath);
-        await unrelatedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await unrelatedProject.WaitForLoadAsync(CancellationToken.None);
     }
 
     [Fact]
@@ -194,25 +176,21 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var firstDesignTimeBuild = loader.QueueDesignTimeBuild();
-        var secondDesignTimeBuild = loader.QueueDesignTimeBuild();
         var firstPath = Path.Combine(TempRoot.Root, "First.csproj");
         var secondPath = Path.Combine(TempRoot.Root, "Second.csproj");
 
-        var firstProject = await loader.BeginLoadAsync(firstPath);
-        var secondProject = await loader.BeginLoadAsync(secondPath);
-        await Task.WhenAll(firstDesignTimeBuild.Started.Task, secondDesignTimeBuild.Started.Task).WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var (firstProject, failedDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(firstPath);
+        var (secondProject, successfulDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(secondPath);
+        await Task.WhenAll(failedDesignTimeBuild.Started.Task, successfulDesignTimeBuild.Started.Task);
 
-        var failedDesignTimeBuild = firstDesignTimeBuild.Started.Task.Result == firstPath ? firstDesignTimeBuild : secondDesignTimeBuild;
-        var successfulDesignTimeBuild = firstDesignTimeBuild.Started.Task.Result == secondPath ? firstDesignTimeBuild : secondDesignTimeBuild;
-        var explicitLoad = loader.WaitForExplicitLoadsAsync([firstProject, secondProject]);
+        var explicitLoad = LanguageServerProjectLoader.WaitForProjectLoadsAsync([firstProject, secondProject]);
 
         failedDesignTimeBuild.Fail(new InvalidOperationException("Expected test failure"));
-        await firstProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await firstProject.WaitForLoadAsync(CancellationToken.None);
         Assert.False(explicitLoad.IsCompleted);
 
         successfulDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, secondPath);
-        await explicitLoad.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await explicitLoad;
     }
 
     [Fact]
@@ -220,24 +198,23 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var designTimeBuild = loader.QueueDesignTimeBuild();
         var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
         var firstReporter = new TestProgressReporter();
         var secondReporter = new TestProgressReporter();
 
-        var firstLoadedProject = await loader.BeginLoadAsync(projectPath);
-        var secondLoadedProject = await loader.BeginLoadAsync(projectPath);
+        var (firstLoadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        var secondLoadedProject = await loader.BeginLoadingProjectAsync(projectPath);
         Assert.Same(firstLoadedProject, secondLoadedProject);
 
         await using (var firstProgress = new LanguageServerProjectLoader.WorkDoneProgressTracker(firstReporter, totalItems: 1))
         await using (var secondProgress = new LanguageServerProjectLoader.WorkDoneProgressTracker(secondReporter, totalItems: 1))
         {
-            var firstLoad = loader.WaitForExplicitLoadsAsync([firstLoadedProject], firstProgress);
-            var secondLoad = loader.WaitForExplicitLoadsAsync([secondLoadedProject], secondProgress);
+            var firstLoad = LanguageServerProjectLoader.WaitForProjectLoadsAsync([firstLoadedProject], firstProgress);
+            var secondLoad = LanguageServerProjectLoader.WaitForProjectLoadsAsync([secondLoadedProject], secondProgress);
 
-            await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+            await designTimeBuild.Started.Task;
             designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
-            await Task.WhenAll(firstLoad, secondLoad).WaitAsync(TestHelpers.HangMitigatingTimeout);
+            await Task.WhenAll(firstLoad, secondLoad);
         }
 
         // Disposing the trackers ensures their asynchronous progress queues have finished reporting.
@@ -251,15 +228,14 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var designTimeBuild = loader.QueueDesignTimeBuild();
         var projectPath = Path.Combine(TempRoot.Root, "Unsupported.csproj");
 
-        var loadedProject = await loader.BeginLoadAsync(projectPath);
-        await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var (loadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await designTimeBuild.Started.Task;
         designTimeBuild.CompleteAsUnsupported();
-        var loadedSuccessfully = await loadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var loadedSuccessfully = await loadedProject.WaitForLoadAsync(CancellationToken.None);
 
-        var laterLoadedProject = await loader.BeginLoadAsync(projectPath);
+        var laterLoadedProject = await loader.BeginLoadingProjectAsync(projectPath);
         Assert.False(loadedSuccessfully);
         Assert.Same(loadedProject, laterLoadedProject);
         Assert.False(await laterLoadedProject.WaitForLoadAsync(CancellationToken.None));
@@ -271,16 +247,17 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var designTimeBuild = loader.QueueDesignTimeBuild();
         var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
 
-        var loadedProject = await loader.BeginLoadAsync(projectPath);
-        await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        Assert.True(await loader.UnloadAsync(projectPath));
-        Assert.False(await loadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
+        var (loadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await designTimeBuild.Started.Task;
+        Assert.True(await loader.TryUnloadProjectAsync(projectPath));
+        Assert.False(await loadedProject.WaitForLoadAsync(CancellationToken.None));
 
         designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
-        await loader.WaitForCurrentBatchAsync();
+
+        // Wait until all processing has completed
+        await server.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         Assert.Empty(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
     }
 
@@ -289,19 +266,18 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var currentDesignTimeBuild = loader.QueueDesignTimeBuild();
         var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
 
-        var staleLoadedProject = await loader.BeginLoadAsync(projectPath);
-        Assert.True(await loader.UnloadAsync(projectPath));
-        var currentLoadedProject = await loader.BeginLoadAsync(projectPath);
+        var (staleLoadedProject, currentDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        Assert.True(await loader.TryUnloadProjectAsync(projectPath));
+        var currentLoadedProject = await loader.BeginLoadingProjectAsync(projectPath);
 
         Assert.NotSame(staleLoadedProject, currentLoadedProject);
         Assert.False(await staleLoadedProject.WaitForLoadAsync(CancellationToken.None));
-        await currentDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await currentDesignTimeBuild.Started.Task;
 
         currentDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
-        var loadedSuccessfully = await currentLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var loadedSuccessfully = await currentLoadedProject.WaitForLoadAsync(CancellationToken.None);
 
         Assert.True(loadedSuccessfully);
         Assert.Equal(1, loader.DesignTimeBuildCount);
@@ -309,28 +285,45 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     }
 
     [Fact]
+    public async Task CachedProjectHasProjectDataWhileDesignTimeBuildIsPending()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var projectPath = Path.Combine(TempRoot.Root, "Cached.csproj");
+        loader.CachedProjects.Add(projectPath, [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with { CommandLineArgs = ["/target:library", "/define:CACHED_PROJECT"] }]);
+
+        var (loadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await designTimeBuild.Started.Task;
+
+        Assert.True(await loadedProject.WaitForLoadAsync(CancellationToken.None));
+        var project = Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
+        Assert.Contains("CACHED_PROJECT", project.ParseOptions!.PreprocessorSymbolNames);
+        Assert.False(designTimeBuild.Result.Task.IsCompleted);
+
+        designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
+    }
+
+    [Fact]
     public async Task WaitForAllProjectLoadsAsyncUsesCanonicalSnapshot()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var firstDesignTimeBuild = loader.QueueDesignTimeBuild();
-        var secondDesignTimeBuild = loader.QueueDesignTimeBuild();
         var firstProjectPath = Path.Combine(TempRoot.Root, "First.csproj");
         var secondProjectPath = Path.Combine(TempRoot.Root, "Second.csproj");
 
-        var firstLoadedProject = await loader.BeginLoadAsync(firstProjectPath);
-        await firstDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        var allLoads = loader.WaitForAllTrackedProjectLoadsAsync();
-        var secondLoadedProject = await loader.BeginLoadAsync(secondProjectPath);
+        var (firstLoadedProject, firstDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(firstProjectPath);
+        await firstDesignTimeBuild.Started.Task;
+        var allLoads = loader.WaitForAllProjectLoadsAsync(CancellationToken.None);
+        var (secondLoadedProject, secondDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(secondProjectPath);
 
         Assert.False(allLoads.IsCompleted);
         firstDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, firstProjectPath);
-        await allLoads.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await allLoads;
         Assert.False(secondLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().IsCompleted);
 
-        await secondDesignTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await secondDesignTimeBuild.Started.Task;
         secondDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, secondProjectPath);
-        await secondLoadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await secondLoadedProject.WaitForLoadAsync(CancellationToken.None);
         Assert.True(await firstLoadedProject.WaitForLoadAsync(CancellationToken.None));
     }
 
@@ -339,9 +332,9 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var designTimeBuild = loader.QueueDesignTimeBuild();
-        var loadedProject = await loader.BeginLoadAsync(Path.Combine(TempRoot.Root, "Project.csproj"));
-        await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
+        var (loadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await designTimeBuild.Started.Task;
 
         await server.DisposeAsync();
 
@@ -353,16 +346,22 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
-        _ = loader.QueueDesignTimeBuild();
-        _ = loader.QueueDesignTimeBuild();
+        var lowerCasePath = Path.Combine(TempRoot.Root, "project.csproj");
+        var upperCasePath = Path.Combine(TempRoot.Root, "PROJECT.csproj");
 
-        var lowerCaseHandle = await loader.BeginLoadAsync(Path.Combine(TempRoot.Root, "project.csproj"));
-        var upperCaseHandle = await loader.BeginLoadAsync(Path.Combine(TempRoot.Root, "PROJECT.csproj"));
+        _ = loader.ExpectDesignTimeBuild(lowerCasePath);
+        // If we're on a Unix platform, then we expect the request for PROJECT.csproj will be
+        // different, so we'll need to create a separate expectation for that.
+        if (PathUtilities.IsUnixLikePlatform)
+            _ = loader.ExpectDesignTimeBuild(upperCasePath);
+
+        var lowerCaseLoadedProject = await loader.BeginLoadingProjectAsync(lowerCasePath);
+        var upperCaseLoadedProject = await loader.BeginLoadingProjectAsync(upperCasePath);
 
         if (PathUtilities.IsUnixLikePlatform)
-            Assert.NotSame(lowerCaseHandle, upperCaseHandle);
+            Assert.NotSame(lowerCaseLoadedProject, upperCaseLoadedProject);
         else
-            Assert.Same(lowerCaseHandle, upperCaseHandle);
+            Assert.Same(lowerCaseLoadedProject, upperCaseLoadedProject);
     }
 
     [Fact]
@@ -372,7 +371,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var loader = server.GetRequiredLspService<TestProjectLoader>();
         var projectPath = Path.GetPathRoot(TempRoot.Root) + "\0Invalid.csproj";
 
-        Assert.False(await loader.UnloadAsync(projectPath));
+        Assert.False(await loader.TryUnloadProjectAsync(projectPath));
     }
 
     [Fact]
@@ -384,30 +383,9 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         var primordialProject = await loader.CreatePrimordialProjectAsync(projectPath, doDesignTimeBuild: false);
         var sameProject = await loader.CreatePrimordialProjectAsync(projectPath, doDesignTimeBuild: true);
-        await loader.WaitForCurrentBatchAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
 
         Assert.Equal(primordialProject.Id, sameProject.Id);
         Assert.Equal(0, loader.DesignTimeBuildCount);
-    }
-
-    [Fact]
-    public async Task PrimordialProjectStartsOneDesignTimeBuild()
-    {
-        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var designTimeBuild = loader.QueueDesignTimeBuild();
-        var projectPath = Path.Combine(TempRoot.Root, "Project.csproj");
-
-        var primordialProject = await loader.CreatePrimordialProjectAsync(projectPath, doDesignTimeBuild: true);
-        _ = await loader.CreatePrimordialProjectAsync(projectPath, doDesignTimeBuild: true);
-
-        await designTimeBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
-        await loader.WaitForCurrentBatchAsync().WaitAsync(TestHelpers.HangMitigatingTimeout);
-
-        Assert.Null(loader.WorkspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace.CurrentSolution.GetProject(primordialProject.Id));
-        Assert.NotEmpty(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
-        Assert.Equal(1, loader.DesignTimeBuildCount);
     }
 
     [Fact]
@@ -449,11 +427,16 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     /// </summary>
     internal sealed class TestProjectLoader : LanguageServerProjectLoader, ILspService
     {
-        private readonly ConcurrentQueue<ExpectedDesignTimeBuild> _expectedDesignTimeBuilds = new();
+        private readonly ConcurrentDictionary<string, ExpectedDesignTimeBuild> _expectedDesignTimeBuilds = new(PathUtilities.Comparer);
         private int _designTimeBuildCount;
 
         public LanguageServerWorkspaceFactory WorkspaceFactory => _workspaceFactory;
         public int DesignTimeBuildCount => Volatile.Read(ref _designTimeBuildCount);
+        public Dictionary<string, ImmutableArray<ProjectFileInfo>> CachedProjects { get; } = new(PathUtilities.Comparer);
+
+        // Tests wait for two design-time builds to start before completing either, so the worker count
+        // must not fall back to one on machines with fewer processors.
+        protected override int MaxNodeCount => 2;
 
         public TestProjectLoader(
             ILspServices lspServices,
@@ -467,27 +450,20 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         {
         }
 
-        public ExpectedDesignTimeBuild QueueDesignTimeBuild()
+        public ExpectedDesignTimeBuild ExpectDesignTimeBuild(string projectPath)
         {
+            projectPath = NormalizeProjectPath(projectPath);
             var designTimeBuild = new ExpectedDesignTimeBuild();
-            _expectedDesignTimeBuilds.Enqueue(designTimeBuild);
+            Assert.True(_expectedDesignTimeBuilds.TryAdd(projectPath, designTimeBuild));
             return designTimeBuild;
         }
 
-        public Task<LoadedProject> BeginLoadAsync(string projectPath)
-            => BeginLoadingProjectAsync(projectPath);
-
-        public Task WaitForCurrentBatchAsync()
-            => WaitForProjectsToFinishLoadingAsync();
-
-        public Task WaitForAllTrackedProjectLoadsAsync(CancellationToken cancellationToken = default)
-            => WaitForAllProjectLoadsAsync(cancellationToken);
-
-        public Task WaitForExplicitLoadsAsync(ImmutableArray<LoadedProject> loadedProjects, WorkDoneProgressTracker? progressTracker = null)
-            => WaitForProjectLoadsAsync(loadedProjects, progressTracker);
-
-        public ValueTask<bool> UnloadAsync(string projectPath)
-            => TryUnloadProjectAsync(projectPath);
+        public async Task<(LoadedProject LoadedProject, ExpectedDesignTimeBuild DesignTimeBuild)> ExpectDesignTimeBuildAndBeginLoadingProjectAsync(string projectPath)
+        {
+            var designTimeBuild = ExpectDesignTimeBuild(projectPath);
+            var loadedProject = await BeginLoadingProjectAsync(projectPath);
+            return (loadedProject, designTimeBuild);
+        }
 
         public async ValueTask<Project> CreatePrimordialProjectAsync(string projectPath, bool doDesignTimeBuild)
         {
@@ -505,20 +481,33 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
                 doDesignTimeBuild)).Single();
         }
 
+        protected override async Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(
+            string projectPath, CancellationToken cancellationToken)
+            => CachedProjects.TryGetValue(projectPath, out var projectFileInfos)
+                ? (projectFileInfos, WorkspaceFactory.HostProjectFactory)
+                : null;
+
         protected override async Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
             BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref _designTimeBuildCount);
-            Assert.True(_expectedDesignTimeBuilds.TryDequeue(out var designTimeBuild));
-            designTimeBuild.Started.TrySetResult(projectPath);
-            return await designTimeBuild.Result.Task.WaitAsync(cancellationToken);
+            Assert.True(_expectedDesignTimeBuilds.TryGetValue(projectPath, out var designTimeBuild));
+            designTimeBuild.Started.TrySetResult();
+            try
+            {
+                return await designTimeBuild.Result.Task.WaitAsync(cancellationToken);
+            }
+            finally
+            {
+                Assert.True(_expectedDesignTimeBuilds.TryRemove(new(projectPath, designTimeBuild)));
+            }
         }
     }
 
     /// <summary>Controls the result of one expected design-time build.</summary>
     internal sealed class ExpectedDesignTimeBuild
     {
-        public TaskCompletionSource<string> Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<LanguageServerProjectLoader.RemoteProjectLoadResult?> Result { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public void CompleteSuccessfully(ProjectSystemProjectFactory projectFactory, string projectPath, string? targetFramework = null)

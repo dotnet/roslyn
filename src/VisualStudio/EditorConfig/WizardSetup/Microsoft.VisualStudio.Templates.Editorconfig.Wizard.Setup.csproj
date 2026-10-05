@@ -39,7 +39,6 @@
   <ItemGroup>
     <PackageReference Include="EnvDTE" />
     <PackageReference Include="EnvDTE80" />
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" />
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility" />
     <PackageReference Include="Microsoft.VisualStudio.Editor" />
     <PackageReference Include="Microsoft.VisualStudio.OLE.Interop" />

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -26,6 +26,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.InlinePrompts;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Moq;
+using Moq.Protected;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -92,7 +94,7 @@ public sealed class CopilotGenerateDocumentationInlinePromptTests
 
         var threadingContext = workspace.GetService<IThreadingContext>();
         var manager = workspace.ExportProvider.GetExportedValue<CopilotGenerateDocumentationCommentManager>();
-        var inlinePrompt = (TestInlinePromptService)workspace.ExportProvider.GetExportedValue<InlinePromptServiceBase>();
+        var inlinePrompt = workspace.ExportProvider.GetExportedValue<TestInlinePromptService>();
         var waiter = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>()
             .GetWaiter(FeatureAttribute.GenerateDocumentation);
 
@@ -169,7 +171,7 @@ public sealed class CopilotGenerateDocumentationInlinePromptTests
         options.GenerateDocumentationCommentEnabled = false;
 
         var manager = workspace.ExportProvider.GetExportedValue<CopilotGenerateDocumentationCommentManager>();
-        var inlinePrompt = (TestInlinePromptService)workspace.ExportProvider.GetExportedValue<InlinePromptServiceBase>();
+        var inlinePrompt = workspace.ExportProvider.GetExportedValue<TestInlinePromptService>();
         var waiter = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>()
             .GetWaiter(FeatureAttribute.GenerateDocumentation);
 
@@ -183,25 +185,31 @@ public sealed class CopilotGenerateDocumentationInlinePromptTests
         Assert.Null(inlinePrompt.AcceptTask);
     }
 
-    [System.ComponentModel.Composition.Export(typeof(InlinePromptServiceBase))]
-    private sealed class TestInlinePromptService : InlinePromptServiceBase
+    [System.ComponentModel.Composition.Export(typeof(TestInlinePromptService))]
+    private sealed class TestInlinePromptService
     {
         public InlinePromptOptions? CapturedOptions;
         public Task? AcceptTask;
+
+        [System.ComponentModel.Composition.Export(typeof(InlinePromptServiceBase))]
+        public InlinePromptServiceBase Service { get; }
 
         [System.ComponentModel.Composition.ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestInlinePromptService()
         {
-        }
-
-        public override IDisposable? Show(
-            ITextView view, VirtualSnapshotPoint position, Func<CancellationToken, Task> onAcceptAsync, InlinePromptOptions options)
-        {
-            CapturedOptions = options;
-            // Simulate the user immediately accepting the chip.
-            AcceptTask = onAcceptAsync(CancellationToken.None);
-            return new NoOpDisposable();
+            // The SDK exposes an internal abstract member only its friend assemblies, including Moq's proxy, can implement.
+            var service = new Mock<InlinePromptServiceBase>(MockBehavior.Strict);
+            service.Protected().Setup<bool>("IsSessionActive", ItExpr.IsAny<ITextView>()).Returns(false);
+            service.Setup(s => s.Show(It.IsAny<ITextView>(), It.IsAny<VirtualSnapshotPoint>(), It.IsAny<Func<CancellationToken, Task>>(), It.IsAny<InlinePromptOptions>()))
+                .Returns((ITextView view, VirtualSnapshotPoint position, Func<CancellationToken, Task> onAcceptAsync, InlinePromptOptions options) =>
+                {
+                    CapturedOptions = options;
+                    // Simulate the user immediately accepting the chip.
+                    AcceptTask = onAcceptAsync(CancellationToken.None);
+                    return new NoOpDisposable();
+                });
+            Service = service.Object;
         }
 
         private sealed class NoOpDisposable : IDisposable
@@ -219,8 +227,6 @@ public sealed class CopilotGenerateDocumentationInlinePromptTests
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestCopilotOptionsService() { }
 
-        public Task<bool> IsRefineOptionEnabledAsync() => Task.FromResult(false);
-        public Task<bool> IsCodeAnalysisOptionEnabledAsync() => Task.FromResult(false);
         public Task<bool> IsOnTheFlyDocsOptionEnabledAsync() => Task.FromResult(false);
         public Task<bool> IsGenerateDocumentationCommentOptionEnabledAsync() => Task.FromResult(GenerateDocumentationCommentEnabled);
         public Task<bool> IsImplementNotImplementedExceptionEnabledAsync() => Task.FromResult(false);
@@ -235,16 +241,14 @@ public sealed class CopilotGenerateDocumentationInlinePromptTests
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestCopilotCodeAnalysisService() { }
 
-        public Task<bool> IsAvailableAsync(CancellationToken cancellationToken) => Task.FromResult(true);
-        public Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken) => Task.FromResult(false);
+        public Task<bool> IsOnTheFlyDocsAvailableAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<bool> IsFileExcludedFromOnTheFlyDocsAsync(string filePath, CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task<bool> IsGenerateDocumentationCommentAvailableAsync(CancellationToken cancellationToken) => Task.FromResult(true);
+        public Task<bool> IsFileExcludedFromDocumentationCommentGenerationAsync(string filePath, CancellationToken cancellationToken) => Task.FromResult(false);
 
         public Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
             => Task.FromResult<(Dictionary<string, string>?, bool)>((Documentation, false));
 
-        public Task<ImmutableArray<string>> GetAvailablePromptTitlesAsync(Document document, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task AnalyzeDocumentAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<ImmutableArray<Diagnostic>> GetCachedDocumentDiagnosticsAsync(Document document, TextSpan? span, ImmutableArray<string> promptTitles, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<string> GetOnTheFlyDocsPromptAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<bool> IsImplementNotImplementedExceptionsAvailableAsync(CancellationToken cancellationToken) => throw new NotImplementedException();

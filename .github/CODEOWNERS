@@ -39,7 +39,8 @@ src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
 src/LanguageServer/ @dotnet/roslyn-ide
 src/NuGet/ @dotnet/roslyn-infrastructure
-src/Razor/ @dotnet/razor-tooling
+src/Razor/ @dotnet/razor-tooling @dotnet/roslyn-ide
+src/Razor/src/Compiler/ @dotnet/razor-tooling @dotnet/roslyn-ide @dotnet/razor-compiler
 src/RoslynAnalyzers/ @dotnet/roslyn-ide
 src/Scripting/ @dotnet/roslyn-interactive
 src/Setup/ @dotnet/roslyn-infrastructure
@@ -64,6 +65,5 @@ src/Workspaces/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/Features/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 src/EditorFeatures/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 
-src/Tools/ExternalAccess/OmniSharp*/ @333fred @dibarbet
 src/Tools/ExternalAccess/RazorCompiler*/ @dotnet/roslyn-compiler
 src/Tools/ExternalAccess/CompilerDeveloperSDK/ @333fred

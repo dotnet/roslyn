@@ -40,7 +40,7 @@ All options are optional. One of `--stdio` or `--pipe` should typically be speci
 - `--stdio` - Use standard I/O for communication with the client (default: false)
 - `--pipe <name>` - Use a named pipe for communication
 - `--daemon-mode` - Allow connecting to (or starting) a shared, multi-client language server daemon instead of launching a dedicated language-server child process for that client.
-- `--autoLoadProjects` - Automatically discover and load projects based on workspace folders (default: false)
+- `--autoLoadProjects [maximum]` - Automatically discover and load projects based on workspace folders. See [Automatic project loading](#automatic-project-loading).
 - `--logLevel <level>` - Set the minimum log verbosity: Trace, Debug, Information, Warning, Error, or None (default: Information)
 - `--extensionLogDirectory <path>` - Directory for log files
 - `--extension <path>` - Load extension assemblies (can be specified multiple times)
@@ -50,11 +50,61 @@ All options are optional. One of `--stdio` or `--pipe` should typically be speci
 
 ### Daemon mode
 
-When daemon mode is enabled, the thin client discovers a running language server daemon (scoped to the current user and tool version) and connects to it, starting one if necessary. A single daemon can serve multiple clients, each with its own isolated language server instance. When the last client disconnects, the daemon stays alive for a configurable keepalive period (see `--daemonKeepAlive` / `ROSLYN_LANGUAGE_SERVER_DAEMON_KEEPALIVE`) before exiting.
+By default, each editor session starts its own language server process, which exits when the editor disconnects.
 
-Because the daemon is shared and outlives any single client, it must not be torn down when an editor kills the launching client's process tree. The thin client therefore does not launch the daemon directly. Instead it launches a short-lived *bootstrap* process, which re-launches the real daemon and then exits, orphaning the daemon so it is no longer a descendant of the thin client. This is what keeps the daemon alive when the launching client's tree is torn down, on every platform — process-tree teardowns follow parent/child links, which neither Windows job-object breakaway nor Unix `setsid` change. On Unix the daemon additionally moves itself into a new session (`setsid`) so signals aimed at the launching client's session/process group (such as terminal-close `SIGHUP`) don't reach it. Its lifetime is then governed by the keepalive logic above rather than by which client happened to launch it.
+With `--daemon-mode`, editor sessions instead share a single background language server process (one per user and tool version). The first session starts it, and later sessions connect to it. Each session still gets its own isolated workspace. This reduces overall memory usage when you run several editor sessions at once - each session can share common resources with each other. 
 
-When daemon mode is disabled (the default), the thin client launches the language server as a dedicated child process on the same transport the editor requested. With a named pipe, the server connects to the editor's pipe directly (the thin client stays out of the message path); with stdio, the thin client relays messages between its own stdio and the server. In both cases the server's standard output and error are forwarded to the thin client's, so server diagnostics reach the host even when LSP isn't available.
+Because the process is shared, closing the editor or terminal that started it does not shut it down.  When the last session disconnects, the daemon keeps running for a short period so that later sessions can reuse it, and then it exits. You can set this period with `--daemonKeepAlive` or the `ROSLYN_LANGUAGE_SERVER_DAEMON_KEEPALIVE` environment variable.
+
+### Automatic project loading
+
+The server can find and load your solution or projects on its own when an editor connects, so language features work without the editor having to open a solution explicitly. It is off by default.
+
+#### Enabling it
+
+On the command line, pass `--autoLoadProjects`:
+
+```bash
+roslyn-language-server --stdio --autoLoadProjects [maximum]
+```
+
+`maximum` is optional and must be greater than zero. It limits how many projects are loaded when the server falls back to discovering individual projects (default: 500).
+
+Alternatively, the editor can set it per session in the `initializationOptions` of the LSP `initialize` request:
+
+```jsonc
+{
+  "initializationOptions": { "autoLoadProjects": 500 }
+}
+```
+
+- `0` disables automatic loading for the session, even if `--autoLoadProjects` was passed on the command line.
+- If the option is missing or `null`, the command-line setting is used.
+
+This value only applies to the session that sent it, so in [daemon mode](#daemon-mode) each editor session can choose its own setting.
+
+#### How the server chooses what to load
+
+The server looks at the workspace folders sent in the `initialize` request and uses the first rule that applies:
+
+1. **`dotnet.defaultSolution` setting.** If a workspace folder contains a `.vscode/settings.json` with a `dotnet.defaultSolution` setting, that solution is loaded. The path can be absolute or relative to the workspace folder. If the file doesn't exist, the setting is ignored.
+
+   ```jsonc
+   // .vscode/settings.json
+   {
+     "dotnet.defaultSolution": "src/MyApp.sln"
+   }
+   ```
+
+   Set it to `"disable"` to turn off automatic loading. This only takes effect when a single workspace folder is open.
+
+2. **A single solution at the root.** If one workspace folder is open and its root contains exactly one `.sln` or `.slnx` file, that solution is loaded.
+
+3. **Project discovery.** Otherwise, every `.csproj` file in the workspace folders (including subdirectories) is loaded. If there are more than the maximum, projects under a `test` or `tests` directory are dropped first, and then the remaining list is cut down to the maximum.
+
+Loading happens in the background. If the editor supports it, the server reports progress while loading.
+
+For large repositories, set `dotnet.defaultSolution` so that only the projects you need are loaded.
 
 ### Example
 

@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var functionPointerTypeSyntax = (FunctionPointerTypeSyntax)syntax;
                     MessageID.IDS_FeatureFunctionPointers.CheckFeatureAvailability(diagnostics, functionPointerTypeSyntax.DelegateKeyword);
 
-                    if (GetUnsafeDiagnosticInfo(disallowedUnder: MemorySafetyRulesVersion.Version1, sizeOfTypeOpt: null) is CSDiagnosticInfo info)
+                    if (GetUnsafeDiagnosticInfo(disallowedUnder: MemorySafetyRulesVersion.Version1, ignoreUnsafeDiagnosticsSuppression: false, sizeOfTypeOpt: null) is CSDiagnosticInfo info)
                     {
                         var @delegate = functionPointerTypeSyntax.DelegateKeyword;
                         var asterisk = functionPointerTypeSyntax.AsteriskToken;
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var elementType = BindType(node.ElementType, diagnostics, basesBeingResolved);
                 ReportUnsafeIfNotAllowed(node, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version1);
 
-                if (!Flags.HasFlag(BinderFlags.SuppressConstraintChecks))
+                if ((Flags & BinderFlags.SuppressConstraintChecks) != BinderFlags.SuppressConstraintChecks)
                 {
                     CheckManagedAddr(Compilation, elementType.Type, node.Location, diagnostics);
                 }

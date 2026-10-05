@@ -25,11 +25,12 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
-public sealed class NetCoreTests : MSBuildWorkspaceTestBase
+public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<ProjectGuardFiles>
 {
     private readonly TempDirectory _nugetCacheDir;
 
-    public NetCoreTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+    public NetCoreTests(ITestOutputHelper testOutputHelper, ProjectGuardFiles projectGuardFiles)
+        : base(testOutputHelper, projectGuardFiles)
     {
         _nugetCacheDir = SolutionDirectory.CreateDirectory(".packages");
     }

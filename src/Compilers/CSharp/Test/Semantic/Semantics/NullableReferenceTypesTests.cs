@@ -1095,6 +1095,110 @@ class C
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_Null_LegacyBehavior()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        lock (null)
+                        {
+                        }
+                    }
+                }
+                """, options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (5,15): warning CS8602: Dereference of a possibly null reference.
+                //         lock (null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "null").WithLocation(5, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_NullConstant_LegacyBehavior_Suppressed()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    private const object? Null = null;
+
+                    void M()
+                    {
+                        lock (Null!)
+                        {
+                        }
+                    }
+                }
+                """, options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_Null_Strict()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    void M()
+                    {
+                        lock (null)
+                        {
+                        }
+                    }
+                }
+                """, parseOptions: TestOptions.Regular.WithStrictFeature(), options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (5,15): error CS0185: '<null>' is not a reference type as required by the lock statement
+                //         lock (null)
+                Diagnostic(ErrorCode.ERR_LockNeedsReference, "null").WithArguments("<null>").WithLocation(5, 15));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_NullConstant(bool strict)
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    private const object? Null = null;
+
+                    void M()
+                    {
+                        lock (Null)
+                        {
+                        }
+                    }
+                }
+                """, parseOptions: strict ? TestOptions.Regular.WithStrictFeature() : TestOptions.Regular,
+                     options: WithNullableEnable());
+            comp.VerifyDiagnostics(
+                // (7,15): warning CS8602: Dereference of a possibly null reference.
+                //         lock (Null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Null").WithLocation(7, 15));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/76597")]
+        public void LockStatement_NullConstant_Suppressed(bool strict)
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    private const object? Null = null;
+
+                    void M()
+                    {
+                        lock (Null!)
+                        {
+                        }
+                    }
+                }
+                """, parseOptions: strict ? TestOptions.Regular.WithStrictFeature() : TestOptions.Regular,
+                     options: WithNullableEnable());
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(33537, "https://github.com/dotnet/roslyn/issues/33537")]
         public void SuppressOnNullLiteralInAs()
         {

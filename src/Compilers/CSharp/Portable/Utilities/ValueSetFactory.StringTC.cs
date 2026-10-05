@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int remain = scope - i;
                     if (random.NextDouble() * remain < need)
                     {
-                        result[next++] = i.ToString();
+                        result[next++] = i.ToString(CultureInfo.InvariantCulture);
                     }
                 }
 

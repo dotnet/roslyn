@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     try
                     {
                         var clientMutexName = GetClientMutexName(pipeName);
-                        clientMutex = OpenOrCreateMutex(clientMutexName, out holdsMutex);
+                        clientMutex = OpenOrCreateClientMutex(clientMutexName, out holdsMutex);
                     }
                     catch
                     {
@@ -251,16 +251,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         try
                         {
-                            holdsMutex = clientMutex.TryLock(timeoutNewProcess);
-
-                            if (!holdsMutex)
+                            if (!clientMutex.TryLock(timeoutNewProcess))
                             {
                                 return Task.FromResult<NamedPipeClientStream?>(null);
                             }
                         }
                         catch (AbandonedMutexException)
                         {
-                            holdsMutex = true;
+                            // WaitOne grants ownership when reporting abandonment.
                         }
                     }
 
@@ -284,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     {
                         clientMutex?.Dispose();
                     }
-                    catch (ApplicationException e)
+                    catch (Exception e) when (e is ApplicationException or InvalidOperationException)
                     {
                         var releaseThreadId = Environment.CurrentManagedThreadId;
                         var message = $"ReleaseMutex failed. WaitOne Id: {originalThreadId} Release Id: {releaseThreadId}";
@@ -750,6 +748,20 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
         }
 
+        internal static IServerMutex OpenOrCreateClientMutex(string name, out bool holdsMutex)
+        {
+            if (PlatformInformation.IsUsingMonoRuntime)
+            {
+                return OpenOrCreateMutex(name, out holdsMutex);
+            }
+            else
+            {
+                // Avoid the constructor-time ownership race in https://github.com/dotnet/runtime/issues/134043.
+                holdsMutex = false;
+                return new ServerNamedMutex(name, initiallyOwned: false, out _);
+            }
+        }
+
         internal static IServerMutex OpenOrCreateMutex(string name, out bool createdNew)
         {
             if (PlatformInformation.IsUsingMonoRuntime)
@@ -990,13 +1002,18 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public bool IsLocked { get; private set; }
 
         public ServerNamedMutex(string mutexName, out bool createdNew)
+            : this(mutexName, initiallyOwned: true, out createdNew)
+        {
+        }
+
+        internal ServerNamedMutex(string mutexName, bool initiallyOwned, out bool createdNew)
         {
             Mutex = new Mutex(
-                initiallyOwned: true,
+                initiallyOwned: initiallyOwned,
                 name: mutexName,
                 createdNew: out createdNew
             );
-            if (createdNew)
+            if (initiallyOwned && createdNew)
                 IsLocked = true;
         }
 
@@ -1025,7 +1042,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 throw new ObjectDisposedException("Mutex");
             if (IsLocked)
                 throw new InvalidOperationException("Lock already held");
-            return IsLocked = Mutex.WaitOne(timeoutMs);
+            try
+            {
+                return IsLocked = Mutex.WaitOne(timeoutMs);
+            }
+            catch (AbandonedMutexException)
+            {
+                IsLocked = true;
+                throw;
+            }
         }
 
         public void Dispose()

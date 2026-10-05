@@ -30,7 +30,7 @@
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/artifacts/bin/RunTests/Debug/net10.0/RunTests.dll",
-      "args": ["--runtime", "both", "--artifactspath", "${workspaceFolder}/artifacts/testPayload/artifacts"],
+      "args": ["--testFramework", "core", "--testFramework", "desktop", "--artifactspath", "${workspaceFolder}/artifacts/testPayload/artifacts"],
       "cwd": "${workspaceFolder}/artifacts/bin/RunTests",
       "stopAtEntry": false,
       "console": "internalConsole"

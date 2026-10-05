@@ -1,0 +1,27 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        Documentation - (16:0,16 [159] RawXml.cshtml)
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_DocumentationDirectiveCodeGenerationTest_Legacy_RawXml - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                HtmlContent - (178:5,0 [14] RawXml.cshtml)
+                    LazyIntermediateToken - (178:5,0 [2] RawXml.cshtml) - Html - <p
+                    LazyIntermediateToken - (180:5,2 [1] RawXml.cshtml) - Html - >
+                    LazyIntermediateToken - (181:5,3 [5] RawXml.cshtml) - Html - After
+                    LazyIntermediateToken - (186:5,8 [4] RawXml.cshtml) - Html - </p>
+                    LazyIntermediateToken - (190:5,12 [2] RawXml.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

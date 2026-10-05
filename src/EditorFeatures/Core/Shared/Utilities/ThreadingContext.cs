@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 /// </remarks>
 [Export(typeof(IThreadingContext))]
 [Shared]
-internal sealed class ThreadingContext : IThreadingContext, IDisposable
+internal sealed class ThreadingContext : IThreadingContext, System.IAsyncDisposable
 {
     private readonly CancellationTokenSource _disposalTokenSource = new();
 
@@ -71,15 +71,14 @@ internal sealed class ThreadingContext : IThreadingContext, IDisposable
         });
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         // https://github.com/Microsoft/vs-threading/blob/main/doc/cookbook_vs.md#how-to-write-a-fire-and-forget-method-responsibly
         _disposalTokenSource.Cancel();
 
         try
         {
-            // Block Dispose until all async work has completed.
-            JoinableTaskContext.Factory.Run(ShutdownBlockingTasks.JoinTillEmptyAsync);
+            await ShutdownBlockingTasks.JoinTillEmptyAsync().ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {

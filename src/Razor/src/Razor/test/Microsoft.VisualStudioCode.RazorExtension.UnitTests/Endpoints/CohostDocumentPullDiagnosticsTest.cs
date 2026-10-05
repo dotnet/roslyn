@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -38,7 +39,7 @@ public partial class CohostDocumentPullDiagnosticsTest
             }
             """);
 
-        var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, (VSInternalDiagnosticReport[]?)null)]);
+        var requestInvoker = new TestHtmlRequestInvoker();
         var result = await MakeDiagnosticsRequestAsync(document, taskListRequest: false, requestInvoker, IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, LoggerFactory, DisposalToken);
 
         Assert.NotNull(result);
@@ -54,15 +55,15 @@ public partial class CohostDocumentPullDiagnosticsTest
 
     private async Task VerifyDiagnosticsAsync(
         TestCode input,
-        VSInternalDiagnosticReport[]? htmlResponse = null,
         RazorFileKind? fileKind = null,
         bool miscellaneousFile = false,
-        (string fileName, string contents)[]? additionalFiles = null)
+        (string fileName, string contents)[]? additionalFiles = null,
+        Action<RazorProjectBuilder>? projectConfigure = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles, projectConfigure: projectConfigure);
         var inputText = await document.GetTextAsync(DisposalToken);
 
-        var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, htmlResponse)]);
+        var requestInvoker = new TestHtmlRequestInvoker();
 
         var result = await MakeDiagnosticsRequestAsync(document, taskListRequest: false, requestInvoker, IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, LoggerFactory, DisposalToken);
 

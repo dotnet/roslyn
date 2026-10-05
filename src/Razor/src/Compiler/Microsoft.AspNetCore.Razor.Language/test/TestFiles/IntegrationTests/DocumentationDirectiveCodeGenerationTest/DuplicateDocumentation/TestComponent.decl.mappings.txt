@@ -1,0 +1,5 @@
+﻿Source Location: (16:0,16 [24] x:\dir\subdir\Test\TestComponent.razor)
+|<summary>First</summary>|
+Generated Location: (415:14,4 [24] )
+|<summary>First</summary>|
+

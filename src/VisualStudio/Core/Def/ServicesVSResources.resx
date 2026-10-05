@@ -1611,6 +1611,10 @@ Additional information: {1}</value>
   <data name="Fix_text_pasted_into_string_literals" xml:space="preserve">
     <value>Fix text pasted into string literals</value>
   </data>
+  <data name="Fix_generic_type_names_pasted_into_cref_attributes" xml:space="preserve">
+    <value>Fix generic type names pasted into cref attributes</value>
+    <comment>"cref" is a documentation comment attribute name and should not be localized</comment>
+  </data>
   <data name="Go_To_Definition" xml:space="preserve">
     <value>Go To Definition</value>
   </data>
