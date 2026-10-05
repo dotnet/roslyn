@@ -287,12 +287,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression createImmutableArray(BoundCollectionExpression node, NamedTypeSymbol immutableArrayType)
             {
-                if (node.Elements.IsEmpty &&
+                var elements = node.Elements;
+
+                if (elements.IsEmpty &&
                     _factory.WellKnownMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty, isOptional: true) is FieldSymbol immutableArrayOfTEmpty)
                 {
                     // ImmutableArray<T> value = [];
                     var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember(immutableArrayType);
                     return _factory.Field(receiver: null, immutableArrayOfTargetCollectionTypeEmpty);
+                }
+
+                WellKnownMember? specialFactoryMethod = elements.Length switch
+                {
+                    1 => WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_OneElement,
+                    2 => WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_TwoElements,
+                    3 => WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_ThreeElements,
+                    4 => WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_FourElements,
+                    _ => null,
+                };
+
+                if (specialFactoryMethod.HasValue &&
+                    elements.All(e => e is BoundExpression) &&
+                    _factory.WellKnownMember(specialFactoryMethod.Value, isOptional: true) is MethodSymbol factoryMethodGeneric)
+                {
+                    var factoryMethodConstructed = factoryMethodGeneric.Construct([immutableArrayType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0]]);
+                    return _factory.Call(receiver: null, factoryMethodConstructed, elements.SelectAsArray(e => VisitExpression((BoundExpression)e)));
                 }
 
                 if (CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _))

@@ -42,7 +42,29 @@ public abstract class RazorBaselineIntegrationTestBase : RazorIntegrationTestBas
 
     protected abstract string GetDirectoryPath(string testName);
 
-    protected void AssertDocumentNodeMatchesBaseline(RazorCodeDocument codeDocument, [CallerMemberName]string testName = "")
+    protected void AssertSyntaxTreeMatchesBaseline(RazorCodeDocument codeDocument, [CallerMemberName] string testName = "")
+    {
+        var baselineFilePath = GetBaselineFilePath(codeDocument, ".stree.txt", testName);
+        var actual = TestSyntaxSerializer.Serialize(codeDocument.GetRequiredSyntaxTree().Root);
+
+        if (GenerateBaselines.ShouldGenerate)
+        {
+            var baselineFullPath = Path.Combine(TestProjectRoot, baselineFilePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(baselineFullPath));
+            WriteBaseline(actual, baselineFullPath);
+            return;
+        }
+
+        var baselineFile = TestFile.Create(baselineFilePath, GetType().Assembly);
+        if (!baselineFile.Exists())
+        {
+            throw new XunitException($"The resource {baselineFilePath} was not found.");
+        }
+
+        AssertEx.AssertEqualToleratingWhitespaceDifferences(baselineFile.ReadAllText(), actual);
+    }
+
+    protected void AssertDocumentNodeMatchesBaseline(RazorCodeDocument codeDocument, [CallerMemberName] string testName = "")
     {
         var document = codeDocument.GetRequiredDocumentNode();
         AssertIntermediateNodeMatchesBaseline(codeDocument, document, ".ir.txt", testName);

@@ -1,0 +1,11 @@
+﻿Source Location: (16:0,16 [79] x:\dir\subdir\Test\TestComponent.razor)
+|<summary>
+}
+@code { public int Example => 1; }
+</summary> Extra information.|
+Generated Location: (415:14,4 [79] )
+|<summary>
+}
+@code { public int Example => 1; }
+</summary> Extra information.|
+
