@@ -117,9 +117,54 @@ namespace RunTests
                 return await GetParentProcessIdsMacAsync().ConfigureAwait(false);
             }
 
-            var result = new Dictionary<int, int>();
             if (OperatingSystem.IsLinux())
             {
+                return GetParentProcessIdsLinux();
+            }
+
+            return new Dictionary<int, int>();
+
+            [SupportedOSPlatform("windows")]
+            static Dictionary<int, int> GetParentProcessIdsWindows()
+            {
+                var result = new Dictionary<int, int>();
+                using var searcher = new ManagementObjectSearcher("SELECT ProcessId, ParentProcessId FROM Win32_Process");
+                using var processes = searcher.Get();
+                foreach (ManagementObject process in processes)
+                {
+                    using (process)
+                    {
+                        result[checked((int)(uint)process["ProcessId"])] = checked((int)(uint)process["ParentProcessId"]);
+                    }
+                }
+
+                return result;
+            }
+
+            static async Task<Dictionary<int, int>> GetParentProcessIdsMacAsync()
+            {
+                var info = ProcessRunner.CreateProcess("/bin/ps", "-A -o pid= -o ppid=", captureOutput: true, displayWindow: false);
+                using var process = info.Process;
+                var output = await info.Result.ConfigureAwait(false);
+                if (output.ExitCode != 0)
+                    throw new IOException($"ps exited with code {output.ExitCode}: {string.Join(Environment.NewLine, output.ErrorLines)}");
+
+                var result = new Dictionary<int, int>();
+                foreach (var line in output.OutputLines)
+                {
+                    var fields = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+                    if (fields.Length != 2)
+                        throw new IOException($"Unexpected ps output: '{line}'");
+
+                    result.Add(int.Parse(fields[0], CultureInfo.InvariantCulture), int.Parse(fields[1], CultureInfo.InvariantCulture));
+                }
+
+                return result;
+            }
+
+            static Dictionary<int, int> GetParentProcessIdsLinux()
+            {
+                var result = new Dictionary<int, int>();
                 foreach (var directory in Directory.EnumerateDirectories("/proc"))
                 {
                     if (!int.TryParse(Path.GetFileName(directory), out var pid))
@@ -133,47 +178,9 @@ namespace RunTests
                     catch (IOException) { }
                     catch (UnauthorizedAccessException) { }
                 }
+
+                return result;
             }
-
-            return result;
-        }
-
-        private static async Task<Dictionary<int, int>> GetParentProcessIdsMacAsync()
-        {
-            var info = ProcessRunner.CreateProcess("/bin/ps", "-A -o pid= -o ppid=", captureOutput: true, displayWindow: false);
-            using var process = info.Process;
-            var output = await info.Result.ConfigureAwait(false);
-            if (output.ExitCode != 0)
-                throw new IOException($"ps exited with code {output.ExitCode}: {string.Join(Environment.NewLine, output.ErrorLines)}");
-
-            var result = new Dictionary<int, int>();
-            foreach (var line in output.OutputLines)
-            {
-                var fields = line.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
-                if (fields.Length != 2)
-                    throw new IOException($"Unexpected ps output: '{line}'");
-
-                result.Add(int.Parse(fields[0], CultureInfo.InvariantCulture), int.Parse(fields[1], CultureInfo.InvariantCulture));
-            }
-
-            return result;
-        }
-
-        [SupportedOSPlatform("windows")]
-        private static Dictionary<int, int> GetParentProcessIdsWindows()
-        {
-            var result = new Dictionary<int, int>();
-            using var searcher = new ManagementObjectSearcher("SELECT ProcessId, ParentProcessId FROM Win32_Process");
-            using var processes = searcher.Get();
-            foreach (ManagementObject process in processes)
-            {
-                using (process)
-                {
-                    result[checked((int)(uint)process["ProcessId"])] = checked((int)(uint)process["ParentProcessId"]);
-                }
-            }
-
-            return result;
         }
     }
 }
