@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 [Shared]
 [CohostEndpoint(Methods.PrepareCallHierarchyName)]
 [Export(typeof(IDynamicRegistrationProvider))]
-[ExportRazorStatelessLspService(typeof(CohostPrepareCallHierarchyEndpoint))]
+[ExportRazorLspService(typeof(CohostPrepareCallHierarchyEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostPrepareCallHierarchyEndpoint(

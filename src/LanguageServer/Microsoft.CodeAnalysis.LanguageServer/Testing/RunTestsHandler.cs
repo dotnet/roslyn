@@ -13,32 +13,32 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Testing;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(RunTestsHandler)), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RunTestsHandlerFactory(ServerConfiguration serverConfiguration, IGlobalOptionService globalOptionService) : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-    {
-        var loggerFactory = lspServices.GetRequiredService<ILoggerFactory>();
-        return new RunTestsHandler(
-            new VsTestRunner(
-                loggerFactory,
-                serverConfiguration,
-                lspServices.GetRequiredService<DotnetCliHelper>(),
-                lspServices.GetRequiredService<LspLoggerFactory>().LogConfiguration),
-            new MtpTestRunner(loggerFactory),
-            globalOptionService);
-    }
-}
-
+[ExportCSharpVisualBasicLspService(typeof(RunTestsHandler)), Shared(LspServiceComposition.SharingBoundary)]
 [Method(RunTestsMethodName)]
-internal sealed class RunTestsHandler(
-    VsTestRunner vsTestRunner,
-    MtpTestRunner mtpTestRunner,
-    IGlobalOptionService globalOptionService)
-    : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
+internal sealed class RunTestsHandler : ILspServiceDocumentRequestHandler<RunTestsParams, RunTestsPartialResult[]>
 {
+    private readonly VsTestRunner _vsTestRunner;
+    private readonly MtpTestRunner _mtpTestRunner;
+    private readonly IGlobalOptionService _globalOptionService;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RunTestsHandler(
+        LspService<ILoggerFactory> loggerFactory,
+        LspService<DotnetCliHelper> dotnetCliHelper,
+        LspService<LspLoggerFactory> lspLoggerFactory,
+        ServerConfiguration serverConfiguration,
+        IGlobalOptionService globalOptionService)
+    {
+        _vsTestRunner = new VsTestRunner(
+            loggerFactory.Value,
+            serverConfiguration,
+            dotnetCliHelper.Value,
+            lspLoggerFactory.Value.LogConfiguration);
+        _mtpTestRunner = new MtpTestRunner(loggerFactory.Value);
+        _globalOptionService = globalOptionService;
+    }
+
     private const string RunTestsMethodName = "textDocument/runTests";
     private const string TestingPlatformServerCapability = "TestingPlatformServer";
 
@@ -69,11 +69,11 @@ internal sealed class RunTestsHandler(
         var runSettings = await GetRunSettingsAsync(runSettingsPath, progress, context, cancellationToken);
         var clientLanguageServerManager = context.GetRequiredLspService<IClientLanguageServerManager>();
         var projectCapabilityManager = context.GetRequiredService<ProjectCapabilityManager>();
-        var useSemanticTestDiscovery = globalOptionService.GetOption(LspOptionsStorage.LspUseSemanticTestDiscovery, document.Project.Language);
+        var useSemanticTestDiscovery = _globalOptionService.GetOption(LspOptionsStorage.LspUseSemanticTestDiscovery, document.Project.Language);
 
         if (ShouldUseMtp(runSettingsPath, document.Project.Id, projectCapabilityManager))
         {
-            await mtpTestRunner.RunTestsAsync(
+            await _mtpTestRunner.RunTestsAsync(
                 request.Range,
                 document,
                 projectOutputPath,
@@ -86,7 +86,7 @@ internal sealed class RunTestsHandler(
             return progress.GetValues() ?? [];
         }
 
-        await vsTestRunner.RunTestsAsync(
+        await _vsTestRunner.RunTestsAsync(
             request.Range,
             document,
             projectOutputPath,

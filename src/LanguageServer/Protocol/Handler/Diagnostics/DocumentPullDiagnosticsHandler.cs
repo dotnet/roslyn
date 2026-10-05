@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -20,16 +23,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 using DocumentDiagnosticPartialReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>;
 using DocumentDiagnosticReport = SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>;
 
+[ExportLspService(typeof(DocumentPullDiagnosticsHandler), ProtocolConstants.AllLspContracts), Shared(LspServiceComposition.SharingBoundary)]
 [Method(Methods.TextDocumentDiagnosticName)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed partial class DocumentPullDiagnosticsHandler(
-    IClientLanguageServerManager clientLanguageServerManager,
+    LspService<IClientLanguageServerManager> clientLanguageServerManager,
     IDiagnosticSourceManager diagnosticSourceManager,
     IDiagnosticsRefresher diagnosticsRefresher,
     IGlobalOptionService globalOptions)
     : AbstractPullDiagnosticHandler<DocumentDiagnosticParams, DocumentDiagnosticPartialReport, DocumentDiagnosticReport>(
         diagnosticsRefresher, globalOptions), ITextDocumentIdentifierHandler<DocumentDiagnosticParams, TextDocumentIdentifier>
 {
-    private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager;
+    private readonly IClientLanguageServerManager _clientLanguageServerManager = clientLanguageServerManager.Value;
     private readonly IDiagnosticSourceManager _diagnosticSourceManager = diagnosticSourceManager;
 
     protected override string? GetRequestDiagnosticCategory(DocumentDiagnosticParams diagnosticsParams)

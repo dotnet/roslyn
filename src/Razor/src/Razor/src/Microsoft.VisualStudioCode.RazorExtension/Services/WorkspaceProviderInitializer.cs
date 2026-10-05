@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
 [Shared]
-[ExportRazorStatelessLspService(typeof(WorkspaceProviderInitializer))]
+[ExportRazorLspService(typeof(WorkspaceProviderInitializer))]
 [method: ImportingConstructor]
 internal sealed class WorkspaceProviderInitializer(
     VSCodeWorkspaceProvider workspaceProvider) : ILspService, IOnInitialized

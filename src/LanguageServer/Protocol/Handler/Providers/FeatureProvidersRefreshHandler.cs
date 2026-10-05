@@ -11,7 +11,7 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(FeatureProvidersRefreshHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(FeatureProvidersRefreshHandler)), Shared]
 [Method(VSMethods.FeatureProvidersRefreshName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

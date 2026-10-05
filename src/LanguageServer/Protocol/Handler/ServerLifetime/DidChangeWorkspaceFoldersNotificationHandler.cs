@@ -12,27 +12,22 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.ServerLifetime;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(DidChangeWorkspaceFoldersNotificationHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(DidChangeWorkspaceFoldersNotificationHandler)), Shared(LspServiceComposition.SharingBoundary)]
+[Method(Methods.WorkspaceDidChangeWorkspaceFoldersName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DidChangeWorkspaceFoldersNotificationHandlerFactory() : ILspServiceFactory
-{
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new DidChangeWorkspaceFoldersNotificationHandler(
-            lspServices.GetRequiredService<IWorkspaceFolderTracker>());
-}
-
-[Method(Methods.WorkspaceDidChangeWorkspaceFoldersName)]
-internal sealed class DidChangeWorkspaceFoldersNotificationHandler(IWorkspaceFolderTracker workspaceFolderTracker)
+internal sealed class DidChangeWorkspaceFoldersNotificationHandler(LspService<IWorkspaceFolderTracker> workspaceFolderTracker)
     : ILspServiceNotificationHandler<DidChangeWorkspaceFoldersParams>
 {
+    private readonly IWorkspaceFolderTracker _workspaceFolderTracker = workspaceFolderTracker.Value;
+
     public bool MutatesSolutionState => true;
     public bool RequiresLSPSolution => false;
 
     Task INotificationHandler<DidChangeWorkspaceFoldersParams, RequestContext>.HandleNotificationAsync(
         DidChangeWorkspaceFoldersParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        workspaceFolderTracker.Update(
+        _workspaceFolderTracker.Update(
             addedFolders: request.Event?.Added,
             removedFolders: request.Event?.Removed);
 

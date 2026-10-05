@@ -27,32 +27,38 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
 
-[Shared]
-[ExportLspServiceFactory(typeof(FileBasedProgramsEntryPointDiscovery), ProtocolConstants.RoslynLspLanguagesContract)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class FileBasedProgramsEntryPointDiscoveryFactory(IGlobalOptionService globalOptionService, IAsynchronousOperationListenerProvider listenerProvider) : ILspServiceFactory
+[ExportLspService(typeof(FileBasedProgramsEntryPointDiscovery), ProtocolConstants.RoslynLspLanguagesContract), Shared(LspServiceComposition.SharingBoundary)]
+internal sealed partial class FileBasedProgramsEntryPointDiscovery : ILspService, IOnInitialized, IDisposable
 {
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-    {
-        return new FileBasedProgramsEntryPointDiscovery(
-            globalOptionService,
-            listenerProvider.GetListener(FeatureAttribute.Workspace),
-            lspServices.GetRequiredService<IHostWorkspaceProvider>().Workspace.Services.GetRequiredService<IFileBasedProgramService>(),
-            lspServices.GetRequiredService<ILoggerFactory>().CreateLogger<FileBasedProgramsEntryPointDiscovery>(),
-            lspServices.GetRequiredService<IWorkspaceFolderTracker>(),
-            lspServices);
-    }
-}
+    private readonly IGlobalOptionService _globalOptionService;
+    private readonly IFileBasedProgramService _fileBasedProgramService;
+    private readonly ILogger _logger;
+    private readonly IWorkspaceFolderTracker _workspaceFolderTracker;
+    private readonly LspServices _lspServices;
+    private readonly AsyncBatchingWorkQueue _discoveryQueue;
 
-internal sealed partial class FileBasedProgramsEntryPointDiscovery(
-    IGlobalOptionService globalOptionService,
-    IAsynchronousOperationListener listener,
-    IFileBasedProgramService fileBasedProgramService,
-    ILogger logger,
-    IWorkspaceFolderTracker workspaceFolderTracker,
-    LspServices lspServices) : ILspService, IOnInitialized, IDisposable
-{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public FileBasedProgramsEntryPointDiscovery(
+        IGlobalOptionService globalOptionService,
+        IAsynchronousOperationListenerProvider listenerProvider,
+        LspService<IHostWorkspaceProvider> hostWorkspaceProvider,
+        LspService<ILoggerFactory> loggerFactory,
+        LspService<IWorkspaceFolderTracker> workspaceFolderTracker,
+        LspService<LspServices> lspServices)
+    {
+        _globalOptionService = globalOptionService;
+        var listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+        _fileBasedProgramService = hostWorkspaceProvider.Value.Workspace.Services.GetRequiredService<IFileBasedProgramService>();
+        _logger = loggerFactory.Value.CreateLogger<FileBasedProgramsEntryPointDiscovery>();
+        _workspaceFolderTracker = workspaceFolderTracker.Value;
+        _lspServices = lspServices.Value;
+        _discoveryQueue = new AsyncBatchingWorkQueue(
+            TimeSpan.Zero,
+            cancellationToken => FindAndLoadEntryPointsAsync(_globalOptionService, _fileBasedProgramService, _workspaceFolderTracker, _lspServices, _logger, cancellationToken),
+            listener);
+    }
+
     private static readonly StringComparer s_pathComparer = StringComparer.OrdinalIgnoreCase;
 
     /// <summary>Directories which are ignored per convention.</summary>
@@ -64,14 +70,9 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         "node_modules"
     ], StringComparison.OrdinalIgnoreCase);
 
-    private readonly AsyncBatchingWorkQueue _discoveryQueue = new(
-        TimeSpan.Zero,
-        cancellationToken => FindAndLoadEntryPointsAsync(globalOptionService, fileBasedProgramService, workspaceFolderTracker, lspServices, logger, cancellationToken),
-        listener);
-
     public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
     {
-        workspaceFolderTracker.WorkspaceFoldersChanged += OnWorkspaceFoldersChanged;
+        _workspaceFolderTracker.WorkspaceFoldersChanged += OnWorkspaceFoldersChanged;
         _discoveryQueue.AddWork();
 
         return Task.CompletedTask;
@@ -82,12 +83,12 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
     public void Dispose()
     {
-        workspaceFolderTracker.WorkspaceFoldersChanged -= OnWorkspaceFoldersChanged;
+        _workspaceFolderTracker.WorkspaceFoldersChanged -= OnWorkspaceFoldersChanged;
         _discoveryQueue.Dispose();
     }
 
     internal ValueTask FindAndLoadEntryPointsAsync(CancellationToken cancellationToken)
-        => FindAndLoadEntryPointsAsync(globalOptionService, fileBasedProgramService, workspaceFolderTracker, lspServices, logger, cancellationToken);
+        => FindAndLoadEntryPointsAsync(_globalOptionService, _fileBasedProgramService, _workspaceFolderTracker, _lspServices, _logger, cancellationToken);
 
     private static async ValueTask FindAndLoadEntryPointsAsync(
         IGlobalOptionService globalOptionService,
@@ -160,7 +161,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     }
 
     internal ImmutableArray<string> FindEntryPoints(string workspaceFolder)
-        => FindEntryPoints(workspaceFolder, fileBasedProgramService, logger);
+        => FindEntryPoints(workspaceFolder, _fileBasedProgramService, _logger);
 
     private static ImmutableArray<string> FindEntryPoints(string workspaceFolder, IFileBasedProgramService fileBasedProgramService, ILogger logger)
     {

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// project files) would be desirable.
 /// </para>
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(CodeActionResolveHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(CodeActionResolveHandler)), Shared]
 [Method(LSP.Methods.CodeActionResolveName)]
 internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.CodeAction, LSP.CodeAction>
 {

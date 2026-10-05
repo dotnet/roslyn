@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
 [Shared]
-[ExportRazorStatelessLspService(typeof(TelemetryReporterWrapper))]
+[ExportRazorLspService(typeof(TelemetryReporterWrapper))]
 internal sealed class TelemetryReporterWrapper : ILspService, IOnInitialized
 {
     private readonly ILanguageServerTelemetryReporterWrapper? _telemetryReporterWrapper;

@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.RequestOrdering;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(NonMutatingRequestHandler)), PartNotDiscoverable, Shared]
+[ExportCSharpVisualBasicLspService(typeof(NonMutatingRequestHandler)), PartNotDiscoverable, Shared]
 [Method(MethodName)]
 internal sealed class NonMutatingRequestHandler : ILspServiceRequestHandler<TestRequest, TestResponse>
 {

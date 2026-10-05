@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// <remarks>
 /// This isn't a <see cref="ILspServiceDocumentRequestHandler{TRequest, TResponse}" /> because it could return null.
 /// </remarks>
-[ExportCSharpVisualBasicStatelessLspService(typeof(CompletionResolveHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(CompletionResolveHandler)), Shared]
 [Method(LSP.Methods.TextDocumentCompletionResolveName)]
 internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>, ITextDocumentIdentifierHandler<LSP.CompletionItem, LSP.TextDocumentIdentifier?>
 {

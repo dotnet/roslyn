@@ -13,4 +13,10 @@ internal sealed class ProtocolConstants
     public const string RoslynLspLanguagesContract = "RoslynLspLanguages";
 
     public const string TypeScriptLanguageContract = "TypeScriptLspLanguage";
+
+    /// <summary>
+    /// LSP contract for services that apply to servers of every LSP contract.  Only valid on LSP service exports; no
+    /// server may use it as its own contract.
+    /// </summary>
+    public const string AllLspContracts = "*";
 }

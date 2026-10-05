@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 #pragma warning disable RS0030 // Do not use banned APIs
 [Shared]
 [CohostEndpoint(Methods.TextDocumentColorPresentationName)]
-[ExportRazorStatelessLspService(typeof(CohostColorPresentationEndpoint))]
+[ExportRazorLspService(typeof(CohostColorPresentationEndpoint))]
 [method: ImportingConstructor]
 #pragma warning restore RS0030 // Do not use banned APIs
 internal sealed class CohostColorPresentationEndpoint(

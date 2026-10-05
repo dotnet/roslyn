@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// Given an input project (or none), runs restore on the project and streams the output
 /// back to the client to display.
 /// </summary>
-[ExportCSharpVisualBasicStatelessLspService(typeof(RestoreHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(RestoreHandler)), Shared]
 [Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

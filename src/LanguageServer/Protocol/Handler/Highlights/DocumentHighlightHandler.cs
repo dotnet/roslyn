@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(DocumentHighlightsHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(DocumentHighlightsHandler)), Shared]
 [Method(Methods.TextDocumentDocumentHighlightName)]
 internal sealed class DocumentHighlightsHandler : ILspServiceDocumentRequestHandler<TextDocumentPositionParams, DocumentHighlight[]?>
 {

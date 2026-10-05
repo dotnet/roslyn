@@ -17,18 +17,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// Handles a request from the client to refresh source generators.
 /// No specific generators are refreshed; rather, all generators are refreshed in all registered workspaces.
 /// </summary>
-[ExportCSharpVisualBasicLspServiceFactory(typeof(WorkspaceRefreshSourceGeneratorsHandler)), Shared]
+[ExportCSharpVisualBasicLspService(typeof(WorkspaceRefreshSourceGeneratorsHandler)), Shared(LspServiceComposition.SharingBoundary)]
+[Method(MethodName)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class WorkspaceRefreshSourceGeneratorsHandlerFactory() : ILspServiceFactory
+internal class WorkspaceRefreshSourceGeneratorsHandler(LspService<LspWorkspaceRegistrationService> workspaceRegistrationService) : ILspServiceNotificationHandler<RefreshSourceGeneratorsParams>, ILspService
 {
-    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new WorkspaceRefreshSourceGeneratorsHandler(lspServices.GetRequiredService<LspWorkspaceRegistrationService>());
-}
+    private readonly LspWorkspaceRegistrationService _workspaceRegistrationService = workspaceRegistrationService.Value;
 
-[Method(MethodName)]
-internal class WorkspaceRefreshSourceGeneratorsHandler(LspWorkspaceRegistrationService workspaceRegistrationService) : ILspServiceNotificationHandler<RefreshSourceGeneratorsParams>, ILspService
-{
     public const string MethodName = "workspace/_roslyn_refreshSourceGenerators";
 
     public bool MutatesSolutionState => false;
@@ -37,7 +33,7 @@ internal class WorkspaceRefreshSourceGeneratorsHandler(LspWorkspaceRegistrationS
 
     public Task HandleNotificationAsync(RefreshSourceGeneratorsParams request, RequestContext requestContext, CancellationToken cancellationToken)
     {
-        foreach (var workspace in workspaceRegistrationService.GetAllRegistrations())
+        foreach (var workspace in _workspaceRegistrationService.GetAllRegistrations())
         {
             workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, request.ForceRegeneration);
         }

@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.LanguageServer.Protocol;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.AlwaysActiveVSLspServer), Shared]
+[ExportCSharpVisualBasicLspService(typeof(ICapabilitiesProvider), WellKnownLspServerKinds.AlwaysActiveVSLspServer), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class AlwaysActivateInProcCapabilitiesProvider(

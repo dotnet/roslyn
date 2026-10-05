@@ -1,26 +1,23 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 
-internal class ServiceBrokerShutdown(ServiceBrokerFactory serviceBrokerFactory) : IOnServerShutdown, ILspService
+[ExportCSharpVisualBasicLspService(typeof(ServiceBrokerShutdown)), Shared(LspServiceComposition.SharingBoundary)]
+internal class ServiceBrokerShutdown : IOnServerShutdown, ILspService
 {
-    [ExportCSharpVisualBasicLspServiceFactory(typeof(ServiceBrokerShutdown)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    private class ServiceBrokerShutdownFactory() : ILspServiceFactory
+    private readonly ServiceBrokerFactory _serviceBrokerFactory;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ServiceBrokerShutdown(LspService<ServiceBrokerFactory> serviceBrokerFactory)
     {
-        public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        {
-            var serviceBrokerFactory = lspServices.GetRequiredService<ServiceBrokerFactory>();
-            return new ServiceBrokerShutdown(serviceBrokerFactory);
-        }
+        _serviceBrokerFactory = serviceBrokerFactory.Value;
     }
 
     public Task ExitAsync()
@@ -30,6 +27,6 @@ internal class ServiceBrokerShutdown(ServiceBrokerFactory serviceBrokerFactory) 
 
     public async Task ShutdownAsync()
     {
-        await serviceBrokerFactory.ShutdownAndWaitForCompletionAsync().ConfigureAwait(false);
+        await _serviceBrokerFactory.ShutdownAndWaitForCompletionAsync().ConfigureAwait(false);
     }
 }
