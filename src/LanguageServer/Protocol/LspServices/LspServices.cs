@@ -23,7 +23,8 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
     /// <summary>
     /// The MEF sharing boundary that owns every per-server service (see <see cref="ExportLspServiceAttribute"/>).
-    /// Disposing it disposes all <see cref="IDisposable"/> per-server parts that were instantiated.
+    /// Disposing it cleans up instantiated <see cref="IDisposable"/> and <see cref="IAsyncDisposable"/> parts,
+    /// blocking until asynchronous cleanup completes.
     /// </summary>
     private readonly IDisposable _scope;
 
@@ -34,12 +35,6 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
     /// </summary>
     private readonly FrozenDictionary<string, ImmutableArray<BaseService>> _baseServices;
     private readonly RoslynTelemetry _telemetry = RoslynTelemetry.Current;
-
-    /// <summary>
-    /// Gates access to <see cref="_asyncDisposableLspServices"/>.
-    /// </summary>
-    private readonly object _gate = new();
-    private readonly HashSet<IAsyncDisposableLspService> _asyncDisposableLspServices = new(ReferenceEqualityComparer.Instance);
 
     /// <param name="lspServices">The LSP services that apply to this server's LSP contract (see <see cref="LspServerScope.GetServices"/>).</param>
     /// <param name="serverKind">The kind of this server, used to pick server kind specific overrides.</param>
@@ -153,23 +148,11 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
 
         if (_lazyMefLspServices.TryGetValue(typeName, out var lazyService))
         {
-            // Per-server services are disposed by the MEF sharing boundary (_scope), but asynchronous cleanup is
-            // done by us, so track services that need it the first time they're created.  Every consumer gets
-            // services through LspService<T>, which goes through here, so we see every created instance.
-            var isFirstRequest = !lazyService.IsValueCreated;
-
             // A service can first be requested from a context that carries no ambient instance of its own (for
             // example a file-watcher callback or work-queue batch), so re-establish this server's instance for
             // services that capture RoslynTelemetry.Current.
             using var _ = RoslynTelemetry.SetCurrent(_telemetry);
-            var lspService = lazyService.Value;
-            if (isFirstRequest && lspService is IAsyncDisposableLspService asyncDisposableLspService)
-            {
-                lock (_gate)
-                    _asyncDisposableLspServices.Add(asyncDisposableLspService);
-            }
-
-            return lspService;
+            return lazyService.Value;
         }
 
         return null;
@@ -231,26 +214,8 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        ImmutableArray<IAsyncDisposableLspService> asyncDisposableLspServices;
-        lock (_gate)
-        {
-            asyncDisposableLspServices = [.. _asyncDisposableLspServices];
-            _asyncDisposableLspServices.Clear();
-        }
-
-        foreach (var service in asyncDisposableLspServices)
-        {
-            try
-            {
-                await service.DisposeAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex))
-            {
-            }
-        }
-
         try
         {
             _scope.Dispose();
@@ -258,5 +223,7 @@ internal sealed class LspServices : ILspServices, IMethodHandlerProvider
         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
         }
+
+        return ValueTask.CompletedTask;
     }
 }

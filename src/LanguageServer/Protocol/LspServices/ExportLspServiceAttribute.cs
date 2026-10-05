@@ -31,13 +31,13 @@ internal static class LspServiceComposition
 /// Exports an LSP service.  Every LSP server gets its own instance of the service when the part is also marked
 /// <c>[Shared(LspServiceComposition.SharingBoundary)]</c>; the service can then constructor-import other LSP services (and base
 /// services) with <see cref="LspService{T}"/> and regular (process-wide) MEF parts as normal.  Services that are
-/// disposable are disposed when their LSP server shuts down, and services that need asynchronous cleanup can implement
-/// <see cref="IAsyncDisposableLspService"/>.
+/// disposable are disposed when their LSP server shuts down. Services can implement <see cref="IDisposable"/> or
+/// <see cref="IAsyncDisposable"/>; disposal of the sharing boundary is synchronous and blocks until cleanup completes.
 /// </summary>
 /// <remarks>
 /// A stateless service that should be shared by every LSP server may instead be marked with a plain
-/// <c>[Shared]</c>.  Such a service is owned by the MEF container, and must not import
-/// <see cref="LspService{T}"/> or implement <see cref="IAsyncDisposableLspService"/>.
+/// <c>[Shared]</c>.  Such a service is owned and disposed by the MEF container, not an individual server, and must not import
+/// <see cref="LspService{T}"/>.
 /// <para/>
 /// A service exported for a specific <see cref="WellKnownLspServerKinds"/> overrides the
 /// <see cref="WellKnownLspServerKinds.Any"/> export of the same service type for that server kind.

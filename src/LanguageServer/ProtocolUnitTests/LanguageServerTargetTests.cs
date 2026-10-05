@@ -28,7 +28,6 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
     protected override TestComposition Composition => base.Composition.AddParts(
         typeof(StatefulLspService),
         typeof(AsyncDisposableLspService),
-        typeof(DualDisposableLspService),
         typeof(StatelessLspService));
 
     [Theory, CombinatorialData]
@@ -139,25 +138,19 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
 
         var statefulService = server.GetRequiredLspService<StatefulLspService>();
         var asyncDisposableService = server.GetRequiredLspService<AsyncDisposableLspService>();
-        var dualDisposableService = server.GetRequiredLspService<DualDisposableLspService>();
         var statelessService = server.GetRequiredLspService<StatelessLspService>();
 
         Assert.False(statefulService.IsDisposed);
         Assert.False(asyncDisposableService.IsDisposed);
-        Assert.False(dualDisposableService.IsDisposed);
-        Assert.False(dualDisposableService.IsDisposedAsync);
         Assert.False(statelessService.IsDisposed);
 
         await server.ShutdownTestServerAsync();
         await server.ExitTestServerAsync();
 
-        // Only the per-server services should be disposed of on server shutdown.  A service that is both
-        // IAsyncDisposableLspService and IDisposable gets both calls, asynchronous disposal first.
+        // Only per-server services are disposed on server shutdown.
         Assert.True(statefulService.IsDisposed);
         Assert.True(asyncDisposableService.IsDisposed);
-        Assert.True(dualDisposableService.IsDisposed);
-        Assert.True(dualDisposableService.IsDisposedAsync);
-        Assert.True(dualDisposableService.WasDisposedAsyncFirst);
+        Assert.Equal(1, asyncDisposableService.DisposeCallCount);
         Assert.False(statelessService.IsDisposed);
     }
 
@@ -182,35 +175,16 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
     [ExportCSharpVisualBasicLspService(typeof(AsyncDisposableLspService)), Shared(LspServiceComposition.SharingBoundary)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class AsyncDisposableLspService() : IAsyncDisposableLspService
+    internal sealed class AsyncDisposableLspService() : ILspService, IAsyncDisposable
     {
         public bool IsDisposed { get; private set; }
+        public int DisposeCallCount { get; private set; }
 
         public async ValueTask DisposeAsync()
         {
+            await Task.Delay(1).ConfigureAwait(false);
+            DisposeCallCount++;
             IsDisposed = true;
-        }
-    }
-
-    [ExportCSharpVisualBasicLspService(typeof(DualDisposableLspService)), Shared(LspServiceComposition.SharingBoundary)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class DualDisposableLspService() : IAsyncDisposableLspService, IDisposable
-    {
-        public bool IsDisposed { get; private set; }
-        public bool IsDisposedAsync { get; private set; }
-        public bool WasDisposedAsyncFirst { get; private set; }
-
-        public void Dispose()
-        {
-            WasDisposedAsyncFirst = IsDisposedAsync;
-            IsDisposed = true;
-        }
-
-        public ValueTask DisposeAsync()
-        {
-            IsDisposedAsync = true;
-            return ValueTask.CompletedTask;
         }
     }
 

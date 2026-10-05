@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Frozen;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -36,7 +35,7 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
         typeof(PerServerDependency),
         typeof(PerServerService),
         typeof(DisposablePerServerService),
-        typeof(AsyncAndSyncDisposableService),
+        typeof(AsyncDisposablePerServerService),
         typeof(NeverCreatedAsyncDisposableService),
         typeof(AnyOverridableService),
         typeof(CSharpOverridableService),
@@ -47,6 +46,7 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
         typeof(TestContractConsumerOfRoslynOnlyService),
         typeof(TestContractLspServiceProvider),
         typeof(StatelessService),
+        typeof(StatelessAsyncDisposableService),
         typeof(StatelessServiceConsumer));
 
     [Theory, CombinatorialData]
@@ -142,9 +142,9 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
 
         var neverCreatedCount = NeverCreatedAsyncDisposableService.CreatedCount;
         var injectedDisposable = serverOne.GetRequiredLspService<PerServerService>().Disposable;
-        var asyncAndSyncDisposable = serverOne.GetRequiredLspService<AsyncAndSyncDisposableService>();
+        var injectedAsyncDisposable = serverOne.GetRequiredLspService<PerServerService>().AsyncDisposable;
         var otherServerDisposable = serverTwo.GetRequiredLspService<DisposablePerServerService>();
-        var otherServerAsyncAndSyncDisposable = serverTwo.GetRequiredLspService<AsyncAndSyncDisposableService>();
+        var otherServerAsyncDisposable = serverTwo.GetRequiredLspService<AsyncDisposablePerServerService>();
 
         await serverOne.ShutdownTestServerAsync();
         await serverOne.ExitTestServerAsync();
@@ -152,15 +152,14 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
         // IDisposable is handled by the MEF sharing boundary.
         Assert.True(injectedDisposable.IsDisposed);
 
-        // IAsyncDisposableLspService.DisposeAsync is called exactly once, before the (synchronous) MEF disposal.
-        AssertEx.Equal(["disposeAsync", "dispose"], asyncAndSyncDisposable.Events);
+        Assert.Equal(1, injectedAsyncDisposable.DisposeCallCount);
 
         // Services that were never created aren't created just to be cleaned up.
         Assert.Equal(neverCreatedCount, NeverCreatedAsyncDisposableService.CreatedCount);
 
         // Other servers are unaffected.
         Assert.False(otherServerDisposable.IsDisposed);
-        Assert.Empty(otherServerAsyncAndSyncDisposable.Events);
+        Assert.Equal(0, otherServerAsyncDisposable.DisposeCallCount);
     }
 
     [Theory, CombinatorialData]
@@ -170,7 +169,9 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
         await using var serverTwo = await CreateTestLspServerAsync(serverOne.TestWorkspace, initializationOptions: default, LanguageNames.CSharp);
 
         var stateless = serverOne.GetRequiredLspService<StatelessService>();
+        var asyncStateless = serverOne.GetRequiredLspService<StatelessAsyncDisposableService>();
         Assert.Same(stateless, serverTwo.GetRequiredLspService<StatelessService>());
+        Assert.Same(asyncStateless, serverTwo.GetRequiredLspService<StatelessAsyncDisposableService>());
 
         // Per-server consumers can still import it through LspService<T>.
         Assert.Same(stateless, serverTwo.GetRequiredLspService<StatelessServiceConsumer>().Service);
@@ -180,6 +181,7 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
 
         // It is owned by the MEF container, not by any server.
         Assert.False(stateless.IsDisposed);
+        Assert.False(asyncStateless.IsDisposed);
     }
 
     [Theory, CombinatorialData]
@@ -211,8 +213,6 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
             typeof(AccidentallyNonSharedLspService),
             typeof(GlobalPartImportingLspService),
             typeof(ImplContractImporter),
-            typeof(AsyncDisposablePerServerService),
-            typeof(StatelessAsyncDisposableService),
             typeof(StatelessServiceImportingLspService),
         ];
 
@@ -244,14 +244,6 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
             if (requiresPerServer && !isPerServer)
                 return true;
 
-            // Stateless services are owned by the MEF container, not a server.
-            if (isSharedAcrossServers && typeof(IAsyncDisposableLspService).IsAssignableFrom(type))
-                return true;
-
-            // The sharing boundary is disposed synchronously, so IAsyncDisposable would be ignored (or blocked on).
-            if (isPerServer && typeof(IAsyncDisposable).IsAssignableFrom(type))
-                return true;
-
             // Importing the implementation contract directly would bypass LSP contract filtering and overrides.
             if (type != typeof(LspServerScope) && definition.Imports.Any(i => i.ImportDefinition.ContractName == LspServiceComposition.ContractName))
                 return true;
@@ -272,6 +264,7 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
         IGlobalOptionService globalOptions,
         LspService<PerServerDependency> dependency,
         LspService<DisposablePerServerService> disposable,
+        LspService<AsyncDisposablePerServerService> asyncDisposable,
         LspService<IClientLanguageServerManager> clientLanguageServerManager,
         LspService<LspServices> lspServices,
         LspService<LspWorkspaceManager> workspaceManager) : ILspService
@@ -279,6 +272,7 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
         public IGlobalOptionService GlobalOptions => globalOptions;
         public PerServerDependency Dependency { get; } = dependency.Value;
         public DisposablePerServerService Disposable { get; } = disposable.Value;
+        public AsyncDisposablePerServerService AsyncDisposable { get; } = asyncDisposable.Value;
         public IClientLanguageServerManager ClientLanguageServerManager => clientLanguageServerManager.Value;
         public LspServices LspServices => lspServices.Value;
         public LspWorkspaceManager WorkspaceManager => workspaceManager.Value;
@@ -293,24 +287,8 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
         public void Dispose() => IsDisposed = true;
     }
 
-    [ExportCSharpVisualBasicLspService(typeof(AsyncAndSyncDisposableService)), Shared(LspServiceComposition.SharingBoundary)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class AsyncAndSyncDisposableService() : IAsyncDisposableLspService, IDisposable
-    {
-        public List<string> Events { get; } = [];
-
-        public async ValueTask DisposeAsync()
-        {
-            await Task.Yield();
-            Events.Add("disposeAsync");
-        }
-
-        public void Dispose() => Events.Add("dispose");
-    }
-
     [ExportCSharpVisualBasicLspService(typeof(NeverCreatedAsyncDisposableService)), Shared(LspServiceComposition.SharingBoundary)]
-    internal sealed class NeverCreatedAsyncDisposableService : IAsyncDisposableLspService
+    internal sealed class NeverCreatedAsyncDisposableService : ILspService, IAsyncDisposable
     {
         private static int s_createdCount;
 
@@ -423,22 +401,32 @@ public sealed class PerServerLspServicesTests(ITestOutputHelper testOutputHelper
         public PerServerDependency Dependency => dependency;
     }
 
-    /// <summary>Mistake: the per-server sharing boundary is disposed synchronously.</summary>
     [ExportCSharpVisualBasicLspService(typeof(AsyncDisposablePerServerService)), Shared(LspServiceComposition.SharingBoundary)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class AsyncDisposablePerServerService() : ILspService, IAsyncDisposable
     {
-        public ValueTask DisposeAsync() => default;
+        public int DisposeCallCount { get; private set; }
+
+        public async ValueTask DisposeAsync()
+        {
+            await Task.Delay(1).ConfigureAwait(false);
+            DisposeCallCount++;
+        }
     }
 
-    /// <summary>Mistake: a stateless service is owned by the MEF container, so no server would dispose it.</summary>
     [ExportCSharpVisualBasicLspService(typeof(StatelessAsyncDisposableService)), Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class StatelessAsyncDisposableService() : IAsyncDisposableLspService
+    internal sealed class StatelessAsyncDisposableService() : ILspService, IAsyncDisposable
     {
-        public ValueTask DisposeAsync() => default;
+        public bool IsDisposed { get; private set; }
+
+        public ValueTask DisposeAsync()
+        {
+            IsDisposed = true;
+            return ValueTask.CompletedTask;
+        }
     }
 
     /// <summary>Mistake: a stateless service can't import per-server services.</summary>
