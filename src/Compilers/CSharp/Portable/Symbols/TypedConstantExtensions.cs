@@ -29,19 +29,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     public static class TypedConstantExtensions
     {
-        /// <summary>
-        /// Returns the System.String that represents the current TypedConstant.
-        /// </summary>
-        /// <returns>A System.String that represents the current TypedConstant.</returns>
+        /// <inheritdoc cref="ToCSharpString(TypedConstant, TypedConstantFormattingOptions)"/>
         public static string ToCSharpString(this TypedConstant constant)
             => ToCSharpString(constant, TypedConstantFormattingOptions.None);
 
         /// <summary>
-        /// Returns the System.String that represents the current TypedConstant.
+        /// Returns the <see cref="string"/> that represents the current <see cref="TypedConstant"/>.
         /// </summary>
         /// <param name="constant">The typed constant to format.</param>
         /// <param name="options">Options used to customize formatting.</param>
-        /// <returns>A System.String that represents the current TypedConstant.</returns>
+        /// <returns>A <see cref="string"/> that represents the current <see cref="TypedConstant"/>.</returns>
         public static string ToCSharpString(this TypedConstant constant, TypedConstantFormattingOptions options)
         {
             if (constant.IsNull)
