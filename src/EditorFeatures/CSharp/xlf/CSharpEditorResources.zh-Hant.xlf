@@ -24,7 +24,7 @@
       </trans-unit>
       <trans-unit id="Fixing_cref_after_paste">
         <source>Fixing cref after paste</source>
-        <target state="new">Fixing cref after paste</target>
+        <target state="translated">貼上後修正 cref</target>
         <note>"cref" is a documentation comment attribute name and should not be localized</note>
       </trans-unit>
       <trans-unit id="Fixing_string_literal_after_paste">
