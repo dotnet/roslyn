@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition.Hosting;
 using System.ComponentModel.Composition.Primitives;
 using System.Threading;
-using Microsoft.CodeAnalysis.Razor;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Razor;
@@ -20,9 +19,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common.VisualStudio;
 
 internal static class VsMocks
 {
-    public static ITextBuffer CreateTextBuffer(bool core)
-        => CreateTextBuffer(core ? ContentTypes.RazorCore : ContentTypes.NonRazor);
-
     public static ITextBuffer CreateTextBuffer(PropertyCollection? properties = null)
     {
         properties ??= new PropertyCollection();
@@ -44,8 +40,6 @@ internal static class VsMocks
 
     internal static class ContentTypes
     {
-        public static readonly IContentType LegacyRazorCore = Create(RazorConstants.LegacyCoreContentType);
-        public static readonly IContentType RazorCore = Create(RazorLanguage.CoreContentType);
         public static readonly IContentType RazorLSP = Create(RazorConstants.RazorLSPContentTypeName);
         public static readonly IContentType NonRazor = StrictMock.Of<IContentType>(c => c.IsOfType(It.IsAny<string>()) == false);
         public static readonly IContentType CSharp = CreateCSharp();
