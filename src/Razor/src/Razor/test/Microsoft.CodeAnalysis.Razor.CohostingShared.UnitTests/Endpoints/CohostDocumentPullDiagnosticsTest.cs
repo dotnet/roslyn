@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,9 +15,10 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
-using Roslyn.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
+using AssertEx = Roslyn.Test.Utilities.AssertEx;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -78,6 +80,52 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
                 }
             }
             """);
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public Task DocumentationDirective_CommentTerminator(bool isComponent)
+        => VerifyDiagnosticsAsync("""
+            @documentation {
+                <summary>Cannot contain {|RZ1047:*/|}.</summary>
+            }
+            <p>After</p>
+            """,
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static builder => builder.RazorLanguageVersion = RazorLanguageVersion.Version_12_0);
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public Task DocumentationDirective_CompatibilityWarning(bool isComponent)
+        => VerifyDiagnosticsAsync("""
+            @{|RZ1048:documentation|}
+
+            @functions {
+                private string documentation => "Summary";
+            }
+            """,
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: builder =>
+            {
+                builder.RazorLanguageVersion = RazorLanguageVersion.Version_11_0;
+                builder.AddAnalyzerConfigDocument(
+                    FilePath("Warnings.globalconfig"),
+                    SourceText.From("""
+                        is_global = true
+                        build_property.RazorWarningLevel = 11
+                        """));
+            });
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public Task DocumentationDirective_PlainText(bool isComponent)
+        => VerifyDiagnosticsAsync("""
+            @documentation {
+                {|RZ1049:T|}his is the summary
+            }
+            <p>After</p>
+            """,
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static builder => builder.RazorLanguageVersion = RazorLanguageVersion.Version_12_0);
 
     [Fact]
     public Task CSharpAndRazor_MiscellaneousFile()
@@ -359,9 +407,10 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
         RazorFileKind? fileKind = null,
         bool taskListRequest = false,
         bool miscellaneousFile = false,
-        (string fileName, string contents)[]? additionalFiles = null)
+        (string fileName, string contents)[]? additionalFiles = null,
+        Action<RazorProjectBuilder>? projectConfigure = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles, projectConfigure: projectConfigure);
         var inputText = await document.GetTextAsync(DisposalToken);
 
         var htmlResult = htmlResponse is null

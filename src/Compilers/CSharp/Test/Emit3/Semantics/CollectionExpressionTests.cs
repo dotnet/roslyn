@@ -32492,7 +32492,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(new[] { sourceA, s_collectionExtensions }, targetFramework: TargetFramework.Net80, options: ExecutionConditionUtil.IsMonoOrCoreClr ? TestOptions.DebugExe : TestOptions.DebugDll);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_ThreeElements);
             comp.MakeMemberMissing(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T);
+
             var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
@@ -32568,36 +32570,22 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       41 (0x29)
-                  .maxstack  4
-                  .locals init (int V_0, //x
-                                int V_1, //y
-                                int V_2) //z
+                  // Code size       24 (0x18)
+                  .maxstack  3
+                  .locals init (int V_0, //y
+                                int V_1) //z
                   IL_0000:  ldc.i4.1
-                  IL_0001:  stloc.0
-                  IL_0002:  ldc.i4.2
-                  IL_0003:  stloc.1
-                  IL_0004:  ldc.i4.3
-                  IL_0005:  stloc.2
-                  IL_0006:  ldc.i4.3
-                  IL_0007:  newarr     "int"
-                  IL_000c:  dup
-                  IL_000d:  ldc.i4.0
-                  IL_000e:  ldloc.0
-                  IL_000f:  stelem.i4
-                  IL_0010:  dup
-                  IL_0011:  ldc.i4.1
-                  IL_0012:  ldloc.1
-                  IL_0013:  stelem.i4
-                  IL_0014:  dup
-                  IL_0015:  ldc.i4.2
-                  IL_0016:  ldloc.2
-                  IL_0017:  stelem.i4
-                  IL_0018:  call       "System.Collections.Immutable.ImmutableArray<int> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<int>(int[])"
-                  IL_001d:  box        "System.Collections.Immutable.ImmutableArray<int>"
-                  IL_0022:  ldc.i4.0
-                  IL_0023:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0028:  ret
+                  IL_0001:  ldc.i4.2
+                  IL_0002:  stloc.0
+                  IL_0003:  ldc.i4.3
+                  IL_0004:  stloc.1
+                  IL_0005:  ldloc.0
+                  IL_0006:  ldloc.1
+                  IL_0007:  call       "System.Collections.Immutable.ImmutableArray<int> System.Collections.Immutable.ImmutableArray.Create<int>(int, int, int)"
+                  IL_000c:  box        "System.Collections.Immutable.ImmutableArray<int>"
+                  IL_0011:  ldc.i4.0
+                  IL_0012:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0017:  ret
                 }
                 """);
 
@@ -32626,24 +32614,17 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       52 (0x34)
-                  .maxstack  6
+                  // Code size       25 (0x19)
+                  .maxstack  3
                   IL_0000:  ldc.i4.1
-                  IL_0001:  newarr     "System.Collections.Immutable.ImmutableArray<int>"
-                  IL_0006:  dup
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ldc.i4.3
-                  IL_0009:  newarr     "int"
-                  IL_000e:  dup
-                  IL_000f:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
-                  IL_0014:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
-                  IL_0019:  call       "System.Collections.Immutable.ImmutableArray<int> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<int>(int[])"
-                  IL_001e:  stelem     "System.Collections.Immutable.ImmutableArray<int>"
-                  IL_0023:  call       "System.Collections.Immutable.ImmutableArray<System.Collections.Immutable.ImmutableArray<int>> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<System.Collections.Immutable.ImmutableArray<int>>(System.Collections.Immutable.ImmutableArray<int>[])"
-                  IL_0028:  box        "System.Collections.Immutable.ImmutableArray<System.Collections.Immutable.ImmutableArray<int>>"
-                  IL_002d:  ldc.i4.0
-                  IL_002e:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0033:  ret
+                  IL_0001:  ldc.i4.2
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  call       "System.Collections.Immutable.ImmutableArray<int> System.Collections.Immutable.ImmutableArray.Create<int>(int, int, int)"
+                  IL_0008:  call       "System.Collections.Immutable.ImmutableArray<System.Collections.Immutable.ImmutableArray<int>> System.Collections.Immutable.ImmutableArray.Create<System.Collections.Immutable.ImmutableArray<int>>(System.Collections.Immutable.ImmutableArray<int>)"
+                  IL_000d:  box        "System.Collections.Immutable.ImmutableArray<System.Collections.Immutable.ImmutableArray<int>>"
+                  IL_0012:  ldc.i4.0
+                  IL_0013:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0018:  ret
                 }
                 """);
         }
@@ -32710,6 +32691,377 @@ partial class Program
                   IL_000f:  ldc.i4.0
                   IL_0010:  call       "void CollectionExtensions.Report(object, bool)"
                   IL_0015:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85793")]
+        public void ImmutableArray_OneElement()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<string> arr = ["a"];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([sourceA, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[a],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       22 (0x16)
+                  .maxstack  2
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  call       "System.Collections.Immutable.ImmutableArray<string> System.Collections.Immutable.ImmutableArray.Create<string>(string)"
+                  IL_000a:  box        "System.Collections.Immutable.ImmutableArray<string>"
+                  IL_000f:  ldc.i4.0
+                  IL_0010:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0015:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85793")]
+        public void ImmutableArray_OneElement_MissingKnownFactory()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<string> arr = ["a"];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_OneElement);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[a],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  newarr     "string"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldstr      "a"
+                  IL_000d:  stelem.ref
+                  IL_000e:  call       "System.Collections.Immutable.ImmutableArray<string> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<string>(string[])"
+                  IL_0013:  box        "System.Collections.Immutable.ImmutableArray<string>"
+                  IL_0018:  ldc.i4.0
+                  IL_0019:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_001e:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85793")]
+        public void ImmutableArray_TwoElements()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<string> arr = ["a", "b"];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([sourceA, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[a, b],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       27 (0x1b)
+                  .maxstack  2
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  ldstr      "b"
+                  IL_000a:  call       "System.Collections.Immutable.ImmutableArray<string> System.Collections.Immutable.ImmutableArray.Create<string>(string, string)"
+                  IL_000f:  box        "System.Collections.Immutable.ImmutableArray<string>"
+                  IL_0014:  ldc.i4.0
+                  IL_0015:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_001a:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85793")]
+        public void ImmutableArray_TwoElements_MissingKnownFactory()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<string> arr = ["a", "b"];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_TwoElements);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[a, b],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       39 (0x27)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  newarr     "string"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldstr      "a"
+                  IL_000d:  stelem.ref
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  ldstr      "b"
+                  IL_0015:  stelem.ref
+                  IL_0016:  call       "System.Collections.Immutable.ImmutableArray<string> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<string>(string[])"
+                  IL_001b:  box        "System.Collections.Immutable.ImmutableArray<string>"
+                  IL_0020:  ldc.i4.0
+                  IL_0021:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0026:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85793")]
+        public void ImmutableArray_ThreeElements()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<string> arr = ["a", "b", "c"];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([sourceA, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[a, b, c],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       32 (0x20)
+                  .maxstack  3
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  ldstr      "b"
+                  IL_000a:  ldstr      "c"
+                  IL_000f:  call       "System.Collections.Immutable.ImmutableArray<string> System.Collections.Immutable.ImmutableArray.Create<string>(string, string, string)"
+                  IL_0014:  box        "System.Collections.Immutable.ImmutableArray<string>"
+                  IL_0019:  ldc.i4.0
+                  IL_001a:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_001f:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85793")]
+        public void ImmutableArray_ThreeElements_MissingKnownFactory()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<string> arr = ["a", "b", "c"];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_ThreeElements);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[a, b, c],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       47 (0x2f)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "string"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldstr      "a"
+                  IL_000d:  stelem.ref
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  ldstr      "b"
+                  IL_0015:  stelem.ref
+                  IL_0016:  dup
+                  IL_0017:  ldc.i4.2
+                  IL_0018:  ldstr      "c"
+                  IL_001d:  stelem.ref
+                  IL_001e:  call       "System.Collections.Immutable.ImmutableArray<string> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<string>(string[])"
+                  IL_0023:  box        "System.Collections.Immutable.ImmutableArray<string>"
+                  IL_0028:  ldc.i4.0
+                  IL_0029:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_002e:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85793")]
+        public void ImmutableArray_FourElements()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<string> arr = ["a", "b", "c", "d"];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([sourceA, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[a, b, c, d],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  4
+                  IL_0000:  ldstr      "a"
+                  IL_0005:  ldstr      "b"
+                  IL_000a:  ldstr      "c"
+                  IL_000f:  ldstr      "d"
+                  IL_0014:  call       "System.Collections.Immutable.ImmutableArray<string> System.Collections.Immutable.ImmutableArray.Create<string>(string, string, string, string)"
+                  IL_0019:  box        "System.Collections.Immutable.ImmutableArray<string>"
+                  IL_001e:  ldc.i4.0
+                  IL_001f:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0024:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85793")]
+        public void ImmutableArray_FourElements_MissingKnownFactory()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<string> arr = ["a", "b", "c", "d"];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Immutable_ImmutableArray_Create_FourElements);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[a, b, c, d],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       55 (0x37)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.4
+                  IL_0001:  newarr     "string"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldstr      "a"
+                  IL_000d:  stelem.ref
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  ldstr      "b"
+                  IL_0015:  stelem.ref
+                  IL_0016:  dup
+                  IL_0017:  ldc.i4.2
+                  IL_0018:  ldstr      "c"
+                  IL_001d:  stelem.ref
+                  IL_001e:  dup
+                  IL_001f:  ldc.i4.3
+                  IL_0020:  ldstr      "d"
+                  IL_0025:  stelem.ref
+                  IL_0026:  call       "System.Collections.Immutable.ImmutableArray<string> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<string>(string[])"
+                  IL_002b:  box        "System.Collections.Immutable.ImmutableArray<string>"
+                  IL_0030:  ldc.i4.0
+                  IL_0031:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0036:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85793")]
+        public void ImmutableArray_FiveElements()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<string> arr = ["a", "b", "c", "d", "e"];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([sourceA, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[a, b, c, d, e],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       63 (0x3f)
+                  .maxstack  4
+                  IL_0000:  ldc.i4.5
+                  IL_0001:  newarr     "string"
+                  IL_0006:  dup
+                  IL_0007:  ldc.i4.0
+                  IL_0008:  ldstr      "a"
+                  IL_000d:  stelem.ref
+                  IL_000e:  dup
+                  IL_000f:  ldc.i4.1
+                  IL_0010:  ldstr      "b"
+                  IL_0015:  stelem.ref
+                  IL_0016:  dup
+                  IL_0017:  ldc.i4.2
+                  IL_0018:  ldstr      "c"
+                  IL_001d:  stelem.ref
+                  IL_001e:  dup
+                  IL_001f:  ldc.i4.3
+                  IL_0020:  ldstr      "d"
+                  IL_0025:  stelem.ref
+                  IL_0026:  dup
+                  IL_0027:  ldc.i4.4
+                  IL_0028:  ldstr      "e"
+                  IL_002d:  stelem.ref
+                  IL_002e:  call       "System.Collections.Immutable.ImmutableArray<string> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<string>(string[])"
+                  IL_0033:  box        "System.Collections.Immutable.ImmutableArray<string>"
+                  IL_0038:  ldc.i4.0
+                  IL_0039:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_003e:  ret
                 }
                 """);
         }
@@ -32978,30 +33330,25 @@ partial class Program
                 verify: Verification.Skipped);
             verifier.VerifyIL("Program.F1", """
                 {
-                  // Code size       79 (0x4f)
-                  .maxstack  6
-                  IL_0000:  ldc.i4.1
-                  IL_0001:  newarr     "int"
-                  IL_0006:  dup
+                  // Code size       70 (0x46)
+                  .maxstack  3
+                  IL_0000:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__0.<>p__0"
+                  IL_0005:  brtrue.s   IL_002b
                   IL_0007:  ldc.i4.0
-                  IL_0008:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__0.<>p__0"
-                  IL_000d:  brtrue.s   IL_0033
-                  IL_000f:  ldc.i4.0
-                  IL_0010:  ldtoken    "int"
-                  IL_0015:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_001a:  ldtoken    "Program"
-                  IL_001f:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                  IL_0024:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-                  IL_0029:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                  IL_002e:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__0.<>p__0"
-                  IL_0033:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__0.<>p__0"
-                  IL_0038:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
-                  IL_003d:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__0.<>p__0"
-                  IL_0042:  ldarg.0
-                  IL_0043:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-                  IL_0048:  stelem.i4
-                  IL_0049:  call       "System.Collections.Immutable.ImmutableArray<int> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<int>(int[])"
-                  IL_004e:  ret
+                  IL_0008:  ldtoken    "int"
+                  IL_000d:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_0012:  ldtoken    "Program"
+                  IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+                  IL_001c:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
+                  IL_0021:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+                  IL_0026:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__0.<>p__0"
+                  IL_002b:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__0.<>p__0"
+                  IL_0030:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
+                  IL_0035:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> Program.<>o__0.<>p__0"
+                  IL_003a:  ldarg.0
+                  IL_003b:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
+                  IL_0040:  call       "System.Collections.Immutable.ImmutableArray<int> System.Collections.Immutable.ImmutableArray.Create<int>(int)"
+                  IL_0045:  ret
                 }
                 """);
             verifier.VerifyIL("Program.F2", """
@@ -33068,16 +33415,11 @@ partial class Program
                 """);
             verifier.VerifyIL("Program.F3", """
                 {
-                  // Code size       16 (0x10)
-                  .maxstack  4
-                  IL_0000:  ldc.i4.1
-                  IL_0001:  newarr     "object"
-                  IL_0006:  dup
-                  IL_0007:  ldc.i4.0
-                  IL_0008:  ldarg.0
-                  IL_0009:  stelem.ref
-                  IL_000a:  call       "System.Collections.Immutable.ImmutableArray<object> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<object>(object[])"
-                  IL_000f:  ret
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Immutable.ImmutableArray<object> System.Collections.Immutable.ImmutableArray.Create<object>(object)"
+                  IL_0006:  ret
                 }
                 """);
         }
@@ -33103,27 +33445,25 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {
-                  // Code size       55 (0x37)
+                  // Code size       41 (0x29)
                   .maxstack  3
                   .locals init (System.Collections.Immutable.ImmutableArray<int> V_0, //arr
                                 System.ReadOnlySpan<int> V_1)
-                  IL_0000:  ldc.i4.3
-                  IL_0001:  newarr     "int"
-                  IL_0006:  dup
-                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
-                  IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
-                  IL_0011:  call       "System.Collections.Immutable.ImmutableArray<int> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<int>(int[])"
-                  IL_0016:  stloc.0
-                  IL_0017:  ldloca.s   V_0
-                  IL_0019:  call       "System.ReadOnlySpan<int> System.Collections.Immutable.ImmutableArray<int>.AsSpan()"
-                  IL_001e:  stloc.1
-                  IL_001f:  ldloca.s   V_1
-                  IL_0021:  call       "int[] System.ReadOnlySpan<int>.ToArray()"
-                  IL_0026:  call       "System.Collections.Immutable.ImmutableArray<int> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<int>(int[])"
-                  IL_002b:  box        "System.Collections.Immutable.ImmutableArray<int>"
-                  IL_0030:  ldc.i4.0
-                  IL_0031:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0036:  ret
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  ldc.i4.2
+                  IL_0002:  ldc.i4.3
+                  IL_0003:  call       "System.Collections.Immutable.ImmutableArray<int> System.Collections.Immutable.ImmutableArray.Create<int>(int, int, int)"
+                  IL_0008:  stloc.0
+                  IL_0009:  ldloca.s   V_0
+                  IL_000b:  call       "System.ReadOnlySpan<int> System.Collections.Immutable.ImmutableArray<int>.AsSpan()"
+                  IL_0010:  stloc.1
+                  IL_0011:  ldloca.s   V_1
+                  IL_0013:  call       "int[] System.ReadOnlySpan<int>.ToArray()"
+                  IL_0018:  call       "System.Collections.Immutable.ImmutableArray<int> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<int>(int[])"
+                  IL_001d:  box        "System.Collections.Immutable.ImmutableArray<int>"
+                  IL_0022:  ldc.i4.0
+                  IL_0023:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0028:  ret
                 }
                 """);
         }
