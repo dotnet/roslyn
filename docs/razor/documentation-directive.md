@@ -23,6 +23,11 @@ With ordinary `#line` pragmas, Razor puts the comment opener on the preceding
 mapped line when it cannot fit before the body, keeping C# diagnostic columns
 aligned with the original XML.
 
+Directive completion offers both the `documentation` keyword and a
+`documentation directive ...` snippet. The snippet inserts a braced block with
+a multiline `<summary>` element and places the caret inside the summary.
+Both are available in Visual Studio and VS Code when using Razor 12 or later.
+
 Braces are required. `@documentation foo` reports `RZ1017` because it expects an
 opening `{`; it isn't shorthand for a summary.
 
@@ -46,7 +51,8 @@ versions can opt in by raising their warning level. Use an explicit expression s
 
 The body is documentation text, not Razor markup or C# code. Razor transitions,
 braces inside XML elements, XML comments, and CDATA are preserved. The body is
-excluded from rendered HTML.
+excluded from rendered HTML. Formatting uses Roslyn's documentation-comment
+formatter, which adjusts comment indentation without reflowing the XML text.
 
 Parsing uses Razor's HTML parser in an XML-only mode. Razor transitions remain
 literal in text, attributes, comments, CDATA and processing instructions.
@@ -73,6 +79,10 @@ to distinguish them from documentation text. If recovery cannot find a closing
 documentation brace, Razor reports `RZ1006`. A literal `*/` does not end
 documentation parsing: Razor finds the body boundary first, then reports
 `RZ1047` on the terminator and does not emit the invalid documentation.
+
+`CodeBlockBraceOnNextLine` also applies to `@documentation`. When enabled, it
+moves the opening brace to the next line without moving XML away from either
+brace. When disabled, existing brace placement is preserved.
 
 Only one `@documentation` block is allowed per file. Additional blocks produce
 error `RZ2001`. Put all documentation tags in the same block. For error recovery,
