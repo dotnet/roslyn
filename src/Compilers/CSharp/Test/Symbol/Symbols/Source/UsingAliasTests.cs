@@ -1072,5 +1072,39 @@ class C
                     //     using static A;
                     Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85922")]
+        public void UsingsInMultipleNamespaceDeclarationsInSameTree()
+        {
+            var tree = Parse("""
+                namespace N
+                {
+                    using A = int;
+                    class C
+                    {
+                        public A F = default;
+                    }
+                }
+
+                namespace N
+                {
+                    using A = string;
+                    class D
+                    {
+                        public A F = default;
+                    }
+                }
+                """);
+            var compilation = CreateCompilation(tree);
+            compilation.VerifyDiagnostics();
+
+            var declarations = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().ToArray();
+            var semanticModel = compilation.GetSemanticModel(tree);
+            var classC = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(declarations[0]);
+            var classD = (INamedTypeSymbol)semanticModel.GetDeclaredSymbol(declarations[1]);
+
+            Assert.Equal(SpecialType.System_Int32, ((IFieldSymbol)classC.GetMembers("F").Single()).Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, ((IFieldSymbol)classD.GetMembers("F").Single()).Type.SpecialType);
+        }
     }
 }

@@ -68,17 +68,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SingleNamespaceDeclaration GetMatchingNamespaceDeclaration(CSharpSyntaxNode declarationSyntax)
         {
-            foreach (var declaration in _mergedDeclaration.Declarations)
+            if (_mergedDeclaration.Declarations is [var singleDeclaration])
             {
-                var declarationSyntaxRef = declaration.SyntaxReference;
-                if (declarationSyntaxRef.SyntaxTree != declarationSyntax.SyntaxTree)
+                var syntaxReference = singleDeclaration.SyntaxReference;
+                if (syntaxReference.SyntaxTree == declarationSyntax.SyntaxTree &&
+                    syntaxReference.GetSyntax() == declarationSyntax)
                 {
-                    continue;
+                    return singleDeclaration;
                 }
 
-                if (declarationSyntaxRef.GetSyntax() == declarationSyntax)
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            var declarationsBySyntaxTree = _lazyDeclarationsBySyntaxTree;
+            if (declarationsBySyntaxTree is null)
+            {
+                var newDeclarationsBySyntaxTree = new Dictionary<SyntaxTree, OneOrMany<SingleNamespaceDeclaration>>(ReferenceEqualityComparer.Instance);
+                foreach (var declaration in _mergedDeclaration.Declarations)
                 {
-                    return declaration;
+                    var syntaxTree = declaration.SyntaxReference.SyntaxTree;
+                    newDeclarationsBySyntaxTree[syntaxTree] = newDeclarationsBySyntaxTree.TryGetValue(syntaxTree, out var declarations)
+                        ? declarations.Add(declaration)
+                        : OneOrMany.Create(declaration);
+                }
+
+                Interlocked.CompareExchange(ref _lazyDeclarationsBySyntaxTree, newDeclarationsBySyntaxTree, null);
+                declarationsBySyntaxTree = _lazyDeclarationsBySyntaxTree;
+            }
+
+            if (declarationsBySyntaxTree.TryGetValue(declarationSyntax.SyntaxTree, out var matchingDeclarations))
+            {
+                foreach (var declaration in matchingDeclarations)
+                {
+                    if (declaration.SyntaxReference.GetSyntax() == declarationSyntax)
+                    {
+                        return declaration;
+                    }
                 }
             }
 

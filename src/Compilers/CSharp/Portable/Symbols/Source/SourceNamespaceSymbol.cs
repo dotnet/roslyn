@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Should only be read using <see cref="GetAliasesAndUsings(SingleNamespaceDeclaration)"/>.
         /// </summary>
         private ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly = s_emptyMap;
+        private Dictionary<SyntaxTree, OneOrMany<SingleNamespaceDeclaration>> _lazyDeclarationsBySyntaxTree;
 #if DEBUG
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsingsForAsserts"/>.
