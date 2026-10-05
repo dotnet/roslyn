@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
 
@@ -114,7 +115,7 @@ namespace RunTests
                 return GetParentProcessIdsLinux();
             }
 
-            return new Dictionary<int, int>();
+            throw new Exception($"Unknown operating system: {RuntimeInformation.OSDescription}");
 
             [SupportedOSPlatform("windows")]
             static Dictionary<int, int> GetParentProcessIdsWindows()
