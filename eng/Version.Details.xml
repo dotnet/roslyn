@@ -3,9 +3,9 @@
   <Source Uri="https://github.com/dotnet/dotnet" Mapping="roslyn" Sha="7450e29b425097f9e16d22262c5521a4e9bdd206" BarId="334636" />
   <ProductDependencies>
     <!-- RoslynAnalyzers reference older builds of Roslyn and this is necessary for SourceBuild. -->
-    <Dependency Name="Microsoft.CodeAnalysis" Version="5.12.0-1.26477.1">
+    <Dependency Name="Microsoft.CodeAnalysis" Version="5.13.0-1.26504.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>90083ecf59c688110a69cbf3871e5edb2693aadc</Sha>
+      <Sha>bb79a699359d8a5d4e4889e989fdf7e69268fab4</Sha>
     </Dependency>
     <Dependency Name="System.CommandLine" Version="3.0.0-rtm.26480.105">
       <Uri>https://github.com/dotnet/dotnet</Uri>
@@ -139,9 +139,9 @@
       <Uri>https://github.com/dotnet/symreader</Uri>
       <Sha>8655fee9aae40ba74257255cbcd1f05edc2f48fa</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.12.0-1.26477.1">
+    <Dependency Name="Microsoft.Net.Compilers.Toolset" Version="5.13.0-1.26504.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>90083ecf59c688110a69cbf3871e5edb2693aadc</Sha>
+      <Sha>bb79a699359d8a5d4e4889e989fdf7e69268fab4</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.Helix.Sdk" Version="12.0.0-beta.26501.3">
       <Uri>https://github.com/dotnet/arcade</Uri>
@@ -153,17 +153,17 @@
       <Uri>https://github.com/dotnet/dotnet</Uri>
       <Sha>fad253f51b461736dfd3cd9c15977bb7493becef</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="5.12.0-1.26477.1">
+    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="5.13.0-1.26504.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>90083ecf59c688110a69cbf3871e5edb2693aadc</Sha>
+      <Sha>bb79a699359d8a5d4e4889e989fdf7e69268fab4</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.12.0-1.26477.1">
+    <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="5.13.0-1.26504.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>90083ecf59c688110a69cbf3871e5edb2693aadc</Sha>
+      <Sha>bb79a699359d8a5d4e4889e989fdf7e69268fab4</Sha>
     </Dependency>
-    <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.12.0-1.26477.1">
+    <Dependency Name="Roslyn.Diagnostics.Analyzers" Version="5.13.0-1.26504.1">
       <Uri>https://github.com/dotnet/roslyn</Uri>
-      <Sha>90083ecf59c688110a69cbf3871e5edb2693aadc</Sha>
+      <Sha>bb79a699359d8a5d4e4889e989fdf7e69268fab4</Sha>
     </Dependency>
     <Dependency Name="Microsoft.DotNet.Helix.JobMonitor" Version="12.0.0-beta.26501.3">
       <Uri>https://github.com/dotnet/arcade</Uri>
