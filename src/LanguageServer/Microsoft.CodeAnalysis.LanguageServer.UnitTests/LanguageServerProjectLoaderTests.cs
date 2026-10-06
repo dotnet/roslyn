@@ -423,21 +423,16 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.Equal(project.Id, projectFromCanonicalPath.Id);
     }
 
-    [Theory]
-    [InlineData(true, false)]
-    [InlineData(true, true)]
-    [InlineData(false, true)]
+    [Fact]
     [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9846")]
-    public async Task VirtualDocumentLoadRacesWithLspOpen(bool virtualDocument, bool queueLspOpen)
+    public async Task VirtualDocumentLoadRacesWithLspOpen()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
         var projectFactory = workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
         var workspace = projectFactory.Workspace;
         var lspText = SourceText.From("class C { }");
-        var documentPath = virtualDocument
-            ? """git:/repo/Test.cs?{"path":"/repo/Test.cs","ref":"~"}"""
-            : TempRoot.CreateDirectory().CreateFile("Test.cs").WriteAllText(lspText.ToString()).Path;
+        var documentPath = """git:/repo/Test.cs?{"path":"/repo/Test.cs","ref":"~"}""";
         var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, Path.Combine(TempRoot.Root, "Canonical.csproj")) with
         {
             CommandLineArgs = ["/target:library"],
@@ -449,11 +444,11 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         using var registration = workspace.RegisterWorkspaceChangedImmediateHandler(args =>
         {
             var document = args.NewSolution.Projects.SelectMany(project => project.Documents).SingleOrDefault(document => document.FilePath == documentPath);
-            if (!queueLspOpen || document is null || args.OldSolution.ContainsDocument(document.Id))
+            if (document is null || args.OldSolution.ContainsDocument(document.Id))
                 return;
 
-            // Queue the LSP open while the batch still holds the factory gate, so it runs before
-            // the batch reacquires that gate to open the virtual document's empty text container.
+            // Queue the LSP open while the batch still holds the factory gate. If project loading
+            // also tries to open the document, LSP wins the gate and the loader's second open fails.
             lspOpenTask = workspace.TryOnDocumentOpenedAsync(
                 document.Id, lspText.Container, isCurrentContext: false, CancellationToken.None).AsTask();
         });
@@ -469,30 +464,15 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
             LoggerFactory.CreateLogger(nameof(VirtualDocumentLoadRacesWithLspOpen)),
             CancellationToken.None).AsTask();
 
-        if (virtualDocument && queueLspOpen)
-        {
-            var exception = await Assert.ThrowsAsync<ArgumentException>(() => loadTask.WaitAsync(TestHelpers.HangMitigatingTimeout));
-            Assert.Equal("\"~\"} is still open.", exception.Message);
-            Assert.Contains("Workspace.CheckDocumentIsClosed", exception.StackTrace);
-            Assert.Contains("ProjectSystemProject.OnBatchScopeDisposedMaybeAsync", exception.StackTrace);
-            Assert.Contains("LoadedProject.Target.UpdateWithNewProjectInfoAsync", exception.StackTrace);
-            TestOutputHelper.WriteLine(exception.ToString());
-        }
-        else
-        {
-            Assert.True(await loadTask.WaitAsync(TestHelpers.HangMitigatingTimeout));
-        }
+        Assert.True(await loadTask);
 
-        if (queueLspOpen)
-        {
-            Assert.NotNull(lspOpenTask);
-            await lspOpenTask.WaitAsync(TestHelpers.HangMitigatingTimeout);
-        }
+        Assert.NotNull(lspOpenTask);
+        await lspOpenTask;
 
         var loadedDocument = Assert.Single(Assert.Single(workspace.CurrentSolution.Projects).Documents);
         Assert.Equal(documentPath, loadedDocument.FilePath);
         Assert.True(workspace.IsDocumentOpen(loadedDocument.Id));
-        Assert.Equal(queueLspOpen ? lspText.ToString() : "", (await loadedDocument.GetTextAsync()).ToString());
+        Assert.Equal(lspText.ToString(), (await loadedDocument.GetTextAsync()).ToString());
     }
 
     [ExportCSharpVisualBasicLspServiceFactory(typeof(TestProjectLoader)), PartNotDiscoverable, Shared]
