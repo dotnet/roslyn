@@ -10,6 +10,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
@@ -26,6 +28,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
+using DocumentFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo;
 using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -418,6 +421,78 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         Assert.Equal(projectPath, project.FilePath);
         Assert.Equal(project.Id, projectFromCanonicalPath.Id);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9846")]
+    public async Task VirtualDocumentLoadRacesWithLspOpen(bool virtualDocument, bool queueLspOpen)
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var projectFactory = workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
+        var workspace = projectFactory.Workspace;
+        var lspText = SourceText.From("class C { }");
+        var documentPath = virtualDocument
+            ? """git:/repo/Test.cs?{"path":"/repo/Test.cs","ref":"~"}"""
+            : TempRoot.CreateDirectory().CreateFile("Test.cs").WriteAllText(lspText.ToString()).Path;
+        var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, Path.Combine(TempRoot.Root, "Canonical.csproj")) with
+        {
+            CommandLineArgs = ["/target:library"],
+            Documents = [new DocumentFileInfo(documentPath, "Test.cs", isLinked: false, isGenerated: false, folders: [])],
+        };
+        await using var loadedProject = new LoadedProject(documentPath, projectFactory.FileChangeWatcher);
+
+        Task? lspOpenTask = null;
+        using var registration = workspace.RegisterWorkspaceChangedImmediateHandler(args =>
+        {
+            var document = args.NewSolution.Projects.SelectMany(project => project.Documents).SingleOrDefault(document => document.FilePath == documentPath);
+            if (!queueLspOpen || document is null || args.OldSolution.ContainsDocument(document.Id))
+                return;
+
+            // Queue the LSP open while the batch still holds the factory gate, so it runs before
+            // the batch reacquires that gate to open the virtual document's empty text container.
+            lspOpenTask = workspace.TryOnDocumentOpenedAsync(
+                document.Id, lspText.Container, isCurrentContext: false, CancellationToken.None).AsTask();
+        });
+
+        var loadTask = loadedProject.TryApplyLoadedProjectInfosAsync(
+            [projectInfo],
+            isMiscellaneousFile: true,
+            hasAllInformation: false,
+            projectFactory,
+            server.GetRequiredLspService<ProjectTargetFrameworkManager>(),
+            server.GetRequiredLspService<ProjectCapabilityManager>(),
+            workspaceFactory,
+            LoggerFactory.CreateLogger(nameof(VirtualDocumentLoadRacesWithLspOpen)),
+            CancellationToken.None).AsTask();
+
+        if (virtualDocument && queueLspOpen)
+        {
+            var exception = await Assert.ThrowsAsync<ArgumentException>(() => loadTask.WaitAsync(TestHelpers.HangMitigatingTimeout));
+            Assert.Equal("\"~\"} is still open.", exception.Message);
+            Assert.Contains("Workspace.CheckDocumentIsClosed", exception.StackTrace);
+            Assert.Contains("ProjectSystemProject.OnBatchScopeDisposedMaybeAsync", exception.StackTrace);
+            Assert.Contains("LoadedProject.Target.UpdateWithNewProjectInfoAsync", exception.StackTrace);
+            TestOutputHelper.WriteLine(exception.ToString());
+        }
+        else
+        {
+            Assert.True(await loadTask.WaitAsync(TestHelpers.HangMitigatingTimeout));
+        }
+
+        if (queueLspOpen)
+        {
+            Assert.NotNull(lspOpenTask);
+            await lspOpenTask.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        }
+
+        var loadedDocument = Assert.Single(Assert.Single(workspace.CurrentSolution.Projects).Documents);
+        Assert.Equal(documentPath, loadedDocument.FilePath);
+        Assert.True(workspace.IsDocumentOpen(loadedDocument.Id));
+        Assert.Equal(queueLspOpen ? lspText.ToString() : "", (await loadedDocument.GetTextAsync()).ToString());
     }
 
     [ExportCSharpVisualBasicLspServiceFactory(typeof(TestProjectLoader)), PartNotDiscoverable, Shared]
