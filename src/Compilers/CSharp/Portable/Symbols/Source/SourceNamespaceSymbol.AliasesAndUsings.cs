@@ -63,41 +63,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private AliasesAndUsings GetAliasesAndUsings(CSharpSyntaxNode declarationSyntax)
         {
-            return GetAliasesAndUsings(GetMatchingNamespaceDeclaration(declarationSyntax));
+            return GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, declarationSyntax.GetReference());
         }
 
+#if DEBUG
         private SingleNamespaceDeclaration GetMatchingNamespaceDeclaration(CSharpSyntaxNode declarationSyntax)
         {
-            if (_mergedDeclaration.Declarations is [var singleDeclaration])
+            foreach (var declaration in _mergedDeclaration.Declarations)
             {
-                var syntaxReference = singleDeclaration.SyntaxReference;
-                if (syntaxReference.SyntaxTree == declarationSyntax.SyntaxTree &&
-                    syntaxReference.GetSyntax() == declarationSyntax)
+                var declarationSyntaxRef = declaration.SyntaxReference;
+                if (declarationSyntaxRef.SyntaxTree != declarationSyntax.SyntaxTree)
                 {
-                    return singleDeclaration;
+                    continue;
                 }
 
-                throw ExceptionUtilities.Unreachable();
-            }
-
-            var declarationsBySyntaxTree = _lazyDeclarationsBySyntaxTree;
-            if (declarationsBySyntaxTree is null)
-            {
-                var newDeclarationsBySyntaxTree = new MultiDictionary<SyntaxTree, SingleNamespaceDeclaration>(
-                    ReferenceEqualityComparer.Instance,
-                    ReferenceEqualityComparer.Instance);
-                foreach (var declaration in _mergedDeclaration.Declarations)
-                {
-                    newDeclarationsBySyntaxTree.Add(declaration.SyntaxReference.SyntaxTree, declaration);
-                }
-
-                Interlocked.CompareExchange(ref _lazyDeclarationsBySyntaxTree, newDeclarationsBySyntaxTree, null);
-                declarationsBySyntaxTree = _lazyDeclarationsBySyntaxTree;
-            }
-
-            foreach (var declaration in declarationsBySyntaxTree[declarationSyntax.SyntaxTree])
-            {
-                if (declaration.SyntaxReference.GetSyntax() == declarationSyntax)
+                if (declarationSyntaxRef.GetSyntax() == declarationSyntax)
                 {
                     return declaration;
                 }
@@ -105,10 +85,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             throw ExceptionUtilities.Unreachable();
         }
+#endif
 
         private static AliasesAndUsings GetOrCreateAliasAndUsings(
-            ref ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> dictionary,
-            SingleNamespaceDeclaration declaration)
+            ref ImmutableDictionary<SyntaxReference, AliasesAndUsings> dictionary,
+            SyntaxReference declaration)
         {
             return ImmutableInterlocked.GetOrAdd(
                 ref dictionary,
@@ -117,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private AliasesAndUsings GetAliasesAndUsings(SingleNamespaceDeclaration declaration)
-            => GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, declaration);
+            => GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, declaration.SyntaxReference);
 
 #if DEBUG
         private AliasesAndUsings GetAliasesAndUsingsForAsserts(CSharpSyntaxNode declarationSyntax)
@@ -126,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings
                 ? GetAliasesAndUsings(singleDeclaration)
-                : GetOrCreateAliasAndUsings(ref _aliasesAndUsingsForAsserts_doNotAccessDirectly, singleDeclaration);
+                : GetOrCreateAliasAndUsings(ref _aliasesAndUsingsForAsserts_doNotAccessDirectly, singleDeclaration.SyntaxReference);
         }
 #endif
 
