@@ -34,14 +34,28 @@ internal sealed partial class FindReferencesSearchEngine
 
     /// <summary>
     /// Whether <paramref name="symbol"/> doesn't need to be searched, because searching the corresponding symbol on
-    /// the definition part of its partial member already finds its uses.  That's the case when <paramref
-    /// name="symbol"/> is on the implementation part and has the same name: a search looks for tokens spelled with the
-    /// searched symbol's name, and <see cref="SymbolFinder.OriginalSymbolsMatch"/> ignores partial parts but compares
-    /// names.  Searching it as well would report each of its uses twice.  A parameter or type parameter can be named
-    /// differently in the two parts, and then its uses in the implementation part are only found by searching it.
+    /// the definition part of its partial member already finds its uses.  Searching it as well would report each of
+    /// its uses twice.
     /// </summary>
     private static bool IsFoundThroughPartialDefinitionPart(ISymbol symbol)
-        => IsOnPartialImplementationPart(symbol) && GetOtherPartialPart(symbol) is { } definition && definition.Name == symbol.Name;
+    {
+        if (!IsOnPartialImplementationPart(symbol))
+            return false;
+
+        return symbol switch
+        {
+            // A search looks for tokens spelled with the searched symbol's name, and OriginalSymbolsMatch ignores
+            // partial parts but compares names.  So searching the definition part's parameter or type parameter finds
+            // the implementation part's uses only when both parts use the same name.  They can differ (CS8826), and
+            // then the implementation part's uses are only found by searching it too.
+            IParameterSymbol or ITypeParameterSymbol
+                => GetOtherPartialPart(symbol) is { } definition && definition.Name == symbol.Name,
+
+            // Both parts of a partial member have the member's name, and OriginalSymbolsMatch ignores partial parts, so
+            // searching the definition part finds the uses of both.
+            _ => true,
+        };
+    }
 
     /// <summary>
     /// Returns the symbol corresponding to <paramref name="symbol"/> on the other part of its partial member, or <see
