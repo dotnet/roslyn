@@ -44,9 +44,9 @@ internal sealed partial class FindReferencesSearchEngine
     private static ISymbol? GetOtherPartialPart(ISymbol symbol)
         => symbol switch
         {
-            IMethodSymbol method => (ISymbol?)method.PartialDefinitionPart ?? method.PartialImplementationPart,
-            IPropertySymbol property => (ISymbol?)property.PartialDefinitionPart ?? property.PartialImplementationPart,
-            IEventSymbol @event => (ISymbol?)@event.PartialDefinitionPart ?? @event.PartialImplementationPart,
+            IMethodSymbol method => method.PartialDefinitionPart ?? method.PartialImplementationPart,
+            IPropertySymbol property => property.PartialDefinitionPart ?? property.PartialImplementationPart,
+            IEventSymbol @event => @event.PartialDefinitionPart ?? @event.PartialImplementationPart,
             IParameterSymbol parameter => GetOtherPartialPart(parameter.ContainingSymbol) switch
             {
                 IMethodSymbol method => ElementAtOrNull(method.Parameters, parameter.Ordinal),
