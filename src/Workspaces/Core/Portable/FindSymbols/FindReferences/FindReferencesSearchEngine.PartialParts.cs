@@ -33,8 +33,12 @@ internal sealed partial class FindReferencesSearchEngine
     }
 
     /// <summary>
-    /// Whether <paramref name="symbol"/> is on the implementation part of a partial member and has the same name as
-    /// the corresponding symbol on the definition part, so that searching that symbol also finds its uses.
+    /// Whether <paramref name="symbol"/> doesn't need to be searched, because searching the corresponding symbol on
+    /// the definition part of its partial member already finds its uses.  That's the case when <paramref
+    /// name="symbol"/> is on the implementation part and has the same name: a search looks for tokens spelled with the
+    /// searched symbol's name, and <see cref="SymbolFinder.OriginalSymbolsMatch"/> ignores partial parts but compares
+    /// names.  Searching it as well would report each of its uses twice.  A parameter or type parameter can be named
+    /// differently in the two parts, and then its uses in the implementation part are only found by searching it.
     /// </summary>
     private static bool IsFoundThroughPartialDefinitionPart(ISymbol symbol)
         => IsOnPartialImplementationPart(symbol) && GetOtherPartialPart(symbol) is { } definition && definition.Name == symbol.Name;
