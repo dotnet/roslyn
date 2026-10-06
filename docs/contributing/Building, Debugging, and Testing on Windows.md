@@ -13,15 +13,14 @@ Using the command line, Roslyn can be developed using the following pattern:
 
 The minimal required version of .NET Framework is 4.7.2.
 
-## Developing with Visual Studio 2022
+## Developing with Visual Studio 2026
 
-1. Use latest [Visual Studio 2022 Preview](https://visualstudio.microsoft.com/vs/preview/vs2022/)
+1. Use latest [Visual Studio 2026 Insiders](https://visualstudio.microsoft.com/insiders/)
     - Ensure Visual Studio extension development is included in the selected workloads
     - Ensure C# and Visual Basic, MSBuild, and .NET Core are included in the selected individual components
-    - Ensure "Use previews of the .NET Core SDK" is checked in Tools -> Options -> Environment -> Preview Features
     - Restart Visual Studio
-1. Install the [.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) which matches the `sdk.version` property in [global.json](../../global.json#L3)
-1. [PowerShell 5.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
+1. Install the [.NET 11.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/11.0) which matches the `sdk.version` property in [global.json](../../global.json#L3)
+1. [PowerShell 5.0 or newer](https://learn.microsoft.com/en-us/powershell/scripting/install/install-powershell-on-windows). If you are on Windows 10 or Windows 11, you are fine; you'll only need to upgrade if you're on earlier versions of Windows. The download link is under the ["Upgrading existing Windows PowerShell"](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-windows-powershell?view=powershell-6#upgrading-existing-windows-powershell) heading.
 1. Run Restore.cmd
 1. Open Roslyn.slnx
 
@@ -41,7 +40,7 @@ For a combined build and test run, use `Build.cmd -test`, `Build.cmd -testSet:co
 
 To select multiple frameworks from PowerShell, pass an array: `.\eng\build.ps1 -build -testFramework:core,desktop`. Each array element is forwarded as a separate RunTests framework option; do not repeat the named PowerShell parameter.
 
-1. Run the "Developer Command Prompt for VS2022" from your start menu.
+1. Run the "Developer PowerShell for VS Insiders" or "Developer Command Prompt for VS Insiders" from your start menu, alternatively launch it from Visual Studio, it can be found at "Tools -> Command Line -> Developer Powershell/Developer Command Prompt".
 2. Navigate to the directory of your Git clone.
 3. Run `Test.cmd` in the command prompt.
 
