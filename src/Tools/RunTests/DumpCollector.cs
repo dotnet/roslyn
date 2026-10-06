@@ -51,12 +51,8 @@ namespace RunTests
         }
 
         /// <summary>
-        /// Attempts full dumps of the supplied process list,
-        /// prioritizing test hosts. Starts a separate RunTests helper subprocess for each dump
-        /// and waits for it without a timeout. Collection continues until the helpers finish or
-        /// the processes are externally terminated; only successfully completed dumps are published.
-        /// Separate helpers isolate native failures and concurrent DbgHelp calls from different
-        /// work items; DbgHelp is single-threaded. They do not bound collection time.
+        /// Collects full dumps, prioritizing test hosts. Separate helper processes isolate
+        /// native failures and prevent concurrent calls to Windows' single-threaded DbgHelp API.
         /// </summary>
         internal static async Task CollectAsync(IReadOnlyList<Process> processes, Options options, string directory)
         {

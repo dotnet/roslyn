@@ -227,7 +227,7 @@ namespace RunTests
                         if (_userCancellationToken.IsCancellationRequested)
                             return;
 
-                        processes.AddRange(await ProcessUtil.GetChildProcessesAsync(dotnetProcessInfo.Process).ConfigureAwait(false));
+                        processes.AddRange(await getChildProcessesAsync(dotnetProcessInfo.Process).ConfigureAwait(false));
                         await DumpCollector.CollectAsync(processes, options, workItemDirectory).ConfigureAwait(false);
                     }
                     catch (Exception ex)
@@ -241,6 +241,21 @@ namespace RunTests
                             ProcessUtil.KillTree(process);
                             if (process != dotnetProcessInfo.Process)
                                 process.Dispose();
+                        }
+                    }
+
+                    static async Task<List<Process>> getChildProcessesAsync(Process root)
+                    {
+                        try
+                        {
+                            return await ProcessUtil.GetChildProcessesAsync(root).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            // The root process is already known and can still be dumped even if
+                            // descendant discovery fails.
+                            ConsoleUtil.Warning($"Unable to enumerate descendant processes: {ex.Message}");
+                            return new List<Process>();
                         }
                     }
                 }
