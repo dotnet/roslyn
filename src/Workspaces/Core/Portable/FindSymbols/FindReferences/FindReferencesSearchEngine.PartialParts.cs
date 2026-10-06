@@ -20,8 +20,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal sealed partial class FindReferencesSearchEngine
 {
     /// <summary>
-    /// Returns the symbols that are the same symbol as <paramref name="symbol"/> to the user: its copies in linked
-    /// files (including <paramref name="symbol"/> itself), and the other part of each copy's partial member.
+    /// Returns the symbols that Find References reports as one definition with <paramref name="symbol"/>, including
+    /// <paramref name="symbol"/> itself.  A use can bind to any of them: each project that compiles a linked file binds
+    /// to its own copy of the symbol, and a use of a partial member binds to either part, such as a call to the
+    /// definition part or a parameter reference in the implementation part's body.
     /// </summary>
     private static async Task<ImmutableArray<ISymbol>> FindSameSymbolsAsync(
         ISymbol symbol, Solution solution, CancellationToken cancellationToken)
