@@ -6070,10 +6070,6 @@ static class Program
                 expectedOutput: IncludeExpectedOutput("[1, 2, 3], [4, 6], [1, 3], [1, 2, 3], [2], [2, 3], [2, 3], "),
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            foreach (var method in new[] { "Direct", "WhereSelect", "IndexedWhere", "CustomMethod", "SkipTake", "Assignment" })
-            {
-                Assert.Contains("System.Linq.Enumerable.ToList<int>", verifier.VisualizeIL("Program." + method));
-            }
 
             verifier.VerifyIL("Program.Direct", """
                 {
@@ -6082,6 +6078,109 @@ static class Program
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
                   IL_0006:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.WhereSelect", """
+                {
+                  // Code size       79 (0x4f)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldsfld     "System.Func<int, bool> Program.<>c.<>9__2_0"
+                  IL_0006:  dup
+                  IL_0007:  brtrue.s   IL_0020
+                  IL_0009:  pop
+                  IL_000a:  ldsfld     "Program.<>c Program.<>c.<>9"
+                  IL_000f:  ldftn      "bool Program.<>c.<WhereSelect>b__2_0(int)"
+                  IL_0015:  newobj     "System.Func<int, bool>..ctor(object, System.IntPtr)"
+                  IL_001a:  dup
+                  IL_001b:  stsfld     "System.Func<int, bool> Program.<>c.<>9__2_0"
+                  IL_0020:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)"
+                  IL_0025:  ldsfld     "System.Func<int, int> Program.<>c.<>9__2_1"
+                  IL_002a:  dup
+                  IL_002b:  brtrue.s   IL_0044
+                  IL_002d:  pop
+                  IL_002e:  ldsfld     "Program.<>c Program.<>c.<>9"
+                  IL_0033:  ldftn      "int Program.<>c.<WhereSelect>b__2_1(int)"
+                  IL_0039:  newobj     "System.Func<int, int>..ctor(object, System.IntPtr)"
+                  IL_003e:  dup
+                  IL_003f:  stsfld     "System.Func<int, int> Program.<>c.<>9__2_1"
+                  IL_0044:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)"
+                  IL_0049:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_004e:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.IndexedWhere", """
+                {
+                  // Code size       43 (0x2b)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldsfld     "System.Func<int, int, bool> Program.<>c.<>9__3_0"
+                  IL_0006:  dup
+                  IL_0007:  brtrue.s   IL_0020
+                  IL_0009:  pop
+                  IL_000a:  ldsfld     "Program.<>c Program.<>c.<>9"
+                  IL_000f:  ldftn      "bool Program.<>c.<IndexedWhere>b__3_0(int, int)"
+                  IL_0015:  newobj     "System.Func<int, int, bool>..ctor(object, System.IntPtr)"
+                  IL_001a:  dup
+                  IL_001b:  stsfld     "System.Func<int, int, bool> Program.<>c.<>9__3_0"
+                  IL_0020:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int, bool>)"
+                  IL_0025:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_002a:  ret
+                }
+                """);
+
+            var sourceTypeName = sourceType == "int[]" ? sourceType : "System.Collections.Generic." + sourceType;
+
+            verifier.VerifyIL("Program.CustomMethod", $$"""
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.IEnumerable<int> Program.GetValues({{sourceTypeName}})"
+                  IL_0006:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000b:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.SkipTake", """
+                {
+                  // Code size       19 (0x13)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Skip<int>(System.Collections.Generic.IEnumerable<int>, int)"
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Take<int>(System.Collections.Generic.IEnumerable<int>, int)"
+                  IL_000d:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0012:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.Assignment", $$"""
+                {
+                  // Code size       52 (0x34)
+                  .maxstack  3
+                  .locals init (System.Collections.Generic.{{listInterface}}<int> V_0) //result
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldsfld     "System.Func<int, bool> Program.<>c.<>9__7_0"
+                  IL_0006:  dup
+                  IL_0007:  brtrue.s   IL_0020
+                  IL_0009:  pop
+                  IL_000a:  ldsfld     "Program.<>c Program.<>c.<>9"
+                  IL_000f:  ldftn      "bool Program.<>c.<Assignment>b__7_0(int)"
+                  IL_0015:  newobj     "System.Func<int, bool>..ctor(object, System.IntPtr)"
+                  IL_001a:  dup
+                  IL_001b:  stsfld     "System.Func<int, bool> Program.<>c.<>9__7_0"
+                  IL_0020:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)"
+                  IL_0025:  dup
+                  IL_0026:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_002b:  stloc.0
+                  IL_002c:  ldc.i4.0
+                  IL_002d:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0032:  ldloc.0
+                  IL_0033:  ret
                 }
                 """);
         }
@@ -6166,9 +6265,189 @@ static class Program
             var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net90,
                 expectedOutput: IncludeExpectedOutput("[a, b], [1, 2], [1, 2], "), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            Assert.Contains("System.Linq.Enumerable.ToList<object>", verifier.VisualizeIL("Program.Reference"));
-            Assert.DoesNotContain("System.Linq.Enumerable.ToList", verifier.VisualizeIL("Program.Numeric"));
-            Assert.DoesNotContain("System.Linq.Enumerable.ToList", verifier.VisualizeIL("Program.Boxing"));
+
+            verifier.VerifyIL("Program.Reference", listInterface is "IList" or "ICollection" ?
+                """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.List<object> System.Linq.Enumerable.ToList<object>(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0006:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.List<object> System.Linq.Enumerable.ToList<object>(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0006:  newobj     "<>z__ReadOnlyList<object>..ctor(System.Collections.Generic.List<object>)"
+                  IL_000b:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.Numeric", listInterface is "IList" or "ICollection" ?
+                """
+                {
+                  // Code size       52 (0x34)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<long> V_0,
+                                System.Collections.Generic.IEnumerator<int> V_1,
+                                int V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<long>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001e
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  conv.i8
+                    IL_0019:  callvirt   "void System.Collections.Generic.List<long>.Add(long)"
+                    IL_001e:  ldloc.1
+                    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0024:  brtrue.s   IL_000f
+                    IL_0026:  leave.s    IL_0032
+                  }
+                  finally
+                  {
+                    IL_0028:  ldloc.1
+                    IL_0029:  brfalse.s  IL_0031
+                    IL_002b:  ldloc.1
+                    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0031:  endfinally
+                  }
+                  IL_0032:  ldloc.0
+                  IL_0033:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       57 (0x39)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<long> V_0,
+                                System.Collections.Generic.IEnumerator<int> V_1,
+                                int V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<long>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001e
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  conv.i8
+                    IL_0019:  callvirt   "void System.Collections.Generic.List<long>.Add(long)"
+                    IL_001e:  ldloc.1
+                    IL_001f:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0024:  brtrue.s   IL_000f
+                    IL_0026:  leave.s    IL_0032
+                  }
+                  finally
+                  {
+                    IL_0028:  ldloc.1
+                    IL_0029:  brfalse.s  IL_0031
+                    IL_002b:  ldloc.1
+                    IL_002c:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0031:  endfinally
+                  }
+                  IL_0032:  ldloc.0
+                  IL_0033:  newobj     "<>z__ReadOnlyList<long>..ctor(System.Collections.Generic.List<long>)"
+                  IL_0038:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.Boxing", listInterface is "IList" or "ICollection" ?
+                """
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.Generic.IEnumerator<int> V_1,
+                                int V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0022
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  box        "int"
+                    IL_001d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_0022:  ldloc.1
+                    IL_0023:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0028:  brtrue.s   IL_000f
+                    IL_002a:  leave.s    IL_0036
+                  }
+                  finally
+                  {
+                    IL_002c:  ldloc.1
+                    IL_002d:  brfalse.s  IL_0035
+                    IL_002f:  ldloc.1
+                    IL_0030:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0035:  endfinally
+                  }
+                  IL_0036:  ldloc.0
+                  IL_0037:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       61 (0x3d)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.Generic.IEnumerator<int> V_1,
+                                int V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<int> System.Collections.Generic.IEnumerable<int>.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0022
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  box        "int"
+                    IL_001d:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_0022:  ldloc.1
+                    IL_0023:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0028:  brtrue.s   IL_000f
+                    IL_002a:  leave.s    IL_0036
+                  }
+                  finally
+                  {
+                    IL_002c:  ldloc.1
+                    IL_002d:  brfalse.s  IL_0035
+                    IL_002f:  ldloc.1
+                    IL_0030:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0035:  endfinally
+                  }
+                  IL_0036:  ldloc.0
+                  IL_0037:  newobj     "<>z__ReadOnlyList<object>..ctor(System.Collections.Generic.List<object>)"
+                  IL_003c:  ret
+                }
+                """);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/85777")]
@@ -6191,9 +6470,31 @@ static class Program
             comp.MakeMemberMissing(WellKnownMember.System_Linq_Enumerable__ToList);
             var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            var il = verifier.VisualizeIL("Program.M");
-            Assert.DoesNotContain("System.Linq.Enumerable.ToList", il);
-            Assert.Contains("System.Collections.Generic.List<int>.AddRange", il);
+
+            verifier.VerifyIL("Program.M", listInterface is "IList" or "ICollection" ?
+                """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  3
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000c:  ret
+                }
+                """ :
+                """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  3
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000c:  newobj     "<>z__ReadOnlyList<int>..ctor(System.Collections.Generic.List<int>)"
+                  IL_0011:  ret
+                }
+                """);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/85777")]
@@ -6223,10 +6524,49 @@ static class Program
             var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net90,
                 expectedOutput: IncludeExpectedOutput("[0, 1, 2], [1, 2, 1, 2], 10;[1, 2], "), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            foreach (var method in new[] { "Mixed", "Multiple", "WithCapacity" })
-            {
-                Assert.DoesNotContain("System.Linq.Enumerable.ToList", verifier.VisualizeIL("Program." + method));
-            }
+
+            verifier.VerifyIL("Program.Mixed", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  3
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldc.i4.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                  IL_000c:  dup
+                  IL_000d:  ldarg.0
+                  IL_000e:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0013:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.Multiple", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  3
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  dup
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000c:  dup
+                  IL_000d:  ldarg.0
+                  IL_000e:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0013:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.WithCapacity", """
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  3
+                  IL_0000:  ldc.i4.s   10
+                  IL_0002:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_0007:  dup
+                  IL_0008:  ldarg.0
+                  IL_0009:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000e:  ret
+                }
+                """);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/85777")]
@@ -6271,13 +6611,70 @@ static class Program
                 expectedOutput: IncludeExpectedOutput("[1, 2, 3], False;True;readonly;[4, 6], False;True;readonly;[1, 2, 3], False;True;readonly;[1, 2, 3], False;True;readonly;"),
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            foreach (var method in new[] { "Direct", "WhereSelect", "EmptyWith" })
-            {
-                var il = verifier.VisualizeIL("Program." + method);
-                Assert.Contains("System.Linq.Enumerable.ToList<int>", il);
-                Assert.Contains("<>z__ReadOnlyList", il);
-            }
-            Assert.DoesNotContain("System.Linq.Enumerable.ToList", verifier.VisualizeIL("Program.KnownLength"));
+
+            verifier.VerifyIL("Program.Direct", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0006:  newobj     "<>z__ReadOnlyList<int>..ctor(System.Collections.Generic.List<int>)"
+                  IL_000b:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.WhereSelect", """
+                {
+                  // Code size       84 (0x54)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldsfld     "System.Func<int, bool> Program.<>c.<>9__2_0"
+                  IL_0006:  dup
+                  IL_0007:  brtrue.s   IL_0020
+                  IL_0009:  pop
+                  IL_000a:  ldsfld     "Program.<>c Program.<>c.<>9"
+                  IL_000f:  ldftn      "bool Program.<>c.<WhereSelect>b__2_0(int)"
+                  IL_0015:  newobj     "System.Func<int, bool>..ctor(object, System.IntPtr)"
+                  IL_001a:  dup
+                  IL_001b:  stsfld     "System.Func<int, bool> Program.<>c.<>9__2_0"
+                  IL_0020:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)"
+                  IL_0025:  ldsfld     "System.Func<int, int> Program.<>c.<>9__2_1"
+                  IL_002a:  dup
+                  IL_002b:  brtrue.s   IL_0044
+                  IL_002d:  pop
+                  IL_002e:  ldsfld     "Program.<>c Program.<>c.<>9"
+                  IL_0033:  ldftn      "int Program.<>c.<WhereSelect>b__2_1(int)"
+                  IL_0039:  newobj     "System.Func<int, int>..ctor(object, System.IntPtr)"
+                  IL_003e:  dup
+                  IL_003f:  stsfld     "System.Func<int, int> Program.<>c.<>9__2_1"
+                  IL_0044:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)"
+                  IL_0049:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_004e:  newobj     "<>z__ReadOnlyList<int>..ctor(System.Collections.Generic.List<int>)"
+                  IL_0053:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.EmptyWith", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0006:  newobj     "<>z__ReadOnlyList<int>..ctor(System.Collections.Generic.List<int>)"
+                  IL_000b:  ret
+                }
+                """);
+
+            verifier.VerifyIL("Program.KnownLength", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "int[] System.Linq.Enumerable.ToArray<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0006:  newobj     "<>z__ReadOnlyArray<int>..ctor(int[])"
+                  IL_000b:  ret
+                }
+                """);
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/85777")]
@@ -6310,16 +6707,193 @@ static class Program
             }
             var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            var il = verifier.VisualizeIL("Program.M");
-            if (missingToList)
+
+            verifier.VerifyIL("Program.M", (targetType, missingToList) switch
             {
-                Assert.DoesNotContain("System.Linq.Enumerable.ToList", il);
-                Assert.Contains("System.Collections.Generic.List<int>.AddRange", il);
-            }
-            else
-            {
-                Assert.Contains("System.Linq.Enumerable.ToList<int>", il);
-            }
+                ("int[]", false) => """
+                    {
+                      // Code size       35 (0x23)
+                      .maxstack  2
+                      .locals init (int[] V_0,
+                                    int V_1)
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                      IL_0006:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                      IL_000b:  stloc.0
+                      IL_000c:  ldc.i4.0
+                      IL_000d:  stloc.1
+                      IL_000e:  br.s       IL_001c
+                      IL_0010:  ldloc.0
+                      IL_0011:  ldloc.1
+                      IL_0012:  ldelem.i4
+                      IL_0013:  call       "void System.Console.Write(int)"
+                      IL_0018:  ldloc.1
+                      IL_0019:  ldc.i4.1
+                      IL_001a:  add
+                      IL_001b:  stloc.1
+                      IL_001c:  ldloc.1
+                      IL_001d:  ldloc.0
+                      IL_001e:  ldlen
+                      IL_001f:  conv.i4
+                      IL_0020:  blt.s      IL_0010
+                      IL_0022:  ret
+                    }
+                    """,
+                ("int[]", true) => """
+                    {
+                      // Code size       41 (0x29)
+                      .maxstack  3
+                      .locals init (int[] V_0,
+                                    int V_1)
+                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_0005:  dup
+                      IL_0006:  ldarg.0
+                      IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                      IL_000c:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
+                      IL_0011:  stloc.0
+                      IL_0012:  ldc.i4.0
+                      IL_0013:  stloc.1
+                      IL_0014:  br.s       IL_0022
+                      IL_0016:  ldloc.0
+                      IL_0017:  ldloc.1
+                      IL_0018:  ldelem.i4
+                      IL_0019:  call       "void System.Console.Write(int)"
+                      IL_001e:  ldloc.1
+                      IL_001f:  ldc.i4.1
+                      IL_0020:  add
+                      IL_0021:  stloc.1
+                      IL_0022:  ldloc.1
+                      IL_0023:  ldloc.0
+                      IL_0024:  ldlen
+                      IL_0025:  conv.i4
+                      IL_0026:  blt.s      IL_0016
+                      IL_0028:  ret
+                    }
+                    """,
+                ("Span<int>", false) => """
+                    {
+                      // Code size       45 (0x2d)
+                      .maxstack  2
+                      .locals init (System.Span<int> V_0,
+                                    int V_1)
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                      IL_0006:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                      IL_000b:  stloc.0
+                      IL_000c:  ldc.i4.0
+                      IL_000d:  stloc.1
+                      IL_000e:  br.s       IL_0022
+                      IL_0010:  ldloca.s   V_0
+                      IL_0012:  ldloc.1
+                      IL_0013:  call       "ref int System.Span<int>.this[int].get"
+                      IL_0018:  ldind.i4
+                      IL_0019:  call       "void System.Console.Write(int)"
+                      IL_001e:  ldloc.1
+                      IL_001f:  ldc.i4.1
+                      IL_0020:  add
+                      IL_0021:  stloc.1
+                      IL_0022:  ldloc.1
+                      IL_0023:  ldloca.s   V_0
+                      IL_0025:  call       "int System.Span<int>.Length.get"
+                      IL_002a:  blt.s      IL_0010
+                      IL_002c:  ret
+                    }
+                    """,
+                ("Span<int>", true) => """
+                    {
+                      // Code size       51 (0x33)
+                      .maxstack  3
+                      .locals init (System.Span<int> V_0,
+                                    int V_1)
+                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_0005:  dup
+                      IL_0006:  ldarg.0
+                      IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                      IL_000c:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                      IL_0011:  stloc.0
+                      IL_0012:  ldc.i4.0
+                      IL_0013:  stloc.1
+                      IL_0014:  br.s       IL_0028
+                      IL_0016:  ldloca.s   V_0
+                      IL_0018:  ldloc.1
+                      IL_0019:  call       "ref int System.Span<int>.this[int].get"
+                      IL_001e:  ldind.i4
+                      IL_001f:  call       "void System.Console.Write(int)"
+                      IL_0024:  ldloc.1
+                      IL_0025:  ldc.i4.1
+                      IL_0026:  add
+                      IL_0027:  stloc.1
+                      IL_0028:  ldloc.1
+                      IL_0029:  ldloca.s   V_0
+                      IL_002b:  call       "int System.Span<int>.Length.get"
+                      IL_0030:  blt.s      IL_0016
+                      IL_0032:  ret
+                    }
+                    """,
+                ("ReadOnlySpan<int>", false) => """
+                    {
+                      // Code size       50 (0x32)
+                      .maxstack  2
+                      .locals init (System.ReadOnlySpan<int> V_0,
+                                    int V_1)
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                      IL_0006:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                      IL_000b:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                      IL_0010:  stloc.0
+                      IL_0011:  ldc.i4.0
+                      IL_0012:  stloc.1
+                      IL_0013:  br.s       IL_0027
+                      IL_0015:  ldloca.s   V_0
+                      IL_0017:  ldloc.1
+                      IL_0018:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
+                      IL_001d:  ldind.i4
+                      IL_001e:  call       "void System.Console.Write(int)"
+                      IL_0023:  ldloc.1
+                      IL_0024:  ldc.i4.1
+                      IL_0025:  add
+                      IL_0026:  stloc.1
+                      IL_0027:  ldloc.1
+                      IL_0028:  ldloca.s   V_0
+                      IL_002a:  call       "int System.ReadOnlySpan<int>.Length.get"
+                      IL_002f:  blt.s      IL_0015
+                      IL_0031:  ret
+                    }
+                    """,
+                ("ReadOnlySpan<int>", true) => """
+                    {
+                      // Code size       56 (0x38)
+                      .maxstack  3
+                      .locals init (System.ReadOnlySpan<int> V_0,
+                                    int V_1)
+                      IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                      IL_0005:  dup
+                      IL_0006:  ldarg.0
+                      IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                      IL_000c:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                      IL_0011:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+                      IL_0016:  stloc.0
+                      IL_0017:  ldc.i4.0
+                      IL_0018:  stloc.1
+                      IL_0019:  br.s       IL_002d
+                      IL_001b:  ldloca.s   V_0
+                      IL_001d:  ldloc.1
+                      IL_001e:  call       "ref readonly int System.ReadOnlySpan<int>.this[int].get"
+                      IL_0023:  ldind.i4
+                      IL_0024:  call       "void System.Console.Write(int)"
+                      IL_0029:  ldloc.1
+                      IL_002a:  ldc.i4.1
+                      IL_002b:  add
+                      IL_002c:  stloc.1
+                      IL_002d:  ldloc.1
+                      IL_002e:  ldloca.s   V_0
+                      IL_0030:  call       "int System.ReadOnlySpan<int>.Length.get"
+                      IL_0035:  blt.s      IL_001b
+                      IL_0037:  ret
+                    }
+                    """,
+                _ => throw ExceptionUtilities.UnexpectedValue((targetType, missingToList)),
+            });
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/85777")]
@@ -6347,7 +6921,45 @@ static class Program
             var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net90,
                 expectedOutput: IncludeExpectedOutput("[1, 2], "), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
-            Assert.DoesNotContain("System.Linq.Enumerable.ToList", verifier.VisualizeIL("Program.M"));
+
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       62 (0x3e)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<int> V_0,
+                                System.Collections.Generic.List<int>.Enumerator V_1,
+                                int V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "System.Collections.Generic.List<int>.Enumerator Source.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001e
+                    IL_000f:  ldloca.s   V_1
+                    IL_0011:  call       "int System.Collections.Generic.List<int>.Enumerator.Current.get"
+                    IL_0016:  stloc.2
+                    IL_0017:  ldloc.0
+                    IL_0018:  ldloc.2
+                    IL_0019:  callvirt   "void System.Collections.Generic.List<int>.Add(int)"
+                    IL_001e:  ldloca.s   V_1
+                    IL_0020:  call       "bool System.Collections.Generic.List<int>.Enumerator.MoveNext()"
+                    IL_0025:  brtrue.s   IL_000f
+                    IL_0027:  leave.s    IL_0037
+                  }
+                  finally
+                  {
+                    IL_0029:  ldloca.s   V_1
+                    IL_002b:  constrained. "System.Collections.Generic.List<int>.Enumerator"
+                    IL_0031:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0036:  endfinally
+                  }
+                  IL_0037:  ldloc.0
+                  IL_0038:  newobj     "<>z__ReadOnlyList<int>..ctor(System.Collections.Generic.List<int>)"
+                  IL_003d:  ret
+                }
+                """);
         }
 
         [Fact]
