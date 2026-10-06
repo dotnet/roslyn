@@ -15107,8 +15107,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules)).VerifyEmitDiagnostics();
     }
 
-    [Fact]
-    public void SafeModifier_Declarations_Partial()
+    [Theory, CombinatorialData]
+    public void SafeModifier_Declarations_Partial(bool allowUnsafe)
     {
         var source = """
             partial class C
@@ -15136,7 +15136,34 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        DiagnosticDescription[] expectedUnsafeDiagnostics = allowUnsafe ? [] :
+        [
+            // (4,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public safe partial void M1() { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(4, 12),
+            // (6,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public safe partial void M2();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(6, 12),
+            // (10,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public safe extern partial void M3();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(10, 12),
+            // (13,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public safe partial int P1 => 0;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(13, 12),
+            // (16,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public partial C() { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(16, 5),
+            // (19,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public safe partial event System.Action E1 { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(19, 12),
+            // (22,29): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public partial int P2 { safe get => 0; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(22, 29),
+        ];
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        [
+            .. expectedUnsafeDiagnostics,
             // (4,30): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe partial void M1() { }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M1").WithLocation(4, 30),
@@ -15160,7 +15187,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "E1").WithLocation(19, 45),
             // (22,34): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public partial int P2 { safe get => 0; }
-            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "get").WithLocation(22, 34));
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "get").WithLocation(22, 34),
+        ]);
     }
 
     [Theory, CombinatorialData]
