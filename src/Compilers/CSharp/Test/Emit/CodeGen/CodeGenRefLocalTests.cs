@@ -5064,6 +5064,93 @@ class Program
         }
 
         [Fact]
+        public void RefDiscardAssignment_34_UnusedBoundRefAccess()
+        {
+            var source = """
+class C
+{
+    static void M(ref int x)
+    {
+        ref int alias = ref x;
+        _ = ref (alias = ref GetRef());
+    }
+
+    static ref int GetRef() => throw null;
+}
+""";
+
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: Verification.Skipped).VerifyDiagnostics().
+                VerifyIL("C.M", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  call       ""ref int C.GetRef()""
+  IL_0005:  pop
+  IL_0006:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugDll, verify: Verification.Skipped).VerifyDiagnostics().
+                VerifyIL("C.M", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (int& V_0) //alias
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  call       ""ref int C.GetRef()""
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}
+
+"
+);
+        }
+
+        [Fact]
+        public void RefDiscardAssignment_35_UnusedBoundRefAccess()
+        {
+            var source = """
+class C
+{
+    static void M(ref int x, ref int y)
+    {
+        ref int alias = ref x;
+        _ = ref (alias = ref y);
+    }
+}
+""";
+
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().
+                VerifyIL("C.M", @"
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+"
+);
+
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics().
+                VerifyIL("C.M", @"
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (int& V_0) //alias
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.1
+  IL_0004:  stloc.0
+  IL_0005:  ret
+}
+"
+);
+        }
+
+        [Fact]
         public void RefAssignRefParameter()
         {
             var text = @"

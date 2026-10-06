@@ -175,7 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.RefAccess:
                     var right = (BoundRefAccess)expression;
                     Debug.Assert(HasHome(right, addressKind));
-                    Debug.Assert(used);
                     EmitRefAssignmentValue(right.RefKind, right.Expression, used);
                     break;
 
