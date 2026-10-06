@@ -84,6 +84,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string MakeStructMemberReadOnly = nameof(MakeStructMemberReadOnly);
     public const string MakeStructReadOnly = nameof(MakeStructReadOnly);
     public const string MakeTypeAbstract = nameof(MakeTypeAbstract);
+    public const string MakeTypeClosed = nameof(MakeTypeClosed);
     public const string MakeTypePartial = nameof(MakeTypePartial);
     public const string MoveMisplacedUsingDirectives = nameof(MoveMisplacedUsingDirectives);
     public const string MoveToTopOfFile = nameof(MoveToTopOfFile);

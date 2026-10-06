@@ -227,6 +227,11 @@
         <target state="translated">將類別設為 'abstract'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Make_class_closed">
+        <source>Make class 'closed'</source>
+        <target state="new">Make class 'closed'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_member_static">
         <source>Make static</source>
         <target state="translated">使其變成靜態</target>
