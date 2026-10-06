@@ -389,7 +389,11 @@ namespace Microsoft.CodeAnalysis
                     {
                         foreach (var tree in generatorState.PostInitTrees)
                         {
-                            cacheBuilder.AddPostInitTree(tree.Tree);
+                            // Filtered generators may still hold trees that need reparsing.
+                            if (tree.Tree.Options == state.ParseOptions)
+                            {
+                                cacheBuilder.AddPostInitTree(tree.Tree);
+                            }
                         }
                     }
                     if (!generatorState.PreCompilationTrees.IsDefaultOrEmpty)

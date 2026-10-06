@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -70,8 +70,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Starts accumulating inputs for the current run. The builder takes the input
-        /// compilation reference (used for cache identity) and the compilation after post-init
-        /// trees have been added (used as the base for any pre-compilation augmentation).
+        /// compilation reference (used for cache identity and reconstruction) and the compilation
+        /// after this run's post-init trees have been added (used when there are no pre-compilation
+        /// contributions).
         /// </summary>
         public Builder ToBuilder(Compilation inputCompilation, Compilation compilationWithPostInit)
             => new Builder(this, inputCompilation, compilationWithPostInit);
@@ -94,14 +95,15 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// Records a post-init <see cref="SyntaxTree"/> in driver order. The flat list of
-            /// post-init trees participates in the cache key.
+            /// post-init trees participates in the cache key and is added to the input compilation
+            /// on a cache miss.
             /// </summary>
             public void AddPostInitTree(SyntaxTree tree) => _postInitTrees.Add(tree);
 
             /// <summary>
             /// Records a pre-compilation tree: contributes to the cache key (via generator
             /// index, hint name, text reference, and parse options) and to the set of trees
-            /// appended to <c>compilationWithPostInit</c> on a cache miss.
+            /// added to the input compilation after post-init trees on a cache miss.
             /// </summary>
             public void AddPreCompTree(int generatorIndex, GeneratedSyntaxTree tree)
             {
@@ -142,9 +144,10 @@ namespace Microsoft.CodeAnalysis
                     return _previous;
                 }
 
-                var newCompilation = preCompTreesToAdd.IsEmpty
-                    ? _compilationWithPostInit
-                    : _compilationWithPostInit.AddSyntaxTrees(preCompTreesToAdd);
+                using var _ = ArrayBuilder<SyntaxTree>.GetInstance(postInitTrees.Length + preCompTreesToAdd.Length, out var treesToAdd);
+                treesToAdd.AddRange(postInitTrees);
+                treesToAdd.AddRange(preCompTreesToAdd);
+                var newCompilation = _inputCompilation.AddSyntaxTrees(treesToAdd);
                 return new CompilationCache(newCompilation, _inputCompilation, postInitTrees, preCompKeys);
             }
 
