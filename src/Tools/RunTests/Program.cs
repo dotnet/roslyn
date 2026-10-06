@@ -10,6 +10,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 
 namespace TestRunner.RunTests
 {
@@ -213,7 +214,7 @@ namespace TestRunner.RunTests
                     var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
                     ConsoleUtil.Write($"Dumping {name} {proc.Id} to {dumpFilePath} ... ");
 
-                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath))
+                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath, Logger.Log))
                     {
                         ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
                     }

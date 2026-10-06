@@ -13,7 +13,6 @@
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Management" />
-    <PackageReference Include="Microsoft.Diagnostics.NETCore.Client" />
     <PackageReference Include="Mono.Options" />
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
   </ItemGroup>
