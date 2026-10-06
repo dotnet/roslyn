@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
@@ -9,13 +10,36 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    public static class TypedConstantExtensions
+    /// <summary>
+    /// Specifies options for formatting a <see cref="TypedConstant"/>.
+    /// </summary>
+    [Flags]
+    public enum TypedConstantFormattingOptions
     {
         /// <summary>
-        /// Returns the System.String that represents the current TypedConstant.
+        /// Format the typed constant using the default options.
         /// </summary>
-        /// <returns>A System.String that represents the current TypedConstant.</returns>
+        None = 0,
+
+        /// <summary>
+        /// Include type suffixes on numeric literals.
+        /// </summary>
+        IncludeTypeSuffix = 1,
+    }
+
+    public static class TypedConstantExtensions
+    {
+        /// <inheritdoc cref="ToCSharpString(TypedConstant, TypedConstantFormattingOptions)"/>
         public static string ToCSharpString(this TypedConstant constant)
+            => ToCSharpString(constant, TypedConstantFormattingOptions.None);
+
+        /// <summary>
+        /// Returns the <see cref="string"/> that represents the current <see cref="TypedConstant"/>.
+        /// </summary>
+        /// <param name="constant">The typed constant to format.</param>
+        /// <param name="options">Options used to customize formatting.</param>
+        /// <returns>A <see cref="string"/> that represents the current <see cref="TypedConstant"/>.</returns>
+        public static string ToCSharpString(this TypedConstant constant, TypedConstantFormattingOptions options)
         {
             if (constant.IsNull)
             {
@@ -24,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (constant.Kind == TypedConstantKind.Array)
             {
-                return "{" + string.Join(", ", constant.Values.Select(v => v.ToCSharpString())) + "}";
+                return "{" + string.Join(", ", constant.Values.Select(v => v.ToCSharpString(options))) + "}";
             }
 
             if (constant.Kind == TypedConstantKind.Type || constant.TypeInternal!.SpecialType == SpecialType.System_Object)
@@ -40,7 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(constant.ValueInternal is object);
-            var result = SymbolDisplay.FormatPrimitive(constant.ValueInternal, quoteStrings: true, useHexadecimalNumbers: false);
+            var objectDisplayOptions = ObjectDisplayOptions.EscapeNonPrintableCharacters | ObjectDisplayOptions.UseQuotes;
+            if ((options & TypedConstantFormattingOptions.IncludeTypeSuffix) != 0)
+            {
+                objectDisplayOptions |= ObjectDisplayOptions.IncludeTypeSuffix;
+            }
+
+            var result = ObjectDisplay.FormatPrimitive(constant.ValueInternal, objectDisplayOptions);
             Debug.Assert(result != null);
             return result;
         }

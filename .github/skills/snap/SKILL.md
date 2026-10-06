@@ -143,11 +143,14 @@ Then propose the after-snap flow matrix from the actual servicing requirements:
 
 For every affected branch, including any new or retiring SDK servicing branch:
 - Record its incoming Arcade subscription's ID, channel, enabled state, update frequency, batchability, excluded assets, and merge policies. Verify it is a dependency subscription (`Source-enabled: False`), not VMR source flow.
+- For **both named-branch merges** (`main` -> `release/insiders` and `release/insiders` -> `release/stable`), compare the target's current Arcade pins and subscription with those of the exact source tree being snapped. Read `global.json` and the repository's dependency manifests (`eng/Version.Details.props` / `eng/Version.Details.xml` in Roslyn). Record the before/after pins and proposed engineering channel.
+- A take-source merge replaces the target's tooling but does **not** update its incoming subscription. If the old target channel no longer matches the incoming tooling, propose retargeting its existing subscription to the source branch's compatible engineering channel. Preserve the target's update frequency, filters, and merge policies unless a separate change is approved. Do not assume retaining SDK destinations means retaining Arcade channels.
+- Resolve what `.NET Eng - Latest` currently supplies; it can advance across majors independently of the product's SDK version. Do not choose `.NET 11 Eng` merely because a branch ships into SDK 11 if the snapped tree already uses Arcade 12. If channel/pin compatibility is unclear or a deliberate fixed-channel policy differs from the source, stop for confirmation.
 - For a new servicing branch, use the preserved branch's compatible Arcade subscription as the template. Record the template ID and intended engineering channel in the plan. For example, a branch preserving content that consumes `.NET 10 Eng` should normally keep that channel, not use `.NET 10.0.4xx SDK` or automatically switch to `.NET Eng - Latest`.
 - If the template is missing, disabled, or no longer appropriate for the preserved content, stop and confirm the intended Arcade flow with the user rather than guessing.
 - Preserve Arcade subscriptions for branches that remain supported. Retiring an SDK destination alone does not authorize deleting that branch's incoming tooling updates.
 
-Present both SDK-flow matrices and the planned Arcade subscriptions for confirmation. Do not make subscription or default-channel changes yet.
+Present both SDK-flow matrices and the before/after Arcade channel plan for confirmation, including any retargeting on existing named branches. Do not make subscription or default-channel changes yet.
 
 #### 1.4 Read Visual Studio schedules and draft the pre-snap announcement
 
@@ -165,7 +168,7 @@ Present the inferred cadence and ask the user to confirm the Roslyn snap date/ti
 
 Two VS versions are involved, and their schedules have different purposes:
 - **Snapped version** (the current `main` version): supplies the upcoming VS `main` → `rel/insiders` snap date and the `release/insiders` QB window. For a snap for 18.11, use the Dev18.11 schedule.
-- **After-snap main version** (current version + 1 minor): supplies the start of the new `main` feature-development cycle. For a snap for 18.11, use Dev18.12 only for this context; do **not** use its later QB dates in the 18.11 announcement.
+- **After-snap main version** (current version + 1 minor): supplies the start of the new `main` feature-development cycle and the deadline for its new milestone. For a snap for 18.11, use Dev18.12 for these purposes; do **not** use its later QB dates in the 18.11 announcement.
 
 Use an MCP server to find the schedule:
 1. Search the `DevDiv.wiki` repository in organization/project `devdiv/DevDiv` for `Dev{version} Schedule` with `project_search` method `wiki`.
@@ -174,7 +177,11 @@ Use an MCP server to find the schedule:
    - `Snap main to rel/insiders` date, start time, and notes.
    - The first `QB Mode` row whose branch is `rel/insiders`, including start, end, and submission deadline.
    - Its final build, sign-off, and ship dates for context.
-4. For the after-snap main version, extract the first feature-development start on `main`.
+4. For the after-snap main version, extract:
+   - The first feature-development start on `main`.
+   - Its `Snap main to rel/insiders` date, which is the deadline for the **next milestone** (steps 1.5 and 3.7). This is not the current Roslyn snap cutoff, a QB deadline, or a ship date.
+
+Treat the next milestone's deadline as the schedule's **calendar date**, not the VS snap's actual time. For the GitHub API input `{nextMilestoneDueOn}`, use noon UTC on that date (`YYYY-MM-DDT12:00:00Z`): a midnight UTC input can be converted to the previous calendar day. GitHub can normalize the stored value to midnight UTC, so verify the returned calendar date rather than requiring the input and output timestamps to match. For example, when snapping for 18.12, create milestone `18.13` with `due_on=2026-10-30T12:00:00Z` if Dev18.13 schedules its VS snap for October 30, then verify that the returned `due_on` date is October 30. Record the schedule link and proposed deadline in the plan. If that schedule is missing, draft, or ambiguous, ask the user to confirm the deadline; do not guess or create an undated next milestone.
 
 Do not silently substitute one version's schedule for the other. If the schedule is missing, ambiguous, places the VS snap on an unexpected day, or conflicts with the proposed Roslyn snap date, stop and ask the user to confirm the cadence. The Roslyn snap must precede the VS `main` → `rel/insiders` snap; the user-confirmed Roslyn date/time defines the content cutoff.
 
@@ -229,10 +236,12 @@ Present the draft to the user for review and editing before they send it.
   ```
   gh issue list --repo {owner}/{repo} --search "is:closed milestone:Next" --json number,title
   ```
-- List all milestones:
+- List all milestones, including closed ones, with their due dates:
   ```
-  gh api repos/{owner}/{repo}/milestones --paginate --jq ".[] | {number:.number,title:.title}"
+  gh api "repos/{owner}/{repo}/milestones?state=all&per_page=100" --paginate --jq '.[] | {number,title,state,due_on}'
   ```
+- Identify two distinct milestones: the **snapped-version milestone** (`{milestoneName}`, e.g., `18.12`) for included PRs, and the **after-snap main milestone** (`{nextMilestoneName}`, e.g., `18.13`) for the new development cycle. Record each one's existing number, state, and due date, or that it is absent.
+- Record `{nextMilestoneDueOn}` from the after-snap version's schedule in step 1.4. If the next milestone is already open with that due date, plan no change. If it is closed or its date is missing/different, include the proposed reopening/date change in the approval request rather than silently overwriting it.
 
 #### 1.6 Determine snap point
 
@@ -281,13 +290,16 @@ After gathering, present **all** planned actions in a numbered list for the user
    - Preserve every confirmed SDK destination that remains supported; adding an SDK destination does not implicitly remove another.
    - Add the snapped content's required SDK source channel and subscription/backflow changes to `release/insiders`.
    - Transfer the old stable SDK flow to the new `release/<sdk-band>` servicing branch when one is being created.
+   - Retarget existing incoming Arcade subscriptions for insiders/stable when their source trees require a different engineering channel, using the approved comparison from step 1.3. Preserve other subscription settings; unchanged SDK flows do not imply unchanged Arcade channels.
    - Provision the new servicing branch's incoming Arcade dependency subscription using the confirmed template and engineering channel from step 1.3, preserving its update frequency, asset filters, and merge policies.
    - Remove the previous servicing branch's default channel and VMR subscriptions when that flow is being retired. Remove its Arcade subscription only if the branch itself no longer needs servicing and that removal is explicitly approved.
    - Add a future SDK channel only when it exists and the user confirms the new flow.
 
 8. **Update the InfraSwat dashboard manually**: After the Maestro configuration PR merges, update the Roslyn build widgets on the [dnceng Roslyn/Razor InfraSwat dashboard](https://dev.azure.com/dnceng/internal/_dashboards/dashboard/7cd4c2dc-8e75-4cb6-9936-e937c0e496c4) so their displayed VS/SDK versions and configured branches match the post-snap state.
 
-9. **Move milestones**: Assign the target milestone (e.g., `18.6`) to the PRs included since the previous snap. Create the milestone if it doesn't exist.
+9. **Update milestones**:
+   - Assign the snapped-version milestone (e.g., `18.12`) to the PRs included since the previous snap. Create it if it doesn't exist.
+   - Ensure the next milestone for after-snap `main` (e.g., `18.13`) exists and is open, with the deadline derived from that version's scheduled VS `main` → `rel/insiders` snap. Present its name, due date, schedule link, and any changes to an existing milestone for explicit approval. Do not assign the current snap's PRs to this next milestone.
 
 10. **Preserve or retire old stable**: If old stable content still serves an SDK band, create `release/<sdk-band>` (for example, `release/10.0.4xx`) directly from the pre-snap `release/stable` commit **before** stable is overwritten. Transfer the SDK flow and provision the incoming Arcade dependency subscription for that branch. If the previous servicing branch (for example, `release/10.0.3xx`) is no longer needed, retire its default channel and explicitly approved subscriptions. If old stable is fully retired, skip branch creation and remove its obsolete flows.
 
@@ -606,7 +618,15 @@ darc update-subscription --id {subscriptionId} --channel "{newChannel}" --config
 
 > **Note**: `-q` is critical — without it, `darc add-subscription` opens an interactive YAML editor even when all flags are provided. The `--subscription` clone approach is preferred because backflow subscriptions have complex excluded-assets lists that are tedious to specify manually.
 
-**Arcade dependency subscriptions**: Apply the separately approved Arcade plan from step 1.3 on the **same configuration branch**. For each new servicing branch, first check for an existing subscription:
+**Arcade dependency subscriptions**: Apply the separately approved Arcade plan from step 1.3 on the **same configuration branch**, covering existing named branches as well as new servicing branches.
+
+For each receiving named branch, recheck its source tree's Arcade pins and current subscription. If the approved plan requires a channel change, update the existing subscription in place rather than cloning a competing one:
+```
+darc update-subscription --id {arcadeSubscriptionId} --channel "{approvedArcadeChannel}" --configuration-branch {cfgBranch} --no-pr --ci
+```
+Verify the diff changes only the approved channel/settings. If the existing subscription is missing or disabled, stop for confirmation rather than silently skipping it or enabling it.
+
+For each new servicing branch, first check for an existing subscription:
 ```
 darc get-subscriptions --exact --source-repo https://github.com/dotnet/arcade --target-repo https://github.com/{owner}/{repo} --target-branch release/{sdkBand}
 ```
@@ -636,7 +656,9 @@ gh pr list --repo dotnet/dotnet --search "is:open author:dotnet-maestro[bot] bas
 gh pr close {number} --repo {repoToCloseIn} --comment "Closing stale flow PR after subscription/channel update; Maestro will recreate it from the new configuration. This action was performed automatically by the snap skill."
 ```
 
-After all commands, inspect the branch diff against `production` and verify only the expected configuration files and associations changed. For each Arcade subscription, check its source/target repositories, target branch, engineering channel, enabled state, dependency-flow mode, and preserved template settings. Create one non-draft PR with auto-complete and squash enabled, then print the URL. Use a single-line description when invoking `az repos pr create`; multiline native-command arguments may be truncated by some Azure CLI/PowerShell combinations.
+After all commands, inspect the branch diff against `production` and verify only the expected configuration files and associations changed. Preserve unrelated explicit settings, including `Enabled: false`: Darc serialization can omit false-valued properties when rewriting a file. Restore any such unrelated omissions in a separate, narrowly scoped commit on the same configuration branch before opening the PR; do not rely on an omitted property's default. Verify that every association outside the approved changes retains its original settings.
+
+For each Arcade subscription, check its source/target repositories, target branch, engineering channel, enabled state, dependency-flow mode, and preserved template settings. Create one non-draft PR with auto-complete and squash enabled, then print the URL. Use a single-line description when invoking `az repos pr create`; multiline native-command arguments may be truncated by some Azure CLI/PowerShell combinations.
 ```
 $description = "Updates default channels for the {newVsVersion} snap. Auto-generated by snap skill."
 az repos pr create --repository maestro-configuration --org https://dev.azure.com/dnceng --project internal --source-branch {cfgBranch} --target-branch production --title "Snap: update default channels for {repos} ({newVsVersion})" --description $description --draft false --auto-complete true --squash true -o none
@@ -668,7 +690,7 @@ if ($pr.isDraft -or $null -eq $pr.autoCompleteSetBy) {
 Write-Output "PR: https://dev.azure.com/dnceng/internal/_git/maestro-configuration/pullrequest/$prId"
 ```
 
-After the Maestro configuration PR merges, re-query default channels, VMR subscriptions, and incoming Arcade subscriptions using the commands in step 1.3. Verify every new servicing branch has its approved enabled Arcade dependency subscription as well as its publishing and VMR configuration. If the live configuration has not caught up or an expected subscription is missing, report the configuration checkpoint as pending; do not declare it complete based only on the PR merge.
+After the Maestro configuration PR merges, re-query default channels, VMR subscriptions, and incoming Arcade subscriptions using the commands in step 1.3. For both receiving named branches, verify that the live Arcade channel agrees with the approved after-snap plan and the inherited tooling pins; comparing subscriptions only against their pre-snap settings is insufficient. Verify every new servicing branch has its approved enabled Arcade dependency subscription as well as its publishing and VMR configuration. If the live configuration has not caught up, an expected subscription is missing, or an old channel is incompatible with the snapped content, report the configuration checkpoint as pending; do not declare it complete based only on the PR merge.
 
 Then manually update the [dnceng Roslyn/Razor InfraSwat dashboard](https://dev.azure.com/dnceng/internal/_dashboards/dashboard/7cd4c2dc-8e75-4cb6-9936-e937c0e496c4). Treat this as a required snap checkpoint. Dashboard widget updates are intentionally manual: the API requires replacing full widget payloads and preserving eTags, layout, and settings, which makes unattended edits unnecessarily risky.
 
@@ -685,7 +707,9 @@ Verify each widget still points to the intended build definition and branch afte
 - `Roslyn stable -> stable/18.10`
 - `Roslyn 10.0.4xx -> 10.0.4xx (2026/08/11)`, with `fullBranchName` = `refs/heads/release/10.0.4xx` (preserve or update the dashboard's date suffix as appropriate)
 
-#### 3.7 Move milestones
+#### 3.7 Update milestones
+
+**Assign included PRs to the snapped-version milestone**
 
 Create the target milestone if needed (milestone name is just the version number, e.g., `18.6`):
 ```
@@ -735,6 +759,25 @@ foreach ($pr in $prs) {
 
 Verify each assignment through the issue REST endpoint rather than GitHub search, whose milestone index can lag. Do not move unrelated stale items from `Next`. Handle closed issues only when the user provides or confirms an explicit issue set.
 
+**Create the next milestone for main**
+
+Ensure the approved `{nextMilestoneName}` exists and is open with the calendar deadline from step 1.4, using `{nextMilestoneDueOn}` as the noon-UTC API input. This is separate from assigning included PRs to `{milestoneName}` above.
+
+Immediately before writing, repeat the paginated, all-states milestone lookup from step 1.5 and match the exact title:
+- If it is already open with the approved due date, report "already up to date."
+- If it exists but is closed or has a missing/different due date, update only the explicitly approved fields using `PATCH repos/{owner}/{repo}/milestones/{nextMilestoneNumber}`. Stop for confirmation if the observed state differs from the approved plan; do not reopen or reschedule it silently.
+- If it is absent, create it with the approved due date:
+  ```
+  gh api -X POST repos/{owner}/{repo}/milestones --field title="{nextMilestoneName}" --field state="open" --field due_on="{nextMilestoneDueOn}"
+  ```
+
+Use the milestone number from the lookup or creation response and re-read it directly:
+```
+gh api repos/{owner}/{repo}/milestones/{nextMilestoneNumber} --jq '{number,title,state,due_on,html_url}'
+```
+
+Verify the exact title, open state, and that the returned `due_on` calendar date matches the approved deadline before marking this step complete. A normalized midnight-UTC timestamp on the correct date is expected; a previous-day result is not. A failed write or mismatched date must stop the workflow, not be treated as success; obtain confirmation before correcting it. Record the milestone number, URL, and verified due date in the session state and completion summary. Do not move any issues or PRs into it as part of this creation step.
+
 #### 3.8 Reply to the snap announcement email
 
 After all snap steps are completed, draft a reply to the pre-snap announcement email (from step 1.4) confirming the snap is done. Don't include links to created PRs. Summarize what each branch now targets using the verified post-change VS and SDK-flow matrices. Mention any pending follow-ups (e.g., SDK channel not yet created).
@@ -779,6 +822,8 @@ After completing the snap, review whether any steps needed to be done differentl
 | VS insertion (stable) | `rel/stable` | prefix `[Stable]` |
 | Darc channel | `VS {VS Major}.{VS Minor}` | `VS 18.6` |
 | Target milestone | `{VS Major}.{VS Minor}` | `18.6` |
+| Next milestone | After-snap `main` VS version | `18.7` |
+| Next milestone deadline | That version's scheduled VS `main` → `rel/insiders` snap calendar date | `YYYY-MM-DD` (API input: noon UTC; verify returned date) |
 | Servicing branches | `release/dev{vs-version}` or `release/{sdk-band}` | `release/dev18.3`, `release/10.0.4xx` |
 
 ## Error Handling
@@ -786,4 +831,4 @@ After completing the snap, review whether any steps needed to be done differentl
 - If a `gh` or `darc` command fails, stop and report the error. Do not retry automatically.
 - If the target branch does not exist and cannot be created, report the issue.
 - If a subscription already exists in the expected state, skip it and report "already up to date."
-- When moving milestones, if a milestone doesn't exist yet, create it first.
+- Create a missing snapped-version milestone before assigning PRs. Create the next milestone only with its approved schedule-derived due date; verify existing milestones before creating or updating them.

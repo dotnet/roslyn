@@ -8,15 +8,16 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using Microsoft.Diagnostics.NETCore.Client;
+using Roslyn.Test.Utilities;
 
 namespace RunTests
 {
     /// <summary>
-    /// Collects dumps in separate helper processes. Windows uses MiniDumpWriteDump for both
-    /// Framework and Core processes.
+    /// Orchestrates dump collection for a work item's owned processes, prioritizing test hosts.
+    /// Delegates the actual per-process dump mechanics to <see cref="Roslyn.Test.Utilities.DumpCollector"/>,
+    /// but does so from a separate helper process to isolate native failures and avoid concurrent
+    /// calls to Windows' single-threaded DbgHelp API.
     /// </summary>
     internal static class DumpCollector
     {
@@ -37,7 +38,7 @@ namespace RunTests
                     return Program.ExitFailure;
                 }
 
-                return TryDumpProcess(process, args[3]) ? Program.ExitSuccess : Program.ExitFailure;
+                return Roslyn.Test.Utilities.DumpCollector.TryDumpProcess(process, args[3], Console.Error.WriteLine) ? Program.ExitSuccess : Program.ExitFailure;
             }
             catch (Exception ex)
             {
@@ -50,10 +51,6 @@ namespace RunTests
             }
         }
 
-        /// <summary>
-        /// Collects full dumps, prioritizing test hosts. Separate helper processes isolate
-        /// native failures and prevent concurrent calls to Windows' single-threaded DbgHelp API.
-        /// </summary>
         internal static async Task CollectAsync(IReadOnlyList<Process> processes, Options options, string directory)
         {
             Directory.CreateDirectory(directory);
@@ -95,7 +92,7 @@ namespace RunTests
                     Logger.Log(string.Join(Environment.NewLine, result.OutputLines));
                     Logger.Log(string.Join(Environment.NewLine, result.ErrorLines));
                     if (result.ExitCode != 0)
-                        throw new IOException($"Dump helper exited with code {result.ExitCode}");
+                        throw new Exception($"Dump helper exited with code {result.ExitCode}");
 
                     File.Move(path, dumpPath);
                     ConsoleUtil.WriteLine($"Dump collected: {dumpPath} ({new FileInfo(dumpPath).Length} bytes)");
@@ -117,103 +114,5 @@ namespace RunTests
                 }
             }
         }
-
-        /// <summary>
-        /// Attempts to collect a full memory dump from the specified process.
-        /// Returns true if the dump was successfully written.
-        /// </summary>
-        internal static bool TryDumpProcess(Process process, string dumpFilePath)
-        {
-            try
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    return TryDumpWithMiniDumpWriteDump(process, dumpFilePath);
-                }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    return TryDumpNetCoreProcess(process, dumpFilePath);
-                }
-                else
-                {
-                    Logger.Log($"Dump collection is not supported on {RuntimeInformation.OSDescription}.");
-                    return false;
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"Failed to dump process {process.ProcessName} ({process.Id}): {ex.Message}");
-                return false;
-            }
-        }
-
-        private static bool TryDumpNetCoreProcess(Process process, string dumpFilePath)
-        {
-            try
-            {
-                var client = new DiagnosticsClient(process.Id);
-                client.WriteDump(DumpType.Full, dumpFilePath, logDumpGeneration: false);
-                return File.Exists(dumpFilePath);
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"DiagnosticsClient.WriteDump failed for process {process.Id}: {ex.Message}");
-                return false;
-            }
-        }
-
-#pragma warning disable CA1416 // Validate platform compatibility
-        private static bool TryDumpWithMiniDumpWriteDump(Process process, string dumpFilePath)
-        {
-            try
-            {
-                using var fileStream = new FileStream(dumpFilePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);
-                // MiniDumpWithFullMemory = 0x00000002
-                var success = NativeMethods.MiniDumpWriteDump(
-                    process.Handle,
-                    (uint)process.Id,
-                    fileStream.SafeFileHandle.DangerousGetHandle(),
-                    NativeMethods.MINIDUMP_TYPE.MiniDumpWithFullMemory,
-                    IntPtr.Zero,
-                    IntPtr.Zero,
-                    IntPtr.Zero);
-
-                if (!success)
-                {
-                    var errorCode = Marshal.GetLastWin32Error();
-                    Logger.Log($"MiniDumpWriteDump failed for process {process.Id} with error code {errorCode}");
-                    // Clean up the empty/partial file
-                    try { fileStream.Close(); File.Delete(dumpFilePath); } catch { }
-                }
-
-                return success;
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"MiniDumpWriteDump failed for process {process.Id}: {ex.Message}");
-                return false;
-            }
-        }
-
-        private static class NativeMethods
-        {
-            [Flags]
-            internal enum MINIDUMP_TYPE : uint
-            {
-                MiniDumpWithFullMemory = 0x00000002,
-            }
-
-            [DllImport("dbghelp.dll", SetLastError = true)]
-            [return: MarshalAs(UnmanagedType.Bool)]
-            internal static extern bool MiniDumpWriteDump(
-                IntPtr hProcess,
-                uint processId,
-                IntPtr hFile,
-                MINIDUMP_TYPE dumpType,
-                IntPtr exceptionParam,
-                IntPtr userStreamParam,
-                IntPtr callbackParam);
-        }
-#pragma warning restore CA1416 // Validate platform compatibility
     }
 }

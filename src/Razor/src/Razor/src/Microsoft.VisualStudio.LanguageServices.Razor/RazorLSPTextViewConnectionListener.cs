@@ -87,19 +87,19 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
             throw new ArgumentNullException(nameof(textView));
         }
 
-        var vsTextView = _editorAdaptersFactory.GetViewAdapter(textView);
-
-        Assumes.NotNull(vsTextView);
-
         // In remote client scenarios there's a custom language service applied to buffers in order to enable delegation of interactions.
         // Because of this we don't want to break that experience so we ensure not to "set" a language service for remote clients.
-        if (!_editorFeatureDetector.IsRemoteClient())
+        if (!_editorFeatureDetector.IsRemoteClient() &&
+            _editorAdaptersFactory.GetBufferAdapter(textView.TextViewModel.DataBuffer) is { } vsBuffer)
         {
-            vsTextView.GetBuffer(out var vsBuffer);
             vsBuffer.SetLanguageServiceID(RazorConstants.RazorLanguageServiceGuid);
         }
 
-        RazorLSPTextViewFilter.CreateAndRegister(vsTextView, textView, _joinableTaskContext.Factory, _interceptedCommands);
+        // Multi-diff views don't have a view adapter, but still need the managed editor setup below.
+        if (_editorAdaptersFactory.GetViewAdapter(textView) is { } vsTextView)
+        {
+            RazorLSPTextViewFilter.CreateAndRegister(vsTextView, textView, _joinableTaskContext.Factory, _interceptedCommands);
+        }
 
         if (!textView.TextBuffer.IsRazorLSPBuffer())
         {

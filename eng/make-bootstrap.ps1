@@ -6,14 +6,27 @@ param (
   [string]$toolset = "Default",
   [string]$configuration = "Release",
   [switch]$force = $false,
-  [switch]$ci = $false
+  [switch]$ci = $false,
+  # Consumed implicitly by the MSBuild helper.
+  [switch]$warnAsError = $false
 )
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
-try {
+# Bootstrap uses dotnet MSBuild without changing the caller's cached build engine.
+$previousBuildTool = if (Test-Path variable:global:_BuildTool) { $global:_BuildTool } else { $null }
+if ($null -ne $previousBuildTool) {
+  Remove-Item variable:global:_BuildTool
+}
 
+try {
+  $msbuildEngine = "dotnet"
+  # Do not reuse nodes that may have loaded a different C#/VB toolset.
+  # https://github.com/dotnet/roslyn/issues/6211
+  $nodeReuse = $false
+  $binaryLog = $true
+  $disablePipelineSetResult = $true
   . (Join-Path $PSScriptRoot "build-utils.ps1")
   $prepareMachine = $ci
 
@@ -51,32 +64,32 @@ try {
   $name = Split-Path -Leaf $output
   $binaryLogFilePath = Join-Path $LogDir "bootstrap-$($name).binlog"
 
-  # Because we override the C#/VB toolset to build against our LKG package, it is important
-  # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
-  # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
-  # MSBuildAdditionalCommandLineArgs=
-  $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /nodeReuse:false /p:Configuration=$configuration /v:m";
-  $args += " /p:RunAnalyzersDuringBuild=false /bl:$binaryLogFilePath"
-  $args += " /t:Pack /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP"
-  $args += " /p:PackageOutputPath=$output /p:NgenOptimization=false /p:PublishWindowsPdb=false"
-
   if ($ci) {
-    $args += " /p:ContinuousIntegrationBuild=true"
-  
     # Set NUGET_PACKAGES to fix issues with package Restore when building with `-ci`.
     # Workaround for https://github.com/dotnet/arcade/issues/15970
     $env:NUGET_PACKAGES = Join-Path $RepoRoot '.packages\'
     $env:RESTORENOCACHE = $true
   }
 
-  Exec-DotNet "build $args $projectPath"
+  # Use Arcade's MSBuild helper for correct warnAsError/warnNotAsError behavior.
+  MSBuild $projectPath `
+    /restore `
+    /t:Pack `
+    /p:Configuration=$configuration `
+    /p:RunAnalyzersDuringBuild=false `
+    /p:DotNetUseShippingVersions=true `
+    /p:InitialDefineConstants=BOOTSTRAP `
+    /p:PackageOutputPath=$output `
+    /p:NgenOptimization=false `
+    /p:PublishWindowsPdb=false `
+    /bl:$binaryLogFilePath
 
   $packageFilePath = Get-ChildItem -Path $output -Filter "$packageName.*.nupkg"
   Write-Host "Found package $packageFilePath"
   Unzip $packageFilePath.FullName $output
 
   Write-Host "Cleaning up artifacts"
-  Exec-DotNet "build --no-restore /t:Clean $projectPath"
+  MSBuild $projectPath /t:Clean "/bl:$(Join-Path $LogDir "bootstrap-$name-clean.binlog")"
   Exec-DotNet "build-server shutdown"
 
   ExitWithExitCode 0
@@ -88,5 +101,11 @@ catch {
   ExitWithExitCode 1
 }
 finally {
+  if ($null -ne $previousBuildTool) {
+    $global:_BuildTool = $previousBuildTool
+  }
+  elseif (Test-Path variable:global:_BuildTool) {
+    Remove-Item variable:global:_BuildTool
+  }
   Pop-Location
 }

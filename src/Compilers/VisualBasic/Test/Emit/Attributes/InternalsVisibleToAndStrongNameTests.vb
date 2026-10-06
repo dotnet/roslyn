@@ -533,7 +533,7 @@ End Class
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("goo", DirectCast(err.Arguments(0), String))
         Dim errorText = DirectCast(err.Arguments(1), String)
-        Assert.True(errorText.Contains("0x80090016"))
+        Assert.True(errorText.Contains("0x80090016"), errorText)
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -689,7 +689,7 @@ End Class
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("bogus", DirectCast(err.Arguments(0), String))
         Dim errorText = DirectCast(err.Arguments(1), String)
-        Assert.True(errorText.Contains("0x80090016"))
+        Assert.True(errorText.Contains("0x80090016"), errorText)
     End Sub
 
     <Theory>
@@ -1823,7 +1823,7 @@ End Class
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal(s_keyPairFile, DirectCast(err.Arguments(0), String))
         Dim errorText = DirectCast(err.Arguments(1), String)
-        Assert.True(errorText.Contains("0x80131423"))
+        Assert.True(errorText.Contains("0x80131423"), errorText)
     End Sub
 
     <Theory>
