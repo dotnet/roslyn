@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -117,12 +118,13 @@ internal sealed partial class ProjectSystemProject
             return documentId;
         }
 
-        public DocumentId AddTextContainer(
+        public DocumentId AddVirtualDocument(
             SourceTextContainer textContainer,
             string fullPath,
             SourceCodeKind sourceCodeKind,
             ImmutableArray<string> folders,
             bool designTimeOnly,
+            bool openDocument,
             IDocumentServiceProvider? documentServiceProvider)
         {
             if (textContainer == null)
@@ -131,7 +133,7 @@ internal sealed partial class ProjectSystemProject
             }
 
             var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
-            var textLoader = new SourceTextLoader(textContainer, fullPath);
+            var textLoader = new SourceTextLoader(textContainer, fullPath, openDocument);
             var documentInfo = DocumentInfo.Create(
                 documentId,
                 FileNameUtilities.GetFileName(fullPath),
@@ -164,7 +166,8 @@ internal sealed partial class ProjectSystemProject
                     {
                         _project._projectSystemProjectFactory.AddDocumentToDocumentsNotFromFiles_NoLock(documentInfo.Id);
                         _documentAddAction(w, documentInfo);
-                        w.OnDocumentOpened(documentInfo.Id, textContainer);
+                        if (ShouldOpenVirtualDocument(documentInfo, out var container))
+                            w.OnDocumentOpened(documentInfo.Id, container);
                     });
                 }
             }
@@ -457,9 +460,8 @@ internal sealed partial class ProjectSystemProject
                     Contract.ThrowIfNull(documentInfo.FilePath, "We shouldn't be adding documents without file paths.");
                     documentFileNamesAdded.Add(documentInfo.FilePath);
 
-                    if (documentInfo.TextLoader is SourceTextLoader sourceTextLoader)
+                    if (ShouldOpenVirtualDocument(documentInfo, out var textContainer))
                     {
-                        var textContainer = sourceTextLoader.TextContainer;
                         documentsToOpen.Add((documentInfo.Id, textContainer));
                     }
                 }
@@ -488,15 +490,29 @@ internal sealed partial class ProjectSystemProject
             _orderedDocumentsInBatch = null;
         }
 
+        private static bool ShouldOpenVirtualDocument(DocumentInfo documentInfo, [NotNullWhen(true)] out SourceTextContainer? sourceTextContainer)
+        {
+            if (documentInfo.TextLoader is SourceTextLoader loader && loader.OpenDocument)
+            {
+                sourceTextContainer = loader.TextContainer;
+                return true;
+            }
+
+            sourceTextContainer = null;
+            return false;
+        }
+
         private sealed class SourceTextLoader : TextLoader
         {
             internal readonly SourceTextContainer TextContainer;
+            internal readonly bool OpenDocument;
             private readonly string? _filePath;
 
-            public SourceTextLoader(SourceTextContainer textContainer, string? filePath)
+            public SourceTextLoader(SourceTextContainer textContainer, string? filePath, bool openDocument)
             {
                 TextContainer = textContainer;
                 _filePath = filePath;
+                OpenDocument = openDocument;
             }
 
             public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)

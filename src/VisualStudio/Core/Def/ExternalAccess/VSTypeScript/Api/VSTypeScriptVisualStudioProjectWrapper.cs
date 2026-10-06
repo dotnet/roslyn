@@ -28,7 +28,7 @@ internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
     public DocumentId AddSourceTextContainer(SourceTextContainer sourceTextContainer, string fullPath, bool isLspContainedDocument = false)
     {
         var documentServiceProvider = isLspContainedDocument ? LspContainedDocumentServiceProvider.Instance : null;
-        return Project.AddSourceTextContainer(sourceTextContainer, fullPath, SourceCodeKind.Regular, documentServiceProvider: documentServiceProvider);
+        return Project.AddVirtualDocument(sourceTextContainer, fullPath, SourceCodeKind.Regular, documentServiceProvider: documentServiceProvider);
     }
 
     public void RemoveSourceFile(string fullPath)

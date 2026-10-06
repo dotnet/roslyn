@@ -832,15 +832,16 @@ internal sealed partial class ProjectSystemProject
     /// <param name="folders">The names of the logical nested folders the document is contained in.</param>
     /// <param name="designTimeOnly">Whether the document is used only for design time (eg. completion) or also included in a compilation.</param>
     /// <param name="documentServiceProvider">A <see cref="IDocumentServiceProvider"/> associated with this document</param>
-    public DocumentId AddSourceTextContainer(
+    public DocumentId AddVirtualDocument(
         SourceTextContainer textContainer,
         string fullPath,
         SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
         ImmutableArray<string> folders = default,
         bool designTimeOnly = false,
-        IDocumentServiceProvider? documentServiceProvider = null)
+        IDocumentServiceProvider? documentServiceProvider = null,
+        bool openDocument = true)
     {
-        return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
+        return _sourceFiles.AddVirtualDocument(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, openDocument, documentServiceProvider);
     }
 
     public bool ContainsSourceFile(string fullPath)

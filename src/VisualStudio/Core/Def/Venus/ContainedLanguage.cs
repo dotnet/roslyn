@@ -99,7 +99,7 @@ internal partial class ContainedLanguage
 
         if (this.Project != null)
         {
-            documentId = this.Project.AddSourceTextContainer(
+            documentId = this.Project.AddVirtualDocument(
                 SubjectBuffer.AsTextContainer(),
                 filePath,
                 sourceCodeKind: SourceCodeKind.Regular,
