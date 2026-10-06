@@ -1508,7 +1508,7 @@ class Program
             var model = compilation.GetSemanticModel(tree);
             var usingStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
             var constructor = model.GetSymbolInfo(usingStatement.Expression).Symbol;
-            Assert.Equal(SymbolKind.Method, constructor.Kind);
+            Assert.Equal(MethodKind.Constructor, ((IMethodSymbol)constructor).MethodKind);
             Assert.Equal("MyManagedType", constructor.ContainingType.Name);
         }
 
