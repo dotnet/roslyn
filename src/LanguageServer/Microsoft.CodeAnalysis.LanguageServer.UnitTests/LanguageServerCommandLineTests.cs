@@ -20,6 +20,28 @@ public sealed class LanguageServerCommandLineTests
     }
 
     [Fact]
+    public async Task TelemetryLevel_NotSpecified_IsNull()
+    {
+        var configuration = await ParseAsync();
+
+        Assert.NotNull(configuration);
+        Assert.Null(configuration.TelemetryLevel);
+    }
+
+    [Theory]
+    [InlineData("all")]
+    [InlineData("crash")]
+    [InlineData("error")]
+    [InlineData("off")]
+    public async Task TelemetryLevel_Specified_UsesProvidedValue(string value)
+    {
+        var configuration = await ParseAsync("--telemetryLevel", value);
+
+        Assert.NotNull(configuration);
+        Assert.Equal(value, configuration.TelemetryLevel);
+    }
+
+    [Fact]
     public async Task AutoLoadProjects_NotSpecified_IsNull()
     {
         var configuration = await ParseAsync();
