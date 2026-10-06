@@ -1869,20 +1869,23 @@ class C
 
         #region help method
 
-        private IEnumerable<ILocalSymbol> VerifyDeclaredSymbolForUsingStatements(CSharpCompilation compilation, int index = 1, params string[] variables)
+        private List<ILocalSymbol> VerifyDeclaredSymbolForUsingStatements(CSharpCompilation compilation, int index = 1, params string[] variables)
         {
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var usingStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().ToList();
             var i = 0;
+            var symbols = new List<ILocalSymbol>();
             foreach (var x in usingStatements[index - 1].Declaration.Variables)
             {
                 var symbol = model.GetDeclaredSymbol(x);
                 Assert.Equal(SymbolKind.Local, symbol.Kind);
                 Assert.Equal(variables[i++].ToString(), symbol.ToDisplayString());
-                yield return (ILocalSymbol)symbol;
+                symbols.Add((ILocalSymbol)symbol);
             }
+
+            return symbols;
         }
 
         private SymbolInfo VerifySymbolInfoForUsingStatements(CSharpCompilation compilation, ISymbol symbol, int index = 1)
