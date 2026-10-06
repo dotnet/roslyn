@@ -849,6 +849,10 @@ internal sealed partial class ProjectSystemProject
     public void RemoveSourceFile(string fullPath)
         => _sourceFiles.RemoveFile(fullPath);
 
+    public void RemoveVirtualDocument(DocumentId documentId)
+        => _sourceFiles.RemoveVirtualDocument(documentId);
+
+    [Obsolete("Use RemoveSourceTextContainer with the document ID instead.")]
     public void RemoveSourceTextContainer(SourceTextContainer textContainer)
         => _sourceFiles.RemoveTextContainer(textContainer);
 

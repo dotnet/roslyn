@@ -144,7 +144,7 @@ internal partial class ContainedLanguage
 
         if (this.Project != null)
         {
-            this.Project.RemoveSourceTextContainer(SubjectBuffer.AsTextContainer());
+            this.Project.RemoveVirtualDocument(this.ContainedDocument.Id);
         }
         else
         {

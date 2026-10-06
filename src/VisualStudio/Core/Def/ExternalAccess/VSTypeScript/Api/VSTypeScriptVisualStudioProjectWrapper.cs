@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -33,8 +34,14 @@ internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
     public void RemoveSourceFile(string fullPath)
         => Project.RemoveSourceFile(fullPath);
 
+    [Obsolete("Use RemoveVirtualDocument with the document ID instead.")]
     public void RemoveSourceTextContainer(SourceTextContainer sourceTextContainer)
-        => Project.RemoveSourceTextContainer(sourceTextContainer);
+    {
+        Project.RemoveSourceTextContainer(sourceTextContainer);
+    }
+
+    public void RemoveVirtualDocument(DocumentId documentId)
+        => Project.RemoveVirtualDocument(documentId);
 
     public void RemoveFromWorkspace()
         => Project.RemoveFromWorkspace();

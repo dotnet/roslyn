@@ -38,12 +38,6 @@ internal sealed partial class ProjectSystemProject
         private readonly Dictionary<string, DocumentId> _documentPathsToDocumentIds = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
-        /// A map of explicitly-added "always open" <see cref="SourceTextContainer"/> and their associated <see cref="DocumentId"/>. This does not contain
-        /// any regular files that have been open.
-        /// </summary>
-        private IBidirectionalMap<SourceTextContainer, DocumentId> _sourceTextContainersToDocumentIds = BidirectionalMap<SourceTextContainer, DocumentId>.Empty;
-
-        /// <summary>
         /// The current list of documents that are to be added in this batch.
         /// </summary>
         private readonly ImmutableArray<DocumentInfo>.Builder _documentsAddedInBatch = ImmutableArray.CreateBuilder<DocumentInfo>();
@@ -150,11 +144,6 @@ internal sealed partial class ProjectSystemProject
 
             using (_project._gate.DisposableWait())
             {
-                if (_sourceTextContainersToDocumentIds.ContainsKey(textContainer))
-                {
-                    throw new ArgumentException($"{nameof(textContainer)} is already added to this project.", nameof(textContainer));
-                }
-
                 if (fullPath != null)
                 {
                     if (_documentPathsToDocumentIds.ContainsKey(fullPath))
@@ -164,8 +153,6 @@ internal sealed partial class ProjectSystemProject
 
                     _documentPathsToDocumentIds.Add(fullPath, documentId);
                 }
-
-                _sourceTextContainersToDocumentIds = _sourceTextContainersToDocumentIds.Add(textContainer, documentInfo.Id);
 
                 if (_project._activeBatchScopes > 0)
                 {
@@ -240,63 +227,81 @@ internal sealed partial class ProjectSystemProject
             }
         }
 
+        [Obsolete("Use RemoveVirtualDocument with the document ID instead.")]
         public void RemoveTextContainer(SourceTextContainer textContainer)
         {
-            if (textContainer == null)
-            {
-                throw new ArgumentNullException(nameof(textContainer));
-            }
-
             using (_project._gate.DisposableWait())
             {
-                if (!_sourceTextContainersToDocumentIds.TryGetValue(textContainer, out var documentId))
+                // First, check if the document is in a pending batch, and remove if found.
+                for (var i = 0; i < _documentsAddedInBatch.Count; i++)
                 {
-                    throw new ArgumentException($"{nameof(textContainer)} is not a text container added to this project.");
+                    if (_documentsAddedInBatch[i].TextLoader is SourceTextLoader sourceTextLoader && sourceTextLoader.TextContainer == textContainer)
+                    {
+                        RemoveVirtualDocument_NoLock(_documentsAddedInBatch[i].Id);
+                        return;
+                    }
                 }
 
-                _sourceTextContainersToDocumentIds = _sourceTextContainersToDocumentIds.RemoveKey(textContainer);
-
-                // if the TextContainer had a full path provided, remove it from the map.
-                var entry = _documentPathsToDocumentIds.Where(kv => kv.Value == documentId).FirstOrDefault();
-                if (entry.Key != null)
+                // If not found in the pending batch, check if it exists in the workspace and remove it.
+                if (_project._projectSystemProjectFactory.Workspace.GetDocumentIdInCurrentContext(textContainer) is DocumentId documentId)
                 {
-                    _documentPathsToDocumentIds.Remove(entry.Key);
+                    RemoveVirtualDocument_NoLock(documentId);
                 }
+            }
+        }
 
-                // There are two cases:
-                // 
-                // 1. This file is actually been pushed to the workspace, and we need to remove it (either
-                //    as a part of the active batch or immediately)
-                // 2. It hasn't been pushed yet, but is contained in _documentsAddedInBatch
-                if (_project._projectSystemProjectFactory.Workspace.CurrentSolution.GetDocument(documentId) != null)
+        public void RemoveVirtualDocument(DocumentId documentId)
+        {
+            using (_project._gate.DisposableWait())
+            {
+                RemoveVirtualDocument_NoLock(documentId);
+            }
+        }
+
+        private void RemoveVirtualDocument_NoLock(DocumentId documentId)
+        {
+            if (_documentsRemovedInBatch.Contains(documentId))
+            {
+                throw new ArgumentException(
+                    "The document is already scheduled for removal.",
+                    nameof(documentId));
+            }
+
+            // if the TextContainer had a full path provided, remove it from the map.
+            var entry = _documentPathsToDocumentIds.Where(kv => kv.Value == documentId).FirstOrDefault();
+            if (entry.Key != null)
+            {
+                _documentPathsToDocumentIds.Remove(entry.Key);
+            }
+
+            // There are two cases:
+            // 
+            // 1. This file is actually been pushed to the workspace, and we need to remove it (either
+            //    as a part of the active batch or immediately)
+            // 2. It hasn't been pushed yet, but is contained in _documentsAddedInBatch
+            if (_project._projectSystemProjectFactory.Workspace.CurrentSolution.GetDocument(documentId) != null)
+            {
+                if (_project._activeBatchScopes > 0)
                 {
-                    if (_project._activeBatchScopes > 0)
-                    {
-                        _documentsRemovedInBatch.Add(documentId);
-                    }
-                    else
-                    {
-                        _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
-                        {
-                            // Just pass null for the filePath, since this document is immediately being removed
-                            // anyways -- whatever we set won't really be read since the next change will
-                            // come through.
-                            // TODO: Can't we just remove the document without closing it?
-                            w.OnDocumentClosed(documentId, new SourceTextLoader(textContainer, filePath: null));
-                            _documentRemoveAction(w, documentId);
-                            _project._projectSystemProjectFactory.RemoveDocumentToDocumentsNotFromFiles_NoLock(documentId);
-                        });
-                    }
+                    _documentsRemovedInBatch.Add(documentId);
                 }
                 else
                 {
-                    for (var i = 0; i < _documentsAddedInBatch.Count; i++)
+                    _project._projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
                     {
-                        if (_documentsAddedInBatch[i].Id == documentId)
-                        {
-                            _documentsAddedInBatch.RemoveAt(i);
-                            break;
-                        }
+                        _documentRemoveAction(w, documentId);
+                        _project._projectSystemProjectFactory.RemoveDocumentToDocumentsNotFromFiles_NoLock(documentId);
+                    });
+                }
+            }
+            else
+            {
+                for (var i = 0; i < _documentsAddedInBatch.Count; i++)
+                {
+                    if (_documentsAddedInBatch[i].Id == documentId)
+                    {
+                        _documentsAddedInBatch.RemoveAt(i);
+                        break;
                     }
                 }
             }
@@ -425,8 +430,7 @@ internal sealed partial class ProjectSystemProject
             // State is cleared at the end once the solution changes are actually applied via ClearBatchState.
             return UpdateSolutionForBatch(solutionChanges, documentFileNamesAdded, addDocuments,
                 addDocumentChangeKind, removeDocuments, removeDocumentChangeKind, _project.Id, _documentsAddedInBatch.ToImmutableArray(),
-                [.. _documentsRemovedInBatch], _orderedDocumentsInBatch,
-                documentId => _sourceTextContainersToDocumentIds.GetKeyOrDefault(documentId));
+                [.. _documentsRemovedInBatch], _orderedDocumentsInBatch);
 
             static ImmutableArray<(DocumentId documentId, SourceTextContainer textContainer)> UpdateSolutionForBatch(
                 SolutionChangeAccumulator solutionChanges,
@@ -438,8 +442,7 @@ internal sealed partial class ProjectSystemProject
                 ProjectId projectId,
                 ImmutableArray<DocumentInfo> documentsAddedInBatch,
                 ImmutableArray<DocumentId> documentsRemovedInBatch,
-                ImmutableList<DocumentId>? orderedDocumentsInBatch,
-                Func<DocumentId, SourceTextContainer?> getContainer)
+                ImmutableList<DocumentId>? orderedDocumentsInBatch)
             {
                 using var _ = ArrayBuilder<(DocumentId documentId, SourceTextContainer textContainer)>.GetInstance(out var documentsToOpen);
 
@@ -454,9 +457,9 @@ internal sealed partial class ProjectSystemProject
                     Contract.ThrowIfNull(documentInfo.FilePath, "We shouldn't be adding documents without file paths.");
                     documentFileNamesAdded.Add(documentInfo.FilePath);
 
-                    var textContainer = getContainer(documentInfo.Id);
-                    if (textContainer != null)
+                    if (documentInfo.TextLoader is SourceTextLoader sourceTextLoader)
                     {
+                        var textContainer = sourceTextLoader.TextContainer;
                         documentsToOpen.Add((documentInfo.Id, textContainer));
                     }
                 }
@@ -487,17 +490,17 @@ internal sealed partial class ProjectSystemProject
 
         private sealed class SourceTextLoader : TextLoader
         {
-            private readonly SourceTextContainer _textContainer;
+            internal readonly SourceTextContainer TextContainer;
             private readonly string? _filePath;
 
             public SourceTextLoader(SourceTextContainer textContainer, string? filePath)
             {
-                _textContainer = textContainer;
+                TextContainer = textContainer;
                 _filePath = filePath;
             }
 
             public override async Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
-                => TextAndVersion.Create(_textContainer.CurrentText, VersionStamp.Create(), _filePath);
+                => TextAndVersion.Create(TextContainer.CurrentText, VersionStamp.Create(), _filePath);
         }
     }
 }

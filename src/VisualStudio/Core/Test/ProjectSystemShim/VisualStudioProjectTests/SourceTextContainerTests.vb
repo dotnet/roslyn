@@ -22,15 +22,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim textBufferFactory = environment.ExportProvider.GetExportedValue(Of ITextBufferFactoryService)()
                 Dim sourceTextContainer = textBufferFactory.CreateTextBuffer().AsTextContainer()
 
-                project.AddSourceTextContainer(sourceTextContainer, "Z:\Test.cs")
+                Dim documentId = project.AddSourceTextContainer(sourceTextContainer, "Z:\Test.cs")
 
                 Assert.Single(environment.Workspace.GetOpenDocumentIds())
 
-                project.RemoveSourceTextContainer(sourceTextContainer)
+                project.RemoveVirtualDocument(documentId)
 
                 Assert.Empty(environment.Workspace.GetOpenDocumentIds())
             End Using
         End Function
     End Class
 End Namespace
-
