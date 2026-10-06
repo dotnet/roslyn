@@ -1970,7 +1970,7 @@ public sealed class SymbolEquivalenceComparerTests
         Assert.True(identityComparer.Equals(f1[3], f2[3]));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
     public void TestPartialParts()
     {
         var source = """

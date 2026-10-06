@@ -854,7 +854,7 @@ public sealed class FindReferencesTests : TestBase
                 .ToArray();
     }
 
-    [Theory, CombinatorialData]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
     public async Task FindReferences_PartialMethodCascadesToInterfaceMemberFromEitherPart(bool searchImplementationPart)
     {
         using var workspace = CreateWorkspace();
@@ -882,7 +882,7 @@ public sealed class FindReferencesTests : TestBase
         Assert.Single(interfaceMember.Locations);
     }
 
-    [Theory, CombinatorialData]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/82744")]
     public async Task FindReferences_PartialMethodParameter(
         [CombinatorialValues("value", "other")] string implementationName,
         bool searchImplementationPart)
