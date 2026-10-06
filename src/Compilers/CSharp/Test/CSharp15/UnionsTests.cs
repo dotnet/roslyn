@@ -21872,6 +21872,71 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_71_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"", null => ""null"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_72_State_From_Call()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    U M1() => 42;
+
+    void M2()
+    {
+#line 100
+        M1().Value.ToString();
+    }
+
+    void M3()
+    {
+        U u = M1();
+#line 200
+        u.Value.ToString();
+    }
+}
+
+union U(string, int);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NullableAnalysis_MemberProvider_01_State_From_Default()
         {
             var src = @"

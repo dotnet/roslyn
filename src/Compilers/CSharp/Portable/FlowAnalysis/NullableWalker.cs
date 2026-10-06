@@ -2998,15 +2998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NullableFlowState GetDefaultState(int containingSlot, Symbol symbol)
         {
-            if (symbol is PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property &&
-                containingSlot > 0 &&
-                _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
-                Binder.IsUnionTypeValueProperty(unionType, property))
-            {
-                return unionType.UnionValueDeclaredNullableFlowState;
-            }
-
-            return ApplyUnconditionalAnnotations(GetTypeOrReturnTypeWithAnnotations(symbol).ToTypeWithState(), GetRValueAnnotations(symbol)).State;
+            return ApplyUnconditionalAnnotations(GetTypeOrReturnTypeWithAnnotations(symbol).ToTypeWithState(), GetRValueAnnotations(containingSlot, receiverTypeForMemberAccessOpt: null, symbol)).State;
         }
 
         private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int skipSlot)
@@ -3660,7 +3652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _ = CheckPossibleNullReceiver(receiver);
 
             var resultType = ResultType.ToTypeWithAnnotations(compilation);
-            var resultState = ApplyUnconditionalAnnotations(resultType.ToTypeWithState(), GetRValueAnnotations(withExpr.CloneMethod));
+            var resultState = ApplyUnconditionalAnnotations(resultType.ToTypeWithState(), GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: withExpr.CloneMethod));
             var resultSlot = GetOrCreatePlaceholderSlot(withExpr);
             // carry over the null state of members of 'receiver' to the result of the with-expression.
             TrackNullableStateForAssignment(receiver, resultType, resultSlot, resultState, MakeSlot(receiver));
@@ -7445,16 +7437,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeWithState GetReturnTypeWithState(MethodSymbol method)
         {
-            return TypeWithState.Create(method.ReturnTypeWithAnnotations, GetRValueAnnotations(method));
+            return TypeWithState.Create(method.ReturnTypeWithAnnotations, GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: method));
         }
 
-        private FlowAnalysisAnnotations GetRValueAnnotations(Symbol? symbol)
+        private FlowAnalysisAnnotations GetRValueAnnotations(int containingSlotOpt, TypeSymbol? receiverTypeForMemberAccessOpt, Symbol? symbol)
         {
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
             // in attributes are error scenarios, so missing warnings should not be important.)
             if (IsAnalyzingAttribute)
             {
                 return FlowAnalysisAnnotations.None;
+            }
+
+            if (symbol is PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property &&
+                ((containingSlotOpt > 0 ? _variables[containingSlotOpt].Symbol.GetTypeOrReturnType().Type : receiverTypeForMemberAccessOpt) ?? property.ContainingType)
+                    is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
+                Binder.IsUnionTypeValueProperty(unionType, property))
+            {
+                return unionType.UnionValueDeclaredNullableFlowState.MayBeNull() ? FlowAnalysisAnnotations.MaybeNull : FlowAnalysisAnnotations.NotNull;
             }
 
             var annotations = symbol.GetFlowAnalysisAnnotations();
@@ -9676,7 +9676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(targetField.TypeWithAnnotations.Type.StrippedType() is NamedTypeSymbol { IsUnionType: true });
                             int targetFieldSlot = GetOrCreateSlot(targetField, slot);
 
-                            TypeWithState valueFieldType = ApplyUnconditionalAnnotations(valueField.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(valueField));
+                            TypeWithState valueFieldType = ApplyUnconditionalAnnotations(valueField.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: valueField));
                             int valueFieldSlot = -1;
                             if (PossiblyNullableType(valueFieldType.Type))
                             {
@@ -10646,7 +10646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    returnType = ApplyUnconditionalAnnotations(returnType, GetRValueAnnotations(method));
+                    returnType = ApplyUnconditionalAnnotations(returnType, GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: method));
                 }
             }
 
@@ -11619,7 +11619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         VisitArgumentOutboundAssignmentsAndPostConditions(
                             receiverType: invocation.ReceiverOpt?.Type,
-                            variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
+                            variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: parameter),
                             new VisitResult(variable.Type.ToTypeWithState(), variable.Type),
                             notNullParametersOpt: null, compareExchangeInfoOpt: default);
                     }
@@ -12265,7 +12265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 updatedProperty = reinferenceResult.Member;
 
                 TypeWithAnnotations typeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
-                FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(updatedProperty);
+                FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: node.ReceiverOpt?.Type, symbol: updatedProperty);
                 TypeWithState typeWithState = ApplyUnconditionalAnnotations(typeWithAnnotations.ToTypeWithState(), memberAnnotations);
 
                 SetResult(node, typeWithState, typeWithAnnotations);
@@ -12319,7 +12319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitPropertyArguments(node, receiverType, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
             }
 
-            var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
+            var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: receiverOpt?.Type, symbol: indexer));
             SetResult(node, resultType, indexer.TypeWithAnnotations);
             SetUpdatedSymbol(node, node.Indexer, indexer);
             return null;
@@ -12406,7 +12406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var type = GetTypeOrReturnTypeWithAnnotations(member);
-            var memberAnnotations = GetRValueAnnotations(member);
+            var memberAnnotations = GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: receiverType.Type, symbol: member);
             var resultType = ApplyUnconditionalAnnotations(type.ToTypeWithState(), memberAnnotations);
 
             // We are supposed to track information for the node. Use whatever we managed to
