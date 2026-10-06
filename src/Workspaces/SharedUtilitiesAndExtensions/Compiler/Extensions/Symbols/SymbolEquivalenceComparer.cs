@@ -43,9 +43,9 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
     private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-    public static readonly SymbolEquivalenceComparer Instance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
-    public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
-    public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
+    public static readonly SymbolEquivalenceComparer Instance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false, distinguishPartialParts: true);
+    public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false, distinguishPartialParts: true);
+    public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false, distinguishPartialParts: true);
 
     private readonly IEqualityComparer<IAssemblySymbol>? _assemblyComparer;
 
@@ -66,7 +66,7 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         bool ignoreNullableAnnotations,
         bool objectAndDynamicCompareEqually,
         bool arrayAndReadOnlySpanCompareEqually,
-        bool distinguishPartialParts = true)
+        bool distinguishPartialParts)
     {
         _assemblyComparer = assemblyComparer;
         _distinguishRefFromOut = distinguishRefFromOut;
@@ -104,9 +104,10 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         bool tupleNamesMustMatch,
         bool ignoreNullableAnnotations,
         bool objectAndDynamicCompareEqually,
-        bool arrayAndReadOnlySpanCompareEqually)
+        bool arrayAndReadOnlySpanCompareEqually,
+        bool distinguishPartialParts)
     {
-        return new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut, tupleNamesMustMatch, ignoreNullableAnnotations, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEqually);
+        return new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut, tupleNamesMustMatch, ignoreNullableAnnotations, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEqually, distinguishPartialParts);
     }
 
     public SymbolEquivalenceComparer With(
