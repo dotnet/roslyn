@@ -234,35 +234,42 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         return OneOrMany.Create(builder.ToImmutableAndClear());
     }
 
-    // When partial parts aren't distinguished, every part reports false, so the definition part, the implementation
-    // part, and a symbol that exposes no parts (such as a retargeting symbol) all compare and hash alike.
-    private bool IsPartialMethodDefinitionPart(IMethodSymbol symbol)
-        => _distinguishPartialParts && symbol.PartialImplementationPart != null;
+    private enum PartialPart
+    {
+        None,
+        Definition,
+        Implementation,
+    }
 
-    private bool IsPartialMethodImplementationPart(IMethodSymbol symbol)
-        => _distinguishPartialParts && symbol.PartialDefinitionPart != null;
-
-    private bool IsPartialPropertyDefinitionPart(IPropertySymbol symbol)
-        => _distinguishPartialParts && symbol.PartialImplementationPart != null;
-
-    private bool IsPartialPropertyImplementationPart(IPropertySymbol symbol)
-        => _distinguishPartialParts && symbol.PartialDefinitionPart != null;
-
-    private bool IsPartialEventDefinitionPart(IEventSymbol symbol)
-        => _distinguishPartialParts &&
+    private static PartialPart GetPartialPart(ISymbol symbol)
+        => symbol switch
+        {
+            IMethodSymbol { PartialImplementationPart: not null } => PartialPart.Definition,
+            IMethodSymbol { PartialDefinitionPart: not null } => PartialPart.Implementation,
+            IPropertySymbol { PartialImplementationPart: not null } => PartialPart.Definition,
+            IPropertySymbol { PartialDefinitionPart: not null } => PartialPart.Implementation,
 #if !OLDER_ROSLYN
-           symbol.PartialImplementationPart != null;
-#else
-           false;
+            IEventSymbol { PartialImplementationPart: not null } => PartialPart.Definition,
+            IEventSymbol { PartialDefinitionPart: not null } => PartialPart.Implementation,
 #endif
+            _ => PartialPart.None,
+        };
 
-    private bool IsPartialEventImplementationPart(IEventSymbol symbol)
-        => _distinguishPartialParts &&
-#if !OLDER_ROSLYN
-           symbol.PartialDefinitionPart != null;
-#else
-           false;
-#endif
+    /// <summary>
+    /// Whether <paramref name="x"/> and <paramref name="y"/> are the same part of a partial member: both the definition
+    /// part, both the implementation part, or neither.  Always true when partial parts aren't distinguished, so the
+    /// definition part, the implementation part, and a symbol that exposes no parts (such as a retargeting symbol) all
+    /// compare alike.
+    /// </summary>
+    private bool PartialPartsMatch(ISymbol x, ISymbol y)
+        => !_distinguishPartialParts || GetPartialPart(x) == GetPartialPart(y);
+
+    /// <summary>
+    /// The hash code contribution of which part of a partial member <paramref name="symbol"/> is, consistent with <see
+    /// cref="PartialPartsMatch"/>: zero when partial parts aren't distinguished.
+    /// </summary>
+    private int GetPartialPartsHashCode(ISymbol symbol)
+        => _distinguishPartialParts ? (int)GetPartialPart(symbol) : 0;
 
     private static TypeKind GetTypeKind(INamedTypeSymbol x)
         => x.TypeKind switch

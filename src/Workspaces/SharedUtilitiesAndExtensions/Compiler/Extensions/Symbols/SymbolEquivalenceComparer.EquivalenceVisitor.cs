@@ -207,8 +207,7 @@ internal sealed partial class SymbolEquivalenceComparer
                     return HaveSameLocation(x, y);
                 }
 
-                if (symbolEquivalenceComparer.IsPartialMethodDefinitionPart(x) != symbolEquivalenceComparer.IsPartialMethodDefinitionPart(y) ||
-                    symbolEquivalenceComparer.IsPartialMethodImplementationPart(x) != symbolEquivalenceComparer.IsPartialMethodImplementationPart(y) ||
+                if (!symbolEquivalenceComparer.PartialPartsMatch(x, y) ||
                     x.IsDefinition != y.IsDefinition ||
                     IsConstructedFromSelf(x) != IsConstructedFromSelf(y) ||
                     x.Arity != y.Arity ||
@@ -599,8 +598,7 @@ internal sealed partial class SymbolEquivalenceComparer
                 x.IsIndexer == y.IsIndexer &&
                 x.MetadataName == y.MetadataName &&
                 x.Parameters.Length == y.Parameters.Length &&
-                symbolEquivalenceComparer.IsPartialPropertyDefinitionPart(x) == symbolEquivalenceComparer.IsPartialPropertyDefinitionPart(y) &&
-                symbolEquivalenceComparer.IsPartialPropertyImplementationPart(x) == symbolEquivalenceComparer.IsPartialPropertyImplementationPart(y) &&
+                symbolEquivalenceComparer.PartialPartsMatch(x, y) &&
                 ParametersAreEquivalent(x.Parameters, y.Parameters, equivalentTypesWithDifferingAssemblies) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
         }
@@ -609,8 +607,7 @@ internal sealed partial class SymbolEquivalenceComparer
         {
             return
                 x.MetadataName == y.MetadataName &&
-                symbolEquivalenceComparer.IsPartialEventDefinitionPart(x) == symbolEquivalenceComparer.IsPartialEventDefinitionPart(y) &&
-                symbolEquivalenceComparer.IsPartialEventImplementationPart(x) == symbolEquivalenceComparer.IsPartialEventImplementationPart(y) &&
+                symbolEquivalenceComparer.PartialPartsMatch(x, y) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
         }
 
