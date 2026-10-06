@@ -83,27 +83,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarationsBySyntaxTree = _lazyDeclarationsBySyntaxTree;
             if (declarationsBySyntaxTree is null)
             {
-                var newDeclarationsBySyntaxTree = new Dictionary<SyntaxTree, OneOrMany<SingleNamespaceDeclaration>>(ReferenceEqualityComparer.Instance);
+                var newDeclarationsBySyntaxTree = new MultiDictionary<SyntaxTree, SingleNamespaceDeclaration>(
+                    ReferenceEqualityComparer.Instance,
+                    ReferenceEqualityComparer.Instance);
                 foreach (var declaration in _mergedDeclaration.Declarations)
                 {
-                    var syntaxTree = declaration.SyntaxReference.SyntaxTree;
-                    newDeclarationsBySyntaxTree[syntaxTree] = newDeclarationsBySyntaxTree.TryGetValue(syntaxTree, out var declarations)
-                        ? declarations.Add(declaration)
-                        : OneOrMany.Create(declaration);
+                    newDeclarationsBySyntaxTree.Add(declaration.SyntaxReference.SyntaxTree, declaration);
                 }
 
                 Interlocked.CompareExchange(ref _lazyDeclarationsBySyntaxTree, newDeclarationsBySyntaxTree, null);
                 declarationsBySyntaxTree = _lazyDeclarationsBySyntaxTree;
             }
 
-            if (declarationsBySyntaxTree.TryGetValue(declarationSyntax.SyntaxTree, out var matchingDeclarations))
+            foreach (var declaration in declarationsBySyntaxTree[declarationSyntax.SyntaxTree])
             {
-                foreach (var declaration in matchingDeclarations)
+                if (declaration.SyntaxReference.GetSyntax() == declarationSyntax)
                 {
-                    if (declaration.SyntaxReference.GetSyntax() == declarationSyntax)
-                    {
-                        return declaration;
-                    }
+                    return declaration;
                 }
             }
 
