@@ -377,6 +377,23 @@ class @extension
 ```
 
 ***Introduced in Visual Studio 2026 version 18.0.***
+In C# 13 and earlier, `extension` followed by `<` is parsed as the start of an extension declaration
+rather than as a generic type name. This improves error recovery for extension declarations compiled
+with an older language version, but changes the parsing of code such as:
+
+```csharp
+class extension<T> { }
+
+class C
+{
+    extension<int> M() => new();
+}
+```
+
+Previously, `M` was parsed as a method returning `extension<int>`. It is now parsed as an extension
+declaration and produces syntax errors. Escape the type name as `@extension<int>` to preserve the
+previous interpretation.
+
 The "extension" identifier may not be used as a type name, so the following will not compile:
 ```csharp
 using extension = ...; // alias may not be named "extension"
