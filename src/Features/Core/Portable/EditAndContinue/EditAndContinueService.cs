@@ -150,7 +150,7 @@ internal sealed class EditAndContinueService : IEditAndContinueService
 
     public DebuggingSessionId StartDebuggingSession(
         Solution solution,
-        IManagedHotReloadService debuggerService,
+        IManagedHotReloadState debuggerService,
         IPdbMatchingSourceTextProvider sourceTextProvider,
         bool reportDiagnostics)
     {
