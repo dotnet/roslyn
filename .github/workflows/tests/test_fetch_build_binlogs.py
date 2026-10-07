@@ -63,6 +63,28 @@ class FetchBuildBinlogsTests(unittest.TestCase):
             } if destination.exists() else {}
             return result, files
 
+    def validate_url(self, url):
+        with tempfile.TemporaryDirectory(prefix="roslyn-binlog-url-") as directory:
+            return subprocess.run(
+                [
+                    self.dotnet,
+                    "run",
+                    "--file",
+                    str(SCRIPT),
+                    "-p:ImportDirectoryBuildProps=false",
+                    "-p:ImportDirectoryBuildTargets=false",
+                    "-p:ImportDirectoryPackagesProps=false",
+                    "--",
+                    "--validate-url",
+                    url,
+                ],
+                capture_output=True,
+                text=True,
+                cwd=directory,
+                env=os.environ,
+                timeout=120,
+            )
+
     def test_extracts_regular_binlogs_to_generated_names(self):
         result, files = self.extract(
             [
@@ -95,6 +117,24 @@ class FetchBuildBinlogsTests(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(files, {})
+
+    def test_accepts_documented_artifact_hosts_only(self):
+        artifact_path = (
+            "/A6fcc92e5-73a7-4f88-8d13-d9045b45fb27/"
+            "cbb18261-c48f-4abb-8651-8cdcb5474649/artifact"
+        )
+        cases = (
+            ("compact-region", f"https://artprodeus21.artifacts.visualstudio.com{artifact_path}", True),
+            ("dotted-region", f"https://artprod.eus21.artifacts.visualstudio.com{artifact_path}", True),
+            ("hyphenated-region", f"https://artprod-weu.artifacts.visualstudio.com{artifact_path}", True),
+            ("wrong-project", "https://artprod.eus21.artifacts.visualstudio.com/A6fcc92e5-73a7-4f88-8d13-d9045b45fb27/00000000-0000-0000-0000-000000000000/artifact", False),
+            ("lookalike-host", f"https://artprod.eus21.artifacts.visualstudio.com.evil.example{artifact_path}", False),
+            ("wrong-prefix", f"https://evilartprod.eus21.artifacts.visualstudio.com{artifact_path}", False),
+        )
+        for name, url, accepted in cases:
+            with self.subTest(name=name):
+                result = self.validate_url(url)
+                self.assertEqual(result.returncode == 0, accepted, result.stderr)
 
 
 if __name__ == "__main__":

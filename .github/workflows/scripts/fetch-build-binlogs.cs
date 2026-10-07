@@ -16,6 +16,7 @@
 //
 // Usage: dotnet run --file ./fetch-build-binlogs.cs
 //        dotnet run --file ./fetch-build-binlogs.cs -- --extract <archive> <dest> <prefix> <budget> [label]
+//        dotnet run --file ./fetch-build-binlogs.cs -- --validate-url <url>
 
 using System.IO.Compression;
 using System.Linq;
@@ -27,6 +28,11 @@ using System.Text.RegularExpressions;
 if (args.Length > 0 && args[0] == "--extract")
 {
     return RunExtractOnly(args[1..]);
+}
+
+if (args.Length > 0 && args[0] == "--validate-url")
+{
+    return args.Length == 2 && IsTrustedArtifactUrl(args[1]) ? 0 : 1;
 }
 
 var githubOutput = Environment.GetEnvironmentVariable("GITHUB_OUTPUT") ?? string.Empty;
@@ -469,7 +475,7 @@ static bool IsTrustedArtifactUrl(string url)
             || path.StartsWith($"/dnceng-public/{ProjectId}/", StringComparison.OrdinalIgnoreCase);
     }
 
-    return Regex.IsMatch(uri.Host, @"^artprod[a-z0-9]+\.artifacts\.visualstudio\.com$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+    return Regex.IsMatch(uri.Host, @"^artprod(?:[.-]?[a-z0-9]+)\.artifacts\.visualstudio\.com$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
         && path.StartsWith($"/A{CollectionId}/{ProjectId}/", StringComparison.OrdinalIgnoreCase);
 }
 
