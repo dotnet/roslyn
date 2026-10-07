@@ -6406,6 +6406,11 @@ Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.get_Token
 Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.SkipForwardTo(System.Int32)
 Microsoft.CodeAnalysis.CSharp.TypedConstantExtensions
 Microsoft.CodeAnalysis.CSharp.TypedConstantExtensions.ToCSharpString(Microsoft.CodeAnalysis.TypedConstant)
+Microsoft.CodeAnalysis.CSharp.TypedConstantExtensions.ToCSharpString(Microsoft.CodeAnalysis.TypedConstant,Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions)
+Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions
+Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions.IncludeTypeSuffix
+Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions.None
+Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions.value__
 Microsoft.CodeAnalysis.CSharpExtensions
 Microsoft.CodeAnalysis.CSharpExtensions.Any(Microsoft.CodeAnalysis.SyntaxTokenList,Microsoft.CodeAnalysis.CSharp.SyntaxKind)
 Microsoft.CodeAnalysis.CSharpExtensions.Any(Microsoft.CodeAnalysis.SyntaxTriviaList,Microsoft.CodeAnalysis.CSharp.SyntaxKind)

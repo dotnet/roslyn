@@ -1587,9 +1587,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
                 // (1,15): warning CS8981: The type name 'closed' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // public struct closed { public int item; }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "closed").WithArguments("closed").WithLocation(1, 15),
-                // (3,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (3,8): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // public unsafe class C
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(3, 21)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 8)
             ]);
 
         N(SyntaxKind.CompilationUnit);
@@ -1824,9 +1824,9 @@ public sealed class ClosedModifierParsingTests : ParsingTests
                 // (1,15): error CS9380: Types and aliases cannot be named 'closed'.
                 // public struct closed { public int item; }
                 Diagnostic(ErrorCode.ERR_ClosedTypeNameDisallowed, "closed").WithLocation(1, 15),
-                // (3,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (3,8): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // public unsafe class C
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(3, 21),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 8),
                 // (5,26): error CS1519: Invalid token ';' in a member declaration
                 //     public closed _closed;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 26),

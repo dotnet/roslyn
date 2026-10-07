@@ -1,0 +1,11 @@
+﻿Source Location: (16:0,16 [68] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/XmlOnOpeningBraceLine.cshtml)
+|<summary>
+    Uses <see cref="System.DateTime"/>.
+    </summary>
+|
+Generated Location: (1183:18,4 [68] )
+|<summary>
+    Uses <see cref="System.DateTime"/>.
+    </summary>
+|
+

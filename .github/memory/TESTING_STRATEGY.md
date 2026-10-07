@@ -28,6 +28,18 @@ package versions for both suites.
 
 ## Repo-wide Authoring Conventions
 
+- Prefer tests that exercise an end-to-end scenario through the affected
+  component over exhaustive unit tests of each internal class or method. Use the
+  lowest-cost test harness that still covers the observable product behavior.
+- Assert expected observable behavior rather than the specific implementation
+  of a class. Tests should remain valid when internals are refactored without a
+  behavior change.
+- Do not add tests solely to verify ordinary cancellation propagation. Test
+  cancellation when the product code has specific behavior or special handling
+  for cancellation.
+- Avoid adding product hooks, accessors, or abstractions solely to enable unit
+  tests. Introduce a test seam only when the scenario is critical to cover and
+  cannot be adequately tested through existing observable behavior.
 - Prefer raw string literals (`"""..."""`) over verbatim strings for test source code.
 - Keep tests focused: use `.Single()` rather than asserting a count then indexing.
 - Analyzer testing-library tests should use `ReferenceAssemblies.Default` for
@@ -84,7 +96,11 @@ installed and added to `PATH` by the build step. RunTests defaults to the dotnet
 executable above its hosting runtime directory, so `--dotnet` is unnecessary.
 
 ### Test types to be aware of
-- VS integration tests (`azure-pipelines-integration*.yml`) require a VS install, so they run only on **Windows** hosts (not CI-only — they can be run locally on Windows). Prefer unit tests for the inner development loop; reach for integration tests when validating end-to-end VS behavior.
+- VS integration tests (`azure-pipelines-integration*.yml`) require a VS install,
+  so they run only on **Windows** hosts (not CI-only — they can be run locally on
+  Windows). Use the lowest-cost harness that exercises the scenario end to end;
+  reach for VS integration tests when the behavior depends on the full Visual
+  Studio environment.
 - `eng/test-vsi.ps1` selects the testhost architecture with `-testPlatform`,
   independently of the `-oop64bit` setting for Visual Studio's out-of-process
   services. It configures architecture-specific `DOTNET_ROOT` variables so

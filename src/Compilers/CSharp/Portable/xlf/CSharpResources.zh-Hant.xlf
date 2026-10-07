@@ -852,11 +852,6 @@
         <target state="translated">不允許明確應用 'System.Runtime.CompilerServices.NullableAttribute'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
-        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
-        <target state="translated">明確或延伸配置類型中的欄位必須標示為 'unsafe' 或 'safe'。</target>
-        <note>'unsafe' and 'safe' should not be localized.</note>
-      </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
         <target state="translated">請勿使用 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'。請改用 'params' 關鍵字。</target>
@@ -1186,6 +1181,11 @@
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">此內容不允許隱藏項目運算子</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_IllegalUnsafeModifier">
+        <source>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</source>
+        <target state="new">Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</target>
+        <note>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</note>
       </trans-unit>
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
@@ -1541,6 +1541,11 @@
         <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
         <target state="translated">無法同時在屬性或索引子 '{0}' 和其存取子上同時指定 'unsafe' 或 'safe' 修飾元。請移除其中一個。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_LayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</source>
+        <target state="new">Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
@@ -4275,7 +4280,7 @@
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
+-unsafe[+|-]                  Allow 'unsafe' code and 'safe' modifiers
 -define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
                               form: -d)
 -langversion:?                Display the allowed values for language version
@@ -4348,7 +4353,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Visual C# 編譯器選項
 
                        - OUTPUT FILES -

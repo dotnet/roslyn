@@ -79,15 +79,14 @@ public sealed class ServerInitializationTests(ITestOutputHelper testOutputHelper
         var debugTwo = "DebugTwo";
         var infoTwo = "InfoTwo";
         var logEnd = "LogEnd";
-        var logMessages = new ConcurrentBag<string>();
+        var logMessages = new ConcurrentQueue<string>();
         await using (var server = await CreateLanguageServerAsync())
         {
             var logCompletionSource = new TaskCompletionSource<LogMessageParams>();
 
             server.LogMessageReceived += logMessage =>
             {
-                logMessages.Add(logMessage.Message);
-
+                logMessages.Enqueue(logMessage.Message);
                 if (logMessage.Message.Contains(logEnd, StringComparison.Ordinal))
                 {
                     logCompletionSource.TrySetResult(logMessage);

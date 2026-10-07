@@ -180,6 +180,18 @@ public abstract class MSBuildWorkspaceTestBase : WorkspaceTestBase
         var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
         workspace.AddLoggerProvider(new TestOutputLoggerProvider(_testOutputHelper));
 
+        if (Environment.GetEnvironmentVariable("HELIX_DUMP_FOLDER") is { Length: > 0 } helixDumpFolder)
+        {
+            workspace.GetTestAccessor().SetBeforeKillHungBuildHostProcess(process =>
+            {
+                var dumpFilePath = Path.Combine(helixDumpFolder, $"HungBuildHost-{process.Id}-{Guid.NewGuid():N}.dmp");
+
+                _testOutputHelper.WriteLine($"Dumping timed-out BuildHost process {process.Id} to {dumpFilePath}.");
+                if (!DumpCollector.TryDumpProcess(process, dumpFilePath, _testOutputHelper.WriteLine))
+                    _testOutputHelper.WriteLine($"Failed to dump timed-out BuildHost process {process.Id}.");
+            });
+        }
+
         if (throwOnWorkspaceFailed)
         {
             _ = workspace.RegisterWorkspaceFailedHandler((e) =>

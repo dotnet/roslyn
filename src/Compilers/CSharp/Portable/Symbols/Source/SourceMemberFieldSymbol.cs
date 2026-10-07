@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // to determine whether or not unsafe is allowed.  Since this symbol and the containing type are
                 // in the same compilation, it won't make a difference.  We do, however, have to pass the error
                 // location explicitly.
-                containingType.CheckUnsafeModifier(result, errorLocation, diagnostics);
+                containingType.CheckUnsafeOptionForModifiers(result, diagnostics, modifiers, errorLocation);
             }
 
             if (isRefField)

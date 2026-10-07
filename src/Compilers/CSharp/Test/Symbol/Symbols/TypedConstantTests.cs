@@ -69,6 +69,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         }
 
         [Fact]
+        public void ToCSharpString_IncludeTypeSuffix()
+        {
+            Assert.Equal("42U", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_UInt32), TypedConstantKind.Primitive, 42u).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("42L", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_Int64), TypedConstantKind.Primitive, 42L).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("42UL", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_UInt64), TypedConstantKind.Primitive, 42UL).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("26.2D", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_Double), TypedConstantKind.Primitive, 26.2).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("3.14F", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_Single), TypedConstantKind.Primitive, 3.14f).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("12.5M", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_Decimal), TypedConstantKind.Primitive, 12.5m).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+        }
+
+        [Fact]
+        public void ToCSharpString_IncludeTypeSuffix_FormatsArrayElements()
+        {
+            var floatType = _compilation.GetSpecialType(SpecialType.System_Single);
+            var arrayType = _compilation.CreateArrayTypeSymbol(floatType);
+            var values = new TypedConstant(arrayType,
+                new[]
+                {
+                    new TypedConstant(floatType, TypedConstantKind.Primitive, 0.5f),
+                    new TypedConstant(floatType, TypedConstantKind.Primitive, 1.5f),
+                }.AsImmutableOrNull());
+
+            Assert.Equal("{0.5, 1.5}", values.ToCSharpString());
+            Assert.Equal("{0.5F, 1.5F}", values.ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+        }
+
+        [Fact]
+        public void ToCSharpString_IncludeTypeSuffix_LeavesOtherValuesUnchanged()
+        {
+            Assert.Equal("\"text\"", new TypedConstant(_stringType, TypedConstantKind.Primitive, "text").ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("42", new TypedConstant(_intType, TypedConstantKind.Primitive, 42).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("typeof(C)", new TypedConstant(_systemType, TypedConstantKind.Type, _namedType).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+        }
+
+        [Fact]
         public void Equality()
         {
             EqualityTesting.AssertEqual(default(TypedConstant), default(TypedConstant));

@@ -2173,7 +2173,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         await testLspServer.OpenDocumentAsync(uri);
 
         // Assert the task completes after a change occurs
-        var results = await resultTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        var results = await resultTask;
         Assert.NotEmpty(results);
     }
 
@@ -2201,7 +2201,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         testLspServer.TestWorkspace.OnProjectReloaded(projectInfo);
 
         // Assert the task completes after a change occurs
-        var results = await resultTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        var results = await resultTask;
         Assert.NotEmpty(results);
     }
 
@@ -2230,7 +2230,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
         refreshService.RequestWorkspaceRefresh();
 
         // Assert the task completes after a change occurs
-        var results = await resultTask.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        var results = await resultTask;
         Assert.NotEmpty(results);
     }
 

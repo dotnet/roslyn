@@ -105,6 +105,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
     /// Our code only ships in .NET 11 SDK and higher now where this DOTNET_HOST_PATH will be set.
     /// </summary>
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85889")]
     public void DotNetInPath_Symlinked()
     {
         using var tempRoot = new TempRoot();
@@ -115,7 +116,20 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
         var symlinkPath = Path.Combine(binDir.Path, $"dotnet{PlatformInformation.ExeExtension}");
 
         // Create symlink from binDir to the actual dotnet executable
-        File.CreateSymbolicLink(path: symlinkPath, pathToTarget: globalDotNetExe.Path);
+        try
+        {
+            File.CreateSymbolicLink(path: symlinkPath, pathToTarget: globalDotNetExe.Path);
+        }
+        catch (Exception ex) when (
+            PlatformInformation.IsWindows &&
+            !string.Equals(Environment.GetEnvironmentVariable("ROSLYN_TEST_CI"), "true", StringComparison.OrdinalIgnoreCase) &&
+            (ex is IOException { HResult: unchecked((int)0x80070522) } ||
+             ex is System.ComponentModel.Win32Exception { NativeErrorCode: 1314 }))
+        {
+            _output.WriteLine($"Skipping symlink test because the local process lacks symlink-creation privilege: {ex}");
+            return;
+        }
+
         var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
             testDir.Path,
             environmentVariables: new Dictionary<string, string>
