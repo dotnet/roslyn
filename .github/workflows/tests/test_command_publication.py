@@ -1,10 +1,11 @@
 import json
 import os
 from pathlib import Path
+import shutil
 import subprocess
+import tempfile
+import textwrap
 import unittest
-
-import yaml
 
 
 WORKFLOWS = Path(__file__).resolve().parents[1]
@@ -40,9 +41,26 @@ const AsyncFunction = Object.getPrototypeOf(async function() {}).constructor;
 """
 
 
-def load(path):
+def step_block(path, step_id, key):
     lines = path.read_text(encoding="utf-8").splitlines()
-    return yaml.safe_load("\n".join(lines[1:lines.index("---", 1)]))
+    step_index = next(
+        index
+        for index, line in enumerate(lines)
+        if line.strip() == f"id: {step_id}"
+    )
+    key_index = next(
+        index
+        for index, line in enumerate(lines[step_index + 1 :], step_index + 1)
+        if line.strip() == f"{key}: |"
+    )
+    key_indent = len(lines[key_index]) - len(lines[key_index].lstrip())
+    block = []
+    for line in lines[key_index + 1 :]:
+        indent = len(line) - len(line.lstrip())
+        if line.strip() and indent <= key_indent:
+            break
+        block.append(line)
+    return textwrap.dedent("\n".join(block)).rstrip()
 
 
 def publication_jobs(agent="success", cli="success", safe="success", process="success"):
@@ -63,18 +81,23 @@ def publication_jobs(agent="success", cli="success", safe="success", process="su
 class CommandPublicationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.workflow = load(WORKFLOWS / f"{WORKFLOW_NAME}.md")
-        cls.check = next(
-            step
-            for step in cls.workflow["jobs"]["fetch-binlog"]["steps"]
-            if step.get("id") == "command"
+        cls.source_path = WORKFLOWS / f"{WORKFLOW_NAME}.md"
+        cls.source = cls.source_path.read_text(encoding="utf-8")
+        cls.check_script = step_block(cls.source_path, "command", "script")
+        cls.permission_script = step_block(cls.source_path, "permission", "run")
+        cls.bash = os.environ.get("BFA_BASH") or (
+            r"C:\Program Files\Git\bin\bash.exe"
+            if os.name == "nt"
+            else shutil.which("bash")
         )
+        if not cls.bash:
+            raise RuntimeError("Bash is required.")
 
     def run_check(self, jobs, title="Build failure analysis command 123"):
         fixture = {
             "runs": [{"id": 9, "run_attempt": 2, "display_title": title}],
             "jobs": {"9:2": jobs},
-            "script": self.check["with"]["script"],
+            "script": self.check_script,
         }
         result = subprocess.run(
             ["node", "-e", HARNESS],
@@ -104,29 +127,62 @@ class CommandPublicationTests(unittest.TestCase):
                 )
 
     def test_activation_requires_the_exact_command_token(self):
-        condition = self.workflow["jobs"]["fetch-binlog"]["if"]
-        group = self.workflow["concurrency"]["group"]
         for expression in (
             f"github.event.comment.body == '{COMMAND}'",
             f"startsWith(github.event.comment.body, '{COMMAND} ')",
             f"startsWith(github.event.comment.body, '{COMMAND}\\n')",
             f"startsWith(github.event.comment.body, '{COMMAND}\\r')",
         ):
-            self.assertIn(expression, condition)
-            self.assertIn(expression, group)
+            self.assertEqual(self.source.count(expression), 2)
+
+    def test_collaborator_permissions_use_rest_api_values(self):
+        for permission, expected in (
+            ("admin", True),
+            ("maintain", True),
+            ("push", True),
+            ("triage", False),
+            ("pull", False),
+            ("", False),
+        ):
+            with self.subTest(permission=permission):
+                with tempfile.TemporaryDirectory(prefix="roslyn-bfa-permission-") as directory:
+                    result = subprocess.run(
+                        [self.bash, "--noprofile", "--norc", "-s"],
+                        input=(
+                            'gh() { printf \'{"permission":"%s"}\' "$PERMISSION"; }\n'
+                            'jq() { printf \'%s\' "$PERMISSION"; }\n'
+                            + self.permission_script
+                        ),
+                        text=True,
+                        capture_output=True,
+                        cwd=directory,
+                        env={
+                            **os.environ,
+                            "COMMENT_BODY": COMMAND,
+                            "COMMENTER": "maintainer",
+                            "COMMAND_NAME": COMMAND.removeprefix("/"),
+                            "GITHUB_OUTPUT": "outputs",
+                            "GITHUB_REPOSITORY": "dotnet/roslyn",
+                            "PERMISSION": permission,
+                        },
+                        timeout=15,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    output = (Path(directory) / "outputs").read_text(encoding="utf-8")
+                    self.assertIn(
+                        f"authorized={str(expected).lower()}",
+                        output,
+                    )
 
     def test_compiled_workflow_preserves_the_source_predicate(self):
-        lock = yaml.safe_load(
-            (WORKFLOWS / f"{WORKFLOW_NAME}.lock.yml").read_text(encoding="utf-8")
-        )
-        compiled = next(
-            step
-            for step in lock["jobs"]["fetch-binlog"]["steps"]
-            if step.get("id") == "command"
+        compiled_script = step_block(
+            WORKFLOWS / f"{WORKFLOW_NAME}.lock.yml",
+            "command",
+            "script",
         )
         self.assertEqual(
-            compiled["with"]["script"].strip(),
-            self.check["with"]["script"].strip(),
+            compiled_script,
+            self.check_script,
         )
 
 

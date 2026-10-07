@@ -92,7 +92,7 @@ jobs:
           response=$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${COMMENTER}/permission" 2>/dev/null)
           permission=$(printf '%s' "${response}" | jq -r '.permission // empty' 2>/dev/null)
           case "${permission}" in
-            admin|write) authorized=true ;;
+            admin|maintain|push) authorized=true ;;
             *) authorized=false ;;
           esac
           if [ "${authorized}" = "true" ]; then
