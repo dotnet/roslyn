@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
@@ -20,22 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal sealed partial class SourceNamespaceSymbol : NamespaceSymbol
     {
         private static readonly ImmutableDictionary<SyntaxReference, AliasesAndUsings> s_emptyMap =
-            ImmutableDictionary<SyntaxReference, AliasesAndUsings>.Empty.WithComparers(SyntaxReferenceComparer.Instance);
-
-        private sealed class SyntaxReferenceComparer : IEqualityComparer<SyntaxReference>
-        {
-            public static readonly SyntaxReferenceComparer Instance = new();
-
-            private SyntaxReferenceComparer()
-            {
-            }
-
-            public bool Equals(SyntaxReference x, SyntaxReference y)
-                => ReferenceEquals(x.SyntaxTree, y.SyntaxTree) && x.Span == y.Span;
-
-            public int GetHashCode(SyntaxReference obj)
-                => Hash.Combine(RuntimeHelpers.GetHashCode(obj.SyntaxTree), obj.Span.GetHashCode());
-        }
+            ImmutableDictionary<SyntaxReference, AliasesAndUsings>.Empty.WithComparers(SyntaxReferenceEqualityComparer.Instance);
 
         private readonly SourceModuleSymbol _module;
         private readonly Symbol _container;
