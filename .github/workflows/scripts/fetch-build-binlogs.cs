@@ -64,7 +64,7 @@ if (token.Length != 0)
     github.DefaultRequestHeaders.Authorization = new("Bearer", token);
 }
 
-using var ado = new HttpClient();
+using var ado = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
 ado.DefaultRequestHeaders.UserAgent.ParseAdd("roslyn-build-failure-analysis");
 
 // --- 1. Resolve and validate the PR number ---------------------------------
@@ -473,6 +473,53 @@ static bool IsTrustedArtifactUrl(string url)
         && path.StartsWith($"/A{CollectionId}/{ProjectId}/", StringComparison.OrdinalIgnoreCase);
 }
 
+static bool IsRedirect(HttpStatusCode status)
+    => status is HttpStatusCode.MovedPermanently or HttpStatusCode.Found or HttpStatusCode.SeeOther
+        or HttpStatusCode.TemporaryRedirect or HttpStatusCode.PermanentRedirect;
+
+static async Task<HttpResponseMessage> Get(
+    HttpClient client, string url, HttpCompletionOption completion, CancellationToken cancellation)
+{
+    const int MaxRedirects = 5;
+
+    var response = await client.GetAsync(url, completion, cancellation);
+    for (var redirect = 0; redirect < MaxRedirects && IsRedirect(response.StatusCode); redirect++)
+    {
+        Uri? next = null;
+        try
+        {
+            var location = response.Headers.Location;
+            if (location is not null)
+            {
+                next = new Uri(new Uri(url), location);
+            }
+        }
+        catch (UriFormatException)
+        {
+        }
+
+        response.Dispose();
+        if (next is null || !IsTrustedArtifactUrl(next.AbsoluteUri))
+        {
+            Console.WriteLine(
+                "::warning::Refusing an artifact redirect outside dnceng-public/public.");
+            return new HttpResponseMessage(HttpStatusCode.Forbidden);
+        }
+
+        url = next.AbsoluteUri;
+        response = await client.GetAsync(url, completion, cancellation);
+    }
+
+    if (!IsRedirect(response.StatusCode))
+    {
+        return response;
+    }
+
+    response.Dispose();
+    Console.WriteLine($"::warning::Refusing an artifact after more than {MaxRedirects} redirects.");
+    return new HttpResponseMessage(HttpStatusCode.Forbidden);
+}
+
 // Retries transient failures twice; the workflow's `timeout 600` bounds the run.
 // `read` runs under the attempt's timeout, so a stalled body is covered too.
 static async Task<(T? Value, string? Error)> Fetch<T>(
@@ -489,7 +536,8 @@ static async Task<(T? Value, string? Error)> Fetch<T>(
         try
         {
             using var cts = new CancellationTokenSource(timeout);
-            using var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+            using var response = await Get(
+                client, url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
             if (response.IsSuccessStatusCode)
             {
                 return (await read(response, cts.Token), null);
@@ -630,27 +678,48 @@ static class Extractor
 
         var written = 0L;
         var buffer = new byte[1024 * 1024];
-
-        for (var index = 0; index < selected.Length; index++)
+        var created = new List<string>(selected.Length);
+        try
         {
-            var stem = safeLabel.Length == 0 ? $"{prefix}_{index}" : $"{prefix}_{index}_{safeLabel}";
-
-            using var source = selected[index].Open();
-            // CreateNew, so a name that somehow already exists is an error rather
-            // than a silent overwrite of a previous artifact's binlog.
-            using var output = new FileStream(Path.Combine(destination, $"{stem}.binlog"), FileMode.CreateNew, FileAccess.Write);
-
-            int read;
-            while ((read = source.Read(buffer, 0, buffer.Length)) > 0)
+            for (var index = 0; index < selected.Length; index++)
             {
-                written += read;
-                if (written > budgetBytes)
-                {
-                    throw new InvalidDataException("extracted binlogs exceed the remaining budget");
-                }
+                var stem = safeLabel.Length == 0 ? $"{prefix}_{index}" : $"{prefix}_{index}_{safeLabel}";
+                var outputPath = Path.Combine(destination, $"{stem}.binlog");
 
-                output.Write(buffer, 0, read);
+                using var source = selected[index].Open();
+                // CreateNew, so a name that somehow already exists is an error rather
+                // than a silent overwrite of a previous artifact's binlog.
+                using var output = new FileStream(outputPath, FileMode.CreateNew, FileAccess.Write);
+                created.Add(outputPath);
+
+                int read;
+                while ((read = source.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    written += read;
+                    if (written > budgetBytes)
+                    {
+                        throw new InvalidDataException("extracted binlogs exceed the remaining budget");
+                    }
+
+                    output.Write(buffer, 0, read);
+                }
             }
+        }
+        catch
+        {
+            foreach (var path in created)
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (Exception)
+                {
+                    // Preserve the extraction failure that triggered cleanup.
+                }
+            }
+
+            throw;
         }
 
         return (selected.Length, written);

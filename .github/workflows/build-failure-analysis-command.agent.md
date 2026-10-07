@@ -27,7 +27,7 @@ permissions:
 # Commands for a PR queue rather than cancel; `queue: max` keeps a quoted
 # command from evicting a pending real one. Other comments get a unique group.
 concurrency:
-  group: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '/analyze-build-failure') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) && format('build-failure-analysis-cmd-{0}', github.event.issue.number) || format('build-failure-analysis-cmd-run-{0}', github.run_id) }}
+  group: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) && (github.event.comment.body == '/analyze-build-failure' || startsWith(github.event.comment.body, '/analyze-build-failure ') || startsWith(github.event.comment.body, '/analyze-build-failure\n') || startsWith(github.event.comment.body, '/analyze-build-failure\r')) && format('build-failure-analysis-cmd-{0}', github.event.issue.number) || format('build-failure-analysis-cmd-run-{0}', github.run_id) }}
   cancel-in-progress: false
   queue: max
 
@@ -48,7 +48,10 @@ jobs:
       github.event.repository.fork == false &&
       github.event.issue.pull_request &&
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
-      startsWith(github.event.comment.body, '/analyze-build-failure')
+      (github.event.comment.body == '/analyze-build-failure' ||
+       startsWith(github.event.comment.body, '/analyze-build-failure ') ||
+       startsWith(github.event.comment.body, '/analyze-build-failure\n') ||
+       startsWith(github.event.comment.body, '/analyze-build-failure\r'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -63,8 +66,45 @@ jobs:
       ado-build-id: ${{ steps.fetch.outputs.ado-build-id }}
       ado-build-url: ${{ steps.fetch.outputs.ado-build-url }}
     steps:
+      - name: Verify the command and commenter permission
+        id: permission
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENTER: ${{ github.event.comment.user.login }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMAND_NAME: "analyze-build-failure"
+        run: |
+          set +e
+          case "${COMMENT_BODY}" in
+            "/${COMMAND_NAME}" | "/${COMMAND_NAME} "* | "/${COMMAND_NAME}"$'\n'* | "/${COMMAND_NAME}"$'\r'*) ;;
+            *)
+              echo "Comment does not match the slash-command activation predicate."
+              echo "authorized=false" >> "$GITHUB_OUTPUT"
+              exit 0
+              ;;
+          esac
+          if [[ ! "${COMMENTER}" =~ ^[A-Za-z0-9-]+$ ]]; then
+            echo "::warning::Commenter login is missing or malformed."
+            echo "authorized=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          response=$(gh api "repos/${GITHUB_REPOSITORY}/collaborators/${COMMENTER}/permission" 2>/dev/null)
+          permission=$(printf '%s' "${response}" | jq -r '.permission // empty' 2>/dev/null)
+          case "${permission}" in
+            admin|write) authorized=true ;;
+            *) authorized=false ;;
+          esac
+          if [ "${authorized}" = "true" ]; then
+            echo "'${COMMENTER}' has '${permission}' access; proceeding."
+          else
+            echo "::warning::'${COMMENTER}' does not have write access (resolved permission '${permission:-none}')."
+          fi
+          echo "authorized=${authorized}" >> "$GITHUB_OUTPUT"
+
       - name: Check for completed command publication
         id: command
+        if: steps.permission.outputs.authorized == 'true'
         uses: actions/github-script@v9.0.0
         env:
           WORKFLOW_FILE: build-failure-analysis-command.agent.lock.yml
@@ -92,8 +132,15 @@ jobs:
                 const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRunAttempt, {
                   ...context.repo, run_id: run.id, attempt_number: run.run_attempt, per_page: 100,
                 });
-                if (jobs.some(job => job.name === "safe_outputs" && job.conclusion === "success" &&
-                    job.steps?.some(step => step.name === "Process Safe Outputs" && step.conclusion === "success"))) {
+                const agentCompleted = jobs.some(job =>
+                  job.name === "agent" && job.conclusion === "success" &&
+                  job.steps?.some(step =>
+                    step.name === "Execute GitHub Copilot CLI" && step.conclusion === "success"));
+                const outputsCompleted = jobs.some(job =>
+                  job.name === "safe_outputs" && job.conclusion === "success" &&
+                  job.steps?.some(step =>
+                    step.name === "Process Safe Outputs" && step.conclusion === "success"));
+                if (agentCompleted && outputsCompleted) {
                   core.notice("This command completed publication; post a new command to rerun.");
                   core.setOutput("completed", "true");
                   return;
@@ -105,7 +152,7 @@ jobs:
 
       # Scripts come from the default branch, never the PR's refs.
       - name: Check out analysis scripts
-        if: steps.command.outputs.completed == 'false'
+        if: steps.permission.outputs.authorized == 'true' && steps.command.outputs.completed == 'false'
         uses: actions/checkout@v7.0.1
         with:
           ref: refs/heads/${{ github.event.repository.default_branch }}
@@ -115,7 +162,7 @@ jobs:
       # On failure or timeout `binlog-found` stays unset, which skips analysis.
       - name: Download binlogs from the PR's latest failed Azure Pipelines build
         id: fetch
-        if: steps.command.outputs.completed == 'false'
+        if: steps.permission.outputs.authorized == 'true' && steps.command.outputs.completed == 'false'
         shell: bash
         continue-on-error: true
         env:

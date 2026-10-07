@@ -43,6 +43,7 @@ permissions:
 concurrency:
   group: ${{ (github.event_name == 'check_run' && github.event.check_run.name == 'roslyn-CI' && format('build-failure-analysis-{0}', github.event.check_run.pull_requests[0].number || github.event.check_run.head_sha)) || (github.event_name == 'workflow_dispatch' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && format('build-failure-analysis-{0}', inputs['pr-number'])) || format('build-failure-analysis-run-{0}', github.run_id) }}
   cancel-in-progress: true
+  job-discriminator: ${{ github.run_id }}
 
 timeout-minutes: 30
 
