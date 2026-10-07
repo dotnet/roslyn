@@ -735,7 +735,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
                 fileChangeTcs.TrySetResult();
         };
 
-        await fileChangeTcs.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        await fileChangeTcs.Task;
     }
 
     [Theory, CombinatorialData]

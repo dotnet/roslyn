@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.AspNetCore.Razor.Language.Syntax.InternalSyntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 
@@ -25,15 +26,40 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     };
 
     private Stack<TagTracker> _tagTracker = new Stack<TagTracker>();
+    private readonly bool _parseAsXml;
 
     public HtmlMarkupParser(ParserContext context)
-        : base(context.Options.ParseLeadingDirectives ? FirstDirectiveHtmlLanguageCharacteristics.Instance : HtmlLanguageCharacteristics.Instance, context)
+        : this(context, parseAsXml: false)
     {
+    }
+
+    private HtmlMarkupParser(ParserContext context, bool parseAsXml)
+        : base(!parseAsXml && context.Options.ParseLeadingDirectives ? FirstDirectiveHtmlLanguageCharacteristics.Instance : HtmlLanguageCharacteristics.Instance, context)
+    {
+        _parseAsXml = parseAsXml;
+        _tokenizer.Tokenizer.IgnoreRazorTransitions = parseAsXml;
+    }
+
+    public static int ParseXmlBody(
+        RazorSourceDocument sourceDocument,
+        int start,
+        RazorParserOptions options,
+        CancellationToken cancellationToken)
+    {
+        // Keep tokenizer, tag and span state separate from the surrounding Razor parser.
+        using var xmlContext = new ParserContext(sourceDocument, options, cancellationToken);
+        xmlContext.Source.Position = start;
+        using var parser = new HtmlMarkupParser(xmlContext, parseAsXml: true);
+        parser.ParseRazorBlock(Tuple.Create("{", "}"));
+        return xmlContext.Source.Position;
     }
 
     private TagTracker? CurrentTracker => _tagTracker.Count > 0 ? _tagTracker.Peek() : null;
 
     private string? CurrentStartTagName => CurrentTracker?.TagName;
+
+    // XML tag names are case-sensitive; HTML tag names are not.
+    private StringComparison TagNameComparison => _parseAsXml ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
     private CSharpCodeParser? _codeParser;
     public CSharpCodeParser CodeParser
@@ -45,13 +71,6 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             return _codeParser!;
         }
         set => _codeParser = value;
-    }
-
-    private bool CaseSensitive { get; set; }
-
-    private StringComparison Comparison
-    {
-        get { return CaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase; }
     }
 
     //
@@ -183,7 +202,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     // Similar to ParseBlock, the tag stack inside a razor block is different from the stack outside the block.
     // E.g, `@section Foo { </div> } <div>` will be parsed as two separate elements.
     //
-    public MarkupBlockSyntax ParseRazorBlock(Tuple<string, string> nestingSequences, bool caseSensitive)
+    public MarkupBlockSyntax ParseRazorBlock(Tuple<string, string> nestingSequences)
     {
         CancellationToken.ThrowIfCancellationRequested();
 
@@ -204,7 +223,6 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 var builder = pooledResult.Builder;
 
                 NextToken();
-                CaseSensitive = caseSensitive;
                 NestingBlock(builder, nestingSequences);
                 AcceptMarkerTokenIfNecessary();
                 builder.Add(OutputAsMarkupLiteral());
@@ -508,9 +526,9 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         {
             // Parsing an end tag.
             var endTagStart = CurrentStart;
-            var endTag = ParseEndTag(mode, out var endTagName, out _);
-
-            if (string.Equals(CurrentStartTagName, endTagName, StringComparison.OrdinalIgnoreCase))
+            var endTag = ParseEndTag(mode, out var endTagName);
+            var matchesStartTag = string.Equals(CurrentStartTagName, endTagName, TagNameComparison);
+            if (matchesStartTag)
             {
                 // Happy path. Found a matching start tag. Create the element and reset the builder.
                 var tracker = _tagTracker.Pop();
@@ -577,8 +595,9 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
     private bool TryRecoverStartTag(in SyntaxListBuilder<RazorSyntaxNode> builder, string endTagName, MarkupEndTagSyntax endTag)
     {
         // First check if the tag we're tracking is a void tag. If so, we need to close it out before moving on.
-        while (_tagTracker.Count > 0 &&
-            !string.Equals(CurrentStartTagName, endTagName, StringComparison.OrdinalIgnoreCase) &&
+        while (!_parseAsXml &&
+            _tagTracker.Count > 0 &&
+            !string.Equals(CurrentStartTagName, endTagName, TagNameComparison) &&
             IsVoidElement(CurrentStartTagName))
         {
             var tracker = _tagTracker.Pop();
@@ -592,7 +611,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         var malformedTagCount = 0;
         foreach (var tag in _tagTracker)
         {
-            if (string.Equals(tag.TagName, endTagName, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(tag.TagName, endTagName, TagNameComparison))
             {
                 break;
             }
@@ -767,7 +786,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             chunkGenerator,
             GetEditHandler());
 
-        if (string.Equals(tagName, ScriptTagName, StringComparison.OrdinalIgnoreCase))
+        if (!_parseAsXml && string.Equals(tagName, ScriptTagName, TagNameComparison))
         {
             // If the script tag expects javascript content then we should do minimal parsing until we reach
             // the end script tag. Don't want to incorrectly parse a "var tag = '<input />';" as an HTML tag.
@@ -861,7 +880,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         }
     }
 
-    private MarkupEndTagSyntax ParseEndTag(ParseMode mode, out string tagName, out bool isWellFormed)
+    private MarkupEndTagSyntax ParseEndTag(ParseMode mode, out string tagName)
     {
         // This section can accept things like: '</p  >' or '</p>' etc.
         Assert(SyntaxKind.OpenAngle);
@@ -897,7 +916,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     string.Equals(_tagTracker.Last().TagName, SyntaxConstants.TextTagName, StringComparison.OrdinalIgnoreCase))
                 {
                     // This means there is only one open text tag and it is the outermost tag.
-                    return ParseEndTextTag(openAngleToken, forwardSlashToken, out isWellFormed);
+                    return ParseEndTextTag(openAngleToken, forwardSlashToken);
                 }
             }
 
@@ -914,7 +933,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         {
             var miscAttributeBuilder = pooledResult.Builder;
 
-            AcceptWhile(SyntaxKind.Whitespace);
+            AcceptWhile(_parseAsXml ? IsSpacingTokenIncludingNewLines : IsSpacingToken);
             miscAttributeBuilder.Add(OutputAsMarkupLiteral());
 
             if (mode == ParseMode.MarkupInCodeBlock)
@@ -938,12 +957,10 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
         if (At(SyntaxKind.CloseAngle))
         {
-            isWellFormed = true;
             closeAngleToken = EatCurrentToken();
         }
         else
         {
-            isWellFormed = false;
             closeAngleToken = SyntaxFactory.MissingToken(SyntaxKind.CloseAngle);
         }
 
@@ -960,7 +977,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             GetEditHandler());
     }
 
-    private MarkupEndTagSyntax ParseEndTextTag(SyntaxToken openAngleToken, SyntaxToken forwardSlashToken, out bool isWellFormed)
+    private MarkupEndTagSyntax ParseEndTextTag(SyntaxToken openAngleToken, SyntaxToken forwardSlashToken)
     {
         // At this point, we should have already accepted the open angle and forward slash. We won't get here if the tag is escaped.
         var textLocation = CurrentStart;
@@ -973,8 +990,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         {
             var miscAttributeBuilder = pooledResult.Builder;
 
-            isWellFormed = At(SyntaxKind.CloseAngle);
-            if (!isWellFormed)
+            if (!At(SyntaxKind.CloseAngle))
             {
                 Context.ErrorSink.OnError(
                     RazorDiagnosticFactory.CreateParsing_TextTagCannotContainAttributes(
@@ -1585,24 +1601,24 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         builder.Add(element);
     }
 
-    private bool ParseSpecialTag(in SyntaxListBuilder<RazorSyntaxNode> builder)
+    private void ParseSpecialTag(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         // Clear the current token builder.
         builder.Add(OutputAsMarkupLiteral());
 
-        return AcceptTokenUntilAll(builder, SyntaxKind.CloseAngle);
+        AcceptTokenUntilAll(builder, SyntaxKind.CloseAngle);
     }
 
-    private bool ParseXmlPI(in SyntaxListBuilder<RazorSyntaxNode> builder)
+    private void ParseXmlPI(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         Assert(SyntaxKind.OpenAngle);
         AcceptAndMoveNext();
         Assert(SyntaxKind.QuestionMark);
         AcceptAndMoveNext();
-        return AcceptTokenUntilAll(builder, SyntaxKind.QuestionMark, SyntaxKind.CloseAngle);
+        AcceptTokenUntilAll(builder, SyntaxKind.QuestionMark, SyntaxKind.CloseAngle);
     }
 
-    private bool ParseCData(in SyntaxListBuilder<RazorSyntaxNode> builder)
+    private void ParseCData(in SyntaxListBuilder<RazorSyntaxNode> builder)
     {
         // <![CDATA[...]]>
         Assert(SyntaxKind.OpenAngle);
@@ -1612,7 +1628,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         Debug.Assert(CurrentToken.Kind == SyntaxKind.Text && string.Equals(CurrentToken.Content, "cdata", StringComparison.OrdinalIgnoreCase));
         AcceptAndMoveNext();
         Assert(SyntaxKind.LeftBracket);
-        return AcceptTokenUntilAll(builder, SyntaxKind.RightBracket, SyntaxKind.RightBracket, SyntaxKind.CloseAngle);
+        AcceptTokenUntilAll(builder, SyntaxKind.RightBracket, SyntaxKind.RightBracket, SyntaxKind.CloseAngle);
     }
 
     private void ParseDoubleTransition(in SyntaxListBuilder<RazorSyntaxNode> builder)
@@ -1870,19 +1886,29 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         return lastDoubleHyphen;
     }
 
-    private bool AcceptTokenUntilAll(in SyntaxListBuilder<RazorSyntaxNode> builder, params SyntaxKind[] endSequence)
+    private void AcceptTokenUntilAll(in SyntaxListBuilder<RazorSyntaxNode> builder, params SyntaxKind[] endSequence)
     {
         while (!EndOfFile)
         {
             ParseMarkupNodes(builder, ParseMode.Text, t => t.Kind == endSequence[0]);
-            if (AcceptAll(endSequence))
+
+            // A partial match must not consume a possible overlapping terminator, e.g. "]]]>".
+            var matchLength = 0;
+            while (matchLength < endSequence.Length && Lookahead(matchLength)?.Kind == endSequence[matchLength])
             {
-                return true;
+                matchLength++;
             }
+
+            if (matchLength == endSequence.Length)
+            {
+                AcceptAll(endSequence);
+                return;
+            }
+
+            AcceptAndMoveNext();
         }
         Debug.Assert(EndOfFile);
         SetAcceptedCharacters(AcceptedCharactersInternal.Any);
-        return false;
     }
 
     private void FastReadWhitespaceAndNewLines(ref PooledArrayBuilder<SyntaxToken> whitespaceTokens)
@@ -1944,13 +1970,13 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     // Checking to see if we meet the conditions of a special '!' tag: <!DOCTYPE, <![CDATA[, <!--.
                     if (!IsBangEscape(lookahead: 1))
                     {
-                        if (IsHtmlCommentAhead())
+                        if (_parseAsXml ? Lookahead(2)?.Kind == SyntaxKind.DoubleHyphen : IsHtmlCommentAhead())
                         {
                             return ParserState.MarkupComment;
                         }
                         else if (Lookahead(2)?.Kind == SyntaxKind.LeftBracket &&
                             Lookahead(3) is SyntaxToken tagName &&
-                            string.Equals(tagName.Content, "cdata", StringComparison.OrdinalIgnoreCase) &&
+                            string.Equals(tagName.Content, "CDATA", TagNameComparison) &&
                             Lookahead(4)?.Kind == SyntaxKind.LeftBracket)
                         {
                             return ParserState.CData;
@@ -2003,6 +2029,11 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
 
     private bool IsBangEscape(int lookahead)
     {
+        if (_parseAsXml)
+        {
+            return false;
+        }
+
         var potentialBang = Lookahead(lookahead);
 
         if (potentialBang != null &&
@@ -2129,14 +2160,15 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
         var nesting = 1;
         while (nesting > 0 && !EndOfFile)
         {
-            ParseMarkupNodes(builder, ParseMode.Text, token =>
-                token.Kind == SyntaxKind.Text ||
-                token.Kind == SyntaxKind.OpenAngle);
+            ParseMarkupNodes(builder, ParseMode.Text, token => token.Kind is SyntaxKind.Text or SyntaxKind.OpenAngle);
             if (At(SyntaxKind.Text))
             {
                 // We need to inspect this text token to figure out if this could be the end of the Razor block
                 // or if it is the start of a new block in which case we need to keep track of the nesting level.
-                nesting += ProcessTextToken(builder, nestingSequences, nesting);
+                if (!_parseAsXml || _tagTracker.Count == 0)
+                {
+                    nesting += ProcessTextToken(builder, nestingSequences, nesting);
+                }
                 if (CurrentToken != null)
                 {
                     // This was just some regular text. Accept and move on.
@@ -2181,6 +2213,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 return nestingDelta;
             }
         }
+
         return 0;
     }
 
@@ -2191,7 +2224,9 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
             position + sequence.Length <= CurrentToken.Content.Length)
         {
             var possibleStart = CurrentToken.Content.AsSpan(position, sequence.Length);
-            if (possibleStart.Equals(sequence.AsSpan(), Comparison))
+            // Compare the token slice with an opening or closing Razor block delimiter ("{" or "}").
+            // Delimiters are literal syntax, so use an exact, culture-independent ordinal comparison.
+            if (possibleStart.Equals(sequence.AsSpan(), StringComparison.Ordinal))
             {
                 // Capture the current token and "put it back" (really we just want to clear CurrentToken)
                 var bookmark = CurrentStart;
@@ -2203,6 +2238,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                 Debug.Assert(right != null);
                 var (sequenceToken, _) = Language.SplitToken(right, sequence.Length, SyntaxKind.Text);
                 var postSequenceBookmark = bookmark.AbsoluteIndex + preSequence.Content.Length + sequenceToken.Content.Length;
+                var closesBlock = currentNesting + retIfMatched == 0;
 
                 // Accept the first chunk (up to the nesting sequence we just saw)
                 if (!string.IsNullOrEmpty(preSequence.Content))
@@ -2210,7 +2246,7 @@ internal class HtmlMarkupParser : TokenizerBackedParser<HtmlTokenizer>
                     Accept(preSequence);
                 }
 
-                if (currentNesting + retIfMatched == 0)
+                if (closesBlock)
                 {
                     // This is 'popping' the final entry on the stack of nesting sequences
                     // A caller higher in the parsing stack will accept the sequence token, so advance

@@ -46,10 +46,15 @@ their original sub-tree layout
   phases to preserve a test-only execution path.
 - **Razor documents in Roslyn**: Stored as additional documents. Resolve via
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
-- **Razor documents with virtual URIs**: Remote Razor document classification preserves the full
-  additional-document `FilePath` for identity. For parseable absolute URI file paths, inspect the
-  URI's local path when checking the `.razor` or `.cshtml` extension; do not strip the query from
-  the stored file path.
+- **Razor documents with virtual URIs**: Preserve the full additional-document `FilePath` and
+  source-generator `RelativePhysicalPath` for document and generated-source identity.
+  Use `FileUtilities.AdjustToUsableFilePath` for file-kind classification, project-item paths, and
+  source-document `RelativePath`; URI queries and fragments aren't part of logical filenames.
+- **Generated C# filenames**: Use `CodeWriterExtensions.WriteFilePath` for `#line` and checksum
+  directive filenames. URI quotes and line breaks need percent encoding, not C# string escaping;
+  preserve the rest of the URI and its forward slashes without URI parsing.
+  Use `WriteVerbatimStringLiteral` for verbatim metadata literals so
+  embedded quotes are escaped without changing their values.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
 - **Formatting options across OOP**: Cohost endpoints must resolve

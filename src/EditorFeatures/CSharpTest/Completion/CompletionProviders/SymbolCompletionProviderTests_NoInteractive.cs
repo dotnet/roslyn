@@ -337,7 +337,7 @@ public sealed class SymbolCompletionProviderTests_NoInteractive : AbstractCSharp
         var completions = await service.GetCompletionsAsync(document, position, options, OptionSet.Empty);
 
         var item = completions.ItemsList.First(i => i.DisplayText == "Beep");
-        var edit = testDocument.GetTextBuffer().CreateEdit();
+        using var edit = testDocument.GetTextBuffer().CreateEdit();
         edit.Delete(Span.FromBounds(position - 10, position));
         edit.Apply();
 

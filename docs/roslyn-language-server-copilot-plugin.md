@@ -34,34 +34,16 @@ With the plugin active, the agent gains LSP-powered capabilities for C# code:
 
 ## Automatic Project Loading
 
-When started with `--autoLoadProjects`, the language server discovers and loads projects at startup using the following strategy (evaluated in order):
-
-### 1. VS Code Settings (`dotnet.defaultSolution`)
-
-If a `.vscode/settings.json` file exists in the workspace folder, the server reads the `dotnet.defaultSolution` setting:
+The server is configured to automatically discover and load projects via either the `--autoLoadProjects [maximum]` CLI flag (defaults to a maximum of 500 projects if value omitted) or LSP `initializationOptions` in the Copilot lsp.json as defined below.
 
 ```jsonc
-// .vscode/settings.json
+// lsp.json
 {
-  "dotnet.defaultSolution": "src/MyApp.sln"
+  "initializationOptions": { "autoLoadProjects": 500 }
 }
 ```
 
-- **Relative or absolute paths** to a `.sln` or `.slnx` file are supported.
-- Set to `"disable"` to prevent the server from loading a solution or projects at startup:
-  ```jsonc
-  {
-    "dotnet.defaultSolution": "disable"
-  }
-  ```
-
-### 2. Single Solution File at the Root
-
-If there is exactly **one** `.sln` or `.slnx` file at the root of the workspace folder, the server will automatically load that solution.
-
-### 3. Individual Project Discovery
-
-As a fallback, the server recursively discovers all `.csproj` files within the workspace folders and loads them individually.
+For how the server chooses which solution or projects to load, and how to control it, see [Automatic project loading](../src/LanguageServer/roslyn-language-server/README.md#automatic-project-loading).
 
 ### On-Demand Project Loading
 
@@ -136,6 +118,6 @@ When the agent opens a workspace containing `.cs` files, it will:
 | Option | Description |
 |--------|-------------|
 | `--stdio` | Use stdio for LSP communication (required for most agent integrations) |
-| `--autoLoadProjects` | Automatically discover and load projects from workspace folders |
+| `--autoLoadProjects [maximum]` | Automatically discover and load projects; optionally limit individual project discovery (currently defaults to 500) |
 | `--logLevel <level>` | Minimum log verbosity (default: `Information`) |
 | `--debug` | Launch the debugger on startup |

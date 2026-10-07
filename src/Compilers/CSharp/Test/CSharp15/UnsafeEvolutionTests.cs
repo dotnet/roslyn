@@ -5728,9 +5728,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         if (!callerAllowUnsafe && compilationReference is null && unsafeModifier != "")
         {
             expectedDiagnostics.Add(
-                // (3,24): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (3,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe public void M() => System.Console.Write(111);
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(3, 24));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 5));
         }
 
         if (apiUnsafe && apiUpdatedRules && callerUpdatedRules && !callerUnsafeBlock)
@@ -8191,15 +8191,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 AssertEx.Equal("unsafe void C.P2.set", comp.GetMember("C.set_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
             });
 
-        CreateCompilation([lib], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
+        CreateCompilation([lib], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
             // (3,21): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int P1 { unsafe get; set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 21),
             // (4,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int P2 { get; unsafe set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(4, 26));
-        CreateCompilation([lib], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
-        CreateCompilation([lib], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+        CreateCompilation([lib], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+        CreateCompilation([lib], parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -8505,9 +8505,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """,
             options: TestOptions.ReleaseDll)
             .VerifyDiagnostics(
-            // (3,16): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // (3,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
             //     unsafe int P => field;
-            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "P").WithLocation(3, 16));
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 5));
     }
 
     [Fact]
@@ -8933,15 +8933,15 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c2[0]").WithArguments("C2.this[int].set").WithLocation(4, 1),
             ]);
 
-        CreateCompilation([lib], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
+        CreateCompilation([lib], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
             // (3,30): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int this[int i] { unsafe get => i; set { } }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 30),
             // (7,40): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int this[int i] { get => i; unsafe set { } }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(7, 40));
-        CreateCompilation([lib], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
-        CreateCompilation([lib], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
+        CreateCompilation([lib], parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+        CreateCompilation([lib], parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -9854,6 +9854,69 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (6,16): error CS9376: An unsafe context is required for constructor 'C.C()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
             // public union U(D<C>);
             Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<C>").WithArguments("C.C()", "T", "D<T>").WithLocation(6, 16));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85762")]
+    public void Member_Constructor_RecursiveUnion(bool updatedRules)
+    {
+        var source = """
+            #nullable enable
+            public union NullableNat(bool, NullableNat?);
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85762")]
+    public void Member_Constructor_RecursiveUnion_MutualRecursion(bool updatedRules)
+    {
+        var source = """
+            #nullable enable
+            public union A(bool, B?);
+            public union B(bool, A?);
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85762")]
+    public void Member_Constructor_RecursiveUnion_Constraint(
+        bool updatedRules,
+        bool unsafeConstructor,
+        [CombinatorialValues("new()", "struct")] string constraint)
+    {
+        var source = $$"""
+            public class D<T> where T : {{constraint}};
+            public union U(D<U>)
+            {
+                public {{(unsafeConstructor ? "unsafe " : "")}}U() : this((D<U>)null) { }
+            }
+            """;
+
+        var comp = CreateCompilation(source,
+            targetFramework: TargetFramework.Net110,
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+
+        if (updatedRules && unsafeConstructor)
+        {
+            comp.VerifyDiagnostics(
+                // (2,16): error CS9376: An unsafe context is required for constructor 'U.U()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
+                // public union U(D<U>)
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<U>").WithArguments("U.U()", "T", "D<T>").WithLocation(2, 16));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
     }
 
     [Fact]
@@ -10999,38 +11062,38 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation([source, IsExternalInitTypeDefinition],
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (6,33): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // (6,33): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     [FieldOffset(0)] public int F1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33),
-            // (9,40): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33),
+            // (9,40): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     [field: FieldOffset(0)] public int P1 { get; set; }
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 40),
-            // (10,40): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 40),
+            // (10,40): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     [field: FieldOffset(0)] public int P2 => field;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 40),
-            // (13,56): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 40),
+            // (13,56): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     [field: FieldOffset(0)] public event System.Action E1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 56),
-            // (19,52): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 56),
+            // (19,52): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             // public record class  R([field: FieldOffset(0)] int X);
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 52),
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 52),
             // (22,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
             // public class  P([field: FieldOffset(0)] int x)
             Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(22, 18),
             // (22,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
             // public class  P([field: FieldOffset(0)] int x)
             Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(22, 45),
-            // (22,45): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // (22,45): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             // public class  P([field: FieldOffset(0)] int x)
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 45),
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 45),
             // (30,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int F1 = 0;
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("safe").WithLocation(30, 27));
 
         CreateCompilation([source, IsExternalInitTypeDefinition],
-            options: TestOptions.ReleaseDll)
+            options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
             // (22,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
             // public class  P([field: FieldOffset(0)] int x)
@@ -11061,9 +11124,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var field = tree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().First();
 
         compilation.GetSemanticModel(tree).GetDiagnostics(field.Span).Verify(
-            // (6,33): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // (6,33): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     [FieldOffset(0)] public int F1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33));
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33));
     }
 
     [Fact]
@@ -11158,33 +11221,33 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             targetFramework: TargetFramework.Net110,
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules())
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (6,16): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // (6,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     public int F1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16),
-            // (9,16): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16),
+            // (9,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     public int P1 { get; set; }
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 16),
-            // (10,16): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 16),
+            // (10,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     public int P2 => field;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 16),
-            // (13,32): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 16),
+            // (13,32): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     public event System.Action E1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 32),
-            // (19,28): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 32),
+            // (19,28): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             // public record struct R(int X);
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 28),
-            // (22,21): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 28),
+            // (22,21): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             // public struct P(int x)
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 21),
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 21),
             // (30,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int F1 = 0;
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("safe").WithLocation(30, 27));
 
         CreateCompilation(source,
             targetFramework: TargetFramework.Net110,
-            options: TestOptions.ReleaseDll)
+            options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
             // (30,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int F1 = 0;
@@ -11236,6 +11299,151 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtendedLayout").WithArguments("ExtendedLayout", "struct").WithLocation(21, 2));
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85173")]
+    public void Member_Field_CustomLayout(
+        bool updatedRules,
+        [CombinatorialValues("struct", "class ")] string kind,
+        [CombinatorialValues("LayoutKind.Sequential", "LayoutKind.Auto")] string layoutKind,
+        [CombinatorialValues(null, 0, 1, 128)] int? pack,
+        [CombinatorialValues(null, 0, 5, 8)] int? size)
+    {
+        var layoutAttribute = $"[StructLayout({layoutKind}, CharSet = CharSet.Unicode" +
+            (pack is { } ? $", Pack = {pack}" : "") +
+            (size is { } ? $", Size = {size}" : "") + ")]";
+
+        var source = $$"""
+            using System.Runtime.InteropServices;
+
+            {{layoutAttribute}}
+            public {{kind}} S
+            {
+                public int F1;
+                public int F2, F3;
+                public const int C = 0;
+                public static int SF = 0;
+                public int P1 { get; set; }
+                public int P2 => field;
+                public int P3 => 0;
+                public static int SP { get; set; }
+                public event System.Action E1;
+                public static event System.Action SE;
+                public event System.Action E2 { add { } remove { } }
+            }
+
+            {{layoutAttribute}}
+            public record {{kind}} R(int X);
+
+            {{layoutAttribute}}
+            public {{kind}} P(int x)
+            {
+                public int X => x;
+            }
+            """;
+
+        var comp = CreateCompilation([source, IsExternalInitTypeDefinition],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+
+        if (updatedRules && (pack > 0 || size > 0))
+        {
+            comp.VerifyDiagnostics(
+                // (6,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int F1;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16),
+                // (7,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int F2, F3;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F2").WithLocation(7, 16),
+                // (7,20): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int F2, F3;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F3").WithLocation(7, 20),
+                // (10,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(10, 16),
+                // (11,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int P2 => field;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(11, 16),
+                // (14,32): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public event System.Action E1;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(14, 32),
+                // (20,28): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                // public record struct R(int X);
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(20, 28),
+                // (23,21): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                // public struct P(int x)
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(23, 21));
+
+            var tree = comp.SyntaxTrees[0];
+            var field = tree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().First();
+            comp.GetSemanticModel(tree).GetDiagnostics(field.Span).Verify(
+                // (6,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int F1;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85173")]
+    public void Member_Field_CustomLayout_Annotated(
+        [CombinatorialValues("struct", "class")] string kind,
+        [CombinatorialValues("LayoutKind.Sequential", "LayoutKind.Auto")] string layoutKind,
+        [CombinatorialValues("Pack = 1", "Size = 5")] string layoutArguments)
+    {
+        CompileAndVerifyUnsafe(
+            lib: $$"""
+                using System.Runtime.InteropServices;
+
+                [StructLayout({{layoutKind}}, {{layoutArguments}})]
+                public {{kind}} S
+                {
+                    safe public int F1;
+                    unsafe public int F2;
+                    safe public int P1 { get; set; }
+                    unsafe public int P2 { get; set; }
+                    safe public event System.Action E1;
+                    unsafe public event System.Action E2;
+                }
+                """,
+            caller: """
+                var s = new S[2];
+                s[1] = new S();
+                _ = s[1].F1;
+                _ = s[1].F2;
+                ref int r = ref s[1].F2;
+                _ = s[1].P1;
+                _ = s[1].P2;
+                s[1].E1 += null;
+                s[1].E2 += null;
+                unsafe
+                {
+                    _ = s[1].F2;
+                    ref int r2 = ref s[1].F2;
+                    _ = s[1].P2;
+                    s[1].E2 += null;
+                }
+                """,
+            expectedUnsafeSymbols: ["S.F2", "S.P2", "S.get_P2", "S.set_P2", "S.E2", "S.add_E2", "S.remove_E2"],
+            expectedSafeSymbols: ["S", "S.F1", "S.P1", "S.get_P1", "S.set_P1", "S.<P1>k__BackingField", "S.<P2>k__BackingField", "S.E1", "S.add_E1", "S.remove_E1", EventField("S.E1"), EventField("S.E2")],
+            optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            verify: layoutKind == "LayoutKind.Auto" ? Verification.FailsPEVerify : Verification.Passes,
+            expectedDiagnostics:
+            [
+                // (4,5): error CS9362: 'S.F2' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s[1].F2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s[1].F2").WithArguments("S.F2").WithLocation(4, 5),
+                // (5,17): error CS9362: 'S.F2' must be used in an unsafe context because it is marked as 'unsafe'
+                // ref int r = ref s[1].F2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s[1].F2").WithArguments("S.F2").WithLocation(5, 17),
+                // (7,5): error CS9362: 'S.P2.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s[1].P2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s[1].P2").WithArguments("S.P2.get").WithLocation(7, 5),
+                // (9,9): error CS9362: 'S.E2.add' must be used in an unsafe context because it is marked as 'unsafe'
+                // s[1].E2 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("S.E2.add").WithLocation(9, 9),
+            ]);
+    }
+
     [Theory, CombinatorialData]
     public void Member_Field_OtherLayout(
         bool updatedRules,
@@ -11255,7 +11463,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyEmitDiagnostics();
     }
 
@@ -14592,23 +14800,50 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
+        DiagnosticDescription[] expectedUnsafeDiagnostics = allowUnsafe ? [] :
+        [
+            // (4,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public extern void M();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(4, 5),
+            // (5,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public extern int P { get; set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(5, 5),
+            // (6,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public static extern event System.Action E;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(6, 5),
+            // (7,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public extern C(int x);
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(7, 5),
+            // (10,9): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //         safe static extern void Local();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(10, 9),
+            // (12,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public extern int A { get; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(12, 5),
+            // (13,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe extern ~C();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(13, 5),
+        ];
+
         CreateCompilation(source,
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules())
-            .VerifyEmitDiagnostics();
+            .VerifyEmitDiagnostics(expectedUnsafeDiagnostics);
 
         CreateCompilation(source,
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
-            .VerifyEmitDiagnostics();
+            .VerifyEmitDiagnostics(expectedUnsafeDiagnostics);
 
         CreateCompilation(source,
             parseOptions: TestOptions.RegularNext,
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
-            .VerifyEmitDiagnostics();
+            .VerifyEmitDiagnostics(expectedUnsafeDiagnostics);
 
         CreateCompilation(source,
             parseOptions: TestOptions.Regular14,
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
             .VerifyDiagnostics(
+        [
+            .. expectedUnsafeDiagnostics,
             // (4,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     safe public extern void M();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(4, 5),
@@ -14629,7 +14864,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(12, 5),
             // (13,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     safe extern ~C();
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(13, 5));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(13, 5),
+        ]);
     }
 
     [Theory, CombinatorialData]
@@ -14664,10 +14900,64 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
+        DiagnosticDescription[] expectedUnsafeDiagnostics = allowUnsafe ? [] :
+        [
+            // (3,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe void M();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(3, 5),
+            // (4,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe int P { get; set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(4, 5),
+            // (5,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe event System.Action E;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(5, 5),
+            // (6,13): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     int A { safe get; set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(6, 13),
+            // (10,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe void I1.M() { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(10, 5),
+            // (11,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe int I1.P { get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(11, 5),
+            // (12,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe event System.Action I1.E { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(12, 5),
+            // (13,16): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     int I1.A { safe get => 0; set { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(13, 16),
+            // (18,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe extern void I1.M();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(18, 5),
+            // (19,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe extern int I1.P { get; set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(19, 5),
+            // (20,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe extern event System.Action I1.E;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(20, 5),
+            // (21,16): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     int I1.A { safe extern get; safe extern set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(21, 16),
+            // (21,33): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     int I1.A { safe extern get; safe extern set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(21, 33),
+            // (25,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe extern int I1.A { safe get; safe set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(25, 5),
+            // (25,28): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe extern int I1.A { safe get; safe set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(25, 28),
+            // (25,38): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe extern int I1.A { safe get; safe set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(25, 38),
+        ];
+
         CreateCompilation(source,
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(),
             targetFramework: TargetFramework.Net100)
             .VerifyDiagnostics(
+        [
+            .. expectedUnsafeDiagnostics,
             // (20,40): error CS0106: The modifier 'extern' is not valid for this item
             //     safe extern event System.Action I1.E;
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("extern").WithLocation(20, 40),
@@ -14685,7 +14975,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(21, 45),
             // (25,24): error CS9396: Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer 'I4.I1.A' and its accessor. Remove one of them.
             //     safe extern int I1.A { safe get; safe set; }
-            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "A").WithArguments("I4.I1.A").WithLocation(25, 24));
+            Diagnostic(ErrorCode.ERR_InvalidPropertyUnsafeMods, "A").WithArguments("I4.I1.A").WithLocation(25, 24),
+        ]);
     }
 
     [Theory, CombinatorialData]
@@ -14719,13 +15010,68 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
+        DiagnosticDescription[] expectedUnsafeDiagnostics = allowUnsafe ? [] :
+        [
+            // (4,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public void M1() { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(4, 5),
+            // (5,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public int P1 { get; set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(5, 5),
+            // (6,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public int this[int i] { get => i; set { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(6, 5),
+            // (7,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public event System.Action E1;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(7, 5),
+            // (8,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public C() { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(8, 5),
+            // (9,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public static C operator +(C x, C y) => x;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(9, 5),
+            // (10,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public static explicit operator int(C c) => 0;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(10, 5),
+            // (11,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public int F;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(11, 5),
+            // (12,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public class NestedClass { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(12, 5),
+            // (13,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public struct NestedStruct { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(13, 5),
+            // (14,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public interface INested { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(14, 5),
+            // (16,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public delegate void D();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(16, 5),
+            // (19,9): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //         safe void Local() { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(19, 9),
+            // (21,21): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public int P2 { safe get; set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(21, 21),
+            // (22,36): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public string this[string s] { safe get => s; set { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(22, 36),
+            // (23,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe ~C() { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(23, 5),
+        ];
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules)).VerifyEmitDiagnostics(
+        [
+            .. expectedUnsafeDiagnostics,
             // (15,22): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public enum ENested { }
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "ENested").WithArguments("safe").WithLocation(15, 22),
             // (24,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int CONST = 0;
-            Diagnostic(ErrorCode.ERR_BadMemberFlag, "CONST").WithArguments("safe").WithLocation(24, 27));
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "CONST").WithArguments("safe").WithLocation(24, 27),
+        ]);
     }
 
     [Theory, CombinatorialData]
@@ -14740,11 +15086,35 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             safe record struct RS;
             """;
 
+        DiagnosticDescription[] expectedUnsafeDiagnostics = allowUnsafe ? [] :
+        [
+            // (1,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            // safe class C;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(1, 1),
+            // (2,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            // safe struct S;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(2, 1),
+            // (3,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            // safe interface I;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(3, 1),
+            // (4,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            // safe delegate void D();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(4, 1),
+            // (5,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            // safe record R;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(5, 1),
+            // (6,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            // safe record struct RS;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(6, 1),
+        ];
+
         CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules))
-            .VerifyEmitDiagnostics();
+            .VerifyEmitDiagnostics(expectedUnsafeDiagnostics);
 
         CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
             .VerifyDiagnostics(
+        [
+            .. expectedUnsafeDiagnostics,
             // (1,12): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // safe class C;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "C").WithArguments("updated memory safety rules").WithLocation(1, 12),
@@ -14762,7 +15132,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "R").WithArguments("updated memory safety rules").WithLocation(5, 13),
             // (6,20): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // safe record struct RS;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "RS").WithArguments("updated memory safety rules").WithLocation(6, 20));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "RS").WithArguments("updated memory safety rules").WithLocation(6, 20),
+        ]);
 
         CreateCompilation("safe unsafe class C;", options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
@@ -14858,8 +15229,94 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
     }
 
-    [Fact]
-    public void SafeModifier_Declarations_Partial()
+    [Theory, CombinatorialData]
+    public void SafeOrUnsafeAccessor_RequiresAllowUnsafe(
+        [CombinatorialValues("safe", "unsafe")] string modifier,
+        bool allowUnsafe,
+        bool updatedRules)
+    {
+        var source = $$"""
+            public class C
+            {
+                public int P1 { {{modifier}} get; set; }
+                public int P2 { get; {{modifier}} set; }
+                public int P3 { get; {{modifier}} init; }
+                public int this[int i] { {{modifier}} get => i; set { } }
+                public int this[string s] { get => 0; {{modifier}} set { } }
+            }
+            """;
+
+        var comp = CreateCompilation([source, IsExternalInitTypeDefinition],
+            options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules));
+
+        comp.VerifyEmitDiagnostics(allowUnsafe ? [] :
+        [
+            // (3,21): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public int P1 { unsafe get; set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(3, 21),
+            // (4,26): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public int P2 { get; unsafe set; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(4, 26),
+            // (5,26): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public int P3 { get; unsafe init; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(5, 26),
+            // (6,30): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public int this[int i] { unsafe get => i; set { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(6, 30),
+            // (7,43): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public int this[string s] { get => 0; unsafe set { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(7, 43)
+        ]);
+    }
+
+    [Theory, CombinatorialData]
+    public void SafeOrUnsafeModifier_PartialType(
+        [CombinatorialValues("safe", "unsafe")] string modifier,
+        bool updatedRules,
+        bool separateTrees)
+    {
+        var firstPart = "partial class C;";
+        var secondPart = $"{modifier} partial class C;";
+        string[] sources = separateTrees ? [firstPart, secondPart] : [$"{firstPart}\n{secondPart}"];
+
+        DiagnosticDescription[] expectedDiagnostics = modifier == "unsafe" && updatedRules ?
+        [
+            // (1,15): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
+            // partial class C;
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(1, 15)
+        ] : [];
+
+        CreateCompilation(sources, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(
+        [
+            .. expectedDiagnostics,
+            // (2,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            // unsafe partial class C;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, modifier).WithLocation(separateTrees ? 1 : 2, 1)
+        ]);
+
+        CreateCompilation(sources, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules)).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, CombinatorialData]
+    public void SafeIdentifier_DoesNotRequireAllowUnsafe(bool updatedRules)
+    {
+        var source = """
+            public class C
+            {
+                public int safe { get; set; }
+                public void M()
+                {
+                    int safe = 0;
+                    this.safe = safe;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules)).VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void SafeModifier_Declarations_Partial(bool allowUnsafe)
     {
         var source = """
             partial class C
@@ -14887,7 +15344,34 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        DiagnosticDescription[] expectedUnsafeDiagnostics = allowUnsafe ? [] :
+        [
+            // (4,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public safe partial void M1() { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(4, 12),
+            // (6,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public safe partial void M2();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(6, 12),
+            // (10,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public safe extern partial void M3();
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(10, 12),
+            // (13,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public safe partial int P1 => 0;
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(13, 12),
+            // (16,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     safe public partial C() { }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(16, 5),
+            // (19,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public safe partial event System.Action E1 { add { } remove { } }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(19, 12),
+            // (22,29): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+            //     public partial int P2 { safe get => 0; }
+            Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "safe").WithLocation(22, 29),
+        ];
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
+        [
+            .. expectedUnsafeDiagnostics,
             // (4,30): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public safe partial void M1() { }
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "M1").WithLocation(4, 30),
@@ -14911,7 +15395,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "E1").WithLocation(19, 45),
             // (22,34): error CS9390: Both partial member declarations must be marked 'safe' or neither may be marked 'safe'
             //     public partial int P2 { safe get => 0; }
-            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "get").WithLocation(22, 34));
+            Diagnostic(ErrorCode.ERR_PartialMemberSafeDifference, "get").WithLocation(22, 34),
+        ]);
     }
 
     [Theory, CombinatorialData]
@@ -15073,7 +15558,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        var ref1 = CreateCompilation(source1).VerifyEmitDiagnostics();
+        var ref1 = CreateCompilation(source1, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
 
         var source2 = """
             C.M(null);
@@ -15101,8 +15586,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
-        CreateCompilation(source).VerifyDiagnostics(
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (4,17): error CS9363: 'C.M1(int*)' must be used in an unsafe context because it has pointers in its signature
             //     void M2() { M1(null); }
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "M1(null)").WithArguments("C.M1(int*)").WithLocation(4, 17));

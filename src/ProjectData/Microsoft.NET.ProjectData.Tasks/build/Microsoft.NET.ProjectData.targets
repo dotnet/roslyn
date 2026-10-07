@@ -25,6 +25,9 @@
   <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.WriteProjectDataBuildReceiptTask"
              AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
 
+  <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.GetProjectDataBuildProjectIdTask"
+             AssemblyFile="$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll" />
+
   <!-- Track the task DLL as a property so it can be included in Inputs for incremental build. -->
   <PropertyGroup>
     <_ProjectDataTaskAssembly>$(MSBuildThisFileDirectory)Microsoft.NET.ProjectData.Tasks.dll</_ProjectDataTaskAssembly>
@@ -132,6 +135,20 @@
   </PropertyGroup>
 
   <!--
+    Temporary transition hook for extension-provided ProjectData sidecar targets.
+    The DTB runner supplies a generated aggregate .targets file containing only
+    validated registrations. Importing it here keeps sidecar production inside
+    CDK's existing ProjectData build and scheduling lifecycle.
+  -->
+  <Import Project="$(CSharpDevKitAdditionalProjectDataTargets)"
+          Condition="'$(CSharpDevKitAdditionalProjectDataTargets)' != ''" />
+
+  <PropertyGroup>
+    <_ProjectDataFallbackSliceGlob Condition="'$(CSharpDevKitAdditionalProjectDataTargets)' != '' and
+                                               '$(ProjectDataBuildReceiptAttemptId)' == ''">$(BaseIntermediateOutputPath)$(Configuration)/**/$(MSBuildProjectFile).slice</_ProjectDataFallbackSliceGlob>
+  </PropertyGroup>
+
+  <!--
     ============================================================
       Build entry point: ProjectDataBuild
     ============================================================
@@ -187,7 +204,7 @@
         project-data emission still runs when `CoreCompile` is skipped as up-to-date.
   -->
   <PropertyGroup>
-    <_ProjectDataBuildInnerTargets>_DeleteUnsupportedProjectData;_WriteUnsupportedProjectDataMarker;_ValidateProjectDataAssetsFile;ResolveAssemblyReferencesDesignTime;ResolveProjectReferencesDesignTime;ResolvePackageDependenciesDesignTime;_ValidateProjectDataResolvedPackages;_PrepareProjectDataBuild;Compile;_ValidateProjectDataMetadataReferences;_ProjectDataCollectFrameworkReferences;_WriteProjectData;_WriteProjectDataUserFolder;_WriteProjectDataSlice</_ProjectDataBuildInnerTargets>
+    <_ProjectDataBuildInnerTargets>_DeleteUnsupportedProjectData;_WriteUnsupportedProjectDataMarker;_ValidateProjectDataAssetsFile;_PrepareProjectDataProjectReferences;ResolveAssemblyReferencesDesignTime;ResolveProjectReferencesDesignTime;ResolvePackageDependenciesDesignTime;_ValidateProjectDataResolvedPackages;_PrepareProjectDataBuild;Compile;_ValidateProjectDataMetadataReferences;_ProjectDataCollectFrameworkReferences;_WriteProjectData;_WriteProjectDataUserFolder;_WriteProjectDataSlice</_ProjectDataBuildInnerTargets>
     <_ProjectDataBuildUnsupportedTargets>_DeleteUnsupportedProjectData;_WriteUnsupportedProjectDataMarker</_ProjectDataBuildUnsupportedTargets>
 
     <!--
@@ -226,11 +243,31 @@
           Condition="'$(_ProjectDataCanRunBuildTargets)' == 'true' and
                     '$(_ProjectDataCanWriteOutput)' == 'true' and
                     '$(IsCrossTargetingBuild)' == 'true'">
+    <Microsoft.NET.ProjectData.Tasks.GetProjectDataBuildProjectIdTask
+      Condition="'$(CSharpDevKitAdditionalProjectDataTargets)' != '' and
+                 '$(ProjectDataBuildReceiptAttemptId)' != ''"
+      ProjectFilePath="$(MSBuildProjectFullPath)">
+      <Output TaskParameter="ProjectId" PropertyName="_ProjectDataBuildAttemptProjectId" />
+    </Microsoft.NET.ProjectData.Tasks.GetProjectDataBuildProjectIdTask>
     <PropertyGroup>
       <_ProjectDataOuterBuildActive>true</_ProjectDataOuterBuildActive>
       <!-- DispatchToInnerBuilds reads $(InnerTargets) and forwards it to each inner build. -->
       <InnerTargets Condition="'$(InnerTargets)' == ''">$(_ProjectDataBuildInnerTargets)</InnerTargets>
+      <_ProjectDataBuildAttemptSliceRoot Condition="'$(_ProjectDataBuildAttemptProjectId)' != ''">$(BaseIntermediateOutputPath)$(Configuration)/.csdevkit/projectdata-attempts/$(ProjectDataBuildReceiptAttemptId)/$(_ProjectDataBuildAttemptProjectId)</_ProjectDataBuildAttemptSliceRoot>
+      <_ProjectDataFallbackSliceGlob Condition="'$(_ProjectDataBuildAttemptSliceRoot)' != ''">$(_ProjectDataBuildAttemptSliceRoot)/**/$(MSBuildProjectFile).slice</_ProjectDataFallbackSliceGlob>
     </PropertyGroup>
+    <ItemGroup Condition="'$(_ProjectDataBuildAttemptSliceRoot)' != ''">
+      <_ProjectDataExpectedSlice Include="@(_ProjectDataTargetFramework->'$(_ProjectDataBuildAttemptSliceRoot)/%(Identity)/$(MSBuildProjectFile).slice')"
+                                 Condition="'$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' != 'true'" />
+      <_ProjectDataExpectedSlice Include="@(_ProjectDataTargetFramework->'$(_ProjectDataBuildAttemptSliceRoot)/%(Identity)/$(RuntimeIdentifier)/$(MSBuildProjectFile).slice')"
+                                 Condition="'$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' == 'true'" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(_ProjectDataFallbackSliceGlob)' != '' and
+                          '$(_ProjectDataBuildAttemptSliceRoot)' == ''">
+      <_ProjectDataStaleFallbackSlice Include="$(_ProjectDataFallbackSliceGlob)" />
+    </ItemGroup>
+    <Delete Files="@(_ProjectDataStaleFallbackSlice)"
+            Condition="'@(_ProjectDataStaleFallbackSlice)' != ''" />
   </Target>
 
   <Target Name="_DeleteUnsupportedProjectData"
@@ -347,15 +384,45 @@
 
   <Target Name="_PrepareProjectDataBuild"
           Condition="'$(_ProjectDataCanWriteOutput)' == 'true'">
+    <Microsoft.NET.ProjectData.Tasks.GetProjectDataBuildProjectIdTask
+      Condition="'$(CSharpDevKitAdditionalProjectDataTargets)' != '' and
+                '$(ProjectDataBuildReceiptAttemptId)' != ''"
+      ProjectFilePath="$(MSBuildProjectFullPath)">
+      <Output TaskParameter="ProjectId" PropertyName="_ProjectDataBuildAttemptProjectId" />
+    </Microsoft.NET.ProjectData.Tasks.GetProjectDataBuildProjectIdTask>
     <PropertyGroup>
       <_ProjectDataBuildActive>true</_ProjectDataBuildActive>
       <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
       <NonExistentFile Condition="'$(NonExistentFile)' == ''">$(IntermediateOutputPath)projectdata.force-corecompile.never</NonExistentFile>
       <!-- Skip actual compiler invocation — we only need the evaluated inputs, not compiled output. -->
       <SkipCompilerExecution>true</SkipCompilerExecution>
+      <_ProjectDataBuildAttemptSliceRoot Condition="'$(_ProjectDataBuildAttemptProjectId)' != ''">$(BaseIntermediateOutputPath)$(Configuration)/.csdevkit/projectdata-attempts/$(ProjectDataBuildReceiptAttemptId)/$(_ProjectDataBuildAttemptProjectId)</_ProjectDataBuildAttemptSliceRoot>
+      <_ProjectDataSlicePath Condition="'$(_ProjectDataBuildAttemptSliceRoot)' != '' and
+                                       '$(TargetFrameworks)' != '' and
+                                       '$(TargetFramework)' != '' and
+                                       '$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' != 'true'">$(_ProjectDataBuildAttemptSliceRoot)/$(TargetFramework)/$(MSBuildProjectFile).slice</_ProjectDataSlicePath>
+      <_ProjectDataSlicePath Condition="'$(_ProjectDataBuildAttemptSliceRoot)' != '' and
+                                       '$(TargetFrameworks)' != '' and
+                                       '$(TargetFramework)' != '' and
+                                       '$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' == 'true'">$(_ProjectDataBuildAttemptSliceRoot)/$(TargetFramework)/$(RuntimeIdentifier)/$(MSBuildProjectFile).slice</_ProjectDataSlicePath>
     </PropertyGroup>
   </Target>
 
+  <Target Name="_PrepareProjectDataProjectReferences">
+    <ItemGroup>
+      <!-- ReferenceOutputAssembly=false with no OutputItemType identifies a
+           build-order-only reference: it contributes no output for ProjectData
+           to resolve. Do not ask such projects for GetTargetPath in this custom
+           graph. Besides doing unnecessary work, that request is not valid for
+           every project evaluation—for example, an outer multi-targeting task
+           project with SkipGetTargetFrameworkProperties=true. Normal Build
+           remains responsible for honoring the reference's build ordering. -->
+      <ProjectReference Update="@(ProjectReference)"
+                        BuildReference="false"
+                        Condition="'%(ProjectReference.ReferenceOutputAssembly)' == 'false' and
+                                   '%(ProjectReference.OutputItemType)' == ''" />
+    </ItemGroup>
+  </Target>
 
   <!--
     ============================================================
@@ -378,9 +445,9 @@
 
   <Target Name="_ProjectDataPrepareSdkAnalyzerConfigPolicy">
     <ItemGroup>
-      <!-- Exclude the SDK-generated assembly info file from [sourceFiles] to avoid unnecessary file changes, while preserving user-owned items at the same path. -->
-      <_ProjectDataSourceFiles Include="@(Compile)"
-                               Condition="'%(Compile.DefiningProjectName)%(Compile.DefiningProjectExtension)' != 'Microsoft.NET.GenerateAssemblyInfo.targets'" />
+      <!-- Preserve all compiler inputs, including SDK-generated AssemblyInfo files. They contain semantic assembly attributes such as
+           SupportedOSPlatform that analyzers require; filtering them causes incorrect diagnostics: https://github.com/microsoft/vscode-dotnettools/issues/3437 -->
+      <_ProjectDataSourceFiles Include="@(Compile)" />
 
       <_ProjectDataSdkAnalyzerConfigPolicy Remove="@(_ProjectDataSdkAnalyzerConfigPolicy)" />
       <_ProjectDataSdkAnalyzerConfigPolicy Include="Microsoft.NET.Sdk">
@@ -416,11 +483,16 @@
     <_ProjectDataTargetFramework Include="$(TargetFrameworks)" />
     <!-- Keep this list explicit so target Inputs exclude stale slices from removed TFMs/RIDs.
          At this import point AppendRuntimeIdentifierToOutputPath can still be empty; match
-         the SDK's later default for SDK-style projects before choosing the expected path. -->
+         the SDK's later default for SDK-style projects before choosing the expected path.
+         Registered sidecar targets use the build-attempt directory when receipt identity is
+         available, so fallback discovery cannot observe or delete another concurrent build's
+         slices. Legacy callers without receipt identity retain the pre-dispatch cleanup. -->
     <_ProjectDataExpectedSlice Include="@(_ProjectDataTargetFramework->'$(BaseIntermediateOutputPath)$(Configuration)/%(Identity)/$(MSBuildProjectFile).slice')"
-                               Condition="'$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' != 'true'" />
+                               Condition="('$(CSharpDevKitAdditionalProjectDataTargets)' == '' or '$(ProjectDataBuildReceiptAttemptId)' == '') and
+                                          '$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' != 'true'" />
     <_ProjectDataExpectedSlice Include="@(_ProjectDataTargetFramework->'$(BaseIntermediateOutputPath)$(Configuration)/%(Identity)/$(RuntimeIdentifier)/$(MSBuildProjectFile).slice')"
-                               Condition="'$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' == 'true'" />
+                               Condition="('$(CSharpDevKitAdditionalProjectDataTargets)' == '' or '$(ProjectDataBuildReceiptAttemptId)' == '') and
+                                          '$(_ProjectDataAppendRuntimeIdentifierToIntermediateOutputPath)' == 'true'" />
   </ItemGroup>
 
   <!--
@@ -589,12 +661,16 @@
       OutputPath="$(_ProjectDataPath)"
       ProjectFilePath="$(MSBuildProjectFullPath)"
       IntermediateOutputPath="$(IntermediateOutputPath)"
+      SliceGlob="$(_ProjectDataFallbackSliceGlob)"
       TargetFrameworks="$(TargetFrameworks)"
       PreserveExistingSlices="$(_ProjectDataPreserveExistingProjectFolderOutput)"
       SliceFiles="@(_ProjectDataExpectedSlice)">
       <Output TaskParameter="Succeeded" PropertyName="_ProjectDataMergeSucceeded" />
       <Output TaskParameter="FoundSlices" PropertyName="_ProjectDataMergeFoundSlices" />
     </Microsoft.NET.ProjectData.Tasks.MergeProjectDataSlicesTask>
+    <RemoveDir Directories="$(_ProjectDataBuildAttemptSliceRoot)"
+               Condition="'$(_ProjectDataBuildAttemptSliceRoot)' != '' and
+                          Exists('$(_ProjectDataBuildAttemptSliceRoot)')" />
   </Target>
 
   <Target Name="_MergeProjectDataSlicesUserFolder"
@@ -608,12 +684,16 @@
       OutputPath=""
       ProjectFilePath="$(MSBuildProjectFullPath)"
       IntermediateOutputPath="$(IntermediateOutputPath)"
+      SliceGlob="$(_ProjectDataFallbackSliceGlob)"
       TargetFrameworks="$(TargetFrameworks)"
       PreserveExistingSlices="$(_ProjectDataPreserveExistingProjectFolderOutput)"
       SliceFiles="@(_ProjectDataExpectedSlice)">
       <Output TaskParameter="Succeeded" PropertyName="_ProjectDataMergeSucceeded" />
       <Output TaskParameter="FoundSlices" PropertyName="_ProjectDataMergeFoundSlices" />
     </Microsoft.NET.ProjectData.Tasks.MergeProjectDataSlicesTask>
+    <RemoveDir Directories="$(_ProjectDataBuildAttemptSliceRoot)"
+               Condition="'$(_ProjectDataBuildAttemptSliceRoot)' != '' and
+                          Exists('$(_ProjectDataBuildAttemptSliceRoot)')" />
 
     <Touch Files="$(_ProjectDataUserFolderStampPath)"
            AlwaysCreate="true"

@@ -85,8 +85,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         loader.Complete(loadedSolution);
         var resolution = capturedContext.ResolveAsync();
         var secondResolution = capturedContext.ResolveAsync();
-        var result = await resolution.WithTimeout(TestHelpers.HangMitigatingTimeout);
-        Assert.Equal(result, await secondResolution.WithTimeout(TestHelpers.HangMitigatingTimeout));
+        var result = await resolution;
+        Assert.Equal(result, await secondResolution);
         Assert.Equal(closeAndReopen ? 3 : hostDocumentLoaded ? 2 : 1, telemetry.FindDocumentCount);
         Assert.Equal(hostDocumentLoaded ? WorkspaceKind.Host : WorkspaceKind.MiscellaneousFiles, result.Workspace.Kind);
         Assert.Single(miscellaneousWorkspace.CurrentSolution.GetDocumentIds(uri));
@@ -168,7 +168,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         await testLspServer.TestWorkspace.ChangeSolutionAsync(loadedSolution);
 
         loader.Complete(loadedSolution);
-        var context = await capturedContext.ResolveAsync().WithTimeout(TestHelpers.HangMitigatingTimeout);
+        var context = await capturedContext.ResolveAsync();
         Assert.Equal(expectedText, (await context.Solution.GetRequiredDocument(existingDocument.Id).GetTextAsync()).ToString());
         Assert.Equal("class A { }", (await context.Solution.GetRequiredDocument(newDocumentId).GetTextAsync()).ToString());
         Assert.Equal(documentRequest ? newDocumentId : null, context.Document?.Id);
@@ -207,7 +207,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         var canceledResolution = canceledCapture.ResolveAsync();
         var survivingResolution = survivingCapture.ResolveAsync();
         cancellation.Cancel();
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => canceledResolution.WithTimeout(TestHelpers.HangMitigatingTimeout));
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => canceledResolution);
 
         var projectId = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Id;
         var loadedSolution = testLspServer.TestWorkspace.CurrentSolution.AddDocument(
@@ -215,7 +215,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         await testLspServer.TestWorkspace.ChangeSolutionAsync(loadedSolution);
         loader.Complete(loadedSolution);
 
-        var context = await survivingResolution.WithTimeout(TestHelpers.HangMitigatingTimeout);
+        var context = await survivingResolution;
         Assert.Equal(WorkspaceKind.Host, context.Workspace.Kind);
     }
 

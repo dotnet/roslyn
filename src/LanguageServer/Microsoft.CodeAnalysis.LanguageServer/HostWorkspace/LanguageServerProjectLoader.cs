@@ -470,7 +470,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)ProjectReloadPriority.Medium);
     }
 
-    protected static async Task WaitForProjectLoadsAsync(
+    internal static async Task WaitForProjectLoadsAsync(
         ImmutableArray<LoadedProject> loadedProjects,
         WorkDoneProgressTracker? progressTracker = null,
         CancellationToken cancellationToken = default)

@@ -28,7 +28,6 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
         var targetUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.GetFullPath("Target.cs"));
 
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        using var timeout = new CancellationTokenSource(TestHelpers.HangMitigatingTimeout);
         await server.ExecuteNotificationAsync(Methods.WorkspaceDidChangeWorkspaceFoldersName, new DidChangeWorkspaceFoldersParams
         {
             Event = new WorkspaceFoldersChangeEvent
@@ -46,7 +45,7 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
                 Version = 1,
                 Text = source
             }
-        }, timeout.Token);
+        }, CancellationToken.None);
 
         var hostWorkspace = server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
         Assert.Empty(hostWorkspace.CurrentSolution.Projects);
@@ -58,7 +57,7 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
                 TextDocument = new TextDocumentIdentifier { DocumentUri = sourceUri },
                 Position = new Position(0, 1)
             },
-            timeout.Token);
+            CancellationToken.None);
 
         Assert.NotNull(definitions);
         var definition = Assert.Single(definitions);
@@ -101,7 +100,6 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
         var targetUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.GetFullPath("Library/Target.cs"));
 
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        using var timeout = new CancellationTokenSource(TestHelpers.HangMitigatingTimeout);
         await server.ExecuteNotificationAsync(Methods.WorkspaceDidChangeWorkspaceFoldersName, new DidChangeWorkspaceFoldersParams
         {
             Event = new WorkspaceFoldersChangeEvent
@@ -119,7 +117,7 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
                 Version = 1,
                 Text = source
             }
-        }, timeout.Token);
+        }, CancellationToken.None);
 
         var hostWorkspace = server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
         Assert.Empty(hostWorkspace.CurrentSolution.Projects);
@@ -131,7 +129,7 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
                 TextDocument = new TextDocumentIdentifier { DocumentUri = sourceUri },
                 Position = new Position(0, 1)
             },
-            timeout.Token);
+            CancellationToken.None);
 
         var definition = Assert.Single(Assert.IsType<LSP.Location[]>(definitions));
         Assert.Equal(targetUri, definition.DocumentUri);

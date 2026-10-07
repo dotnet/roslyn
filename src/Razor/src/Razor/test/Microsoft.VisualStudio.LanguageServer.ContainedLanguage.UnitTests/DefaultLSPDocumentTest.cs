@@ -37,7 +37,7 @@ public class DefaultLSPDocumentTest : ToolingTestBase
         textBuffer.ChangeContentType(TestInertContentType.Instance, editTag: null);
 
         // Act
-        var edit = textBuffer.CreateEdit();
+        using var edit = textBuffer.CreateEdit();
         edit.Insert(0, "New!");
         edit.Apply();
 
@@ -56,7 +56,7 @@ public class DefaultLSPDocumentTest : ToolingTestBase
         var originalSnapshot = document.CurrentSnapshot;
 
         // Act
-        var edit = textBuffer.CreateEdit();
+        using var edit = textBuffer.CreateEdit();
         edit.Insert(0, "New!");
         edit.Apply();
 
