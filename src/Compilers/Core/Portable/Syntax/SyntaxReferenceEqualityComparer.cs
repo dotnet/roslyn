@@ -8,33 +8,32 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+/// <summary>
+/// Compares syntax references by syntax tree identity and span.
+/// </summary>
+internal sealed class SyntaxReferenceEqualityComparer : IEqualityComparer<SyntaxReference>
 {
-    /// <summary>
-    /// Compares syntax references by syntax tree identity and span.
-    /// </summary>
-    internal sealed class SyntaxReferenceEqualityComparer : IEqualityComparer<SyntaxReference>
+    internal static readonly SyntaxReferenceEqualityComparer Instance = new SyntaxReferenceEqualityComparer();
+
+    private SyntaxReferenceEqualityComparer()
     {
-        internal static readonly SyntaxReferenceEqualityComparer Instance = new SyntaxReferenceEqualityComparer();
-
-        private SyntaxReferenceEqualityComparer()
-        {
-        }
-
-        public bool Equals(SyntaxReference? x, SyntaxReference? y)
-        {
-            if (ReferenceEquals(x, y))
-            {
-                return true;
-            }
-
-            return x is not null &&
-                y is not null &&
-                ReferenceEquals(x.SyntaxTree, y.SyntaxTree) &&
-                x.Span == y.Span;
-        }
-
-        public int GetHashCode(SyntaxReference obj)
-            => Hash.Combine(RuntimeHelpers.GetHashCode(obj.SyntaxTree), obj.Span.GetHashCode());
     }
+
+    public bool Equals(SyntaxReference? x, SyntaxReference? y)
+    {
+        if (ReferenceEquals(x, y))
+        {
+            return true;
+        }
+
+        return x is not null &&
+            y is not null &&
+            ReferenceEquals(x.SyntaxTree, y.SyntaxTree) &&
+            x.Span == y.Span;
+    }
+
+    public int GetHashCode(SyntaxReference obj)
+        => Hash.Combine(RuntimeHelpers.GetHashCode(obj.SyntaxTree), obj.Span.GetHashCode());
 }
