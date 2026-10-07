@@ -29,7 +29,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     private static readonly string s_razorDesignTimePath = Path.Combine(AppContext.BaseDirectory, "Targets", "Microsoft.NET.Sdk.Razor.DesignTime.targets");
 
     private readonly AsyncPriorityWorkQueue<string> _projectsToReload;
-    private enum ProjectReloadPriority
+    internal enum ProjectReloadPriority
     {
         Low = 0,
         Medium = 1,
@@ -397,15 +397,14 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     }
 
     /// <summary>
-    /// Begins loading a project. If the project has already begun loading, returns without doing any additional work.
+    /// Begins loading a project. If the project has already begun loading, raises its scheduled priority if needed.
     /// </summary>
     internal async Task<LoadedProject> BeginLoadingProjectAsync(
         string projectPath,
-        bool isHighPriority)
+        ProjectReloadPriority reloadPriority)
     {
         projectPath = NormalizeProjectPath(projectPath);
         LoadedProject? loadedProject;
-        ProjectReloadPriority reloadPriority = isHighPriority ? ProjectReloadPriority.High : ProjectReloadPriority.Medium;
 
         using (await _gate.DisposableWaitAsync(CancellationToken.None))
         {
@@ -413,10 +412,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
             if (_loadedProjects.TryGetValue(projectPath, out loadedProject))
             {
-                // This is project queued for loading. Ensure it is high priority if requested.
-                if (isHighPriority)
-                    _projectsToReload.ChangeWorkPriorityIfScheduled(loadedProject.ProjectFilePath, (int)reloadPriority);
-
+                _projectsToReload.RaiseWorkPriorityIfScheduled(loadedProject.ProjectFilePath, (int)reloadPriority);
                 return loadedProject;
             }
 

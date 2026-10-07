@@ -181,6 +181,32 @@ public sealed class AsyncPriorityWorkQueueTests
         Assert.Equal(newPriority > 1 ? new[] { "item", "middle" } : new[] { "middle", "item" }, processed);
     }
 
+    [Theory]
+    [InlineData(0, 2)]
+    [InlineData(2, 0)]
+    [InlineData(0, 0)]
+    [InlineData(2, 2)]
+    public async Task RaisePriorityDoesNotLowerScheduledItem(int originalPriority, int newPriority)
+    {
+        var processed = new List<string>();
+        var listener = new AsynchronousOperationListener();
+        using var queue = new AsyncPriorityWorkQueue<string>(
+            maximumPriority: 2,
+            delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
+            processBatchAsync: async (workToProcess, cancellationToken) => processed.AddRange(await DrainAsync(workToProcess)),
+            equalityComparer: EqualityComparer<string>.Default,
+            asyncListener: listener);
+
+        queue.AddWork("item", originalPriority);
+        queue.AddWork("middle", priority: 1);
+        queue.RaiseWorkPriorityIfScheduled("item", newPriority);
+
+        await listener.ExpeditedWaitAsync();
+
+        var effectivePriority = Math.Max(originalPriority, newPriority);
+        Assert.Equal(effectivePriority > 1 ? new[] { "item", "middle" } : new[] { "middle", "item" }, processed);
+    }
+
     [Fact]
     public async Task ChangePriorityUsesEqualityComparer()
     {

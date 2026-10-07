@@ -473,7 +473,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         }
 
         public Task<LoadedProject> BeginLoadAsync(string projectPath)
-            => BeginLoadingProjectAsync(projectPath, isHighPriority: false);
+            => BeginLoadingProjectAsync(projectPath, ProjectReloadPriority.Medium);
 
         public Task WaitForAllTrackedProjectLoadsAsync(CancellationToken cancellationToken = default)
             => WaitForCurrentProjectLoadsAsync(cancellationToken);

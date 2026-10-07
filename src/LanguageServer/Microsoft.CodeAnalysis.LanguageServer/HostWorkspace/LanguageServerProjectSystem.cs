@@ -164,7 +164,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         var loadedProjects = ImmutableArray.CreateBuilder<LoadedProject>(projects.Length);
         foreach (var (path, guid) in projects)
         {
-            var loadedProject = await BeginLoadingProjectAsync(path, isHighPriority: false);
+            var loadedProject = await BeginLoadingProjectAsync(path, ProjectReloadPriority.Medium);
             if (guid is not null)
                 await loadedProject.SetProjectGuidForTelemetryAsync(Guid.Parse(guid));
 
@@ -187,7 +187,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         var loadedProjects = ImmutableArray.CreateBuilder<LoadedProject>(projectFilePaths.Length);
         foreach (var path in projectFilePaths)
         {
-            var loadedProject = await BeginLoadingProjectAsync(NormalizeDriveLetter(path), isHighPriority: false);
+            var loadedProject = await BeginLoadingProjectAsync(NormalizeDriveLetter(path), ProjectReloadPriority.Medium);
             loadedProjects.Add(loadedProject);
         }
 

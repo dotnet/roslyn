@@ -128,7 +128,7 @@ internal sealed partial class OnDemandProjectLoader(
                         continue;
 
                     _logger.LogInformation("Loading project on demand for '{ProjectPath}'.", projectPath);
-                    projectsToLoad.Add(projectLoader.BeginLoadingProjectAsync(projectPath, isHighPriority: true));
+                    projectsToLoad.Add(projectLoader.BeginLoadingProjectAsync(projectPath, LanguageServerProjectLoader.ProjectReloadPriority.High));
                 }
 
                 foreach (var project in await Task.WhenAll(projectsToLoad))
