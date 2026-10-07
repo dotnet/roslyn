@@ -3345,6 +3345,84 @@ struct S
         }
 
         [Fact]
+        public void RefDiscardAssignment_05_Field_13()
+        {
+            var source = """
+class C
+{
+    static void M(System.TypedReference tr)
+    {
+        _ = ref __refvalue(tr, S).F;
+    }
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll, verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  refanyval  "S"
+  IL_0007:  ldflda     "byte S.F"
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  refanyval  "S"
+  IL_0006:  ldflda     "byte S.F"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void RefDiscardAssignment_05_Field_14()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        ref S s = ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+        System.TypedReference tr = __makeref(s);
+
+        try
+        {
+            M(tr);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M(System.TypedReference tr)
+    {
+        _ = ref __refvalue(tr, S).F;
+    }
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, verify: Verification.Skipped, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "Pass");
+        }
+
+        [Fact]
         public void RefDiscardAssignment_06_Field()
         {
             var source = """

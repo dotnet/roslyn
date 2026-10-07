@@ -2295,6 +2295,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.ConditionalOperator:
                     return ((BoundConditionalOperator)receiver).IsRef;
+
+                case BoundKind.RefValueOperator:
+                    return true;
             }
 
             return false;
