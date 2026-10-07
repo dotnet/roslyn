@@ -238,6 +238,8 @@
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net461" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net45" Version="1.0.3" />
     <PackageVersion Include="System.Buffers" Version="$(SystemBuffersVersion)" />
+    <!-- Unify the source generator binary across projects for .NET Framework compiler server consistency. -->
+    <PackageVersion Include="System.ClientModel" Version="1.10.0" />
     <PackageVersion Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
     <PackageVersion Include="System.Composition" Version="$(SystemCompositionVersion)" />
