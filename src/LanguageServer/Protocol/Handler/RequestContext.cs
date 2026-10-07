@@ -104,31 +104,17 @@ internal readonly struct RequestContext
             : _clientCapabilities;
     }
 
-    public async ValueTask<Workspace?> GetWorkspaceAsync(CancellationToken cancellationToken)
-        => _capturedWorkspaceContext is null
-            ? null
-            : (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Workspace;
-
     public async ValueTask<Workspace> GetRequiredWorkspaceAsync(CancellationToken cancellationToken)
-        => await GetWorkspaceAsync(cancellationToken).ConfigureAwait(false)
-            ?? throw new InvalidOperationException($"Workspace is null when it was required for {Method}");
-
-    public async ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
-        => _capturedWorkspaceContext is null
-            ? null
-            : (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Solution;
+        => (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Workspace;
 
     public async ValueTask<Solution> GetRequiredSolutionAsync(CancellationToken cancellationToken)
-        => await GetSolutionAsync(cancellationToken).ConfigureAwait(false)
-            ?? throw new InvalidOperationException($"Solution is null when it was required for {Method}");
+        => (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Solution;
 
     public async ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
-        => _capturedWorkspaceContext is null
-            ? null
-            : (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Document;
+        => (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Document;
 
     private Task<LspWorkspaceContext> GetRequiredWorkspaceContextAsync()
-        => _capturedWorkspaceContext?.ResolveAsync() ?? throw new InvalidOperationException("Workspace context has been cleared.");
+        => _capturedWorkspaceContext?.ResolveAsync() ?? throw new InvalidOperationException("Workspace context was not requested.");
 
     public void ClearSolutionContext()
     {

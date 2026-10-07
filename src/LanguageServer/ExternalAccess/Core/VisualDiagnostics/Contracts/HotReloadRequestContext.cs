@@ -18,14 +18,18 @@ internal sealed class HotReloadRequestContext(RequestContext context)
     [Obsolete("Use GetTextDocumentAsync instead.", error: false)]
     public TextDocument? TextDocument => context.GetTextDocumentAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
-    [Obsolete("Use GetSolutionAsync instead.", error: false)]
-    public Solution? Solution => context.GetSolutionAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
+    [Obsolete("Use GetRequiredSolutionAsync instead.", error: false)]
+    public Solution? Solution => context.GetRequiredSolutionAsync(CancellationToken.None).AsTask().GetAwaiter().GetResult();
 
     public ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
         => context.GetTextDocumentAsync(cancellationToken);
 
-    public ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
-        => context.GetSolutionAsync(cancellationToken);
+    [Obsolete("Use GetRequiredSolutionAsync instead.", error: false)]
+    public async ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
+        => await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
+
+    public ValueTask<Solution> GetRequiredSolutionAsync(CancellationToken cancellationToken)
+        => context.GetRequiredSolutionAsync(cancellationToken);
 
     public bool IsTracking(TextDocument textDocument) => context.IsTracking(textDocument.GetURI());
 }

@@ -54,11 +54,11 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             CancellationToken.None);
         var copy = context;
 
-        Assert.NotNull(await copy.GetSolutionAsync(CancellationToken.None));
+        Assert.NotNull(await copy.GetRequiredSolutionAsync(CancellationToken.None));
         context.ClearSolutionContext();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetWorkspaceAsync(CancellationToken.None));
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetSolutionAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetRequiredWorkspaceAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetRequiredSolutionAsync(CancellationToken.None));
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetTextDocumentAsync(CancellationToken.None));
         copy.TraceDebug("Context logging remains available after the solution is cleared.");
 
@@ -74,7 +74,7 @@ public sealed class PullDiagnosticTests(ITestOutputHelper testOutputHelper) : Ab
             "test",
             CancellationToken.None);
         contextWithoutSolution.ClearSolutionContext();
-        Assert.Null(await contextWithoutSolution.GetSolutionAsync(CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await contextWithoutSolution.GetRequiredSolutionAsync(CancellationToken.None));
     }
 
     #region Document Diagnostics

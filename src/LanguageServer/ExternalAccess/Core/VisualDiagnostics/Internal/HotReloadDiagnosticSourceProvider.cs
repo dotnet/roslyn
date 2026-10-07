@@ -25,10 +25,7 @@ internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMa
 
     public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (await context.GetSolutionAsync(cancellationToken).ConfigureAwait(false) is not Solution solution)
-        {
-            return [];
-        }
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         var hotReloadContext = new HotReloadRequestContext(context);
         using var _ = ArrayBuilder<IDiagnosticSource>.GetInstance(out var sources);
