@@ -161,10 +161,8 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
 
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task DisabledOnDemandLoadingDoesNotStartBuild(bool disableOnDemandLoading)
+    [Fact]
+    public async Task DisabledOnDemandLoadingDoesNotStartBuild()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
@@ -172,14 +170,41 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         folder.CreateFile("Project.csproj");
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Document.cs").Path);
         var globalOptions = server.ExportProvider.GetExportedValue<IGlobalOptionService>();
-        var option = disableOnDemandLoading
-            ? LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand
-            : LspOptionsStorage.LspUsingDevkitFeatures;
+        var option = LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand;
         var originalValue = globalOptions.GetOption(option);
 
         try
         {
-            globalOptions.SetGlobalOption(option, !disableOnDemandLoading);
+            globalOptions.SetGlobalOption(option, false);
+            var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
+
+            var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
+            Assert.True(load.IsCompletedSuccessfully);
+            Assert.Null(await load);
+            Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
+            Assert.Equal(0, loader.DesignTimeBuildCount);
+        }
+        finally
+        {
+            globalOptions.SetGlobalOption(option, originalValue);
+        }
+    }
+
+    [Fact]
+    public async Task DevKitDisablesOnDemandLoading()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var folder = TempRoot.CreateDirectory();
+        folder.CreateFile("Project.csproj");
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Document.cs").Path);
+        var globalOptions = server.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        var option = LspOptionsStorage.LspUsingDevkitFeatures;
+        var originalValue = globalOptions.GetOption(option);
+
+        try
+        {
+            globalOptions.SetGlobalOption(option, true);
             var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
             var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
