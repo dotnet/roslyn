@@ -108,7 +108,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     [InlineData(false, true)]
     [InlineData(true, false)]
     [InlineData(true, true)]
-    public async Task DeferredContextPreservesTextBeforeLaterEditsAsync(bool documentRequest, bool initiallyTracked)
+    public async Task DeferredContextProjectsCapturedTrackedTextOntoLoadedSolutionAsync(bool documentRequest, bool initiallyTracked)
     {
         var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
         await using var testLspServer = await CreateTestLspServerAsync(
@@ -128,10 +128,11 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         var newDocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(newDocumentPath);
         var newDocumentText = SourceText.From("class A { }");
         var existingDocumentUri = existingDocument.GetURI();
-        var expectedText = initiallyTracked ? "class B { int Before; }" : "class B { }";
+        var capturedText = "class B { int Before; }";
+        var expectedText = initiallyTracked ? capturedText : "class B { int Later; }";
 
         if (initiallyTracked)
-            await manager.StartTrackingAsync(existingDocumentUri, SourceText.From(expectedText), "csharp", lspVersion: 1, CancellationToken.None);
+            await manager.StartTrackingAsync(existingDocumentUri, SourceText.From(capturedText), "csharp", lspVersion: 1, CancellationToken.None);
 
         CapturedLspWorkspaceContext? capturedContext;
         if (documentRequest)
