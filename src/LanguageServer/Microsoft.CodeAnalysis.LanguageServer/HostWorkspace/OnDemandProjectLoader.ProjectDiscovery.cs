@@ -72,7 +72,6 @@ internal sealed partial class OnDemandProjectLoader
                         builder.Add(filePath);
                 }
 
-                builder.Sort(StringComparer.Ordinal);
                 return builder.ToImmutable();
             }
             catch (Exception exception) when (IOUtilities.IsNormalIOException(exception))
