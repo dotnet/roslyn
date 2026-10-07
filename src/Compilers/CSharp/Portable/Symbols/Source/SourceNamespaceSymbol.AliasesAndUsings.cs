@@ -97,16 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 static _ => new AliasesAndUsings());
         }
 
-        private AliasesAndUsings GetAliasesAndUsings(SingleNamespaceDeclaration declaration)
-            => GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, declaration.SyntaxReference);
-
 #if DEBUG
         private AliasesAndUsings GetAliasesAndUsingsForAsserts(CSharpSyntaxNode declarationSyntax)
         {
             var singleDeclaration = GetMatchingNamespaceDeclaration(declarationSyntax);
 
             return singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings
-                ? GetAliasesAndUsings(singleDeclaration)
+                ? GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, singleDeclaration.SyntaxReference)
                 : GetOrCreateAliasAndUsings(ref _aliasesAndUsingsForAsserts_doNotAccessDirectly, singleDeclaration.SyntaxReference);
         }
 #endif
@@ -280,7 +277,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             if (singleDeclaration.HasGlobalUsings)
                             {
-                                var aliases = GetAliasesAndUsings(singleDeclaration).GetGlobalUsingAliasesMap(this, singleDeclaration.SyntaxReference, basesBeingResolved);
+                                var aliasesAndUsings = GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, singleDeclaration.SyntaxReference);
+                                var aliases = aliasesAndUsings.GetGlobalUsingAliasesMap(this, singleDeclaration.SyntaxReference, basesBeingResolved);
 
                                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -318,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     }
                                 }
 
-                                var namespacesOrTypes = GetAliasesAndUsings(singleDeclaration).GetGlobalUsingNamespacesOrTypes(this, singleDeclaration.SyntaxReference, basesBeingResolved);
+                                var namespacesOrTypes = aliasesAndUsings.GetGlobalUsingNamespacesOrTypes(this, singleDeclaration.SyntaxReference, basesBeingResolved);
 
                                 if (!namespacesOrTypes.IsEmpty)
                                 {
@@ -354,12 +352,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 if (singleDeclaration.HasExternAliases)
                                 {
-                                    var externAliases = GetAliasesAndUsings(singleDeclaration).GetExternAliases(this, singleDeclaration.SyntaxReference);
+                                    var aliasesAndUsings = GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, singleDeclaration.SyntaxReference);
+                                    var externAliases = aliasesAndUsings.GetExternAliases(this, singleDeclaration.SyntaxReference);
                                     var globalAliasesMap = ImmutableDictionary<string, AliasAndUsingDirective>.Empty;
 
                                     if (singleDeclaration.HasGlobalUsings)
                                     {
-                                        globalAliasesMap = GetAliasesAndUsings(singleDeclaration).GetGlobalUsingAliasesMap(this, singleDeclaration.SyntaxReference, basesBeingResolved);
+                                        globalAliasesMap = aliasesAndUsings.GetGlobalUsingAliasesMap(this, singleDeclaration.SyntaxReference, basesBeingResolved);
                                     }
 
                                     foreach (var externAlias in externAliases)
