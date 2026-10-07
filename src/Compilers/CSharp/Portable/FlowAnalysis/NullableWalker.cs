@@ -12265,7 +12265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 updatedProperty = reinferenceResult.Member;
 
                 TypeWithAnnotations typeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
-                FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: node.ReceiverOpt?.Type, symbol: updatedProperty);
+                FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: node.ReceiverOpt.Type, symbol: updatedProperty);
                 TypeWithState typeWithState = ApplyUnconditionalAnnotations(typeWithAnnotations.ToTypeWithState(), memberAnnotations);
 
                 SetResult(node, typeWithState, typeWithAnnotations);
