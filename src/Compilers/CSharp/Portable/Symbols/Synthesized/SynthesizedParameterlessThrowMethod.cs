@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 //throw new GivenException();
 
-                var body = F.Throw(F.New(_exceptionConstructor, ImmutableArray<BoundExpression>.Empty));
+                var body = GenerateThrow(F, _exceptionConstructor);
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
                 F.CloseMethod(body);
@@ -40,6 +40,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ex.Diagnostic);
                 F.CloseMethod(F.ThrowNull());
             }
+        }
+
+        public static BoundThrowStatement GenerateThrow(SyntheticBoundNodeFactory f, MethodSymbol exceptionConstructor)
+        {
+            return f.Throw(f.New(exceptionConstructor, ImmutableArray<BoundExpression>.Empty));
         }
     }
 }
