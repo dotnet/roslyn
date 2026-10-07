@@ -15,7 +15,7 @@ The minimal required version of .NET Framework is 4.7.2.
 
 ## Developing with Visual Studio 2026
 
-1. Use latest [Visual Studio 2026 Insiders](https://visualstudio.microsoft.com/insiders/)
+1. Use latest [Visual Studio Insiders](https://visualstudio.microsoft.com/insiders/)
     - Ensure Visual Studio extension development is included in the selected workloads
     - Ensure C# and Visual Basic, MSBuild, and .NET Core are included in the selected individual components
     - Restart Visual Studio
