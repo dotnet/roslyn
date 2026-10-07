@@ -2432,7 +2432,10 @@ unsafe class C
                     public int X, Y;
                 }
                 """;
-            var comp = CreateCompilationWithFunctionPointers(source, options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel));
+            var comp = CreateCompilationWithFunctionPointers(
+                source,
+                options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel),
+                targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: reverseBranches ? """
                 0,1
@@ -2511,7 +2514,10 @@ unsafe class C
                     public int X, Y;
                 }
                 """;
-            var comp = CreateCompilationWithFunctionPointers(source, options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel));
+            var comp = CreateCompilationWithFunctionPointers(
+                source,
+                options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel),
+                targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: reverseBranches ? "4433" : "3344");
 
@@ -2576,7 +2582,10 @@ unsafe class C
                     public int X;
                 }
                 """;
-            var comp = CreateCompilationWithFunctionPointers(source, options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel));
+            var comp = CreateCompilationWithFunctionPointers(
+                source,
+                options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel),
+                targetFramework: TargetFramework.Standard);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: reverseBranches ? """
                 True
@@ -2627,7 +2636,10 @@ unsafe class C
                     public int Increment() => ++Value;
                 }
                 """;
-            var comp = CreateCompilationWithFunctionPointers(source, options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel));
+            var comp = CreateCompilationWithFunctionPointers(
+                source,
+                options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel),
+                targetFramework: TargetFramework.Standard);
             var expectedOutput = (refKind, reverseBranches) switch
             {
                 ("ref", false) => """
@@ -2724,7 +2736,10 @@ unsafe class C
                     static void Print(int ignored, in int value) => Console.WriteLine(value);
                 }
                 """;
-            var comp = CreateCompilationWithFunctionPointers(source, options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel));
+            var comp = CreateCompilationWithFunctionPointers(
+                source,
+                options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel),
+                targetFramework: TargetFramework.Standard);
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: refKind == "" ? """
                 1
                 2
