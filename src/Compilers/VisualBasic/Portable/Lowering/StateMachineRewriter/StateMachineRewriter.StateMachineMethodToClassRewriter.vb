@@ -100,12 +100,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _resumableStateAllocator = New ResumableStateMachineStateAllocator(
                     slotAllocatorOpt, firstState:=FirstIncreasingResumableState, increasing:=True)
 
-                _nextFinalizerState = If(slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing:=False), StateMachineState.FirstIteratorFinalizeState)
+                _nextFinalizerState = If(slotAllocatorOpt?.GetFirstUnusedStateMachineState(increasing:=False), FirstFinalizeState)
 
                 For Each p In initialProxies
                     Proxies.Add(p.Key, p.Value)
                 Next
             End Sub
+
+            Protected MustOverride ReadOnly Property FirstFinalizeState As StateMachineState
 
             Protected MustOverride ReadOnly Property FirstIncreasingResumableState As StateMachineState
             Protected MustOverride ReadOnly Property EncMissingStateErrorCode As HotReloadExceptionCode

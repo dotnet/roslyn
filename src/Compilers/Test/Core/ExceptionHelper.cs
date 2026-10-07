@@ -64,7 +64,7 @@ namespace Roslyn.Test.Utilities
             {
                 sb.Append("Expected: ");
                 sb.AppendLine(expectedOutput);
-                sb.Append("Actual: ");
+                sb.Append("Actual  : ");
                 sb.AppendLine(actualOutput);
             }
             else
