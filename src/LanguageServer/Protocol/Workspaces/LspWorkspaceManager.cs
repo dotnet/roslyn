@@ -241,6 +241,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             return new(initialContext);
 
         var projectLoadTask = _onDemandProjectLoader.TryLoadProjectsAsync(textDocumentIdentifier.DocumentUri).AsTask();
+        // A synchronous null result means the loader declined the request without starting asynchronous work.
         if (projectLoadTask.Status == TaskStatus.RanToCompletion && projectLoadTask.Result is null)
             return new(initialContext);
 
