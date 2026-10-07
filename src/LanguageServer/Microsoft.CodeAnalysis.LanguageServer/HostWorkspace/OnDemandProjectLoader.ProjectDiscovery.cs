@@ -85,6 +85,6 @@ internal sealed partial class OnDemandProjectLoader
         }
 
         internal bool IsSupportedProject(string filePath)
-            => PathUtilities.IsAbsolute(filePath) && _supportedProjectFileExtensions.Contains(Path.GetExtension(filePath));
+            => _supportedProjectFileExtensions.Contains(Path.GetExtension(filePath));
     }
 }
