@@ -13,7 +13,7 @@ Using the command line, Roslyn can be developed using the following pattern:
 
 The minimal required version of .NET Framework is 4.7.2.
 
-## Developing with Visual Studio 2026
+## Developing with Visual Studio
 
 1. Use latest [Visual Studio Insiders](https://visualstudio.microsoft.com/insiders/)
     - Ensure Visual Studio extension development is included in the selected workloads
