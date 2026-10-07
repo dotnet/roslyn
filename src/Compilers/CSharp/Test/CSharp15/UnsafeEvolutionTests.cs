@@ -11064,30 +11064,30 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation([source, IsExternalInitTypeDefinition],
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (6,33): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // (6,33): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     [FieldOffset(0)] public int F1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33),
-            // (9,40): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33),
+            // (9,40): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     [field: FieldOffset(0)] public int P1 { get; set; }
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 40),
-            // (10,40): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 40),
+            // (10,40): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     [field: FieldOffset(0)] public int P2 => field;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 40),
-            // (13,56): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 40),
+            // (13,56): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     [field: FieldOffset(0)] public event System.Action E1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 56),
-            // (19,52): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 56),
+            // (19,52): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             // public record class  R([field: FieldOffset(0)] int X);
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 52),
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 52),
             // (22,18): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'param'. All attributes in this block will be ignored.
             // public class  P([field: FieldOffset(0)] int x)
             Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "param").WithLocation(22, 18),
             // (22,45): error CS0625: 'P.<x>P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
             // public class  P([field: FieldOffset(0)] int x)
             Diagnostic(ErrorCode.ERR_MissingStructOffset, "x").WithArguments("P.<x>P").WithLocation(22, 45),
-            // (22,45): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // (22,45): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             // public class  P([field: FieldOffset(0)] int x)
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 45),
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 45),
             // (30,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int F1 = 0;
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("safe").WithLocation(30, 27));
@@ -11124,9 +11124,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var field = tree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().First();
 
         compilation.GetSemanticModel(tree).GetDiagnostics(field.Span).Verify(
-            // (6,33): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // (6,33): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     [FieldOffset(0)] public int F1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33));
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 33));
     }
 
     [Fact]
@@ -11223,24 +11223,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net110,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // (6,16): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            // (6,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     public int F1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16),
-            // (9,16): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16),
+            // (9,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     public int P1 { get; set; }
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 16),
-            // (10,16): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(9, 16),
+            // (10,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     public int P2 => field;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 16),
-            // (13,32): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(10, 16),
+            // (13,32): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             //     public event System.Action E1;
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 32),
-            // (19,28): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(13, 32),
+            // (19,28): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             // public record struct R(int X);
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 28),
-            // (22,21): error CS9392: Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(19, 28),
+            // (22,21): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
             // public struct P(int x)
-            Diagnostic(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 21),
+            Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(22, 21),
             // (30,27): error CS0106: The modifier 'safe' is not valid for this item
             //     safe public const int F1 = 0;
             Diagnostic(ErrorCode.ERR_BadMemberFlag, "F1").WithArguments("safe").WithLocation(30, 27));
@@ -11297,6 +11297,151 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (21,2): error CS0592: Attribute 'ExtendedLayout' is not valid on this declaration type. It is only valid on 'struct' declarations.
             // [ExtendedLayout(ExtendedLayoutKind.CStruct)] public class P(int x)
             Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "ExtendedLayout").WithArguments("ExtendedLayout", "struct").WithLocation(21, 2));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85173")]
+    public void Member_Field_CustomLayout(
+        bool updatedRules,
+        [CombinatorialValues("struct", "class ")] string kind,
+        [CombinatorialValues("LayoutKind.Sequential", "LayoutKind.Auto")] string layoutKind,
+        [CombinatorialValues(null, 0, 1, 128)] int? pack,
+        [CombinatorialValues(null, 0, 5, 8)] int? size)
+    {
+        var layoutAttribute = $"[StructLayout({layoutKind}, CharSet = CharSet.Unicode" +
+            (pack is { } ? $", Pack = {pack}" : "") +
+            (size is { } ? $", Size = {size}" : "") + ")]";
+
+        var source = $$"""
+            using System.Runtime.InteropServices;
+
+            {{layoutAttribute}}
+            public {{kind}} S
+            {
+                public int F1;
+                public int F2, F3;
+                public const int C = 0;
+                public static int SF = 0;
+                public int P1 { get; set; }
+                public int P2 => field;
+                public int P3 => 0;
+                public static int SP { get; set; }
+                public event System.Action E1;
+                public static event System.Action SE;
+                public event System.Action E2 { add { } remove { } }
+            }
+
+            {{layoutAttribute}}
+            public record {{kind}} R(int X);
+
+            {{layoutAttribute}}
+            public {{kind}} P(int x)
+            {
+                public int X => x;
+            }
+            """;
+
+        var comp = CreateCompilation([source, IsExternalInitTypeDefinition],
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+
+        if (updatedRules && (pack > 0 || size > 0))
+        {
+            comp.VerifyDiagnostics(
+                // (6,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int F1;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16),
+                // (7,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int F2, F3;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F2").WithLocation(7, 16),
+                // (7,20): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int F2, F3;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F3").WithLocation(7, 20),
+                // (10,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int P1 { get; set; }
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P1").WithLocation(10, 16),
+                // (11,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int P2 => field;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "P2").WithLocation(11, 16),
+                // (14,32): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public event System.Action E1;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "E1").WithLocation(14, 32),
+                // (20,28): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                // public record struct R(int X);
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "X").WithLocation(20, 28),
+                // (23,21): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                // public struct P(int x)
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "x").WithLocation(23, 21));
+
+            var tree = comp.SyntaxTrees[0];
+            var field = tree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().First();
+            comp.GetSemanticModel(tree).GetDiagnostics(field.Span).Verify(
+                // (6,16): error CS9392: Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.
+                //     public int F1;
+                Diagnostic(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, "F1").WithLocation(6, 16));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85173")]
+    public void Member_Field_CustomLayout_Annotated(
+        [CombinatorialValues("struct", "class")] string kind,
+        [CombinatorialValues("LayoutKind.Sequential", "LayoutKind.Auto")] string layoutKind,
+        [CombinatorialValues("Pack = 1", "Size = 5")] string layoutArguments)
+    {
+        CompileAndVerifyUnsafe(
+            lib: $$"""
+                using System.Runtime.InteropServices;
+
+                [StructLayout({{layoutKind}}, {{layoutArguments}})]
+                public {{kind}} S
+                {
+                    safe public int F1;
+                    unsafe public int F2;
+                    safe public int P1 { get; set; }
+                    unsafe public int P2 { get; set; }
+                    safe public event System.Action E1;
+                    unsafe public event System.Action E2;
+                }
+                """,
+            caller: """
+                var s = new S[2];
+                s[1] = new S();
+                _ = s[1].F1;
+                _ = s[1].F2;
+                ref int r = ref s[1].F2;
+                _ = s[1].P1;
+                _ = s[1].P2;
+                s[1].E1 += null;
+                s[1].E2 += null;
+                unsafe
+                {
+                    _ = s[1].F2;
+                    ref int r2 = ref s[1].F2;
+                    _ = s[1].P2;
+                    s[1].E2 += null;
+                }
+                """,
+            expectedUnsafeSymbols: ["S.F2", "S.P2", "S.get_P2", "S.set_P2", "S.E2", "S.add_E2", "S.remove_E2"],
+            expectedSafeSymbols: ["S", "S.F1", "S.P1", "S.get_P1", "S.set_P1", "S.<P1>k__BackingField", "S.<P2>k__BackingField", "S.E1", "S.add_E1", "S.remove_E1", EventField("S.E1"), EventField("S.E2")],
+            optionsDll: TestOptions.UnsafeReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All),
+            verify: layoutKind == "LayoutKind.Auto" ? Verification.FailsPEVerify : Verification.Passes,
+            expectedDiagnostics:
+            [
+                // (4,5): error CS9362: 'S.F2' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s[1].F2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s[1].F2").WithArguments("S.F2").WithLocation(4, 5),
+                // (5,17): error CS9362: 'S.F2' must be used in an unsafe context because it is marked as 'unsafe'
+                // ref int r = ref s[1].F2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s[1].F2").WithArguments("S.F2").WithLocation(5, 17),
+                // (7,5): error CS9362: 'S.P2.get' must be used in an unsafe context because it is marked as 'unsafe'
+                // _ = s[1].P2;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "s[1].P2").WithArguments("S.P2.get").WithLocation(7, 5),
+                // (9,9): error CS9362: 'S.E2.add' must be used in an unsafe context because it is marked as 'unsafe'
+                // s[1].E2 += null;
+                Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("S.E2.add").WithLocation(9, 9),
+            ]);
     }
 
     [Theory, CombinatorialData]

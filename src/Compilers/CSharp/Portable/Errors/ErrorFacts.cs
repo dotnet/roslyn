@@ -2598,7 +2598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                 or ErrorCode.ERR_PartialMemberSafeDifference
-                or ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe
+                or ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe
                 or ErrorCode.ERR_NoBreakId
                 or ErrorCode.ERR_NoContinueId
                 or ErrorCode.ERR_ClosedBadDerivedTypesProperty

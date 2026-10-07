@@ -2500,7 +2500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExternMemberRequiresUnsafeOrSafe = 9389,
         ERR_PartialMemberSafeDifference = 9390,
         ERR_AbstractBaseRecordImplementation = 9391,
-        ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe = 9392,
+        ERR_LayoutFieldRequiresUnsafeOrSafe = 9392,
 
         ERR_NoBreakId = 9393,
         ERR_NoContinueId = 9394,
