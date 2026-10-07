@@ -154,8 +154,10 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
         var load = onDemandLoader.TryLoadProjectsAsync(new LSP.DocumentUri("untitled:Loose.cs"));
-        Assert.True(load.IsCompletedSuccessfully);
+        // Unsupported URIs are rejected before project discovery starts.
+        var completedSynchronously = load.IsCompleted;
         Assert.Null(await load);
+        Assert.True(completedSynchronously);
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
 
