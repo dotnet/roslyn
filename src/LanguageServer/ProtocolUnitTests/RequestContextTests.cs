@@ -39,7 +39,6 @@ public sealed class RequestContextTests(ITestOutputHelper testOutputHelper) : Ab
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetRequiredWorkspaceAsync(CancellationToken.None));
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetRequiredSolutionAsync(CancellationToken.None));
         await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetTextDocumentAsync(CancellationToken.None));
-        copy.TraceDebug("Context logging remains available after the solution is cleared.");
     }
 
     [Fact]
