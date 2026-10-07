@@ -193,6 +193,16 @@
   <data name="Remove_unnecessary_directives" xml:space="preserve">
     <value>Remove unnecessary directives</value>
   </data>
+  <data name="Escape_documentation_comment_terminator" xml:space="preserve">
+    <value>Escape documentation comment terminator</value>
+  </data>
+  <data name="Use_explicit_expression" xml:space="preserve">
+    <value>Use explicit expression</value>
+  </data>
+  <data name="Wrap_in_summary" xml:space="preserve">
+    <value>Wrap in &lt;summary&gt;</value>
+    <comment>&lt;summary&gt; is an XML documentation tag and should not be translated.</comment>
+  </data>
   <data name="Untested" xml:space="preserve">
     <value>Untested</value>
   </data>

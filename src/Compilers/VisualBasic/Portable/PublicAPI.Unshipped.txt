@@ -1,1 +1,5 @@
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetValueConversion(coalesceExpression As Microsoft.CodeAnalysis.Operations.ICoalesceOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.TypedConstantFormattingOptions
+Microsoft.CodeAnalysis.VisualBasic.TypedConstantFormattingOptions.IncludeTypeCharacter = 1 -> Microsoft.CodeAnalysis.VisualBasic.TypedConstantFormattingOptions
+Microsoft.CodeAnalysis.VisualBasic.TypedConstantFormattingOptions.None = 0 -> Microsoft.CodeAnalysis.VisualBasic.TypedConstantFormattingOptions
+Microsoft.CodeAnalysis.VisualBasic.TypedConstantExtensions.ToVisualBasicString(constant As Microsoft.CodeAnalysis.TypedConstant, options As Microsoft.CodeAnalysis.VisualBasic.TypedConstantFormattingOptions) -> String

@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -8,44 +8,44 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Diagnostics.NETCore.Client;
 
-namespace RunTests
+namespace Roslyn.Test.Utilities
 {
     /// <summary>
     /// Collects dump files from processes. Uses <see cref="DiagnosticsClient"/> for .NET Core
     /// processes and MiniDumpWriteDump P/Invoke for .NET Framework processes.
     /// </summary>
-    internal static class DumpCollector
+    public static class DumpCollector
     {
         /// <summary>
         /// Attempts to collect a full memory dump from the specified process.
         /// Returns true if the dump was successfully written.
         /// </summary>
-        internal static bool TryDumpProcess(Process process, string dumpFilePath)
+        public static bool TryDumpProcess(Process process, string dumpFilePath, Action<string>? log = null)
         {
             try
             {
                 if (IsNetCoreProcess(process))
                 {
-                    return TryDumpNetCoreProcess(process, dumpFilePath);
+                    return TryDumpNetCoreProcess(process, dumpFilePath, log);
                 }
                 else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    return TryDumpWithMiniDumpWriteDump(process, dumpFilePath);
+                    return TryDumpWithMiniDumpWriteDump(process, dumpFilePath, log);
                 }
                 else
                 {
-                    Logger.Log($"Cannot dump non-.NET Core process {process.ProcessName} ({process.Id}) on non-Windows platform.");
+                    log?.Invoke($"Cannot dump non-.NET Core process {process.ProcessName} ({process.Id}) on non-Windows platform.");
                     return false;
                 }
             }
             catch (Exception ex)
             {
-                Logger.Log($"Failed to dump process {process.ProcessName} ({process.Id}): {ex.Message}");
+                log?.Invoke($"Failed to dump process {process.ProcessName} ({process.Id}): {ex.Message}");
                 return false;
             }
         }
 
-        private static bool TryDumpNetCoreProcess(Process process, string dumpFilePath)
+        private static bool TryDumpNetCoreProcess(Process process, string dumpFilePath, Action<string>? log)
         {
             try
             {
@@ -55,7 +55,7 @@ namespace RunTests
             }
             catch (Exception ex)
             {
-                Logger.Log($"DiagnosticsClient.WriteDump failed for process {process.Id}: {ex.Message}");
+                log?.Invoke($"DiagnosticsClient.WriteDump failed for process {process.Id}: {ex.Message}");
                 return false;
             }
         }
@@ -71,13 +71,10 @@ namespace RunTests
                 // On Windows, .NET Core processes create a named pipe: dotnet-diagnostic-{pid}
                 // On Unix, they create a Unix domain socket in the temp directory.
                 // DiagnosticsClient.GetPublishedProcesses() returns all PIDs with active diagnostic ports.
-                var publishedProcesses = DiagnosticsClient.GetPublishedProcesses();
-                foreach (var pid in publishedProcesses)
+                foreach (var pid in DiagnosticsClient.GetPublishedProcesses())
                 {
                     if (pid == process.Id)
-                    {
                         return true;
-                    }
                 }
 
                 return false;
@@ -89,7 +86,7 @@ namespace RunTests
         }
 
 #pragma warning disable CA1416 // Validate platform compatibility
-        private static bool TryDumpWithMiniDumpWriteDump(Process process, string dumpFilePath)
+        private static bool TryDumpWithMiniDumpWriteDump(Process process, string dumpFilePath, Action<string>? log)
         {
             try
             {
@@ -107,16 +104,23 @@ namespace RunTests
                 if (!success)
                 {
                     var errorCode = Marshal.GetLastWin32Error();
-                    Logger.Log($"MiniDumpWriteDump failed for process {process.Id} with error code {errorCode}");
+                    log?.Invoke($"MiniDumpWriteDump failed for process {process.Id} with error code {errorCode}");
                     // Clean up the empty/partial file
-                    try { fileStream.Close(); File.Delete(dumpFilePath); } catch { }
+                    try
+                    {
+                        fileStream.Close();
+                        File.Delete(dumpFilePath);
+                    }
+                    catch
+                    {
+                    }
                 }
 
                 return success;
             }
             catch (Exception ex)
             {
-                Logger.Log($"MiniDumpWriteDump failed for process {process.Id}: {ex.Message}");
+                log?.Invoke($"MiniDumpWriteDump failed for process {process.Id}: {ex.Message}");
                 return false;
             }
         }

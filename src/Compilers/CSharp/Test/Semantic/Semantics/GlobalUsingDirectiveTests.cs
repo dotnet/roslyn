@@ -5023,9 +5023,9 @@ class C
                 // (2,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // global using unsafe X = int*;
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 14),
-                // (4,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (4,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe X Goo() => default;
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Goo").WithLocation(4, 14));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(4, 5));
         }
 
         [Fact]

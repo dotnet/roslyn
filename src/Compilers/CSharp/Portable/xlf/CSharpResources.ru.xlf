@@ -1182,6 +1182,11 @@
         <target state="translated">Оператор подавления недопустим в данном контексте.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_IllegalUnsafeModifier">
+        <source>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</source>
+        <target state="new">Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</target>
+        <note>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</note>
+      </trans-unit>
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
         <target state="translated">Невозможно объявить определяемый пользователем оператор преобразования с параметром "implicit" как проверенный</target>
@@ -4275,7 +4280,7 @@
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
+-unsafe[+|-]                  Allow 'unsafe' code and 'safe' modifiers
 -define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
                               form: -d)
 -langversion:?                Display the allowed values for language version
@@ -4348,7 +4353,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Параметры компилятора Visual C# 
 
                        - ВЫХОДНЫЕ ФАЙЛЫ - 
