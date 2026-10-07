@@ -170,24 +170,14 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         folder.CreateFile("Project.csproj");
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Document.cs").Path);
         var globalOptions = server.ExportProvider.GetExportedValue<IGlobalOptionService>();
-        var option = LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand;
-        var originalValue = globalOptions.GetOption(option);
+        globalOptions.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand, false);
+        var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
-        try
-        {
-            globalOptions.SetGlobalOption(option, false);
-            var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
-
-            var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
-            Assert.True(load.IsCompletedSuccessfully);
-            Assert.Null(await load);
-            Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
-            Assert.Equal(0, loader.DesignTimeBuildCount);
-        }
-        finally
-        {
-            globalOptions.SetGlobalOption(option, originalValue);
-        }
+        var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
+        Assert.True(load.IsCompletedSuccessfully);
+        Assert.Null(await load);
+        Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
+        Assert.Equal(0, loader.DesignTimeBuildCount);
     }
 
     [Fact]
@@ -199,24 +189,14 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         folder.CreateFile("Project.csproj");
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Document.cs").Path);
         var globalOptions = server.ExportProvider.GetExportedValue<IGlobalOptionService>();
-        var option = LspOptionsStorage.LspUsingDevkitFeatures;
-        var originalValue = globalOptions.GetOption(option);
+        globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, true);
+        var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
-        try
-        {
-            globalOptions.SetGlobalOption(option, true);
-            var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
-
-            var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
-            Assert.True(load.IsCompletedSuccessfully);
-            Assert.Null(await load);
-            Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
-            Assert.Equal(0, loader.DesignTimeBuildCount);
-        }
-        finally
-        {
-            globalOptions.SetGlobalOption(option, originalValue);
-        }
+        var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
+        Assert.True(load.IsCompletedSuccessfully);
+        Assert.Null(await load);
+        Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
+        Assert.Equal(0, loader.DesignTimeBuildCount);
     }
 
     private OnDemandProjectLoader CreateOnDemandLoader(SingleServerTestLspServer server, TestProjectLoader loader, string workspaceFolder)
