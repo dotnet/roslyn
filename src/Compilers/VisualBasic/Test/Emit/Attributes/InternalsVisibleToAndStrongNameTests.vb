@@ -6,6 +6,9 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
+Imports System.Runtime.ExceptionServices
+Imports System.Runtime.InteropServices
+Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
@@ -35,7 +38,10 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
 
 #Region "Helpers"
 
-    Public Sub New()
+    Private ReadOnly _output As ITestOutputHelper
+
+    Public Sub New(output As ITestOutputHelper)
+        _output = output
         SigningTestHelpers.InstallKey()
     End Sub
 
@@ -1809,7 +1815,29 @@ End Class
         options:=TestOptions.SigningReleaseDll.WithCryptoKeyFile(s_keyPairFile), parseOptions:=parseOptions)
 
         Dim outStrm = New MemoryStream()
-        Dim emitResult = other.Emit(outStrm)
+        Dim emitThread = Thread.CurrentThread
+        Dim exceptions As New List(Of String)
+        Dim firstChanceException As EventHandler(Of FirstChanceExceptionEventArgs) =
+            Sub(sender, e)
+                If Thread.CurrentThread.ManagedThreadId = emitThread.ManagedThreadId AndAlso
+                   exceptions.Count < 8 AndAlso
+                   (TypeOf e.Exception Is COMException OrElse TypeOf e.Exception Is IOException) Then
+                    exceptions.Add($"{e.Exception.GetType().FullName}: HRESULT=0x{e.Exception.HResult:X8}{Environment.NewLine}{e.Exception}")
+                End If
+            End Sub
+
+        Dim emitResult As EmitResult
+        AddHandler AppDomain.CurrentDomain.FirstChanceException, firstChanceException
+        Try
+            emitResult = other.Emit(outStrm)
+        Finally
+            RemoveHandler AppDomain.CurrentDomain.FirstChanceException, firstChanceException
+        End Try
+
+        _output.WriteLine($"Strong-name Emit: features={String.Join(", ", parseOptions.Features)}, pointerSize={IntPtr.Size}, thread={emitThread.ManagedThreadId}, apartment={emitThread.GetApartmentState()}, runtime={Environment.Version}")
+        For Each exception In exceptions
+            _output.WriteLine(exception)
+        Next
 
         Assert.False(emitResult.Success)
 
