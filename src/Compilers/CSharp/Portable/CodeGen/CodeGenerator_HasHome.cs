@@ -135,6 +135,11 @@ internal partial class CodeGenerator
                 return methodRefKind == RefKind.Ref ||
                        (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
 
+            case BoundKind.FunctionPointerInvocation:
+                var funcPtrRefKind = ((BoundFunctionPointerInvocation)expression).FunctionPointer.Signature.RefKind;
+                return funcPtrRefKind == RefKind.Ref ||
+                       (IsAnyReadOnly(addressKind) && funcPtrRefKind == RefKind.RefReadOnly);
+
             case BoundKind.Dup:
                 //NB: Dup represents locals that do not need IL slot
                 var dupRefKind = ((BoundDup)expression).RefKind;

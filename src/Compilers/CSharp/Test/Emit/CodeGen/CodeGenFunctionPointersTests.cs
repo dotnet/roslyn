@@ -2393,6 +2393,379 @@ unsafe class C
 ");
         }
 
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85932")]
+        public void RefConditionalFunctionPointer_RefReturn(OptimizationLevel optimizationLevel, bool reverseBranches)
+        {
+            var conditional = reverseBranches ? "b ? ref s.Y : ref f(ref s)" : "b ? ref f(ref s) : ref s.Y";
+            var source = $$"""
+                using System;
+                unsafe class C
+                {
+                    static void Main()
+                    {
+                        var s = new S { X = 0, Y = 0 };
+                        delegate*<ref S, ref int> f = &GetX;
+                        ViaFnPtr(ref s, f, true) = 1;
+                        Console.WriteLine($"{s.X},{s.Y}");
+                        ViaFnPtr(ref s, f, false) = 2;
+                        Console.WriteLine($"{s.X},{s.Y}");
+                        SetLocal(ref s, f, true, 3);
+                        Console.WriteLine($"{s.X},{s.Y}");
+                        SetLocal(ref s, f, false, 4);
+                        Console.WriteLine($"{s.X},{s.Y}");
+                    }
+
+                    static ref int GetX(ref S s) => ref s.X;
+
+                    static ref int ViaFnPtr(ref S s, delegate*<ref S, ref int> f, bool b)
+                        => ref {{conditional}};
+
+                    static void SetLocal(ref S s, delegate*<ref S, ref int> f, bool b, int value)
+                    {
+                        ref int local = ref {{conditional}};
+                        local = value;
+                    }
+                }
+
+                struct S
+                {
+                    public int X, Y;
+                }
+                """;
+            var comp = CreateCompilationWithFunctionPointers(source, options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel));
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: reverseBranches ? """
+                0,1
+                2,1
+                2,3
+                4,3
+                """ : """
+                1,0
+                1,2
+                3,2
+                3,4
+                """);
+
+            if (optimizationLevel == OptimizationLevel.Release && !reverseBranches)
+            {
+                verifier.VerifyIL("C.ViaFnPtr", """
+                    {
+                      // Code size       20 (0x14)
+                      .maxstack  2
+                      .locals init (delegate*<ref S, ref int> V_0)
+                      IL_0000:  ldarg.2
+                      IL_0001:  brtrue.s   IL_000a
+                      IL_0003:  ldarg.0
+                      IL_0004:  ldflda     "int S.Y"
+                      IL_0009:  ret
+                      IL_000a:  ldarg.1
+                      IL_000b:  stloc.0
+                      IL_000c:  ldarg.0
+                      IL_000d:  ldloc.0
+                      IL_000e:  calli      "delegate*<ref S, ref int>"
+                      IL_0013:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85932")]
+        public void RefConditionalFunctionPointer_RefReadonlyReturn(
+            OptimizationLevel optimizationLevel,
+            bool reverseBranches,
+            [CombinatorialValues("ref", "ref readonly")] string refKind)
+        {
+            var conditional = reverseBranches ? "b ? ref s.Y : ref f(ref s)" : "b ? ref f(ref s) : ref s.Y";
+            var source = $$"""
+                using System;
+                unsafe class C
+                {
+                    static void Main()
+                    {
+                        var s = new S();
+                        delegate*<ref S, {{refKind}} int> f = &GetX;
+                        Test(ref s, f, true);
+                        Test(ref s, f, false);
+                    }
+
+                    static {{refKind}} int GetX(ref S s) => ref s.X;
+
+                    static ref readonly int ViaFnPtr(ref S s, delegate*<ref S, {{refKind}} int> f, bool b)
+                        => ref {{conditional}};
+
+                    static void Test(ref S s, delegate*<ref S, {{refKind}} int> f, bool b)
+                    {
+                        s.X = 1;
+                        s.Y = 2;
+                        ref readonly int result = ref ViaFnPtr(ref s, f, b);
+                        ref readonly int local = ref {{conditional}};
+                        s.X = 3;
+                        s.Y = 4;
+                        Console.Write(result);
+                        Console.Write(local);
+                    }
+                }
+
+                struct S
+                {
+                    public int X, Y;
+                }
+                """;
+            var comp = CreateCompilationWithFunctionPointers(source, options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel));
+            comp.VerifyEmitDiagnostics();
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: reverseBranches ? "4433" : "3344");
+
+            if (optimizationLevel == OptimizationLevel.Release && !reverseBranches)
+            {
+                verifier.VerifyIL("C.ViaFnPtr", $$"""
+                    {
+                      // Code size       20 (0x14)
+                      .maxstack  2
+                      .locals init (delegate*<ref S, {{refKind}} int> V_0)
+                      IL_0000:  ldarg.2
+                      IL_0001:  brtrue.s   IL_000a
+                      IL_0003:  ldarg.0
+                      IL_0004:  ldflda     "int S.Y"
+                      IL_0009:  ret
+                      IL_000a:  ldarg.1
+                      IL_000b:  stloc.0
+                      IL_000c:  ldarg.0
+                      IL_000d:  ldloc.0
+                      IL_000e:  calli      "delegate*<ref S, {{refKind}} int>"
+                      IL_0013:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85932")]
+        public void RefConditionalFunctionPointer_NullRef(OptimizationLevel optimizationLevel, bool reverseBranches)
+        {
+            var conditional = reverseBranches ? "b ? ref NullRef(ref s) : ref f(ref s)" : "b ? ref f(ref s) : ref NullRef(ref s)";
+            var source = $$"""
+                using System;
+                unsafe class C
+                {
+                    static void Main()
+                    {
+                        var s = new S { X = 0 };
+                        delegate*<ref S, ref int> f = &GetX;
+                        Console.WriteLine(IsNull(ref ViaFnPtr(ref s, f, true)));
+                        Console.WriteLine(IsNull(ref ViaFnPtr(ref s, f, false)));
+                        f = &NullRef;
+                        Console.WriteLine(IsNull(ref ViaFnPtr(ref s, f, {{(reverseBranches ? "false" : "true")}})));
+                    }
+
+                    static ref int GetX(ref S s) => ref s.X;
+                    static ref int NullRef(ref S s) => ref *(int*)0;
+
+                    static ref int ViaFnPtr(ref S s, delegate*<ref S, ref int> f, bool b)
+                        => ref {{conditional}};
+
+                    static bool IsNull(ref int value)
+                    {
+                        fixed (int* p = &value)
+                        {
+                            return p == null;
+                        }
+                    }
+                }
+
+                struct S
+                {
+                    public int X;
+                }
+                """;
+            var comp = CreateCompilationWithFunctionPointers(source, options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel));
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: reverseBranches ? """
+                True
+                False
+                True
+                """ : """
+                False
+                True
+                True
+                """);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85932")]
+        public void RefConditionalFunctionPointer_MutatingReceiver(
+            OptimizationLevel optimizationLevel,
+            bool reverseBranches,
+            [CombinatorialValues("ref", "ref readonly")] string refKind)
+        {
+            var conditional = reverseBranches ? "b ? ref s.Y : ref f(ref s)" : "b ? ref f(ref s) : ref s.Y";
+            var source = $$"""
+                using System;
+                unsafe class C
+                {
+                    static void Main()
+                    {
+                        var s = new Holder { X = new S { Value = 1 }, Y = new S { Value = 2 } };
+                        delegate*<ref Holder, {{refKind}} S> f = &GetX;
+                        Console.Write(Increment(ref s, f, true));
+                        Console.WriteLine($":{s.X.Value},{s.Y.Value}");
+                        Console.Write(Increment(ref s, f, false));
+                        Console.WriteLine($":{s.X.Value},{s.Y.Value}");
+                    }
+
+                    static {{refKind}} S GetX(ref Holder s) => ref s.X;
+
+                    static int Increment(ref Holder s, delegate*<ref Holder, {{refKind}} S> f, bool b)
+                        => ({{conditional}}).Increment();
+                }
+
+                struct Holder
+                {
+                    public S X, Y;
+                }
+
+                struct S
+                {
+                    public int Value;
+                    public int Increment() => ++Value;
+                }
+                """;
+            var comp = CreateCompilationWithFunctionPointers(source, options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel));
+            var expectedOutput = (refKind, reverseBranches) switch
+            {
+                ("ref", false) => """
+                    2:2,2
+                    3:2,3
+                    """,
+                ("ref", true) => """
+                    3:1,3
+                    2:2,3
+                    """,
+                ("ref readonly", false) => """
+                    2:1,2
+                    3:1,2
+                    """,
+                _ => """
+                    3:1,2
+                    2:1,2
+                    """,
+            };
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: expectedOutput);
+            verifier.VerifyDiagnostics();
+
+            if (optimizationLevel == OptimizationLevel.Release && !reverseBranches)
+            {
+                verifier.VerifyIL("C.Increment", refKind == "ref" ? """
+                    {
+                      // Code size       26 (0x1a)
+                      .maxstack  2
+                      .locals init (delegate*<ref Holder, ref S> V_0)
+                      IL_0000:  ldarg.2
+                      IL_0001:  brtrue.s   IL_000b
+                      IL_0003:  ldarg.0
+                      IL_0004:  ldflda     "S Holder.Y"
+                      IL_0009:  br.s       IL_0014
+                      IL_000b:  ldarg.1
+                      IL_000c:  stloc.0
+                      IL_000d:  ldarg.0
+                      IL_000e:  ldloc.0
+                      IL_000f:  calli      "delegate*<ref Holder, ref S>"
+                      IL_0014:  call       "int S.Increment()"
+                      IL_0019:  ret
+                    }
+                    """ : """
+                    {
+                      // Code size       34 (0x22)
+                      .maxstack  2
+                      .locals init (delegate*<ref Holder, ref readonly S> V_0,
+                                    S V_1)
+                      IL_0000:  ldarg.2
+                      IL_0001:  brtrue.s   IL_000b
+                      IL_0003:  ldarg.0
+                      IL_0004:  ldfld      "S Holder.Y"
+                      IL_0009:  br.s       IL_0019
+                      IL_000b:  ldarg.1
+                      IL_000c:  stloc.0
+                      IL_000d:  ldarg.0
+                      IL_000e:  ldloc.0
+                      IL_000f:  calli      "delegate*<ref Holder, ref readonly S>"
+                      IL_0014:  ldobj      "S"
+                      IL_0019:  stloc.1
+                      IL_001a:  ldloca.s   V_1
+                      IL_001c:  call       "int S.Increment()"
+                      IL_0021:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/85932")]
+        public void FunctionPointerReturn_InArgumentCapture(
+            OptimizationLevel optimizationLevel,
+            [CombinatorialValues("", "ref", "ref readonly")] string refKind)
+        {
+            var returnType = refKind == "" ? "int" : refKind + " int";
+            var source = $$"""
+                using System;
+                unsafe class C
+                {
+                    static int _value = 1;
+
+                    static void Main()
+                    {
+                        Test(&Get);
+                        Console.WriteLine(_value);
+                    }
+
+                    static {{returnType}} Get() => {{(refKind == "" ? "" : "ref ")}}_value;
+
+                    static void Test(delegate*<{{returnType}}> f)
+                        => Print(value: f(), ignored: Update());
+
+                    static int Update() => _value = 2;
+
+                    static void Print(int ignored, in int value) => Console.WriteLine(value);
+                }
+                """;
+            var comp = CreateCompilationWithFunctionPointers(source, options: TestOptions.UnsafeReleaseExe.WithOptimizationLevel(optimizationLevel));
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: refKind == "" ? """
+                1
+                2
+                """ : """
+                2
+                2
+                """);
+            verifier.VerifyDiagnostics();
+
+            if (optimizationLevel == OptimizationLevel.Release)
+            {
+                verifier.VerifyIL("C.Test", refKind == "" ? """
+                    {
+                      // Code size       20 (0x14)
+                      .maxstack  2
+                      .locals init (int V_0)
+                      IL_0000:  ldarg.0
+                      IL_0001:  calli      "delegate*<int>"
+                      IL_0006:  stloc.0
+                      IL_0007:  call       "int C.Update()"
+                      IL_000c:  ldloca.s   V_0
+                      IL_000e:  call       "void C.Print(int, in int)"
+                      IL_0013:  ret
+                    }
+                    """ : $$"""
+                    {
+                      // Code size       19 (0x13)
+                      .maxstack  2
+                      .locals init (int& V_0)
+                      IL_0000:  ldarg.0
+                      IL_0001:  calli      "delegate*<{{returnType}}>"
+                      IL_0006:  stloc.0
+                      IL_0007:  call       "int C.Update()"
+                      IL_000c:  ldloc.0
+                      IL_000d:  call       "void C.Print(int, in int)"
+                      IL_0012:  ret
+                    }
+                    """);
+            }
+        }
+
         [Fact]
         public void ModifiedReceiverInParameter()
         {
