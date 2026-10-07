@@ -28,28 +28,35 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The declared base type of this type, or null. The object type, interface types,
-        /// pointer types, and type parameters do not have a base type.
+        /// pointer types, function pointer types, dynamic types, and type parameters do not have a base type.
         /// </summary>
         INamedTypeSymbol? BaseType { get; }
 
         /// <summary>
         /// Gets the set of interfaces that this type directly implements. This set does not include
-        /// interfaces that are base interfaces of directly implemented interfaces. This does
-        /// include the interfaces declared as constraints on type parameters.
+        /// interfaces that are base interfaces of directly implemented interfaces.
+        /// Returns an empty array for type parameters, regardless of their constraints.
+        /// Use <see cref="ITypeParameterSymbol.ConstraintTypes"/> to inspect a type parameter's constraints.
         /// </summary>
         ImmutableArray<INamedTypeSymbol> Interfaces { get; }
 
         /// <summary>
         /// The list of all interfaces of which this type is a declared subtype, excluding this type
         /// itself. This includes all declared base interfaces, all declared base interfaces of base
-        /// types, and all declared base interfaces of those results (recursively). This also is the effective
-        /// interface set of a type parameter. Each result
+        /// types, and all declared base interfaces of those results (recursively). Each result
         /// appears exactly once in the list. This list is topologically sorted by the inheritance
         /// relationship: if interface type A extends interface type B, then A precedes B in the
         /// list. This is not quite the same as "all interfaces of which this type is a proper
         /// subtype" because it does not take into account variance: AllInterfaces for
         /// IEnumerable&lt;string&gt; will not include IEnumerable&lt;object&gt;.
+        /// Returns an empty array for type parameters, regardless of their constraints.
         /// </summary>
+        /// <remarks>
+        /// To inspect interfaces implied by a type parameter's constraints, examine
+        /// <see cref="ITypeParameterSymbol.ConstraintTypes"/>, recursively following type parameter
+        /// constraints and including interface constraints themselves and <see cref="AllInterfaces"/>
+        /// of class and interface constraints.
+        /// </remarks>
         ImmutableArray<INamedTypeSymbol> AllInterfaces { get; }
 
         /// <summary>
