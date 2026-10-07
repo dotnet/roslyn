@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// The declared base type of this type, or null. The object type, interface types,
-        /// pointer types, function pointer types, dynamic types, and type parameters do not have a base type.
+        /// pointer types, function pointer types, and type parameters do not have a base type.
         /// </summary>
         INamedTypeSymbol? BaseType { get; }
 
@@ -53,9 +53,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <remarks>
         /// To inspect interfaces implied by a type parameter's constraints, examine
-        /// <see cref="ITypeParameterSymbol.ConstraintTypes"/>, recursively following type parameter
-        /// constraints and including interface constraints themselves and <see cref="AllInterfaces"/>
-        /// of class and interface constraints.
+        /// <see cref="ITypeParameterSymbol.ConstraintTypes"/>.
         /// </remarks>
         ImmutableArray<INamedTypeSymbol> AllInterfaces { get; }
 

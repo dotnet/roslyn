@@ -53,8 +53,7 @@ namespace Microsoft.CodeAnalysis
         /// </list>
         /// </summary>
         /// <remarks>
-        /// Metadata length restrictions are not enforced by this property. A source symbol's
-        /// metadata name can exceed those restrictions, resulting in an error when emitting.
+        /// Metadata length restrictions are not enforced by this property.
         /// </remarks>
         string MetadataName { get; }
 

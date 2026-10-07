@@ -20,10 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class TypeTests : CSharpTestBase
     {
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/85937")]
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85937")]
+        [CombinatorialData]
         public void TypeParameterInterfaces(bool fromMetadata)
         {
             var source = """
@@ -44,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             compilation.VerifyEmitDiagnostics();
             if (fromMetadata)
             {
-                compilation = CreateCompilation("", references: new[] { compilation.EmitToImageReference() });
+                compilation = CreateCompilation("", references: [compilation.EmitToImageReference()]);
             }
 
             Compilation publicCompilation = compilation;
@@ -61,8 +59,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             }
 
             Assert.True(type.TypeParameters[6].HasValueTypeConstraint);
-            AssertEx.Equal(new[] { "IA" }, publicCompilation.GetTypeByMetadataName("IB").AllInterfaces.Select(t => t.ToDisplayString()));
-            AssertEx.Equal(new[] { "IB", "IA" }, publicCompilation.GetTypeByMetadataName("Base").AllInterfaces.Select(t => t.ToDisplayString()));
+            AssertEx.Equal(["IA"], publicCompilation.GetTypeByMetadataName("IB").AllInterfaces.Select(t => t.ToDisplayString()));
+            AssertEx.Equal(["IB", "IA"], publicCompilation.GetTypeByMetadataName("Base").AllInterfaces.Select(t => t.ToDisplayString()));
         }
 
         [Fact]
@@ -71,6 +69,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var name = new string('A', 1100);
             var compilation = CreateCompilation($"class {name} {{ }} class {name}<T> {{ }}");
             compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics(
+                // (1,7): error CS7013: Name '{name}' exceeds the maximum length allowed in metadata.
+                // class {name} { } class {name}<T> { }
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, name).WithArguments(name).WithLocation(1, 7),
+                // (1,1118): error CS7013: Name '{name}`1' exceeds the maximum length allowed in metadata.
+                // class {name} { } class {name}<T> { }
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, name).WithArguments($"{name}`1").WithLocation(1, 1118));
 
             ISymbol type = compilation.GlobalNamespace.GetTypeMembers(name, 0).Single().GetPublicSymbol();
             Assert.Equal(name, type.MetadataName);
