@@ -32,7 +32,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     [InlineData(true, true, true)]
     [InlineData(false, false, true)]
     [InlineData(true, false, false)]
-    public async Task DeferredHostDocumentRemovesOnlyOriginalMiscellaneousDocumentAsync(bool hostDocumentLoaded, bool closeAndReopen, bool applyLoadedSolution)
+    public async Task DeferredHostDocumentRemovesMiscellaneousDocumentOnNextLookupAsync(bool hostDocumentLoaded, bool closeAndReopen, bool applyLoadedSolution)
     {
         var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
         await using var testLspServer = await CreateTestLspServerAsync(
@@ -89,8 +89,17 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         Assert.Equal(result, await secondResolution.WithTimeout(TestHelpers.HangMitigatingTimeout));
         Assert.Equal(closeAndReopen ? 3 : hostDocumentLoaded ? 2 : 1, telemetry.FindDocumentCount);
         Assert.Equal(hostDocumentLoaded ? WorkspaceKind.Host : WorkspaceKind.MiscellaneousFiles, result.Workspace.Kind);
+        Assert.Single(miscellaneousWorkspace.CurrentSolution.GetDocumentIds(uri));
+
+        var nextContext = await manager.GetLspDocumentContextAsync(
+            CreateTextDocumentIdentifier(uri), manager.GetTrackedLspText(),
+            allowProjectLoading: false, CancellationToken.None);
+        Assert.NotNull(nextContext);
+        var nextResult = await nextContext.ResolveAsync();
+        var hostDocumentAvailable = hostDocumentLoaded && applyLoadedSolution;
+        Assert.Equal(hostDocumentAvailable ? WorkspaceKind.Host : WorkspaceKind.MiscellaneousFiles, nextResult.Workspace.Kind);
         Assert.Equal(
-            closeAndReopen || !hostDocumentLoaded ? 1 : 0,
+            hostDocumentAvailable ? 0 : 1,
             miscellaneousWorkspace.CurrentSolution.GetDocumentIds(uri).Length);
     }
 

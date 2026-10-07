@@ -273,13 +273,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             var document = documents.FindDocumentInProjectContext(
                 textDocumentIdentifier, (solution, documentId) => solution.GetRequiredTextDocument(documentId));
-            if (initialContext.Workspace.Kind == WorkspaceKind.MiscellaneousFiles)
-            {
-                await RemoveMiscellaneousDocumentAsync(
-                    textDocumentIdentifier.DocumentUri, workspace,
-                    initialContext.Workspace, initialContext.Document!.Id).ConfigureAwait(false);
-            }
-
             return RecordDocumentFoundResult((workspace, document.Project.Solution, document, isForked));
         }
     }
@@ -733,20 +726,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         }
     }
 
-    private async Task RemoveMiscellaneousDocumentAsync(
-        DocumentUri uri, Workspace workspace, Workspace? originalMiscellaneousWorkspace = null, DocumentId? originalDocumentId = null)
+    private async Task RemoveMiscellaneousDocumentAsync(DocumentUri uri, Workspace workspace)
     {
         if (workspace.Kind == WorkspaceKind.MiscellaneousFiles || _lspMiscellaneousFilesWorkspaceProvider is null)
             return;
 
         try
         {
-            if (originalMiscellaneousWorkspace is not null && originalDocumentId is not null &&
-                !originalMiscellaneousWorkspace.CurrentSolution.GetDocumentIds(uri).Contains(originalDocumentId))
-            {
-                return;
-            }
-
             await _lspMiscellaneousFilesWorkspaceProvider.TryRemoveMiscellaneousDocumentAsync(uri).ConfigureAwait(false);
         }
         catch (Exception exception) when (FatalError.ReportAndCatchUnlessCanceled(exception))
