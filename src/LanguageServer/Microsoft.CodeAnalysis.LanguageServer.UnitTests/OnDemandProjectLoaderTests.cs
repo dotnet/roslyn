@@ -31,22 +31,45 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
             serverConfiguration, loggerFactory, typeof(LanguageServerProjectLoaderTests.TestProjectLoaderFactory)));
 
     [Fact]
-    public void DiscoveryUsesNearestProjectsWithinDeepestWorkspaceFolder()
+    public void DiscoveryFindsProjectsInNearestAncestorDirectory()
+    {
+        var workspaceFolder = TempRoot.CreateDirectory();
+        workspaceFolder.CreateFile("Outer.csproj");
+        var projectFolder = workspaceFolder.CreateDirectory("Projects");
+        var project = projectFolder.CreateFile("Project.csproj").Path;
+        var document = projectFolder.CreateDirectory("Source").CreateFile("Document.cs").Path;
+        var discovery = new OnDemandProjectLoader.ProjectDiscovery([".csproj"], LoggerFactory);
+
+        AssertEx.SetEqual(
+            [project],
+            discovery.DiscoverProjects(document, ImmutableHashSet.Create(PathUtilities.Comparer, workspaceFolder.Path)));
+    }
+
+    [Fact]
+    public void DiscoveryStopsAtDeepestWorkspaceFolder()
     {
         var outerFolder = TempRoot.CreateDirectory();
         outerFolder.CreateFile("Outer.csproj");
         var innerFolder = outerFolder.CreateDirectory("Inner");
-        var projectFolder = innerFolder.CreateDirectory("Projects");
-        var firstProject = projectFolder.CreateFile("First.csproj").Path;
-        var secondProject = projectFolder.CreateFile("Second.csproj").Path;
-        projectFolder.CreateFile("Unsupported.vbproj");
-        var document = projectFolder.CreateDirectory("Source").CreateFile("Document.cs").Path;
-        var documentWithoutProject = innerFolder.CreateDirectory("Other").CreateFile("Other.cs").Path;
+        var document = innerFolder.CreateDirectory("Source").CreateFile("Document.cs").Path;
         var workspaceFolders = ImmutableHashSet.Create(PathUtilities.Comparer, outerFolder.Path, innerFolder.Path);
         var discovery = new OnDemandProjectLoader.ProjectDiscovery([".csproj"], LoggerFactory);
 
-        AssertEx.SequenceEqual([firstProject, secondProject], discovery.DiscoverProjects(document, workspaceFolders));
-        Assert.Empty(discovery.DiscoverProjects(documentWithoutProject, workspaceFolders));
+        Assert.Empty(discovery.DiscoverProjects(document, workspaceFolders));
+    }
+
+    [Fact]
+    public void DiscoveryFiltersUnsupportedProjectExtensions()
+    {
+        var workspaceFolder = TempRoot.CreateDirectory();
+        var supportedProject = workspaceFolder.CreateFile("Supported.csproj").Path;
+        workspaceFolder.CreateFile("Unsupported.vbproj");
+        var document = workspaceFolder.CreateFile("Document.cs").Path;
+        var discovery = new OnDemandProjectLoader.ProjectDiscovery([".csproj"], LoggerFactory);
+
+        AssertEx.SetEqual(
+            [supportedProject],
+            discovery.DiscoverProjects(document, ImmutableHashSet.Create(PathUtilities.Comparer, workspaceFolder.Path)));
     }
 
     [Fact]
