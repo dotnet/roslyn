@@ -19,39 +19,38 @@ internal sealed partial class OnDemandProjectLoader
         private readonly ImmutableHashSet<string> _supportedProjectFileExtensions = supportedProjectFileExtensions.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
         private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectDiscovery>();
 
-        internal ImmutableArray<string> DiscoverProjects(string filePath, ImmutableHashSet<string> workspaceFolders)
+        internal ImmutableArray<string> DiscoverProjects(string directory, ImmutableHashSet<string> workspaceFolders)
         {
-            if (!PathUtilities.IsAbsolute(filePath))
+            if (!PathUtilities.IsAbsolute(directory))
                 return [];
 
-            filePath = Path.GetFullPath(filePath);
-            var workspaceFolder = GetDeepestContainingWorkspaceFolder(filePath, workspaceFolders);
+            var workspaceFolder = GetDeepestContainingWorkspaceFolder(directory, workspaceFolders);
             if (workspaceFolder is null)
                 return [];
 
-            var directory = Path.GetDirectoryName(filePath);
-            while (directory is not null && PathUtilities.IsSameDirectoryOrChildOf(directory, workspaceFolder, s_pathComparison))
+            var currentDirectory = directory;
+            while (currentDirectory is not null && PathUtilities.IsSameDirectoryOrChildOf(currentDirectory, workspaceFolder, s_pathComparison))
             {
-                var projects = GetProjectsInDirectory(directory);
+                var projects = GetProjectsInDirectory(currentDirectory);
                 if (!projects.IsEmpty)
                     return projects;
 
-                if (PathUtilities.Comparer.Equals(directory, workspaceFolder))
+                if (PathUtilities.Comparer.Equals(currentDirectory, workspaceFolder))
                     break;
 
-                directory = Path.GetDirectoryName(directory);
+                currentDirectory = Path.GetDirectoryName(currentDirectory);
             }
 
             return [];
         }
 
         private static string? GetDeepestContainingWorkspaceFolder(
-            string filePath, ImmutableHashSet<string> workspaceFolders)
+            string directory, ImmutableHashSet<string> workspaceFolders)
         {
             string? deepestWorkspaceFolder = null;
             foreach (var workspaceFolder in workspaceFolders)
             {
-                if (PathUtilities.IsSameDirectoryOrChildOf(filePath, workspaceFolder, s_pathComparison) &&
+                if (PathUtilities.IsSameDirectoryOrChildOf(directory, workspaceFolder, s_pathComparison) &&
                     (deepestWorkspaceFolder is null || workspaceFolder.Length > deepestWorkspaceFolder.Length))
                 {
                     deepestWorkspaceFolder = workspaceFolder;

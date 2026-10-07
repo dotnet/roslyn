@@ -37,12 +37,12 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         workspaceFolder.CreateFile("Outer.csproj");
         var projectFolder = workspaceFolder.CreateDirectory("Projects");
         var project = projectFolder.CreateFile("Project.csproj").Path;
-        var document = projectFolder.CreateDirectory("Source").CreateFile("Document.cs").Path;
+        var sourceFolder = projectFolder.CreateDirectory("Source");
         var discovery = new OnDemandProjectLoader.ProjectDiscovery([".csproj"], LoggerFactory);
 
         AssertEx.SetEqual(
             [project],
-            discovery.DiscoverProjects(document, ImmutableHashSet.Create(PathUtilities.Comparer, workspaceFolder.Path)));
+            discovery.DiscoverProjects(sourceFolder.Path, ImmutableHashSet.Create(PathUtilities.Comparer, workspaceFolder.Path)));
     }
 
     [Fact]
@@ -51,11 +51,11 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var outerFolder = TempRoot.CreateDirectory();
         outerFolder.CreateFile("Outer.csproj");
         var innerFolder = outerFolder.CreateDirectory("Inner");
-        var document = innerFolder.CreateDirectory("Source").CreateFile("Document.cs").Path;
+        var sourceFolder = innerFolder.CreateDirectory("Source");
         var workspaceFolders = ImmutableHashSet.Create(PathUtilities.Comparer, outerFolder.Path, innerFolder.Path);
         var discovery = new OnDemandProjectLoader.ProjectDiscovery([".csproj"], LoggerFactory);
 
-        Assert.Empty(discovery.DiscoverProjects(document, workspaceFolders));
+        Assert.Empty(discovery.DiscoverProjects(sourceFolder.Path, workspaceFolders));
     }
 
     [Fact]
@@ -64,12 +64,11 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var workspaceFolder = TempRoot.CreateDirectory();
         var supportedProject = workspaceFolder.CreateFile("Supported.csproj").Path;
         workspaceFolder.CreateFile("Unsupported.vbproj");
-        var document = workspaceFolder.CreateFile("Document.cs").Path;
         var discovery = new OnDemandProjectLoader.ProjectDiscovery([".csproj"], LoggerFactory);
 
         AssertEx.SetEqual(
             [supportedProject],
-            discovery.DiscoverProjects(document, ImmutableHashSet.Create(PathUtilities.Comparer, workspaceFolder.Path)));
+            discovery.DiscoverProjects(workspaceFolder.Path, ImmutableHashSet.Create(PathUtilities.Comparer, workspaceFolder.Path)));
     }
 
     [Fact]

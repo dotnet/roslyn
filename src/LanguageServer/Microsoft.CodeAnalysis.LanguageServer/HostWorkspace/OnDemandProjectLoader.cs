@@ -80,7 +80,7 @@ internal sealed partial class OnDemandProjectLoader(
                 return new(activeLoad);
 
             var workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
-            var loadTask = Task.Run(() => LoadDiscoveredProjectsAsync(filePath, directory, workspaceFolders));
+            var loadTask = Task.Run(() => LoadDiscoveredProjectsAsync(directory, workspaceFolders));
             _activeTraversals.Add(directory, loadTask);
             return new(loadTask);
         }
@@ -105,14 +105,14 @@ internal sealed partial class OnDemandProjectLoader(
         }
     }
 
-    private async Task<Solution?> LoadDiscoveredProjectsAsync(string filePath, string directory, ImmutableHashSet<string> workspaceFolders)
+    private async Task<Solution?> LoadDiscoveredProjectsAsync(string directory, ImmutableHashSet<string> workspaceFolders)
     {
         using var _ = listener.BeginAsyncOperation(nameof(LoadDiscoveredProjectsAsync));
 
         try
         {
-            _logger.LogDebug("Discovering a project on demand for '{DocumentPath}'.", filePath);
-            var projectPaths = discovery.DiscoverProjects(filePath, workspaceFolders);
+            _logger.LogDebug("Discovering projects on demand from '{Directory}'.", directory);
+            var projectPaths = discovery.DiscoverProjects(directory, workspaceFolders);
             if (projectPaths.IsEmpty)
                 return null;
 
