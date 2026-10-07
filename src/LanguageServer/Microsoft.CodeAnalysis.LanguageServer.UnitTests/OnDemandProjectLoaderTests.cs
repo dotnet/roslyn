@@ -60,14 +60,14 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
         var build = loader.QueueDesignTimeBuild();
 
-        var load = onDemandLoader.StartLoadingAsync(documentUri);
+        var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
         Assert.Equal(projectPath, await build.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout), PathUtilities.Comparer);
-        var snapshot = await onDemandLoader.CaptureWorkspaceLoadSnapshotAsync();
+        var snapshot = onDemandLoader.WaitForActiveLoadsAsync();
         Assert.False(snapshot.IsCompleted);
         build.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath, projectReferences: [projectPath]);
 
-        Assert.True(await load.WaitAsync(TestHelpers.HangMitigatingTimeout));
-        await snapshot.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.NotNull(await load.AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.NotNull(await snapshot.AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
         Assert.Equal(1, loader.DesignTimeBuildCount);
     }
 
@@ -89,8 +89,8 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var firstBuild = loader.QueueDesignTimeBuild();
         var secondBuild = loader.QueueDesignTimeBuild();
 
-        var firstLoad = onDemandLoader.StartLoadingAsync(firstDocument);
-        Task<bool>? secondLoad = concurrentDemands ? onDemandLoader.StartLoadingAsync(secondDocument) : null;
+        var firstLoad = onDemandLoader.TryLoadProjectsAsync(firstDocument);
+        Task<Solution?>? secondLoad = concurrentDemands ? onDemandLoader.TryLoadProjectsAsync(secondDocument).AsTask() : null;
         var firstStartedPath = await firstBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
         firstBuild.CompleteSuccessfully(
             loader.WorkspaceFactory.HostProjectFactory,
@@ -103,14 +103,14 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
             projectReferences: [PathUtilities.Comparer.Equals(secondStartedPath, firstProject) ? secondProject : firstProject]);
 
         if (secondLoad is not null)
-            Assert.All(await Task.WhenAll(firstLoad, secondLoad).WaitAsync(TestHelpers.HangMitigatingTimeout), Assert.True);
+            Assert.All(await Task.WhenAll(firstLoad.AsTask(), secondLoad).WaitAsync(TestHelpers.HangMitigatingTimeout), Assert.NotNull);
         else
-            Assert.True(await firstLoad.WaitAsync(TestHelpers.HangMitigatingTimeout));
+            Assert.NotNull(await firstLoad.AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
         Assert.Equal(2, loader.DesignTimeBuildCount);
     }
 
     [Fact]
-    public async Task NoDiscoveredProjectReturnsFalse()
+    public async Task NoDiscoveredProjectReturnsNull()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
@@ -118,21 +118,21 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Loose.cs").Path);
         var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
-        Assert.False(await onDemandLoader.StartLoadingAsync(documentUri).WaitAsync(TestHelpers.HangMitigatingTimeout));
+        Assert.Null(await onDemandLoader.TryLoadProjectsAsync(documentUri).AsTask().WaitAsync(TestHelpers.HangMitigatingTimeout));
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
 
     [Fact]
-    public async Task NonFileUriReturnsFalse()
+    public async Task NonFileUriReturnsNull()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
         var folder = TempRoot.CreateDirectory();
         var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
-        var load = onDemandLoader.StartLoadingAsync(new LSP.DocumentUri("untitled:Loose.cs"));
+        var load = onDemandLoader.TryLoadProjectsAsync(new LSP.DocumentUri("untitled:Loose.cs"));
         Assert.True(load.IsCompletedSuccessfully);
-        Assert.False(await load);
+        Assert.Null(await load);
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
 
@@ -157,10 +157,10 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
             globalOptions.SetGlobalOption(option, !disableOnDemandLoading);
             var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
-            var load = onDemandLoader.StartLoadingAsync(documentUri);
+            var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
             Assert.True(load.IsCompletedSuccessfully);
-            Assert.False(await load);
-            Assert.True((await onDemandLoader.CaptureWorkspaceLoadSnapshotAsync()).IsCompletedSuccessfully);
+            Assert.Null(await load);
+            Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
             Assert.Equal(0, loader.DesignTimeBuildCount);
         }
         finally

@@ -55,17 +55,20 @@ internal sealed partial class OnDemandProjectLoader(
     /// Coalesces demands from the same directory for the lifetime of discovery and the complete project-reference
     /// traversal. Individual project loads remain owned by <see cref="LanguageServerProjectLoader"/>.
     /// </summary>
-    private readonly Dictionary<string, Task<bool>> _activeTraversals = new(PathUtilities.Comparer);
+    private readonly Dictionary<string, Task<Solution?>> _activeTraversals = new(PathUtilities.Comparer);
 
     private bool IsOnDemandLoadingEnabled
         => globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand) &&
            !globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures);
 
-    public Task<bool> StartLoadingAsync(DocumentUri uri)
+    public bool CanLoad(DocumentUri uri)
+        => IsOnDemandLoadingEnabled && uri.ParsedDocumentUri?.IsFile == true;
+
+    public ValueTask<Solution?> TryLoadProjectsAsync(DocumentUri uri)
     {
-        if (!IsOnDemandLoadingEnabled || uri.ParsedDocumentUri?.IsFile != true)
+        if (!CanLoad(uri))
         {
-            return Task.FromResult(false);
+            return new ValueTask<Solution?>((Solution?)null);
         }
 
         var filePath = Path.GetFullPath(uri.GetDocumentFilePathFromUri());
@@ -74,27 +77,35 @@ internal sealed partial class OnDemandProjectLoader(
         lock (_activeLoadsGate)
         {
             if (_activeTraversals.TryGetValue(directory, out var activeLoad))
-                return activeLoad;
+                return new(activeLoad);
 
             var workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
             var loadTask = Task.Run(() => LoadDiscoveredProjectsAsync(filePath, directory, workspaceFolders));
             _activeTraversals.Add(directory, loadTask);
-            return loadTask;
+            return new(loadTask);
         }
     }
 
-    public ValueTask<Task> CaptureWorkspaceLoadSnapshotAsync()
+    public ValueTask<Solution> WaitForActiveLoadsAsync()
     {
         if (!IsOnDemandLoadingEnabled)
-            return new(Task.CompletedTask);
+            return new(projectLoader.HostWorkspace.CurrentSolution);
 
         lock (_activeLoadsGate)
         {
-            return new(Task.WhenAll(_activeTraversals.Values));
+            return _activeTraversals.Count == 0
+                ? new(projectLoader.HostWorkspace.CurrentSolution)
+                : new(WaitForLoadsAsync(Task.WhenAll(_activeTraversals.Values)));
+        }
+
+        async Task<Solution> WaitForLoadsAsync(Task loads)
+        {
+            await loads.ConfigureAwait(false);
+            return projectLoader.HostWorkspace.CurrentSolution;
         }
     }
 
-    private async Task<bool> LoadDiscoveredProjectsAsync(string filePath, string directory, ImmutableHashSet<string> workspaceFolders)
+    private async Task<Solution?> LoadDiscoveredProjectsAsync(string filePath, string directory, ImmutableHashSet<string> workspaceFolders)
     {
         using var _ = listener.BeginAsyncOperation(nameof(LoadDiscoveredProjectsAsync));
 
@@ -103,7 +114,7 @@ internal sealed partial class OnDemandProjectLoader(
             _logger.LogDebug("Discovering a project on demand for '{DocumentPath}'.", filePath);
             var projectPaths = discovery.DiscoverProjects(filePath, workspaceFolders);
             if (projectPaths.IsEmpty)
-                return false;
+                return null;
 
             var pendingProjects = new Queue<string>(projectPaths);
             var visitedProjects = new HashSet<string>(PathUtilities.Comparer);
@@ -134,12 +145,12 @@ internal sealed partial class OnDemandProjectLoader(
                 }
             }
 
-            return true;
+            return projectLoader.HostWorkspace.CurrentSolution;
         }
         catch (Exception exception) when (FatalError.ReportAndCatch(exception))
         {
             _logger.LogError(exception, "Failed to load projects on demand.");
-            return true;
+            return null;
         }
         finally
         {

@@ -65,9 +65,9 @@ As a fallback, the server recursively discovers all `.csproj` files within the w
 
 ### On-Demand Project Loading
 
-Separately from startup loading, a request for a file that is not yet in a loaded project can trigger on-demand loading. The server searches upward from the file's directory, stopping at the workspace folder, and loads the supported projects in the nearest directory containing project files. It then loads their transitive project references. It does not scan the rest of the workspace for projects on demand.
+Separately from startup loading, a request for a file that is not yet in a loaded project can trigger on-demand loading. The server searches upward from the file's directory, stopping at the workspace folder, and loads the supported projects in the nearest directory containing project files. It then loads their transitive project references.
 
-On-demand loading is enabled by default. To disable request-triggered project loading, set `dotnet.projects.loadOnDemand` in `.vscode/settings.json`:
+On-demand loading is enabled by default when Dev Kit features are not in use. When Dev Kit features are enabled, the language server disables on-demand project loading regardless of this setting. Otherwise, to disable request-triggered project loading, set `dotnet.projects.loadOnDemand` in `.vscode/settings.json`:
 
 ```jsonc
 // .vscode/settings.json
@@ -76,7 +76,7 @@ On-demand loading is enabled by default. To disable request-triggered project lo
 }
 ```
 
-Setting `dotnet.defaultSolution` to `"disable"` only disables startup loading; on-demand loading remains available unless `dotnet.projects.loadOnDemand` is also disabled.
+Setting `dotnet.defaultSolution` to `"disable"` only disables startup loading; on-demand loading remains available outside Dev Kit mode unless `dotnet.projects.loadOnDemand` is also disabled.
 
 ## Troubleshooting
 

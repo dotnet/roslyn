@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -47,13 +46,12 @@ internal readonly struct RequestContext
     private readonly ILspServices _lspServices;
 
     /// <summary>
-    /// Provides backing storage for the LSP workspace used by this RequestContext instance, allowing it to be cleared
-    /// on demand from all copies that may exist of this value type.
+    /// Shared by all copies of this value type so clearing the solution context releases their captured workspace state.
     /// </summary>
     /// <remarks>
     /// This field is only initialized for handlers that request solution context.
     /// </remarks>
-    private readonly StrongBox<Task<LspWorkspaceContext>?>? _getWorkspaceContext;
+    private readonly CapturedLspWorkspaceContext? _capturedWorkspaceContext;
 
     public ILspLogger Logger { get; }
 
@@ -75,7 +73,7 @@ internal readonly struct RequestContext
     public readonly CancellationToken QueueCancellationToken;
 
     public RequestContext(
-        Task<LspWorkspaceContext>? getWorkspaceContext,
+        CapturedLspWorkspaceContext? capturedWorkspaceContext,
         ILspLogger logger,
         string method,
         ClientCapabilities? clientCapabilities,
@@ -86,7 +84,7 @@ internal readonly struct RequestContext
         ILspServices lspServices,
         CancellationToken queueCancellationToken)
     {
-        _getWorkspaceContext = getWorkspaceContext is null ? null : new(getWorkspaceContext);
+        _capturedWorkspaceContext = capturedWorkspaceContext;
 
         _clientCapabilities = clientCapabilities;
         ServerKind = serverKind;
@@ -107,7 +105,7 @@ internal readonly struct RequestContext
     }
 
     public async ValueTask<Workspace?> GetWorkspaceAsync(CancellationToken cancellationToken)
-        => _getWorkspaceContext is null
+        => _capturedWorkspaceContext is null
             ? null
             : (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Workspace;
 
@@ -116,7 +114,7 @@ internal readonly struct RequestContext
             ?? throw new InvalidOperationException($"Workspace is null when it was required for {Method}");
 
     public async ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
-        => _getWorkspaceContext is null
+        => _capturedWorkspaceContext is null
             ? null
             : (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Solution;
 
@@ -125,16 +123,16 @@ internal readonly struct RequestContext
             ?? throw new InvalidOperationException($"Solution is null when it was required for {Method}");
 
     public async ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
-        => _getWorkspaceContext is null
+        => _capturedWorkspaceContext is null
             ? null
             : (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Document;
 
     private Task<LspWorkspaceContext> GetRequiredWorkspaceContextAsync()
-        => _getWorkspaceContext?.Value ?? throw new InvalidOperationException("Workspace context has been cleared.");
+        => _capturedWorkspaceContext?.ResolveAsync() ?? throw new InvalidOperationException("Workspace context has been cleared.");
 
     public void ClearSolutionContext()
     {
-        _getWorkspaceContext?.Value = null;
+        _capturedWorkspaceContext?.Clear();
     }
 
     public async ValueTask<TextDocument> GetRequiredTextDocumentAsync(CancellationToken cancellationToken)
@@ -178,27 +176,27 @@ internal readonly struct RequestContext
         // 1. We don't bother building the LSP solution for perf reasons
         // 2. We explicitly don't give the handler a solution or document, even if we could
         //    so they're not accidentally operating on stale solution state.
-        Task<LspWorkspaceContext>? getWorkspaceContext = null;
+        CapturedLspWorkspaceContext? capturedWorkspaceContext = null;
 
         if (requiresLSPSolution)
         {
             var allowProjectLoading = !mutatesSolutionState;
-            getWorkspaceContext = textDocument is null
-                ? await lspWorkspaceManager.CaptureLspSolutionContextAsync(
+            capturedWorkspaceContext = textDocument is null
+                ? await lspWorkspaceManager.GetLspWorkspaceContextAsync(
                     trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false)
-                : await lspWorkspaceManager.CaptureLspDocumentContextAsync(
+                : await lspWorkspaceManager.GetLspDocumentContextAsync(
                     textDocument, trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false);
 
             // A client may request previous results after a document is removed and closed. The document is no
             // longer tracked or available in a workspace, but the handler still needs a solution to clear its results.
             // SpellCheckHandler for instance may need to clear diagnostics for a document that has been closed.
-            if (textDocument is not null && getWorkspaceContext is null)
+            if (textDocument is not null && capturedWorkspaceContext is null)
             {
-                getWorkspaceContext = await lspWorkspaceManager.CaptureLspSolutionContextAsync(
+                capturedWorkspaceContext = await lspWorkspaceManager.GetLspWorkspaceContextAsync(
                     trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false);
             }
 
-            if (getWorkspaceContext is null)
+            if (capturedWorkspaceContext is null)
             {
                 logger.LogError($"Could not find appropriate workspace or solution on {method}");
                 FatalError.ReportWithDumpAndCatch(new Exception(
@@ -207,7 +205,7 @@ internal readonly struct RequestContext
         }
 
         return new RequestContext(
-            getWorkspaceContext,
+            capturedWorkspaceContext,
             logger,
             method,
             clientCapabilities,

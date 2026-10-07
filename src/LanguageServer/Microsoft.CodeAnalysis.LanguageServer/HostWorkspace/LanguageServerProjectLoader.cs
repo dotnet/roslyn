@@ -82,6 +82,11 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         => Math.Max(Environment.ProcessorCount / 2, 1);
 
     /// <summary>
+    /// Gets the host workspace associated with this project loader.
+    /// </summary>
+    internal Workspace HostWorkspace => _workspaceFactory.HostWorkspace;
+
+    /// <summary>
     /// Maps the set of project file paths that were determined to need a NuGet restore to the set of paths that restore
     /// should actually be invoked on. The base implementation restores each project individually. Derived loaders may
     /// override this to coalesce the work, e.g. restoring an entire solution at once instead of restoring each contained
@@ -487,7 +492,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         }));
     }
 
-    internal async Task WaitForAllProjectLoadsAsync(CancellationToken cancellationToken)
+    internal async Task WaitForCurrentProjectLoadsAsync(CancellationToken cancellationToken)
     {
         var currentProjectLoads = await CaptureCurrentProjectLoadsAsync(cancellationToken);
         await currentProjectLoads;

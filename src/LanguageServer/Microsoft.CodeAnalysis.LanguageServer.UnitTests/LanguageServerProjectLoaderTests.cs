@@ -476,7 +476,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
             => BeginLoadingProjectAsync(projectPath, isHighPriority: false);
 
         public Task WaitForAllTrackedProjectLoadsAsync(CancellationToken cancellationToken = default)
-            => WaitForAllProjectLoadsAsync(cancellationToken);
+            => WaitForCurrentProjectLoadsAsync(cancellationToken);
 
         public Task WaitForExplicitLoadsAsync(ImmutableArray<LoadedProject> loadedProjects, WorkDoneProgressTracker? progressTracker = null)
             => WaitForProjectLoadsAsync(loadedProjects, progressTracker);

@@ -10,16 +10,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 internal interface IOnDemandProjectLoader : ILspService
 {
     /// <summary>
-    /// Returns whether this demand discovered project candidates (or failed before ruling them out).
-    /// A completed task does not imply that no projects were loaded.
+    /// Determines whether the specified document can be loaded on demand.
     /// </summary>
-    Task<bool> StartLoadingAsync(DocumentUri uri);
+    bool CanLoad(DocumentUri uri);
 
     /// <summary>
-    /// Captures active on-demand discovery and its project loads when on-demand loading is enabled.
+    /// Attempts to load the projects containing the specified document.
     /// </summary>
-    /// <remarks>
-    /// Await inner <see cref="Task"/> outside dispatch.
-    /// </remarks>
-    ValueTask<Task> CaptureWorkspaceLoadSnapshotAsync();
+    /// <returns>
+    /// The loaded solution if successful, or null otherwise.
+    /// </returns>
+    ValueTask<Solution?> TryLoadProjectsAsync(DocumentUri uri);
+
+    /// <summary>
+    /// Waits for all active on-demand projects to load.
+    /// </summary>
+    ///  <returns>
+    /// The host solution after loading is complete.
+    /// </returns>
+    ValueTask<Solution> WaitForActiveLoadsAsync();
 }

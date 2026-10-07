@@ -111,6 +111,7 @@ var methodDecl = generator.MethodDeclaration("MyMethod", ...);
 - **Cancellation**: Always thread `CancellationToken` through async operations
 - **Performance**: Avoid LINQ in hot paths, prefer `for` loops or `.AsSpan()`, use `ObjectPool<T>`
 - **LanguageServer request context**: Handlers use the asynchronous `RequestContext.Get*Async` methods for workspace, solution, and document access. Long-running workspace diagnostics release the shared solution context after diagnostic processing and before waiting for changes; keep solution-bearing processing locals out of the suspended wait.
+- **LanguageServer context capture**: `LspWorkspaceManager` captures `CapturedLspWorkspaceContext` during serialized request dispatch. Resolve it outside dispatch; the captured context resolves at most once and `RequestContext.ClearSolutionContext` clears it across copies of the request context. Request cancellation must not cancel a shared project load.
 
 ## Common Gotchas
 
