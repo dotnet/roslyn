@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets a <see cref="Accessibility"/> indicating the declared accessibility for the symbol.
         /// Includes the language's default accessibility when no accessibility modifier is specified.
         /// Returns <see cref="Accessibility.NotApplicable"/> for symbols that do not have accessibility,
-        /// such as namespaces, parameters, and local variables.
+        /// such as parameters and local variables.
         /// </summary>
         Accessibility DeclaredAccessibility { get; }
 
