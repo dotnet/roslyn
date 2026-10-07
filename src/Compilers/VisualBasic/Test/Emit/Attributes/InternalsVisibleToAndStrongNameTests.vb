@@ -3,6 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports System.Diagnostics
+Imports System.Globalization
 Imports System.IO
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
@@ -1816,13 +1818,13 @@ End Class
 
         Dim outStrm = New MemoryStream()
         Dim emitThread = Thread.CurrentThread
-        Dim exceptions As New List(Of String)
+        Dim exceptions As New List(Of (HResult As Integer, Snapshot As String))
         Dim firstChanceException As EventHandler(Of FirstChanceExceptionEventArgs) =
             Sub(sender, e)
                 If Thread.CurrentThread.ManagedThreadId = emitThread.ManagedThreadId AndAlso
                    exceptions.Count < 8 AndAlso
                    (TypeOf e.Exception Is COMException OrElse TypeOf e.Exception Is IOException) Then
-                    exceptions.Add($"{e.Exception.GetType().FullName}: HRESULT=0x{e.Exception.HResult:X8}{Environment.NewLine}{e.Exception}")
+                    exceptions.Add((e.Exception.HResult, $"{e.Exception.GetType().FullName}: HRESULT=0x{e.Exception.HResult:X8}{Environment.NewLine}{e.Exception}"))
                 End If
             End Sub
 
@@ -1836,8 +1838,16 @@ End Class
 
         _output.WriteLine($"Strong-name Emit: features={String.Join(", ", parseOptions.Features)}, pointerSize={IntPtr.Size}, thread={emitThread.ManagedThreadId}, apartment={emitThread.GetApartmentState()}, runtime={Environment.Version}")
         For Each exception In exceptions
-            _output.WriteLine(exception)
+            _output.WriteLine(exception.Snapshot)
+            Dim hresultOnlyException = Marshal.GetExceptionForHR(exception.HResult, New IntPtr(-1))
+            _output.WriteLine($"HRESULT-only message: HRESULT=0x{exception.HResult:X8}, message={hresultOnlyException.Message}")
         Next
+
+        Using currentProcess = Process.GetCurrentProcess()
+            Dim runtimeModule = currentProcess.Modules.Cast(Of ProcessModule)().Single(
+                Function(m) String.Equals(m.ModuleName, "clr.dll", StringComparison.OrdinalIgnoreCase))
+            _output.WriteLine($"CLR module: name={runtimeModule.ModuleName}, fileVersion={runtimeModule.FileVersionInfo.FileVersion}, culture={CultureInfo.CurrentCulture.Name}, uiCulture={CultureInfo.CurrentUICulture.Name}")
+        End Using
 
         Assert.False(emitResult.Success)
 
