@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CohostCodeActionsEndpointTestBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CreateComponentFromTagTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CSharpCodeActionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\EscapeDocumentationCommentTerminatorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToCodeBehindTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToComponentTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\ExtractToCssTests.cs" />
@@ -37,7 +38,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\SortAndConsolidateUsingsTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\TypeAccessibilityTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\UnboundDirectiveAttributeAddUsingTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\UseExplicitExpressionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\WrapAttributeTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\WrapDocumentationInSummaryTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ComputedTargetPathTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)DocumentExcerpt\RazorDocumentExcerptServiceTest.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Endpoints\CohostDocumentCompletionEndpointTest.cs" />

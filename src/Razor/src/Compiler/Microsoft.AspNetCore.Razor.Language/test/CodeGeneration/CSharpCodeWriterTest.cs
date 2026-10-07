@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Microsoft.CodeAnalysis.CSharp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -297,6 +298,55 @@ public class CSharpCodeWriterTest
         Assert.Equal(expected, code);
     }
 
+    [Theory]
+    [CombinatorialData]
+    public void WriteLineNumberDirective_EncodesUri(bool ensurePathBackslashes)
+    {
+        const string filePath = """git:/c:/repo/MainLayout.razor?{"path":"c:\\repo\\MainLayout.razor","ref":"~"}""";
+        var span = new SourceSpan(filePath, 10, 4, 3, 9);
+        using var writer = new CodeWriter();
+
+        writer.WriteLineNumberDirective(span, ensurePathBackslashes);
+
+        var encodedPath = filePath.Replace("\"", "%22");
+        Assert.Equal($"#line 5 \"{encodedPath}\"{writer.NewLine}", writer.GetText().ToString());
+        Assert.Equal(new Uri(filePath).AbsoluteUri, new Uri(encodedPath).AbsoluteUri);
+        Assert.Empty(CSharpSyntaxTree.ParseText(writer.GetText()).GetDiagnostics());
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void WriteEnhancedLineNumberDirective_EncodesUri(bool ensurePathBackslashes)
+    {
+        const string filePath = """git:/c:/repo/MainLayout.razor?{"path":"c:\\repo\\MainLayout.razor","ref":"~"}""";
+        var span = new SourceSpan(filePath, 10, 4, 3, 9, lineCount: 0, endCharacterIndex: 12);
+        using var writer = new CodeWriter();
+
+        writer.WriteEnhancedLineNumberDirective(span, characterOffset: 0, ensurePathBackslashes);
+
+        var encodedPath = filePath.Replace("\"", "%22");
+        Assert.Equal($"#line (5,4)-(5,13) \"{encodedPath}\"{writer.NewLine}", writer.GetText().ToString());
+        Assert.Equal(new Uri(filePath).AbsoluteUri, new Uri(encodedPath).AbsoluteUri);
+        Assert.Empty(CSharpSyntaxTree.ParseText(writer.GetText()).GetDiagnostics());
+    }
+
+    [Theory]
+    [InlineData("\r")]
+    [InlineData("\n")]
+    [InlineData("\u0085")]
+    [InlineData("\u2028")]
+    [InlineData("\u2029")]
+    public void WriteLineNumberDirective_EncodesLineBreaksInUri(string lineBreak)
+    {
+        var filePath = $"git:/repo/MainLayout.razor?ref=before{lineBreak}after";
+        var span = new SourceSpan(filePath, 10, 4, 3, 9);
+        using var writer = new CodeWriter();
+
+        writer.WriteLineNumberDirective(span, ensurePathBackslashes: true);
+
+        Assert.Empty(CSharpSyntaxTree.ParseText(writer.GetText()).GetDiagnostics());
+    }
+
     [Fact]
     public void WriteField_WritesFieldDeclaration()
     {
@@ -372,7 +422,7 @@ public class CSharpCodeWriterTest
         using var writer = new CodeWriter();
 
         // Act
-        writer.WriteAutoPropertyDeclaration(modifiers: ["public" ], type: "global::System.String", name: "MyString");
+        writer.WriteAutoPropertyDeclaration(modifiers: ["public"], type: "global::System.String", name: "MyString");
 
         // Assert
         var output = writer.GetText().ToString();

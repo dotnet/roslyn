@@ -68,6 +68,7 @@ stages:
     queueName: ${{ parameters.queueName }}
     timeout: ${{ parameters.timeout }}
     configuration: Debug
+    warnAsError: true
     testRuns:
       - oop64bit: true
         lspEditor: true

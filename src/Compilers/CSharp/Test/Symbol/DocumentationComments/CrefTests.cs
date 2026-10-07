@@ -1568,8 +1568,8 @@ class C<T, U, V>
 
             foreach (var p in actualTypeParameters)
             {
-                Assert.ThrowsAny<Exception>(() => p.GetEffectiveBaseClass(null));
-                Assert.ThrowsAny<Exception>(() => p.GetDeducedBaseType(null));
+                Assert.Same(ErrorTypeSymbol.UnknownResultType, p.GetEffectiveBaseClass(null));
+                Assert.Same(ErrorTypeSymbol.UnknownResultType, p.GetDeducedBaseType(null));
             }
 
             Assert.Equal(actualTypeParameters[0], actualTypeParameters[1]);
@@ -6073,6 +6073,105 @@ enum E { }
 
             var members = model.LookupSymbols(methodNameSyntax.SpanStart, ((IMethodSymbol)methodSymbol).ReturnType);
             Assert.Equal(0, members.Length);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85788")]
+        public void CrefTypeParameterExtensionMemberLookup(
+            bool useExtensionBlock,
+            [CombinatorialValues(null, "GetAwaiter")] string name)
+        {
+            var source = """
+                class C<T>
+                {
+                    public T Copy() => default;
+                }
+
+                /// <see cref="C{U}.Copy()"/>
+                class D { }
+                """;
+            var extensions = useExtensionBlock ? """
+                static class Extensions
+                {
+                    extension(object value)
+                    {
+                        public int GetAwaiter() => 0;
+                    }
+                }
+                """ : """
+                static class Extensions
+                {
+                    public static int GetAwaiter(this object value) => 0;
+                }
+                """;
+
+            var compilation = CreateCompilation([source, extensions], parseOptions: TestOptions.RegularWithDocumentationComments);
+            compilation.VerifyEmitDiagnostics();
+
+            var cref = GetCrefSyntaxes(compilation).Single();
+            var model = compilation.GetSemanticModel(cref.SyntaxTree);
+            var method = (IMethodSymbol)model.GetSymbolInfo(cref).Symbol;
+            var typeParameter = (ITypeParameterSymbol)method.ReturnType;
+            Assert.Equal(TypeParameterKind.Cref, typeParameter.TypeParameterKind);
+
+            Assert.Empty(model.LookupSymbols(cref.SpanStart, typeParameter, name, includeReducedExtensionMethods: true));
+
+            var declaredTypeParameter = compilation.GetMember<NamedTypeSymbol>("C").TypeParameters.Single().GetPublicSymbol();
+            Assert.Equal("GetAwaiter", model.LookupSymbols(
+                cref.SpanStart, declaredTypeParameter, "GetAwaiter", includeReducedExtensionMethods: true).Single().Name);
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85788")]
+        public void CrefTypeParameterExtensionMemberLookup_ConstructedReceiver(bool useExtensionBlock)
+        {
+            var source = """
+                interface I<out T>
+                {
+                    public I<T> Copy1();
+                }
+
+                /// <see cref="I{U}.Copy1()"/>
+                class D { }
+                """;
+            var extensions = useExtensionBlock ? """
+                static class Extensions
+                {
+                    extension(I<D> value)
+                    {
+                        public int Copy2() => 0;
+                    }
+
+                    extension<T>(T value)
+                    {
+                        public T Identity() => value;
+                    }
+                }
+                """ : """
+                static class Extensions
+                {
+                    public static int Copy2(this I<D> value) => 0;
+                    public static T Identity<T>(this T value) => value;
+                }
+                """;
+
+            var compilation = CreateCompilation([source, extensions], parseOptions: TestOptions.RegularWithDocumentationComments);
+            compilation.VerifyEmitDiagnostics();
+
+            var cref = GetCrefSyntaxes(compilation).Single();
+            var model = compilation.GetSemanticModel(cref.SyntaxTree);
+            var method = (IMethodSymbol)model.GetSymbolInfo(cref).Symbol;
+            var type = (INamedTypeSymbol)method.ReturnType;
+            Assert.Equal(TypeParameterKind.Cref, ((ITypeParameterSymbol)type.TypeArguments[0]).TypeParameterKind);
+
+            Assert.Empty(model.LookupSymbols(cref.SpanStart, type, "Copy2", includeReducedExtensionMethods: true));
+
+            foreach (var receiver in new[] { type, type.TypeArguments[0] })
+            {
+                var identity = (IMethodSymbol)model.LookupSymbols(
+                    cref.SpanStart, receiver, "Identity", includeReducedExtensionMethods: true).Single();
+                Assert.Equal(receiver, identity.ReturnType);
+            }
         }
 
         [WorkItem(598371, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/598371")]

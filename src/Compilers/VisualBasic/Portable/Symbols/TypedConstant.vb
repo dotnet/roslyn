@@ -19,6 +19,22 @@ Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
+    ''' <summary>
+    ''' Specifies options for formatting a <see cref="TypedConstant"/>.
+    ''' </summary>
+    <Flags>
+    Public Enum TypedConstantFormattingOptions
+        ''' <summary>
+        ''' Format the typed constant using the default options.
+        ''' </summary>
+        None = 0
+
+        ''' <summary>
+        ''' Include type characters on numeric literals.
+        ''' </summary>
+        IncludeTypeCharacter = 1
+    End Enum
+
     Public Module TypedConstantExtensions
         ''' <summary>
         ''' Returns the System.String that represents the current TypedConstant.
@@ -26,12 +42,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A System.String that represents the current TypedConstant.</returns>
         <Extension>
         Public Function ToVisualBasicString(constant As TypedConstant) As String
+            Return ToVisualBasicString(constant, TypedConstantFormattingOptions.None)
+        End Function
+
+        ''' <summary>
+        ''' Returns the System.String that represents the current TypedConstant.
+        ''' </summary>
+        ''' <param name="constant">The typed constant to format.</param>
+        ''' <param name="options">Options used to customize formatting.</param>
+        ''' <returns>A System.String that represents the current TypedConstant.</returns>
+        <Extension>
+        Public Function ToVisualBasicString(constant As TypedConstant, options As TypedConstantFormattingOptions) As String
             If constant.IsNull Then
                 Return "Nothing"
             End If
 
             If constant.Kind = TypedConstantKind.Array Then
-                Return "{" & String.Join(", ", constant.Values.Select(Function(v) v.ToVisualBasicString())) & "}"
+                Return "{" & String.Join(", ", constant.Values.Select(Function(v) v.ToVisualBasicString(options))) & "}"
             End If
 
             If constant.Kind = TypedConstantKind.Type OrElse constant.TypeInternal.SpecialType = SpecialType.System_Object Then
@@ -43,7 +70,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return DisplayEnumConstant(constant)
             End If
 
-            Return SymbolDisplay.FormatPrimitive(constant.ValueInternal, quoteStrings:=True, useHexadecimalNumbers:=False)
+            Dim objectDisplayOptions As ObjectDisplayOptions = ObjectDisplayOptions.EscapeNonPrintableCharacters Or ObjectDisplayOptions.UseQuotes
+            If (options And TypedConstantFormattingOptions.IncludeTypeCharacter) <> 0 Then
+                objectDisplayOptions = objectDisplayOptions Or ObjectDisplayOptions.IncludeTypeSuffix
+            End If
+
+            Return ObjectDisplay.FormatPrimitive(constant.ValueInternal, objectDisplayOptions)
         End Function
 
         ' Decode the value of enum constant

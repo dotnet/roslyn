@@ -77,7 +77,10 @@ public MyService(IDependency dependency) { }
 ## Key Development Patterns
 
 ### TestAccessor Pattern
-Expose internal state to tests without making it public:
+Prefer testing observable behavior without exposing internal state. When a
+critical scenario cannot be adequately covered through existing product
+behavior, a `TestAccessor` can expose the minimum required internal state
+without making it public:
 ```csharp
 internal class ProductionClass
 {
@@ -94,6 +97,8 @@ internal class ProductionClass
 }
 ```
 **TestAccessor calls are forbidden in production code** — enforced by analyzer RS0043.
+Do not introduce a `TestAccessor` for exhaustive unit testing or to assert a
+class's specific implementation.
 
 ### SyntaxGenerator (Language-Agnostic Code Generation)
 Use `SyntaxGenerator` to generate code without language-specific knowledge:
