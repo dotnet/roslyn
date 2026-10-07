@@ -124,7 +124,6 @@ internal sealed partial class OnDemandProjectLoader(
                 var projectsToLoad = new List<Task<LoadedProject>>();
                 while (pendingProjects.TryDequeue(out var projectPath))
                 {
-                    projectPath = Path.GetFullPath(projectPath);
                     if (!visitedProjects.Add(projectPath))
                         continue;
 

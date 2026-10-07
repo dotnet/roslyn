@@ -190,7 +190,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
                 {
                     var absolutePath = FileUtilities.ResolveRelativePath(projectReference.Path, _projectDirectory);
                     if (absolutePath is not null)
-                        references.Add(absolutePath);
+                        references.Add(FileUtilities.NormalizeAbsolutePath(absolutePath));
                 }
             }
 

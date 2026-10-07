@@ -114,15 +114,17 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var firstLoad = onDemandLoader.TryLoadProjectsAsync(firstDocument);
         Task<Solution?>? secondLoad = concurrentDemands ? onDemandLoader.TryLoadProjectsAsync(secondDocument).AsTask() : null;
         var firstStartedPath = await firstBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        var secondExpectedPath = PathUtilities.Comparer.Equals(firstStartedPath, firstProject) ? secondProject : firstProject;
         firstBuild.CompleteSuccessfully(
             loader.WorkspaceFactory.HostProjectFactory,
             firstStartedPath,
-            projectReferences: [PathUtilities.Comparer.Equals(firstStartedPath, firstProject) ? secondProject : firstProject]);
+            projectReferences: [Path.GetRelativePath(Path.GetDirectoryName(firstStartedPath)!, secondExpectedPath)]);
         var secondStartedPath = await secondBuild.Started.Task.WaitAsync(TestHelpers.HangMitigatingTimeout);
+        Assert.Equal(secondExpectedPath, secondStartedPath, PathUtilities.Comparer);
         secondBuild.CompleteSuccessfully(
             loader.WorkspaceFactory.HostProjectFactory,
             secondStartedPath,
-            projectReferences: [PathUtilities.Comparer.Equals(secondStartedPath, firstProject) ? secondProject : firstProject]);
+            projectReferences: [Path.GetRelativePath(Path.GetDirectoryName(secondStartedPath)!, firstStartedPath)]);
 
         if (secondLoad is not null)
             Assert.All(await Task.WhenAll(firstLoad.AsTask(), secondLoad).WaitAsync(TestHelpers.HangMitigatingTimeout), Assert.NotNull);
