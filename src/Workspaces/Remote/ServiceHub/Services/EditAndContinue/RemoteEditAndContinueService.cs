@@ -24,7 +24,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
             => new RemoteEditAndContinueService(arguments, callback);
     }
 
-    private sealed class ManagedEditAndContinueDebuggerService : IManagedHotReloadService
+    private sealed class ManagedEditAndContinueDebuggerService : IManagedHotReloadState
     {
         private readonly RemoteCallback<IRemoteEditAndContinueService.ICallback> _callback;
         private readonly RemoteServiceCallbackId _callbackId;
@@ -35,16 +35,16 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
             _callbackId = callbackId;
         }
 
-        ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> IManagedHotReloadService.GetActiveStatementsAsync(CancellationToken cancellationToken)
+        ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> IManagedHotReloadState.GetActiveStatementsAsync(CancellationToken cancellationToken)
             => _callback.InvokeAsync((callback, cancellationToken) => callback.GetActiveStatementsAsync(_callbackId, cancellationToken), cancellationToken);
 
-        ValueTask<ManagedHotReloadAvailability> IManagedHotReloadService.GetAvailabilityAsync(Guid moduleVersionId, CancellationToken cancellationToken)
+        ValueTask<ManagedHotReloadAvailability> IManagedHotReloadState.GetAvailabilityAsync(Guid moduleVersionId, CancellationToken cancellationToken)
             => _callback.InvokeAsync((callback, cancellationToken) => callback.GetAvailabilityAsync(_callbackId, moduleVersionId, cancellationToken), cancellationToken);
 
-        ValueTask<ImmutableArray<string>> IManagedHotReloadService.GetCapabilitiesAsync(CancellationToken cancellationToken)
+        ValueTask<ImmutableArray<string>> IManagedHotReloadState.GetUpdateCapabilitiesAsync(CancellationToken cancellationToken)
             => _callback.InvokeAsync((callback, cancellationToken) => callback.GetCapabilitiesAsync(_callbackId, cancellationToken), cancellationToken);
 
-        ValueTask IManagedHotReloadService.PrepareModuleForUpdateAsync(Guid moduleVersionId, CancellationToken cancellationToken)
+        ValueTask IManagedHotReloadState.PrepareModuleForUpdateAsync(Guid moduleVersionId, CancellationToken cancellationToken)
             => _callback.InvokeAsync((callback, cancellationToken) => callback.PrepareModuleForUpdateAsync(_callbackId, moduleVersionId, cancellationToken), cancellationToken);
     }
 

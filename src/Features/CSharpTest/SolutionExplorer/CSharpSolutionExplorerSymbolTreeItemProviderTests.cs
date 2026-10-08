@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.SolutionExplorer;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SolutionExplorer;
@@ -361,6 +362,54 @@ public sealed class CSharpSolutionExplorerSymbolTreeItemProviderTests
             """, """
             Name="GetLocal() : void" Glyph=MethodPrivate HasItems=False
             Name="SetLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82421")]
+    public Task TestEventReturnsLocalFunctions()
+        => TestNode<EventDeclarationSyntax>("""
+            class C
+            {
+                public event Action E
+                {
+                    add
+                    {
+                        void [|AddLocal|]()
+                        {
+                            void NestedLocal() { }
+                        }
+                    }
+                    remove
+                    {
+                        void [|RemoveLocal|]() { }
+                    }
+                }
+            }
+            """, """
+            Name="AddLocal() : void" Glyph=MethodPrivate HasItems=True
+            Name="RemoveLocal() : void" Glyph=MethodPrivate HasItems=False
+            """);
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82421")]
+    public Task TestEventSetsHasItemsForLocalFunctions(bool addLocal, bool removeLocal)
+        => TestNode<ClassDeclarationSyntax>($$"""
+            class C
+            {
+                public event Action [|E|]
+                {
+                    add
+                    {
+                        {{(addLocal ? "void AddLocal() { }" : "")}}
+                    }
+                    remove
+                    {
+                        {{(removeLocal ? "void RemoveLocal() { }" : "")}}
+                    }
+                }
+            }
+            """, $$"""
+            Name="E : Action" Glyph=EventPublic HasItems={{addLocal || removeLocal}}
             """);
 
     [Fact]
