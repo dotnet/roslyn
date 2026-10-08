@@ -111,7 +111,7 @@ internal partial class SourceTextDiffer
         {
             if (edit.Kind == DiffEditKind.Insert)
             {
-                Assumes.NotNull(edit.NewTextPosition);
+                Contract.ThrowIfNull(edit.NewTextPosition);
                 var newTextPosition = edit.NewTextPosition.GetValueOrDefault();
 
                 if (edit.Length > 1)

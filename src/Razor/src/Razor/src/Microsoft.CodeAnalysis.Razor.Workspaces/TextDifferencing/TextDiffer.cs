@@ -223,7 +223,7 @@ internal abstract partial class TextDiffer
             }
         }
 
-        throw Assumes.NotReachable();
+        throw ExceptionUtilities.Unreachable();
     }
 
     private bool SourceEqualUsingOffset(int oldSourceIndex, int newSourceIndex)

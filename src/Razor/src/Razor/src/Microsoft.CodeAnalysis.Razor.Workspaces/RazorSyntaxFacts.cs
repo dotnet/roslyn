@@ -41,7 +41,7 @@ internal static class RazorSyntaxFacts
         }
 
         // Can't get to this point if owner was null, but the compiler doesn't know that
-        Assumes.NotNull(owner);
+        Contract.ThrowIfNull(owner);
 
         // The GetOwner method can be surprising, eg. Foo="$$Bar" will return the starting quote of the attribute value,
         // but its parent is the attribute name. Easy enough to filter that sort of thing out by just requiring
