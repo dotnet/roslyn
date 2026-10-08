@@ -26,7 +26,7 @@ internal sealed class CSharpFormatter
         AutoFormattingOptions autoFormattingOptions,
         FormattingOptions2.IndentStyle indentStyle)
     {
-        var resolvedCSharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(options);
+        var resolvedCSharpSyntaxFormattingOptions = options.GetResolvedCSharpSyntaxFormattingOptions();
 
         return new(resolvedCSharpSyntaxFormattingOptions)
         {
@@ -69,7 +69,7 @@ internal sealed class CSharpFormatter
 
         // At this point, we have added all the necessary markers and attached annotations.
         // Let's invoke the C# formatter and hope for the best.
-        var formattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(context.Options);
+        var formattingOptions = context.Options.GetResolvedCSharpSyntaxFormattingOptions();
         var formattedRoot = Formatter.Format(
             root,
             hostWorkspaceServices.SolutionServices,

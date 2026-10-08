@@ -7,10 +7,10 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 
 namespace Microsoft.CodeAnalysis.Razor.Formatting;
 
-internal static class CSharpFormattingOptionsHelper
+internal static class CSharpFormattingOptionsExtensions
 {
     internal static CSharpSyntaxFormattingOptions GetCSharpSyntaxFormattingOptions(
-        TextDocument razorDocument,
+        this TextDocument razorDocument,
         CancellationToken cancellationToken)
     {
         var configOptions = razorDocument.Project.State
@@ -21,18 +21,19 @@ internal static class CSharpFormattingOptionsHelper
     }
 
     internal static CSharpSyntaxFormattingOptions GetResolvedCSharpSyntaxFormattingOptions(
-        RazorFormattingOptions options)
+        this CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
+        bool insertSpaces,
+        int tabSize,
+        string newLine)
     {
-        var csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
-
         return csharpSyntaxFormattingOptions with
         {
             LineFormatting = csharpSyntaxFormattingOptions.LineFormatting with
             {
-                UseTabs = !options.InsertSpaces,
-                TabSize = options.TabSize,
-                IndentationSize = options.TabSize,
-                NewLine = CSharpSyntaxFormattingOptions.Default.NewLine
+                UseTabs = !insertSpaces,
+                TabSize = tabSize,
+                IndentationSize = tabSize,
+                NewLine = newLine
             }
         };
     }

@@ -28,6 +28,10 @@ internal readonly record struct RazorFormattingOptions
     {
     }
 
+    public CSharpSyntaxFormattingOptions GetResolvedCSharpSyntaxFormattingOptions()
+        => CSharpSyntaxFormattingOptions.GetResolvedCSharpSyntaxFormattingOptions(
+            InsertSpaces, TabSize, CSharpSyntaxFormattingOptions.Default.NewLine);
+
     public static RazorFormattingOptions From(LspFormattingOptions options, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
         => new()
         {

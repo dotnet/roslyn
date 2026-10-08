@@ -59,7 +59,7 @@ their original sub-tree layout
   above its private implementation method.
 - **Formatting options across OOP**: Cohost endpoints must resolve
   `CSharpSyntaxFormattingOptions` from the Razor document's analyzer-config options with
-  `CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken)`.
+  `razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken)`.
   This applies `.editorconfig` sections matching the `.razor` or `.cshtml` path and falls back to
   the user's global C# options. Include the resolved options in `RazorFormattingOptions` sent to
   remote formatting consumers; remote `IClientSettingsManager` state does not contain the user's

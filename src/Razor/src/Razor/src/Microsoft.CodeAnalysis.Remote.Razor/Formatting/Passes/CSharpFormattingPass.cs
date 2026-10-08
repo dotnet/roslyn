@@ -145,7 +145,7 @@ internal sealed partial class CSharpFormattingPass(
             }
         };
 
-        var formattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(options);
+        var formattingOptions = options.GetResolvedCSharpSyntaxFormattingOptions();
         var csharpChanges = Formatter.GetFormattedTextChanges(
             csharpRoot,
             csharpRoot.FullSpan,
