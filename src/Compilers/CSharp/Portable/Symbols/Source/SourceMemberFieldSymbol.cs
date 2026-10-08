@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private TypeAndRefKind _lazyTypeAndRefKind;
+        private volatile TypeAndRefKind _lazyTypeAndRefKind;
 
         // Non-zero if the type of the field has been inferred from the type of its initializer expression
         // and the errors of binding the initializer have been or are being reported to compilation diagnostics.
@@ -628,7 +628,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // update the lazyType only if it contains value last seen by the current thread:
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
             if (Interlocked.CompareExchange(ref _lazyTypeAndRefKind, new TypeAndRefKind(refKind, type.WithModifiers(this.RequiredCustomModifiers)), null) == null)
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             {
                 TypeChecks(type.Type, diagnostics);
 
