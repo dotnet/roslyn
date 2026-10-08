@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Text;
+using SR = Microsoft.CodeAnalysis.Razor.Formatting.Resources.SR;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
