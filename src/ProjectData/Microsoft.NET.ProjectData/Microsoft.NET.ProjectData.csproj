@@ -21,8 +21,7 @@
     <Analyzer Include="$(PkgSystem_Text_Json)\lib\netstandard2.0\System.Text.Json.dll" />
 
     <AdditionalFiles Include="..\Microsoft.NET.ProjectData.Generators\project-data-schema.json" />
-    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.UnitTests" Key="$(VsPublicKey)" />
-    <InternalsVisibleTo Include="CSDevKit.Tests" Key="$(VsPublicKey)" />
+    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>
