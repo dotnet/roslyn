@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
 
-        private TypeWithAnnotations.Boxed _lazyType;
+        private volatile TypeWithAnnotations.Boxed _lazyType;
         private int _lazyFixedSize;
         private NamedTypeSymbol _lazyFixedImplementationType;
         private PEEventSymbol _associatedEventOpt;
@@ -361,7 +361,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyRefCustomModifiers, CSharpCustomModifier.Convert(fieldInfo.RefCustomModifiers));
 
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 Interlocked.CompareExchange(ref _lazyType, new TypeWithAnnotations.Boxed(type), null);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
         }
 
