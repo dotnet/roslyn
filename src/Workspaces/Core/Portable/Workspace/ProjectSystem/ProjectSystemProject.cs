@@ -824,7 +824,7 @@ internal sealed partial class ProjectSystemProject
         => _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
 
     /// <summary>
-    /// Adds a source file to the project from a text container (eg, a Visual Studio Text buffer)
+    /// Adds a source file to the project from a text container (eg, a Visual Studio Text buffer or LSP virtual file)
     /// </summary>
     /// <param name="textContainer">The text container that contains this file.</param>
     /// <param name="fullPath">The file path of the document.</param>
@@ -832,6 +832,7 @@ internal sealed partial class ProjectSystemProject
     /// <param name="folders">The names of the logical nested folders the document is contained in.</param>
     /// <param name="designTimeOnly">Whether the document is used only for design time (eg. completion) or also included in a compilation.</param>
     /// <param name="documentServiceProvider">A <see cref="IDocumentServiceProvider"/> associated with this document</param>
+    /// <param name="openDocument">Whether to open the document in the editor if applicable.</param>
     public DocumentId AddVirtualDocument(
         SourceTextContainer textContainer,
         string fullPath,

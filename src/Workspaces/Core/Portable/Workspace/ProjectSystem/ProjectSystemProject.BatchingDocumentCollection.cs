@@ -101,7 +101,7 @@ internal sealed partial class ProjectSystemProject
             bool designTimeOnly,
             IDocumentServiceProvider? documentServiceProvider)
         {
-            var isVirtual = textLoader is SourceTextLoader;
+            var isVirtual = textLoader is VirtualDocumentSourceTextLoader;
             var documentId = DocumentId.CreateNewId(_project.Id, fullPath);
             var documentInfo = DocumentInfo.Create(
                 documentId,
@@ -171,7 +171,7 @@ internal sealed partial class ProjectSystemProject
                 fullPath,
                 sourceCodeKind,
                 folders,
-                new SourceTextLoader(textContainer, fullPath, openDocument),
+                new VirtualDocumentSourceTextLoader(textContainer, fullPath, openDocument),
                 designTimeOnly,
                 documentServiceProvider);
         }
@@ -409,7 +409,7 @@ internal sealed partial class ProjectSystemProject
                     Contract.ThrowIfNull(documentInfo.FilePath, "We shouldn't be adding documents without file paths.");
 
                     // Virtual documents don't need the host to check whether the file is already open.
-                    if (documentInfo.TextLoader is not SourceTextLoader)
+                    if (documentInfo.TextLoader is not VirtualDocumentSourceTextLoader)
                         documentFileNamesAdded.Add(documentInfo.FilePath);
 
                     if (ShouldOpenVirtualDocument(documentInfo, out var textContainer))
@@ -444,7 +444,7 @@ internal sealed partial class ProjectSystemProject
 
         private static bool ShouldOpenVirtualDocument(DocumentInfo documentInfo, [NotNullWhen(true)] out SourceTextContainer? sourceTextContainer)
         {
-            if (documentInfo.TextLoader is SourceTextLoader loader && loader.OpenDocument)
+            if (documentInfo.TextLoader is VirtualDocumentSourceTextLoader loader && loader.OpenDocument)
             {
                 sourceTextContainer = loader.TextContainer;
                 return true;
@@ -454,13 +454,13 @@ internal sealed partial class ProjectSystemProject
             return false;
         }
 
-        private sealed class SourceTextLoader : TextLoader
+        private sealed class VirtualDocumentSourceTextLoader : TextLoader
         {
             internal readonly SourceTextContainer TextContainer;
             internal readonly bool OpenDocument;
             private readonly string? _filePath;
 
-            public SourceTextLoader(SourceTextContainer textContainer, string? filePath, bool openDocument)
+            public VirtualDocumentSourceTextLoader(SourceTextContainer textContainer, string? filePath, bool openDocument)
             {
                 TextContainer = textContainer;
                 _filePath = filePath;
