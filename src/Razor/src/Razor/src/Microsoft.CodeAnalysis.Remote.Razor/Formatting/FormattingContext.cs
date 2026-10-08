@@ -1,7 +1,6 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -31,7 +30,7 @@ internal sealed class FormattingContext
         RazorCodeDocument codeDocument,
         bool? declarationDocument,
         IDocumentSnapshot currentSnapshot,
-        RazorFormattingOptions options,
+        FormattingEngineOptions options,
         IFormattingLogger? logger,
         bool includeCSharpLanguageFeatureEdits,
         int hostDocumentIndex,
@@ -58,7 +57,7 @@ internal sealed class FormattingContext
     public RazorCodeDocument CodeDocument { get; }
     public IDocumentSnapshot CurrentSnapshot { get; }
     public RemoteDocumentSnapshot CurrentRemoteSnapshot => (RemoteDocumentSnapshot)CurrentSnapshot;
-    public RazorFormattingOptions Options { get; }
+    public FormattingEngineOptions Options { get; }
     public IFormattingLogger? Logger { get; }
     public bool IncludeCSharpLanguageFeatureEdits { get; }
     public int HostDocumentIndex { get; }
@@ -68,7 +67,7 @@ internal sealed class FormattingContext
 
     public RazorCSharpDocument CSharpDocument => _csharpDocument.AssumeNotNull("Cannot get C# source text when declaration document is not specified.");
 
-    public string NewLineString => Environment.NewLine;
+    public string NewLineString => Options.NewLine;
 
     /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
     /// <remarks>
@@ -307,7 +306,7 @@ internal sealed class FormattingContext
             codeDocument,
             declarationDocument,
             currentSnapshot: originalSnapshot,
-            options,
+            ToFormattingEngineOptions(options),
             logger,
             includeCSharpLanguageFeatureEdits,
             hostDocumentIndex,
@@ -325,10 +324,40 @@ internal sealed class FormattingContext
             codeDocument,
             declarationDocument: null,
             currentSnapshot: originalSnapshot,
+            ToFormattingEngineOptions(options),
+            logger,
+            includeCSharpLanguageFeatureEdits: false,
+            hostDocumentIndex: 0,
+            triggerCharacter: '\0');
+    }
+
+    public static FormattingContext Create(
+        IDocumentSnapshot originalSnapshot,
+        RazorCodeDocument codeDocument,
+        FormattingEngineOptions options,
+        IFormattingLogger? logger)
+    {
+        return new FormattingContext(
+            originalSnapshot,
+            codeDocument,
+            declarationDocument: null,
+            currentSnapshot: originalSnapshot,
             options,
             logger,
             includeCSharpLanguageFeatureEdits: false,
             hostDocumentIndex: 0,
             triggerCharacter: '\0');
     }
+
+    // RazorFormattingOptions is the serialized, Razor-wide transport contract. The shared engine intentionally accepts
+    // only the host-neutral subset it needs so the dotnet format adapter does not depend on Razor Workspaces or LSP.
+    private static FormattingEngineOptions ToFormattingEngineOptions(RazorFormattingOptions options)
+        => new()
+        {
+            InsertSpaces = options.InsertSpaces,
+            TabSize = options.TabSize,
+            CodeBlockBraceOnNextLine = options.CodeBlockBraceOnNextLine,
+            AttributeIndentStyle = options.AttributeIndentStyle,
+            CSharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions,
+        };
 }

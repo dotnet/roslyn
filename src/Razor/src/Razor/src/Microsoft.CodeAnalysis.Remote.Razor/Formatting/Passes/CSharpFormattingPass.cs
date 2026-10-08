@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.TextDifferencing;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
@@ -115,7 +114,7 @@ internal sealed partial class CSharpFormattingPass(
         return SourceTextDiffer.GetMinimalTextChanges(context.SourceText, changedText, DiffKind.Char);
     }
 
-    private async Task<SourceText> FormatCSharpAsync(SourceText generatedCSharpText, RazorFormattingOptions options, CancellationToken cancellationToken)
+    private async Task<SourceText> FormatCSharpAsync(SourceText generatedCSharpText, FormattingEngineOptions options, CancellationToken cancellationToken)
     {
         using var helper = new RoslynWorkspaceHelper(_hostServicesProvider);
 

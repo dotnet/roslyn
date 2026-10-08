@@ -14,9 +14,7 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
-using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
@@ -86,7 +84,7 @@ internal partial class CSharpFormattingPass
     /// </remarks>
     private sealed class CSharpDocumentGenerator
     {
-        public static FormattedDocument Generate(RazorCodeDocument codeDocument, SyntaxNode csharpSyntaxRoot, SyntaxNode? declSyntaxRoot, RazorFormattingOptions options)
+        public static FormattedDocument Generate(RazorCodeDocument codeDocument, SyntaxNode csharpSyntaxRoot, SyntaxNode? declSyntaxRoot, FormattingEngineOptions options)
         {
             using var _1 = StringBuilderPool.GetPooledObject(out var builder);
             using var _2 = ArrayBuilderPool<LineInfo>.GetPooledObject(out var lineInfoBuilder);
@@ -151,7 +149,7 @@ internal partial class CSharpFormattingPass
             RazorCodeDocument codeDocument,
             SyntaxNode csharpSyntaxRoot,
             SyntaxNode? declSyntaxRoot,
-            RazorFormattingOptions options,
+            FormattingEngineOptions options,
             StringBuilder builder,
             ImmutableArray<LineInfo>.Builder lineInfoBuilder) : SyntaxVisitor<LineInfo>
         {
@@ -320,14 +318,14 @@ internal partial class CSharpFormattingPass
                 {
                     additionalLinesBuilder.AppendLine("F<");
                     additionalLinesBuilder.AppendLine(GetAdditionalLineComment(originalSpan));
-                    additionalLinesBuilder.AppendLine(_sourceText.ToString(originalSpan.ToTextSpan()));
+                    additionalLinesBuilder.AppendLine(_sourceText.ToString(new TextSpan(originalSpan.AbsoluteIndex, originalSpan.Length)));
                     additionalLinesBuilder.AppendLine("> x;");
                     return;
                 }
 
                 additionalLinesBuilder.AppendLine("_ =");
                 additionalLinesBuilder.AppendLine(GetAdditionalLineComment(originalSpan));
-                additionalLinesBuilder.AppendLine(_sourceText.ToString(originalSpan.ToTextSpan()));
+                additionalLinesBuilder.AppendLine(_sourceText.ToString(new TextSpan(originalSpan.AbsoluteIndex, originalSpan.Length)));
                 additionalLinesBuilder.AppendLine(";");
             }
 
