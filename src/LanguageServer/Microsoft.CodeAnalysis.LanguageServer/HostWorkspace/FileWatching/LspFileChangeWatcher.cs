@@ -57,6 +57,8 @@ internal sealed class LspFileChangeWatcher : AbstractConsolidatingFileChangeWatc
     private sealed class DirectoryWatcher : IDirectoryWatcher
     {
         private readonly LspFileChangeWatcher _owner;
+
+        private readonly DocumentUri _baseUri;
         private readonly string _directoryPath;
 
         /// <summary>
@@ -79,8 +81,12 @@ internal sealed class LspFileChangeWatcher : AbstractConsolidatingFileChangeWatc
         public DirectoryWatcher(LspFileChangeWatcher owner, string path, ImmutableArray<string> filters, bool includeSubdirectories)
         {
             _owner = owner;
-            _owner._didChangeWatchedFilesHandler.NotificationRaised += DidChangeWatchedFilesHandler_OnNotificationRaised;
+
+            // We send the URI to the client that doesn't need a trailing separator, but need a trailing separator on the path when filtering notifications
+            // so a watch for 'foo' doesn't also match files in 'foobar'. Just hold onto both.
+            _baseUri = ProtocolConversions.CreateAbsoluteDocumentUri(path);
             _directoryPath = PathUtilities.EnsureTrailingSeparator(path);
+            _owner._didChangeWatchedFilesHandler.NotificationRaised += DidChangeWatchedFilesHandler_OnNotificationRaised;
 
             QueueRegistration(new WatchConfiguration(filters, includeSubdirectories));
         }
@@ -177,7 +183,7 @@ internal sealed class LspFileChangeWatcher : AbstractConsolidatingFileChangeWatc
                                 {
                                     GlobPattern = new RelativePattern
                                     {
-                                        BaseUri = ProtocolConversions.CreateRelativePatternBaseUri(_directoryPath),
+                                        BaseUri = _baseUri,
                                         Pattern = pattern,
                                     },
                                 },

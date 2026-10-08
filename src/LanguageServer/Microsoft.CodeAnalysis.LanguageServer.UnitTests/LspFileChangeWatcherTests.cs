@@ -90,6 +90,26 @@ public sealed class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RootWatchPreservesTrailingSeparator(bool includeSubdirectories)
+    {
+        await using var testLspServer = await CreateLanguageServerAsync(_clientCapabilitiesWithFileWatcherSupport);
+        var (lspFileChangeWatcher, dynamicCapabilitiesRpcTarget) = GetWatcherAndRpcTarget(testLspServer);
+        var root = Path.GetPathRoot(TempRoot.CreateDirectory().Path)!;
+        var filePath = Path.Combine(root, "File.cs");
+
+        using var context = lspFileChangeWatcher.CreateContext(includeSubdirectories
+            ? [new WatchedDirectory(root, extensionFilters: [".cs"])]
+            : []);
+        using var file = context.EnqueueWatchingFile(filePath);
+        var watcher = await dynamicCapabilitiesRpcTarget.GetSingleFileWatcherAsync();
+
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(root), watcher.GlobPattern.Second.BaseUri.Second);
+        Assert.Equal(includeSubdirectories ? "**/*.cs" : "*.cs", watcher.GlobPattern.Second.Pattern);
+    }
+
+    [Theory]
     [InlineData((int)FileChangeType.Created, (int)FileChangeKind.Created)]
     [InlineData((int)FileChangeType.Changed, (int)FileChangeKind.Changed)]
     [InlineData((int)FileChangeType.Deleted, (int)FileChangeKind.Deleted)]
