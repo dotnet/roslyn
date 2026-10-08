@@ -22,6 +22,7 @@
 
     <AdditionalFiles Include="..\Microsoft.NET.ProjectData.Generators\project-data-schema.json" />
     <InternalsVisibleTo Include="Microsoft.NET.ProjectData.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.Tasks.UnitTests" />
   </ItemGroup>
 
   <ItemGroup>
