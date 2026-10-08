@@ -74,7 +74,7 @@ Key options:
 | `--testConfiguration` | `Debug` or `Release` (default: Debug) |
 | `--include` | Regex pattern to match test project names (repeatable) |
 | `--exclude` | Regex pattern to exclude test project names (repeatable) |
-| `--testFramework` | `core` or `desktop` (repeatable, defaults to both) |
+| `--testFramework` | `core` or `desktop` (repeatable, defaults to both on Windows and `core` elsewhere) |
 | `--testSet` | `compiler` adds compiler test assembly patterns to any `--include` patterns |
 | `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies`; `runtimeasync` requires `--testFramework:core` |
 | `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |
@@ -91,10 +91,11 @@ include pattern are selected; `--exclude` still removes matches from that select
 `Test.cmd` and `test.sh` pass the repository's artifacts directory explicitly.
 Pass `--artifactspath <path>` to override it when testing a different payload.
 
-Runtime-async validation requires an explicit Core-only selection, for example
-`./test.sh --testKind:runtimeasync --testFramework:core`. Omitting the framework
-selects both Core and desktop by default and is rejected for runtime-async
-validation; RunTests does not automatically change the selected frameworks.
+Runtime-async validation requires a Core-only selection, for example
+`./test.sh --testKind:runtimeasync --testFramework:core`. On Windows, omitting the
+framework selects both Core and desktop by default and is rejected for runtime-async
+validation. On other operating systems, the default is Core only. RunTests does not
+automatically change the selected frameworks for runtime-async validation.
 
 Helix submission returns after the jobs are submitted; the pipeline's **Monitor
 Helix Jobs** job monitors completion and retries. Test-run names distinguish
