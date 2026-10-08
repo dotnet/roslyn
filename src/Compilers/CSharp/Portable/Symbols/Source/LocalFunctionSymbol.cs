@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
         private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
-        private TypeWithAnnotations.Boxed? _lazyReturnType;
+        private volatile TypeWithAnnotations.Boxed? _lazyReturnType;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -332,7 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
                 _declarationDependencies.AddAll(diagnostics.DependenciesBag);
                 diagnostics.Free();
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
         }
 
