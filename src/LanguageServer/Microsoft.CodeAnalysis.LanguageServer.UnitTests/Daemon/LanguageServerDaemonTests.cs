@@ -126,7 +126,7 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
                     FaultReporter.ReportFault(firstFault, ErrorSeverity.General, forceDump: false);
             },
             onFlush: () => firstTelemetryFlushed.TrySetResult(true));
-        var secondMetrics = new RecordingMetricSink();
+        var secondMetrics = new RecordingMetricSink(method: Methods.TextDocumentHoverName);
         using var firstEventRegistration = firstTelemetry.AddEventSink(firstEvents);
         using var secondEventRegistration = secondTelemetry.AddEventSink(secondEvents);
         using var firstMetricRegistration = firstTelemetry.AddMetricSink(firstMetrics);
@@ -144,13 +144,28 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             },
             CancellationToken.None);
 
-        // A request handled by the first server records metrics only in that server's sink.
+        // A request handled by the first server records hover metrics only in that server's sink.
+        // The second server may independently record metrics for its initialization.
         Assert.NotNull(hover);
         Assert.True(firstMetrics.MeasurementCount > 0);
         Assert.Equal(0, secondMetrics.MeasurementCount);
         Assert.Contains((firstFault, ErrorSeverity.General, false), firstEvents.Faults);
         Assert.DoesNotContain(daemonEvents.Faults, fault => fault.Exception == firstFault);
         Assert.DoesNotContain(secondEvents.Faults, fault => fault.Exception == firstFault);
+
+        var secondDocumentUri = LoadProjectWithDocument(
+            second.GetRequiredLspService<LanguageServerWorkspaceFactory>(),
+            "SecondTelemetryServer");
+        var secondHover = await second.ExecuteRequestAsync<HoverParams, Hover>(
+            Methods.TextDocumentHoverName,
+            new HoverParams
+            {
+                TextDocument = new TextDocumentIdentifier { DocumentUri = secondDocumentUri },
+                Position = new Position(0, 6),
+            },
+            CancellationToken.None);
+        Assert.NotNull(secondHover);
+        Assert.True(secondMetrics.MeasurementCount > 0);
 
         var daemonEventsBeforeDisconnect = daemonEvents.Events.Length;
         await first.DisposeAsync();
