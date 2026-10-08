@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <Import Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.SharedUtilities\Microsoft.AspNetCore.Razor.SharedUtilities.projitems" Label="Shared" />
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.Workspaces.Shared\Microsoft.CodeAnalysis.Razor.Workspaces.Shared.projitems" Label="Shared" />
 
   <ItemGroup Label="String Resources">
     <EmbeddedResource Update="Resources\SR.resx">
