@@ -42,7 +42,7 @@ public class CSharpIntelliSense : AbstractEditorTest
         globalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.VisualBasic, false);
     }
 
-    [IdeTheory, CombinatorialData]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704"), CombinatorialData]
     public async Task AtNamespaceLevel(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync(@"$$", HangMitigatingCancellationToken);
@@ -95,7 +95,7 @@ assertCaretPosition: true,
 HangMitigatingCancellationToken);
     }
 
-    [IdeTheory, CombinatorialData]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704"), CombinatorialData]
     public async Task VerifyCompletionListMembersOnStaticTypesAndCompleteThem(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
@@ -127,7 +127,7 @@ HangMitigatingCancellationToken);
         await TestServices.EditorVerifier.CurrentLineTextAsync("        NavigateTo.Search$$", assertCaretPosition: true, HangMitigatingCancellationToken);
     }
 
-    [IdeTheory, CombinatorialData]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704"), CombinatorialData]
     public async Task CtrlAltSpace(bool showCompletionInArgumentLists)
     {
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
@@ -238,7 +238,7 @@ HangMitigatingCancellationToken);
         Assert.Contains("char", (await TestServices.Editor.GetCompletionItemsAsync(HangMitigatingCancellationToken)).Select(completion => completion.DisplayText));
     }
 
-    [IdeTheory, CombinatorialData]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704"), CombinatorialData]
     public async Task XmlDocCommentIntelliSense(bool showCompletionInArgumentLists)
     {
         await SetUpEditorAsync("""
@@ -502,7 +502,7 @@ assertCaretPosition: true,
 HangMitigatingCancellationToken);
     }
 
-    [IdeTheory, CombinatorialData]
+    [IdeTheory(Skip = "https://github.com/dotnet/roslyn/issues/85704"), CombinatorialData]
     [WorkItem("https://github.com/dotnet/roslyn/issues/33822")]
     public async Task EnsureTheCaretIsVisibleAfterALongEdit(bool showCompletionInArgumentLists)
     {

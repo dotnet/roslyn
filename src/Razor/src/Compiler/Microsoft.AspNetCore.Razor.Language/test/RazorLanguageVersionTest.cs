@@ -6,6 +6,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.AspNetCore.Razor.Language;
@@ -194,6 +195,16 @@ public class RazorLanguageVersionTest
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public void TryParse120()
+    {
+        var result = RazorLanguageVersion.TryParse("12.0", out var version);
+
+        Assert.True(result);
+        Assert.Same(RazorLanguageVersion.Version_12_0, version);
+    }
+
+    [Fact]
     public void TryParseLatest()
     {
         // Arrange
@@ -205,7 +216,7 @@ public class RazorLanguageVersionTest
         // Assert
         Assert.True(result);
         Assert.Same(RazorLanguageVersion.Latest, version);
-        Assert.Same(RazorLanguageVersion.Version_9_0, version);
+        Assert.Same(RazorLanguageVersion.Version_11_0, version);
     }
 
     [Fact]

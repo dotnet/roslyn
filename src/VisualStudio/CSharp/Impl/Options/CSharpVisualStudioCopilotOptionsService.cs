@@ -40,8 +40,6 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private const string GitHubAccountStatusIsCopilotEntitled = "3DE3FA6E-91B2-46C1-9E9E-DD04975BB890";
 
     // Default value must reflect their default values in ConversationsOptions in Copilot repo.
-    private readonly CopilotOption _copilotCodeAnalysisOption = new("copilot.featureFlags.editor.enableCSharpCodeAnalysis", false);
-    private readonly CopilotOption _copilotRefineOption = new("copilot.featureFlags.editor.enableCSharpRefineQuickActionSuggestion", false);
     private readonly CopilotOption _copilotOnTheFlyDocsOption = new("copilot.general.editor.enableOnTheFlyDocs", true);
     private readonly CopilotOption _copilotGenerateDocumentationCommentOption = new("copilot.general.editor.enableGenerateDocumentationComment", true);
     private readonly CopilotOption _copilotGenerateMethodImplementationOption = new("copilot.featureFlags.editor.enableCSharpGenerateMethodImplementation", true);
@@ -95,12 +93,6 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
             return option.DefaultValue;
         }
     }
-
-    public Task<bool> IsCodeAnalysisOptionEnabledAsync()
-        => IsCopilotOptionEnabledAsync(_copilotCodeAnalysisOption);
-
-    public Task<bool> IsRefineOptionEnabledAsync()
-        => IsCopilotOptionEnabledAsync(_copilotRefineOption);
 
     public Task<bool> IsOnTheFlyDocsOptionEnabledAsync()
         => IsCopilotOptionEnabledAsync(_copilotOnTheFlyDocsOption);

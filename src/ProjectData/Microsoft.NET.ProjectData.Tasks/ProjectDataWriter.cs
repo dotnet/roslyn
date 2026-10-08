@@ -762,9 +762,14 @@ internal static class ProjectDataWriter
 
 	private static bool IsRootedSourceFileArgument(string arg)
 	{
-		if (!Path.IsPathRooted(arg)) return false;
-		string extension = Path.GetExtension(arg);
-		return string.Equals(extension, ".cs", StringComparison.OrdinalIgnoreCase);
+		if (!arg.TrimEnd().EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+			return false;
+
+		// Must check for invalid path chars first, because Path.IsPathRooted throws on them.
+		if (arg.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
+			return false;
+
+		return Path.IsPathRooted(arg);
 	}
 
 	private static bool IsPortableSourceFileArgument(string arg)
@@ -1776,7 +1781,7 @@ internal static class ProjectDataWriter
 			if (!string.IsNullOrWhiteSpace(version))
 			{
 				this.VersionString = version!.StartsWith("v", StringComparison.OrdinalIgnoreCase) ? version.Substring(1) : version;
-				this.Version = Version.TryParse(this.VersionString, out Version v) ? v : null;
+				this.Version = Version.TryParse(this.VersionString, out Version? v) ? v : null;
 			}
 		}
 	}

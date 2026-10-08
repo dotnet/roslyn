@@ -31,6 +31,10 @@ internal static class SemanticTokensHelpers
     {
         var contextDocument = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
 
+        // Avoid overriding the client's TextMate classifications with incomplete semantic information.
+        if (!contextDocument.Project.State.HasAllInformation)
+            return [];
+
         // If the client didn't provide any ranges, we'll just return the entire document.
         var text = await contextDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         ranges ??= [ProtocolConversions.TextSpanToRange(new TextSpan(0, text.Length), text)];

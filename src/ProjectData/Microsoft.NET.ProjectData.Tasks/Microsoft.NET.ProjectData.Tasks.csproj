@@ -1,16 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <!-- AOT/trim analyzers require net7.0+; not applicable to this netstandard2.0 task assembly. -->
-    <EnableAotAnalyzer>false</EnableAotAnalyzer>
-    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <TargetFramework>$(NetRoslynSourceBuild)</TargetFramework>
     <RootNamespace>Microsoft.NET.ProjectData.Tasks</RootNamespace>
     <!-- The SDK extracts this package and arranges its deployment layout; it is not intended for PackageReference consumption. -->
     <IsPackable>true</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <!-- These members are used by source files that are intentionally not linked into this
-         netstandard2.0 task assembly, so Roslyn's partial view reports them as unused. -->
+         task assembly, so Roslyn's partial view reports them as unused. -->
     <NoWarn>$(NoWarn);IDE0051;IDE0060</NoWarn>
   </PropertyGroup>
 
@@ -43,11 +40,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- The Tasks project targets netstandard2.0, so it cannot reference Roslyn's net10.0
-         Microsoft.NET.ProjectData assembly. Source-link only the writer-side donor-index
-         contract and repository discovery; reader selection and Git process code remain
-         in Microsoft.NET.ProjectData. Remove these links and reference that assembly
-         directly when the target frameworks become compatible. -->
+    <!-- Link the parts of Microsoft.NET.ProjectData that we are using; we could switch this over to consuming the
+         library directly. -->
     <Compile Include="..\Microsoft.NET.ProjectData\UserFolderCachePath.cs" Link="Shared\UserFolderCachePath.cs" />
     <Compile Include="..\Microsoft.NET.ProjectData\Donor\ProjectDataDonorConfiguration.cs" Link="Shared\ProjectDataDonorConfiguration.cs" />
     <Compile Include="..\Microsoft.NET.ProjectData\Donor\ProjectDataDonorIndex.cs" Link="Shared\ProjectDataDonorIndex.cs" />

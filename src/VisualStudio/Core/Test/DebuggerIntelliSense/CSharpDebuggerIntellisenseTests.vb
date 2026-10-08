@@ -739,13 +739,16 @@ $$</Document>
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("args", state.GetCurrentViewLineText())
                 Await state.AssertCompletionSession()
-                Assert.True(state.HasSuggestedItem())
+                Assert.False(state.HasSuggestedItem())
+                Assert.True(state.IsSoftSelected())
                 state.SendToggleCompletionMode()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.HasSuggestedItem())
+                Assert.True(state.HasSuggestedItem())
+                Assert.True(state.IsSoftSelected())
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.HasSuggestedItem())
+                Assert.True(state.HasSuggestedItem())
+                Assert.True(state.IsSoftSelected())
             End Using
         End Function
 
@@ -768,13 +771,16 @@ $$</Document>
                 Await state.WaitForAsynchronousOperationsAsync()
                 Assert.Equal("args", state.GetCurrentViewLineText())
                 Await state.AssertCompletionSession()
-                Assert.True(state.HasSuggestedItem())
+                Assert.False(state.HasSuggestedItem())
+                Assert.True(state.IsSoftSelected())
                 state.SendToggleCompletionMode()
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.HasSuggestedItem())
+                Assert.True(state.HasSuggestedItem())
+                Assert.True(state.IsSoftSelected())
                 state.SendTypeChars(".")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Assert.False(state.HasSuggestedItem())
+                Assert.True(state.HasSuggestedItem())
+                Assert.True(state.IsSoftSelected())
             End Using
         End Function
 

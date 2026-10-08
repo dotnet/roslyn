@@ -26,14 +26,14 @@ jobs:
   steps:
     - template: checkout-unix-task.yml
 
-    - script: ./eng/build.sh --ci --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
+    - script: ./eng/build.sh --ci --warnAsError --restore --prepareMachine --binaryLog --configuration ${{ parameters.configuration }}
       displayName: Restore
 
     - template: cache-roslyn-outputs.yml
       parameters:
         configuration: ${{ parameters.configuration }}
 
-    - script: ./eng/build.sh --ci --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }}
+    - script: ./eng/build.sh --ci --warnAsError --build --prepareMachine --binaryLog --skipDocumentation --configuration ${{ parameters.configuration }}
       displayName: Build
 
     - template: post-cache-roslyn-outputs.yml

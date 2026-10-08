@@ -340,7 +340,7 @@ internal sealed class CSharpSolutionExplorerSymbolTreeItemProvider()
                 documentId,
                 nameBuilder.ToStringAndClear(),
                 glyph,
-                hasItems: false,
+                hasItems: HasDescendentLocalFunctions(eventDeclaration),
                 eventDeclaration,
                 eventDeclaration.Identifier));
         }

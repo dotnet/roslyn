@@ -61,7 +61,7 @@ extends:
     stages:
 
     - stage: build
-      displayName: Build and Test
+      displayName: Build
 
       jobs:
       - job: PRValidationBuild
@@ -248,7 +248,6 @@ extends:
                        -binaryLog
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(OriginalBuildNumber)
-                       -officialSkipTests $(SkipTests)
                        -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
@@ -260,6 +259,7 @@ extends:
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
                        /p:PreReleaseVersionLabel=pr-validation
+                       /p:DotNetBuildTests=false
           condition: succeeded()
 
         - template: /eng/common/templates-official/steps/generate-sbom.yml@self
@@ -270,15 +270,6 @@ extends:
             filePath: 'eng\publish-assets.ps1'
             arguments: '-configuration $(BuildConfiguration) -prValidation'
           condition: succeeded()
-
-        - task: PublishTestResults@2
-          displayName: Publish xUnit Test Results
-          inputs:
-            testRunner: XUnit
-            testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
-            mergeTestResults: true
-            testRunTitle: 'Unit Tests'
-          condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
 
         # We need to reset the BuildNumber before we pass off to Arcade
         - powershell: Write-Host "##vso[build.updatebuildnumber]$(OriginalBuildNumber)"

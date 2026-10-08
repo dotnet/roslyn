@@ -117,6 +117,75 @@ public class ProjectDataMergerTests
 	}
 
 	[Fact]
+	public void Merge_PrefersExpectedSliceOverFallbackForSameTargetFramework()
+	{
+		string dir = MakeTempDir();
+		try
+		{
+			string preferred = Path.Combine(CreateSliceDir(dir, "net8.0"), "Sample.csproj.slice");
+			string discoveredDirectory = Path.Combine(dir, "obj", "Debug", "net8.0", "win-x64");
+			Directory.CreateDirectory(discoveredDirectory);
+			string discovered = Path.Combine(discoveredDirectory, "Sample.csproj.slice");
+			File.WriteAllText(preferred, SliceNet8 + "[commandLineArguments]\n/preferred\n");
+			File.WriteAllText(discovered, SliceNet8 + "[commandLineArguments]\n/discovered\n");
+			string outPath = Path.Combine(dir, "out.lscache");
+
+			int count = ProjectDataMerger.Merge(outPath, [preferred], [discovered], "net8.0");
+
+			Assert.Equal(1, count);
+			string content = File.ReadAllText(outPath);
+			Assert.Contains("/preferred", content);
+			Assert.DoesNotContain("/discovered", content);
+		}
+		finally { Directory.Delete(dir, recursive: true); }
+	}
+
+	[Fact]
+	public void Merge_UsesSingleFallbackSliceWhenExpectedSliceIsMissing()
+	{
+		string dir = MakeTempDir();
+		try
+		{
+			string discoveredDirectory = Path.Combine(dir, "obj", "Debug", "net8.0", "win-x64");
+			Directory.CreateDirectory(discoveredDirectory);
+			string discovered = Path.Combine(discoveredDirectory, "Sample.csproj.slice");
+			File.WriteAllText(discovered, SliceNet8 + "[commandLineArguments]\n/rid-fallback\n");
+			string outPath = Path.Combine(dir, "out.lscache");
+
+			int count = ProjectDataMerger.Merge(outPath, [], [discovered], "net8.0");
+
+			Assert.Equal(1, count);
+			Assert.Contains("/rid-fallback", File.ReadAllText(outPath));
+		}
+		finally { Directory.Delete(dir, recursive: true); }
+	}
+
+	[Fact]
+	public void Merge_RejectsAmbiguousFallbackSlicesForSameTargetFramework()
+	{
+		string dir = MakeTempDir();
+		try
+		{
+			string firstDirectory = Path.Combine(dir, "obj", "Debug", "net8.0", "win-x64");
+			string secondDirectory = Path.Combine(dir, "obj", "Debug", "net8.0", "win-arm64");
+			Directory.CreateDirectory(firstDirectory);
+			Directory.CreateDirectory(secondDirectory);
+			string first = Path.Combine(firstDirectory, "Sample.csproj.slice");
+			string second = Path.Combine(secondDirectory, "Sample.csproj.slice");
+			File.WriteAllText(first, SliceNet8);
+			File.WriteAllText(second, SliceNet8);
+
+			InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+				() => ProjectDataMerger.Merge(Path.Combine(dir, "out.lscache"), [], [first, second], "net8.0"));
+
+			Assert.Contains("Multiple fallback ProjectData slices", exception.Message);
+			Assert.Contains("win-x64", exception.Message);
+			Assert.Contains("win-arm64", exception.Message);
+		}
+		finally { Directory.Delete(dir, recursive: true); }
+	}
+
+	[Fact]
 	public void Merge_PreserveExistingSlices_KeepsUnevaluatedSliceFromOutput()
 	{
 		string dir = MakeTempDir();

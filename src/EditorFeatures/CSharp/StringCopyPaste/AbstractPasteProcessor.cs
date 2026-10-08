@@ -87,7 +87,15 @@ internal abstract class AbstractPasteProcessor
     /// The set of <see cref="ITextChange"/>'s that produced <see cref="SnapshotAfterPaste"/> from <see
     /// cref="SnapshotBeforePaste"/>.
     /// </summary>
-    protected INormalizedTextChangeCollection Changes => SnapshotBeforePaste.Version.Changes;
+    protected INormalizedTextChangeCollection Changes
+    {
+        get
+        {
+            var changes = SnapshotBeforePaste.Version.Changes;
+            Contract.ThrowIfNull(changes, "SnapshotBeforePaste must have changes because SnapshotAfterPaste is its successor.");
+            return changes;
+        }
+    }
 
     protected AbstractPasteProcessor(
         string newLine,

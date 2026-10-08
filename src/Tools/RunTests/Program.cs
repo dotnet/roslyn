@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 
 namespace RunTests
 {
@@ -28,10 +27,10 @@ namespace RunTests
         {
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
-            var options = Options.Parse(args);
+            var options = Options.Parse(args, out var helpShown);
             if (options == null)
             {
-                return ExitFailure;
+                return helpShown ? ExitSuccess : ExitFailure;
             }
 
             ConsoleUtil.WriteLine($"Running '{options.DotnetFilePath} --version'..");
@@ -70,7 +69,7 @@ namespace RunTests
                 int result;
                 if (options.Timeout is { } timeout)
                 {
-                    result = await RunCoreAsync(options, cts.Token);
+                    result = await RunCoreAsync(options, timeout, cts.Token);
                 }
                 else
                 {
@@ -94,11 +93,11 @@ namespace RunTests
             }
         }
 
-        private static async Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunCoreAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var runTask = RunAsync(options, cts.Token);
-            var timeoutTask = Task.Delay(options.Timeout.Value, cancellationToken);
+            var timeoutTask = Task.Delay(timeout, cancellationToken);
 
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
@@ -137,8 +136,6 @@ namespace RunTests
                 return ExitFailure;
             }
 
-            ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
-
             var result = await testRunner.RunAllAsync(assemblyFilePaths, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
@@ -146,7 +143,6 @@ namespace RunTests
 
             LogProcessResultDetails(result.ProcessResults);
             WriteLogFile(options);
-            DisplayResults(options.Display, result.TestResults);
 
             if (!result.Succeeded)
             {
@@ -234,7 +230,7 @@ namespace RunTests
                     var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
                     ConsoleUtil.Write($"Dumping {name} {proc.Id} to {dumpFilePath} ... ");
 
-                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath))
+                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath, Logger.Log))
                     {
                         ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
                     }
@@ -341,14 +337,16 @@ namespace RunTests
                 return false;
             }
 
-            static bool IsMatch(TestRuntime testRuntime, string dirName) =>
-                testRuntime switch
-                {
-                    TestRuntime.Both => IsCompatibleWithCurrentPlatform(dirName),
-                    TestRuntime.Core => Regex.IsMatch(dirName, @"^net\d+\.") && IsCompatibleWithCurrentPlatform(dirName),
-                    TestRuntime.Framework => dirName is "net472",
-                    _ => throw new InvalidOperationException($"Unexpected {nameof(TestRuntime)} value: {testRuntime}"),
-                };
+            static bool IsMatch(TestRuntime testRuntime, string dirName)
+            {
+                if (dirName is "net472")
+                    return (testRuntime & TestRuntime.Framework) != 0;
+
+                if (Regex.IsMatch(dirName, @"^net\d+\."))
+                    return (testRuntime & TestRuntime.Core) != 0 && IsCompatibleWithCurrentPlatform(dirName);
+
+                return false;
+            }
 
             static bool IsCompatibleWithCurrentPlatform(string tfmDirName)
             {
@@ -363,34 +361,6 @@ namespace RunTests
                 }
 
                 return true;
-            }
-        }
-
-        private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
-        {
-            foreach (var cur in testResults)
-            {
-                var open = false;
-                switch (display)
-                {
-                    case Display.All:
-                        open = true;
-                        break;
-                    case Display.None:
-                        open = false;
-                        break;
-                    case Display.Succeeded:
-                        open = cur.Succeeded;
-                        break;
-                    case Display.Failed:
-                        open = !cur.Succeeded;
-                        break;
-                }
-
-                if (open)
-                {
-                    ProcessRunner.OpenFile(cur.ResultsDisplayFilePath);
-                }
             }
         }
 

@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -18,6 +19,7 @@ using Microsoft.CodeAnalysis.Threading;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using RoslynTelemetry = Microsoft.CodeAnalysis.Internal.Log.RoslynTelemetry;
 using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -39,12 +41,14 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     protected readonly LanguageServerWorkspaceFactory _workspaceFactory;
     private readonly ProjectTargetFrameworkManager _projectTargetFrameworkManager;
+    private readonly ProjectCapabilityManager _projectCapabilityManager;
     private readonly IFileChangeWatcher _fileChangeWatcher;
     private readonly IClientLanguageServerManager _clientLanguageServerManager;
     private readonly WorkDoneProgressManager _workDoneProgressManager;
     protected readonly IGlobalOptionService GlobalOptionService;
     protected readonly ILoggerFactory LoggerFactory;
     protected readonly IAsynchronousOperationListener Listener;
+    protected readonly RoslynTelemetry Telemetry;
     private readonly ILogger _logger;
     private readonly ProjectLoadTelemetryReporter _projectLoadTelemetryReporter;
     private readonly IBinLogPathProvider _binLogPathProvider;
@@ -99,12 +103,14 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     {
         _workspaceFactory = lspServices.GetRequiredService<LanguageServerWorkspaceFactory>();
         _projectTargetFrameworkManager = lspServices.GetRequiredService<ProjectTargetFrameworkManager>();
+        _projectCapabilityManager = lspServices.GetRequiredService<ProjectCapabilityManager>();
         _fileChangeWatcher = lspServices.GetRequiredService<IFileChangeWatcher>();
         _clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
         _workDoneProgressManager = lspServices.GetRequiredService<WorkDoneProgressManager>();
         GlobalOptionService = globalOptionService;
         LoggerFactory = loggerFactory;
         Listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
+        Telemetry = RoslynTelemetry.Current;
         _logger = loggerFactory.CreateLogger(this.GetTypeDisplayName());
         _projectLoadTelemetryReporter = lspServices.GetRequiredService<ProjectLoadTelemetryReporter>();
         _binLogPathProvider = binLogPathProvider;
@@ -156,6 +162,10 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     private async ValueTask ReloadProjectsAsync(AsyncPriorityWorkQueue<string>.WorkToProcess projectsToLoadOrReload, CancellationToken cancellationToken)
     {
+        // A batch runs on the context of whichever AddWork caller started it, which may be a file-change
+        // notification or other non-request caller that carries no ambient instance of its own.
+        using var _ = RoslynTelemetry.SetCurrent(Telemetry);
+
         // TODO: support configuration switching
         var stopwatch = Stopwatch.StartNew();
         var projectsThatNeedRestore = new ConcurrentBag<string>();
@@ -287,6 +297,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                 hasAllInformation: remoteProjectLoadResult.HasAllInformation,
                 projectFactory,
                 _projectTargetFrameworkManager,
+                _projectCapabilityManager,
                 _workspaceFactory,
                 _logger,
                 cancellationToken);
@@ -419,6 +430,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                     hasAllInformation: true,
                     projectFactory,
                     _projectTargetFrameworkManager,
+                    _projectCapabilityManager,
                     _workspaceFactory,
                     _logger,
                     CancellationToken.None,
@@ -450,7 +462,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)ProjectReloadPriority.Medium);
     }
 
-    protected static async Task WaitForProjectLoadsAsync(
+    internal static async Task WaitForProjectLoadsAsync(
         ImmutableArray<LoadedProject> loadedProjects,
         WorkDoneProgressTracker? progressTracker = null,
         CancellationToken cancellationToken = default)

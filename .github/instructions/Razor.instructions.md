@@ -39,12 +39,22 @@ their original sub-tree layout
 - **Razor engine concurrency**: Hosts can process multiple documents concurrently through one
   `RazorProjectEngine`. Phase and pass instances are shared, so keep per-document state in locals
   or an execution context rather than mutable instance fields.
+- **Source-generator/project-engine boundary**: Source generators build incremental inputs and drive
+  the project engine by attaching project-wide inputs to `RazorCodeDocument`; compiler phases and
+  passes consume those document inputs rather than source-generator-specific state. Direct project-
+  engine tests that depend on those inputs must attach them explicitly instead of changing production
+  phases to preserve a test-only execution path.
 - **Razor documents in Roslyn**: Stored as additional documents. Resolve via
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
-- **Razor documents with virtual URIs**: Remote Razor document classification preserves the full
-  additional-document `FilePath` for identity. For parseable absolute URI file paths, inspect the
-  URI's local path when checking the `.razor` or `.cshtml` extension; do not strip the query from
-  the stored file path.
+- **Razor documents with virtual URIs**: Preserve the full additional-document `FilePath` and
+  source-generator `RelativePhysicalPath` for document and generated-source identity.
+  Use `FileUtilities.AdjustToUsableFilePath` for file-kind classification, project-item paths, and
+  source-document `RelativePath`; URI queries and fragments aren't part of logical filenames.
+- **Generated C# filenames**: Use `CodeWriterExtensions.WriteFilePath` for `#line` and checksum
+  directive filenames. URI quotes and line breaks need percent encoding, not C# string escaping;
+  preserve the rest of the URI and its forward slashes without URI parsing.
+  Use `WriteVerbatimStringLiteral` for verbatim metadata literals so
+  embedded quotes are escaped without changing their values.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
 - **Formatting options across OOP**: Cohost endpoints must resolve
@@ -59,8 +69,8 @@ their original sub-tree layout
   a well-known name (`EventHandlers`, `AssetPathAttributes`). A `TagHelperProducer` under
   `Language/TagHelpers/Producers/` keys off that type name (`IsCandidateType`) and emits carrier
   `TagHelperDescriptor`s whose descriptor-level metadata carries the parsed values. A later
-  optimization pass reads the full discovered set via `ITagHelperFeature.GetTagHelpers()` (not the
-  document's in-scope tag helpers, which are namespace-scoped) and filters by metadata kind.
+  optimization pass reads the full discovered set from `RazorCodeDocument.GetRequiredTagHelpers()`.
+  Do not use the document's in-scope tag helpers, which are namespace-scoped.
 - **Visual Studio options**: Register Razor Advanced settings in
   `Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json`, localize
   their UI text in `VSPackage.resx`, read them through `OptionsStorage`, and add remotely consumed

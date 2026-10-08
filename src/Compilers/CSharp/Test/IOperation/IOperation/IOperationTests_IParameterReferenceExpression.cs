@@ -485,9 +485,9 @@ IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '*x')
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32*) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (4,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     public unsafe int M(int *x)
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(4, 23)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(4, 12)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -520,9 +520,9 @@ IVariableDeclaratorOperation (Symbol: System.Int32* p) (OperationKind.VariableDe
             IParameterReferenceOperation: array (OperationKind.ParameterReference, Type: System.Int32[]) (Syntax: 'array')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     public unsafe void M(int[] array)
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 12)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -735,9 +735,9 @@ IOperation:  (OperationKind.None, Type: System.Int32*) (Syntax: 'stackalloc int[
       IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,12): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     public unsafe void M(int x)
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 12)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

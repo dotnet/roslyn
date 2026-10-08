@@ -48,7 +48,7 @@ internal sealed partial class RemoteExtensionMessageHandlerService(
             solutionChecksum,
             async solution =>
             {
-                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var document = await solution.GetRequiredTextDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
                 return await GetExtensionService().HandleExtensionDocumentMessageAsync(document, messageName, jsonMessage, cancellationToken).ConfigureAwait(false);
             },
             cancellationToken);

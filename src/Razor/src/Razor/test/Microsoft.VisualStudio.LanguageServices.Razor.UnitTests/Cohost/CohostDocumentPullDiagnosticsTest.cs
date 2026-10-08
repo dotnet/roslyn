@@ -2,20 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Razor.Cohost;
-using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.CodeAnalysis.Razor.Protocol;
-using Microsoft.CodeAnalysis.Razor.Remote;
-using Microsoft.CodeAnalysis.Razor.Telemetry;
 using Microsoft.CodeAnalysis.Remote.Razor.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Test.Utilities;
 using Xunit;
 using WorkItemAttribute = Roslyn.Test.Utilities.WorkItemAttribute;
 
@@ -40,7 +32,7 @@ public partial class CohostDocumentPullDiagnosticsTest
             }
             """);
 
-        var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, (VSInternalDiagnosticReport[]?)null)]);
+        var requestInvoker = new TestHtmlRequestInvoker();
         var result = await MakeDiagnosticsRequestAsync(document, taskListRequest: false, requestInvoker, IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, LoggerFactory, DisposalToken);
 
         Assert.NotNull(result);
@@ -55,6 +47,19 @@ public partial class CohostDocumentPullDiagnosticsTest
             tags,
             tag => Assert.Equal(VSDiagnosticTags.HiddenInEditor, tag),
             tag => Assert.Equal(DiagnosticTag.Unnecessary, tag));
+    }
+
+    [Fact]
+    public async Task DiagnosticMetadata_InVS()
+    {
+        var result = await VerifyDiagnosticsAsync("""
+            @{|CS0103:CallMeMaybe|}()
+            """);
+
+        var diagnostic = Assert.IsType<VSDiagnostic>(Assert.Single(result));
+        Assert.NotNull(diagnostic.Identifier);
+        Assert.NotNull(diagnostic.Projects);
+        Assert.NotNull(Assert.Single(diagnostic.Projects).ProjectIdentifier);
     }
 
     [Fact]
@@ -90,9 +95,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-           htmlResponse: [new VSInternalDiagnosticReport
+           htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new VSDiagnostic
                     {
@@ -137,9 +142,9 @@ public partial class CohostDocumentPullDiagnosticsTest
 
         return VerifyDiagnosticsAsync(
             input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -162,9 +167,9 @@ public partial class CohostDocumentPullDiagnosticsTest
 
         return VerifyDiagnosticsAsync(
             input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -188,9 +193,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -224,9 +229,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -262,9 +267,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -296,9 +301,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -330,9 +335,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -373,9 +378,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -416,9 +421,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -459,9 +464,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -494,9 +499,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -524,9 +529,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -573,9 +578,9 @@ public partial class CohostDocumentPullDiagnosticsTest
 
         return VerifyDiagnosticsAsync(
             input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -629,9 +634,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -652,9 +657,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -686,9 +691,9 @@ public partial class CohostDocumentPullDiagnosticsTest
             """;
 
         return VerifyDiagnosticsAsync(input,
-            htmlResponse: [new VSInternalDiagnosticReport
+            htmlResponse: [new FullDocumentDiagnosticReport
             {
-                Diagnostics =
+                Items =
                 [
                     new LspDiagnostic
                     {
@@ -752,75 +757,4 @@ public partial class CohostDocumentPullDiagnosticsTest
             </div>
             """,
             taskListRequest: true);
-
-    private async Task VerifyDiagnosticsAsync(
-        TestCode input,
-        VSInternalDiagnosticReport[]? htmlResponse = null,
-        RazorFileKind? fileKind = null,
-        bool taskListRequest = false,
-        bool miscellaneousFile = false,
-        (string fileName, string contents)[]? additionalFiles = null)
-    {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, miscellaneousFile: miscellaneousFile, additionalFiles: additionalFiles);
-        var inputText = await document.GetTextAsync(DisposalToken);
-
-        var requestInvoker = new TestHtmlRequestInvoker([(VSInternalMethods.DocumentPullDiagnosticName, htmlResponse)]);
-
-        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { TaskListDescriptors = ["TODO"] });
-        var result = await MakeDiagnosticsRequestAsync(document, taskListRequest, requestInvoker, IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, LoggerFactory, DisposalToken);
-
-        Assert.NotNull(result);
-
-        var markers = result.SelectMany(d =>
-            new[] {
-                (index: inputText.GetTextSpan(d.Range).Start, text: $"{{|{d.Code!.Value.Second}:"),
-                (index: inputText.GetTextSpan(d.Range).End, text:"|}")
-            });
-
-        var testOutput = input.Text;
-        // Ordering by text last means start tags get sorted before end tags, for zero width ranges
-        foreach (var (index, text) in markers.OrderByDescending(i => i.index).ThenByDescending(i => i.text))
-        {
-            testOutput = testOutput.Insert(index, text);
-        }
-
-        AssertEx.EqualOrDiff(input.OriginalInput, testOutput);
-
-        if (!taskListRequest)
-        {
-            Assert.NotNull(result);
-            Assert.All(result,
-                d =>
-                {
-                    var vsDiagnostic = Assert.IsType<VSDiagnostic>(d);
-                    Assert.NotNull(vsDiagnostic.Identifier);
-                    Assert.NotNull(vsDiagnostic.Projects);
-                    var project = Assert.Single(vsDiagnostic.Projects);
-                    Assert.NotNull(project.ProjectIdentifier);
-                    // We always report the same project info for all diagnostics
-                    Assert.Same(project, ((VSDiagnostic)result.First()).Projects.Single());
-                });
-        }
-    }
-
-    internal static async Task<LspDiagnostic[]?> MakeDiagnosticsRequestAsync(
-        TextDocument document,
-        bool taskListRequest,
-        TestHtmlRequestInvoker requestInvoker,
-        IIncompatibleProjectService incompatibleProjectService,
-        IRemoteServiceInvoker remoteServiceInvoker,
-        IClientCapabilitiesService clientCapabilitiesService,
-        ILoggerFactory loggerFactory,
-        CancellationToken cancellationToken)
-    {
-        var endpoint = new CohostDocumentPullDiagnosticsEndpoint(incompatibleProjectService, remoteServiceInvoker, requestInvoker, clientCapabilitiesService, NoOpTelemetryReporter.Instance, loggerFactory, VoidSessionTracker.Instance);
-
-        var result = taskListRequest
-            ? await endpoint.GetTestAccessor().HandleTaskListItemRequestAsync(document, cancellationToken)
-            : [new()
-                {
-                    Diagnostics = await endpoint.GetTestAccessor().HandleRequestAsync(document, cancellationToken)
-                }];
-        return result.FirstOrDefault()?.Diagnostics;
-    }
 }

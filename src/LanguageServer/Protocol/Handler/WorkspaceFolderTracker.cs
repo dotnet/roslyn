@@ -4,19 +4,38 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Composition;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-internal sealed class WorkspaceFolderTracker : IWorkspaceFolderTracker
+[ExportCSharpVisualBasicLspServiceFactory(typeof(WorkspaceFolderTracker)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class WorkspaceFolderTrackerFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new WorkspaceFolderTracker();
+}
+
+internal sealed class WorkspaceFolderTracker : IWorkspaceFolderTracker, IOnInitialize
 {
     // The gate makes updates atomic; volatile allows lock-free reads of the latest immutable snapshot.
     private readonly object _gate = new();
     private volatile ImmutableHashSet<string> _workspaceFolderPaths = ImmutableHashSet.Create(PathUtilities.Comparer);
 
     public event EventHandler? WorkspaceFoldersChanged;
+
+    public Task OnInitializeAsync(InitializeParams initializeParams, RequestContext context, CancellationToken cancellationToken)
+    {
+        Update(initializeParams.WorkspaceFolders, removedFolders: null);
+        return Task.CompletedTask;
+    }
 
     public void Update(WorkspaceFolder[]? addedFolders, WorkspaceFolder[]? removedFolders)
     {

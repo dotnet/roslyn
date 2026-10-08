@@ -639,7 +639,7 @@ internal static partial class ProtocolConversions
 
     public static LSP.CodeDescription? HelpLinkToCodeDescription(string? helpLinkUri)
     {
-        return (helpLinkUri != null) ? new LSP.CodeDescription { Href = new DocumentUri(helpLinkUri) } : null;
+        return !string.IsNullOrEmpty(helpLinkUri) ? new LSP.CodeDescription { Href = new DocumentUri(helpLinkUri) } : null;
     }
 
     public static LSP.SymbolKind NavigateToKindToSymbolKind(string kind)

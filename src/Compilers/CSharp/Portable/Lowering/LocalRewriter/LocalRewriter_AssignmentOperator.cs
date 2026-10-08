@@ -246,6 +246,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DiscardExpression:
                     {
+                        if (isRef && !used)
+                        {
+                            Debug.Assert(rewrittenRight.Type is not null);
+                            return new BoundRefAccess(syntax, RefKindExtensions.StrictIn, rewrittenRight, rewrittenRight.Type);
+                        }
+
                         return rewrittenRight;
                     }
 
@@ -288,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    CanChangeValueBetweenReads(rewrittenReceiver, localsMayBeAssignedOrCaptured: true, structThisCanChangeValueBetweenReads: true) &&
                    IsExtensionBlockMemberWithByValPossiblyStructReceiver(symbol) &&
                    CodeGen.CodeGenerator.HasHome(rewrittenReceiver,
-                                       CodeGen.CodeGenerator.AddressKind.ReadOnlyStrict,
+                                       CodeGen.CodeGenerator.AddressKind.ReadOnly,
                                        _factory.CurrentFunction,
                                        peVerifyCompatEnabled: false,
                                        stackLocalsOpt: null);

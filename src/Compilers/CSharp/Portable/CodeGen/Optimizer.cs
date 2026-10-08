@@ -1805,6 +1805,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return node.Update(visitedOperand, node.IsManaged, node.Type);
         }
 
+        public override BoundNode VisitRefAccess(BoundRefAccess node)
+        {
+            BoundExpression visitedOperand = this.VisitExpression(node.Expression, ExprContext.Address);
+            return node.Update(node.RefKind, visitedOperand, node.Type);
+        }
+
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             BoundExpression expressionOpt = (BoundExpression)this.Visit(node.ExpressionOpt);
@@ -2247,14 +2253,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (isLast)
             {
-                if (node.IsRef &&
-                    !node.WasCompilerGenerated &&
-                    left.LocalSymbol.RefKind == RefKind.Ref &&
-                    right is BoundArrayAccess arrayAccess &&
-                    // Value types do not need runtime element type checks.
-                    !arrayAccess.Type.IsValueType)
+                if (node.IsRef)
                 {
-                    return new BoundRefArrayAccess(arrayAccess.Syntax, arrayAccess, right.Type);
+                    return new BoundRefAccess(node.Syntax, left.LocalSymbol.RefKind, right, right.Type);
                 }
 
                 // assigned local is not used later => just emit the Right

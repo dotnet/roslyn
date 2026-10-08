@@ -280,6 +280,10 @@ internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer()
             if (current.Parent is LambdaExpressionSyntax lambda && current == lambda.Body)
                 return current;
 
+            // The expression body of a local function will be the new scope of the out var.
+            if (current.Parent is LocalFunctionStatementSyntax localFunction && current == localFunction.ExpressionBody)
+                return localFunction.ExpressionBody.Expression;
+
             // The arm of a switch expression is its own isolated scope.
             if (current.Parent is SwitchExpressionArmSyntax switchArm && current == switchArm.Expression)
                 return current;
