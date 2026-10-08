@@ -31,6 +31,7 @@
       "src\\Razor\\src\\Compiler\\tools\\RazorSyntaxGenerator\\RazorSyntaxGenerator.csproj",
       "src\\Razor\\src\\Razor\\benchmarks\\Microsoft.AspNetCore.Razor.Microbenchmarks\\Microsoft.AspNetCore.Razor.Microbenchmarks.csproj",
       "src\\Razor\\src\\Razor\\src\\Microsoft.CodeAnalysis.Razor.CohostingShared\\Microsoft.CodeAnalysis.Razor.CohostingShared.shproj",
+      "src\\Razor\\src\\Razor\\src\\Microsoft.CodeAnalysis.Razor.DotNetFormat\\Microsoft.CodeAnalysis.Razor.DotNetFormat.csproj",
       "src\\Razor\\src\\Razor\\src\\Microsoft.CodeAnalysis.Razor.Formatting\\Microsoft.CodeAnalysis.Razor.Formatting.shproj",
       "src\\Razor\\src\\Razor\\src\\Microsoft.CodeAnalysis.Razor.Workspaces.Shared\\Microsoft.CodeAnalysis.Razor.Workspaces.Shared.shproj",
       "src\\Razor\\src\\Razor\\src\\Microsoft.CodeAnalysis.Razor.Workspaces\\Microsoft.CodeAnalysis.Razor.Workspaces.csproj",
