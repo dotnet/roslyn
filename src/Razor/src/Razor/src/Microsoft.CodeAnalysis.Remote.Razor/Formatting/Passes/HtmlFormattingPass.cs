@@ -19,11 +19,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
-internal sealed partial class HtmlFormattingPass(
-    IDocumentMappingService documentMappingService,
-    ILoggerFactory loggerFactory) : IFormattingPass
+internal sealed partial class HtmlFormattingPass(ILoggerFactory loggerFactory) : IFormattingPass
 {
-    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlFormattingPass>();
 
     public async Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
@@ -169,7 +166,7 @@ internal sealed partial class HtmlFormattingPass(
             // since we're at the point where we know for sure a newline was added, and there shouldn't
             // be too many of those scenarios, its worth being extra safe, because the pre-filtering is
             // at the mercy of the exact shape of the edits the Html formatter made.
-            if (_documentMappingService.IsInStringLiteral(codeDocument, csharpSyntaxRoot, declSyntaxRoot, originalPosition, multilineOnly: false))
+            if (DocumentMappingHelper.IsInStringLiteral(codeDocument, csharpSyntaxRoot, declSyntaxRoot, originalPosition, multilineOnly: false))
             {
                 return false;
             }
@@ -182,7 +179,7 @@ internal sealed partial class HtmlFormattingPass(
             using var validChanges = new PooledArrayBuilder<TextChange>();
             foreach (var change in changes)
             {
-                if (_documentMappingService.IsInStringLiteral(codeDocument, csharpSyntaxRoot, declSyntaxRoot, change.Span.Start, multilineOnly: false))
+                if (DocumentMappingHelper.IsInStringLiteral(codeDocument, csharpSyntaxRoot, declSyntaxRoot, change.Span.Start, multilineOnly: false))
                 {
                     continue;
                 }

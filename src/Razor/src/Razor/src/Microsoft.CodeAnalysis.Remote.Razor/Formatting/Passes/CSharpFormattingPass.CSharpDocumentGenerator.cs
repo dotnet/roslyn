@@ -14,10 +14,10 @@ using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor;
-using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 using RazorSyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
@@ -86,13 +86,13 @@ internal partial class CSharpFormattingPass
     /// </remarks>
     private sealed class CSharpDocumentGenerator
     {
-        public static FormattedDocument Generate(RazorCodeDocument codeDocument, SyntaxNode csharpSyntaxRoot, SyntaxNode? declSyntaxRoot, RazorFormattingOptions options, IDocumentMappingService documentMappingService)
+        public static FormattedDocument Generate(RazorCodeDocument codeDocument, SyntaxNode csharpSyntaxRoot, SyntaxNode? declSyntaxRoot, RazorFormattingOptions options)
         {
             using var _1 = StringBuilderPool.GetPooledObject(out var builder);
             using var _2 = ArrayBuilderPool<LineInfo>.GetPooledObject(out var lineInfoBuilder);
             lineInfoBuilder.SetCapacityIfLarger(codeDocument.Source.Text.Lines.Count);
 
-            var generator = new Generator(codeDocument, csharpSyntaxRoot, declSyntaxRoot, options, builder, lineInfoBuilder, documentMappingService);
+            var generator = new Generator(codeDocument, csharpSyntaxRoot, declSyntaxRoot, options, builder, lineInfoBuilder);
 
             generator.Generate();
 
@@ -153,8 +153,7 @@ internal partial class CSharpFormattingPass
             SyntaxNode? declSyntaxRoot,
             RazorFormattingOptions options,
             StringBuilder builder,
-            ImmutableArray<LineInfo>.Builder lineInfoBuilder,
-            IDocumentMappingService documentMappingService) : SyntaxVisitor<LineInfo>
+            ImmutableArray<LineInfo>.Builder lineInfoBuilder) : SyntaxVisitor<LineInfo>
         {
             private const string SyntheticLambdaBodyStart = "() => {";
             private const int SyntheticLambdaSignatureLength = 5;
@@ -169,7 +168,6 @@ internal partial class CSharpFormattingPass
             private readonly CSharpSyntaxFormattingOptions _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
-            private readonly IDocumentMappingService _documentMappingService = documentMappingService;
 
             private TextLine _currentLine;
             private int _currentFirstNonWhitespacePosition;
@@ -248,7 +246,7 @@ internal partial class CSharpFormattingPass
                             }
                         }
                     }
-                    else if (_documentMappingService.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, line.Start, multilineOnly: false))
+                    else if (DocumentMappingHelper.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, line.Start, multilineOnly: false))
                     {
                         // Whitespace in a multiline string is content, so preserve it in the formatting document.
                         _currentLine = line;
@@ -636,7 +634,7 @@ internal partial class CSharpFormattingPass
                 // If we're here, it means this is a "normal" line of C#, so we can just emit it as is. The exception to this is
                 // when we're inside a string literal. We still want to emit it as is, but we need to make sure we tell the formatter
                 // to ignore any existing indentation too.
-                if (_documentMappingService.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, _currentToken.SpanStart, multilineOnly: true))
+                if (DocumentMappingHelper.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, _currentToken.SpanStart, multilineOnly: true))
                 {
                     _builder.AppendLine(_currentLine.ToString());
                     return CreateLineInfo(processIndentation: false, processFormatting: true, checkForNewLines: true);

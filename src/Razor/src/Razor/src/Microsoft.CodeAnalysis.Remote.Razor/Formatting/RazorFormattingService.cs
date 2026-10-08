@@ -53,9 +53,9 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         ];
 
         _documentFormattingPasses = [
-                new HtmlFormattingPass(documentMappingService, loggerFactory),
+                new HtmlFormattingPass(loggerFactory),
                 new RazorFormattingPass(),
-                new CSharpFormattingPass(hostServicesProvider, documentMappingService, loggerFactory),
+                new CSharpFormattingPass(hostServicesProvider, loggerFactory),
             ];
         _formattingLoggerFactory = formattingLoggerFactory;
     }
