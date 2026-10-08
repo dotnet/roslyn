@@ -635,12 +635,13 @@ internal static partial class ISymbolExtensions
 
     /// <summary>
     /// First, remove symbols from the set if they are overridden by other symbols in the set.
-    /// If a symbol is overridden only by symbols outside of the set, then it is not removed. 
+    /// If a symbol is overridden only by symbols outside of the set, then it is not removed.
     /// This is useful for filtering out symbols that cannot be accessed in a given context due
-    /// to the existence of overriding members. Second, remove remaining symbols that are
-    /// unsupported (e.g. pointer types in VB) or not editor browsable based on the EditorBrowsable
-    /// attribute. Finally, keep only remaining symbols which the given inclusionFilter indicates
-    /// should be included.
+    /// to the existence of overriding members. Methods hidden by a method removed because it is
+    /// <see cref="EditorBrowsableState.Never"/> are removed as well, so they do not reappear in
+    /// its place. Second, remove remaining symbols that are unsupported (e.g. pointer types in VB)
+    /// or not editor browsable based on the EditorBrowsable attribute. Finally, keep only remaining
+    /// symbols which the given inclusionFilter indicates should be included.
     /// </summary>
     public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbols<T>(
         this ImmutableArray<T> symbols, bool hideAdvancedMembers, Compilation compilation, Func<T, bool> inclusionFilter) where T : ISymbol
@@ -661,6 +662,43 @@ internal static partial class ISymbolExtensions
         // constructors once and reuse.
         var editorBrowsableInfo = new EditorBrowsableInfo(compilation);
 
+        // When a method is dropped because it is EditorBrowsable(Never), also drop the base
+        // methods it hides. Otherwise those base methods show up in its place.
+        // See https://github.com/dotnet/roslyn/issues/4434#issuecomment-546428317
+        var caseSensitive = compilation.IsCaseSensitive;
+        foreach (var symbol in symbols)
+        {
+            if (symbol is not IMethodSymbol hidingMethod)
+                continue;
+
+            // Reduced extension methods report the static class as their containing type and
+            // IsStatic as false. They do not hide instance methods.
+            if (hidingMethod.IsExtensionMethod)
+                continue;
+
+            // EditorBrowsable(Advanced) is removed only while advanced members are hidden.
+            // That must not also remove the base method.
+            var (isBrowsable, isAdvanced) = hidingMethod.IsEditorBrowsableWithState(
+                hideAdvancedMembers, compilation, editorBrowsableInfo);
+            if (isBrowsable || isAdvanced)
+                continue;
+
+            var containingType = hidingMethod.ContainingType;
+            if (containingType.TypeKind == TypeKind.Interface)
+            {
+                // Interface lookup includes base interfaces and System.Object.
+                foreach (var baseInterface in containingType.AllInterfaces)
+                    AddMethodsHiddenBy(baseInterface, hidingMethod, caseSensitive, overriddenSymbols);
+
+                AddMethodsHiddenBy(compilation.GetSpecialType(SpecialType.System_Object), hidingMethod, caseSensitive, overriddenSymbols);
+            }
+            else
+            {
+                for (var baseType = containingType.BaseType; baseType != null; baseType = baseType.BaseType)
+                    AddMethodsHiddenBy(baseType, hidingMethod, caseSensitive, overriddenSymbols);
+            }
+        }
+
         // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
         // check to see if we're referencing a symbol defined in source.
         var filteredSymbols = symbols.WhereAsArray(static (s, arg) =>
@@ -677,6 +715,23 @@ internal static partial class ISymbolExtensions
             arg: (hideAdvancedMembers, editorBrowsableInfo, overriddenSymbols, inclusionFilter));
 
         return filteredSymbols;
+    }
+
+    private static void AddMethodsHiddenBy(
+        INamedTypeSymbol type,
+        IMethodSymbol hidingMethod,
+        bool caseSensitive,
+        MetadataUnifyingSymbolHashSet hiddenSymbols)
+    {
+        foreach (var member in type.GetMembers(hidingMethod.Name))
+        {
+            if (member is IMethodSymbol baseMethod &&
+                baseMethod.IsStatic == hidingMethod.IsStatic &&
+                SignatureComparer.Instance.HaveSameSignature(hidingMethod, baseMethod, caseSensitive))
+            {
+                hiddenSymbols.Add(baseMethod);
+            }
+        }
     }
 
     public static ImmutableArray<T> FilterToVisibleAndBrowsableSymbolsAndNotUnsafeSymbols<T>(
