@@ -828,19 +828,19 @@ internal sealed partial class ProjectSystemProject
     /// </summary>
     /// <param name="textContainer">The text container that contains this file.</param>
     /// <param name="fullPath">The file path of the document.</param>
+    /// <param name="openDocument">Whether to open the document in the editor if applicable.</param>
     /// <param name="sourceCodeKind">The kind of the source code.</param>
     /// <param name="folders">The names of the logical nested folders the document is contained in.</param>
     /// <param name="designTimeOnly">Whether the document is used only for design time (eg. completion) or also included in a compilation.</param>
     /// <param name="documentServiceProvider">A <see cref="IDocumentServiceProvider"/> associated with this document</param>
-    /// <param name="openDocument">Whether to open the document in the editor if applicable.</param>
     public DocumentId AddVirtualDocument(
         SourceTextContainer textContainer,
         string fullPath,
+        bool openDocument,
         SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
         ImmutableArray<string> folders = default,
         bool designTimeOnly = false,
-        IDocumentServiceProvider? documentServiceProvider = null,
-        bool openDocument = true)
+        IDocumentServiceProvider? documentServiceProvider = null)
     {
         return _sourceFiles.AddVirtualDocument(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, openDocument, documentServiceProvider);
     }

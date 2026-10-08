@@ -163,7 +163,7 @@ internal sealed partial class LoadedProject
                         // When the file doesn't have an absolute path, then we think it doesn't exist on disk.
                         // e.g. it is a virtual document for an unsaved file or similar.
                         // In this case we just put a SourceTextContainer with empty text for it and rely on the LSP's solution forking to ensure it has up to date text.
-                        // LSP will open the document when it decides to (or may have already), so don't attempt to open it again here.
+                        // LSP will open the document when it decides to (or may have already), so don't attempt to open it here.
                         _projectSystemProject.AddVirtualDocument(SourceText.From("").Container, document.FilePath, folders: [.. document.Folders], openDocument: false);
                 },
                 document =>

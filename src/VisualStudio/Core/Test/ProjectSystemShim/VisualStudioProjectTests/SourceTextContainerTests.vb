@@ -22,7 +22,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim textBufferFactory = environment.ExportProvider.GetExportedValue(Of ITextBufferFactoryService)()
                 Dim sourceTextContainer = textBufferFactory.CreateTextBuffer().AsTextContainer()
 
-                Dim documentId = project.AddVirtualDocument(sourceTextContainer, "Z:\Test.cs")
+                Dim documentId = project.AddVirtualDocument(sourceTextContainer, "Z:\Test.cs", openDocument:=True)
 
                 Assert.Single(environment.Workspace.GetOpenDocumentIds())
 

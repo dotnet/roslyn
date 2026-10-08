@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
@@ -33,7 +34,7 @@ internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
     public DocumentId AddSourceTextContainer(SourceTextContainer sourceTextContainer, string fullPath, bool isLspContainedDocument = false)
     {
         var documentServiceProvider = isLspContainedDocument ? LspContainedDocumentServiceProvider.Instance : null;
-        return Project.AddVirtualDocument(sourceTextContainer, fullPath, SourceCodeKind.Regular, documentServiceProvider: documentServiceProvider);
+        return Project.AddVirtualDocument(sourceTextContainer, fullPath, openDocument: true, SourceCodeKind.Regular, documentServiceProvider: documentServiceProvider);
     }
 
     public void RemoveSourceFile(string fullPath)
@@ -42,7 +43,9 @@ internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
     [Obsolete("Use RemoveVirtualDocument with the document ID instead.")]
     public void RemoveSourceTextContainer(SourceTextContainer sourceTextContainer)
     {
-        if (_workspace.GetDocumentIdInCurrentContext(sourceTextContainer) is DocumentId documentId)
+        // The container can be shared by documents in multiple projects, so pick the one in this project.
+        var documentId = _workspace.GetRelatedDocumentIds(sourceTextContainer).FirstOrDefault(id => id.ProjectId == Project.Id);
+        if (documentId != null)
             Project.RemoveVirtualDocument(documentId);
     }
 

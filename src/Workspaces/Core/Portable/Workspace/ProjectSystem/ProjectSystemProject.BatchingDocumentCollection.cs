@@ -79,6 +79,7 @@ internal sealed partial class ProjectSystemProject
 
         public DocumentId AddFile(string fullPath, SourceCodeKind sourceCodeKind, ImmutableArray<string> folders)
         {
+            // Only validate file paths for non-virtual files - historical callers may pass an empty string as a file path for a virtual document.
             if (string.IsNullOrEmpty(fullPath))
             {
                 throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
@@ -139,8 +140,8 @@ internal sealed partial class ProjectSystemProject
                     {
                         _project._projectSystemProjectFactory.AddDocumentToDocumentsNotFromFiles_NoLock(documentInfo.Id);
                         _documentAddAction(w, documentInfo);
-                        if (ShouldOpenVirtualDocument(documentInfo, out var container))
-                            w.OnDocumentOpened(documentInfo.Id, container);
+                        if (documentInfo.TextLoader is VirtualDocumentSourceTextLoader virtualDocument && virtualDocument.OpenDocument)
+                            w.OnDocumentOpened(documentInfo.Id, virtualDocument.TextContainer);
                     });
                 }
                 else
@@ -409,12 +410,14 @@ internal sealed partial class ProjectSystemProject
                     Contract.ThrowIfNull(documentInfo.FilePath, "We shouldn't be adding documents without file paths.");
 
                     // Virtual documents don't need the host to check whether the file is already open.
-                    if (documentInfo.TextLoader is not VirtualDocumentSourceTextLoader)
-                        documentFileNamesAdded.Add(documentInfo.FilePath);
-
-                    if (ShouldOpenVirtualDocument(documentInfo, out var textContainer))
+                    if (documentInfo.TextLoader is VirtualDocumentSourceTextLoader virtualDocument)
                     {
-                        documentsToOpen.Add((documentInfo.Id, textContainer));
+                        if (virtualDocument.OpenDocument)
+                            documentsToOpen.Add((documentInfo.Id, virtualDocument.TextContainer));
+                    }
+                    else
+                    {
+                        documentFileNamesAdded.Add(documentInfo.FilePath);
                     }
                 }
 
@@ -440,18 +443,6 @@ internal sealed partial class ProjectSystemProject
             ClearAndZeroCapacity(_documentsAddedInBatch);
             ClearAndZeroCapacity(_documentsRemovedInBatch);
             _orderedDocumentsInBatch = null;
-        }
-
-        private static bool ShouldOpenVirtualDocument(DocumentInfo documentInfo, [NotNullWhen(true)] out SourceTextContainer? sourceTextContainer)
-        {
-            if (documentInfo.TextLoader is VirtualDocumentSourceTextLoader loader && loader.OpenDocument)
-            {
-                sourceTextContainer = loader.TextContainer;
-                return true;
-            }
-
-            sourceTextContainer = null;
-            return false;
         }
 
         private sealed class VirtualDocumentSourceTextLoader : TextLoader

@@ -105,7 +105,8 @@ internal partial class ContainedLanguage
                 sourceCodeKind: SourceCodeKind.Regular,
                 folders: default,
                 designTimeOnly: true,
-                documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer));
+                documentServiceProvider: new ContainedDocument.DocumentServiceProvider(DataBuffer),
+                openDocument: true);
         }
         else
         {
