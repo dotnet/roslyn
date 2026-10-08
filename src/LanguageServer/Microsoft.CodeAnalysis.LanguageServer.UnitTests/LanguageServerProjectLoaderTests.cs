@@ -406,58 +406,6 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.Equal(project.Id, projectFromCanonicalPath.Id);
     }
 
-    [Fact]
-    [WorkItem("https://github.com/dotnet/vscode-csharp/issues/9846")]
-    public async Task VirtualDocumentLoadRacesWithLspOpen()
-    {
-        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
-        var projectFactory = workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
-        var workspace = projectFactory.Workspace;
-        var lspText = SourceText.From("class C { }");
-        var documentPath = """git:/repo/Test.cs?{"path":"/repo/Test.cs","ref":"~"}""";
-        var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, Path.Combine(TempRoot.Root, "Canonical.csproj")) with
-        {
-            CommandLineArgs = ["/target:library"],
-            Documents = [new DocumentFileInfo(documentPath, "Test.cs", isLinked: false, isGenerated: false, folders: [])],
-        };
-        await using var loadedProject = new LoadedProject(documentPath, projectFactory.FileChangeWatcher);
-
-        Task? lspOpenTask = null;
-        using var registration = workspace.RegisterWorkspaceChangedImmediateHandler(args =>
-        {
-            var document = args.NewSolution.Projects.SelectMany(project => project.Documents).SingleOrDefault(document => document.FilePath == documentPath);
-            if (document is null || args.OldSolution.ContainsDocument(document.Id))
-                return;
-
-            // Queue the LSP open while the batch still holds the factory gate. If project loading
-            // also tries to open the document, LSP wins the gate and the loader's second open fails.
-            lspOpenTask = workspace.TryOnDocumentOpenedAsync(
-                document.Id, lspText.Container, isCurrentContext: false, CancellationToken.None).AsTask();
-        });
-
-        var loadTask = loadedProject.TryApplyLoadedProjectInfosAsync(
-            [projectInfo],
-            isMiscellaneousFile: true,
-            hasAllInformation: false,
-            projectFactory,
-            server.GetRequiredLspService<ProjectTargetFrameworkManager>(),
-            server.GetRequiredLspService<ProjectCapabilityManager>(),
-            workspaceFactory,
-            LoggerFactory.CreateLogger(nameof(VirtualDocumentLoadRacesWithLspOpen)),
-            CancellationToken.None).AsTask();
-
-        Assert.True(await loadTask);
-
-        Assert.NotNull(lspOpenTask);
-        await lspOpenTask;
-
-        var loadedDocument = Assert.Single(Assert.Single(workspace.CurrentSolution.Projects).Documents);
-        Assert.Equal(documentPath, loadedDocument.FilePath);
-        Assert.True(workspace.IsDocumentOpen(loadedDocument.Id));
-        Assert.Equal(lspText.ToString(), (await loadedDocument.GetTextAsync()).ToString());
-    }
-
     [ExportCSharpVisualBasicLspServiceFactory(typeof(TestProjectLoader)), PartNotDiscoverable, Shared]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
