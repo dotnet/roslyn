@@ -69,6 +69,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #if DEBUG
         private SingleNamespaceDeclaration GetMatchingNamespaceDeclaration(CSharpSyntaxNode declarationSyntax)
         {
+            // This brute-force lookup is only used for DEBUG validation. Production uses the
+            // syntax-reference-keyed cache to avoid quadratic lookup across syntax trees.
+            // https://github.com/dotnet/roslyn/issues/85922
             foreach (var declaration in _mergedDeclaration.Declarations)
             {
                 var declarationSyntaxRef = declaration.SyntaxReference;

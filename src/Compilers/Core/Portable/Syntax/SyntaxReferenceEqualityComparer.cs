@@ -26,10 +26,14 @@ internal sealed class SyntaxReferenceEqualityComparer : IEqualityComparer<Syntax
         if (ReferenceEquals(x, y))
             return true;
 
-        return x is { SyntaxTree: var xSyntaxTree, Span: var xSpan } &&
-               y is { SyntaxTree: var ySyntaxTree, Span: var ySpan } &&
-               xSyntaxTree == ySyntaxTree &&
-               xSpan == ySpan;
+        if (x is not { SyntaxTree: var xSyntaxTree } ||
+            y is not { SyntaxTree: var ySyntaxTree } ||
+            !ReferenceEquals(xSyntaxTree, ySyntaxTree))
+        {
+            return false;
+        }
+
+        return x.Span == y.Span;
     }
 
     public int GetHashCode(SyntaxReference obj)
