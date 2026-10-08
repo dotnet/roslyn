@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     {
         private readonly MetadataDecoder _decoder;
         private readonly CustomAttributeHandle _handle;
-        private NamedTypeSymbol? _lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates uninitialized.
+        private volatile NamedTypeSymbol? _lazyAttributeClass = ErrorTypeSymbol.UnknownResultType; // Indicates uninitialized.
         private MethodSymbol? _lazyAttributeConstructor;
         private ImmutableArray<TypedConstant> _lazyConstructorArguments;
         private ImmutableArray<KeyValuePair<string, TypedConstant>> _lazyNamedArguments;
@@ -91,7 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 Interlocked.CompareExchange(ref _lazyAttributeConstructor, attributeConstructor, null);
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 Interlocked.CompareExchange(ref _lazyAttributeClass, (NamedTypeSymbol?)attributeClass, ErrorTypeSymbol.UnknownResultType); // Serves as a flag, so do it last.
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 #pragma warning restore 0252
         }
