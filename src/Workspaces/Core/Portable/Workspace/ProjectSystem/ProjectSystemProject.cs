@@ -853,10 +853,6 @@ internal sealed partial class ProjectSystemProject
     public void RemoveVirtualDocument(DocumentId documentId)
         => _sourceFiles.RemoveVirtualDocument(documentId);
 
-    [Obsolete("Use RemoveVirtualDocument with the document ID instead.")]
-    public void RemoveSourceTextContainer(SourceTextContainer textContainer)
-        => _sourceFiles.RemoveTextContainer(textContainer);
-
     #endregion
 
     #region Additional File Addition/Removal

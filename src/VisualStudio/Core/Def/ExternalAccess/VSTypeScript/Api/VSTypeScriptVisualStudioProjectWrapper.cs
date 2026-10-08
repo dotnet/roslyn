@@ -11,8 +11,13 @@ namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Ap
 
 internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
 {
-    public VSTypeScriptVisualStudioProjectWrapper(ProjectSystemProject underlyingObject)
-        => Project = underlyingObject;
+    private readonly Workspace _workspace;
+
+    public VSTypeScriptVisualStudioProjectWrapper(ProjectSystemProject underlyingObject, Workspace workspace)
+    {
+        Project = underlyingObject;
+        _workspace = workspace;
+    }
 
     public ProjectId Id => Project.Id;
 
@@ -37,7 +42,8 @@ internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
     [Obsolete("Use RemoveVirtualDocument with the document ID instead.")]
     public void RemoveSourceTextContainer(SourceTextContainer sourceTextContainer)
     {
-        Project.RemoveSourceTextContainer(sourceTextContainer);
+        if (_workspace.GetDocumentIdInCurrentContext(sourceTextContainer) is DocumentId documentId)
+            Project.RemoveVirtualDocument(documentId);
     }
 
     public void RemoveVirtualDocument(DocumentId documentId)
