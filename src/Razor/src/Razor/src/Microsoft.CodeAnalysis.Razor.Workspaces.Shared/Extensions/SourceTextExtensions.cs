@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System;
+#if LSP
 using System.Collections.Generic;
+#endif
 using System.Collections.Immutable;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
@@ -397,6 +399,7 @@ internal static class SourceTextExtensions
         return list.ToImmutableArray();
     }
 
+#if LSP
     /// <summary>
     /// Sometimes the Html language server will send back an edit that contains a tilde, because the generated
     /// document we send them has lots of tildes. In those cases, we need to do some extra work to compute the
@@ -425,4 +428,5 @@ internal static class SourceTextExtensions
         var fixedChanges = htmlSourceText.MinimizeTextChanges(changes);
         return fixedChanges.SelectAsPlainArray<TextChange, SumType<TextEdit, AnnotatedTextEdit>>(c => htmlSourceText.GetTextEdit(c));
     }
+#endif
 }

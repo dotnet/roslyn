@@ -17,4 +17,42 @@
     </EmbeddedResource>
     <None Include="$(MSBuildThisFileDirectory)Resources\xlf\SR*.xlf" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)AdhocLanguageServices.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AdhocServices.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AdhocWorkspaceServices.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\CSharpSyntaxNodeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\LinePositionExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\LinePositionSpanExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\RazorCodeDocumentExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\RazorSyntaxNodeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\RazorSyntaxNodeOrTokenExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\RazorSyntaxTokenExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceLocationExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceSpanExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SourceTextExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxListExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\TextChangeExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\TextLineExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptionsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\EmptyLoggerFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\Handlers\CriticalLogMessageInterpolatedStringHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\Handlers\DebugLogMessageInterpolatedStringHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\Handlers\ErrorLogMessageInterpolatedStringHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\Handlers\InformationLogMessageInterpolatedStringHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\Handlers\LogMessageInterpolatedStringHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\Handlers\TraceLogMessageInterpolatedStringHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\Handlers\WarningLogMessageInterpolatedStringHandler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\ILogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\ILoggerExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\ILoggerFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\ILoggerFactoryExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\ILoggerProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logging\LogLevel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Protocol\RazorTextChange.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Protocol\RazorTextSpan.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorSyntaxFacts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Settings\AttributeIndentStyle.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TextDifferencing\*.cs" />
+  </ItemGroup>
 </Project>

@@ -50,9 +50,11 @@ internal ref struct LogMessageInterpolatedStringHandler
     private static string GetMessage(object? value)
         => value switch
         {
+#if LSP
             LspRange range => range.ToDisplayString(),
             Position position => position.ToDisplayString(),
             ISumType sumType => GetMessage(sumType.Value),
+#endif
 
             null => "[null]",
             _ => value.ToString() ?? "[null]"

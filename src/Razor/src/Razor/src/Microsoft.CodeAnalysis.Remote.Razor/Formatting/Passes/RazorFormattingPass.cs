@@ -424,14 +424,15 @@ internal sealed class RazorFormattingPass : IFormattingPass
             closeBraceNode.TryGetLinePositionSpanWithoutWhitespace(source, out var closeBraceRange) &&
             !RangeHasBeenModified(ref changes, source.Text, codeRange))
         {
+            var directiveStart = directiveNode?.GetLinePositionSpan(source).Start;
             if (directiveNode is not null &&
-                directiveNode.GetRange(source).Start.Character < closeBraceRange.Start.Character)
+                directiveStart.GetValueOrDefault().Character < closeBraceRange.Start.Character)
             {
                 // If we have a directive, then we line the close brace up with it, and ensure
                 // there is a close brace
                 var span = new LinePositionSpan(codeRange.End, closeBraceRange.Start);
                 var newText = context.NewLineString + FormattingUtilities.GetIndentationString(
-                        directiveNode.GetRange(source).Start.Character, context.Options.InsertSpaces, context.Options.TabSize);
+                        directiveStart.GetValueOrDefault().Character, context.Options.InsertSpaces, context.Options.TabSize);
 
                 changes.Add(new TextChange(source.Text.GetTextSpan(span), newText));
                 didFormat = true;

@@ -98,7 +98,7 @@ internal static class FormattingUtilities
     public static void NaivelyUnindentSubstring(SourceText text, TextSpan extractionSpan, System.Text.StringBuilder builder)
     {
         var extractedText = text.ToString(extractionSpan);
-        var range = text.GetRange(extractionSpan);
+        var range = text.GetLinePositionSpan(extractionSpan);
         if (range.Start.Line == range.End.Line)
         {
             builder.Append(extractedText);
