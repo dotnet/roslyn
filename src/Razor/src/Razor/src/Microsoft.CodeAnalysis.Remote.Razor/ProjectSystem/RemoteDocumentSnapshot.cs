@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
-internal sealed class RemoteDocumentSnapshot
+internal sealed class RemoteDocumentSnapshot : IDocumentSnapshot
 {
     private RazorCodeDocument? _codeDocument;
     private SourceGeneratedDocument? _generatedDocument;
@@ -73,6 +74,9 @@ internal sealed class RemoteDocumentSnapshot
         var snapshotManager = ProjectSnapshot.SolutionSnapshot.SnapshotManager;
         return snapshotManager.GetSnapshot(newDocument);
     }
+
+    IDocumentSnapshot IDocumentSnapshot.WithText(SourceText text)
+        => WithText(text);
 
     public async ValueTask<SourceGeneratedDocument?> TryGetGeneratedDocumentAsync(bool declarationDocument, CancellationToken cancellationToken)
     {
