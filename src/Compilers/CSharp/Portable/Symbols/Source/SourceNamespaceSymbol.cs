@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
 
         /// <summary>
-        /// Should only be read using <see cref="GetOrCreateAliasAndUsings"/>.
+        /// Should only be read using <see cref="GetAliasesAndUsings(SingleNamespaceDeclaration)"/>.
         /// </summary>
         private ImmutableDictionary<SyntaxReference, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly = s_emptyMap;
 #if DEBUG
