@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // v = NullableContext. 3 bits.
             // s = DeclaredRequiredMembers. 2 bits
             // p = HasPrimaryConstructor. 1 bit.
-            private int _flags;
+            private volatile int _flags;
 
             private const int SpecialTypeOffset = 0;
             private const int SpecialTypeSize = 6;
@@ -127,12 +127,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void SetFieldDefinitionsNoted()
             {
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 ThreadSafeFlagOperations.Set(ref _flags, FieldDefinitionsNotedBit);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             public void SetFlattenedMembersIsSorted()
             {
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 ThreadSafeFlagOperations.Set(ref _flags, (FlattenedMembersIsSortedBit));
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             private static bool BitsAreUnsetOrSame(int bits, int mask)
@@ -144,7 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 int bitsToSet = ((int)managedKind & ManagedKindMask) << ManagedKindOffset;
                 Debug.Assert(BitsAreUnsetOrSame(_flags, bitsToSet));
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 ThreadSafeFlagOperations.Set(ref _flags, bitsToSet);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             public bool TryGetNullableContext(out byte? value)
@@ -154,7 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public bool SetNullableContext(byte? value)
             {
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 return ThreadSafeFlagOperations.Set(ref _flags, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             public bool TryGetHasDeclaredRequiredMembers(out bool value)
@@ -173,7 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public bool SetHasDeclaredRequiredMembers(bool value)
             {
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 return ThreadSafeFlagOperations.Set(ref _flags, HasDeclaredMembersBitSet | (value ? HasDeclaredMembersBit : 0));
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             public readonly bool HasPrimaryConstructor => (_flags & HasPrimaryConstructorBit) != 0;
