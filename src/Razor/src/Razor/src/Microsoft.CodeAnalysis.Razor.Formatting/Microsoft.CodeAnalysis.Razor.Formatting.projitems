@@ -17,4 +17,28 @@
     </EmbeddedResource>
     <None Include="$(MSBuildThisFileDirectory)Resources\xlf\SR*.xlf" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentFormatting\IHostServicesProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentFormatting\IDocumentSnapshot.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentFormatting\FormattingContext.Shared.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentFormatting\FormattingEngineOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentMapping\DocumentMappingHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormattingEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormattingLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormattingLoggerFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\CSharpFormattingPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\CSharpFormattingPass.CSharpDocumentGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\FormattingContentValidationPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\FormattingDiagnosticValidationPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\RazorFormattingPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormattedDocument.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormattingUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IFormattingLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IFormattingLoggerFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IFormattingPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IFormattingValidationPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IndentCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LineInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\RoslynWorkspaceHelper.cs" />
+  </ItemGroup>
 </Project>
