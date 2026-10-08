@@ -1661,7 +1661,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function GetMembersAndInitializers() As MembersAndInitializers
-            If _lazyMembersAndInitializers Is Nothing Then
+            If Volatile.Read(_lazyMembersAndInitializers) Is Nothing Then
                 Dim diagBag = BindingDiagnosticBag.GetInstance()
                 Dim membersAndInitializers = BuildMembersAndInitializers(diagBag)
                 m_containingModule.AtomicStoreReferenceAndDiagnostics(_lazyMembersAndInitializers, membersAndInitializers, diagBag)
