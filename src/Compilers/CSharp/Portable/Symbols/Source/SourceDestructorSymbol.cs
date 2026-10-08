@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
         internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
-        internal sealed override bool CanBeCallerUnsafe => false;
+        internal sealed override bool CanRequireUnsafe => false;
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {

@@ -45,13 +45,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var useUpdatedMemorySafetyRules = this.Compilation.SourceModule.UseUpdatedMemorySafetyRules;
-            var callerUnsafeMode = symbol.GetCallerUnsafeMode(this.FieldsBeingBound);
-            if (!useUpdatedMemorySafetyRules && callerUnsafeMode != CallerUnsafeMode.Implicit)
+            var requiresUnsafeMode = symbol.GetRequiresUnsafeMode(this.FieldsBeingBound);
+            if (!useUpdatedMemorySafetyRules && requiresUnsafeMode != RequiresUnsafeMode.Implicit)
             {
                 return;
             }
 
-            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, callerUnsafeMode, arg, location);
+            ReportDiagnosticsIfUnsafeMemberAccess(diagnostics, symbol, requiresUnsafeMode, arg, location);
 
             if (useUpdatedMemorySafetyRules)
             {
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (constructor.ParameterCount == 0)
                 {
-                    return constructor.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit
+                    return constructor.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit
                         ? GetUnsafeDiagnosticInfo(
                             disallowedUnder: MemorySafetyRulesVersion.Version2,
                             ignoreUnsafeDiagnosticsSuppression: true,
@@ -124,18 +124,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, CallerUnsafeMode callerUnsafeMode, T arg, Func<T, Location?> location)
+        private void ReportDiagnosticsIfUnsafeMemberAccess<T>(DiagnosticBag diagnostics, Symbol symbol, RequiresUnsafeMode requiresUnsafeMode, T arg, Func<T, Location?> location)
         {
-            Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules || callerUnsafeMode == CallerUnsafeMode.Implicit);
+            Debug.Assert(this.Compilation.SourceModule.UseUpdatedMemorySafetyRules || requiresUnsafeMode == RequiresUnsafeMode.Implicit);
 
-            if (callerUnsafeMode != CallerUnsafeMode.None)
+            if (requiresUnsafeMode != RequiresUnsafeMode.None)
             {
                 ReportUnsafeIfNotAllowed(arg, location, diagnostics, disallowedUnder: MemorySafetyRulesVersion.Version2,
-                    customErrorCode: callerUnsafeMode switch
+                    customErrorCode: requiresUnsafeMode switch
                     {
-                        CallerUnsafeMode.Explicit => ErrorCode.ERR_UnsafeMemberOperation,
-                        CallerUnsafeMode.Implicit => ErrorCode.ERR_UnsafeMemberOperationCompat,
-                        _ => throw ExceptionUtilities.UnexpectedValue(callerUnsafeMode),
+                        RequiresUnsafeMode.Explicit => ErrorCode.ERR_UnsafeMemberOperation,
+                        RequiresUnsafeMode.Implicit => ErrorCode.ERR_UnsafeMemberOperationCompat,
+                        _ => throw ExceptionUtilities.UnexpectedValue(requiresUnsafeMode),
                     },
                     customArgs: [symbol]);
             }
@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and `Debug.Assert` on .NET Framework evaluates all interpolated values eagerly,
             // so avoid evaluating that unless we are going to fail anyway.
 
-            var callerUnsafeMode = symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty);
-            if (callerUnsafeMode is not CallerUnsafeMode.None)
+            var requiresUnsafeMode = symbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty);
+            if (requiresUnsafeMode is not RequiresUnsafeMode.None)
             {
-                Debug.Fail($"Symbol {symbol} has {nameof(CallerUnsafeMode)}={callerUnsafeMode}.");
+                Debug.Fail($"Symbol {symbol} has {nameof(RequiresUnsafeMode)}={requiresUnsafeMode}.");
             }
 
             if (symbol.Kind is SymbolKind.Method or SymbolKind.Property or SymbolKind.Event)
