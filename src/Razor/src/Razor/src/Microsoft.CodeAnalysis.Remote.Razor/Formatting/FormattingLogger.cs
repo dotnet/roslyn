@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.Text.Json;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
@@ -15,7 +14,7 @@ internal sealed class FormattingLogger(string logFolder) : IFormattingLogger
 
     public void LogObject<T>(string name, T value)
     {
-        Log($"{name}.json", writer => writer.Write(JsonSerializer.Serialize(value, JsonHelpers.JsonSerializerOptions)));
+        Log($"{name}.json", writer => writer.Write(JsonSerializer.Serialize(value, JsonSerializerOptions.Default)));
     }
 
     public void LogSourceText(string name, SourceText sourceText)
