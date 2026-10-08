@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Public Overloads Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            If (_lazyState And StateFlags.AllMembersIsSorted) <> 0 Then
+            If (Volatile.Read(_lazyState) And StateFlags.AllMembersIsSorted) <> 0 Then
                 Return _lazyAllMembers
 
             Else
