@@ -34,7 +34,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets the set of interfaces that this type directly implements. This set does not include
-        /// interfaces that are base interfaces of directly implemented interfaces.
+        /// interfaces that are base interfaces of directly implemented interfaces or interfaces directly
+        /// implemented by base types, but not this type.
         /// Returns an empty array for type parameters, regardless of their constraints.
         /// Use <see cref="ITypeParameterSymbol.ConstraintTypes"/> to inspect a type parameter's constraints.
         /// </summary>

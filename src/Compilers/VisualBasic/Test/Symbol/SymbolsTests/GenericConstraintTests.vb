@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <InlineData(True)>
         <WorkItem("https://github.com/dotnet/roslyn/issues/85937")>
         Public Sub TypeParameterInterfaces(fromMetadata As Boolean)
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+            Dim compilation = CompilationUtils.CreateCompilation(
 <compilation>
     <file name="a.vb">
 Public Interface IA
@@ -37,7 +37,7 @@ End Class
 </compilation>)
             compilation.VerifyEmitDiagnostics()
             If fromMetadata Then
-                compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+                compilation = CompilationUtils.CreateCompilation(
 <compilation></compilation>, references:={compilation.EmitToImageReference()})
             End If
 
