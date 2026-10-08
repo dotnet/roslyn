@@ -54,19 +54,9 @@
         <target state="translated">Razor düzenleyici, *.razor ve *.cshtml dosyalarının projede AdditionalFiles olmasını gerektiren Razor Kaynak Oluşturucuyu kullanır. {0}, Razor belgelerine sahip olan '{1}' dosyasından geliyor gibi görünüyor, ancak bu dosya bir AdditionalFile değildir, bu nedenle düzenleme deneyimi sınırlı olacaktır. Bu proje için başka mesajlar günlüğe kaydedilmeyecektir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">Geçersiz uzaklık.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">{0} Anahtar Sözcüğü</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Razor dil hizmetleri düzgün yapılandırılmadı, '{0}' dil hizmeti eksik.</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">

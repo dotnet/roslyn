@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using SR = Microsoft.CodeAnalysis.Razor.Workspaces.Shared.Resources.SR;
 
 namespace Microsoft.CodeAnalysis.Razor.Workspaces;
 

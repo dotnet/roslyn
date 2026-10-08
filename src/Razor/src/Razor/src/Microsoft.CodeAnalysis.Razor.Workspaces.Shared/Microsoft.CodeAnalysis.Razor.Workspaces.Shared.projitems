@@ -8,4 +8,13 @@
   <PropertyGroup Label="Configuration">
     <Import_RootNamespace>Microsoft.CodeAnalysis.Razor.Workspaces.Shared</Import_RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\SR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>Microsoft.CodeAnalysis.Razor.Workspaces.Shared.Resources</Namespace>
+      <LogicalName>Microsoft.CodeAnalysis.Razor.Workspaces.Shared.Resources.SR.resources</LogicalName>
+      <XlfTranslatedFilename>WorkspacesSharedSR.resx</XlfTranslatedFilename>
+    </EmbeddedResource>
+    <None Include="$(MSBuildThisFileDirectory)Resources\xlf\SR*.xlf" />
+  </ItemGroup>
 </Project>

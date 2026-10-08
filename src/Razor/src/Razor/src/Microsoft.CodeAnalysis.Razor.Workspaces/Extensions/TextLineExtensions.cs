@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using Microsoft.AspNetCore.Razor;
+using SR = Microsoft.CodeAnalysis.Razor.Workspaces.Shared.Resources.SR;
 
 namespace Microsoft.CodeAnalysis.Text;
 
