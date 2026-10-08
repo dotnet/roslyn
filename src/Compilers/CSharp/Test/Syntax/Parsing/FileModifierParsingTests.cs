@@ -606,7 +606,7 @@ public sealed class FileModifierParsingTests : ParsingTests
             }
             """;
         UsingNode(src,
-            options: TestOptions.Regular14,
+            options: TestOptions.Regular15,
             expectedBindingDiagnostics: new[]
             {
                 // (3,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
