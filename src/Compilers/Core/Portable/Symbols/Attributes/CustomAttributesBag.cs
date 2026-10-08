@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
         private ImmutableArray<T> _customAttributes;
         private WellKnownAttributeData _decodedWellKnownAttributeData;
         private EarlyWellKnownAttributeData _earlyDecodedWellKnownAttributeData;
-        private int _state;
+        private volatile int _state;
 
         /// <summary>
         /// Instance representing sealed custom attribute bag with no attributes.
@@ -149,15 +149,14 @@ namespace Microsoft.CodeAnalysis
             {
                 return (CustomAttributeBagCompletionPart)_state;
             }
-            set
-            {
-                _state = (int)value;
-            }
         }
 
         private void NotePartComplete(CustomAttributeBagCompletionPart part)
         {
-            ThreadSafeFlagOperations.Set(ref _state, (int)(this.State | part));
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
+            // ThreadSafeFlagOperations correctly uses `Interlocked.CompareExchange` to read/write to _state
+            ThreadSafeFlagOperations.Set(ref _state, (int)part);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
         }
 
         internal bool IsPartComplete(CustomAttributeBagCompletionPart part)
