@@ -43,10 +43,13 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 	private int truncatedContextCount;
 	private string completedUtc = string.Empty;
 	private IEventSource? eventSource;
+	private bool emitWarningFrames;
 
 	public LoggerVerbosity Verbosity { get; set; } = LoggerVerbosity.Quiet;
 
 	public string? Parameters { get; set; }
+
+	internal TextWriter DiagnosticWriter { get; set; } = Console.Error;
 
 	public void Initialize(IEventSource eventSource)
 	{
@@ -56,7 +59,7 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 			{
 				throw new ArgumentNullException(nameof(eventSource));
 			}
-			if (!TryParseParameters(this.Parameters, out this.receiptDirectory, out this.attemptId))
+			if (!TryParseParameters(this.Parameters, out this.receiptDirectory, out this.attemptId, out this.emitWarningFrames))
 			{
 				TryWriteLoggerError("ProjectDataBuild completion logger parameters were invalid.");
 				return;
@@ -132,7 +135,7 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 							warning.LineNumber,
 							warning.ColumnNumber,
 							warning.BuildEventContext,
-							emitFrame: false);
+							emitFrame: this.emitWarningFrames);
 						break;
 					case BuildCanceledEventArgs:
 						this.buildCancelled = true;
@@ -360,7 +363,7 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 	{
 		try
 		{
-			Console.Error.WriteLine(ProjectDataBuildDiagnosticProtocol.Encode(this.attemptId, diagnostic));
+			this.DiagnosticWriter.WriteLine(ProjectDataBuildDiagnosticProtocol.Encode(this.attemptId, diagnostic));
 		}
 		catch (Exception ex)
 		{
@@ -442,17 +445,23 @@ public sealed class ProjectDataBuildCompletionLogger : ILogger
 		}
 	}
 
-	private static bool TryParseParameters(string? parameters, out string receiptDirectory, out string attemptId)
+	private static bool TryParseParameters(
+		string? parameters,
+		out string receiptDirectory,
+		out string attemptId,
+		out bool emitWarningFrames)
 	{
 		receiptDirectory = string.Empty;
 		attemptId = string.Empty;
+		emitWarningFrames = false;
 		if (string.IsNullOrWhiteSpace(parameters))
 		{
 			return false;
 		}
 
 		string[] parts = parameters!.Split(';');
-		if (parts.Length != 2)
+		if (parts.Length is < 2 or > 3 ||
+			(parts.Length == 3 && !bool.TryParse(parts[2], out emitWarningFrames)))
 		{
 			return false;
 		}
