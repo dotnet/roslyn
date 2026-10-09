@@ -185,8 +185,9 @@ unsafe class C
 ";
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
-                // (2,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C"));
+                // (2,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+                // unsafe class C
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(2, 1));
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -204,8 +205,9 @@ class C
 ";
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
-                // (4,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Goo"));
+                // (4,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+                //     unsafe void Goo()
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(4, 5));
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -3524,8 +3526,9 @@ public unsafe delegate void TestDelegate();
 ";
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll.WithAllowUnsafe(false)).VerifyDiagnostics(
-                // (2,29): error CS0227: Unsafe code may only appear if compiling with /unsafe
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "TestDelegate"));
+                // (2,8): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
+                // public unsafe delegate void TestDelegate();
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(2, 8));
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
@@ -12061,9 +12064,9 @@ unsafe class C<T> : A
 
             var expected = new[]
             {
-                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class C<T> : A
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 1),
                 // (8,30): warning CS0169: The field 'C<T>.b' is never used
                 //     private static C<T*[]>.B b;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "b").WithArguments("C<T>.b").WithLocation(8, 30)
@@ -12190,9 +12193,9 @@ unsafe class C<T> : A
 ";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class C<T> : A
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 1),
                 // (17,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('T')
                 //     private static C<T*[]> c;
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("T").WithLocation(17, 28),
@@ -12226,9 +12229,9 @@ unsafe class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(17, 28));
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class C<T> : A
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 1),
                 // (17,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('T')
                 //     private static C<T*[]> c;
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("T").WithLocation(17, 28),
@@ -12343,9 +12346,9 @@ unsafe class C<T> : A
 ";
 
             CreateCompilation(text, parseOptions: TestOptions.Regular11).VerifyDiagnostics(
-                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class C<T> : A
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 1),
                 // (13,33): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
                 //     private static C<string*[]> c;
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("string").WithLocation(13, 33),
@@ -12367,9 +12370,9 @@ unsafe class C<T> : A
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "c").WithArguments("C<T>.c").WithLocation(13, 33));
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class C<T> : A
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(6, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 1),
                 // (13,33): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
                 //     private static C<string*[]> c;
                 Diagnostic(ErrorCode.WRN_ManagedAddr, "c").WithArguments("string").WithLocation(13, 33),
@@ -14321,9 +14324,9 @@ class C
                 // (2,7): error CS0306: The type 'int*' may not be used as a type argument
                 // using X = System.Collections.Generic.List<int*>;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "X").WithArguments("int*").WithLocation(2, 7),
-                // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe void M(X x)
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 5),
                 // (6,21): error CS0306: The type 'int*' may not be used as a type argument
                 //     unsafe void M(X x)
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("int*").WithLocation(6, 21));
@@ -14348,9 +14351,9 @@ class C
                 // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43),
-                // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe void M(X x)
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 5),
                 // (6,21): error CS0306: The type 'int*' may not be used as a type argument
                 //     unsafe void M(X x)
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "x").WithArguments("int*").WithLocation(6, 21));
@@ -14472,9 +14475,9 @@ class C
 ";
             var illegalUnsafe = new[]
             {
-                // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe void M(X x)
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 5),
             };
             var unsafeNeeded = new[]
             {
@@ -14497,9 +14500,9 @@ class C
                 // (2,43): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // using X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 43),
-                // (6,17): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe void M(X x)
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "M").WithLocation(6, 17));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 5));
 
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics();
@@ -14835,9 +14838,9 @@ unsafe class C
                 // (2,7): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 // using unsafe X = System.Collections.Generic.List<int*[]>;
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(2, 7),
-                // (4,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (4,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class C
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(4, 14));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(4, 1));
 
             comp = CreateCompilation(csharp, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular11);
             comp.VerifyDiagnostics(

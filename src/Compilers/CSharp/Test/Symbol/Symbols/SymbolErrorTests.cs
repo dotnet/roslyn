@@ -3186,9 +3186,9 @@ public class A
 ";
             var c = CreateCompilation(text, options: TestOptions.ReleaseDll.WithAllowUnsafe(false));
             c.VerifyDiagnostics(
-                // (3,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (3,5): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     unsafe public static void Main()   // CS0227
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Main").WithLocation(3, 31));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 5));
         }
 
         [Fact]
@@ -16850,9 +16850,9 @@ class E1 : I<dynamic> {}
 unsafe class E2 : I<C<dynamic>.D*[]> {}
 ";
             CreateCompilationWithMscorlib40AndSystemCore(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (10,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class E2 : I<C<dynamic>.D*[]> {}
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E2").WithLocation(10, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(10, 1),
                 // (9,12): error CS1966: 'E1': cannot implement a dynamic interface 'I<dynamic>'
                 // class E1 : I<dynamic> {}
                 Diagnostic(ErrorCode.ERR_DeriveFromConstructedDynamic, "I<dynamic>").WithArguments("E1", "I<dynamic>").WithLocation(9, 12),

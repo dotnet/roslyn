@@ -8,20 +8,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
+using Microsoft.VisualStudio.HotReload;
 using InternalContracts = Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class ManagedHotReloadServiceProxy(IServiceBroker serviceBroker) :
-    BrokeredServiceProxy<IManagedHotReloadService>(serviceBroker,
-#if DEVKIT
-        BrokeredServiceDescriptors.DebuggerManagedHotReloadServiceLegacy
-#else
-        BrokeredServiceDescriptors.DebuggerManagedHotReloadService
-#endif
-    ),
-    InternalContracts.IManagedHotReloadService
+internal sealed class ManagedHotReloadStateProxy(IServiceBroker serviceBroker) :
+    BrokeredServiceProxy<IManagedHotReloadState>(serviceBroker, IManagedHotReloadState.ServiceDescriptor),
+    InternalContracts.IManagedHotReloadState
 {
     public async ValueTask<ImmutableArray<InternalContracts.ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
     {
@@ -35,8 +29,8 @@ internal sealed class ManagedHotReloadServiceProxy(IServiceBroker serviceBroker)
         return result.ToContract();
     }
 
-    public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
-        => InvokeAsync((service, cancellationToken) => service.GetCapabilitiesAsync(cancellationToken), cancellationToken);
+    public ValueTask<ImmutableArray<string>> GetUpdateCapabilitiesAsync(CancellationToken cancellationToken)
+        => InvokeAsync((service, cancellationToken) => service.GetUpdateCapabilitiesAsync(cancellationToken), cancellationToken);
 
     public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
         => InvokeAsync((service, module, cancellationToken) => service.PrepareModuleForUpdateAsync(module, cancellationToken), module, cancellationToken);

@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // const but not null, must be a reference type
                 Debug.Assert(receiverType.IsVerifierReference());
                 // receiver is a reference type, so addresskind does not matter, but we do not intend to write.
-                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly, used: true);
                 EmitExpression(expression.WhenNotNull, used);
                 if (receiverTemp != null)
                 {
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 if (notConstrained)
                 {
                     // if T happens to be a value type, it could be a target of mutating calls.
-                    receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
+                    receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained, used: true);
 
                     if (receiverTemp is null)
                     {
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // we may call "HasValue" on this, but it is not mutating 
                     var addressKind = AddressKind.ReadOnly;
 
-                    receiverTemp = EmitReceiverRef(receiver, addressKind);
+                    receiverTemp = EmitReceiverRef(receiver, addressKind, used: true);
                     _builder.EmitOpCode(ILOpCode.Dup);
                     // here we have loaded two copies of a reference   { O, O }  or  {&nub, &nub}
                 }
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // we may call "HasValue" on this, but it is not mutating
                 // besides, since we are not making a copy, the receiver is not a field, 
                 // so it cannot be readonly, in verifier sense, anyways.
-                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.ReadOnly, used: true);
                 // here we have loaded just { O } or  {&nub}
                 // we have the most trivial case where we can just reload receiver when needed again
             }
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 Debug.Assert(receiverTemp == null);
                 // receiver may be used as target of a struct call (if T happens to be a struct)
-                receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained);
+                receiverTemp = EmitReceiverRef(receiver, AddressKind.Constrained, used: true);
                 Debug.Assert(receiverTemp == null || receiver.IsDefaultValue());
             }
 
@@ -1112,6 +1112,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitRefAccessLoad(BoundRefAccess refAccess, bool used)
         {
+            if (used &&
+                (refAccess.Expression is not BoundArrayAccess arrayAccess ||
+                 LocalRewriter.IsInvariantArray(arrayAccess.Expression.Type) ||
+                 IsAnyReadOnly(RefAssignmentValueAddressKind(refAccess.RefKind))))
+            {
+                // Just load the value without first getting a ref
+                EmitExpression(refAccess.Expression, used: true);
+                return;
+            }
+
             EmitRefAssignmentValue(refAccess.RefKind, refAccess.Expression, used);
 
             if (used)
@@ -1134,9 +1144,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // Accessing a volatile field is sideeffecting because it establishes an acquire fence.
                 // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
-                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue() && field.RefKind == RefKind.None)
+                BoundExpression receiver;
+                if (!field.IsVolatile && !field.IsStatic && (receiver = fieldAccess.ReceiverOpt).Type.IsVerifierValue() && field.RefKind == RefKind.None &&
+                    (receiver is BoundPointerIndirectionOperator pointerIndirection ?
+                         !pointerIndirection.RefersToLocation :
+                         (!IsRef(receiver) || isDereferencedWhenEmittedAsNotUsedExpression(receiver))))
                 {
-                    EmitExpression(fieldAccess.ReceiverOpt, used: false);
+                    EmitExpression(receiver, used: false);
                     return;
                 }
             }
@@ -1152,6 +1166,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitPopIfUnused(used);
+
+            static bool isDereferencedWhenEmittedAsNotUsedExpression(BoundExpression receiver)
+            {
+                switch (receiver.Kind)
+                {
+                    case BoundKind.Local:
+                    case BoundKind.Parameter:
+                    case BoundKind.FieldAccess:
+                    case BoundKind.RefValueOperator:
+                    case BoundKind.Dup:
+                        return true;
+
+                    case BoundKind.Call:
+                    case BoundKind.FunctionPointerInvocation:
+                    case BoundKind.RefAccess:
+                    case BoundKind.AssignmentOperator:
+                    case BoundKind.ConditionalOperator: // We could check both branches, but the IL is shorter this way because we have a single load field instruction instead of indirect load on each branch.
+                        return false;
+
+                    case BoundKind.Sequence:
+                        {
+                            var result = isDereferencedWhenEmittedAsNotUsedExpression(((BoundSequence)receiver).Value);
+                            Debug.Assert(!result, "No test coverage for this scenario.");
+                            return result;
+                        }
+
+                    default:
+                        // It should always be safe to return false here, but still it would be good to decide explicitly for any new node that comes through here.
+                        ExceptionUtilities.UnexpectedValue(receiver);
+                        return false;
+                }
+            }
         }
 
         private void EmitFieldLoadNoIndirection(BoundFieldAccess fieldAccess, bool used)
@@ -1184,7 +1230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var temp = EmitFieldLoadReceiver(receiver);
                     if (temp != null)
                     {
-                        Debug.Assert(FieldLoadMustUseRef(receiver), "only clr-ambiguous structs use temps here");
                         FreeTemp(temp);
                     }
 
@@ -1206,7 +1251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // there are also cases where we must emit receiver as a reference
             if (FieldLoadMustUseRef(receiver) || FieldLoadPrefersRef(receiver))
             {
-                return EmitFieldLoadReceiverAddress(receiver) ? null : EmitReceiverRef(receiver, AddressKind.ReadOnly);
+                return EmitFieldLoadReceiverAddress(receiver) ? null : EmitReceiverRef(receiver, AddressKind.ReadOnly, used: true);
             }
 
             EmitExpression(receiver, true);
@@ -1664,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(TypeSymbol.Equals(method.ContainingType, receiver.Type, TypeCompareKind.ConsiderEverything2));
             Debug.Assert(receiver.Kind == BoundKind.ThisReference);
 
-            LocalDefinition tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
+            LocalDefinition tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable, used: true);
             _builder.EmitOpCode(ILOpCode.Initobj);    //  initobj  <MyStruct>
             EmitSymbolToken(method.ContainingType, call.Syntax);
             FreeOptTemp(tempOpt);
@@ -1969,7 +2014,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     Debug.Assert(!box);
                     Debug.Assert(!receiverType.IsVerifierReference());
-                    tempOpt = EmitReceiverRef(receiver, addressKind.GetValueOrDefault());
+                    tempOpt = EmitReceiverRef(receiver, addressKind.GetValueOrDefault(), used: true);
 
                     emitGenericReceiverCloneIfNecessary(call, callKind, ref tempOpt);
                 }
@@ -2262,6 +2307,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Parameter:
                     return ((BoundParameter)receiver).ParameterSymbol.RefKind != RefKind.None;
 
+                case BoundKind.FieldAccess:
+                    return ((BoundFieldAccess)receiver).FieldSymbol.RefKind != RefKind.None;
+
                 case BoundKind.Call:
                     return ((BoundCall)receiver).Method.RefKind != RefKind.None;
 
@@ -2273,6 +2321,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Sequence:
                     return IsRef(((BoundSequence)receiver).Value);
+
+                case BoundKind.RefAccess:
+                    return true;
+
+                case BoundKind.AssignmentOperator:
+                    return ((BoundAssignmentOperator)receiver).IsRef;
+
+                case BoundKind.ConditionalOperator:
+                    return ((BoundConditionalOperator)receiver).IsRef;
+
+                case BoundKind.RefValueOperator:
+                    return true;
             }
 
             return false;
@@ -2845,7 +2905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         }
                         else if (!left.FieldSymbol.IsStatic)
                         {
-                            var temp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable);
+                            var temp = EmitReceiverRef(left.ReceiverOpt, AddressKind.Writeable, used: true);
                             Debug.Assert(temp == null, "temp is unexpected when assigning to a field");
                             lhsUsesStack = true;
                         }

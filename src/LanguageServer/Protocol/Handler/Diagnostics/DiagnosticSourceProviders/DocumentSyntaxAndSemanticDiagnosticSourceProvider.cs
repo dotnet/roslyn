@@ -19,6 +19,7 @@ internal abstract class AbstractDocumentSyntaxAndSemanticDiagnosticSourceProvide
 {
     public bool IsDocument => true;
     public string Name => sourceName;
+    public bool HasInterFileDependencies => true;
 
     public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 

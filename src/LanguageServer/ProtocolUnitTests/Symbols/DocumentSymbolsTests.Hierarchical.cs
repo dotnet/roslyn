@@ -148,6 +148,52 @@ public sealed partial class DocumentSymbolsTests
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82421")]
+    public async Task TestGetDocumentSymbolsAsync_Hierarchical_EventAccessorLocalFunctions(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            {|class:class {|classSelection:C|}
+            {
+                {|event:public event System.Action {|eventSelection:E|}
+                {
+                    add
+                    {
+                        {|addLocal:void {|addLocalSelection:AddLocal|}()
+                        {
+                            {|nestedLocal:void {|nestedLocalSelection:NestedLocal|}() { }|}
+                        }|}
+                    }
+                    remove
+                    {
+                        {|removeLocal:void {|removeLocalSelection:RemoveLocal|}() { }|}
+                    }
+                }|}
+
+                {|emptyEvent:public event System.Action {|emptyEventSelection:Empty|}
+                {
+                    add { }
+                    remove { }
+                }|}
+            }|}
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, HierarchicalDocumentSymbolCapabilities);
+
+        LSP.DocumentSymbol[] expected = [
+            Symbol(LSP.SymbolKind.Class, "C", "C", "class", "classSelection", testLspServer,
+                Symbol(LSP.SymbolKind.Event, "E : Action", "E : Action", "event", "eventSelection", testLspServer,
+                    Symbol(LSP.SymbolKind.Method, "AddLocal() : void", "AddLocal() : void", "addLocal", "addLocalSelection", testLspServer,
+                        Symbol(LSP.SymbolKind.Method, "NestedLocal() : void", "NestedLocal() : void", "nestedLocal", "nestedLocalSelection", testLspServer)),
+                    Symbol(LSP.SymbolKind.Method, "RemoveLocal() : void", "RemoveLocal() : void", "removeLocal", "removeLocalSelection", testLspServer)),
+                Symbol(LSP.SymbolKind.Event, "Empty : Action", "Empty : Action", "emptyEvent", "emptyEventSelection", testLspServer))
+        ];
+
+        var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
+        AssertDocumentSymbolsEqual(expected, results);
+    }
+
+    [Theory, CombinatorialData]
     [WorkItem("https://github.com/dotnet/vscode-csharp/issues/7985")]
     public async Task TestGetDocumentSymbolsAsync_Hierarchical_NestedNamespace(bool mutatingLspWorkspace)
     {

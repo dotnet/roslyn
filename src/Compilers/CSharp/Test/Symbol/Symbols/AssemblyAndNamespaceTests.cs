@@ -124,6 +124,7 @@ namespace N1 {
 
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
+            Assert.Equal(Accessibility.Public, ns.DeclaredAccessibility);
             Assert.Equal(1, ns.GetTypeMembers().Length); // S
             Assert.Equal(3, ns.GetMembers().Length); // N11, N12, S
 
