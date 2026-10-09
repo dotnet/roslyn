@@ -177,61 +177,98 @@ var records = (await AdoGet($"timeline of build {buildId}", $"{AdoApi}/build/bui
     .At("records").Items().ToList();
 var failedJobs = records
     .Where(record => record.At("type").Text() == "Job" && record.At("result").Text() is "failed" or "canceled")
-    .Select(record => (Name: record.At("name").Text(), Id: record.At("id").Text()))
+    .Select(record => (
+        Name: record.At("name").Text(),
+        Id: record.At("id").Text(),
+        Attempts: GetJobAttempts(record)))
     .Where(job => job.Name.Trim().Length != 0)
     .ToList();
 EmitNoneIf(failedJobs.Count == 0, $"No failed or canceled jobs in the timeline for build {buildId}.");
+EmitNoneIf(failedJobs.Any(job => job.Attempts.Count == 0),
+    $"Could not resolve every failed job's retry identity in build {buildId}; skipping incomplete failed-job data.");
 
-// Only jobs that ran a publish-logs task can be expected to have an artifact.
+// Only jobs configured with a publish-logs task can be expected to have an
+// artifact. The task's result is deliberately not filtered: a failed, skipped,
+// or abandoned publish is missing data and must fail the completeness check.
 // Orchestration legs such as `Monitor Helix Jobs` fail without producing one -
 // that is how a Helix test failure surfaces - and demanding an artifact for
 // those would skip most real failures rather than analyze them. Roslyn spells
-// the task `Publish Logs`, and `Publish BuildLogs` in Source-Build. The tasks
-// use continueOnError, so a publish with warnings is `succeededWithIssues`.
-var publishedLogs = records
-    .Where(record => record.At("result").Text() is "succeeded" or "succeededWithIssues")
+// the task `Publish Logs`, and `Publish BuildLogs` in Source-Build.
+var logPublishingJobs = records
+    .Where(record => record.At("type").Text() == "Task")
     .Select(record => (Task: record.At("name").Text(), Parent: record.At("parentId").Text()))
     .Where(record => record.Task.StartsWith("Publish", StringComparison.Ordinal) && record.Task.EndsWith("Logs", StringComparison.Ordinal))
     .Select(record => record.Parent)
+    .Where(parent => parent.Length != 0)
     .ToHashSet(StringComparer.OrdinalIgnoreCase);
-var expectedJobNames = failedJobs
-    .Where(job => publishedLogs.Contains(job.Id))
-    .Select(job => job.Name)
-    .Distinct(StringComparer.Ordinal)
+var logPublishingFailedJobs = failedJobs
+    .Where(job => logPublishingJobs.Contains(job.Id))
+    .ToList();
+var expectedAttempts = logPublishingFailedJobs
+    .SelectMany(job => job.Attempts.Select(attempt => (
+        job.Name,
+        Attempt: attempt.Number,
+        attempt.RecordId)))
     .ToList();
 
 var attemptLogs = new Regex(@"^(.+) Attempt ([0-9]+) Logs$");
-var sourceBuildLogs = new Regex(@"^BuildLogs_SourceBuild_Managed_Attempt[0-9]+$");
+var sourceBuildLogs = new Regex(@"^BuildLogs_SourceBuild_Managed_Attempt([0-9]+)$");
 var allArtifacts = (await AdoGet($"artifact list of build {buildId}", $"{AdoApi}/build/builds/{buildId}/artifacts?api-version=7.1"))
     .At("value").Items()
-    .Select(artifact => (Node: artifact, Name: artifact.At("name").Text()))
+    .Select(artifact => (
+        Node: artifact,
+        Name: artifact.At("name").Text(),
+        Source: artifact.At("source").Text()))
     .Where(artifact => attemptLogs.IsMatch(artifact.Name) || sourceBuildLogs.IsMatch(artifact.Name))
     .ToList();
 
-bool MatchesJob(string jobName, string artifactName) => jobName switch
+bool MatchesAttempt(string jobName, int attempt, string recordId, string artifactName, string artifactSource)
 {
-    "Source-Build (Managed)" => sourceBuildLogs.IsMatch(artifactName),
-    "Correctness_Bootstrap_Build_Default" => attemptLogs.Match(artifactName).Groups[1].Value == "Correctness_Bootstrap_Build - Default",
-    _ => attemptLogs.Match(artifactName).Groups[1].Value == jobName,
-};
+    if (!recordId.Equals(artifactSource, StringComparison.OrdinalIgnoreCase))
+    {
+        return false;
+    }
 
-// A failed job that published logs but whose artifact cannot be found is
-// missing data, and it could be the one holding the root cause.
-var uncovered = expectedJobNames
-    .Where(jobName => !allArtifacts.Any(artifact => MatchesJob(jobName, artifact.Name)))
+    if (jobName == "Source-Build (Managed)")
+    {
+        var sourceMatch = sourceBuildLogs.Match(artifactName);
+        return sourceMatch.Success
+            && int.TryParse(sourceMatch.Groups[1].Value, out var sourceAttempt)
+            && sourceAttempt == attempt;
+    }
+
+    var match = attemptLogs.Match(artifactName);
+    var expectedName = jobName == "Correctness_Bootstrap_Build_Default"
+        ? "Correctness_Bootstrap_Build - Default"
+        : jobName;
+    return match.Success
+        && match.Groups[1].Value == expectedName
+        && int.TryParse(match.Groups[2].Value, out var artifactAttempt)
+        && artifactAttempt == attempt;
+}
+
+// A failed job attempt configured to publish logs but whose exact artifact
+// cannot be found is missing data, and it could be the one holding the cause.
+var uncovered = expectedAttempts
+    .Where(expected => !allArtifacts.Any(artifact => MatchesAttempt(
+        expected.Name, expected.Attempt, expected.RecordId, artifact.Name, artifact.Source)))
     .ToList();
 EmitNoneIf(uncovered.Count != 0,
-    $"Build {buildId} is missing the log artifact of {uncovered.Count} of {expectedJobNames.Count} failed jobs that published logs "
-        + $"({string.Join(", ", uncovered.Take(3).Select(Extractor.Sanitize))}); skipping incomplete failed-job data.");
+    $"Build {buildId} is missing the log artifact of {uncovered.Count} of {expectedAttempts.Count} failed job attempts configured to publish logs "
+        + $"({string.Join(", ", uncovered.Take(3).Select(expected => Extractor.Sanitize($"{expected.Name} Attempt {expected.Attempt}")))}); "
+        + "skipping incomplete failed-job data.");
 
-var selectedArtifacts = expectedJobNames
-    .SelectMany(jobName => allArtifacts.Where(artifact => MatchesJob(jobName, artifact.Name)))
+var selectedArtifacts = expectedAttempts
+    .SelectMany(expected => allArtifacts.Where(artifact => MatchesAttempt(
+        expected.Name, expected.Attempt, expected.RecordId, artifact.Name, artifact.Source)))
     .Where(artifact => artifact.Name.Trim().Length != 0)
     .DistinctBy(artifact => artifact.Name, StringComparer.Ordinal)
     .ToList();
 EmitNoneIf(selectedArtifacts.Count == 0,
     $"No build-log artifacts matched the failed or canceled jobs in build {buildId}; the failure is likely outside a build leg.");
-Console.WriteLine($"Selected {selectedArtifacts.Count} of {allArtifacts.Count} build-log artifacts for {expectedJobNames.Count} log-publishing jobs of {failedJobs.Count} failed or canceled.");
+Console.WriteLine(
+    $"Selected {selectedArtifacts.Count} of {allArtifacts.Count} build-log artifacts for "
+    + $"{expectedAttempts.Count} attempt(s) of {logPublishingFailedJobs.Count} log-publishing jobs among {failedJobs.Count} failed or canceled.");
 
 // --- 6. Download and extract each selected artifact ------------------------
 // Roslyn's `Correctness_Analyzers` log artifact is routinely ~600 MB, so the
@@ -254,11 +291,17 @@ var zipTmp = Path.Combine(zipDir, "artifact.zip");
 var count = 0;
 var stagedLegs = 0;
 var ai = 0;
-foreach (var (node, name) in selectedArtifacts)
+foreach (var (node, name, _) in selectedArtifacts)
 {
     ai++;
     // `name` is PR-controlled artifact metadata, so log a sanitized copy only.
     var safeName = Extractor.Sanitize(name);
+    if (remainingBytes <= 0)
+    {
+        Console.WriteLine($"::warning::Cumulative extracted-byte budget {MaxTotalBytes} is exhausted before {safeName}; stopping downloads.");
+        break;
+    }
+
     var url = node.At("resource", "downloadUrl").Text();
     if (url.Length == 0)
     {
@@ -401,6 +444,38 @@ void DeletePartials(int prefix)
     foreach (var partial in Directory.EnumerateFiles(binlogDir, $"{prefix}_*.binlog"))
     {
         TryDelete(partial);
+    }
+}
+
+static IReadOnlyList<(int Number, string RecordId)> GetJobAttempts(JsonNode? record)
+{
+    var attempts = new List<(int Number, string RecordId)>();
+    foreach (var previous in record.At("previousAttempts").Items())
+    {
+        if (!TryAdd(previous.At("attempt").Text(), previous.At("recordId").Text()))
+        {
+            return [];
+        }
+    }
+
+    if (!TryAdd(record.At("attempt").Text(), record.At("id").Text()))
+    {
+        return [];
+    }
+
+    return attempts.OrderBy(attempt => attempt.Number).ToList();
+
+    bool TryAdd(string numberText, string recordId)
+    {
+        if (!int.TryParse(numberText, out var number) || number <= 0 || recordId.Length == 0
+            || attempts.Any(attempt => attempt.Number == number
+                || attempt.RecordId.Equals(recordId, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        attempts.Add((number, recordId));
+        return true;
     }
 }
 

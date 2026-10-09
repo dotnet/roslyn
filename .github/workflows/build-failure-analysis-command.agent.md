@@ -8,7 +8,7 @@ description: >-
   `build-failure-analysis.agent.md`.
 
 on:
-  # fetch-binlog's `if:` requires the comment to start with the command.
+  # fetch-binlog's `if:` requires the exact command token.
   issue_comment:
     types: [created, edited]
   roles: [admin, maintainer, write]
@@ -24,10 +24,9 @@ permissions:
   pull-requests: read
 
 # Separate from the automatic workflow's group so neither cancels the other.
-# Commands for a PR queue rather than cancel; `queue: max` keeps a quoted
-# command from evicting a pending real one. Other comments get a unique group.
+# Commands for a PR queue rather than cancel. Other comments get a unique group.
 concurrency:
-  group: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, '/analyze-build-failure') && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) && format('build-failure-analysis-cmd-{0}', github.event.issue.number) || format('build-failure-analysis-cmd-run-{0}', github.run_id) }}
+  group: ${{ github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) && (github.event.comment.body == '/analyze-build-failure' || startsWith(github.event.comment.body, '/analyze-build-failure ') || startsWith(github.event.comment.body, format('/analyze-build-failure{0}', fromJSON('"\n"'))) || startsWith(github.event.comment.body, format('/analyze-build-failure{0}', fromJSON('"\r"')))) && format('build-failure-analysis-cmd-{0}', github.event.issue.number) || format('build-failure-analysis-cmd-run-{0}', github.run_id) }}
   cancel-in-progress: false
   queue: max
 
@@ -48,7 +47,10 @@ jobs:
       github.event.repository.fork == false &&
       github.event.issue.pull_request &&
       contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
-      startsWith(github.event.comment.body, '/analyze-build-failure')
+      (github.event.comment.body == '/analyze-build-failure' ||
+       startsWith(github.event.comment.body, '/analyze-build-failure ') ||
+       startsWith(github.event.comment.body, format('/analyze-build-failure{0}', fromJSON('"\n"'))) ||
+       startsWith(github.event.comment.body, format('/analyze-build-failure{0}', fromJSON('"\r"'))))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
