@@ -109,3 +109,8 @@ these use the corresponding Azure Pipelines environment variables.
 
 - `0` — All tests passed (or `--help` was shown)
 - `1` — Test failures, timeout, or invalid arguments
+
+If redirected output does not finish within 30 seconds after VSTest exits,
+RunTests reports an output-drain failure with the exit code and captured output,
+even when all tests passed. A descendant holding an inherited output handle can
+cause this failure; it is distinct from the global test timeout.
