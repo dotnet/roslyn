@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // specifiedValue might be a bitwise Or of multiple enum fields
                     // Is the current member included in the specified value?
-                    if ((memberValue & constantToDecode) == memberValue)
+                    if (memberValue != 0 && (memberValue & constantToDecode) == memberValue)
                     {
                         // update the current value
                         curValue = curValue | memberValue;
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // specifiedValue might be a bitwise Or of multiple enum fields
                     // Is the current member included in the specified value?
-                    if ((memberValue & constantToDecode) == memberValue)
+                    if (memberValue != 0 && (memberValue & constantToDecode) == memberValue)
                     {
                         // update the current value
                         curValue = curValue | memberValue;
