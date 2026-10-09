@@ -727,7 +727,7 @@ class Test
     async static Task M3(int*[] i) { await Task.Yield(); } // 3
     async static Task M4(delegate*<void>[] i) { await Task.Yield(); } // 4
 }";
-            CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14)
+            CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular15)
                 .VerifyDiagnostics(
                     // (6,45): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     unsafe async static Task M1(int*[] i) { await Task.Yield(); } // 1
@@ -1258,7 +1258,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (7,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         await Task.Factory.StartNew(() => { });  // not OK
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(7, 9),
@@ -1297,7 +1297,7 @@ class Test
         }
     }
 }";
-            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (8,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<System.Threading.Tasks.Task>'.
                 //         await Task.Factory.StartNew(() => { });
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await Task.Factory.StartNew(() => { })").WithArguments("System.Threading.Tasks.Task").WithLocation(8, 9),
@@ -1550,7 +1550,7 @@ class Test
                 source,
                 new MetadataReference[] { SystemRef, LinqAssemblyRef },
                 TestOptions.UnsafeReleaseDll,
-                parseOptions: TestOptions.Regular14);
+                parseOptions: TestOptions.Regular15);
 
             c.VerifyDiagnostics(
                 // (22,41): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.

@@ -37,7 +37,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stac
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[1]").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -67,7 +67,7 @@ IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc M[1]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc M[1]").WithLocation(8, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -98,7 +98,7 @@ IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc M[di
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc M[dimension]").WithLocation(9, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -128,7 +128,7 @@ IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc M[di
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc M[dimension]").WithLocation(8, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -161,7 +161,7 @@ IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc M[di
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc M[dimension]").WithLocation(8, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -194,7 +194,7 @@ IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc  ...
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc M[(int)dimension]").WithLocation(8, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -223,7 +223,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stac
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[] { 42 }").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -252,7 +252,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stac
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[1] { 42 }").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -340,7 +340,7 @@ IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc  ...
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc M[] { new M() }").WithLocation(8, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -374,7 +374,7 @@ IOperation:  (OperationKind.None, Type: M*, IsInvalid) (Syntax: 'stackalloc[] { 
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc[] { new M() }").WithLocation(8, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitStackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitStackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -476,7 +476,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stac
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc[] { 2, a, default }").WithLocation(7, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ImplicitStackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<ImplicitStackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -532,7 +532,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stac
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[] { 1 }").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -566,7 +566,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stac
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[b]").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             var expectedPreviewDiagnostics = new[]
             {
                 // (6,42): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
@@ -605,7 +605,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stac
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[M()]").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -641,7 +641,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stac
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[(int)M()]").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             CreateCompilation(source).VerifyDiagnostics();
             CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
         }
@@ -741,7 +741,7 @@ IOperation:  (OperationKind.None, Type: System.Int32*, IsInvalid) (Syntax: 'stac
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int[0.0]").WithLocation(6, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular14);
+            VerifyOperationTreeAndDiagnosticsForTest<StackAllocArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, parseOptions: TestOptions.Regular15);
             var expectedPreviewDiagnostics = new[]
             {
                 // (6,42): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)

@@ -1100,7 +1100,7 @@ interface IB<T>
         where U : T*
         where V : T[];
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (2,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
                 //     where U : T*
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(2, 15),
@@ -4060,7 +4060,7 @@ class Program
 }
 ";
             // note: ErrorCode.ManagedAddr not given for Test1* because the base type after binding is considered to be System.Object
-            CreateCompilation(test, parseOptions: TestOptions.Regular14).GetDeclarationDiagnostics().Verify(
+            CreateCompilation(test, parseOptions: TestOptions.Regular15).GetDeclarationDiagnostics().Verify(
                 // (6,15): error CS1521: Invalid base type
                 // class Test3 : Test1*    // CS1521
                 Diagnostic(ErrorCode.ERR_BadBaseType, "Test1*").WithLocation(6, 15),
