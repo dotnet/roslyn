@@ -938,11 +938,29 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         internal LspWorkspaceManager GetManager() => GetRequiredLspService<LspWorkspaceManager>();
 
+        internal async Task<LspWorkspaceContext?> CaptureLspDocumentContextAsync(LSP.TextDocumentIdentifier identifier, CancellationToken cancellationToken = default)
+        {
+            var manager = GetManager();
+            var capturedContext = await manager.CaptureLspDocumentContextAsync(
+                identifier, manager.GetTrackedDocuments(), allowProjectLoading: false, cancellationToken).ConfigureAwait(false);
+            return capturedContext is null ? null : await capturedContext.ResolveAsync().ConfigureAwait(false);
+        }
+
+        internal async Task<LspWorkspaceContext?> CaptureLspSolutionContextAsync(CancellationToken cancellationToken = default)
+        {
+            var manager = GetManager();
+            var capturedContext = await manager.CaptureLspWorkspaceContextAsync(
+                manager.GetTrackedDocuments(), allowProjectLoading: false, cancellationToken).ConfigureAwait(false);
+            return capturedContext is null ? null : await capturedContext.ResolveAsync().ConfigureAwait(false);
+        }
+
         internal AbstractLanguageServer<RequestContext>.TestAccessor GetServerAccessor() => _languageServer.Value.GetTestAccessor();
+
+        internal ILspServices GetLspServices() => _languageServer.Value.GetLspServices();
 
         internal T GetRequiredLspService<T>() where T : class => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
 
-        internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.SourceText)];
+        internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedDocuments().Values.Select(v => v.SourceText)];
 
         internal async ValueTask RunCodeAnalysisAsync(ProjectId? projectId)
         {

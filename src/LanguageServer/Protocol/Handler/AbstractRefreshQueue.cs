@@ -105,7 +105,7 @@ internal abstract class AbstractRefreshQueue :
         ImmutableSegmentedList<DocumentUri?> documentUris,
         CancellationToken cancellationToken)
     {
-        var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
+        var trackedDocuments = lspWorkspaceManager.GetTrackedDocuments();
         foreach (var documentUri in documentUris)
         {
             if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))

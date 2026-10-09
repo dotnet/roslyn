@@ -5,14 +5,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
@@ -47,103 +46,14 @@ internal readonly struct RequestContext
     private readonly ILspServices _lspServices;
 
     /// <summary>
-    /// Provides backing storage for the LSP workspace used by this RequestContext instance, allowing it to be cleared
-    /// on demand from all copies that may exist of this value type.
+    /// Shared by all copies of this value type so clearing the solution context releases their captured workspace state.
     /// </summary>
     /// <remarks>
     /// This field is only initialized for handlers that request solution context.
     /// </remarks>
-    private readonly StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>? _lspSolution;
+    private readonly CapturedLspWorkspaceContext? _capturedWorkspaceContext;
 
     public ILspLogger Logger { get; }
-
-    /// <summary>
-    /// The workspace this request is for, if applicable.  This will be present if <see cref="Document"/> is
-    /// present.  It will be <see langword="null"/> if <c>requiresLSPSolution</c> is false.
-    /// </summary>
-    public Workspace? Workspace
-    {
-        get
-        {
-            if (_lspSolution is null)
-            {
-                // This request context never had a workspace instance
-                return null;
-            }
-
-            // The workspace is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
-            // for attempts to access this property after it has been manually cleared.
-            return _lspSolution.Value.Workspace ?? throw new InvalidOperationException();
-        }
-    }
-
-    /// <summary>
-    /// The solution state that the request should operate on, if the handler requires an LSP solution, or <see langword="null"/> otherwise
-    /// </summary>
-    public Solution? Solution
-    {
-        get
-        {
-            if (_lspSolution is null)
-            {
-                // This request context never had a solution instance
-                return null;
-            }
-
-            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
-            // for attempts to access this property after it has been manually cleared.
-            return _lspSolution.Value.Solution ?? throw new InvalidOperationException();
-        }
-    }
-
-    /// <summary>
-    /// The document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
-    /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
-    /// </summary>
-    public Document? Document
-    {
-        get
-        {
-            if (this.TextDocument is null)
-            {
-                return null;
-            }
-
-            if (this.TextDocument is Document document)
-            {
-                return document;
-            }
-
-            // Explicitly throw for attempts to get a Document when only a TextDocument is available.
-            throw new InvalidOperationException("Attempted to retrieve a Document but a TextDocument was found instead.");
-        }
-    }
-
-    /// <summary>
-    /// The text document that the request is for, if applicable. This comes from the <see cref="TextDocumentIdentifier"/> returned from the handler itself via a call to 
-    /// <see cref="ITextDocumentIdentifierHandler{RequestType, TextDocumentIdentifierType}.GetTextDocumentIdentifier(RequestType)"/>.
-    /// </summary>
-    public TextDocument? TextDocument
-    {
-        get
-        {
-            if (_lspSolution is null)
-            {
-                // This request context never had a solution instance
-                return null;
-            }
-
-            // The solution is available unless it has been cleared by a call to ClearSolutionContext. Explicitly throw
-            // for attempts to access this property after it has been manually cleared. Note that we can't rely on
-            // Document being null for this check, because it is not always provided as part of the solution context.
-            if (_lspSolution.Value.Workspace is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return _lspSolution.Value.Document;
-        }
-    }
 
     /// <summary>
     /// The LSP server handling the request.
@@ -163,30 +73,18 @@ internal readonly struct RequestContext
     public readonly CancellationToken QueueCancellationToken;
 
     public RequestContext(
-        Workspace? workspace,
-        Solution? solution,
+        CapturedLspWorkspaceContext? capturedWorkspaceContext,
         ILspLogger logger,
         string method,
         ClientCapabilities? clientCapabilities,
         WellKnownLspServerKinds serverKind,
-        TextDocument? document,
         IDocumentChangeTracker documentChangeTracker,
         ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
         ImmutableArray<string> supportedLanguages,
         ILspServices lspServices,
         CancellationToken queueCancellationToken)
     {
-        if (workspace is not null)
-        {
-            RoslynDebug.Assert(solution is not null);
-            _lspSolution = new StrongBox<(Workspace Workspace, Solution Solution, TextDocument? Document)>((workspace, solution, document));
-        }
-        else
-        {
-            RoslynDebug.Assert(solution is null);
-            RoslynDebug.Assert(document is null);
-            _lspSolution = null;
-        }
+        _capturedWorkspaceContext = capturedWorkspaceContext;
 
         _clientCapabilities = clientCapabilities;
         ServerKind = serverKind;
@@ -206,63 +104,40 @@ internal readonly struct RequestContext
             : _clientCapabilities;
     }
 
-#pragma warning disable IDE0060 // Remove unused parameter
-    public ValueTask<Workspace?> GetWorkspaceAsync(CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-        => ValueTask.FromResult(Workspace);
+    public async ValueTask<Workspace> GetRequiredWorkspaceAsync(CancellationToken cancellationToken)
+        => (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Workspace;
 
-#pragma warning disable IDE0060 // Remove unused parameter
-    public ValueTask<Workspace> GetRequiredWorkspaceAsync(CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-        => ValueTask.FromResult(Workspace
-            ?? throw new InvalidOperationException($"{nameof(Workspace)} is null when it was required for {Method}"));
+    public async ValueTask<Solution> GetRequiredSolutionAsync(CancellationToken cancellationToken)
+        => (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Solution;
 
-#pragma warning disable IDE0060 // Remove unused parameter
-    public ValueTask<Solution?> GetSolutionAsync(CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-        => ValueTask.FromResult(Solution);
+    public async ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
+        => (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Document;
 
-#pragma warning disable IDE0060 // Remove unused parameter
-    public ValueTask<Solution> GetRequiredSolutionAsync(CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-        => ValueTask.FromResult(Solution
-            ?? throw new InvalidOperationException($"{nameof(Solution)} is null when it was required for {Method}"));
+    private Task<LspWorkspaceContext> GetRequiredWorkspaceContextAsync()
+        => _capturedWorkspaceContext?.ResolveAsync() ?? throw new InvalidOperationException("Workspace context was not requested.");
 
-#pragma warning disable IDE0060 // Remove unused parameter
-    public ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-        => ValueTask.FromResult(TextDocument);
-
-#pragma warning disable IDE0060 // Remove unused parameter
-    public ValueTask<TextDocument> GetRequiredTextDocumentAsync(CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-        => ValueTask.FromResult(TextDocument
-            ?? throw new InvalidOperationException($"{nameof(TextDocument)} is null when it was required for {Method}"));
-
-#pragma warning disable IDE0060 // Remove unused parameter
-    public ValueTask<Document?> GetDocumentAsync(CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-        => ValueTask.FromResult(Document);
-
-#pragma warning disable IDE0060 // Remove unused parameter
-    public ValueTask<Document> GetRequiredDocumentAsync(CancellationToken cancellationToken)
-#pragma warning restore IDE0060 // Remove unused parameter
-        => ValueTask.FromResult(Document
-            ?? throw new InvalidOperationException($"{nameof(Document)} is null when it was required for {Method}"));
-
-    public Document GetRequiredDocument()
+    public void ClearSolutionContext()
     {
-        return Document is null
-            ? throw new ArgumentNullException($"{nameof(Document)} is null when it was required for {Method}")
-            : Document;
+        _capturedWorkspaceContext?.Clear();
     }
 
-    public TextDocument GetRequiredTextDocument()
+    public async ValueTask<TextDocument> GetRequiredTextDocumentAsync(CancellationToken cancellationToken)
+        => await GetTextDocumentAsync(cancellationToken).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"TextDocument is null when it was required for {Method}");
+
+    public async ValueTask<Document?> GetDocumentAsync(CancellationToken cancellationToken)
     {
-        return TextDocument is null
-            ? throw new ArgumentNullException($"{nameof(TextDocument)} is null when it was required for {Method}")
-            : TextDocument;
+        return (await GetTextDocumentAsync(cancellationToken).ConfigureAwait(false)) switch
+        {
+            null => null,
+            Document document => document,
+            _ => throw new InvalidOperationException("Attempted to retrieve a Document but a TextDocument was found instead."),
+        };
     }
+
+    public async ValueTask<Document> GetRequiredDocumentAsync(CancellationToken cancellationToken)
+        => await GetDocumentAsync(cancellationToken).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"Document is null when it was required for {Method}");
 
     public static async Task<RequestContext> CreateAsync(
         bool mutatesSolutionState,
@@ -281,62 +156,51 @@ internal readonly struct RequestContext
 
         // Retrieve the current LSP tracked text as of this request.
         // This is safe as all creation of request contexts cannot happen concurrently.
-        var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
+        var trackedDocuments = lspWorkspaceManager.GetTrackedDocuments();
 
         // If the handler doesn't need an LSP solution we do two important things:
         // 1. We don't bother building the LSP solution for perf reasons
         // 2. We explicitly don't give the handler a solution or document, even if we could
         //    so they're not accidentally operating on stale solution state.
-        RequestContext context;
-        if (!requiresLSPSolution)
+        CapturedLspWorkspaceContext? capturedWorkspaceContext = null;
+
+        if (requiresLSPSolution)
         {
-            context = new RequestContext(
-                workspace: null, solution: null, logger: logger, method: method, clientCapabilities: clientCapabilities, serverKind: serverKind, document: null,
-                documentChangeTracker: documentChangeTracker, trackedDocuments: trackedDocuments, supportedLanguages: supportedLanguages, lspServices: lspServices,
-                queueCancellationToken: cancellationToken);
-        }
-        else
-        {
-            Workspace? workspace = null;
-            Solution? solution = null;
-            TextDocument? document = null;
-            if (textDocument is not null)
+            var allowProjectLoading = !mutatesSolutionState;
+            capturedWorkspaceContext = textDocument is null
+                ? await lspWorkspaceManager.CaptureLspWorkspaceContextAsync(
+                    trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false)
+                : await lspWorkspaceManager.CaptureLspDocumentContextAsync(
+                    textDocument, trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false);
+
+            // A client may request previous results after a document is removed and closed. The document is no
+            // longer tracked or available in a workspace, but the handler still needs a solution to clear its results.
+            // SpellCheckHandler for instance may need to clear diagnostics for a document that has been closed.
+            if (textDocument is not null && capturedWorkspaceContext is null)
             {
-                // we were given a request associated with a document.  Find the corresponding roslyn document for this.
-                // There are certain cases where we may be asked for a document that does not exist (for example a
-                // document is removed) For example, document pull diagnostics can ask us after removal to clear
-                // diagnostics for a document.
-                (workspace, solution, document) = await lspWorkspaceManager.GetLspDocumentInfoAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                capturedWorkspaceContext = await lspWorkspaceManager.CaptureLspWorkspaceContextAsync(
+                    trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false);
             }
 
-            if (workspace is null)
-            {
-                (workspace, solution) = await lspWorkspaceManager.GetLspSolutionInfoAsync(cancellationToken).ConfigureAwait(false);
-            }
-
-            if (workspace is null || solution is null)
+            if (capturedWorkspaceContext is null)
             {
                 logger.LogError($"Could not find appropriate workspace or solution on {method}");
                 FatalError.ReportWithDumpAndCatch(new Exception(
                     $"Could not find appropriate workspace or solution on {method}"), ErrorSeverity.Critical);
             }
-
-            context = new RequestContext(
-                workspace,
-                solution,
-                logger,
-                method,
-                clientCapabilities,
-                serverKind,
-                document,
-                documentChangeTracker,
-                trackedDocuments,
-                supportedLanguages,
-                lspServices,
-                cancellationToken);
         }
 
-        return context;
+        return new RequestContext(
+            capturedWorkspaceContext,
+            logger,
+            method,
+            clientCapabilities,
+            serverKind,
+            documentChangeTracker,
+            trackedDocuments,
+            supportedLanguages,
+            lspServices,
+            cancellationToken);
     }
 
     /// <summary>
@@ -369,20 +233,9 @@ internal readonly struct RequestContext
     public bool IsTracking(DocumentUri documentUri)
         => _trackedDocuments.ContainsKey(documentUri);
 
-    public void ClearSolutionContext()
-    {
-        if (_lspSolution is null)
-            return;
-
-        _lspSolution.Value = default;
-    }
-
     public void TraceDebug(string message)
         => Logger.LogDebug(message);
 
-    /// <summary>
-    /// Logs an informational message.
-    /// </summary>
     public void TraceInformation(string message)
         => Logger.LogInformation(message);
 
@@ -396,22 +249,14 @@ internal readonly struct RequestContext
         => Logger.LogException(exception);
 
     public T GetRequiredLspService<T>() where T : class, ILspService
-    {
-        return _lspServices.GetRequiredService<T>();
-    }
+        => _lspServices.GetRequiredService<T>();
 
     public T GetRequiredService<T>() where T : class
-    {
-        return _lspServices.GetRequiredService<T>();
-    }
+        => _lspServices.GetRequiredService<T>();
 
     public IEnumerable<T> GetRequiredServices<T>() where T : class
-    {
-        return _lspServices.GetRequiredServices<T>();
-    }
+        => _lspServices.GetRequiredServices<T>();
 
     public T? GetService<T>() where T : class, ILspService
-    {
-        return _lspServices.GetService<T>();
-    }
+        => _lspServices.GetService<T>();
 }

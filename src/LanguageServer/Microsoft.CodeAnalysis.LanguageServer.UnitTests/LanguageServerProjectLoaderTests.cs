@@ -23,6 +23,7 @@ using Roslyn.Utilities;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
+using ProjectFileReference = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileReference;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -309,7 +310,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
         var (firstLoadedProject, firstDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(firstProjectPath);
         await firstDesignTimeBuild.Started.Task;
-        var allLoads = loader.WaitForAllProjectLoadsAsync(CancellationToken.None);
+        var allLoads = loader.WaitForCurrentProjectLoadsAsync(CancellationToken.None);
         var (secondLoadedProject, secondDesignTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(secondProjectPath);
 
         Assert.False(allLoads.IsCompleted);
@@ -454,6 +455,9 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
             return designTimeBuild;
         }
 
+        public Task<LoadedProject> BeginLoadingProjectAsync(string projectPath)
+            => base.BeginLoadingProjectAsync(projectPath, ProjectReloadPriority.Medium);
+
         public async Task<(LoadedProject LoadedProject, ExpectedDesignTimeBuild DesignTimeBuild)> ExpectDesignTimeBuildAndBeginLoadingProjectAsync(string projectPath)
         {
             var designTimeBuild = ExpectDesignTimeBuild(projectPath);
@@ -506,10 +510,16 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<LanguageServerProjectLoader.RemoteProjectLoadResult?> Result { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public void CompleteSuccessfully(ProjectSystemProjectFactory projectFactory, string projectPath, string? targetFramework = null)
+        public void CompleteSuccessfully(
+            ProjectSystemProjectFactory projectFactory, string projectPath, string? targetFramework = null, string[]? projectReferences = null)
             => Result.SetResult(new()
             {
-                ProjectFileInfos = [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with { CommandLineArgs = ["/target:library"], TargetFramework = targetFramework }],
+                ProjectFileInfos = [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+                {
+                    CommandLineArgs = ["/target:library"],
+                    TargetFramework = targetFramework,
+                    ProjectReferences = projectReferences is null ? [] : [.. projectReferences.Select(path => new ProjectFileReference(path, [], referenceOutputAssembly: true))],
+                }],
                 DiagnosticLogItems = [],
                 ProjectRestorePath = projectPath,
                 ProjectFactory = projectFactory,

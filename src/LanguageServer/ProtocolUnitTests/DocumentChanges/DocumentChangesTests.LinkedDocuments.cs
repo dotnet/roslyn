@@ -104,7 +104,7 @@ public sealed partial class DocumentChangesTests
 
     private static async Task<Solution> GetLSPSolutionAsync(TestLspServer testLspServer, DocumentUri uri)
     {
-        var (_, _, lspDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(new TextDocumentIdentifier { DocumentUri = uri }, CancellationToken.None).ConfigureAwait(false);
+        var lspDocument = (await testLspServer.CaptureLspDocumentContextAsync(new TextDocumentIdentifier { DocumentUri = uri }).ConfigureAwait(false))?.Document;
         Contract.ThrowIfNull(lspDocument);
         return lspDocument.Project.Solution;
     }
