@@ -17714,6 +17714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundKind.CollectionBuilderElementsPlaceholder => PipelinePhase.LocalRewriting,
                 BoundKind.TypeOrValueExpression => PipelinePhase.InitialBinding,
                 BoundKind.UnconvertedAddressOfOperator => PipelinePhase.InitialBinding,
+                BoundKind.PointerElementAccess => PipelinePhase.LocalRewriting,
                 BoundKind.UnconvertedConditionalOperator => PipelinePhase.InitialBinding,
                 BoundKind.AwaitableInfo => PipelinePhase.StateMachineRewriting,
                 BoundKind.AwaitExpression => PipelinePhase.StateMachineRewriting,

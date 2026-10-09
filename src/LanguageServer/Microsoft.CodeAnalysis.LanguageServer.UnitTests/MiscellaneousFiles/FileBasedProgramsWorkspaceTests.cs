@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+extern alias MSBuildWorkspacesContracts;
+
 using System.Collections.Immutable;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
@@ -17,11 +20,14 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.Logging.Abstractions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
+using DocumentFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo;
+using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 
@@ -475,6 +481,40 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         // No errors for '#:' are expected.
         var canonicalSyntaxTree = await canonicalDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
         Assert.Empty(canonicalSyntaxTree.GetDiagnostics(CancellationToken.None));
+    }
+
+    /// <summary>
+    /// Project loading adds non-file documents as virtual documents, but must not open them: LSP is responsible for opening them.
+    /// </summary>
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9846")]
+    public async Task TestLoadedProjectDoesNotOpenNonFileDocuments()
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
+        var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var projectFactory = workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory;
+        var documentPath = """git:/repo/Test.cs?{"path":"/repo/Test.cs","ref":"~"}""";
+        var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, Path.Combine(TempRoot.Root, "Canonical.csproj")) with
+        {
+            CommandLineArgs = ["/target:library"],
+            Documents = [new DocumentFileInfo(documentPath, "Test.cs", isLinked: false, isGenerated: false, folders: [])],
+        };
+        await using var loadedProject = new LoadedProject(documentPath, projectFactory.FileChangeWatcher);
+
+        Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
+            [projectInfo],
+            isMiscellaneousFile: true,
+            hasAllInformation: false,
+            projectFactory,
+            testLspServer.GetRequiredLspService<ProjectTargetFrameworkManager>(),
+            testLspServer.GetRequiredLspService<ProjectCapabilityManager>(),
+            workspaceFactory,
+            NullLogger.Instance,
+            CancellationToken.None));
+
+        var workspace = projectFactory.Workspace;
+        var document = Assert.Single(Assert.Single(workspace.CurrentSolution.Projects).Documents);
+        Assert.Equal(documentPath, document.FilePath);
+        Assert.False(workspace.IsDocumentOpen(document.Id));
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/81644")]

@@ -1144,9 +1144,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 // Accessing a volatile field is sideeffecting because it establishes an acquire fence.
                 // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
-                if (!field.IsVolatile && !field.IsStatic && fieldAccess.ReceiverOpt.Type.IsVerifierValue() && field.RefKind == RefKind.None)
+                BoundExpression receiver;
+                if (!field.IsVolatile && !field.IsStatic && (receiver = fieldAccess.ReceiverOpt).Type.IsVerifierValue() && field.RefKind == RefKind.None &&
+                    (receiver is BoundPointerIndirectionOperator pointerIndirection ?
+                         !pointerIndirection.RefersToLocation :
+                         (!IsRef(receiver) || isDereferencedWhenEmittedAsNotUsedExpression(receiver))))
                 {
-                    EmitExpression(fieldAccess.ReceiverOpt, used: false);
+                    EmitExpression(receiver, used: false);
                     return;
                 }
             }
@@ -1162,6 +1166,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitPopIfUnused(used);
+
+            static bool isDereferencedWhenEmittedAsNotUsedExpression(BoundExpression receiver)
+            {
+                switch (receiver.Kind)
+                {
+                    case BoundKind.Local:
+                    case BoundKind.Parameter:
+                    case BoundKind.FieldAccess:
+                    case BoundKind.RefValueOperator:
+                    case BoundKind.Dup:
+                        return true;
+
+                    case BoundKind.Call:
+                    case BoundKind.FunctionPointerInvocation:
+                    case BoundKind.RefAccess:
+                    case BoundKind.AssignmentOperator:
+                    case BoundKind.ConditionalOperator: // We could check both branches, but the IL is shorter this way because we have a single load field instruction instead of indirect load on each branch.
+                        return false;
+
+                    case BoundKind.Sequence:
+                        {
+                            var result = isDereferencedWhenEmittedAsNotUsedExpression(((BoundSequence)receiver).Value);
+                            Debug.Assert(!result, "No test coverage for this scenario.");
+                            return result;
+                        }
+
+                    default:
+                        // It should always be safe to return false here, but still it would be good to decide explicitly for any new node that comes through here.
+                        ExceptionUtilities.UnexpectedValue(receiver);
+                        return false;
+                }
+            }
         }
 
         private void EmitFieldLoadNoIndirection(BoundFieldAccess fieldAccess, bool used)
@@ -1194,7 +1230,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     var temp = EmitFieldLoadReceiver(receiver);
                     if (temp != null)
                     {
-                        Debug.Assert(FieldLoadMustUseRef(receiver), "only clr-ambiguous structs use temps here");
                         FreeTemp(temp);
                     }
 
