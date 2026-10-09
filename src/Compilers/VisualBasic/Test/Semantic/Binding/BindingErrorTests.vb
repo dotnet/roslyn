@@ -13255,7 +13255,7 @@ BC42361: Cannot convert 'IEnumerableOfXElement' to 'String'. You can use the 'Va
 BC42361: Cannot convert 'IEnumerable(Of X)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of X)'.
         o = _8
             ~~
-BC42361: Cannot convert 'IEnumerable(Of T As XElement)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of T As XElement)'.
+BC42361: Cannot convert 'IEnumerable(Of T)' to 'String'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of T)'.
         o = _9
             ~~
 ]]></errors>)
@@ -13401,7 +13401,7 @@ BC31194: Value of type 'IEnumerableOfXElement' cannot be converted to 'S'. You c
 BC31194: Value of type 'IEnumerable(Of X)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of X)'.
         o = _8
             ~~
-BC31194: Value of type 'IEnumerable(Of T As XElement)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of T As XElement)'.
+BC31194: Value of type 'IEnumerable(Of T)' cannot be converted to 'S'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of T)'.
         o = _9
             ~~
 ]]></errors>)
@@ -13485,7 +13485,7 @@ BC31195: Operator '=' is not defined for types 'IEnumerableOfXElement' and 'C'. 
 BC31195: Operator '=' is not defined for types 'IEnumerable(Of X)' and 'C'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of X)'.
         b = (_8 = o)
              ~~~~~~
-BC31195: Operator '=' is not defined for types 'IEnumerable(Of T As XElement)' and 'C'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of T As XElement)'.
+BC31195: Operator '=' is not defined for types 'IEnumerable(Of T)' and 'C'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of T)'.
         b = (_9 = o)
              ~~~~~~
 BC31195: Operator '=' is not defined for types 'XElement' and 'IEnumerable(Of XElement)'. You can use the 'Value' property to get the string value of the first element of 'IEnumerable(Of XElement)'.
@@ -13512,7 +13512,7 @@ BC31080: Operator '=' is not defined for types 'IEnumerable(Of XElement)' and 'I
 BC31080: Operator '=' is not defined for types 'IEnumerable(Of XElement)' and 'IEnumerable(Of X)'. Use 'Is' operator to compare two reference types.
         b = (_2 = _8)
              ~~~~~~~
-BC31080: Operator '=' is not defined for types 'IEnumerable(Of XElement)' and 'IEnumerable(Of T As XElement)'. Use 'Is' operator to compare two reference types.
+BC31080: Operator '=' is not defined for types 'IEnumerable(Of XElement)' and 'IEnumerable(Of T)'. Use 'Is' operator to compare two reference types.
         b = (_2 = _9)
              ~~~~~~~
 ]]></errors>)
@@ -17640,7 +17640,7 @@ End Class
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T As Structure, S As Structure)(x As T, f As Func(Of T?, S?))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
+BC36645: Data type(s) of the type parameter(s) in method 'Public Sub Foo(Of T, S)(x As T, f As Func(Of T?, S?))' cannot be inferred from these arguments. Specifying the data type(s) explicitly might correct this error.
         Foo(1, AddressOf o.Bar)
         ~~~
 BC30002: Type 'IQueryable' is not defined.
@@ -17993,7 +17993,7 @@ End Module
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC36754: 'Variance(Of Short)' cannot be converted to 'IVariance(Of Double)' because 'Short' is not derived from 'Double', as required for the 'Out' generic parameter 'T' in 'Interface IVariance(Of Out T)'.
+BC36754: 'Variance(Of Short)' cannot be converted to 'IVariance(Of Double)' because 'Short' is not derived from 'Double', as required for the 'Out' generic parameter 'T' in 'Interface IVariance(Of T)'.
             Dim x As IVariance(Of Double) = New Variance(Of Short)
                                             ~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
@@ -18022,7 +18022,7 @@ BC36754: 'Variance(Of Short)' cannot be converted to 'IVariance(Of Double)' beca
     </compilation>)
             CompilationUtils.AssertTheseDiagnostics(compilation,
     <expected>
-BC36755: 'Variance(Of Double)' cannot be converted to 'IVariance2(Of Short)' because 'Short' is not derived from 'Double', as required for the 'In' generic parameter 'T' in 'Interface IVariance2(Of In T)'.
+BC36755: 'Variance(Of Double)' cannot be converted to 'IVariance2(Of Short)' because 'Short' is not derived from 'Double', as required for the 'In' generic parameter 'T' in 'Interface IVariance2(Of T)'.
             Dim x As IVariance2(Of Short) = New Variance(Of Double)
                                             ~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)

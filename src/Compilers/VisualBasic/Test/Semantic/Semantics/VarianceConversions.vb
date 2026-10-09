@@ -419,199 +419,199 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x1 = x3
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x1 = x4
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x1 = x5
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x1 = x6
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x1 = x7
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x1 = x8
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x1 = x9
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x2 = x1
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x2 = x3
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x2 = x4
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x2 = x5
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x2 = x6
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x2 = x7
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x2 = x8
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x2 = x9
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x3 = x5
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x3 = x6
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Derived, Module1.Base)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Derived, Module1.Base)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x3 = x7
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Base)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Base)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x3 = x8
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x3 = x9
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x4 = x1
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x4 = x3
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x4 = x5
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x4 = x6
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x4 = x7
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x4 = x8
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x4 = x9
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x5 = x1
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x5 = x2
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x5 = x3
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x5 = x4
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x5 = x6
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x5 = x7
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x5 = x8
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Base, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x5 = x9
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x6 = x1
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Derived)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Derived)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x6 = x2
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x6 = x3
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x6 = x4
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x6 = x7
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x6 = x8
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Derived, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x6 = x9
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x7 = x1
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x7 = x2
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x7 = x3
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x7 = x4
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x7 = x5
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x7 = x6
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x7 = x8
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Derived)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x7 = x9
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x8 = x1
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x8 = x2
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x8 = x3
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x8 = x4
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x8 = x5
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x8 = x6
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Base)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x8 = x9
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x9 = x1
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x9 = x2
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x9 = x3
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x9 = x4
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Base, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Base', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x9 = x5
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Derived, Module1.Unrelated)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Unrelated' is not derived from 'Module1.Derived', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T, S)'.
         x9 = x6
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Derived)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Derived' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x9 = x7
              ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of In T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.Unrelated, Module1.Base)' to 'Module1.I123(Of Module1.Unrelated, Module1.Unrelated)'; this conversion may fail because 'Module1.Base' is not derived from 'Module1.Unrelated', as required for the 'Out' generic parameter 'S' in 'Interface I123(Of T, S)'.
         x9 = x8
              ~~
 </expected>)
@@ -756,22 +756,22 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of Module1.S1)'; this conversion may fail because 'Module1.S1' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of Module1.S1)'; this conversion may fail because 'Module1.S1' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
         Dim x3 As I123(Of S1) = i3
                                 ~~
-BC42016: Implicit conversion from 'Module1.I124(Of Module1.S1)' to 'Module1.I124(Of Object)'; this conversion may fail because 'Module1.S1' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.I124(Of Module1.S1)' to 'Module1.I124(Of Object)'; this conversion may fail because 'Module1.S1' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of T)'.
         Dim x4 As I124(Of Object) = i4
                                     ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of V As Module1.S1)'; this conversion may fail because 'V' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of V)'; this conversion may fail because 'V' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
             Dim x3 As I123(Of V) = i3
                                    ~~
-BC42016: Implicit conversion from 'Module1.I124(Of V As Module1.S1)' to 'Module1.I124(Of Object)'; this conversion may fail because 'V' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.I124(Of V)' to 'Module1.I124(Of Object)'; this conversion may fail because 'V' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of T)'.
             Dim x4 As I124(Of Object) = i4
                                         ~~
-BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of V2 As Module1.S1?)'; this conversion may fail because 'V2' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Object)' to 'Module1.I123(Of V2)'; this conversion may fail because 'V2' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
             Dim x3 As I123(Of V2) = i3
                                     ~~
-BC42016: Implicit conversion from 'Module1.I124(Of V2 As Module1.S1?)' to 'Module1.I124(Of Object)'; this conversion may fail because 'V2' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.I124(Of V2)' to 'Module1.I124(Of Object)'; this conversion may fail because 'V2' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of T)'.
             Dim x4 As I124(Of Object) = i4
                                         ~~
 </expected>)
@@ -780,22 +780,22 @@ BC42016: Implicit conversion from 'Module1.I124(Of V2 As Module1.S1?)' to 'Modul
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of Module1.S1)' because 'Module1.S1' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of Module1.S1)' because 'Module1.S1' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
         Dim x3 As I123(Of S1) = i3
                                 ~~
-BC36754: 'Module1.I124(Of Module1.S1)' cannot be converted to 'Module1.I124(Of Object)' because 'Module1.S1' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC36754: 'Module1.I124(Of Module1.S1)' cannot be converted to 'Module1.I124(Of Object)' because 'Module1.S1' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of T)'.
         Dim x4 As I124(Of Object) = i4
                                     ~~
-BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of V As Module1.S1)' because 'V' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of V)' because 'V' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
             Dim x3 As I123(Of V) = i3
                                    ~~
-BC36754: 'Module1.I124(Of V As Module1.S1)' cannot be converted to 'Module1.I124(Of Object)' because 'V' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC36754: 'Module1.I124(Of V)' cannot be converted to 'Module1.I124(Of Object)' because 'V' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of T)'.
             Dim x4 As I124(Of Object) = i4
                                         ~~
-BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of V2 As Module1.S1?)' because 'V2' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC36755: 'Module1.I123(Of Object)' cannot be converted to 'Module1.I123(Of V2)' because 'V2' is not derived from 'Object', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
             Dim x3 As I123(Of V2) = i3
                                     ~~
-BC36754: 'Module1.I124(Of V2 As Module1.S1?)' cannot be converted to 'Module1.I124(Of Object)' because 'V2' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC36754: 'Module1.I124(Of V2)' cannot be converted to 'Module1.I124(Of Object)' because 'V2' is not derived from 'Object', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of T)'.
             Dim x4 As I124(Of Object) = i4
                                         ~~
 </expected>)
@@ -884,10 +884,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.e1())' to 'Module1.I123(Of Integer())'; this conversion may fail because 'Integer()' is not derived from 'Module1.e1()', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.e1())' to 'Module1.I123(Of Integer())'; this conversion may fail because 'Integer()' is not derived from 'Module1.e1()', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
         Dim i2 As I123(Of Integer()) = i1
                                        ~~
-BC42016: Implicit conversion from 'Module1.I124(Of Integer())' to 'Module1.I124(Of Module1.e1())'; this conversion may fail because 'Integer()' is not derived from 'Module1.e1()', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.I124(Of Integer())' to 'Module1.I124(Of Module1.e1())'; this conversion may fail because 'Integer()' is not derived from 'Module1.e1()', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of T)'.
         i3 = i4
              ~~
 BC30456: 'Goo1' is not a member of 'Module1.I123(Of Integer())'.
@@ -992,43 +992,43 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B1), I123(Of B3)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B2), I123(Of B3), I123(Of B1)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B2), I123(Of B3), I123(Of B1)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B2), I123(Of B3), I123(Of B1)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B2), I123(Of B1)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B2), I123(Of B1)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B2), I123(Of B1)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1), I123(Of B2)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1), I123(Of B2)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1), I123(Of B2)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B1), I123(Of B2)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B2), I123(Of B3)
                                 ~~~~~~~~~~~
 BC42016: Conversion from 'Module1.B4' to 'Module1.I123(Of Module1.B2)' may be ambiguous.
@@ -1049,43 +1049,43 @@ BC42016: Conversion from 'Module1.B10' to 'Module1.I123(Of Module1.B1)' may be a
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B1), I123(Of B3)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B2), I123(Of B3), I123(Of B1)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B2), I123(Of B3), I123(Of B1)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B2), I123(Of B3), I123(Of B1)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B2), I123(Of B1)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B2), I123(Of B1)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B2), I123(Of B1)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1), I123(Of B2)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1), I123(Of B2)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1), I123(Of B2)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B2)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B1), I123(Of B2)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B3)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B2)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B2), I123(Of B3)
                                 ~~~~~~~~~~~
 BC36737: Option Strict On does not allow implicit conversions from 'Module1.B4' to 'Module1.I123(Of Module1.B2)' because the conversion is ambiguous.
@@ -1162,13 +1162,13 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1), I123(Of B4)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B4)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B4)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B1)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1), I123(Of B4)
                                              ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B4)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B4)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1), I123(Of B4)
                                              ~~~~~~~~~~~
 BC42016: Conversion from 'S' to 'Module1.I123(Of Module1.B2)' may be ambiguous.
@@ -1267,10 +1267,10 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1)
                                 ~~~~~~~~~~~
-BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of In T)'.
+BC42333: Interface 'Module1.I123(Of Module1.B1)' is ambiguous with another implemented interface 'Module1.I123(Of Module1.B3)' due to the 'In' and 'Out' parameters in 'Interface I123(Of T)'.
         Implements I123(Of B3), I123(Of B1)
                                 ~~~~~~~~~~~
 BC42016: Conversion from 'Module1.I1(Of Module1.B4)' to 'Module1.I1(Of Module1.I123(Of Module1.B2))' may be ambiguous.
@@ -1279,10 +1279,10 @@ BC42016: Conversion from 'Module1.I1(Of Module1.B4)' to 'Module1.I1(Of Module1.I
 BC42016: Conversion from 'Module1.B4' to 'Module1.I123(Of Module1.B2)' may be ambiguous.
         Dim x4 As I123(Of B2) = x3
                                 ~~
-BC42016: Implicit conversion from 'Module1.I2(Of Module1.B4, Module1.I123(Of Module1.B3))' to 'Module1.I2(Of Module1.I123(Of Module1.B2), Module1.I123(Of Module1.B2))'; this conversion may fail because 'Module1.I123(Of Module1.B3)' is not derived from 'Module1.I123(Of Module1.B2)', as required for the 'Out' generic parameter 'S' in 'Interface I2(Of Out T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I2(Of Module1.B4, Module1.I123(Of Module1.B3))' to 'Module1.I2(Of Module1.I123(Of Module1.B2), Module1.I123(Of Module1.B2))'; this conversion may fail because 'Module1.I123(Of Module1.B3)' is not derived from 'Module1.I123(Of Module1.B2)', as required for the 'Out' generic parameter 'S' in 'Interface I2(Of T, S)'.
         Dim x6 As I2(Of I123(Of B2), I123(Of B2)) = x5
                                                     ~~
-BC42016: Implicit conversion from 'Module1.I2(Of Module1.I123(Of Module1.B3), Module1.B4)' to 'Module1.I2(Of Module1.I123(Of Module1.B2), Module1.I123(Of Module1.B2))'; this conversion may fail because 'Module1.I123(Of Module1.B3)' is not derived from 'Module1.I123(Of Module1.B2)', as required for the 'Out' generic parameter 'T' in 'Interface I2(Of Out T, Out S)'.
+BC42016: Implicit conversion from 'Module1.I2(Of Module1.I123(Of Module1.B3), Module1.B4)' to 'Module1.I2(Of Module1.I123(Of Module1.B2), Module1.I123(Of Module1.B2))'; this conversion may fail because 'Module1.I123(Of Module1.B3)' is not derived from 'Module1.I123(Of Module1.B2)', as required for the 'Out' generic parameter 'T' in 'Interface I2(Of T, S)'.
         Dim x8 As I2(Of I123(Of B2), I123(Of B2)) = x7
                                                     ~~
 BC42016: Conversion from 'Module1.B4()' to 'Module1.I123(Of Module1.B2)()' may be ambiguous.
@@ -1444,7 +1444,7 @@ BC30311: Value of type 'Module1.B2' cannot be converted to 'S'.
 BC42016: Conversion from 'T' to 'Module1.I123(Of Module1.B2)' may be ambiguous.
         Dim p1 As I123(Of B2) = x
                                 ~
-BC42016: Implicit conversion from 'Module1.I123(Of S As Class)' to 'Module1.I123(Of Module1.B2)'; this conversion may fail because 'Module1.B2' is not derived from 'S', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of S)' to 'Module1.I123(Of Module1.B2)'; this conversion may fail because 'Module1.B2' is not derived from 'S', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
         p1 = z
              ~
 BC42016: Conversion from 'T()' to 'Module1.I123(Of Module1.B2)()' may be ambiguous.
@@ -1459,7 +1459,7 @@ BC30311: Value of type 'Module1.B1' cannot be converted to 'S'.
 BC42016: Conversion from 'T' to 'Module1.I124(Of Module1.B1)' may be ambiguous.
         Dim p1 As I124(Of B1) = x
                                 ~
-BC42016: Implicit conversion from 'Module1.I124(Of S As Class)' to 'Module1.I124(Of Module1.B1)'; this conversion may fail because 'S' is not derived from 'Module1.B1', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.I124(Of S)' to 'Module1.I124(Of Module1.B1)'; this conversion may fail because 'S' is not derived from 'Module1.B1', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of T)'.
         p1 = z
              ~
 BC42016: Conversion from 'T()' to 'Module1.I124(Of Module1.B1)()' may be ambiguous.
@@ -1474,7 +1474,7 @@ BC30332: Value of type 'Module1.B2()' cannot be converted to 'S()' because 'Modu
 BC42016: Conversion from 'T' to 'Module1.I123(Of Module1.B2())' may be ambiguous.
         Dim p1 As I123(Of B2()) = x
                                   ~
-BC42016: Implicit conversion from 'Module1.I123(Of S())' to 'Module1.I123(Of Module1.B2())'; this conversion may fail because 'Module1.B2()' is not derived from 'S()', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of S())' to 'Module1.I123(Of Module1.B2())'; this conversion may fail because 'Module1.B2()' is not derived from 'S()', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
         p1 = z
              ~
 BC42016: Conversion from 'T()' to 'Module1.I123(Of Module1.B2())()' may be ambiguous.
@@ -1489,22 +1489,22 @@ BC30332: Value of type 'Module1.B1()' cannot be converted to 'S()' because 'Modu
 BC42016: Conversion from 'T' to 'Module1.I124(Of Module1.B1())' may be ambiguous.
         Dim p1 As I124(Of B1()) = x
                                   ~
-BC42016: Implicit conversion from 'Module1.I124(Of S())' to 'Module1.I124(Of Module1.B1())'; this conversion may fail because 'S()' is not derived from 'Module1.B1()', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.I124(Of S())' to 'Module1.I124(Of Module1.B1())'; this conversion may fail because 'S()' is not derived from 'Module1.B1()', as required for the 'Out' generic parameter 'T' in 'Interface I124(Of T)'.
         p1 = z
              ~
 BC42016: Conversion from 'T()' to 'Module1.I124(Of Module1.B1())()' may be ambiguous.
         Dim a3 As I124(Of B1())() = a1
                                     ~~
-BC42016: Implicit conversion from 'IEnumerable(Of S As Class)' to 'Module1.B2()'.
+BC42016: Implicit conversion from 'IEnumerable(Of S)' to 'Module1.B2()'.
         Dim b2 As B2() = y
                          ~
-BC42016: Implicit conversion from 'Module1.B2()' to 'IEnumerable(Of S As Class)'; this conversion may fail because 'Module1.B2' is not derived from 'S', as required for the 'Out' generic parameter 'T' in 'Interface IEnumerable(Of Out T)'.
+BC42016: Implicit conversion from 'Module1.B2()' to 'IEnumerable(Of S)'; this conversion may fail because 'Module1.B2' is not derived from 'S', as required for the 'Out' generic parameter 'T' in 'Interface IEnumerable(Of T)'.
         y = b2
             ~~
 BC42016: Conversion from 'T' to 'Module1.I123(Of Module1.B2())' may be ambiguous.
         Dim p1 As I123(Of B2()) = x
                                   ~
-BC42016: Implicit conversion from 'Module1.I123(Of IEnumerable(Of S))' to 'Module1.I123(Of Module1.B2())'; this conversion may fail because 'Module1.B2()' is not derived from 'IEnumerable(Of S As Class)', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of IEnumerable(Of S))' to 'Module1.I123(Of Module1.B2())'; this conversion may fail because 'Module1.B2()' is not derived from 'IEnumerable(Of S)', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
         p1 = z
              ~
 BC42016: Conversion from 'T()' to 'Module1.I123(Of Module1.B2())()' may be ambiguous.
@@ -1985,7 +1985,7 @@ Function(p As B1) As B2 - Module1+B1
 
             CompilationUtils.AssertTheseDiagnostics(verifier.Compilation,
 <expected>
-BC42016: Implicit conversion from 'Module1.D(Of Module1.B2, Module1.B1)' to 'Module1.D(Of Module1.B1, Module1.B2)'; this conversion may fail because 'Module1.B1' is not derived from 'Module1.B2', as required for the 'Out' generic parameter 'S' in 'Delegate Function Module1.D(Of In T, Out S)(x As T) As S'.
+BC42016: Implicit conversion from 'Module1.D(Of Module1.B2, Module1.B1)' to 'Module1.D(Of Module1.B1, Module1.B2)'; this conversion may fail because 'Module1.B1' is not derived from 'Module1.B2', as required for the 'Out' generic parameter 'S' in 'Delegate Function Module1.D(Of T, S)(x As T) As S'.
         x = y
             ~
 </expected>)
@@ -2073,19 +2073,19 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42016: Implicit conversion from 'Module1.D(Of Module1.B1)' to 'Module1.D(Of Module1.B2)'; this conversion may fail because 'Module1.B2' is not derived from 'Module1.B1', as required for the 'In' generic parameter 'T' in 'Delegate Sub Module1.D(Of In T)()'.
+BC42016: Implicit conversion from 'Module1.D(Of Module1.B1)' to 'Module1.D(Of Module1.B2)'; this conversion may fail because 'Module1.B2' is not derived from 'Module1.B1', as required for the 'In' generic parameter 'T' in 'Delegate Sub Module1.D(Of T)()'.
         Dim y As D(Of B2) = x
                             ~
-BC36755: 'Module1.D(Of Module1.B1, Integer)' cannot be converted to 'Module1.D(Of Module1.B2, IComparable)' because 'IComparable' is not derived from 'Integer', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
+BC36755: 'Module1.D(Of Module1.B1, Integer)' cannot be converted to 'Module1.D(Of Module1.B2, IComparable)' because 'IComparable' is not derived from 'Integer', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of T, S)()'.
         Dim y1 As D(Of B2, System.IComparable) = x1
                                                  ~~
-BC36755: 'Module1.D(Of Module1.B2, IComparable)' cannot be converted to 'Module1.D(Of Module1.B1, Integer)' because 'Integer' is not derived from 'IComparable', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
+BC36755: 'Module1.D(Of Module1.B2, IComparable)' cannot be converted to 'Module1.D(Of Module1.B1, Integer)' because 'Integer' is not derived from 'IComparable', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of T, S)()'.
         x1 = y1
              ~~
-BC36755: 'Module1.D(Of Integer, Module1.B1)' cannot be converted to 'Module1.D(Of IComparable, Module1.B2)' because 'Module1.B2' is not derived from 'Module1.B1', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
+BC36755: 'Module1.D(Of Integer, Module1.B1)' cannot be converted to 'Module1.D(Of IComparable, Module1.B2)' because 'Module1.B2' is not derived from 'Module1.B1', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of T, S)()'.
         Dim y2 As D(Of System.IComparable, B2) = x2
                                                  ~~
-BC36755: 'Module1.D(Of IComparable, Module1.B2)' cannot be converted to 'Module1.D(Of Integer, Module1.B1)' because 'Module1.B1' is not derived from 'Module1.B2', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of In T, In S)()'.
+BC36755: 'Module1.D(Of IComparable, Module1.B2)' cannot be converted to 'Module1.D(Of Integer, Module1.B1)' because 'Module1.B1' is not derived from 'Module1.B2', as required for the 'In' generic parameter 'S' in 'Delegate Sub Module1.D(Of T, S)()'.
         x2 = y2
              ~~
 </expected>)
@@ -2128,7 +2128,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42016: Implicit conversion from 'Module1.D(Of R())' to 'Module1.D(Of Q())'; this conversion may fail because 'Q()' is not derived from 'R()', as required for the 'In' generic parameter 'T' in 'Delegate Sub Module1.D(Of In T)()'.
+BC42016: Implicit conversion from 'Module1.D(Of R())' to 'Module1.D(Of Q())'; this conversion may fail because 'Q()' is not derived from 'R()', as required for the 'In' generic parameter 'T' in 'Delegate Sub Module1.D(Of T)()'.
         Dim b As D(Of Q()) = a
                              ~
 BC42016: Conversion from 'T' to 'Module1.I123(Of Module1.D(Of R()))' may be ambiguous.
@@ -2187,10 +2187,10 @@ End Module
 BC42016: Conversion from 'T' to 'Module1.I123(Of Module1.D(Of Module1.B2))' may be ambiguous.
         Dim p1 As I123(Of D(Of B2)) = x
                                       ~
-BC42016: Implicit conversion from 'Module1.I123(Of Module1.D(Of S))' to 'Module1.I123(Of Module1.D(Of Module1.B2))'; this conversion may fail because 'Module1.D(Of Module1.B2)' is not derived from 'Module1.D(Of S)', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Module1.I123(Of Module1.D(Of S))' to 'Module1.I123(Of Module1.D(Of Module1.B2))'; this conversion may fail because 'Module1.D(Of Module1.B2)' is not derived from 'Module1.D(Of S)', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
         p1 = z
              ~
-BC42016: Implicit conversion from 'Q' to 'Module1.I123(Of Module1.D(Of Module1.B2))'; this conversion may fail because 'Module1.D(Of Module1.B2)' is not derived from 'Module1.D(Of Module1.B1)', as required for the 'In' generic parameter 'T' in 'Interface I123(Of In T)'.
+BC42016: Implicit conversion from 'Q' to 'Module1.I123(Of Module1.D(Of Module1.B2))'; this conversion may fail because 'Module1.D(Of Module1.B2)' is not derived from 'Module1.D(Of Module1.B1)', as required for the 'In' generic parameter 'T' in 'Interface I123(Of T)'.
         p1 = u
              ~
 BC42016: Conversion from 'T()' to 'Module1.I123(Of Module1.D(Of Module1.B2))()' may be ambiguous.
@@ -2695,7 +2695,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC42016: Implicit conversion from 'X(Of Double)' to 'W(Of X(Of String))'; this conversion may fail because 'X(Of String)' is not derived from 'W(Of X(Of X(Of Double)))', as required for the 'In' generic parameter 'U' in 'Interface W(Of In U)'.
+BC42016: Implicit conversion from 'X(Of Double)' to 'W(Of X(Of String))'; this conversion may fail because 'X(Of String)' is not derived from 'W(Of X(Of X(Of Double)))', as required for the 'In' generic parameter 'U' in 'Interface W(Of U)'.
         Dim u As W(Of X(Of String)) = t  ' BC36755/42106 underspecified: we don't know whether the CLR will allow this
                                       ~
 </expected>)
@@ -2704,7 +2704,7 @@ BC42016: Implicit conversion from 'X(Of Double)' to 'W(Of X(Of String))'; this c
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC36755: 'X(Of Double)' cannot be converted to 'W(Of X(Of String))' because 'X(Of String)' is not derived from 'W(Of X(Of X(Of Double)))', as required for the 'In' generic parameter 'U' in 'Interface W(Of In U)'.
+BC36755: 'X(Of Double)' cannot be converted to 'W(Of X(Of String))' because 'X(Of String)' is not derived from 'W(Of X(Of X(Of Double)))', as required for the 'In' generic parameter 'U' in 'Interface W(Of U)'.
         Dim u As W(Of X(Of String)) = t  ' BC36755/42106 underspecified: we don't know whether the CLR will allow this
                                       ~
 </expected>)

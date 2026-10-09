@@ -1731,7 +1731,7 @@ End Namespace
 
             CompilationUtils.AssertTheseDiagnostics(comp,
     <expected>
-BC32077: 'Public Overrides Sub f(Of U)(x As U)' cannot override 'Public Overridable Sub f(Of T As ICloneable)(x As T)' because they differ by type parameter constraints.
+BC32077: 'Public Overrides Sub f(Of U)(x As U)' cannot override 'Public Overridable Sub f(Of T)(x As T)' because they differ by type parameter constraints.
         Public Overrides Sub f(Of U)(x As U)
                              ~
     </expected>)
