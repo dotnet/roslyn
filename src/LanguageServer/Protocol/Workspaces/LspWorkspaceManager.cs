@@ -247,18 +247,24 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             }
         }
 
-        var initialContext = RecordDocumentFoundResult(documentContext.Value);
+        var initialContext = documentContext.Value;
 
         // If the document comes from a HostWorkspace or we are not allowed to load projects, return the initial context immediately.
         if (initialContext.Workspace.Kind == WorkspaceKind.Host || !allowProjectLoading || _onDemandProjectLoader is null)
-            return new(initialContext);
+            return new(RecordDocumentFoundResult(initialContext));
 
         var projectLoadTask = _onDemandProjectLoader.TryLoadProjectsAsync(textDocumentIdentifier.DocumentUri).AsTask();
         // A synchronous null result means the loader declined the request without starting asynchronous work.
         if (projectLoadTask.Status == TaskStatus.RanToCompletion && projectLoadTask.Result is null)
-            return new(initialContext);
+            return new(RecordDocumentFoundResult(initialContext));
 
-        return new(() => ResolveDocumentAfterProjectLoadAsync(initialContext, textDocumentIdentifier, trackedDocuments, projectLoadTask, cancellationToken));
+        return new(async () =>
+        {
+            var finalContext = await ResolveDocumentAfterProjectLoadAsync(
+                initialContext, textDocumentIdentifier, trackedDocuments, projectLoadTask, cancellationToken).ConfigureAwait(false);
+
+            return RecordDocumentFoundResult(finalContext);
+        });
 
         async Task<ImmutableArray<(Workspace workspace, Solution Solution, bool IsForked)>> GetSynchronizedLspSolutionsAsync(CancellationToken cancellationToken)
         {
@@ -339,8 +345,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             return null;
         }
 
-        async Task<LspWorkspaceContext> ResolveDocumentAfterProjectLoadAsync(
-            LspWorkspaceContext initialContext,
+        async Task<(Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked)> ResolveDocumentAfterProjectLoadAsync(
+            (Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked) initialContext,
             TextDocumentIdentifier textDocumentIdentifier,
             ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
             Task<Solution?> projectLoadTask,
@@ -360,7 +366,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             if (document is null)
                 return initialContext;
 
-            return RecordDocumentFoundResult((workspace, document.Project.Solution, document, isForked));
+            return (workspace, document.Project.Solution, document, isForked);
         }
     }
 
