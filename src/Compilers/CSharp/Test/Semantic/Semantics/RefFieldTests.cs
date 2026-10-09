@@ -749,7 +749,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
             comp.VerifyEmitDiagnostics(
                 // (14,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         S* s, // 1
@@ -1043,7 +1043,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
             comp.VerifyEmitDiagnostics(
                 // (13,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(void* p)
@@ -1299,7 +1299,7 @@ unsafe class C2
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
             comp.VerifyEmitDiagnostics(
                 // (15,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var x = &s; // 1

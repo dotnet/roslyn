@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.Json;
+using System.Threading;
 
 // This standalone, package-free harness is compiled only by test-test-runners.ps1.
 internal static class RegressionHarness
@@ -196,8 +197,9 @@ internal static class RegressionHarness
         var assemblies = Discover(assembly, options);
         var workItems = Items(Call(Type(assembly, Prefix(assembly) + "TestRunner"), "CreateWorkItemsForFullAssemblies", assemblies)!);
         Check(workItems.Length == 1 && !File.Exists(Path.Combine(Path.GetDirectoryName(file)!, "testlist.json")), "Local scheduling must not need testlist.json");
-        var rsp = (string)Call(Type(assembly, Prefix(assembly) + "ProcessTestExecutor"), "BuildRspFileContents", workItems[0], options, "results.xml", "results.html")!;
-        foreach (var text in new[] { $"\"{file}\"", "TestTimeout=25minutes", "/Logger:html;LogFileName=results.html", "/TestCaseFilter:\"FullyQualifiedName~Example\"", "/ResultsDirectory:" + Property(options, "TestResultsDirectory") })
+        var diagnosticsDirectory = Path.Combine(root, "diagnostics");
+        var rsp = (string)Call(Type(assembly, Prefix(assembly) + "ProcessTestExecutor"), "BuildRspFileContents", workItems[0], options, "results.xml", "results.html", diagnosticsDirectory)!;
+        foreach (var text in new[] { $"\"{file}\"", "TestTimeout=25minutes", "/Logger:html;LogFileName=results.html", "/TestCaseFilter:\"FullyQualifiedName~Example\"", "/ResultsDirectory:\"" + diagnosticsDirectory + "\"" })
             Check(rsp.Contains(text, StringComparison.Ordinal), "Missing local response content: " + text);
         Check((bool)Property(options, "Sequential") && (bool)Property(options, "CollectDumps") && (TimeSpan)Property(options, "Timeout") == TimeSpan.FromMinutes(2), "Local execution flags");
     }
@@ -216,7 +218,7 @@ internal static class RegressionHarness
         var constructor = resultType.GetConstructors(All).Single();
         var processes = Activator.CreateInstance(constructor.GetParameters()[3].ParameterType);
         var result = constructor.Invoke([workItem, resultInfo, "test command", processes, null]);
-        var executor = Activator.CreateInstance(Type(assembly, Prefix(assembly) + "ProcessTestExecutor"), nonPublic: true);
+        var executor = Activator.CreateInstance(Type(assembly, Prefix(assembly) + "ProcessTestExecutor"), All, null, [CancellationToken.None], null);
         var runner = Activator.CreateInstance(runnerType, All, null, [options, executor], null);
 
         Check(!Directory.Exists(logs), "Failure logging fixture must start without a log directory");

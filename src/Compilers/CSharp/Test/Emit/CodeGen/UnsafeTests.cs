@@ -85,7 +85,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(int* param)
@@ -121,7 +121,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(int*[] param)
@@ -157,7 +157,7 @@ class C<T>
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,14): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(C<int*[]>[] param)
@@ -193,7 +193,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     C(int* param)
@@ -229,7 +229,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     C(int*[] param)
@@ -759,7 +759,7 @@ unsafe struct S
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79051")]
-        public void Retrack_PointerToRefLocal_Nested()
+        public void Retrack_PointerToRefLocal_Nested_01()
         {
             var source = """
                 class C
@@ -798,18 +798,78 @@ unsafe struct S
                 """);
             CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
                 {
-                  // Code size       13 (0xd)
+                  // Code size       10 (0xa)
                   .maxstack  1
                   .locals init (byte& V_0) //b2
-                  IL_0000:  ldarg.1
-                  IL_0001:  ldind.u1
-                  IL_0002:  pop
-                  IL_0003:  ldarg.2
-                  IL_0004:  stloc.0
-                  IL_0005:  ldloc.0
-                  IL_0006:  call       "string byte.ToString()"
-                  IL_000b:  pop
-                  IL_000c:  ret
+                  IL_0000:  ldarg.2
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloc.0
+                  IL_0003:  call       "string byte.ToString()"
+                  IL_0008:  pop
+                  IL_0009:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Retrack_PointerToRefLocal_Nested_02()
+        {
+            var source = """
+                class C
+                {
+                    unsafe void M(byte* p)
+                    {
+                        ref byte b1 = ref GetRef();
+                        ref byte local = ref b1;
+                        {
+                            ref byte b2 = ref *p;
+                            local = ref b2;
+                        }
+                        local.ToString();
+                    }
+
+                    ref byte GetRef() => throw null;
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeDebugDll).VerifyIL("C.M", """
+                {
+                  // Code size       24 (0x18)
+                  .maxstack  1
+                  .locals init (byte& V_0, //b1
+                            byte& V_1, //local
+                            byte& V_2) //b2
+                  IL_0000:  nop
+                  IL_0001:  ldarg.0
+                  IL_0002:  call       "ref byte C.GetRef()"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  stloc.1
+                  IL_000a:  nop
+                  IL_000b:  ldarg.1
+                  IL_000c:  stloc.2
+                  IL_000d:  ldloc.2
+                  IL_000e:  stloc.1
+                  IL_000f:  nop
+                  IL_0010:  ldloc.1
+                  IL_0011:  call       "string byte.ToString()"
+                  IL_0016:  pop
+                  IL_0017:  ret
+                }
+                """);
+            CompileAndVerify(source, verify: Verification.Fails, options: TestOptions.UnsafeReleaseDll).VerifyIL("C.M", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  1
+                  .locals init (byte& V_0) //b2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "ref byte C.GetRef()"
+                  IL_0006:  pop
+                  IL_0007:  ldarg.1
+                  IL_0008:  stloc.0
+                  IL_0009:  ldloc.0
+                  IL_000a:  call       "string byte.ToString()"
+                  IL_000f:  pop
+                  IL_0010:  ret
                 }
                 """);
         }
@@ -11132,7 +11192,7 @@ unsafe struct S<T> where T : unmanaged
     public {pointerType} Field;
 }}
 ";
-            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
                 // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // _ = c.Field is null;
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "c.Field").WithLocation(3, 5)
@@ -11674,7 +11734,7 @@ unsafe delegate void F1(int* x);
 delegate void F2(int x);
 ";
 
-            CompileAndVerify(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Passes);
+            CompileAndVerify(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Passes);
 
             var expectedPreviewDiagnostics = new[]
             {
@@ -11710,7 +11770,7 @@ unsafe delegate void F1(C<int*[]> x);
 delegate void F2(int x);
 ";
 
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
+            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "2");
 
@@ -11750,7 +11810,7 @@ class D
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var lam1 = (int* ptr) => ptr; // 1
@@ -11824,7 +11884,7 @@ class D
     }
 }
 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (11,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         return (ptr) => ptr; // 1

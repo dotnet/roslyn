@@ -16,6 +16,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
     <ProjectReference Include="..\Microsoft.NET.ProjectData.Tasks\Microsoft.NET.ProjectData.Tasks.csproj" />
+    <ProjectReference Include="..\Microsoft.NET.ProjectData\Microsoft.NET.ProjectData.csproj"
+                      Aliases="ProjectDataAssembly" />
   </ItemGroup>
 
   <ItemGroup>

@@ -63,11 +63,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private AliasesAndUsings GetAliasesAndUsings(CSharpSyntaxNode declarationSyntax)
         {
-            return GetAliasesAndUsings(GetMatchingNamespaceDeclaration(declarationSyntax));
+            return GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, declarationSyntax.GetReference());
         }
 
+#if DEBUG
         private SingleNamespaceDeclaration GetMatchingNamespaceDeclaration(CSharpSyntaxNode declarationSyntax)
         {
+            // This brute-force lookup is only used for DEBUG validation. Production uses the
+            // syntax-reference-keyed cache to avoid quadratic lookup across syntax trees.
+            // https://github.com/dotnet/roslyn/issues/85922
             foreach (var declaration in _mergedDeclaration.Declarations)
             {
                 var declarationSyntaxRef = declaration.SyntaxReference;
@@ -84,10 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             throw ExceptionUtilities.Unreachable();
         }
+#endif
 
         private static AliasesAndUsings GetOrCreateAliasAndUsings(
-            ref ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> dictionary,
-            SingleNamespaceDeclaration declaration)
+            ref ImmutableDictionary<SyntaxReference, AliasesAndUsings> dictionary,
+            SyntaxReference declaration)
         {
             return ImmutableInterlocked.GetOrAdd(
                 ref dictionary,
@@ -96,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private AliasesAndUsings GetAliasesAndUsings(SingleNamespaceDeclaration declaration)
-            => GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, declaration);
+            => GetOrCreateAliasAndUsings(ref _aliasesAndUsings_doNotAccessDirectly, declaration.SyntaxReference);
 
 #if DEBUG
         private AliasesAndUsings GetAliasesAndUsingsForAsserts(CSharpSyntaxNode declarationSyntax)
@@ -105,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return singleDeclaration.HasExternAliases || singleDeclaration.HasGlobalUsings || singleDeclaration.HasUsings
                 ? GetAliasesAndUsings(singleDeclaration)
-                : GetOrCreateAliasAndUsings(ref _aliasesAndUsingsForAsserts_doNotAccessDirectly, singleDeclaration);
+                : GetOrCreateAliasAndUsings(ref _aliasesAndUsingsForAsserts_doNotAccessDirectly, singleDeclaration.SyntaxReference);
         }
 #endif
 
@@ -744,7 +749,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 else
                                 {
                                     MessageID.IDS_FeatureUsingTypeAlias.CheckFeatureAvailability(diagnostics, usingDirective, unsafeKeywordLocation);
-                                    declaringSymbol.CheckUnsafeModifier(DeclarationModifiers.Unsafe, unsafeKeywordLocation, diagnostics);
+                                    if (!declaringSymbol.CompilationAllowsUnsafe())
+                                    {
+                                        diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, unsafeKeywordLocation);
+                                    }
                                 }
 
                                 needsUnsafeBinder = true;

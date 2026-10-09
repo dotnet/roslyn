@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.LanguageServer.Protocol;
@@ -116,14 +117,19 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
 
         var firstEvents = new RecordingEventSink();
         var secondEvents = new RecordingEventSink();
+        var firstHoverTelemetryRecorded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
         var firstTelemetryFlushed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var firstFault = new InvalidOperationException("first request");
-        var reportedFirstFault = 0;
         var firstMetrics = new RecordingMetricSink(
-            onMeasurement: () =>
+            onMeasurement: measurement =>
             {
-                if (Interlocked.Exchange(ref reportedFirstFault, 1) == 0)
-                    FaultReporter.ReportFault(firstFault, ErrorSeverity.General, forceDump: false);
+                if (!IsHoverMeasurement(measurement) ||
+                    measurement.EventName != TelemetryNaming.GetEventName(FunctionId.LSP_RequestCounter))
+                    return;
+
+                // The request counter is emitted last, after the other request measurements.
+                FaultReporter.ReportFault(firstFault, ErrorSeverity.General, forceDump: false);
+                firstHoverTelemetryRecorded.TrySetResult();
             },
             onFlush: () => firstTelemetryFlushed.TrySetResult(true));
         var secondMetrics = new RecordingMetricSink();
@@ -144,10 +150,10 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             },
             CancellationToken.None);
 
-        // A request handled by the first server records metrics only in that server's sink.
+        // The RPC response can arrive before the request's telemetry scope is disposed.
         Assert.NotNull(hover);
-        Assert.True(firstMetrics.MeasurementCount > 0);
-        Assert.Equal(0, secondMetrics.MeasurementCount);
+        await firstHoverTelemetryRecorded.Task;
+        Assert.Contains(firstMetrics.Measurements, IsHoverMeasurement);
         Assert.Contains((firstFault, ErrorSeverity.General, false), firstEvents.Faults);
         Assert.DoesNotContain(daemonEvents.Faults, fault => fault.Exception == firstFault);
         Assert.DoesNotContain(secondEvents.Faults, fault => fault.Exception == firstFault);
@@ -156,6 +162,9 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         await first.DisposeAsync();
         await Task.WhenAll(firstTelemetryFlushed.Task, daemonClientDisconnected.Task);
 
+        // The second server may record late initialization metrics, but must not receive the first server's hover metrics.
+        Assert.DoesNotContain(secondMetrics.Measurements, IsHoverMeasurement);
+
         // Disconnecting the first server flushes it, preserves the second, and attributes lifecycle telemetry to the daemon.
         Assert.Null(TelemetryReporterWrapper.GetSession(firstTelemetry));
         Assert.Equal(0, secondMetrics.FlushCount);
@@ -163,6 +172,9 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         Assert.Equal(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, daemonEvents.Events[^1]);
         Assert.DoesNotContain(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, firstEvents.Events);
         Assert.DoesNotContain(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, secondEvents.Events);
+
+        static bool IsHoverMeasurement(RecordingMetricSink.Measurement measurement)
+            => measurement.Tags.Any(tag => tag.Key == "method" && Equals(tag.Value, Methods.TextDocumentHoverName));
 
         static string GetDaemonSessionId(TelemetrySession telemetrySession)
         {

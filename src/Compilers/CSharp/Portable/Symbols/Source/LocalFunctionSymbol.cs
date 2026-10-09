@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(diagnostics.DiagnosticBag is { });
             Debug.Assert(diagnostics.DependenciesBag is { });
 
-            this.CheckUnsafeModifier(_declarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(_declarationModifiers, diagnostics, syntax.Modifiers);
 
             if ((_declarationModifiers & DeclarationModifiers.Safe) != 0)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Syntax.Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, Syntax.Identifier.GetLocation()));
             }
 
-            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(addTo,
                     Syntax.Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, Syntax.Identifier.GetLocation()),
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasUnsafeModifier => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
         internal override bool HasSafeModifier => (_declarationModifiers & DeclarationModifiers.Safe) != 0;
-        internal override bool CanBeCallerUnsafe => true;
+        internal override bool CanRequireUnsafe => true;
 
         internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
 

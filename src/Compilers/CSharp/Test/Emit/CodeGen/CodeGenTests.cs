@@ -14338,6 +14338,1632 @@ class A
 ");
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_01()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        _ = GetRef().F;
+    }
+
+    static ref S GetRef() => throw null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  call       "ref S C.GetRef()"
+  IL_0006:  ldfld      "byte S.F"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       "ref S C.GetRef()"
+  IL_0005:  ldfld      "byte S.F"
+  IL_000a:  pop
+  IL_000b:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_02()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M()
+    {
+        _ = GetRef().F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_03()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        _ = GetRef().S.F;
+    }
+
+    static S1 GetRef() => default;
+}
+
+ref struct S1
+{
+    public ref S S;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll, verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  call       "S1 C.GetRef()"
+  IL_0006:  ldfld      "ref S S1.S"
+  IL_000b:  ldobj      "S"
+  IL_0010:  pop
+  IL_0011:  ret
+}
+""");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  call       "S1 C.GetRef()"
+  IL_0005:  ldfld      "ref S S1.S"
+  IL_000a:  ldobj      "S"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedFieldLoad_04()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M()
+    {
+        _ = GetRef().S.F;
+    }
+
+    static S1 GetRef() => default;
+}
+
+ref struct S1
+{
+#pragma warning disable CS9265 // Field 'S1.S' is never ref-assigned to, and will always have its default value (null reference)
+    public ref S S;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass", verify: Verification.Skipped);
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_05()
+        {
+            var source = """
+class C
+{
+    static unsafe void M()
+    {
+        _ = GetRef()->F;
+    }
+
+    static unsafe S* GetRef() => null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  call       "S* C.GetRef()"
+  IL_0006:  ldobj      "S"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       "S* C.GetRef()"
+  IL_0005:  ldobj      "S"
+  IL_000a:  pop
+  IL_000b:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_06()
+        {
+            var source = """
+class C
+{
+    unsafe static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static unsafe void M()
+    {
+        _ = GetRef()->F;
+    }
+
+    static unsafe S* GetRef() => null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass" : null, verify: Verification.Skipped);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass" : null, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_07()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        _ = GetRef().F;
+    }
+
+    static S GetRef() => null;
+}
+
+class S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  call       "S C.GetRef()"
+  IL_0006:  ldfld      "byte S.F"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       "S C.GetRef()"
+  IL_0005:  ldfld      "byte S.F"
+  IL_000a:  pop
+  IL_000b:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_08()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M()
+    {
+        _ = GetRef().F;
+    }
+
+    static S GetRef() => null;
+}
+
+class S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_09()
+        {
+            var source = """
+class C
+{
+    void M(S x)
+    {
+        ref S s = ref x; 
+        _ = (s = ref GetRef()).F;
+    }
+
+    static ref S GetRef() => throw null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (S& V_0) //s
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_1
+  IL_0003:  stloc.0
+  IL_0004:  call       "ref S C.GetRef()"
+  IL_0009:  dup
+  IL_000a:  stloc.0
+  IL_000b:  ldfld      "byte S.F"
+  IL_0010:  pop
+  IL_0011:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       "ref S C.GetRef()"
+  IL_0005:  ldfld      "byte S.F"
+  IL_000a:  pop
+  IL_000b:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_10()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M(default);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M(S x)
+    {
+        ref S s = ref x; 
+        _ = (s = ref GetRef()).F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_11()
+        {
+            var source = """
+class C
+{
+    void M(bool b)
+    {
+        _ = (b ? ref GetRef() : ref GetRef()).F;
+    }
+
+    static ref S GetRef() => throw null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  brtrue.s   IL_000b
+  IL_0004:  call       "ref S C.GetRef()"
+  IL_0009:  br.s       IL_0010
+  IL_000b:  call       "ref S C.GetRef()"
+  IL_0010:  ldfld      "byte S.F"
+  IL_0015:  pop
+  IL_0016:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  brtrue.s   IL_000a
+  IL_0003:  call       "ref S C.GetRef()"
+  IL_0008:  br.s       IL_000f
+  IL_000a:  call       "ref S C.GetRef()"
+  IL_000f:  ldfld      "byte S.F"
+  IL_0014:  pop
+  IL_0015:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_12()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M(true);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M(bool b)
+    {
+        _ = (b ? ref GetRef() : ref GetRef()).F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_13()
+        {
+            var source = """
+class C
+{
+    static void M(System.TypedReference tr)
+    {
+        _ = __refvalue(tr, S).F;
+    }
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll, verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  refanyval  "S"
+  IL_0007:  ldobj      "S"
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  refanyval  "S"
+  IL_0006:  ldobj      "S"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedFieldLoad_14()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        ref S s = ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+        System.TypedReference tr = __makeref(s);
+
+        try
+        {
+            M(tr);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M(System.TypedReference tr)
+    {
+        _ = __refvalue(tr, S).F;
+    }
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, verify: Verification.Skipped, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, verify: Verification.Skipped, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_15()
+        {
+            var source = """
+class C
+{
+    static void M(C1[] a)
+    {
+        _ = a[0].F;
+    }
+}
+
+class C1
+{
+    public byte F;
+}
+
+class C2 : C1;
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelem.ref
+  IL_0004:  ldfld      "byte C1.F"
+  IL_0009:  pop
+  IL_000a:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelem.ref
+  IL_0003:  ldfld      "byte C1.F"
+  IL_0008:  pop
+  IL_0009:  ret
+}
+""");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_16()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M((C1[])new C2[] { null } );
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M(C1[] a)
+    {
+        _ = a[0].F;
+    }
+}
+
+class C1
+{
+    public byte F;
+}
+
+class C2 : C1;
+""";
+            CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_17()
+        {
+            var source = @"
+struct S1
+{
+    public volatile int field;
+
+    public S1(int v)
+    {
+        this.field = v;
+    }
+}
+
+class A
+{
+    static void Main(string[] args)
+    {
+        _ = (new S1()).field;
+        _ = (new S1(42)).field;
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: @"").VerifyIL("A.Main",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  1
+  .locals init (S1 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""S1""
+  IL_0008:  ldloc.0
+  IL_0009:  volatile.
+  IL_000b:  ldfld      ""int S1.field""
+  IL_0010:  pop
+  IL_0011:  ldc.i4.s   42
+  IL_0013:  newobj     ""S1..ctor(int)""
+  IL_0018:  volatile.
+  IL_001a:  ldfld      ""int S1.field""
+  IL_001f:  pop
+  IL_0020:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_18()
+        {
+            var source = @"
+struct S1
+{
+    public static int field = 1;
+}
+
+class A
+{
+    static void Main(string[] args)
+    {
+        _ = S1.field;
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: @"").VerifyIL("A.Main",
+@"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldsfld     ""int S1.field""
+  IL_0005:  pop
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_19()
+        {
+            var source = """
+class C
+{
+    static void M()
+    {
+        _ = GetRef().S;
+    }
+
+    static S1 GetRef() => default;
+}
+
+ref struct S1
+{
+    public ref S S;
+}
+
+struct S
+{
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugDll, verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  call       "S1 C.GetRef()"
+  IL_0006:  ldfld      "ref S S1.S"
+  IL_000b:  ldobj      "S"
+  IL_0010:  pop
+  IL_0011:  ret
+}
+""");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll, verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  call       "S1 C.GetRef()"
+  IL_0005:  ldfld      "ref S S1.S"
+  IL_000a:  ldobj      "S"
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedFieldLoad_20()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M()
+    {
+        _ = GetRef().S;
+    }
+
+    static S1 GetRef() => default;
+}
+
+ref struct S1
+{
+#pragma warning disable CS9265 // Field 'S1.S' is never ref-assigned to, and will always have its default value (null reference)
+    public ref S S;
+}
+
+struct S
+{
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass", verify: Verification.Skipped);
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_21()
+        {
+            var source = """
+class C
+{
+    void M(ref S s)
+    {
+        _ = s.F;
+    }
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldobj      "S"
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedFieldLoad_22()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M(ref System.Runtime.CompilerServices.Unsafe.NullRef<S>());
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M(ref S s)
+    {
+        _ = s.F;
+    }
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_23()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        ref S s = ref GetRef();
+        _ = s.F;
+    }
+
+    static ref S GetRef() => throw null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (S& V_0) //s
+  IL_0000:  nop
+  IL_0001:  call       "ref S C.GetRef()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      "S"
+  IL_000d:  pop
+  IL_000e:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       "ref S C.GetRef()"
+  IL_0005:  ldobj      "S"
+  IL_000a:  pop
+  IL_000b:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedFieldLoad_24()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M()
+    {
+        ref S s = ref GetRef();
+        _ = s.F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_25()
+        {
+            var source = """
+class C
+{
+    static void M(bool b, ref S s1)
+    {
+        ref S s2 = ref GetRef();
+        _ = (b ? ref s1 : ref s2).F;
+    }
+
+    static ref S GetRef() => throw null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  1
+  .locals init (S& V_0) //s2
+  IL_0000:  nop
+  IL_0001:  call       "ref S C.GetRef()"
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  brtrue.s   IL_000d
+  IL_000a:  ldloc.0
+  IL_000b:  br.s       IL_000e
+  IL_000d:  ldarg.1
+  IL_000e:  ldfld      "byte S.F"
+  IL_0013:  pop
+  IL_0014:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (S& V_0) //s2
+  IL_0000:  call       "ref S C.GetRef()"
+  IL_0005:  stloc.0
+  IL_0006:  ldarg.0
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldloc.0
+  IL_000a:  br.s       IL_000d
+  IL_000c:  ldarg.1
+  IL_000d:  ldfld      "byte S.F"
+  IL_0012:  pop
+  IL_0013:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedFieldLoad_26()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M(true, ref GetRef());
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass1");
+        }
+
+        try
+        {
+            M(false, ref GetRef());
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+    }    
+
+    static void M(bool b, ref S s1)
+    {
+        ref S s2 = ref GetRef();
+        _ = (b ? ref s1 : ref s2).F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_27()
+        {
+            var source = """
+class C
+{
+    static void M(bool b)
+    {
+        ref S s2 = ref GetRef();
+        _ = (b ? ref s2 : ref GetRef()).F;
+    }
+
+    static ref S GetRef() => throw null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (S& V_0) //s2
+  IL_0000:  nop
+  IL_0001:  call       "ref S C.GetRef()"
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  brtrue.s   IL_0011
+  IL_000a:  call       "ref S C.GetRef()"
+  IL_000f:  br.s       IL_0012
+  IL_0011:  ldloc.0
+  IL_0012:  ldfld      "byte S.F"
+  IL_0017:  pop
+  IL_0018:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (S& V_0) //s2
+  IL_0000:  call       "ref S C.GetRef()"
+  IL_0005:  stloc.0
+  IL_0006:  ldarg.0
+  IL_0007:  brtrue.s   IL_0010
+  IL_0009:  call       "ref S C.GetRef()"
+  IL_000e:  br.s       IL_0011
+  IL_0010:  ldloc.0
+  IL_0011:  ldfld      "byte S.F"
+  IL_0016:  pop
+  IL_0017:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_28()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M(true);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass1");
+        }
+
+        try
+        {
+            M(false);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+    }    
+
+    static void M(bool b)
+    {
+        ref S s2 = ref GetRef();
+        _ = (b ? ref s2 : ref GetRef()).F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_29()
+        {
+            var source = """
+class C
+{
+    static void M(bool b)
+    {
+        ref S s2 = ref GetRef();
+        _ = (b ? ref GetRef() : ref s2).F;
+    }
+
+    static ref S GetRef() => throw null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  .locals init (S& V_0) //s2
+  IL_0000:  nop
+  IL_0001:  call       "ref S C.GetRef()"
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  brtrue.s   IL_000d
+  IL_000a:  ldloc.0
+  IL_000b:  br.s       IL_0012
+  IL_000d:  call       "ref S C.GetRef()"
+  IL_0012:  ldfld      "byte S.F"
+  IL_0017:  pop
+  IL_0018:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       24 (0x18)
+  .maxstack  1
+  .locals init (S& V_0) //s2
+  IL_0000:  call       "ref S C.GetRef()"
+  IL_0005:  stloc.0
+  IL_0006:  ldarg.0
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldloc.0
+  IL_000a:  br.s       IL_0011
+  IL_000c:  call       "ref S C.GetRef()"
+  IL_0011:  ldfld      "byte S.F"
+  IL_0016:  pop
+  IL_0017:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_30()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M(true);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass1");
+        }
+
+        try
+        {
+            M(false);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+    }    
+
+    static void M(bool b)
+    {
+        ref S s2 = ref GetRef();
+        _ = (b ? ref GetRef() : ref s2).F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_31()
+        {
+            var source = """
+unsafe class C
+{
+    static void M(delegate*<ref S> d)
+    {
+        _ = d().F;
+    }
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  calli      "delegate*<ref S>"
+  IL_0007:  ldfld      "byte S.F"
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  calli      "delegate*<ref S>"
+  IL_0006:  ldfld      "byte S.F"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_32()
+        {
+            var source = """
+unsafe class C
+{
+    static void Main()
+    {
+        try
+        {
+            M(&GetRef);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M(delegate*<ref S> d)
+    {
+        _ = d().F;
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "Pass", verify: Verification.Skipped);
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), expectedOutput: "Pass", verify: Verification.Skipped);
+        }
+
+        [Fact]
+        public void UnusedFieldLoad_33()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        ref S s = ref GetRef();
+        _ = s.F;
+        Consume(ref s);
+    }
+
+    static ref S GetRef() => throw null;
+    static void Consume(ref S value) { }
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  .locals init (S& V_0) //s
+  IL_0000:  nop
+  IL_0001:  call       "ref S C.GetRef()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldobj      "S"
+  IL_000d:  pop
+  IL_000e:  ldloc.0
+  IL_000f:  call       "void C.Consume(ref S)"
+  IL_0014:  nop
+  IL_0015:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  call       "ref S C.GetRef()"
+  IL_0005:  dup
+  IL_0006:  ldobj      "S"
+  IL_000b:  pop
+  IL_000c:  call       "void C.Consume(ref S)"
+  IL_0011:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedFieldLoad_34()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M()
+    {
+        ref S s = ref GetRef();
+        _ = s.F;
+        Consume(ref s);
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+    static void Consume(ref S value) { }
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_35()
+        {
+            var source = """
+class C
+{
+    void M()
+    {
+        _ = GetRef(b: GetIntB(), a: GetIntA()).F;
+    }
+
+    static ref S GetRef(int a, int b) => throw null;
+    static int GetIntA() => 0;
+    static int GetIntB() => 0;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll).VerifyIL("C.M", """
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       "int C.GetIntB()"
+  IL_0006:  stloc.0
+  IL_0007:  call       "int C.GetIntA()"
+  IL_000c:  ldloc.0
+  IL_000d:  call       "ref S C.GetRef(int, int)"
+  IL_0012:  ldfld      "byte S.F"
+  IL_0017:  pop
+  IL_0018:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyIL("C.M", """
+{
+  // Code size       24 (0x18)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  call       "int C.GetIntB()"
+  IL_0005:  stloc.0
+  IL_0006:  call       "int C.GetIntA()"
+  IL_000b:  ldloc.0
+  IL_000c:  call       "ref S C.GetRef(int, int)"
+  IL_0011:  ldfld      "byte S.F"
+  IL_0016:  pop
+  IL_0017:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_36()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static void M()
+    {
+        _ = GetRef(b: GetIntB(), a: GetIntA()).F;
+    }
+
+    static ref S GetRef(int a, int b) => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+    static int GetIntA() => 0;
+    static int GetIntB() => 0;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_37()
+        {
+            var source = """
+class C
+{
+    static unsafe void M()
+    {
+        _ = (true ? ref *GetRef() : ref *GetRef()).F;
+    }
+
+    static unsafe S* GetRef() => null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  call       "S* C.GetRef()"
+  IL_0006:  ldfld      "byte S.F"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  call       "S* C.GetRef()"
+  IL_0005:  ldfld      "byte S.F"
+  IL_000a:  pop
+  IL_000b:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_38()
+        {
+            var source = """
+class C
+{
+    unsafe static void Main()
+    {
+        try
+        {
+            M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static unsafe void M()
+    {
+        _ = (true ? ref *GetRef() : ref *GetRef()).F;
+    }
+
+    static unsafe S* GetRef() => null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass" : null, verify: Verification.Skipped);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass" : null, verify: Verification.Skipped);
+        }
+
         [WorkItem(665317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665317")]
         [Fact]
         public void InitGenericElement()

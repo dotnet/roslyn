@@ -1438,9 +1438,9 @@ class C
             var comp = CreateCompilation(source);
             Assert.Empty(comp.GetDeclarationDiagnostics());
             comp.VerifyDiagnostics(
-                // (8,23): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (8,9): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //         unsafe byte[] local()
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "local").WithLocation(8, 23)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(8, 9)
                 );
 
             var compWithUnsafe = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
@@ -4869,7 +4869,7 @@ unsafe class D
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular14);
+            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular15);
             comp.VerifyDiagnostics(
                 // (11,29): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //             return (IntPtr)(void*)null;
@@ -8308,7 +8308,7 @@ public class MyAttribute : System.Attribute
     public MyAttribute(int i) { }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15);
             comp.VerifyDiagnostics(
                 // (8,36): error CS0233: 'TParameter' does not have a predefined size, therefore sizeof can only be used in an unsafe context
                 //         void local<TParameter>([My(sizeof(TParameter))] int i) where TParameter : unmanaged => throw null;

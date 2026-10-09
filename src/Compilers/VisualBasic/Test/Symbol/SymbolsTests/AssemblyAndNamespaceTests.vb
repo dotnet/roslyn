@@ -220,6 +220,7 @@ End Namespace
             Dim nsA As NamespaceSymbol = DirectCast(membersA.First(), NamespaceSymbol)
             Assert.Equal("A", nsA.Name, IdentifierComparison.Comparer)
             Assert.Equal(SymbolKind.Namespace, nsA.Kind)
+            Assert.Equal(Accessibility.Public, nsA.DeclaredAccessibility)
             Assert.Equal(1, nsA.GetMembers().Length())
 
             Dim nsB As NamespaceSymbol = DirectCast(nsA.GetMembers().First(), NamespaceSymbol)

@@ -12,6 +12,9 @@ internal sealed class RunTestOptions : Options
     public bool IncludeHtml { get; set; }
     public string? TestFilter { get; set; }
     public TimeSpan Timeout { get; set; } = TimeSpan.FromMinutes(90);
+    /// <summary>
+    /// Enable additional Windows WER crash collection. Timeout collection is always enabled.
+    /// </summary>
     public bool CollectDumps { get; set; }
     public bool Sequential { get; set; }
     public string TestResultsDirectory { get; private set; } = "";
@@ -30,10 +33,16 @@ internal sealed class RunTestOptions : Options
         optionSet.Add<int>("timeout=", "Minute timeout to limit the tests to (default: 90)", i => options.Timeout = TimeSpan.FromMinutes(i));
         optionSet.Add("out=", "Test result file directory", s => resultsDirectory = s);
         optionSet.Add("logs=", "Log file directory", s => logsDirectory = s);
-        optionSet.Add("collectdumps", "Gather dumps on timeouts and crashes", o => options.CollectDumps = o is object);
+        optionSet.Add("collectdumps", "Enable additional Windows WER crash dumps when elevated (timeout dumps are always attempted)", o => options.CollectDumps = o is object);
 
         if (!options.ParseCore(args, optionSet, "RunTests", "Discovers and runs local test assemblies from the artifacts/bin directory.", out helpShown))
         {
+            return null;
+        }
+
+        if (options.Timeout <= TimeSpan.Zero)
+        {
+            ConsoleUtil.Error("Timeouts must be positive.");
             return null;
         }
 

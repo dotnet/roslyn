@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -18,7 +19,14 @@ namespace TestRunner.RunTests
 {
     internal sealed class ProcessTestExecutor
     {
-        public static string BuildRspFileContents(WorkItemInfo workItem, RunTestOptions options, string xmlResultsFilePath, string? htmlResultsFilePath)
+        private readonly CancellationToken _userCancellationToken;
+
+        public ProcessTestExecutor(CancellationToken userCancellationToken)
+        {
+            _userCancellationToken = userCancellationToken;
+        }
+
+        public static string BuildRspFileContents(WorkItemInfo workItem, RunTestOptions options, string xmlResultsFilePath, string? htmlResultsFilePath, string diagnosticsDirectory)
         {
             var fileContentsBuilder = new StringBuilder();
 
@@ -40,14 +48,12 @@ namespace TestRunner.RunTests
             // crashes and hangs, matching the Helix configuration.
             var blameOption = "CollectDump;CollectHangDump";
 
-            // The 25 minute timeout in integration tests accounts for the fact that VSIX deployment and/or experimental hive reset and
-            // configuration can take significant time (seems to vary from ~10 seconds to ~15 minutes), and the blame
-            // functionality cannot separate this configuration overhead from the first test which will eventually run.
+            // Local runs allow longer VSIX deployment/hive setup.
             // https://github.com/dotnet/roslyn/issues/59851
             fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout=25minutes;DumpType=full");
 
             // Specifies the results directory - this is where dumps from the blame options will get published.
-            fileContentsBuilder.AppendLine($"/ResultsDirectory:{options.TestResultsDirectory}");
+            fileContentsBuilder.AppendLine($"/ResultsDirectory:\"{diagnosticsDirectory}\"");
 
             // Build the filter string
             var filterStringBuilder = new StringBuilder();
@@ -100,13 +106,22 @@ namespace TestRunner.RunTests
             return Path.Combine(options.TestResultsDirectory, fileName);
         }
 
+        private static string GetWorkItemDirectory(WorkItemInfo workItemInfo, RunTestOptions options)
+            => Path.Combine(options.TestResultsDirectory, $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}");
+
         public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, RunTestOptions options, CancellationToken cancellationToken)
         {
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var resultsFilePath = GetResultsFilePath(workItemInfo, options);
+                var workItemDirectory = GetWorkItemDirectory(workItemInfo, options);
+                // Separate each invocation's diagnostics so old dumps cannot be attributed to this run.
+                Directory.CreateDirectory(workItemDirectory);
+                workItemDirectory = Path.Combine(workItemDirectory, Guid.NewGuid().ToString("N"));
                 var htmlResultsFilePath = options.IncludeHtml ? GetResultsFilePath(workItemInfo, options, "html") : null;
-                var rspFileContents = BuildRspFileContents(workItemInfo, options, resultsFilePath, htmlResultsFilePath);
+                File.Delete(GetSyntheticFailurePath(resultsFilePath));
+                var rspFileContents = BuildRspFileContents(workItemInfo, options, resultsFilePath, htmlResultsFilePath, workItemDirectory);
                 var rspFilePath = Path.Combine(getRspDirectory(), $"vstest_{workItemInfo.PartitionIndex}.rsp");
                 File.WriteAllText(rspFilePath, rspFileContents);
 
@@ -132,49 +147,43 @@ namespace TestRunner.RunTests
                         displayWindow: false,
                         captureOutput: true,
                         environmentVariables: options.EnvironmentVariables),
-                    lowPriority: false,
-                    cancellationToken: cancellationToken);
+                    lowPriority: false);
                 Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName}");
 
-                var xunitProcessResult = await dotnetProcessInfo.Result;
+                var (xunitProcessResult, timeoutMessage) = await waitForCompletionAsync(resultsFilePath);
                 var span = DateTime.UtcNow - start;
 
                 Logger.Log($"Exit xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName} with code {xunitProcessResult.ExitCode}");
                 processResultList.Add(xunitProcessResult);
 
-                if (xunitProcessResult.ExitCode != 0)
+                if ((timeoutMessage is not null || xunitProcessResult.ExitCode != 0) &&
+                    removeEmptyResultsFile(resultsFilePath))
                 {
-                    // On occasion we get a non-0 output but no actual data in the result file.  The could happen
-                    // if xunit manages to crash when running a unit test (a stack overflow could cause this, for instance).
-                    // To avoid losing information, write the process output to the console.  In addition, delete the results
-                    // file to avoid issues with any tool attempting to interpret the (potentially malformed) text.
-                    var resultData = string.Empty;
-                    try
-                    {
-                        resultData = File.ReadAllText(resultsFilePath).Trim();
-                    }
-                    catch
-                    {
-                        // Happens if xunit didn't produce a log file
-                    }
-
-                    if (resultData.Length == 0)
-                    {
-                        // Delete the output file.
-                        File.Delete(resultsFilePath);
-                        resultsFilePath = null;
-                        htmlResultsFilePath = null;
-                    }
+                    resultsFilePath = null;
+                    htmlResultsFilePath = null;
                 }
 
                 Logger.Log($"Command line {workItemInfo.DisplayName} completed in {span.TotalSeconds} seconds: {options.DotnetFilePath} {commandLineArguments}");
                 var standardOutput = string.Join(Environment.NewLine, xunitProcessResult.OutputLines) ?? "";
                 var errorOutput = string.Join(Environment.NewLine, xunitProcessResult.ErrorLines) ?? "";
 
-                var exitCode = xunitProcessResult.ExitCode;
+                var exitCode = timeoutMessage is not null ? Program.ExitFailure : xunitProcessResult.ExitCode;
                 if (exitCode != 0)
                 {
-                    CheckForCrashes(resultsFilePath, workItemInfo.DisplayName, options.TestResultsDirectory);
+                    var syntheticPath = GetSyntheticFailurePath(GetResultsFilePath(workItemInfo, options));
+                    if (!_userCancellationToken.IsCancellationRequested)
+                    {
+                        CheckForCrashes(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName,
+                            workItemDirectory, timeoutMessage);
+                    }
+
+                    if (!File.Exists(syntheticPath) && !ContainsFailedTest(resultsFilePath))
+                    {
+                        writeSyntheticFailure(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName,
+                            $"Test runner exited with code {exitCode} without a failed test result.{Environment.NewLine}{errorOutput}");
+                    }
+
+                    resultsFilePath ??= syntheticPath;
                 }
 
                 var testResultInfo = new TestResultInfo(
@@ -191,11 +200,110 @@ namespace TestRunner.RunTests
                     commandLineArguments,
                     processResults: ImmutableArray.CreateRange(processResultList));
 
+                async Task<(ProcessResult Result, string? TimeoutMessage)> waitForCompletionAsync(string resultsFilePath)
+                {
+                    try
+                    {
+                        return (await dotnetProcessInfo.Result.WaitAsync(cancellationToken), null);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        var timeoutMessage = _userCancellationToken.IsCancellationRequested
+                            ? $"Run cancelled by user while running {workItemInfo.DisplayName}."
+                            : $"Global deadline exceeded while running {workItemInfo.DisplayName}.";
+                        ConsoleUtil.Error(timeoutMessage);
+                        await handleCancellationAsync(resultsFilePath, timeoutMessage).ConfigureAwait(false);
+                        return (await dotnetProcessInfo.Result, timeoutMessage);
+                    }
+                }
+
+                async Task handleCancellationAsync(string resultsFilePath, string timeoutMessage)
+                {
+                    var processes = new List<Process> { dotnetProcessInfo.Process };
+                    try
+                    {
+                        writeSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
+                        if (_userCancellationToken.IsCancellationRequested)
+                            return;
+
+                        processes.AddRange(await getChildProcessesAsync(dotnetProcessInfo.Process).ConfigureAwait(false));
+                        await DumpCollector.CollectAsync(processes, options, workItemDirectory).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleUtil.Warning($"Unable to collect timeout dumps: {ex.Message}");
+                    }
+                    finally
+                    {
+                        foreach (var process in processes)
+                        {
+                            ProcessUtil.KillTree(process);
+                            if (process != dotnetProcessInfo.Process)
+                                process.Dispose();
+                        }
+                    }
+
+                    static async Task<List<Process>> getChildProcessesAsync(Process root)
+                    {
+                        try
+                        {
+                            return await ProcessUtil.GetChildProcessesAsync(root).ConfigureAwait(false);
+                        }
+                        catch (Exception ex)
+                        {
+                            // The root process is already known and can still be dumped even if
+                            // descendant discovery fails.
+                            ConsoleUtil.Warning($"Unable to enumerate descendant processes: {ex.Message}");
+                            return new List<Process>();
+                        }
+                    }
+                }
+
+                static bool removeEmptyResultsFile(string resultsFilePath)
+                {
+                    // A crashed test host may leave an empty result file that must not be published.
+                    var resultData = string.Empty;
+                    try
+                    {
+                        resultData = File.ReadAllText(resultsFilePath).Trim();
+                    }
+                    catch
+                    {
+                        // Happens if xunit didn't produce a log file
+                    }
+
+                    if (resultData.Length != 0)
+                        return false;
+
+                    File.Delete(resultsFilePath);
+                    return true;
+                }
+
                 string getRspDirectory()
                 {
                     var dirPath = Path.Combine(options.ArtifactsDirectory, "tmp", options.Configuration, "vstest-rsp");
                     Directory.CreateDirectory(dirPath);
                     return dirPath;
+                }
+
+                static void writeSyntheticFailure(string resultsFilePath, string displayName, string message)
+                {
+                    var escapedDisplayName = SecurityElement.Escape(displayName);
+                    var xml = $"""
+                        <?xml version="1.0" encoding="utf-8"?>
+                        <assemblies>
+                          <assembly name="{escapedDisplayName}" total="1" passed="0" failed="1" skipped="0">
+                            <collection name="RunTests" total="1" passed="0" failed="1" skipped="0">
+                              <test name="{escapedDisplayName}" type="RunTests.WorkItem" method="Execute" time="0" result="Fail">
+                                <failure exception-type="WorkItemFailure">
+                                  <message>{SecurityElement.Escape(message)}</message>
+                                </failure>
+                              </test>
+                            </collection>
+                          </assembly>
+                        </assemblies>
+                        """;
+                    File.WriteAllText(GetSyntheticFailurePath(resultsFilePath), xml);
                 }
             }
             catch (Exception ex)
@@ -204,21 +312,45 @@ namespace TestRunner.RunTests
             }
         }
 
+        private static string GetSyntheticFailurePath(string resultsFilePath)
+            => Path.Combine(Path.GetDirectoryName(resultsFilePath)!,
+                Path.GetFileNameWithoutExtension(resultsFilePath) + "_synthetic_failure.xml");
+
+        private static bool ContainsFailedTest(string? resultsFilePath)
+        {
+            if (resultsFilePath is null)
+                return false;
+
+            try
+            {
+                using var reader = XmlReader.Create(resultsFilePath, new XmlReaderSettings { XmlResolver = null });
+                while (reader.Read())
+                {
+                    if (reader.NodeType == XmlNodeType.Element && reader.Name == "test" && reader.GetAttribute("result") == "Fail")
+                        return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                ConsoleUtil.Warning($"Unable to check test results '{resultsFilePath}' for failures: {ex.Message}");
+            }
+
+            return false;
+        }
+
         /// <summary>
-        /// When vstest detects a test host crash or hang (via the /Blame option), it collects
-        /// a dump file but the test runner may not produce a clear failure in the xunit results
-        /// XML. This means AzDO's PublishTestResults task won't surface the crash as a failed
-        /// test. This method scans for dump files, logs the crash info to the console, and
-        /// writes a standalone synthetic xunit results XML so the failure is visible in AzDO.
+        /// Surface host failures in AzDO even when VSTest did not produce a failed test result.
+        /// Only inspect the diagnostics directory belonging to this work-item invocation.
         /// </summary>
-        private static void CheckForCrashes(string? resultsFilePath, string displayName, string testResultsDirectory)
+        private static void CheckForCrashes(string resultsFilePath, string displayName, string testResultsDirectory, string? timeoutMessage)
         {
             var (dumpFiles, sequenceFiles, crashingTest, isHang) = detectDumpFiles();
-            if (dumpFiles.Length == 0)
+            if (dumpFiles.Length == 0 && timeoutMessage is null)
             {
                 return;
             }
 
+            isHang |= timeoutMessage is not null;
             Logger.Log($"Detected dump files for {displayName}: {string.Join(", ", dumpFiles)}");
 
             // Emit as AzDO timeline errors so they display prominently in the build results
@@ -240,10 +372,8 @@ namespace TestRunner.RunTests
             // Copy sequence files to the test results directory so they are included in artifacts
             copySequenceFilesToArtifacts(sequenceFiles, testResultsDirectory);
 
-            if (resultsFilePath != null)
-            {
+            if (!File.Exists(GetSyntheticFailurePath(resultsFilePath)))
                 writeSyntheticFailure(resultsFilePath, dumpFiles, crashingTest, isHang);
-            }
 
             (string[] DumpFiles, string[] SequenceFiles, string? CrashingTest, bool IsHang) detectDumpFiles()
             {
@@ -328,9 +458,7 @@ namespace TestRunner.RunTests
                     var escapedDumpFileNames = SecurityElement.Escape(dumpFileNames);
                     var escapedDumpFilePaths = SecurityElement.Escape(dumpFilePaths);
 
-                    var syntheticPath = Path.Combine(
-                        Path.GetDirectoryName(resultsFilePath)!,
-                        Path.GetFileNameWithoutExtension(resultsFilePath) + "_synthetic_failure.xml");
+                    var syntheticPath = GetSyntheticFailurePath(resultsFilePath);
 
                     var xml = $"""
                         <?xml version="1.0" encoding="utf-8"?>
@@ -339,7 +467,7 @@ namespace TestRunner.RunTests
                             <collection name="Crash/Hang Detection" total="1" passed="0" failed="1" skipped="0">
                               <test name="[{failureType}] {escapedTestName}" type="RunTests.{failureType}Detection" method="{escapedTestName}" time="0" result="Fail">
                                 <failure exception-type="TestHost{failureType}Exception">
-                                  <message>Test host {failureType.ToLower()} detected. Test running at time of {failureType.ToLower()}: {escapedTestName}. Dump files: {escapedDumpFileNames}</message>
+                                  <message>{SecurityElement.Escape(timeoutMessage)} Test host {failureType.ToLower()} detected. Test running at time of {failureType.ToLower()}: {escapedTestName}. Dump files: {escapedDumpFileNames}</message>
                                   <stack-trace>Dump files collected:
                         {escapedDumpFilePaths}</stack-trace>
                                 </failure>

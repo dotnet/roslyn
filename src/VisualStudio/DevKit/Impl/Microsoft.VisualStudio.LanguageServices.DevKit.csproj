@@ -19,7 +19,7 @@
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadLanguageService.cs" Link="EditAndContinue\ManagedHotReloadLanguageService.cs" />
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadLanguageServiceFactory.cs" Link="EditAndContinue\ManagedHotReloadLanguageServiceFactory.cs" />
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadLanguageServiceImpl.cs" Link="EditAndContinue\ManagedHotReloadLanguageServiceImpl.cs" />
-    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadServiceProxy.cs" Link="EditAndContinue\ManagedHotReloadServiceProxy.cs" />
+    <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\ManagedHotReloadStateProxy.cs" Link="EditAndContinue\ManagedHotReloadStateProxy.cs" />
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\EditAndContinueLogReporter.cs" Link="EditAndContinue\EditAndContinueLogReporter.cs" />
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Services\EditAndContinue\HotReloadLoggerProxy.cs" Link="EditAndContinue\HotReloadLoggerProxy.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\PdbSourceDocument\AbstractSourceLinkService.cs" />
@@ -38,6 +38,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Utilities.Internal" GeneratePathProperty="True" />
     <PackageReference Include="System.Configuration.ConfigurationManager" GeneratePathProperty="True" />
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Contracts" GeneratePathProperty="True" />
+    <PackageReference Include="Microsoft.VisualStudio.HotReload.RemoteContracts" GeneratePathProperty="True" />
   </ItemGroup>
 
   <ItemGroup>
@@ -49,6 +50,7 @@
     <Content Include="$(PkgMicrosoft_VisualStudio_Utilities_Internal)\lib\netstandard2.0\Microsoft.VisualStudio.Utilities.Internal.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(PkgSystem_Configuration_ConfigurationManager)\lib\netstandard2.0\System.Configuration.ConfigurationManager.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(PkgMicrosoft_VisualStudio_Debugger_Contracts)\lib\netstandard2.0\Microsoft.VisualStudio.Debugger.Contracts.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="$(PkgMicrosoft_VisualStudio_HotReload_RemoteContracts)\lib\$(NetVSCode)\Microsoft.VisualStudio.HotReload.RemoteContracts.dll" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="$(TargetPath)" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
