@@ -16,7 +16,6 @@
 //
 // Usage: dotnet run --file ./fetch-build-binlogs.cs
 //        dotnet run --file ./fetch-build-binlogs.cs -- --extract <archive> <dest> <prefix> <budget> [label]
-//        dotnet run --file ./fetch-build-binlogs.cs -- --validate-url <url>
 
 using System.IO.Compression;
 using System.Linq;
@@ -28,11 +27,6 @@ using System.Text.RegularExpressions;
 if (args.Length > 0 && args[0] == "--extract")
 {
     return RunExtractOnly(args[1..]);
-}
-
-if (args.Length > 0 && args[0] == "--validate-url")
-{
-    return args.Length == 2 && IsTrustedArtifactUrl(args[1]) ? 0 : 1;
 }
 
 var githubOutput = Environment.GetEnvironmentVariable("GITHUB_OUTPUT") ?? string.Empty;
@@ -70,7 +64,7 @@ if (token.Length != 0)
     github.DefaultRequestHeaders.Authorization = new("Bearer", token);
 }
 
-using var ado = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+using var ado = new HttpClient();
 ado.DefaultRequestHeaders.UserAgent.ParseAdd("roslyn-build-failure-analysis");
 
 // --- 1. Resolve and validate the PR number ---------------------------------
@@ -479,53 +473,6 @@ static bool IsTrustedArtifactUrl(string url)
         && path.StartsWith($"/A{CollectionId}/{ProjectId}/", StringComparison.OrdinalIgnoreCase);
 }
 
-static bool IsRedirect(HttpStatusCode status)
-    => status is HttpStatusCode.MovedPermanently or HttpStatusCode.Found or HttpStatusCode.SeeOther
-        or HttpStatusCode.TemporaryRedirect or HttpStatusCode.PermanentRedirect;
-
-static async Task<HttpResponseMessage> Get(
-    HttpClient client, string url, HttpCompletionOption completion, CancellationToken cancellation)
-{
-    const int MaxRedirects = 5;
-
-    var response = await client.GetAsync(url, completion, cancellation);
-    for (var redirect = 0; redirect < MaxRedirects && IsRedirect(response.StatusCode); redirect++)
-    {
-        Uri? next = null;
-        try
-        {
-            var location = response.Headers.Location;
-            if (location is not null)
-            {
-                next = new Uri(new Uri(url), location);
-            }
-        }
-        catch (UriFormatException)
-        {
-        }
-
-        response.Dispose();
-        if (next is null || !IsTrustedArtifactUrl(next.AbsoluteUri))
-        {
-            Console.WriteLine(
-                "::warning::Refusing an artifact redirect outside dnceng-public/public.");
-            return new HttpResponseMessage(HttpStatusCode.Forbidden);
-        }
-
-        url = next.AbsoluteUri;
-        response = await client.GetAsync(url, completion, cancellation);
-    }
-
-    if (!IsRedirect(response.StatusCode))
-    {
-        return response;
-    }
-
-    response.Dispose();
-    Console.WriteLine($"::warning::Refusing an artifact after more than {MaxRedirects} redirects.");
-    return new HttpResponseMessage(HttpStatusCode.Forbidden);
-}
-
 // Retries transient failures twice; the workflow's `timeout 600` bounds the run.
 // `read` runs under the attempt's timeout, so a stalled body is covered too.
 static async Task<(T? Value, string? Error)> Fetch<T>(
@@ -542,8 +489,8 @@ static async Task<(T? Value, string? Error)> Fetch<T>(
         try
         {
             using var cts = new CancellationTokenSource(timeout);
-            using var response = await Get(
-                client, url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+            using var response = await client.GetAsync(
+                url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
             if (response.IsSuccessStatusCode)
             {
                 return (await read(response, cts.Token), null);
