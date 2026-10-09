@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -101,6 +102,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             Assert.Equal("\"text\"", new TypedConstant(_stringType, TypedConstantKind.Primitive, "text").ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
             Assert.Equal("42", new TypedConstant(_intType, TypedConstantKind.Primitive, 42).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
             Assert.Equal("typeof(C)", new TypedConstant(_systemType, TypedConstantKind.Type, _namedType).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74326")]
+        public void ToCSharpString_FlagsEnum_ExcludesZeroMember()
+        {
+            var compilation = CreateCompilation("""
+                [System.Flags] enum E { None = 0, A = 1, B = 2, C = 4 }
+                [System.Flags] enum U : uint { None = 0, A = 1, B = 2, C = 4 }
+                """);
+            var signedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
+            var unsignedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("U");
+
+            Assert.Equal("E.A | E.C", new TypedConstant(signedType, TypedConstantKind.Enum, 5).ToCSharpString());
+            Assert.Equal("U.A | U.C", new TypedConstant(unsignedType, TypedConstantKind.Enum, 5u).ToCSharpString());
+            Assert.Equal("E.None", new TypedConstant(signedType, TypedConstantKind.Enum, 0).ToCSharpString());
+            Assert.Equal("E.B", new TypedConstant(signedType, TypedConstantKind.Enum, 2).ToCSharpString());
         }
 
         [Fact]

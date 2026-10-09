@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' specifiedValue might be a bitwise Or of multiple enum fields
                     ' Is the current member included in the specified value?
-                    If (memberValue And constantToDecode) = memberValue Then
+                    If memberValue <> 0 AndAlso (memberValue And constantToDecode) = memberValue Then
                         ' update the current value
                         curValue = curValue Or memberValue
 
@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' specifiedValue might be a bitwise Or of multiple enum fields
                     ' Is the current member included in the specified value?
-                    If (memberValue And constantToDecode) = memberValue Then
+                    If memberValue <> 0 AndAlso (memberValue And constantToDecode) = memberValue Then
                         ' update the current value
                         curValue = curValue Or memberValue
 
@@ -410,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' specifiedValue might be a bitwise Or of multiple enum fields
                     ' Is the current member included in the specified value?
-                    If (memberValue And constantToDecode) = memberValue Then
+                    If memberValue <> 0 AndAlso (memberValue And constantToDecode) = memberValue Then
                         ' update the current value
                         curValue = curValue Or memberValue
 
@@ -475,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' specifiedValue might be a bitwise Or of multiple enum fields
                     ' Is the current member included in the specified value?
-                    If (memberValue And constantToDecode) = memberValue Then
+                    If memberValue <> 0 AndAlso (memberValue And constantToDecode) = memberValue Then
                         ' update the current value
                         curValue = curValue Or memberValue
 
