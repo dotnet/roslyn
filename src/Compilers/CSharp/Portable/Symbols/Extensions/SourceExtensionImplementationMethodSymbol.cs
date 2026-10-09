@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return result;
         }
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => UnderlyingMethod.GetCallerUnsafeMode(fieldsBeingBound);
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => UnderlyingMethod.GetRequiresUnsafeMode(fieldsBeingBound);
 
         private sealed class ExtensionMetadataMethodParameterSymbol : RewrittenMethodParameterSymbolBase
         {

@@ -1820,25 +1820,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) != CallerUnsafeMode.Implicit);
+                Debug.Assert(AssociatedSymbol?.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) != RequiresUnsafeMode.Implicit);
 
-                return hasRequiresUnsafeAttribute || AssociatedSymbol?.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit;
+                return hasRequiresUnsafeAttribute || AssociatedSymbol?.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit;
             }
 
             // This might be expensive, so we cache it in _packedFlags.
             return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (!RequiresUnsafe)
             {
-                return CallerUnsafeMode.None;
+                return RequiresUnsafeMode.None;
             }
 
             return ContainingModule.UseUpdatedMemorySafetyRules
-                ? CallerUnsafeMode.Explicit
-                : CallerUnsafeMode.Implicit;
+                ? RequiresUnsafeMode.Explicit
+                : RequiresUnsafeMode.Implicit;
         }
 
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)

@@ -402,17 +402,17 @@
         <target state="translated">Atrybut AsyncMethodBuilder jest niedozwolony w metodach anonimowych bez jawnego zwracanego typu.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+      <trans-unit id="ERR_RequiresUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
         <target state="translated">Niezabezpieczony element członkowski „{0}” nie może zaimplementować zabezpieczonego elementu członkowskiego „{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+      <trans-unit id="ERR_RequiresUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
         <target state="translated">Niezabezpieczony element członkowski „{0}” nie może niejawnie zaimplementować zabezpieczonego elementu członkowskiego „{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+      <trans-unit id="ERR_RequiresUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
         <target state="translated">Niezabezpieczony element członkowski „{0}” nie może przesłonić zabezpieczonego elementu członkowskiego „{1}”</target>
         <note />
