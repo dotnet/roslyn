@@ -32,7 +32,7 @@ src/Compilers/ @dotnet/roslyn-compiler
 src/Compilers/Test/Core/Traits/Traits.cs
 
 src/EditorFeatures/ @dotnet/roslyn-ide
-src/ExpressionEvaluator/ @dotnet/roslyn-ide @dotnet/roslyn-compiler
+src/ExpressionEvaluator/ @dotnet/roslyn-ide @dotnet/roslyn-compiler @tmat
 src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
 src/LanguageServer/ @dotnet/roslyn-ide
