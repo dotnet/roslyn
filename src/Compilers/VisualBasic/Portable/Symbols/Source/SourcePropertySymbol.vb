@@ -780,7 +780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Sub EnsureSignature()
-            If _lazyParameters.IsDefault Then
+            If RoslynImmutableInterlocked.VolatileRead(_lazyParameters).IsDefault Then
                 Dim diagnostics = BindingDiagnosticBag.GetInstance()
                 Dim sourceModule = DirectCast(ContainingModule, SourceModuleSymbol)
 
@@ -1279,4 +1279,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
     End Class
 End Namespace
-

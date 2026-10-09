@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsExtensionMethodIsPopulated => (_bits & IsExtensionMethodIsPopulatedBit) != 0;
             public bool IsExplicitFinalizerOverride => (_bits & IsExplicitFinalizerOverrideBit) != 0;
             public bool IsExplicitClassOverride => (_bits & IsExplicitClassOverrideBit) != 0;
-            public bool IsExplicitOverrideIsPopulated => (_bits & IsExplicitOverrideIsPopulatedBit) != 0;
+            public bool IsExplicitOverrideIsPopulated => (Volatile.Read(ref _bits) & IsExplicitOverrideIsPopulatedBit) != 0;
             public bool IsObsoleteAttributePopulated => (Volatile.Read(ref _bits) & IsObsoleteAttributePopulatedBit) != 0;
             public bool IsCustomAttributesPopulated => (Volatile.Read(ref _bits) & IsCustomAttributesPopulatedBit) != 0;
             public bool IsUseSiteDiagnosticPopulated => (Volatile.Read(ref _bits) & IsUseSiteDiagnosticPopulatedBit) != 0;
@@ -1373,7 +1373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var explicitInterfaceImplementations = _lazyExplicitMethodImplementations;
+                var explicitInterfaceImplementations = RoslynImmutableInterlocked.VolatileRead(in _lazyExplicitMethodImplementations);
                 if (!explicitInterfaceImplementations.IsDefault)
                 {
                     return explicitInterfaceImplementations;

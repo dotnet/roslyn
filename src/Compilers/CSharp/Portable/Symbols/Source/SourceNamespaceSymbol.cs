@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 
         private const int LazyAllMembersIsSorted = 0x1;   // Set if "lazyAllMembers" is sorted.
-        private int _flags;
+        private volatile int _flags;
 
         private LexicalSortKey _lazyLexicalSortKey = LexicalSortKey.NotInitialized;
 
@@ -162,7 +162,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableInterlocked.InterlockedExchange(ref _lazyAllMembers, allMembers);
                 }
 
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
+                // ThreadSafeFlagOperations performs interlocked updates.
                 ThreadSafeFlagOperations.Set(ref _flags, LazyAllMembersIsSorted);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
                 return allMembers;
             }
         }

@@ -2113,7 +2113,7 @@ lReportErrorOnTwoTokens:
         End Property
 
         Private Sub EnsureSignature()
-            If _lazyParameters.IsDefault Then
+            If RoslynImmutableInterlocked.VolatileRead(_lazyParameters).IsDefault Then
 
                 Dim diagBag = BindingDiagnosticBag.GetInstance()
                 Dim sourceModule = ContainingSourceModule
