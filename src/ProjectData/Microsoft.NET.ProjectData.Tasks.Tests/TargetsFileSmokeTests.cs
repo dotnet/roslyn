@@ -54,7 +54,6 @@ public sealed class TargetsFileSmokeTests : IDisposable
 			$"Expected the targets file to be next to the test binary so MSBuild can resolve it. Looked for: {TargetsFile}");
 	}
 
-
 	[Fact]
 	public async Task SingleTfmProject_EvaluatesProjectDataPathNextToCsproj()
 	{
