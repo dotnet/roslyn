@@ -156,7 +156,7 @@ internal readonly struct RequestContext
 
         // Retrieve the current LSP tracked text as of this request.
         // This is safe as all creation of request contexts cannot happen concurrently.
-        var trackedDocuments = lspWorkspaceManager.GetTrackedLspText();
+        var trackedDocuments = lspWorkspaceManager.GetTrackedDocuments();
 
         // If the handler doesn't need an LSP solution we do two important things:
         // 1. We don't bother building the LSP solution for perf reasons
@@ -168,9 +168,9 @@ internal readonly struct RequestContext
         {
             var allowProjectLoading = !mutatesSolutionState;
             capturedWorkspaceContext = textDocument is null
-                ? await lspWorkspaceManager.GetLspWorkspaceContextAsync(
+                ? await lspWorkspaceManager.CaptureLspWorkspaceContextAsync(
                     trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false)
-                : await lspWorkspaceManager.GetLspDocumentContextAsync(
+                : await lspWorkspaceManager.CaptureLspDocumentContextAsync(
                     textDocument, trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false);
 
             // A client may request previous results after a document is removed and closed. The document is no
@@ -178,7 +178,7 @@ internal readonly struct RequestContext
             // SpellCheckHandler for instance may need to clear diagnostics for a document that has been closed.
             if (textDocument is not null && capturedWorkspaceContext is null)
             {
-                capturedWorkspaceContext = await lspWorkspaceManager.GetLspWorkspaceContextAsync(
+                capturedWorkspaceContext = await lspWorkspaceManager.CaptureLspWorkspaceContextAsync(
                     trackedDocuments, allowProjectLoading, cancellationToken).ConfigureAwait(false);
             }
 
