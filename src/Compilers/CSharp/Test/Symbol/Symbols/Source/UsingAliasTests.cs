@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1071,6 +1072,37 @@ class C
                     // (5,5): hidden CS8019: Unnecessary using directive.
                     //     using static A;
                     Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A;").WithLocation(5, 5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85922")]
+        public void UsingsInMultipleNamespaceDeclarationsInSameTree()
+        {
+            var compilation = CreateCompilation("""
+                namespace N
+                {
+                    using A = int;
+                    class C
+                    {
+                        public A F = default;
+                    }
+                }
+
+                namespace N
+                {
+                    using A = string;
+                    class D
+                    {
+                        public A F = default;
+                    }
+                }
+                """);
+            compilation.VerifyDiagnostics();
+
+            var classC = compilation.GetTypeByMetadataName("N.C");
+            var classD = compilation.GetTypeByMetadataName("N.D");
+
+            Assert.Equal(SpecialType.System_Int32, ((FieldSymbol)classC.GetMembers("F").Single()).Type.SpecialType);
+            Assert.Equal(SpecialType.System_String, ((FieldSymbol)classD.GetMembers("F").Single()).Type.SpecialType);
         }
     }
 }

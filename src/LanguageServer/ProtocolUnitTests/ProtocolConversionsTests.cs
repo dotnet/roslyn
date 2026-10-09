@@ -139,22 +139,6 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
 
     [ConditionalTheory(typeof(WindowsOnly))]
     [InlineData(@"\\home$\share\path", @"file://home%24/share/path")]
-    [InlineData(@"\\home$\share\path\", @"file://home%24/share/path")]
-    public void CreateRelativePatternBaseUri_UncPathWithDollarSign_Windows(string filePath, string expectedUri)
-    {
-        // UNC paths with $ in the server name (e.g. admin shares) are valid Windows paths
-        // but System.Uri cannot parse them. We should still get a DocumentUri back with the
-        // correct URI string, even though System.Uri can't parse it.
-        var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
-        Assert.Equal(expectedUri, uri.UriString);
-#pragma warning disable CS0618 // Type or member is obsolete - Asserting System.Uri behavior.
-        Assert.Null(uri.ParsedUri);
-#pragma warning restore CS0618 // Type or member is obsolete
-        Assert.NotNull(uri.ParsedDocumentUri);
-    }
-
-    [ConditionalTheory(typeof(WindowsOnly))]
-    [InlineData(@"\\home$\share\path", @"file://home%24/share/path")]
     public void CreateAbsoluteDocumentUri_UncPathWithDollarSign_Windows(string filePath, string expectedUri)
     {
         // UNC paths with $ in the server name (e.g. admin shares) are valid Windows paths
@@ -231,44 +215,6 @@ public sealed class ProtocolConversionsTests : AbstractLanguageServerProtocolTes
     {
         // Covers basic scenarios for CreateAbsoluteDocumentUri.  Full URI parsing / roundtripping is tested in ParsedUriTests
         Assert.Equal(expectedUri, ProtocolConversions.CreateAbsoluteDocumentUri(input).GetRequiredParsedUri().ToString());
-    }
-
-    [ConditionalTheory(typeof(WindowsOnly))]
-    [InlineData("C:\\a\\b", "file:///c%3A/a/b")]
-    [InlineData("C:\\a\\b\\", "file:///c%3A/a/b")]
-    [InlineData("C:\\a\\\\b", "file:///c%3A/a//b")]
-    [InlineData("C:\\%25\ue25b/a\\b", "file:///c%3A/%2525%EE%89%9B/a/b")]
-    [InlineData("C:\\%25\ue25b/a\\\\b", "file:///c%3A/%2525%EE%89%9B/a//b")]
-    [InlineData("C:\\\u0089\uC7BD", "file:///c%3A/%C2%89%EC%9E%BD")]
-    [InlineData("/\\server\ue25b\\%25\ue25b\\b", "file://server%EE%89%9B/%2525%EE%89%9B/b")]
-    [InlineData("\\\\server\ue25b\\%25\ue25b\\b", "file://server%EE%89%9B/%2525%EE%89%9B/b")]
-    [InlineData("\\\\server\ue25b\\%25\ue25b\\b\\", "file://server%EE%89%9B/%2525%EE%89%9B/b")]
-    [InlineData("C:\\ !$&'()+,-;=@[]_~#", "file:///c%3A/%20%21%24%26%27%28%29%2B%2C-%3B%3D%40%5B%5D_~%23")]
-    [InlineData("C:\\ !$&'()+,-;=@[]_~#\ue25b", "file:///c%3A/%20%21%24%26%27%28%29%2B%2C-%3B%3D%40%5B%5D_~%23%EE%89%9B")]
-    [InlineData("C:\\\u0073\u0323\u0307", "file:///c%3A/s%CC%A3%CC%87")] // combining marks
-    [InlineData("A:/\\\u200e//", "file:///a%3A//%E2%80%8E//")] // cases from https://github.com/dotnet/runtime/issues/1487
-    [InlineData("B:\\/\u200e", "file:///b%3A//%E2%80%8E")]
-    [InlineData("C:/\\\\-Ā\r", "file:///c%3A///-%C4%80%0D")]
-    [InlineData("D:\\\\\\\\\u200e", "file:///d%3A////%E2%80%8E")]
-    public void CreateRelativePatternBaseUri_LocalPaths_Windows(string filePath, string expectedUri)
-    {
-        var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
-        Assert.Equal(expectedUri, uri.GetRequiredParsedUri().ToString());
-    }
-
-    [ConditionalTheory(typeof(UnixLikeOnly))]
-    [InlineData("/u", "file:///u")]
-    [InlineData("/unix/", "file:///unix")]
-    [InlineData("/unix/path", "file:///unix/path")]
-    [InlineData("/%25\ue25b/\u0089\uC7BD", "file:///%2525%EE%89%9B/%C2%89%EC%9E%BD")]
-    [InlineData("/!$&'()+,-;=@[]_~#", "file:///%21%24%26%27%28%29%2B%2C-%3B%3D%40%5B%5D_~%23")]
-    [InlineData("/!$&'()+,-;=@[]_~#", "file:///%21%24%26%27%28%29%2B%2C-%3B%3D%40%5B%5D_~%23%EE%89%9B")]
-    [InlineData("/\\\u200e//", "file:///%5C%E2%80%8E/")] // cases from https://github.com/dotnet/runtime/issues/1487
-    [InlineData("/\\\\-Ā\r", "file:///%5C%5C-%C4%80%0D")]
-    public void CreateRelativePatternBaseUri_LocalPaths_Unix(string filePath, string expectedRelativeUri)
-    {
-        var uri = ProtocolConversions.CreateRelativePatternBaseUri(filePath);
-        Assert.Equal(expectedRelativeUri, uri.GetRequiredParsedUri().ToString());
     }
 
     #endregion

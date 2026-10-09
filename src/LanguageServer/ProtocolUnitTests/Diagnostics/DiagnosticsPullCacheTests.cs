@@ -133,6 +133,8 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
 
         public string Name => nameof(TestDiagnosticSource);
 
+        public bool HasInterFileDependencies => true;
+
         public int DiagnosticsRequestedCount = 0;
 
         public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
