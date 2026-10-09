@@ -569,6 +569,39 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         Assert.Empty(tagHelperNodes);
     }
 
+    [Fact]
+    public void ParentTagConstraint_BindsTagHelperWithTagHelperPrefix()
+    {
+        // Verifies that a Tag Helper requiring ParentTag="div" correctly binds
+        // to a prefixed <span> element nested inside a plain HTML <div> element.
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+            tagName: "span",
+            typeName: "SpanTagHelper",
+            assemblyName: "TestAssembly",
+            parentTag: "div"),
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+        @addTagHelper *, TestAssembly
+        @tagHelperPrefix th:
+        <div>
+            <th:span>Span inside a div with Tag Helper prefix.</th:span>
+        </div>
+        """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert: The prefixed span must bind to SpanTagHelper because its parent is div.
+        var documentNode = codeDocument.GetRequiredDocumentNode();
+        var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
+        Assert.Collection(tagHelperNodes,
+            node => Assert.Equal("span", node.TagName));
+    }
+
     private static TagHelperDescriptor CreateTagHelperDescriptor(
         string tagName,
         string typeName,

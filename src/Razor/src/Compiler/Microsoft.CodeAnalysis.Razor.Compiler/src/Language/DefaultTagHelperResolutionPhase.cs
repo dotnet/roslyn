@@ -1154,7 +1154,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         if (unresolvedParent != null)
         {
-            return (prefix + unresolvedParent.TagName, false);
+            return (unresolvedParent.TagName, false);
         }
 
         return (null, false);
