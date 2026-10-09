@@ -7,7 +7,8 @@ using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
-using Xunit.Abstractions;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.ProcessHost.UnitTests.Workspaces;
 

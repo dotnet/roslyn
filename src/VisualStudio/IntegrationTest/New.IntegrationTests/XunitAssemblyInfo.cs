@@ -3,5 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using Xunit;
+using Xunit.Sdk;
+using Xunit.v3;
 
-[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly, DisableTestParallelization = true)]
+[assembly: CollectionBehavior(CollectionBehavior.CollectionPerAssembly)]
+[assembly: Parallelization(Mode = ParallelMode.None)]

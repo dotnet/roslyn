@@ -76,14 +76,14 @@ namespace IdeBenchmarks.InheritanceMargin
         [IterationSetup]
         public Task IterationSetupAsync()
         {
-            _useExportProviderAttribute.Before(null);
+            _useExportProviderAttribute.Before(null, null!);
             return PrepareGlyphRequiredDataAsync(CancellationToken.None);
         }
 
         [IterationCleanup]
         public void IterationCleanup()
         {
-            _useExportProviderAttribute.After(null);
+            _useExportProviderAttribute.After(null, null!);
         }
 
         [GlobalCleanup]

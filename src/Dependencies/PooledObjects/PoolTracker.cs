@@ -110,7 +110,11 @@ internal static class PoolTracker
 internal sealed class PoolTrackingContext
 {
     private readonly ConcurrentDictionary<object, AllocationInfo> _outstanding = new ConcurrentDictionary<object, AllocationInfo>(ReferenceEqualityComparer.Instance);
+    private readonly object _allocationGate = new();
     private readonly bool _traceLeaks;
+    private bool _allocationTrackingStopped;
+
+    internal Action? BeforeAllocationRecordedForTesting { get; set; }
 
     internal PoolTrackingContext(bool traceLeaks)
     {
@@ -119,7 +123,27 @@ internal sealed class PoolTrackingContext
 
     internal void OnAllocate(object obj, string? poolName, string filePath, int lineNumber)
     {
-        _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), poolName, filePath, lineNumber, _traceLeaks ? Environment.StackTrace : null));
+        lock (_allocationGate)
+        {
+            if (_allocationTrackingStopped)
+                return;
+
+            BeforeAllocationRecordedForTesting?.Invoke();
+            _outstanding.TryAdd(obj, new AllocationInfo(obj.GetType(), poolName, filePath, lineNumber, _traceLeaks ? Environment.StackTrace : null));
+        }
+    }
+
+    /// <summary>
+    /// Stops recording new allocations in this context while still recording frees. Background work that outlives
+    /// the tracked operation (for example, analyzer driver initialization that the command-line compiler doesn't wait for)
+    /// can allocate after the operation completes; such allocations are not attributed to the operation.
+    /// </summary>
+    internal void StopTrackingAllocations()
+    {
+        lock (_allocationGate)
+        {
+            _allocationTrackingStopped = true;
+        }
     }
 
     internal void OnFree(object obj)

@@ -4,12 +4,9 @@
 
 namespace Xunit.Threading
 {
-    using System;
-    using System.ComponentModel;
-    using Xunit.Abstractions;
-    using Xunit.Harness;
-    using Xunit.Sdk;
-
+    // Skipped data row test cases for [IdeTheory] are unsupported because xUnit v3's base class
+    // does not carry the Visual Studio instance metadata required to run them.
+    /*
     public sealed class IdeSkippedDataRowTestCase : XunitSkippedDataRowTestCase
     {
         [EditorBrowsable(EditorBrowsableState.Never)]
@@ -63,4 +60,5 @@ namespace Xunit.Threading
             base.Deserialize(data);
         }
     }
+    */
 }

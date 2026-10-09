@@ -9,7 +9,7 @@
   <ItemGroup Condition="'$(GenerateTestFrameworkAttribute)' == 'true'">
     <AssemblyAttribute Include="Xunit.TestFrameworkAttribute">
       <_Parameter1>Xunit.Harness.IdeTestFramework</_Parameter1>
-      <_Parameter2>Microsoft.VisualStudio.Extensibility.Testing.Xunit</_Parameter2>
+      <_Parameter1_TypeName>System.Type</_Parameter1_TypeName>
     </AssemblyAttribute>
   </ItemGroup>
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
@@ -20,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
     public class DiagnosticDescriptorCreationAnalyzerTests
     {
+        public static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
         #region RS1007 (UseLocalizableStringsInDescriptorRuleId) and RS1015 (ProvideHelpUriInDescriptorRuleId)
 
         [Fact]
@@ -1731,7 +1734,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
         #region RS1031 (DefineDiagnosticTitleCorrectlyRule)
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleStringEndsWithPeriod_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
@@ -1969,7 +1972,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 ]);
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleIsMultiSentence_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
@@ -2206,7 +2209,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             }
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleIsMultiSentence_MultipleDescriptorsUsingSameTitle_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
@@ -2426,7 +2429,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 ]);
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_TitleStringContainsLineReturn_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
@@ -2660,7 +2663,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             }
         }
 
-        [WindowsOnlyFact, WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3575, "https://github.com/dotnet/roslyn-analyzers/issues/3575")]
         public async Task RS1031_ValidTitleString_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync("""
@@ -2836,7 +2839,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
         #region RS1032 (DefineDiagnosticMessageCorrectlyRule)
 
-        [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
         public async Task RS1032_MessageStringEndsWithPeriodAndIsNotMultiSentence_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
@@ -3073,7 +3076,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             }
         }
 
-        [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
         public async Task RS1032_MessageStringIsMultiSentenceAndDoesNotEndWithPeriod_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
@@ -3181,7 +3184,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
                 VerifyVB.Diagnostic(DiagnosticDescriptorCreationAnalyzer.DefineDiagnosticMessageCorrectlyRule).WithLocation(1).WithLocation(1));
         }
 
-        [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
         public async Task RS1032_MessageStringContainsLineReturn_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
@@ -3412,7 +3415,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             }
         }
 
-        [WindowsOnlyFact, WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3576, "https://github.com/dotnet/roslyn-analyzers/issues/3576")]
         public async Task RS1032_ValidMessageString_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync("""
@@ -3608,7 +3611,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 
         #region RS1033 (DefineDiagnosticDescriptionCorrectlyRule)
 
-        [WindowsOnlyFact, WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
         public async Task RS1033_DescriptionStringDoesNotEndWithPunctuation_DiagnosticAsync()
         {
             await VerifyCSharpCodeFixAsync("""
@@ -3841,7 +3844,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
             }
         }
 
-        [WindowsOnlyFact, WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
+        [Fact(Skip = "This test requires Windows.", SkipUnless = nameof(IsWindows)), WorkItem(3577, "https://github.com/dotnet/roslyn-analyzers/issues/3577")]
         public async Task RS1033_DescriptionEndsWithPunctuation_NoDiagnosticAsync()
         {
             await VerifyCSharpAnalyzerAsync("""

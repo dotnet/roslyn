@@ -16,6 +16,7 @@ This is the loading map for the agent knowledge base under `.github/memory/`. **
 | **`FILE_MAP.md`** | Top-level `src/` map (one line per area) + layer pointers | When deciding which area/layer to work in |
 | **`API_MAP.md`** | Build/test entry points & PublicAPI tracking | When changing build, tests, or public APIs |
 | **`TESTING_STRATEGY.md`** | Test layout, shared authoring conventions & how to run tests | When writing tests or debugging test failures |
+| **`rebuild-validation.md`** | BuildValidator / `Correctness_Rebuild` leg and its reference-resolution rules | When a rebuild validation leg fails or when changing `src/Tools/BuildValidator` |
 
 ## Layer-specific knowledge
 
@@ -30,6 +31,10 @@ area you're working in:
 | `Compilers`, `Dependencies`, `ExpressionEvaluator`, `Tools` | `.github/instructions/Compiler.instructions.md` | `testing/compiler.md` |
 | `Analyzers`, `CodeStyle`, `Features`, `Workspaces`, `EditorFeatures`, `VisualStudio`, `LanguageServer` | `.github/instructions/IDE.instructions.md` | `testing/ide.md` |
 | `Razor` | `.github/instructions/Razor.instructions.md` | `testing/razor.md` |
+
+`src/VisualStudio/IntegrationTest/` (the `IdeFact`/`IdeTheory` VS integration-test
+harness) has its own dedicated doc:
+`testing/vs-integration-tests-xunit-v3.md`.
 
 The repo-wide memory files above hold only cross-cutting content and point into
 these layer files for specifics.

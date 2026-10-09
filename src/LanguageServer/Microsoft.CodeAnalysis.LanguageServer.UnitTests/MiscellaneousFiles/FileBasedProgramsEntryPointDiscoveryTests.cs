@@ -19,7 +19,6 @@ using Microsoft.VisualStudio.Composition;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.FileBasedPrograms;
 
@@ -1054,8 +1053,8 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
 
         IEnumerable<Assembly> assemblies =
         [
-            typeof(Assert).Assembly, // xunit.assert
-            typeof(FactAttribute).Assembly, // xunit.core
+            typeof(Assert).Assembly, // xunit.v3.assert
+            typeof(FactAttribute).Assembly, // xunit.v3.core
             typeof(AssertEx).Assembly, // Microsoft.CodeAnalysis.Test.Utilities
             typeof(AbstractLanguageServerProtocolTests).Assembly,
             typeof(Workspace).Assembly, // Microsoft.CodeAnalysis.Workspaces

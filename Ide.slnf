@@ -88,7 +88,6 @@
       "src\\EditorFeatures\\Text\\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj",
       "src\\EditorFeatures\\VisualBasicTest\\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests.vbproj",
       "src\\EditorFeatures\\VisualBasic\\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj",
-      "src\\EditorFeatures\\XunitHook\\Microsoft.CodeAnalysis.XunitHook.csproj",
       "src\\ExpressionEvaluator\\CSharp\\Source\\ExpressionCompiler\\Microsoft.CodeAnalysis.CSharp.ExpressionCompiler.csproj",
       "src\\ExpressionEvaluator\\CSharp\\Source\\ResultProvider\\CSharpResultProvider.shproj",
       "src\\ExpressionEvaluator\\CSharp\\Source\\ResultProvider\\Portable\\Microsoft.CodeAnalysis.CSharp.ResultProvider.csproj",

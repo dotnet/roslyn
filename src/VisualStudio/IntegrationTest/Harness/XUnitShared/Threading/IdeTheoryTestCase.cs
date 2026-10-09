@@ -6,11 +6,8 @@ namespace Xunit.Threading
 {
     using System;
     using System.ComponentModel;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Xunit.Abstractions;
     using Xunit.Harness;
-    using Xunit.Sdk;
+    using Xunit.v3;
 
     public sealed class IdeTheoryTestCase : IdeTestCaseBase
     {
@@ -20,25 +17,9 @@ namespace Xunit.Threading
         {
         }
 
-        public IdeTheoryTestCase(IMessageSink diagnosticMessageSink, TestMethodDisplay defaultMethodDisplay, TestMethodDisplayOptions defaultMethodDisplayOptions, ITestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
-            : base(diagnosticMessageSink, defaultMethodDisplay, defaultMethodDisplayOptions, testMethod, visualStudioInstanceKey, testMethodArguments)
+        public IdeTheoryTestCase(IXunitTestMethod testMethod, VisualStudioInstanceKey visualStudioInstanceKey, object?[]? testMethodArguments = null)
+            : base(testMethod, visualStudioInstanceKey, includeRootSuffixInDisplayName: false, testMethodArguments)
         {
-        }
-
-        public override Task<RunSummary> RunAsync(IMessageSink diagnosticMessageSink, IMessageBus messageBus, object[] constructorArguments, ExceptionAggregator aggregator, CancellationTokenSource cancellationTokenSource)
-        {
-            TestCaseRunner<IXunitTestCase> runner;
-            if (!string.IsNullOrEmpty(SkipReason))
-            {
-                // Use XunitTheoryTestCaseRunner so the skip gets reported without trying to open VS
-                runner = new XunitTheoryTestCaseRunner(this, DisplayName, SkipReason, constructorArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource);
-            }
-            else
-            {
-                runner = new IdeTheoryTestCaseRunner(SharedData, VisualStudioInstanceKey, this, DisplayName, SkipReason, constructorArguments, diagnosticMessageSink, messageBus, aggregator, cancellationTokenSource);
-            }
-
-            return runner.RunAsync();
         }
     }
 }

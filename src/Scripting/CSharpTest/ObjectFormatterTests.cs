@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact(sourceFilePath: @"z:\Fixture.cs", Skip = "https://github.com/dotnet/roslyn/issues/19027")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_NonGeneric()
@@ -948,7 +948,7 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact(sourceFilePath: @"z:\Fixture.cs", Skip = "https://github.com/dotnet/roslyn/issues/19027")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethod()
@@ -972,7 +972,7 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact(sourceFilePath: @"z:\Fixture.cs", Skip = "https://github.com/dotnet/roslyn/issues/19027")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericType()
@@ -996,7 +996,7 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact(sourceFilePath: @"z:\Fixture.cs", Skip = "https://github.com/dotnet/roslyn/issues/19027")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericMethodInGenericType()
@@ -1029,7 +1029,7 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem("https://github.com/dotnet/roslyn/issues/9221")]
+        [Fact(sourceFilePath: @"z:\Fixture.cs", Skip = "https://github.com/dotnet/roslyn/issues/9221"), WorkItem("https://github.com/dotnet/roslyn/issues/9221")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_Dynamic()
         {
@@ -1068,7 +1068,7 @@ $@"'object' does not contain a definition for 'x'
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact(sourceFilePath: @"z:\Fixture.cs", Skip = "https://github.com/dotnet/roslyn/issues/19027")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_RefOutParameters()
@@ -1093,7 +1093,7 @@ $@"{new Exception().Message}
             }
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19027")]
+        [Fact(sourceFilePath: @"z:\Fixture.cs", Skip = "https://github.com/dotnet/roslyn/issues/19027")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/15860")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/19027")]
         public void StackTrace_GenericRefParameter()

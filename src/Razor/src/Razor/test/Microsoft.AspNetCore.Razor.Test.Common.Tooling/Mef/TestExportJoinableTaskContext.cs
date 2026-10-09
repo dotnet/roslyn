@@ -4,7 +4,6 @@
 using System.ComponentModel.Composition;
 using System.Threading;
 using Microsoft.VisualStudio.Threading;
-using Xunit.Sdk;
 
 #if NETFRAMEWORK
 using System.Windows.Threading;
@@ -27,19 +26,10 @@ public partial class TestExportJoinableTaskContext
     //[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public TestExportJoinableTaskContext()
     {
-        var synchronizationContext = SynchronizationContext.Current;
-        try
-        {
-            SynchronizationContext.SetSynchronizationContext(GetEffectiveSynchronizationContext());
-            (JoinableTaskContext, SynchronizationContext) = CreateJoinableTaskContext();
+        (JoinableTaskContext, SynchronizationContext) = CreateJoinableTaskContext();
 #if false
         ResetThreadAffinity(JoinableTaskContext.Factory);
 #endif
-        }
-        finally
-        {
-            SynchronizationContext.SetSynchronizationContext(synchronizationContext);
-        }
     }
 
     private static (JoinableTaskContext joinableTaskContext, SynchronizationContext synchronizationContext) CreateJoinableTaskContext()
@@ -79,23 +69,6 @@ public partial class TestExportJoinableTaskContext
     internal SynchronizationContext SynchronizationContext
     {
         get;
-    }
-
-    internal static SynchronizationContext? GetEffectiveSynchronizationContext()
-    {
-        if (SynchronizationContext.Current is AsyncTestSyncContext asyncTestSyncContext)
-        {
-            SynchronizationContext? innerSynchronizationContext = null;
-            asyncTestSyncContext.Send(
-                _ => innerSynchronizationContext = SynchronizationContext.Current,
-                null);
-
-            return innerSynchronizationContext;
-        }
-        else
-        {
-            return SynchronizationContext.Current;
-        }
     }
 
 #if false

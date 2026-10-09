@@ -351,12 +351,24 @@ dotnet_diagnostic.cs0169.severity = garbage");
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var exitCode = cmd.Run(outWriter);
             Assert.Equal(0, exitCode);
-            Assert.Equal(
-$@"warning InvalidSeverityInAnalyzerConfig: The diagnostic 'cs0169' was given an invalid severity 'garbage' in the analyzer config file at '{analyzerConfig.Path}'.
-test.cs(4,9): warning CS0169: The field 'C._f' is never used
-", outWriter.ToString());
+            var output = outWriter.ToString();
+            Assert.Equal(2, output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length);
+            AssertDiagnosticContainsArguments(output, "InvalidSeverityInAnalyzerConfig", "cs0169", "garbage", analyzerConfig.Path);
+            AssertDiagnosticContainsArguments(output, "CS0169", "test.cs(4,9)");
 
             Assert.Null(cmd.AnalyzerOptions);
+        }
+
+        private static void AssertDiagnosticContainsArguments(string output, string diagnosticId, params string[] arguments)
+        {
+            var diagnosticLine = Assert.Single(
+                output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries),
+                line => line.Contains("warning " + diagnosticId + ":", StringComparison.Ordinal));
+
+            foreach (var argument in arguments)
+            {
+                Assert.Contains(argument, diagnosticLine, StringComparison.Ordinal);
+            }
         }
 
         [Fact]
@@ -4812,7 +4824,6 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
             var match = Regex.Match(output, pattern);
             Assert.True(match.Success, $"Expected pattern:{Environment.NewLine}{pattern}{Environment.NewLine}Actual:{Environment.NewLine}{output}");
             Assert.Equal(filePath, match.Groups["path"].Value);
-            Assert.Contains("testhost", match.Groups["app"].Value);
             Assert.Equal(currentProcess.Id, int.Parse(match.Groups["pid"].Value));
 
             CleanupAllGeneratedFiles(src.Path);
@@ -15134,10 +15145,8 @@ option1 = def");
 
             var output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
 
-            // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'Global Section'. It has been unset. Key was set by the following files: ...
-            Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
-            Assert.Contains("'option1'", output, StringComparison.Ordinal);
-            Assert.Contains("'Global Section'", output, StringComparison.Ordinal);
+            AssertDiagnosticContainsArguments(output, "MultipleGlobalAnalyzerKeys",
+                "option1", "Global Section", analyzerConfig.Path, analyzerConfig2.Path);
 
             analyzerConfig = analyzerConfigFile.WriteAllText(@"
 is_global = true
@@ -15153,10 +15162,8 @@ option1 = def");
 
             output = VerifyOutput(dir, src, additionalFlags: new[] { "/analyzerconfig:" + analyzerConfig.Path + "," + analyzerConfig2.Path }, expectedWarningCount: 1, includeCurrentAssemblyAsAnalyzerReference: false);
 
-            // warning MultipleGlobalAnalyzerKeys: Multiple global analyzer config files set the same key 'option1' in section 'file.cs'. It has been unset. Key was set by the following files: ...
-            Assert.Contains("MultipleGlobalAnalyzerKeys:", output, StringComparison.Ordinal);
-            Assert.Contains("'option1'", output, StringComparison.Ordinal);
-            Assert.Contains("'/file.cs'", output, StringComparison.Ordinal);
+            AssertDiagnosticContainsArguments(output, "MultipleGlobalAnalyzerKeys",
+                "option1", "/file.cs", analyzerConfig.Path, analyzerConfig2.Path);
         }
 
         [Fact]

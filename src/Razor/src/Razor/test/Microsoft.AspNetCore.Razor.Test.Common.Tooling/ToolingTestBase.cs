@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Razor.Logging;
 
 using Microsoft.VisualStudio.Threading;
 using Xunit;
-using Xunit.Abstractions;
 using IAsyncDisposable = System.IAsyncDisposable;
 
 namespace Microsoft.AspNetCore.Razor.Test.Common;
@@ -35,13 +34,6 @@ namespace Microsoft.AspNetCore.Razor.Test.Common;
 /// </summary>
 public abstract partial class ToolingTestBase : IAsyncLifetime
 {
-    static ToolingTestBase()
-    {
-#if NET472
-        XunitDisposeHook.Initialize();
-#endif
-    }
-
     private readonly JoinableTaskCollection _joinableTaskCollection;
     private readonly CancellationTokenSource _disposalTokenSource;
     private List<IDisposable>? _disposables;
@@ -100,14 +92,17 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
         Thread.CurrentThread.Name ??= "Main Thread";
     }
 
-    Task IAsyncLifetime.InitializeAsync() => InitializeAsync();
+    /// <summary>
+    ///  Override to provide custom initialization logic for all tests in this test class.
+    /// </summary>
+    public virtual ValueTask InitializeAsync() => ValueTask.CompletedTask;
 
-    async Task IAsyncLifetime.DisposeAsync()
+    /// <summary>
+    ///  Override to provide custom disposal logic for all tests in this test class.
+    /// </summary>
+    public virtual async ValueTask DisposeAsync()
     {
-        // First, call the protected DisposeAsync() to let test classes to run custom logic.
-        await DisposeAsync();
-
-        // Next, dispose any IAsyncDisposables that were registered by the current test.
+        // Dispose any IAsyncDisposables that were registered by the current test.
         if (_asyncDisposables is { } asyncDisposables)
         {
             foreach (var asyncDisposable in asyncDisposables)
@@ -147,16 +142,6 @@ public abstract partial class ToolingTestBase : IAsyncLifetime
 
         JoinableTaskContext.Dispose();
     }
-
-    /// <summary>
-    ///  Override to provide custom initialization logic for all tests in this test class.
-    /// </summary>
-    protected virtual Task InitializeAsync() => Task.CompletedTask;
-
-    /// <summary>
-    ///  Override to provide custom initialization logic for all tests in this test class.
-    /// </summary>
-    protected virtual Task DisposeAsync() => Task.CompletedTask;
 
     /// <summary>
     ///  Register an <see cref="IDisposable"/> instance to be disposed when the test completes.

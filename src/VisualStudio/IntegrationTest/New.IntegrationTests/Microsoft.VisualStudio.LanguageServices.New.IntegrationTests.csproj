@@ -2,7 +2,6 @@
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.NewIntegrationTests</RootNamespace>
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
@@ -12,9 +11,6 @@
     <DebugType>embedded</DebugType>
     <EmbedAllSources>true</EmbedAllSources>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\..\EditorFeatures\TestUtilities\DirectoryExtensions.cs" Link="DirectoryExtensions.cs" />
-  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\LongClass.txt" />
   </ItemGroup>
@@ -65,7 +61,8 @@
     <PackageReference Include="SQLitePCLRaw.lib.e_sqlite3" ExcludeAssets="all" PrivateAssets="all" />
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="UIAComWrapper" />
-    <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="xunit.v3.extensibility.core" />
+    <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
 
   <!--

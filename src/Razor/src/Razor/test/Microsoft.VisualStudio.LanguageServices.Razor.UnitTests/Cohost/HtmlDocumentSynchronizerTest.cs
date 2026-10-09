@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
-using Xunit.Abstractions;
 using static Microsoft.VisualStudio.Razor.LanguageClient.Cohost.HtmlDocumentSynchronizer;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;

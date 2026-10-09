@@ -15,7 +15,7 @@ public class CSharpSquigglesNetCore() : CSharpSquigglesCommon(WellKnownProjectTe
 {
     protected override bool SupportsGlobalUsings => true;
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync().ConfigureAwait(false);
 

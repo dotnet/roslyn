@@ -55,6 +55,7 @@
     <Reference Include="$(PkgMicrosoft_AspNetCore_App_Ref)\ref\net10.0\*.dll" Private="false" />
   </ItemGroup>
 
+  <!-- Generated component code uses Razor.Runtime; reference it and copy it for execution tests. -->
   <Choose>
     <When Condition="'$(NetCoreSDKRuntimeIdentifier)' == 'win-x64'">
       <PropertyGroup>

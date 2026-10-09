@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.Razor.Workspaces.Settings;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 using Microsoft.VisualStudioCode.RazorExtension.Services;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Test;
 

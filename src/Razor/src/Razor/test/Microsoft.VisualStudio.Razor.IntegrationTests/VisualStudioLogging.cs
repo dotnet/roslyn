@@ -76,7 +76,9 @@ internal static class VisualStudioLogging
 
     private static void FeedbackLoggerInternal(string filePath, params string[] expectedFileParts)
     {
+#pragma warning disable RS0030 // Static data-collection callback has no test IThreadingContext to flow.
         var componentModel = GlobalServiceProvider.ServiceProvider.GetService<SComponentModel, IComponentModel>();
+#pragma warning restore RS0030
         if (componentModel is null)
         {
             // Unable to get componentModel
@@ -177,8 +179,8 @@ internal static class VisualStudioLogging
         // JoinableTaskFactory.Run isn't an option because we might be disposing already.
         // Don't use ThreadHelper.JoinableTaskFactory in test methods, but it's correct here.
 #pragma warning disable VSTHRD103 // Call async methods when in an async method
+#pragma warning disable RS0030 // Static teardown callback has no test IThreadingContext to flow.
         ThreadHelper.JoinableTaskFactory.Run(async () =>
-#pragma warning restore VSTHRD103 // Call async methods when in an async method
         {
             try
             {
@@ -191,12 +193,15 @@ internal static class VisualStudioLogging
                 // Eat any errors so we don't block further collection
             }
         });
+#pragma warning restore RS0030
+#pragma warning restore VSTHRD103
     }
 
     private static async Task CollectFeedbackItemsAsync(IEnumerable<string> files, string destination, string[] expectedFileParts)
     {
         // What's important in this weird threading stuff is ensuring we vacate the thread RazorLogHubLogger was called on
         // because if we don't it ends up blocking the thread that creates the zip file we need.
+#pragma warning disable RS0030 // Static data-collection callback has no test IThreadingContext to flow.
         await ThreadHelper.JoinableTaskFactory.RunAsync(async () =>
         {
             foreach (var file in files)
@@ -224,6 +229,7 @@ internal static class VisualStudioLogging
                 });
             }
         });
+#pragma warning restore RS0030
     }
 
     private static void WaitForFileExists(string file)

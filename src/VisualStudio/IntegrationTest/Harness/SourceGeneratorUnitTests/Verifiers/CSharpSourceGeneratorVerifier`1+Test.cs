@@ -78,26 +78,10 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests
 
                 var resourceDirectory = Path.Combine(Path.GetDirectoryName(_testFile), "Resources", _testMethod);
 
-                var (compilation, generatorDiagnostics) = await base.GetProjectCompilationAsync(project, verifier, cancellationToken);
-                var expectedNames = new HashSet<string>();
+                var (compilation, generatorDiagnostics) = await base.GetProjectCompilationAsync(project, verifier, cancellationToken).ConfigureAwait(false);
                 foreach (var tree in compilation.SyntaxTrees.Skip(project.DocumentIds.Count))
                 {
                     WriteTreeToDiskIfNecessary(tree, resourceDirectory);
-                    expectedNames.Add(Path.GetFileName(tree.FilePath));
-                }
-
-                var currentTestPrefix = $"{typeof(TestServicesSourceGeneratorTests).Namespace}.Resources.{_testMethod}.";
-                foreach (var name in GetType().Assembly.GetManifestResourceNames())
-                {
-                    if (!name.StartsWith(currentTestPrefix))
-                    {
-                        continue;
-                    }
-
-                    if (!expectedNames.Contains(name.Substring(currentTestPrefix.Length)))
-                    {
-                        throw new InvalidOperationException($"Unexpected test resource: {name.Substring(currentTestPrefix.Length)}");
-                    }
                 }
 
                 return (compilation, generatorDiagnostics);

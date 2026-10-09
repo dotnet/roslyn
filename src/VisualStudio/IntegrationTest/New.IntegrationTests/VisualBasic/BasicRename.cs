@@ -21,7 +21,7 @@ public sealed class BasicRename() : AbstractEditorTest(nameof(BasicRename))
 {
     protected override string LanguageName => LanguageNames.VisualBasic;
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

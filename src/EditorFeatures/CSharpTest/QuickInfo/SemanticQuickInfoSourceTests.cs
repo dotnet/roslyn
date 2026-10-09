@@ -7862,9 +7862,9 @@ Documentation("This example shows how to specify the GenericClass<T> cref.",
             """,
             MainDescription($"void Test.Foo<T>()"),
             Documentation("A generic method T."),
-            item => Assert.Equal(
-                item.Sections.First(section => section.Kind == QuickInfoSectionKinds.DocumentationComments).TaggedParts.Select(p => p.Tag).ToArray(),
-                ["Text", "Space", "TypeParameter", "Text"]));
+            item => AssertEx.Equal(
+                ["Text", "Space", "TypeParameter", "Text"],
+                item.Sections.First(section => section.Kind == QuickInfoSectionKinds.DocumentationComments).TaggedParts.Select(p => p.Tag).ToArray()));
 
     [Fact]
     public Task TestInheritdocCycle1()

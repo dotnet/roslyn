@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Runtime.CompilerServices;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -46,7 +47,11 @@ namespace Roslyn.Test.Utilities
     {
         public readonly ClrOnlyReason Reason;
 
-        public ClrOnlyFactAttribute(ClrOnlyReason reason = ClrOnlyReason.Unknown)
+        public ClrOnlyFactAttribute(
+            ClrOnlyReason reason = ClrOnlyReason.Unknown,
+            [CallerFilePath] string? sourceFilePath = null,
+            [CallerLineNumber] int sourceLineNumber = -1)
+            : base(sourceFilePath, sourceLineNumber)
         {
             Reason = reason;
 

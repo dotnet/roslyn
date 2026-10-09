@@ -38,7 +38,52 @@ public class MyTests
 - When a test needs a feature waiter, retrieve the concrete
   `AsynchronousOperationListenerProvider` from the export provider and call
   `GetWaiter`; do not retrieve the interface and cast the listener.
+- WPF editor tests use Roslyn's `WpfFactAttribute`/`WpfTheoryAttribute` in
+  `EditorFeatures/TestUtilities/Threading`. Their discoverers create
+  `WpfTestCase`s that `WpfTestCaseRunner` runs serially on one persistent STA
+  Dispatcher thread, so async continuations and disposal stay on the UI thread
+  that `ThreadHelper` recognizes. The runner releases clipboard ownership held
+  by that thread after each test. Unconditionally skipped `[WpfTheory]` methods
+  report one skipped case (stock xUnit v3 behavior), not one per data row.
 - Language Server orchestration tests can pass additional MEF parts to
   `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
   `PartNotDiscoverable` project loader can provide deterministic design-time
   build timing and results without invoking MSBuild.
+
+## Test synchronization context
+
+`UseExportProviderAttribute.Before` installs a `TestSynchronizationContext`
+(`src/Workspaces/CoreTestUtilities/MEF/`) as the ambient
+`SynchronizationContext` for the duration of each test, and `After` restores the
+previous context.
+
+xUnit v3 installs no `SynchronizationContext` of its own, so without this an
+`await` in a test body resumes inline on whichever thread completed the awaited
+task. When that is a Roslyn worker draining an operation tracked by
+`IAsynchronousOperationListener`, the rest of the test — and
+`UseExportProviderAttribute.After` — runs nested inside that operation's stack,
+and cleanup then blocks forever waiting for the operation it is nested inside.
+`TestSynchronizationContext` posts continuations that capture it to the outer
+context when one exists (preserving WPF dispatcher affinity) and to the thread
+pool otherwise, so those continuations do not run inline on the worker that
+completes the awaited operation. Awaits using `ConfigureAwait(false)` do not
+capture the context.
+
+Consequences to keep in mind when writing or debugging tests:
+
+- `TestExportJoinableTaskContext.GetEffectiveSynchronizationContext` unwraps this
+  context, so `DenyExecutionSynchronizationContext` and WPF dispatcher detection
+  behave as if it were not installed. Code that inspects
+  `SynchronizationContext.Current` directly sees the wrapper instead.
+- `UseExportProviderAttribute` waits up to one minute
+  (`CleanupTimeout`) for outstanding asynchronous operations. An operation that
+  never completes fails the test with a `TimeoutException` listing the pending
+  listener tokens rather than hanging the test host — that exception text is the
+  starting point for diagnosing a leaked operation.
+
+## VS integration tests (`IdeFact`/`IdeTheory`)
+
+`src/VisualStudio/IntegrationTest/` is a separate suite from the unit tests above.
+It runs on xUnit v3 and references the shared Roslyn and Razor test utilities.
+See `testing/vs-integration-tests-xunit-v3.md` for its project-setup conventions
+and xUnit v3 API requirements.

@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Razor.Hosting;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -136,6 +137,23 @@ public abstract class RazorSourceGeneratorTestsBase
     {
         // Load the compiled DLL.
         var assemblyLoadContext = new AssemblyLoadContext("Razor execution", isCollectible: true);
+
+        // The ASP.NET runtime assemblies are copied next to the test binaries, but they are only listed
+        // as compile-time references in the deps file, so they are not part of the default load context's
+        // trusted platform assemblies. Probe for them next to the test binaries instead.
+        assemblyLoadContext.Resolving += static (context, assemblyName) =>
+        {
+            // MVC must recognize the generated assembly's compiled-item attributes by type identity.
+            var razorRuntimeAssembly = typeof(RazorCompiledItemAttribute).Assembly;
+            if (assemblyName.Name == razorRuntimeAssembly.GetName().Name)
+            {
+                return razorRuntimeAssembly;
+            }
+
+            var path = Path.Combine(AppContext.BaseDirectory, assemblyName.Name + ".dll");
+            return File.Exists(path) ? context.LoadFromAssemblyPath(path) : null;
+        };
+
         Assembly assembly;
         using (var peStream = new MemoryStream())
         {
@@ -169,7 +187,7 @@ public abstract class RazorSourceGeneratorTestsBase
             }
         });
         var app = appBuilder.Build();
-        
+
         // Create a service scope to properly handle scoped services like IViewBufferScope.
         // ASP.NET Core's DI validation prevents resolving scoped services from the root provider.
         using var scope = app.Services.CreateScope();
@@ -657,10 +675,10 @@ internal static class Extensions
     public static void VerifyIncrementalSteps(this GeneratorRunResult result, string stepName, params IncrementalStepRunReason[] expectedReasons)
     {
         VerifyStepExists(result, stepName);
-        
+
         var steps = result.TrackedSteps[stepName];
         Assert.Equal(expectedReasons.Length, steps.Length);
-        
+
         for (int i = 0; i < expectedReasons.Length; i++)
         {
             var step = steps[i];
@@ -672,12 +690,12 @@ internal static class Extensions
     public static void VerifyIncrementalStepsMultiple(this GeneratorRunResult result, string stepName, params IncrementalStepRunReason[] expectedReasons)
     {
         VerifyStepExists(result, stepName);
-        
+
         var steps = result.TrackedSteps[stepName];
-        
+
         var actualReasons = steps.SelectMany(step => step.Outputs.Select(output => output.Reason)).ToArray();
         Assert.Equal(expectedReasons.Length, actualReasons.Length);
-        
+
         for (int i = 0; i < expectedReasons.Length; i++)
         {
             Assert.Equal(expectedReasons[i], actualReasons[i]);

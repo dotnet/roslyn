@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Roslyn.Text.Adornments;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
 

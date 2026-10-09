@@ -10,6 +10,10 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
 
 - Use `TestCode` with `[|...|]` span markers for before/after scenarios. Access
   `input.Text` (cleaned) and `input.Span` (the marked range).
+- Razor shared test-common projects reference xUnit v3 packages but do not
+  define a global using for its namespaces. Each source file that uses xUnit
+  APIs must import the appropriate namespace, such as `Xunit`, `Xunit.Sdk`, or
+  `Xunit.v3`.
 - Prefer raw string literals (`"""..."""`) over verbatim strings (`@"..."`).
 - Test end-user scenarios, not implementation details.
 - Verify/helper methods go at the bottom of test files; new test methods go above
@@ -29,6 +33,10 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
   Under two-phase compilation the `AdditionalSyntaxTrees` are compiled into a
   temp assembly and added as a *reference*, so discovery sees those types as
   coming from a referenced assembly (not source).
+- Direct project-engine tests that consume project-wide tag-helper metadata from
+  `RazorCodeDocument` must opt into `AttachTagHelpersToCodeDocument`; the
+  `ComponentCodeGenerationTestBase` enables this test-only phase after default
+  tag-helper discovery.
 - Regenerate baseline-backed compiler tests with a targeted test filter and
   `/p:GenerateBaselines=true` on one CoreCLR target framework, then rerun the
   tests normally. Two-phase tests can produce `.decl.codegen.cs` and

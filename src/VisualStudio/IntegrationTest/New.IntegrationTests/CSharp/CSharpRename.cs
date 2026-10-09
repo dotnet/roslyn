@@ -24,7 +24,7 @@ public sealed class CSharpRename() : AbstractEditorTest(nameof(CSharpRename))
 {
     protected override string LanguageName => LanguageNames.CSharp;
 
-    public override async Task InitializeAsync()
+    public override async ValueTask InitializeAsync()
     {
         await base.InitializeAsync();
 

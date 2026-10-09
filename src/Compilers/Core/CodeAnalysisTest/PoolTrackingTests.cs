@@ -81,6 +81,80 @@ public class PoolTrackingTests
     }
 
     [Fact]
+    public async Task StopTrackingAllocations_IgnoresLaterAllocationsButSeesFrees()
+    {
+        PoolTracker.StartTracking(out var context);
+        var earlyBuilder = ArrayBuilder<int>.GetInstance();
+        using var allowAllocate = new SemaphoreSlim(0, 1);
+        using var allocated = new SemaphoreSlim(0, 1);
+        using var allowFree = new SemaphoreSlim(0, 1);
+        var task = Task.Run(() =>
+        {
+            allowAllocate.Wait();
+            var lateBuilder = ArrayBuilder<int>.GetInstance();
+            allocated.Release();
+            allowFree.Wait();
+            lateBuilder.Free();
+        });
+
+        context.StopTrackingAllocations();
+        allowAllocate.Release();
+        allocated.Wait();
+
+        // Frees are still recorded after stopping, and the allocation made after stopping is not tracked.
+        Assert.True(context.HasLeaks);
+        earlyBuilder.Free();
+        Assert.False(context.HasLeaks);
+
+        allowFree.Release();
+        await task;
+        PoolTracker.StopTracking();
+        Assert.False(context.HasLeaks);
+    }
+
+    [Fact]
+    public async Task StopTrackingAllocations_WaitsForInFlightAllocation()
+    {
+        var context = new PoolTrackingContext(traceLeaks: false);
+        var earlyAllocation = new object();
+        var lateAllocation = new object();
+        using var beforeAdd = new ManualResetEventSlim();
+        using var allowAdd = new ManualResetEventSlim();
+        using var stopStarted = new ManualResetEventSlim();
+        context.BeforeAllocationRecordedForTesting = () =>
+        {
+            beforeAdd.Set();
+            Assert.True(allowAdd.Wait(TimeSpan.FromSeconds(5)));
+        };
+
+        var allocateTask = Task.Run(() => context.OnAllocate(earlyAllocation, null, "", 0));
+        Task? stopTask = null;
+        try
+        {
+            Assert.True(beforeAdd.Wait(TimeSpan.FromSeconds(5)));
+            stopTask = Task.Run(() =>
+            {
+                stopStarted.Set();
+                context.StopTrackingAllocations();
+            });
+            Assert.True(stopStarted.Wait(TimeSpan.FromSeconds(5)));
+            Assert.False(stopTask.Wait(TimeSpan.FromMilliseconds(100)));
+        }
+        finally
+        {
+            allowAdd.Set();
+        }
+
+        await allocateTask;
+        await stopTask!;
+        context.BeforeAllocationRecordedForTesting = null;
+        Assert.True(context.HasLeaks);
+        context.OnAllocate(lateAllocation, null, "", 0);
+        context.OnFree(earlyAllocation);
+        Assert.False(context.HasLeaks);
+    }
+
+    [Fact]
     public void TrackingFlowsIntoParallelFor()
     {
         PoolTracker.StartTracking(out var context);

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.VisualStudio.Razor.LanguageClient.WrapWithTag;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 

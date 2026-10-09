@@ -18,7 +18,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-    using Xunit.Abstractions;
+    using Xunit;
 
     [Trait(Traits.Feature, Traits.Features.InteractiveHost)]
     public sealed class InteractiveHostDesktopTests(ITestOutputHelper testOutputHelper) : AbstractInteractiveHostTests(testOutputHelper)
