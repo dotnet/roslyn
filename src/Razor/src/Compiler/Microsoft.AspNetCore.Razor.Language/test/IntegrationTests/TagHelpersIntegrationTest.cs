@@ -472,6 +472,103 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         AssertDocumentNodeMatchesBaseline(codeDocument.GetRequiredDocumentNode());
     }
 
+    [Fact]
+    public void ParentTagConstraint_BindsTagHelperWhenParentIsPlainHtmlElement()
+    {
+        // Verifies that a Tag Helper requiring ParentTag="div" correctly binds
+        // to a <span> element nested inside a plain HTML <div> element.
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "span",
+                typeName: "SpanTagHelper",
+                assemblyName: "TestAssembly",
+                parentTag: "div"),
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @addTagHelper *, TestAssembly
+            <div>
+                <span>Span inside a div without Test.</span>
+            </div>
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert: The span must bind to SpanTagHelper because its parent is div.
+        var documentNode = codeDocument.GetRequiredDocumentNode();
+        var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
+        Assert.Collection(tagHelperNodes,
+            node => Assert.Equal("span", node.TagName));
+    }
+
+    [Fact]
+    public void ParentTagConstraint_DoesNotBindWhenParentIsDifferentHtmlElement()
+    {
+        // Verifies that a Tag Helper requiring ParentTag="div" does not bind
+        // to a <span> element nested inside a plain HTML <section> element.
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+            tagName: "span",
+            typeName: "SpanTagHelper",
+            assemblyName: "TestAssembly",
+            parentTag: "div"),
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @addTagHelper *, TestAssembly
+            <section>
+                <span>Span inside a section without Test.</span>
+            </section>
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert: The span must not bind to SpanTagHelper because its parent is section.
+        var documentNode = codeDocument.GetRequiredDocumentNode();
+        var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
+        Assert.Empty(tagHelperNodes);
+    }
+
+    [Fact]
+    public void ParentTagConstraint_DoesNotBindWhenOnlyGrandparentMatches()
+    {
+        // Verifies that a Tag Helper requiring ParentTag="div" does not bind
+        // to a <span> element whose immediate parent is <section>, even when
+        // its grandparent is a plain HTML <div> element.
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+            tagName: "span",
+            typeName: "SpanTagHelper",
+            assemblyName: "TestAssembly",
+            parentTag: "div"),
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+            @addTagHelper *, TestAssembly
+            <div>
+                <section>
+                    <span>Span inside a section inside a div.</span>
+                </section>
+            </div>
+            """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert: The span must not bind to SpanTagHelper because its immediate parent is section.
+        var documentNode = codeDocument.GetRequiredDocumentNode();
+        var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
+        Assert.Empty(tagHelperNodes);
+    }
+
     private static TagHelperDescriptor CreateTagHelperDescriptor(
         string tagName,
         string typeName,
