@@ -327,9 +327,9 @@ foreach (var (node, name, _) in selectedArtifacts)
         break;
     }
 
-    var (zipBytes, downloadError) = await Download(url, zipTmp, zipCap);
-    totalZipBytes += zipBytes;
-    if (downloadError is not null || zipBytes == 0)
+    var (chargedZipBytes, archiveBytes, downloadError) = await Download(url, zipTmp, zipCap);
+    totalZipBytes += chargedZipBytes;
+    if (downloadError is not null || archiveBytes == 0)
     {
         Console.WriteLine($"::warning::Skipping {safeName}: download failed or was empty ({downloadError ?? "empty body"}).");
         continue;
@@ -586,12 +586,19 @@ static async Task<(T? Value, string? Error)> Fetch<T>(
     return (default, error);
 }
 
-// Streams the artifact to disk and stops at `cap` bytes written, whatever
-// Content-Length says. An oversized artifact is charged the full `cap`.
-async Task<(long Bytes, string? Error)> Download(string url, string path, long cap)
+// Streams the artifact to disk and shares `cap` across every retry. Bytes read
+// before a timeout or I/O failure remain charged to the cumulative budget.
+async Task<(long ChargedBytes, long ArchiveBytes, string? Error)> Download(string url, string path, long cap)
 {
+    var consumed = 0L;
     var (bytes, error) = await Fetch(ado, url, TimeSpan.FromMinutes(2), async (response, cancellation) =>
     {
+        var attemptCap = cap - consumed;
+        if (attemptCap <= 0)
+        {
+            return -1;
+        }
+
         await using var source = await response.Content.ReadAsStreamAsync(cancellation);
         await using var output = File.Create(path);
         var buffer = new byte[1 << 20];
@@ -599,7 +606,8 @@ async Task<(long Bytes, string? Error)> Download(string url, string path, long c
         int read;
         while ((read = await source.ReadAsync(buffer, cancellation)) > 0)
         {
-            if ((written += read) > cap)
+            consumed = Math.Min(cap, consumed + read);
+            if ((written += read) > attemptCap)
             {
                 return -1;
             }
@@ -610,7 +618,11 @@ async Task<(long Bytes, string? Error)> Download(string url, string path, long c
         return written;
     });
 
-    return error is not null ? (0, error) : bytes < 0 ? (cap, $"exceeded the {cap}-byte size cap") : (bytes, null);
+    return error is not null
+        ? (consumed, 0, error)
+        : bytes < 0
+            ? (cap, 0, $"exceeded the {cap}-byte size cap across download attempts")
+            : (consumed, bytes, null);
 }
 
 // Not reachable from the workflow; a manual seam for running archive handling

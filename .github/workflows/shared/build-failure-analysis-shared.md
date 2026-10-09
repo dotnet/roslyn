@@ -95,7 +95,9 @@ safe-outputs:
       env:
         GH_AW_AGENT_OUTPUT: ${{ steps.setup-agent-output-env.outputs.GH_AW_AGENT_OUTPUT }}
         EXPECTED_HEAD: ${{ needs.fetch-binlog.outputs.pr-head-sha }}
+        USING_CUSTOM_PUBLISHER_TOKEN: ${{ secrets.GH_AW_GITHUB_TOKEN != '' }}
       with:
+        github-token: ${{ secrets.GH_AW_GITHUB_TOKEN || github.token }}
         script: |
           const fs = require("node:fs");
           const { createHash } = require("node:crypto");
@@ -117,12 +119,27 @@ safe-outputs:
           const inline = await github.paginate(github.rest.pulls.listReviewComments, {
             ...context.repo, pull_number: pullNumber, per_page: 100,
           });
-          const isBot = item => item.user?.login === "github-actions[bot]" && item.user?.type === "Bot";
-          const submitted = reviews.filter(review => isBot(review) && review.state !== "PENDING" && review.submitted_at);
+          let publisher;
+          try {
+            publisher = (await github.rest.users.getAuthenticated()).data;
+          } catch (error) {
+            if (process.env.USING_CUSTOM_PUBLISHER_TOKEN === "true") {
+              throw new Error(`Could not resolve the configured publishing identity: ${error.message}`);
+            }
+            publisher = { id: 41898282, login: "github-actions[bot]" };
+          }
+          if (!Number.isSafeInteger(publisher.id) || typeof publisher.login !== "string") {
+            throw new Error("Could not resolve a valid publishing identity.");
+          }
+          const isPublisher = item =>
+            item.user?.id === publisher.id && item.user?.login === publisher.login;
+          const submitted = reviews.filter(review =>
+            isPublisher(review) && review.state !== "PENDING" && review.submitted_at);
           const reviewIds = new Set(submitted.map(review => review.id));
           // Include review bodies: gh-aw moves unanchorable findings there.
-          const published = [...comments.filter(isBot), ...submitted,
-            ...inline.filter(item => isBot(item) && (item.pull_request_review_id == null || reviewIds.has(item.pull_request_review_id)))];
+          const published = [...comments.filter(isPublisher), ...submitted,
+            ...inline.filter(item => isPublisher(item)
+              && (item.pull_request_review_id == null || reviewIds.has(item.pull_request_review_id)))];
           const markers = new Set(published.flatMap(item =>
             [...(item.body || "").matchAll(/^Build-analysis output: `(\d+:[a-f0-9]{64})`$/gm)].map(match => match[1])));
           output.items = output.items.filter(item => {
