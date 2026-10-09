@@ -186,6 +186,15 @@
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
+    <!-- 
+    Optimizer can inject a BoundDup node that is never meant to be translated into 
+    any IL instruction. This happens because optimizer predicts that the value is not used
+    (referenced in a side effect only context). In a case like this, there actually might be
+    nothing on the stack to dup, because optimizer decides that the last use happens 
+    before this node is reached. Therefore, it would be popped off the stack at that time
+    without leaving any copy on the stack. Or, perhaps, some unrelated value could be on the stack.
+    -->
+    <Field Name="IsAlive" Type="bool" Null="NotApplicable"/>
   </Node>
 
   <!-- Wrapper node used to prevent passing the underlying expression by direct reference -->
@@ -649,7 +658,7 @@
     <Field Name="NoCommonTypeError" Type="ErrorCode"/>
   </Node>
 
-  <Node Name="BoundConditionalOperator" Base="BoundExpression">
+  <Node Name="BoundConditionalOperator" Base="BoundExpression" HasValidate="true">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="IsRef" Type="bool"/>

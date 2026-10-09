@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.PassByCopy:
-                    EmitExpression(((BoundPassByCopy)expression).Expression, used);
+                    EmitPassByCopyExpression(((BoundPassByCopy)expression), used);
                     break;
 
                 case BoundKind.Parameter:
@@ -361,6 +361,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
+        }
+
+        private void EmitPassByCopyExpression(BoundPassByCopy passByCopy, bool used)
+        {
+            BoundExpression expression = passByCopy.Expression;
+
+            if (!used)
+            {
+                if (IsRef(expression))
+                {
+                    EmitExpression(expression, used: true);
+                    _builder.EmitOpCode(ILOpCode.Pop);
+                    return;
+                }
+                else if (IsPointerIndirection(expression, out bool refersToLocation) && refersToLocation)
+                {
+                    EmitExpression(expression, used: true);
+                    EmitLoadIndirect(expression.Type, expression.Syntax);
+                    _builder.EmitOpCode(ILOpCode.Pop);
+                    return;
+                }
+            }
+
+            EmitExpression(expression, used);
         }
 
         private void EmitThrowExpression(BoundThrowExpression node, bool used)
@@ -787,11 +811,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // unused dup is noop
                 if (used)
                 {
+                    if (!expression.IsAlive)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
                     _builder.EmitOpCode(ILOpCode.Dup);
                 }
             }
             else
             {
+                if (!expression.IsAlive)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
                 _builder.EmitOpCode(ILOpCode.Dup);
 
                 // must read in case if it is a null ref
@@ -1146,8 +1180,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
                 BoundExpression receiver;
                 if (!field.IsVolatile && !field.IsStatic && (receiver = fieldAccess.ReceiverOpt).Type.IsVerifierValue() && field.RefKind == RefKind.None &&
-                    (receiver is BoundPointerIndirectionOperator pointerIndirection ?
-                         !pointerIndirection.RefersToLocation :
+                    (IsPointerIndirection(receiver, out bool refersToLocation) ?
+                         !refersToLocation :
                          (!IsRef(receiver) || isDereferencedWhenEmittedAsNotUsedExpression(receiver))))
                 {
                     EmitExpression(receiver, used: false);
@@ -2338,6 +2372,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return false;
         }
 
+        internal static bool IsPointerIndirection(BoundExpression receiver, out bool refersToLocation)
+        {
+            while (true)
+            {
+                switch (receiver.Kind)
+                {
+                    case BoundKind.PointerIndirectionOperator:
+                        refersToLocation = ((BoundPointerIndirectionOperator)receiver).RefersToLocation;
+                        return true;
+
+                    case BoundKind.Sequence:
+                        receiver = ((BoundSequence)receiver).Value;
+                        continue;
+
+                    default:
+                        refersToLocation = false;
+                        return false;
+                }
+            }
+        }
+
         private static int GetCallStackBehavior(MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
             int stack = 0;
@@ -3000,6 +3055,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         var left = (BoundDup)assignmentTarget;
 
+                        if (!left.IsAlive)
+                        {
+                            throw ExceptionUtilities.Unreachable();
+                        }
+
                         var temp = EmitAddress(left, AddressKind.Writeable, used: true);
                         Debug.Assert(temp == null, "taking ref of Dup should not create a temp");
 
@@ -3236,6 +3296,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Dup:
                     Debug.Assert(((BoundDup)expression).RefKind != RefKind.None);
+
+                    if (!((BoundDup)expression).IsAlive)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 

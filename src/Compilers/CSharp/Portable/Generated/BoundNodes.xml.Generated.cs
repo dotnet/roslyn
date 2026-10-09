@@ -924,28 +924,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDup : BoundExpression
     {
-        public BoundDup(SyntaxNode syntax, RefKind refKind, TypeSymbol? type, bool hasErrors)
+        public BoundDup(SyntaxNode syntax, RefKind refKind, bool isAlive, TypeSymbol? type, bool hasErrors)
             : base(BoundKind.Dup, syntax, type, hasErrors)
         {
             this.RefKind = refKind;
+            this.IsAlive = isAlive;
         }
 
-        public BoundDup(SyntaxNode syntax, RefKind refKind, TypeSymbol? type)
+        public BoundDup(SyntaxNode syntax, RefKind refKind, bool isAlive, TypeSymbol? type)
             : base(BoundKind.Dup, syntax, type)
         {
             this.RefKind = refKind;
+            this.IsAlive = isAlive;
         }
 
         public RefKind RefKind { get; }
+        public bool IsAlive { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitDup(this);
 
-        public BoundDup Update(RefKind refKind, TypeSymbol? type)
+        public BoundDup Update(RefKind refKind, bool isAlive, TypeSymbol? type)
         {
-            if (refKind != this.RefKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (refKind != this.RefKind || isAlive != this.IsAlive || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundDup(this.Syntax, refKind, type, this.HasErrors);
+                var result = new BoundDup(this.Syntax, refKind, isAlive, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -2051,7 +2054,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ConstantValueOpt = constantValueOpt;
             this.NaturalTypeOpt = naturalTypeOpt;
             this.WasTargetTyped = wasTargetTyped;
+            Validate();
         }
+
+        [Conditional("DEBUG")]
+        private partial void Validate();
 
         public new TypeSymbol Type => base.Type!;
         public bool IsRef { get; }
@@ -11202,7 +11209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitDup(BoundDup node)
         {
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.RefKind, type);
+            return node.Update(node.RefKind, node.IsAlive, type);
         }
         public override BoundNode? VisitPassByCopy(BoundPassByCopy node)
         {
@@ -12928,7 +12935,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            BoundDup updatedNode = node.Update(node.RefKind, infoAndType.Type);
+            BoundDup updatedNode = node.Update(node.RefKind, node.IsAlive, infoAndType.Type);
             updatedNode.TopLevelNullability = infoAndType.Info;
             return updatedNode;
         }
@@ -15613,6 +15620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TreeDumperNode VisitDup(BoundDup node, object? arg) => new TreeDumperNode("dup", null, new TreeDumperNode[]
         {
             new TreeDumperNode("refKind", node.RefKind, null),
+            new TreeDumperNode("isAlive", node.IsAlive, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
