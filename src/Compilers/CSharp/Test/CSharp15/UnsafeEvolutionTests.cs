@@ -430,7 +430,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void RulesOption_Valid()
+    public void RulesOption_Valid_Version1()
     {
         var verifier = CompileAndVerify("",
             options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1),
@@ -440,10 +440,34 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUpdatedRules: false))
             .VerifyDiagnostics();
 
-        Assert.Equal(MemorySafetyRulesVersion.Version1, ((CSharpCompilationOptions)verifier.Compilation.Options).MemorySafetyRulesVersion);
-        Assert.False(((CSharpCompilationOptions)verifier.Compilation.Options).UseUpdatedMemorySafetyRules);
+        verify(verifier.Compilation);
 
-        verifier = CompileAndVerify("",
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.Regular15,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1))
+            .VerifyEmitDiagnostics());
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1))
+            .VerifyEmitDiagnostics());
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1))
+            .VerifyEmitDiagnostics());
+
+        static void verify(Compilation comp)
+        {
+            var csharpComp = (CSharpCompilation)comp;
+            Assert.Equal(MemorySafetyRulesVersion.Version1, csharpComp.Options.MemorySafetyRulesVersion);
+            Assert.Equal(MemorySafetyRulesVersion.Version1, csharpComp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+            Assert.False(csharpComp.Options.UseUpdatedMemorySafetyRules);
+        }
+    }
+
+    [Fact]
+    public void RulesOption_Valid_Version2()
+    {
+        var verifier = CompileAndVerify("",
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
             symbolValidator: module => VerifyMemorySafetyRulesAttribute(
                 module,
@@ -451,8 +475,80 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUpdatedRules: true))
             .VerifyDiagnostics();
 
-        Assert.Equal(MemorySafetyRulesVersion.Version2, ((CSharpCompilationOptions)verifier.Compilation.Options).MemorySafetyRulesVersion);
-        Assert.True(((CSharpCompilationOptions)verifier.Compilation.Options).UseUpdatedMemorySafetyRules);
+        verify(verifier.Compilation);
+
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.Regular15,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2))
+            .VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1)));
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2))
+            .VerifyEmitDiagnostics());
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2))
+            .VerifyEmitDiagnostics());
+
+        static void verify(Compilation comp)
+        {
+            var csharpComp = (CSharpCompilation)comp;
+            Assert.Equal(MemorySafetyRulesVersion.Version2, csharpComp.Options.MemorySafetyRulesVersion);
+            Assert.Equal(MemorySafetyRulesVersion.Version2, csharpComp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+            Assert.True(csharpComp.Options.UseUpdatedMemorySafetyRules);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesOption_FeatureFlag(
+        [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion langVersion,
+        bool? updatedRules)
+    {
+        var verifier = CompileAndVerify("",
+            parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion).WithFeature(Feature.UpdatedMemorySafetyRules),
+            options: updatedRules is not { } updatedRulesValue ? null : TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesValue),
+            symbolValidator: module => VerifyMemorySafetyRulesAttribute(
+                module,
+                expectedDefinition: AttributeDefinition.Synthesized,
+                expectedUpdatedRules: true))
+            .VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        Assert.Equal(MemorySafetyRulesVersion.Version2, comp.Options.MemorySafetyRulesVersion);
+        Assert.Equal(MemorySafetyRulesVersion.Version2, comp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+        Assert.True(comp.Options.UseUpdatedMemorySafetyRules);
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesOption_FeatureFlag_LangVersion(bool? updatedRules)
+    {
+        var comp = CreateCompilation("",
+            parseOptions: TestOptions.Regular15.WithFeature(Feature.UpdatedMemorySafetyRules),
+            options: updatedRules is not { } updatedRulesValue ? null : TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesValue))
+            .VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
+
+        Assert.Equal(MemorySafetyRulesVersion.Version2, comp.Options.MemorySafetyRulesVersion);
+        Assert.Equal(MemorySafetyRulesVersion.Version2, comp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+        Assert.True(comp.Options.UseUpdatedMemorySafetyRules);
+    }
+
+    [Fact]
+    public void RulesOption_FeatureFlag_InvalidVersion()
+    {
+        var comp = CreateCompilation("",
+            parseOptions: TestOptions.RegularPreview.WithFeature(Feature.UpdatedMemorySafetyRules),
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)999))
+            .VerifyDiagnostics(
+            // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '999'. Accepted values are: 1, 2
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", "999", "1, 2").WithLocation(1, 1));
+
+        Assert.Equal((MemorySafetyRulesVersion)999, comp.Options.MemorySafetyRulesVersion);
+        Assert.Equal(MemorySafetyRulesVersion.Version1, comp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+        Assert.False(comp.Options.UseUpdatedMemorySafetyRules);
     }
 
     [Theory]
@@ -462,13 +558,30 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [InlineData(20)]
     public void RulesOption_Invalid(int value)
     {
-        var comp = CreateCompilation("",
-            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)value))
-            .VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", value, $"{(int)MemorySafetyRulesVersion.Version1}, {(int)MemorySafetyRulesVersion.Version2}").WithLocation(1, 1));
+        var expectedDiagnostics = new[]
+        {
+            // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '0'. Accepted values are: 1, 2
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", value, $"{(int)MemorySafetyRulesVersion.Version1}, {(int)MemorySafetyRulesVersion.Version2}").WithLocation(1, 1),
+        };
 
-        Assert.Equal((MemorySafetyRulesVersion)value, comp.Options.MemorySafetyRulesVersion);
-        Assert.False(comp.Options.UseUpdatedMemorySafetyRules);
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.Regular15,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)value))
+            .VerifyDiagnostics(expectedDiagnostics));
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)value))
+            .VerifyDiagnostics(expectedDiagnostics));
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)value))
+            .VerifyDiagnostics(expectedDiagnostics));
+
+        void verify(Compilation comp)
+        {
+            Assert.Equal((MemorySafetyRulesVersion)value, ((CSharpCompilation)comp).Options.MemorySafetyRulesVersion);
+            Assert.False(((CSharpCompilation)comp).Options.UseUpdatedMemorySafetyRules);
+        }
     }
 
     [Fact]

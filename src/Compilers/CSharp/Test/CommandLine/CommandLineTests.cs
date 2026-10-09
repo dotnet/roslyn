@@ -7861,6 +7861,63 @@ class C
             FreeLibrary(lib);
         }
 
+        [Theory]
+        [InlineData("", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules=false", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:1 /features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:2 /features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /features", MemorySafetyRulesVersion.Version1)]
+        public void MemorySafetyRules_FeatureFlag(string commandLine, MemorySafetyRulesVersion expectedVersion)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify();
+            Assert.Equal(expectedVersion, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:999")]
+        [InlineData("/memorysafetyrulesversion:999 /features:updated-memory-safety-rules")]
+        public void MemorySafetyRules_FeatureFlag_InvalidVersion(string commandLine)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify(
+                // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '999'. Accepted values are: 1, 2
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", "999", "1, 2"));
+            Assert.Equal((MemorySafetyRulesVersion)999, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData("15")]
+        [InlineData("preview")]
+        public void MemorySafetyRules_FeatureFlag_LangVersion(string languageVersion)
+        {
+            var args = FullParse($"/features:updated-memory-safety-rules /langversion:{languageVersion} /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify();
+
+            var compilation = CSharpCompilation.Create("test",
+                syntaxTrees: [CSharpSyntaxTree.ParseText("", args.ParseOptions)],
+                references: [MscorlibRef],
+                options: args.CompilationOptions);
+
+            if (languageVersion == "preview")
+            {
+                compilation.VerifyDiagnostics();
+            }
+            else
+            {
+                compilation.VerifyDiagnostics(
+                    // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
+            }
+
+            Assert.Equal(MemorySafetyRulesVersion.Version2, compilation.Options.MemorySafetyRulesVersion);
+        }
+
         [WorkItem(544926, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544926")]
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/30289")]
         public void ResponseFilesWithNoconfig_01()

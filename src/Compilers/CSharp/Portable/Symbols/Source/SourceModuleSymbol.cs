@@ -751,9 +751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _assemblySymbol.DeclaringCompilation.Options.UseUpdatedMemorySafetyRules ||
-                    // legacy way to opt in, kept for backwards compatibility
-                    _assemblySymbol.DeclaringCompilation.Feature(Feature.UpdatedMemorySafetyRules) != null
+                return _assemblySymbol.DeclaringCompilation.Options.UseUpdatedMemorySafetyRules
                     ? MemorySafetyRulesVersion.Version2
                     : MemorySafetyRulesVersion.Version1;
             }
