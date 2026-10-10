@@ -1649,6 +1649,28 @@ class C
             var verifier = CompileAndVerify(source: source, expectedOutput: "123");
         }
 
+        /// <summary>
+        /// WRN_NullabilityMismatchInAssignment is for reference-type nullability mismatches.
+        /// Skip when the conversion from binding is nullable-with-numeric (e.g. int? to byte?
+        /// in compound assignment) where the mismatch is a numeric type difference. See #82552.
+        /// </summary>
+        [Fact, WorkItem(82552, "https://github.com/dotnet/roslyn/issues/82552")]
+        public void ByteNullableCompoundAssignment_NoFalseCS8619()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    static void M()
+                    {
+                        byte? b = 1;
+                        b -= 1;
+                    }
+                }
+                """;
+            CreateCompilation(source, options: WithNullableEnable()).VerifyDiagnostics();
+        }
+
         #region "Regression"
 
         [Fact, WorkItem(543837, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543837")]
