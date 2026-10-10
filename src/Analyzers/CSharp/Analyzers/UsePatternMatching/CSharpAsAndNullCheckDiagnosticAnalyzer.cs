@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -185,6 +186,16 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
                     return;
                 }
 
+                // Check if this calls a local function that writes to the asOperand.
+                if (asOperand != null &&
+                    identifierName.Parent is InvocationExpressionSyntax &&
+                    semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction } localFunction &&
+                    localFunction.DeclaringSyntaxReferences is [var reference] &&
+                    IsWrittenTo(reference.GetSyntax(cancellationToken), asOperand, semanticModel, cancellationToken))
+                {
+                    return;
+                }
+
                 // Check is a reference of any sort (i.e. read/write/nameof) to the local.
                 if (identifierName.Identifier.ValueText == localSymbol.Name)
                     return;
@@ -331,6 +342,21 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
         localSymbol = semanticModel.GetSymbolInfo(identifier).Symbol as ILocalSymbol;
         declarator = localSymbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() as VariableDeclaratorSyntax;
         return localSymbol != null && declarator != null;
+    }
+
+    private static bool IsWrittenTo(SyntaxNode node, ISymbol symbol, SemanticModel semanticModel, CancellationToken cancellationToken)
+    {
+        foreach (var identifierName in node.DescendantNodes().OfType<IdentifierNameSyntax>())
+        {
+            if (identifierName.Identifier.ValueText == symbol.Name &&
+                symbol.Equals(semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol) &&
+                identifierName.IsWrittenTo(semanticModel, cancellationToken))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static ExpressionSyntax? GetNullCheckOperand(ExpressionSyntax left, SyntaxKind comparisonKind, SyntaxNode right)

@@ -2103,4 +2103,59 @@ public sealed partial class CSharpAsAndNullCheckTests(ITestOutputHelper logger)
                 }
             }
             """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29512")]
+    public Task TestMissingWhenLocalFunctionWritesOperand()
+        => TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                object field;
+
+                void M()
+                {
+                    [|var|] s = field as string;
+                    WriteField();
+                    if (s != null)
+                    {
+                    }
+
+                    void WriteField() => field = null;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/29512")]
+    public Task TestLocalFunctionThatDoesNotWriteOperand()
+        => TestInRegularAndScriptAsync("""
+            class C
+            {
+                object field;
+
+                void M()
+                {
+                    [|var|] s = field as string;
+                    ReadField();
+                    if (s != null)
+                    {
+                    }
+
+                    void ReadField() => System.Console.WriteLine(field);
+                }
+            }
+            """, """
+            class C
+            {
+                object field;
+
+                void M()
+                {
+                    ReadField();
+                    if (field is string s)
+                    {
+                    }
+
+                    void ReadField() => System.Console.WriteLine(field);
+                }
+            }
+            """);
 }
