@@ -1,0 +1,77 @@
+name: "Labeler: Collecting Feedback"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  manage-feedback-issues:
+    name: "Manage Issues with 'collecting-feedback' Label"
+    runs-on: ubuntu-latest
+
+    if: github.repository == 'dotnet/roslyn' # Skip forks
+
+    steps:
+      - name: Analyze and Manage Feedback Issues
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const OWNER = context.repo.owner;
+            const REPO = context.repo.repo;
+            const LABEL_FILTER = 'collecting-feedback';
+            const UPVOTE_THRESHOLD = 5;
+            const AGE_THRESHOLD_DAYS = 180;
+
+            const now = new Date();
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: OWNER,
+              repo: REPO,
+              state: 'open',
+              labels: LABEL_FILTER
+            });
+
+            for (const issue of issues) {
+              // Skip pull requests
+              if (issue.pull_request) continue;
+
+              const upvotes = issue.reactions['+1'];
+              const createdAt = new Date(issue.created_at);
+              const millisecondsInADay = 1000 * 60 * 60 * 24;
+              const ageInDays = (now - createdAt) / millisecondsInADay;
+
+              console.log(`Processing Issue #${issue.number} - Upvotes: ${upvotes}, Age: ${Math.floor(ageInDays)} days`);
+
+              if (upvotes > UPVOTE_THRESHOLD) {
+                console.log(`Promoting Issue #${issue.number} to 'untriaged'`);
+                await github.rest.issues.addLabels({
+                  owner: OWNER,
+                  repo: REPO,
+                  issue_number: issue.number,
+                  labels: ['untriaged']
+                });
+              } else if (ageInDays > AGE_THRESHOLD_DAYS) {
+                // Post a canned response before closing
+                const cannedMessage = `This issue has been closed because it remained in the \`collecting-feedback\` state for more than 6 months without receiving sufficient upvotes. If you're still experiencing this problem, please try to reproduce it on the latest version of the product. If it persists, feel free to open a new issue with updated reproduction details. Thank you for your feedback and help in improving the product!`.trim();
+
+                console.log(`Closing stale Issue #${issue.number}`);
+                await github.rest.issues.createComment({
+                  owner: OWNER,
+                  repo: REPO,
+                  issue_number: issue.number,
+                  body: cannedMessage
+                });
+
+                await github.rest.issues.update({
+                  owner: OWNER,
+                  repo: REPO,
+                  issue_number: issue.number,
+                  state: 'closed'
+                });
+              }
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
