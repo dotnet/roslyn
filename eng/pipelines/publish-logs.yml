@@ -31,6 +31,15 @@ steps:
     condition: not(succeeded())
 
   - task: CopyFiles@2
+    displayName: Copy Determinism Key files to Logs
+    inputs:
+      sourceFolder: '$(ROSLYN_CACHE_PATH)'
+      contents: '**/*.key'
+      targetFolder: '$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}/roslyn-cache'
+    continueOnError: true
+    condition: ne(variables['ROSLYN_CACHE_PATH'], '')
+
+  - task: CopyFiles@2
     displayName: Copy Dumps to Logs
     inputs:
       contents: |
