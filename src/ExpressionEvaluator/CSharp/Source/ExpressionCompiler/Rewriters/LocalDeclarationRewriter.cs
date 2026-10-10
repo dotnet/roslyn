@@ -20,13 +20,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             HashSet<LocalSymbol> declaredLocals,
             BoundStatement node,
             ImmutableArray<LocalSymbol> declaredLocalsArray,
+            ImmutableArray<string> existingAliasNames,
             DiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
 
             foreach (var local in declaredLocalsArray)
             {
-                CreateLocal(compilation, declaredLocals, builder, local, node.Syntax, diagnostics);
+                CreateLocal(compilation, declaredLocals, builder, local, node.Syntax, existingAliasNames, diagnostics);
             }
 
             // Rewrite top-level declarations only.
@@ -91,8 +92,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             ArrayBuilder<BoundStatement> statements,
             LocalSymbol local,
             SyntaxNode syntax,
+            ImmutableArray<string> existingAliasNames,
             DiagnosticBag diagnostics)
         {
+            // If the local name already exists as a debugger alias (e.g., from a previous
+            // evaluation of the same expression), skip the CreateVariable call since the
+            // variable already exists at runtime. The local is still added to declaredLocals
+            // so that PlaceholderLocalRewriter rewrites it to GetVariableAddress.
+            if (!existingAliasNames.IsDefault)
+            {
+                foreach (var aliasName in existingAliasNames)
+                {
+                    if (aliasName == local.Name)
+                    {
+                        declaredLocals.Add(local);
+                        return;
+                    }
+                }
+            }
+
             // CreateVariable(Type type, string name)
             var method = PlaceholderLocalSymbol.GetIntrinsicMethod(compilation, ExpressionCompilerConstants.CreateVariableMethodName);
             if ((object)method == null)
