@@ -85,5 +85,66 @@ class Q
             Verify(evalResult,
                 EvalResult("new C()", "{C}", "C", "new C()", flags: DkmEvaluationResultFlags.Expandable, customUIVisualizerInfo: customUIVisualizerInfo));
         }
+
+        /// <summary>
+        /// Tests that an Evaluation result does not contain duplicate DebuggerVisualizer attributes.
+        /// </summary>
+        [Fact]
+        public void DuplicateVisualizer()
+        {
+            var source =
+@"using System.Diagnostics;
+[DebuggerVisualizer(typeof(Q), Description = ""Q Visualizer"")]
+class C
+{
+    public object F = 1;
+    public object P { get { return 3; } }
+}
+[DebuggerVisualizer(typeof(Q), Description = ""Q Visualizer"")]
+class D : C
+{
+}
+class P
+{
+    public P() { }
+}
+class Q
+{
+    public Q() { }
+}";
+            var assembly = GetAssembly(source);
+            var type = assembly.GetType("D");
+            var value = CreateDkmClrValue(
+                value: type.Instantiate(),
+                type: new DkmClrType((TypeImpl)type),
+                evalFlags: DkmEvaluationResultFlags.None);
+            var evalResult = FormatResult("new D()", value);
+
+            var typeQ = assembly.GetType("Q");
+
+            string defaultDebuggeeSideVisualizerTypeName = "Microsoft.VisualStudio.DebuggerVisualizers.VisualizerObjectSource";
+            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
+            string defaultDebuggeeSideVisualizerAssemblyName = $"Microsoft.VisualStudio.DebuggerVisualizers, Version={vsVersion}.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+
+            DkmCustomUIVisualizerInfo[] customUIVisualizerInfo =
+            [
+                new DkmCustomUIVisualizerInfo
+                {
+                    Id = 0,
+                    Description = "Q Visualizer",
+                    MenuName = "Q Visualizer",
+                    Metric = "ClrCustomVisualizerVSHost",
+                    UISideVisualizerTypeName = typeQ.FullName,
+                    UISideVisualizerAssemblyName = typeQ.Assembly.FullName,
+                    UISideVisualizerAssemblyLocation = DkmClrCustomVisualizerAssemblyLocation.Unknown,
+                    DebuggeeSideVisualizerTypeName = defaultDebuggeeSideVisualizerTypeName,
+                    DebuggeeSideVisualizerAssemblyName = defaultDebuggeeSideVisualizerAssemblyName,
+                    ExtensionPartId = Guid.Empty
+                }
+            ];
+
+            Verify(evalResult,
+                EvalResult("new D()", "{D}", "D", "new D()", flags: DkmEvaluationResultFlags.Expandable, customUIVisualizerInfo: customUIVisualizerInfo));
+        }
     }
 }
