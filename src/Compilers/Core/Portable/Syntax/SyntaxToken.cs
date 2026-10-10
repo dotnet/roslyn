@@ -590,6 +590,26 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Sibling nodes and tokens which follow this token, where each element is a SyntaxNodeOrToken instance.
+        /// </summary>
+        internal ChildSyntaxList.Segment SiblingsAfterSelf()
+        {
+            Debug.Assert(Parent is object);
+            Debug.Assert(this == ChildSyntaxList.ItemInternal(Parent, Index));
+            return new ChildSyntaxList.Segment(Parent!, Index);
+        }
+
+        /// <summary>
+        /// Siblings which precede this token, where each element is a SyntaxNodeOrToken instance.
+        /// </summary>
+        internal ChildSyntaxList.Reversed SiblingsBeforeSelf()
+        {
+            Debug.Assert(Parent is object);
+            Debug.Assert(this == ChildSyntaxList.ItemInternal(Parent, Index));
+            return new ChildSyntaxList.Reversed(Parent!, Index);
+        }
+
+        /// <summary>
         /// Returns the token after this token in the syntax tree.
         /// </summary>
         /// <param name="predicate">Delegate applied to each token.  The token is returned if the predicate returns
