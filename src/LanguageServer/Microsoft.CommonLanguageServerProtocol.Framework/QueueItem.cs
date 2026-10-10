@@ -161,9 +161,10 @@ internal sealed class QueueItem<TRequestContext>
     }
 
     /// <summary>
-    /// Processes the queued request. Exceptions will be sent to the task completion source
-    /// representing the task that the client is waiting for, then re-thrown so that
-    /// the queue can correctly handle them depending on the type of request.
+    /// Processes the queued request. Cancellation and exceptions are both sent to the task completion
+    /// source representing the task that the client is waiting for. Exceptions from mutating handlers
+    /// are also re-thrown so that the queue can shut down, since the solution may be in an inconsistent
+    /// state.
     /// </summary>
     public async Task StartRequestAsync<TRequest, TResponse>(TRequest request, TRequestContext? context, IMethodHandler handler, CancellationToken cancellationToken)
     {
@@ -179,19 +180,12 @@ internal sealed class QueueItem<TRequestContext>
             {
                 // If we weren't able to get a corresponding context for this request (for example, we
                 // couldn't map a doc request to a particular Document, or we couldn't find an appropriate
-                // Workspace for a global operation), then just immediately complete the request with a
-                // 'null' response.  Note: the lsp spec was checked to ensure that 'null' is valid for all
-                // the requests this could happen for.  However, this assumption may not hold in the future.
-                // If that turns out to be the case, we could defer to the individual handler to decide
-                // what to do.
+                // Workspace for a global operation), fail the request. Mutating requests also propagate
+                // the exception so the queue shuts down.
                 _requestTelemetryScope?.RecordWarning($"Could not get request context for {MethodName}");
                 _logger.LogWarning($"Could not get request context for {MethodName}");
 
-                _completionSource.TrySetException(new InvalidOperationException($"Unable to create request context for {MethodName}"));
-            }
-            else if (handler is null)
-            {
-                throw new InvalidOperationException($"{nameof(StartRequestAsync)} cannot be called before {nameof(CreateRequestContextAsync)} has been called.");
+                throw new InvalidOperationException($"Unable to create request context for {MethodName}");
             }
             else if (handler is IRequestHandler<TRequest, TResponse, TRequestContext> requestHandler)
             {
@@ -234,34 +228,40 @@ internal sealed class QueueItem<TRequestContext>
 
             _completionSource.TrySetCanceled(ex.CancellationToken);
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ReportFailureAndCatchIfNonMutating(ex, handler))
         {
-            // Record logs and metrics on the exception.
-            // It's important that this can NEVER throw, or the queue will hang.
-            _requestTelemetryScope?.RecordException(ex);
-
-            if (ex is LocalRpcException { ErrorCode: LspErrorCodes.ContentModified })
-            {
-                // ContentModified exceptions are expected to be thrown during normal operation
-                // when the client is out of date with the server.  Log them as debug messages
-                // so we don't alarm users.
-                _logger.LogDebug(ex.ToString());
-            }
-            else
-            {
-                _logger.LogException(ex);
-            }
-
-            _completionSource.TrySetException(ex);
+            // The filter has already reported this non-mutating request's failure to the client.
         }
         finally
         {
             _requestTelemetryScope?.Dispose();
         }
+    }
 
-        // Return the result of this completion source to the caller
-        // so it can decide how to handle the result / exception.
-        await _completionSource.Task.ConfigureAwait(false);
+    private bool ReportFailureAndCatchIfNonMutating(Exception ex, IMethodHandler handler)
+    {
+        // Record logs and metrics on the exception.
+        // It's important that this can NEVER throw, or the queue will hang.
+        _requestTelemetryScope?.RecordException(ex);
+
+        if (ex is LocalRpcException { ErrorCode: LspErrorCodes.ContentModified })
+        {
+            // ContentModified exceptions are expected to be thrown during normal operation
+            // when the client is out of date with the server.  Log them as debug messages
+            // so we don't alarm users.
+            _logger.LogDebug(ex.ToString());
+        }
+        else
+        {
+            _logger.LogException(ex);
+        }
+
+        _completionSource.TrySetException(ex);
+
+        // Non-mutating requests run concurrently, so their failures can be swallowed after being sent
+        // to the client. Mutating requests run serially and must propagate failures so the queue shuts
+        // down rather than continue with potentially inconsistent solution state.
+        return !handler.MutatesSolutionState;
     }
 
     public void FailRequest(string message)
