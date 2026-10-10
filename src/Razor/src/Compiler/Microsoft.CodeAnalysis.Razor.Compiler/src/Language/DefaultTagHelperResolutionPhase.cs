@@ -106,7 +106,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         }
     }
 
-    private void ResolveElements(IntermediateNode node, TagHelperBinder binder, string prefix, TagHelperCollection.Builder usedHelpers, in ResolutionContext context)
+    private void ResolveElements(IntermediateNode node, TagHelperBinder binder, string prefix, TagHelperCollection.Builder usedHelpers, in ResolutionContext context, UnresolvedElementIntermediateNode unresolvedParentElement = null)
     {
         // Process children in reverse order since we may be replacing nodes.
         for (var i = node.Children.Count - 1; i >= 0; i--)
@@ -120,12 +120,12 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                 // and the post-build re-resolution pass handles them with parent context.
                 // This is important for child content elements like <ChildContent> that
                 // need to know their parent tag helper to bind correctly.
-                ResolveElement(node, i, elementNode, binder, prefix, usedHelpers, in context);
+                ResolveElement(node, i, elementNode, binder, prefix, usedHelpers, in context, unresolvedParentElement: unresolvedParentElement);
             }
             else
             {
                 // For non-element nodes, recurse into children normally.
-                ResolveElements(child, binder, prefix, usedHelpers, in context);
+                ResolveElements(child, binder, prefix, usedHelpers, in context, unresolvedParentElement: unresolvedParentElement);
             }
         }
     }
@@ -145,7 +145,8 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         string prefix,
         TagHelperCollection.Builder usedHelpers,
         in ResolutionContext context,
-        TagHelperIntermediateNode tagHelperParent = null)
+        TagHelperIntermediateNode tagHelperParent = null,
+        UnresolvedElementIntermediateNode unresolvedParentElement = null)
     {
         // Check for escaped tag helpers (<!tagname>) - these should NOT be matched.
         if (elementNode.IsEscaped)
@@ -167,7 +168,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             return null;
         }
 
-        var (parentTagName, parentIsTagHelper) = GetParentTagInfo(parent, tagHelperParent, prefix);
+        var (parentTagName, parentIsTagHelper) = GetParentTagInfo(parent, tagHelperParent, prefix, unresolvedParentElement);
         var binding = binder.GetBinding(tagName, attributes, parentTagName, parentIsTagHelper);
         if (binding == null)
         {
@@ -215,11 +216,11 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                             // container as this StartTagOnly element, so they share its parent-tag
                             // context. Dropping it would break bindings that depend on the parent
                             // (e.g. RequireParentTag or component child-content matching).
-                            ResolveElement(parent, j, promotedElement, binder, prefix, usedHelpers, in context, tagHelperParent);
+                            ResolveElement(parent, j, promotedElement, binder, prefix, usedHelpers, in context, tagHelperParent, unresolvedParentElement: unresolvedParentElement);
                         }
                         else
                         {
-                            ResolveElements(parent.Children[j], binder, prefix, usedHelpers, in context);
+                            ResolveElements(parent.Children[j], binder, prefix, usedHelpers, in context, unresolvedParentElement: unresolvedParentElement);
                         }
                     }
                 }
@@ -464,11 +465,11 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
             {
                 if (parent.Children[j] is UnresolvedElementIntermediateNode promotedElement)
                 {
-                    ResolveElement(parent, j, promotedElement, binder, prefix, usedHelpers, in context);
+                    ResolveElement(parent, j, promotedElement, binder, prefix, usedHelpers, in context, unresolvedParentElement: elementNode);
                 }
                 else
                 {
-                    ResolveElements(parent.Children[j], binder, prefix, usedHelpers, in context);
+                    ResolveElements(parent.Children[j], binder, prefix, usedHelpers, in context, unresolvedParentElement: elementNode);
                 }
             }
         }
@@ -1130,14 +1131,16 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     /// <summary>
     /// Returns the parent tag name and whether it's a tag helper, for use with the binder.
     /// Checks the explicit <paramref name="tagHelperParent"/> first (passed during body
-    /// resolution), then falls back to checking if <paramref name="parent"/> is a tag helper node.
+    /// resolution), then falls back to checking if <paramref name="parent"/> is a tag helper node
+    /// or if <paramref name="unresolvedParent"/> is an unresolved HTML element.
     /// Tag helper IR stores tag names without the configured prefix, so the prefix is restored here
     /// to match the binder's input contract.
     /// </summary>
     private static (string TagName, bool IsTagHelper) GetParentTagInfo(
         IntermediateNode parent,
         TagHelperIntermediateNode tagHelperParent,
-        string prefix)
+        string prefix,
+        UnresolvedElementIntermediateNode unresolvedParent = null)
     {
         if (tagHelperParent != null)
         {
@@ -1147,6 +1150,14 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         if (parent is TagHelperIntermediateNode parentTh)
         {
             return (prefix + parentTh.TagName, true);
+        }
+
+        if (unresolvedParent != null)
+        {
+            var parentTagName = unresolvedParent.IsEscaped
+                ? "!" + unresolvedParent.TagName
+                : unresolvedParent.TagName;
+            return (parentTagName, false);
         }
 
         return (null, false);
