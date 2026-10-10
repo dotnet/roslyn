@@ -4755,6 +4755,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
                               Specify nullable context option enable|disable|warnings|annotations.
+-memorysafetyrulesversion:&lt;n&gt;  Set memory safety rules version as
+                              `1` (legacy),
+                              `2` (updated: unsafe members require unsafe context at use site)
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public

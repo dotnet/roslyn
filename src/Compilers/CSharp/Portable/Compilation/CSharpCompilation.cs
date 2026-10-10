@@ -564,6 +564,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             AsyncQueue<CompilationEvent>? eventQueue = null)
             : base(assemblyName, references, features, isSubmission, semanticModelProvider, eventQueue)
         {
+            if (options.MemorySafetyRulesVersion == MemorySafetyRulesVersion.Version1 &&
+                HasFeature(CodeAnalysis.Feature.UpdatedMemorySafetyRules))
+            {
+                options = options.WithUpdatedMemorySafetyRules();
+            }
+
             _options = options;
 
             this.LanguageVersion = CommonLanguageVersion(syntaxAndDeclarations.ExternalSyntaxTrees);
