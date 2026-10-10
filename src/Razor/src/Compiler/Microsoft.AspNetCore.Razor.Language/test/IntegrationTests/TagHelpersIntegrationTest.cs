@@ -602,6 +602,77 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
             node => Assert.Equal("span", node.TagName));
     }
 
+    [Fact]
+    public void ParentTagConstraint_BindsTagHelperWithEscapedParentTag()
+    {
+        // Verifies that a Tag Helper requiring ParentTag="div" correctly binds
+        // to a <span> element nested inside an escaped <!div> element.
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+            tagName: "span",
+            typeName: "SpanTagHelper",
+            assemblyName: "TestAssembly",
+            parentTag: "!div"),
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+        @addTagHelper *, TestAssembly
+        <!div>
+            <span>Span inside an escaped div element.</span>
+        </!div>
+        """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert: The span must bind to SpanTagHelper because its escaped parent is div.
+        var documentNode = codeDocument.GetRequiredDocumentNode();
+        var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
+        Assert.Collection(tagHelperNodes,
+            node => Assert.Equal("span", node.TagName));
+    }
+    [Fact]
+    public void ParentTagConstraint_BindsTagHelperWithWithoutEndTagParent()
+    {
+        // Verifies that a Tag Helper requiring ParentTag="div" correctly binds
+        // to a <span> element nested inside a WithoutEndTag <foo> Tag Helper within a <div>.
+        TagHelperCollection tagHelpers =
+        [
+            CreateTagHelperDescriptor(
+                tagName: "foo",
+                typeName: "FooTagHelper",
+                assemblyName: "TestAssembly",
+                tagStructure: TagStructure.WithoutEndTag),
+            CreateTagHelperDescriptor(
+                tagName: "span",
+                typeName: "SpanTagHelper",
+                assemblyName: "TestAssembly",
+                parentTag: "div"),
+        ];
+
+        var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
+        var projectItem = AddProjectItemFromText("""
+        @addTagHelper *, TestAssembly
+        <div>
+            <foo>
+                <span>Span inside a div with a WithoutEndTag Tag Helper.</span>
+        </div>
+        """, filePath: "Index.cshtml");
+
+        // Act
+        var codeDocument = projectEngine.Process(projectItem);
+
+        // Assert: Both foo and span must bind because foo is a WithoutEndTag Tag Helper
+        // and the effective parent of span is div.
+        var documentNode = codeDocument.GetRequiredDocumentNode();
+        var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
+        Assert.Collection(tagHelperNodes,
+            node => Assert.Equal("foo", node.TagName),
+            node => Assert.Equal("span", node.TagName));
+    }
+
     private static TagHelperDescriptor CreateTagHelperDescriptor(
         string tagName,
         string typeName,

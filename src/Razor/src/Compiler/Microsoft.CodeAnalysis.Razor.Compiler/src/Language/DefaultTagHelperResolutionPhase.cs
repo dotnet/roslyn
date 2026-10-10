@@ -216,11 +216,11 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
                             // container as this StartTagOnly element, so they share its parent-tag
                             // context. Dropping it would break bindings that depend on the parent
                             // (e.g. RequireParentTag or component child-content matching).
-                            ResolveElement(parent, j, promotedElement, binder, prefix, usedHelpers, in context, tagHelperParent);
+                            ResolveElement(parent, j, promotedElement, binder, prefix, usedHelpers, in context, tagHelperParent, unresolvedParentElement: unresolvedParentElement);
                         }
                         else
                         {
-                            ResolveElements(parent.Children[j], binder, prefix, usedHelpers, in context);
+                            ResolveElements(parent.Children[j], binder, prefix, usedHelpers, in context, unresolvedParentElement: unresolvedParentElement);
                         }
                     }
                 }
@@ -1154,7 +1154,10 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         if (unresolvedParent != null)
         {
-            return (unresolvedParent.TagName, false);
+            var parentTagName = unresolvedParent.IsEscaped
+                ? "!" + unresolvedParent.TagName
+                : unresolvedParent.TagName;
+            return (parentTagName, false);
         }
 
         return (null, false);
