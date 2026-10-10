@@ -109,6 +109,20 @@
             ]
           }
         },
+        "HAA0304": {
+          "id": "HAA0304",
+          "shortDescription": "Local function converted to a delegate captures variables",
+          "fullDescription": "Heap allocation of closure for local function '{0}' Captures: {1}",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "Performance",
+            "isEnabledByDefault": true,
+            "typeName": "DisplayClassAllocationAnalyzer",
+            "languages": [
+              "C#"
+            ]
+          }
+        },
         "HAA0401": {
           "id": "HAA0401",
           "shortDescription": "Possible allocation of reference type enumerator",
