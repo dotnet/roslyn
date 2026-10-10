@@ -1283,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression NullRef(TypeWithAnnotations type)
         {
             // *default(T*)
-            return new BoundPointerIndirectionOperator(Syntax, Default(new PointerTypeSymbol(type)), refersToLocation: false, type.Type);
+            return new BoundPointerIndirectionOperator(Syntax, Default(new PointerTypeSymbol(type)), type.Type);
         }
 
         public static BoundExpression Null(TypeSymbol type, SyntaxNode syntax)

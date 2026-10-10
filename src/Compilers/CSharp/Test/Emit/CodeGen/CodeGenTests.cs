@@ -15911,7 +15911,7 @@ struct S
   .maxstack  1
   IL_0000:  nop
   IL_0001:  call       "S* C.GetRef()"
-  IL_0006:  ldfld      "byte S.F"
+  IL_0006:  ldobj      "S"
   IL_000b:  pop
   IL_000c:  ret
 }
@@ -15921,7 +15921,7 @@ struct S
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  call       "S* C.GetRef()"
-  IL_0005:  ldfld      "byte S.F"
+  IL_0005:  ldobj      "S"
   IL_000a:  pop
   IL_000b:  ret
 }
@@ -15962,6 +15962,104 @@ struct S
 """;
             CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass" : null, verify: Verification.Skipped);
             CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass" : null, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_39()
+        {
+            var source = """
+class C
+{
+    static unsafe void M(bool b)
+    {
+        _ = (b ? ref *GetRef1() : ref *GetRef2()).F;
+    }
+
+    static unsafe S* GetRef1() => null;
+    static unsafe S* GetRef2() => null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  brtrue.s   IL_000b
+  IL_0004:  call       "S* C.GetRef2()"
+  IL_0009:  br.s       IL_0010
+  IL_000b:  call       "S* C.GetRef1()"
+  IL_0010:  ldfld      "byte S.F"
+  IL_0015:  pop
+  IL_0016:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000a
+  IL_0003:  call       "S* C.GetRef2()"
+  IL_0008:  br.s       IL_000f
+  IL_000a:  call       "S* C.GetRef1()"
+  IL_000f:  ldfld      "byte S.F"
+  IL_0014:  pop
+  IL_0015:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedFieldLoad_40()
+        {
+            var source = """
+class C
+{
+    unsafe static void Main()
+    {
+        try
+        {
+            M(true);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass1");
+        }
+
+        try
+        {
+            M(false);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+    }
+
+    static unsafe void M(bool b)
+    {
+        _ = (b ? ref *GetRef1() : ref *GetRef2()).F;
+    }
+
+    static unsafe S* GetRef1() => null;
+    static unsafe S* GetRef2() => null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass1Pass2" : null, verify: Verification.Skipped);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass1Pass2" : null, verify: Verification.Skipped);
         }
 
         [Fact]
@@ -17116,6 +17214,106 @@ struct S
 """;
             CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass" : null, verify: Verification.Skipped);
             CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass" : null, verify: Verification.Skipped);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedPassByCopy_39()
+        {
+            var source = """
+class C
+{
+    static unsafe void M(bool b)
+    {
+        _ = ((S)(b ? ref *GetRef1() : ref *GetRef2())).F;
+    }
+
+    static unsafe S* GetRef1() => null;
+    static unsafe S* GetRef2() => null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       28 (0x1c)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  brtrue.s   IL_0010
+  IL_0004:  call       "S* C.GetRef2()"
+  IL_0009:  ldobj      "S"
+  IL_000e:  br.s       IL_001a
+  IL_0010:  call       "S* C.GetRef1()"
+  IL_0015:  ldobj      "S"
+  IL_001a:  pop
+  IL_001b:  ret
+}
+""");
+            CompileAndVerify(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(true), verify: Verification.Skipped).VerifyIL("C.M", """
+{
+  // Code size       27 (0x1b)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000f
+  IL_0003:  call       "S* C.GetRef2()"
+  IL_0008:  ldobj      "S"
+  IL_000d:  br.s       IL_0019
+  IL_000f:  call       "S* C.GetRef1()"
+  IL_0014:  ldobj      "S"
+  IL_0019:  pop
+  IL_001a:  ret
+}
+""");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/84563")]
+        public void UnusedPassByCopy_40()
+        {
+            var source = """
+class C
+{
+    unsafe static void Main()
+    {
+        try
+        {
+            M(true);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass1");
+        }
+
+        try
+        {
+            M(false);
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+    }
+
+    static unsafe void M(bool b)
+    {
+        _ = ((S)(b ? ref *GetRef1() : ref *GetRef2())).F;
+    }
+
+    static unsafe S* GetRef1() => null;
+    static unsafe S* GetRef2() => null;
+}
+
+struct S
+{
+    public byte F;
+}
+""";
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass1Pass2" : null, verify: Verification.Skipped);
+            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass1Pass2" : null, verify: Verification.Skipped);
         }
 
         [WorkItem(665317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665317")]

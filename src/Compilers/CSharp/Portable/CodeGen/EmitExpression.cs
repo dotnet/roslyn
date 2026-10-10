@@ -367,21 +367,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             BoundExpression expression = passByCopy.Expression;
 
-            if (!used)
+            if (!used && IsRef(expression))
             {
-                if (IsRef(expression))
-                {
-                    EmitExpression(expression, used: true);
-                    _builder.EmitOpCode(ILOpCode.Pop);
-                    return;
-                }
-                else if (IsPointerIndirection(expression, out bool refersToLocation) && refersToLocation)
-                {
-                    EmitExpression(expression, used: true);
-                    EmitLoadIndirect(expression.Type, expression.Syntax);
-                    _builder.EmitOpCode(ILOpCode.Pop);
-                    return;
-                }
+                EmitExpression(expression, used: true);
+                _builder.EmitOpCode(ILOpCode.Pop);
+                return;
             }
 
             EmitExpression(expression, used);
@@ -796,11 +786,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitPointerIndirectionOperator(BoundPointerIndirectionOperator expression, bool used)
         {
             EmitExpression(expression.Operand, used: true);
-            if (!expression.RefersToLocation)
-            {
-                EmitLoadIndirect(expression.Type, expression.Syntax);
-            }
-
+            EmitLoadIndirect(expression.Type, expression.Syntax);
             EmitPopIfUnused(used);
         }
 
@@ -1180,9 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
                 BoundExpression receiver;
                 if (!field.IsVolatile && !field.IsStatic && (receiver = fieldAccess.ReceiverOpt).Type.IsVerifierValue() && field.RefKind == RefKind.None &&
-                    (IsPointerIndirection(receiver, out bool refersToLocation) ?
-                         !refersToLocation :
-                         (!IsRef(receiver) || isDereferencedWhenEmittedAsNotUsedExpression(receiver))))
+                    (!IsRef(receiver) || isDereferencedWhenEmittedAsNotUsedExpression(receiver)))
                 {
                     EmitExpression(receiver, used: false);
                     return;
@@ -2370,27 +2354,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             return false;
-        }
-
-        internal static bool IsPointerIndirection(BoundExpression receiver, out bool refersToLocation)
-        {
-            while (true)
-            {
-                switch (receiver.Kind)
-                {
-                    case BoundKind.PointerIndirectionOperator:
-                        refersToLocation = ((BoundPointerIndirectionOperator)receiver).RefersToLocation;
-                        return true;
-
-                    case BoundKind.Sequence:
-                        receiver = ((BoundSequence)receiver).Value;
-                        continue;
-
-                    default:
-                        refersToLocation = false;
-                        return false;
-                }
-            }
         }
 
         private static int GetCallStackBehavior(MethodSymbol method, ImmutableArray<BoundExpression> arguments)
