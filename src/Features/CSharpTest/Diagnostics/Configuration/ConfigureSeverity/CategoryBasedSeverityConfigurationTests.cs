@@ -270,6 +270,39 @@ public abstract partial class CategoryBasedSeverityConfigurationTests : Abstract
                 """, CodeActionIndex);
 
         [ConditionalFact(typeof(IsEnglishLocal))]
+        public Task ConfigureEditorconfig_RegexHeaderWithBackslashes()
+            => TestInRegularAndScriptAsync("""
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" FilePath="z:\\Assembly1.csproj">
+                        <Document FilePath="z:\\vantage-2\\holmes\\model\\file.cs">
+                [|class Program1 { }|]
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[j:\devdrive\dev\vantage-2\holmes\model\file.cs]
+                # Default severity for analyzer diagnostics with category 'CustomCategory'
+                dotnet_analyzer_diagnostic.category-CustomCategory.severity = warning
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """, """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true" FilePath="z:\\Assembly1.csproj">
+                         <Document FilePath="z:\\vantage-2\\holmes\\model\\file.cs">
+                class Program1 { }
+                        </Document>
+                        <AnalyzerConfigDocument FilePath="z:\\.editorconfig">[j:\devdrive\dev\vantage-2\holmes\model\file.cs]
+                # Default severity for analyzer diagnostics with category 'CustomCategory'
+                dotnet_analyzer_diagnostic.category-CustomCategory.severity = warning
+
+                [*.cs]
+
+                # Default severity for analyzer diagnostics with category 'CustomCategory'
+                dotnet_analyzer_diagnostic.category-CustomCategory.severity = silent
+                </AnalyzerConfigDocument>
+                    </Project>
+                </Workspace>
+                """, CodeActionIndex);
+
+        [ConditionalFact(typeof(IsEnglishLocal))]
         public Task ConfigureEditorconfig_RegexHeaderNonMatch()
             => TestInRegularAndScriptAsync("""
                 <Workspace>
