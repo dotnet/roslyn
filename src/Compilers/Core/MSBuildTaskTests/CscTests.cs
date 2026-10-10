@@ -684,6 +684,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.dll", "/target:library", "test.cs", "blah.cs");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/85244")]
+        public void CompilerServerLogging()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var csc = new Csc
+            {
+                BuildEngine = engine,
+                Sources = MSBuildUtil.CreateTaskItems("test.cs"),
+            };
+
+            TaskTestUtil.AssertCompilerServerLogging(csc, engine, "/out:test.exe", "test.cs");
+        }
+
         [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/71571")]
         public void ReferenceForms()
         {

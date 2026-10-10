@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public ITestOutputHelper TestOutputHelper { get; }
         public List<string> Messages { get; } = new List<string>();
-        public bool IsLogging => true;
+        public bool IsEnabled(CompilerServerLogKind kind) => true;
 
         public XunitCompilerServerLogger(ITestOutputHelper testOutputHelper)
         {
             TestOutputHelper = testOutputHelper;
         }
 
-        public void Log(string message)
+        public void Log(CompilerServerLogKind kind, string message)
         {
             lock (_messagesGate)
             {
