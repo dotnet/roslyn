@@ -66,7 +66,7 @@ var result = await CSharpScript.EvaluateAsync("System.Net.Dns.GetHostName()",
 In the following code `WithImports("System.IO")` adds `using System.IO;` to the script options, making it possible to reference the types of `System.IO` namespace from the script code without qualification.
 
 ```csharp
-var result = await CSharpScript.EvaluateAsync("Directory.GetCurrentDirectory()"), 
+var result = await CSharpScript.EvaluateAsync("Directory.GetCurrentDirectory()", 
      ScriptOptions.Default.WithImports("System.IO"));
 ```
 
