@@ -154,7 +154,7 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	}
 
 	[Fact]
-	public async Task ProjectDataBuild_AfterSdkImport_DoesNotSuppressGeneratedAssemblyInfoAndFiltersItFromCache()
+	public async Task ProjectDataBuild_AfterSdkImport_IncludesGeneratedAssemblyInfoInCache()
 	{
 		string projectFile = this.WriteProject(
 			"App.csproj",
@@ -180,7 +180,7 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		Assert.Contains("ProjectDataAuditCompany", File.ReadAllText(assemblyInfoFile));
 
 		string cacheContent = File.ReadAllText(projectFile + ".lscache");
-		Assert.DoesNotContain("App.AssemblyInfo.cs", cacheContent);
+		Assert.Contains("App.AssemblyInfo.cs", cacheContent);
 	}
 
 	[Fact]
@@ -219,6 +219,95 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		Assert.True(result.ExitCode == 0, result.Output);
 		string cacheContent = File.ReadAllText(projectFile + ".lscache");
 		Assert.Contains("Manual.AssemblyInfo.cs", cacheContent);
+	}
+
+	[Fact]
+	public async Task SingleTfmProject_ProjectDataBuildImportsAdditionalTargets()
+	{
+		string sidecarFile = Path.Combine(this.workDir, "maui-projectdata-sidecar.txt");
+		string additionalTargetsFile = Path.Combine(this.workDir, "Maui.ProjectData.targets");
+		await File.WriteAllTextAsync(
+			additionalTargetsFile,
+			$$"""
+            <Project>
+              <Target Name="WriteMauiProjectDataSidecar"
+                      BeforeTargets="_WriteProjectData;_WriteProjectDataSlice"
+                      Condition="'$(ProjectDataBuild)' == 'true'">
+                <WriteLinesToFile File="{{sidecarFile}}"
+                                  Lines="$(MSBuildProjectFullPath)|$(TargetFramework)|$(IntermediateOutputPath)"
+                                  Overwrite="true" />
+              </Target>
+            </Project>
+            """,
+			TestContext.Current.CancellationToken);
+		string projectFile = this.WriteProject("App.csproj", multiTargeting: false);
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:ProjectDataBuild",
+				"/p:DesignTimeBuild=true",
+				"/p:BuildingProject=false",
+				"/p:SkipCompilerExecution=true",
+				"/p:ProjectDataBuild=true",
+				"/p:EnableProjectDataInProjectFolder=true",
+				$"/p:CSharpDevKitAdditionalProjectDataTargets={additionalTargetsFile}",
+			]);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		Assert.True(File.Exists(projectFile + ".lscache"), $"Expected the writer to produce {projectFile}.lscache.\n{result.Output}");
+		Assert.True(File.Exists(sidecarFile), $"Expected the additional ProjectData target to write {sidecarFile}.\n{result.Output}");
+		string sidecarContent = File.ReadAllText(sidecarFile).Replace("\r\n", "\n");
+		Assert.Contains(projectFile, sidecarContent);
+		Assert.Contains("net8.0", sidecarContent);
+		Assert.Contains("obj", sidecarContent, StringComparison.OrdinalIgnoreCase);
+	}
+
+	[Fact]
+	public async Task MultiTfmProject_RegisteredTargetsIsolateFallbackSlicesByBuildAttempt()
+	{
+		string projectDirectory = Path.Combine(this.workDir, "O'Brien");
+		Directory.CreateDirectory(projectDirectory);
+		string projectFile = this.WriteProject(Path.Combine("O'Brien", "App.csproj"), multiTargeting: true);
+		string additionalTargetsFile = Path.Combine(this.workDir, "Maui.ProjectData.targets");
+		await File.WriteAllTextAsync(additionalTargetsFile, "<Project />", TestContext.Current.CancellationToken);
+		string receiptDirectory = Path.Combine(this.workDir, "receipts");
+		Directory.CreateDirectory(receiptDirectory);
+		const string attemptId = "current-attempt";
+		string sharedAttemptDirectory = Path.Combine(projectDirectory, "obj", "Debug", ".csdevkit", "projectdata-attempts", attemptId);
+		string otherProjectDirectory = Path.Combine(sharedAttemptDirectory, "OtherProject-123");
+		Directory.CreateDirectory(otherProjectDirectory);
+		string otherProjectSlice = Path.Combine(otherProjectDirectory, "Other.csproj.slice");
+		await File.WriteAllTextAsync(otherProjectSlice, "other project", TestContext.Current.CancellationToken);
+		string staleDirectory = Path.Combine(projectDirectory, "obj", "Debug", "net8.0", "stale-rid");
+		Directory.CreateDirectory(staleDirectory);
+		string staleSlice = Path.Combine(staleDirectory, "App.csproj.slice");
+		await File.WriteAllTextAsync(
+			staleSlice,
+			"[project]\nlanguage=C#\nlastDtbSucceeded\n[sliceDimensions]\nTargetFramework=net8.0\n[commandLineArguments]\n/stale-rid\n",
+			TestContext.Current.CancellationToken);
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:ProjectDataBuild",
+				"/p:DesignTimeBuild=true",
+				"/p:BuildingProject=false",
+				"/p:SkipCompilerExecution=true",
+				"/p:ProjectDataBuild=true",
+				"/p:EnableProjectDataInProjectFolder=true",
+				$"/p:CSharpDevKitAdditionalProjectDataTargets={additionalTargetsFile}",
+				$"/p:ProjectDataBuildReceiptDirectory={receiptDirectory}",
+				$"/p:ProjectDataBuildReceiptAttemptId={attemptId}",
+			]);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		Assert.True(File.Exists(staleSlice), $"Expected another build's fallback slice to remain untouched.\n{result.Output}");
+		Assert.True(File.Exists(otherProjectSlice), $"Expected another project in the same build attempt to remain untouched.\n{result.Output}");
+		Assert.DoesNotContain("/stale-rid", File.ReadAllText(projectFile + ".lscache"));
+		Assert.Empty(Directory.GetFiles(sharedAttemptDirectory, "App.csproj.slice", SearchOption.AllDirectories));
 	}
 
 	[Fact]
@@ -522,6 +611,42 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	}
 
 	[Fact]
+	public async Task ProjectDataBuild_OutputlessBuildOrderReference_DoesNotResolveTargetPath()
+	{
+		string referencedProject = Path.Combine(this.workDir, "BuildOnly.proj");
+		await File.WriteAllTextAsync(
+			referencedProject,
+			"<Project />",
+			TestContext.Current.CancellationToken);
+		string projectFile = this.WriteProject(
+			"App.csproj",
+			multiTargeting: false,
+			extraXml:
+			$$"""
+              <ItemGroup>
+                <ProjectReference Include="{{referencedProject}}"
+                                  ReferenceOutputAssembly="false"
+                                  SkipGetTargetFrameworkProperties="true" />
+              </ItemGroup>
+            """);
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:ProjectDataBuild",
+				"/p:DesignTimeBuild=true",
+				"/p:BuildingProject=false",
+				"/p:SkipCompilerExecution=true",
+				"/p:EnableProjectDataInProjectFolder=true",
+			]);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		Assert.True(File.Exists(projectFile + ".lscache"), $"The build-order-only reference should not block project data.\n{result.Output}");
+		Assert.DoesNotContain("MSB4057", result.Output);
+	}
+
+	[Fact]
 	public async Task ProjectDataBuild_ExcludedProject_PreservesProjectFolderCache()
 	{
 		string projectFile = this.WriteProject(
@@ -713,6 +838,43 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		Assert.Equal(2, CountOccurrences(content, "\n[sliceDimensions]\n"));
 		Assert.Contains("TargetFramework=net8.0", content);
 		Assert.Contains("TargetFramework=net9.0", content);
+	}
+
+	[Fact]
+	public async Task MultiTfmRidUserFolderProject_ProjectDataBuildProducesMergedProjectDataFile()
+	{
+		const string runtimeIdentifier = "win-x64";
+		string projectFile = this.WriteProject("App.csproj", multiTargeting: true, runtimeIdentifier: runtimeIdentifier);
+		string cacheRoot = GetTestCacheRoot(projectFile);
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:ProjectDataBuild",
+				"/p:DesignTimeBuild=true",
+				"/p:BuildingProject=false",
+				"/p:SkipCompilerExecution=true",
+				"/p:EnableProjectDataInProjectFolder=false",
+			]);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		Assert.True(
+			File.Exists(Path.Combine(this.workDir, "obj", "Debug", "net8.0", runtimeIdentifier, "App.csproj.slice")),
+			$"Expected the net8.0 RID-specific inner slice.\n{result.Output}");
+		Assert.True(
+			File.Exists(Path.Combine(this.workDir, "obj", "Debug", "net9.0", runtimeIdentifier, "App.csproj.slice")),
+			$"Expected the net9.0 RID-specific inner slice.\n{result.Output}");
+		Assert.False(
+			File.Exists(projectFile + ".lscache"),
+			$"Default user-folder mode must not write the merged cache next to the project.\n{result.Output}");
+
+		string cacheFile = Assert.Single(Directory.GetFiles(cacheRoot, "*", SearchOption.AllDirectories));
+		string content = File.ReadAllText(cacheFile).Replace("\r\n", "\n");
+		Assert.Equal(2, CountOccurrences(content, "\n[sliceDimensions]\n"));
+		Assert.Contains("TargetFramework=net8.0", content);
+		Assert.Contains("TargetFramework=net9.0", content);
+		AssertNoUnsupportedMarker(projectFile);
 	}
 
 	[Fact]
@@ -2757,6 +2919,68 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		Assert.Contains(transitivePackageId, staleResult.Output);
 		Assert.Contains($"current request '{currentPinVersion}'", staleResult.Output);
 		Assert.Contains($"restored request '[{restoredPinVersion}, )'", staleResult.Output);
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task ProjectDataBuild_IgnoresInheritedTransitivePinningWhenCentralManagementIsDisabled(
+		bool restoredPinningEnabled)
+	{
+		File.WriteAllText(
+			Path.Combine(this.workDir, "Directory.Packages.props"),
+			$$"""
+			<Project>
+			  <PropertyGroup>
+			    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+			    <CentralPackageTransitivePinningEnabled>{{restoredPinningEnabled.ToString().ToLowerInvariant()}}</CentralPackageTransitivePinningEnabled>
+			  </PropertyGroup>
+			  <ItemGroup>
+			    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+			  </ItemGroup>
+			</Project>
+			""");
+		string projectFile = this.WriteProject(
+			"CentralOptOut.csproj",
+			multiTargeting: false,
+			targetFramework: "net10.0",
+			extraProperties: "<ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>",
+			extraXml:
+			"""
+			<ItemGroup>
+			  <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+			</ItemGroup>
+			""",
+			writeAssetsFile: false);
+		ProcessResult restoreResult = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:Restore",
+				$"/p:RestoreConfigFile={Path.Combine(FindRepoRoot(), "NuGet.config")}",
+			]);
+		Assert.True(restoreResult.ExitCode == 0, restoreResult.Output);
+
+		foreach (bool currentPinningEnabled in new[] { restoredPinningEnabled, !restoredPinningEnabled })
+		{
+			ProcessResult result = await RunDotnetMsbuildAsync(
+				projectFile,
+				extraArgs:
+				[
+					"/t:ProjectDataBuild",
+					"/p:DesignTimeBuild=true",
+					"/p:BuildingProject=false",
+					"/p:SkipCompilerExecution=true",
+					"/p:ProvideCommandLineArgs=true",
+					"/p:EnableProjectDataInProjectFolder=true",
+					"/p:_ProjectDataBuildForce=true",
+					$"/p:CentralPackageTransitivePinningEnabled={currentPinningEnabled}",
+				]);
+			Assert.True(result.ExitCode == 0, result.Output);
+			string content = File.ReadAllText(projectFile + ".lscache");
+			Assert.Contains("microsoft.extensions.logging.abstractions/8.0.2/", content.Replace('\\', '/'));
+			AssertNoUnsupportedMarker(projectFile);
+		}
 	}
 
 	[Theory]
