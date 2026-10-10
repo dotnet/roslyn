@@ -350,9 +350,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
                     Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, elementType.Type, _compilation));
                     var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
-                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
+                    var elementsBuilder = ArrayBuilder<BoundExpression>.GetInstance();
+                    foreach (var collectionElement in node.Elements)
+                    {
+                        if (collectionElement is BoundExpression elementExpression)
+                        {
+                            elementsBuilder.Add(VisitExpression(elementExpression));
+                            continue;
+                        }
+
+                        var utf8Literal = (BoundUtf8String)((BoundCollectionExpressionSpreadElement)collectionElement).Expression;
+                        if (GetUtf8ByteRepresentation(utf8Literal) is { } utf8Bytes)
+                        {
+                            var prevSyntax = _factory.Syntax;
+                            _factory.Syntax = utf8Literal.Syntax;
+                            elementsBuilder.AddRange(utf8Bytes.Select(b => _factory.Literal(b)));
+                            _factory.Syntax = prevSyntax;
+                        }
+                        else
+                        {
+                            elementsBuilder.Add(BadExpression(utf8Literal));
+                        }
+                    }
+
                     // Use codegen which downstream layer will emit as a "readonly span into assembly data segment" instead of "readonly span into array".
-                    return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
+                    return _factory.New(constructor, _factory.Array(elementType.Type, elementsBuilder.ToImmutableAndFree()));
                 }
 
                 if (ShouldUseInlineArray(node, _compilation) &&
@@ -685,10 +707,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool ShouldUseRuntimeHelpersCreateSpan(BoundCollectionExpressionBase node, TypeSymbol elementType)
         {
-            return !node.HasSpreadElements(out _, out _) &&
-                node.Elements.Length > 0 &&
-                CodeGenerator.IsTypeAllowedInBlobWrapper(elementType.EnumUnderlyingTypeOrSelf().SpecialType) &&
-                node.Elements.All(e => ((BoundExpression)e).ConstantValueOpt is { });
+            var elements = node.Elements;
+
+            if (elements.IsEmpty ||
+                !CodeGenerator.IsTypeAllowedInBlobWrapper(elementType.EnumUnderlyingTypeOrSelf().SpecialType))
+            {
+                return false;
+            }
+
+            foreach (var element in elements)
+            {
+                if (element is BoundExpression elementExpression)
+                {
+                    if (elementExpression.ConstantValueOpt is null)
+                    {
+                        return false;
+                    }
+
+                    continue;
+                }
+
+                Debug.Assert(element is BoundCollectionExpressionSpreadElement);
+                if (element is not BoundCollectionExpressionSpreadElement { Expression: BoundUtf8String utf8String })
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static bool ShouldUseInlineArray(BoundCollectionExpressionBase node, CSharpCompilation compilation)
