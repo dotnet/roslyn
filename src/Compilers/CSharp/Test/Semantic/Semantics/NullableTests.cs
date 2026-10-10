@@ -2266,5 +2266,76 @@ class C
                 //     X<Y?> M2() => new();
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "new()").WithArguments("System.Nullable`1").WithLocation(5, 19));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82919")]
+        public void DiscardRefNotnullShouldNotWarn_82919()
+        {
+            var source = @"
+#nullable enable
+class Gen<T> where T : notnull
+{
+    public static void Func(ref T t)
+    {
+        _ = ref t;
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "t")
+                    .WithArguments("T", "T?")
+                    .WithLocation(7, 17)
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82919")]
+        public void DiscardAssignmentShouldStayNullable_82919()
+        {
+            var source = @"
+#nullable enable
+public class Test
+{
+    public void M(string? s)
+    {
+        _ = s; 
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82919")]
+        public void DiscardExplicitCastShouldBeNullable_82919()
+        {
+            var source = @"
+#nullable enable
+public class Test
+{
+    public void M()
+    {
+        _ = (string?)null; 
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/82919")]
+        public void DiscardWithExplicitNotnullShouldWarnOnNull_82919()
+        {
+            var source = @"
+#nullable enable
+public class Test
+{
+    public void M(string? nullableString)
+    {
+        (string _, var _) = (nullableString, 1); 
+    }
+}";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "nullableString")
+                    .WithLocation(7, 30)
+            );
+        }
     }
 }
