@@ -328,6 +328,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used)
             {
+                if (!dup.IsAlive)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
                 _builder.EmitOpCode(ILOpCode.Dup);
             }
 
@@ -393,7 +398,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Local:
                     var local = (BoundLocal)value;
                     var symbol = local.LocalSymbol;
-                    if (topSequence.Locals.Contains(symbol))
+                    Debug.Assert(symbol.RefKind == RefKind.None, "No test coverage for the scenario.");
+                    if (symbol.RefKind == RefKind.None && topSequence.Locals.Contains(symbol))
                     {
                         return symbol;
                     }

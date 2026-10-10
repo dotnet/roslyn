@@ -1098,6 +1098,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     return ((BoundCall)expr).Method.RefKind != RefKind.None;
 
+                case BoundKind.FunctionPointerInvocation:
+                    return ((BoundFunctionPointerInvocation)expr).FunctionPointer.Signature.RefKind != RefKind.None;
+
                 case BoundKind.PropertyAccess:
                     return ((BoundPropertyAccess)expr).PropertySymbol.RefKind != RefKind.None;
 
@@ -1127,6 +1130,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Conversion:
                     return expr is BoundConversion { Conversion: { IsInterpolatedStringHandler: true }, Type: { IsValueType: true } };
+
+                case BoundKind.Dup:
+                    return ((BoundDup)expr).RefKind != RefKind.None;
+
+                case BoundKind.RefAccess:
+                    return true;
             }
 
             RoslynDebug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} must be handled explicitly");
