@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -34,6 +35,13 @@ internal abstract class AbstractNewDocumentFormattingService : INewDocumentForma
 
     public async Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken)
     {
+        if (hintDocument is not null &&
+            await hintDocument.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
+        {
+            // Source-generated documents are not included in Project.Documents.
+            hintDocument = document.Project.Documents.FirstOrDefault();
+        }
+
         foreach (var provider in GetProviders())
         {
             cancellationToken.ThrowIfCancellationRequested();
