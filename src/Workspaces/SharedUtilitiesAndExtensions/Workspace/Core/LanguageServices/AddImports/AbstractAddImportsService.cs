@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -33,7 +34,8 @@ internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNames
         {
             PlaceSystemNamespaceFirst = configOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, Language),
             UsingDirectivePlacement = GetUsingDirectivePlacementCodeStyleOption(configOptions),
-            AllowInHiddenRegions = allowInHiddenRegions
+            AllowInHiddenRegions = allowInHiddenRegions,
+            NewLine = configOptions.GetOption(FormattingOptions2.NewLine, Language),
         };
 
     public abstract CodeStyleOption2<AddImportPlacement> GetUsingDirectivePlacementCodeStyleOption(IOptionsReader configOptions);
