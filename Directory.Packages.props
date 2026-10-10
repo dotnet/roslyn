@@ -3,5 +3,8 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Octokit" Version="14.0.0" />
+  </ItemGroup>
   <Import Project="eng\Packages.props" />
 </Project>
