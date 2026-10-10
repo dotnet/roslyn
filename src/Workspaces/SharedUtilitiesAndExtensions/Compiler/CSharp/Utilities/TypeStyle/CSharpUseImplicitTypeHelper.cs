@@ -220,6 +220,10 @@ internal sealed class CSharpUseImplicitTypeHelper : CSharpTypeStyleHelper
         if (semanticModel.GetOperation(invocationExpression, cancellationToken) is not IInvocationOperation invocationOp)
             return false;
 
+        // The member group can miss the method actually called, so make sure the call binds to the one we checked.
+        if (!invocationOp.TargetMethod.OriginalDefinition.Equals((method.ReducedFrom ?? method).OriginalDefinition))
+            return false;
+
         var argumentOp = invocationOp.Arguments.FirstOrDefault(a => a.Syntax == argument);
         if (argumentOp is not { Value.Type: { } valueType, Parameter.Type: { } parameterType })
             return false;
