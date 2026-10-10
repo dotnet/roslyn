@@ -1,0 +1,861 @@
+#!/usr/bin/env dotnet
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// See the LICENSE file in the project root for more information.
+
+// Collects the binary logs of a completed, failed Azure Pipelines `roslyn-CI` PR
+// build so the analysis agent can read them. Only downloads published artifacts;
+// nothing here builds or executes PR code.
+//
+// Advisory: any gap emits `binlog-found=false`, which leaves the rest of the
+// workflow inert. It will not analyze a partial or stale picture, so a missing
+// failed-job artifact or a moved PR revision fails closed instead.
+//
+// Environment: RESOLVE_MODE, PR_NUMBER, GH_TOKEN, GH_AW_REPO, BINLOG_DIR,
+// GITHUB_OUTPUT. BINLOG_DIR must not exist yet; the run creates it.
+//
+// Usage: dotnet run --file ./fetch-build-binlogs.cs
+//        dotnet run --file ./fetch-build-binlogs.cs -- --extract <archive> <dest> <prefix> <budget> [label]
+
+using System.IO.Compression;
+using System.Linq;
+using System.Net;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
+
+if (args.Length > 0 && args[0] == "--extract")
+{
+    return RunExtractOnly(args[1..]);
+}
+
+var githubOutput = Environment.GetEnvironmentVariable("GITHUB_OUTPUT") ?? string.Empty;
+if (githubOutput.Length == 0 || !TryAppendOutput(string.Empty))
+{
+    Console.Error.WriteLine("::error::GITHUB_OUTPUT is unset or not writable; refusing to run without a way to emit step outputs.");
+    return 1;
+}
+
+var repo = Env("GH_AW_REPO");
+
+// roslyn-CI in dnceng-public/public (public project; read anonymously).
+const string AdoApi = "https://dev.azure.com/dnceng-public/public/_apis";
+const string AdoBuildUi = "https://dev.azure.com/dnceng-public/public/_build/results";
+const string AdoDefinitionId = "95";
+
+// The runner is fresh, so an existing directory means something is wrong;
+// refusing it also guarantees only this run's binlogs are uploaded.
+var binlogDir = Env("BINLOG_DIR");
+if (binlogDir.Length == 0 || Directory.Exists(binlogDir) || File.Exists(binlogDir))
+{
+    Console.Error.WriteLine("::error::BINLOG_DIR is unset or already exists; refusing to run.");
+    return 1;
+}
+
+Directory.CreateDirectory(binlogDir);
+
+using var github = new HttpClient();
+github.DefaultRequestHeaders.UserAgent.ParseAdd("roslyn-build-failure-analysis");
+github.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+github.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+var token = Env("GH_TOKEN");
+if (token.Length != 0)
+{
+    github.DefaultRequestHeaders.Authorization = new("Bearer", token);
+}
+
+using var ado = new HttpClient();
+ado.DefaultRequestHeaders.UserAgent.ParseAdd("roslyn-build-failure-analysis");
+
+// --- 1. Resolve and validate the PR number ---------------------------------
+// `check_run.pull_requests` is empty for fork PRs, and the base repo's
+// `commits/<sha>/pulls` does not list them either; the search index does.
+// Binding to the wrong PR would post an analysis to someone else's thread, so
+// require exactly one open match that is still at this commit.
+var prNumber = Env("PR_NUMBER");
+var checkHeadSha = Env("CHECK_HEAD_SHA");
+if (prNumber.Length == 0 && Regex.IsMatch(checkHeadSha, "^[0-9a-f]{40}$"))
+{
+    var search = await GitHubGet($"search/issues?q=repo:{repo}+is:pr+is:open+sha:{checkHeadSha}");
+    if (!int.TryParse(search.At("total_count").Text(), out var matches))
+    {
+        matches = 0;
+    }
+
+    EmitNoneIf(matches > 1, $"Head {checkHeadSha} matches {matches} open PRs; refusing to guess which to analyze.");
+    if (matches == 1)
+    {
+        var candidate = search.At("items").Items().FirstOrDefault().At("number").Text();
+        var candidateHead = candidate.Length == 0
+            ? string.Empty
+            : (await GitHubGet($"repos/{repo}/pulls/{candidate}")).At("head", "sha").Text();
+        EmitNoneIf(candidate.Length == 0 || candidateHead != checkHeadSha,
+            $"PR #{candidate} is no longer at {checkHeadSha}; skipping a stale check run.");
+        prNumber = candidate;
+        Console.WriteLine($"Resolved PR #{prNumber} from check run head {checkHeadSha}.");
+    }
+}
+
+// Interpolated into API paths and into the `refs/pull/<n>/merge` comparison.
+EmitNoneIf(!Regex.IsMatch(prNumber, "^[0-9]+$"), $"Resolved PR number '{prNumber}' is not numeric or empty; refusing.");
+
+// --- 2. Resolve and validate the Azure DevOps build id ----------------------
+var resolveMode = Env("RESOLVE_MODE");
+var buildId = string.Empty;
+switch (resolveMode)
+{
+    case "dispatch":
+        buildId = Env("DISPATCH_BUILD_ID");
+        break;
+
+    case "check_run":
+        // details_url looks like: .../_build/results?buildId=NNN&view=...
+        var details = Regex.Match(Env("CHECK_DETAILS_URL"), "buildId=([0-9]+)");
+        buildId = details.Success ? details.Groups[1].Value : string.Empty;
+        break;
+
+    case "latest":
+        // Take the newest build regardless of status. If it is still running -
+        // e.g. right after a force-push - skip rather than pair an older failure
+        // with the PR's current head.
+        var newest = (await AdoGet($"build list for PR #{prNumber}",
+            $"{AdoApi}/build/builds?definitions={AdoDefinitionId}&branchName=refs/pull/{prNumber}/merge&queryOrder=queueTimeDescending&$top=1&api-version=7.1"))
+            .At("value").Items().FirstOrDefault();
+        buildId = newest.At("id").Text();
+        var buildStatus = newest.At("status").Text();
+        Console.WriteLine($"Newest roslyn-CI build for PR #{prNumber}: id='{buildId}' status='{buildStatus}'");
+        EmitNoneIf(buildId.Length != 0 && buildStatus != "completed",
+            $"PR #{prNumber}'s newest roslyn-CI build ({buildId}) is still '{buildStatus}'; wait for it to finish.");
+        break;
+
+    default:
+        EmitNone($"Unknown RESOLVE_MODE '{resolveMode}'; refusing.");
+        break;
+}
+
+// Interpolated into ADO API URLs.
+EmitNoneIf(!Regex.IsMatch(buildId, "^[0-9]+$"), $"Resolved ADO build id '{buildId}' is not numeric or empty; refusing.");
+
+// --- 3. Validate the build on every trigger path ---------------------------
+// On `check_run` the build id comes from a payload we don't fully trust; on
+// dispatch the build id and PR number are independent inputs. Either way the
+// build must be roslyn-CI, must have failed, and must belong to this PR.
+var buildJson = await AdoGet($"details of build {buildId}", $"{AdoApi}/build/builds/{buildId}?api-version=7.1");
+var result = buildJson.At("result").Text();
+var definitionId = buildJson.At("definition", "id").Text();
+var sourceBranch = buildJson.At("sourceBranch").Text();
+Console.WriteLine($"ADO build {buildId}: result='{result}' definition='{definitionId}' sourceBranch='{sourceBranch}'");
+EmitNoneIf(definitionId != AdoDefinitionId,
+    $"ADO build {buildId} is definition '{definitionId}', not roslyn-CI ({AdoDefinitionId}); refusing.");
+EmitNoneIf(result != "failed", $"ADO build {buildId} did not fail (result='{result}'); nothing to analyze.");
+EmitNoneIf(sourceBranch != $"refs/pull/{prNumber}/merge",
+    $"ADO build {buildId} sourceBranch '{sourceBranch}' does not match PR #{prNumber}; refusing to avoid posting to the wrong PR.");
+
+// --- 4. Require the build to describe the PR's current revision ------------
+// ADO builds GitHub's `refs/pull/<n>/merge`, so `sourceVersion` is the merge
+// commit as of build time. Comparing it as well as the head catches a base
+// branch that advanced while the PR head stayed put.
+var prJson = await GitHubGet($"repos/{repo}/pulls/{prNumber}");
+var buildPrSha = buildJson.At("triggerInfo", "pr.sourceSha").Text();
+var buildMergeSha = buildJson.At("sourceVersion").Text();
+var currentHead = prJson.At("head", "sha").Text();
+var currentMerge = prJson.At("merge_commit_sha").Text();
+EmitNoneIf(buildPrSha.Length == 0 || currentHead.Length == 0 || buildMergeSha.Length == 0 || currentMerge.Length == 0,
+    "Could not resolve all build/current head and merge revisions; skipping to avoid analyzing a stale binlog.");
+EmitNoneIf(buildPrSha != currentHead,
+    $"Build {buildId} analyzed '{buildPrSha}' but PR #{prNumber} head is now '{currentHead}'; skipping stale build.");
+EmitNoneIf(buildMergeSha != currentMerge,
+    $"Build {buildId} merge revision '{buildMergeSha}' but PR #{prNumber} current merge is '{currentMerge}' (base advanced); skipping stale merge.");
+var headSha = currentHead;
+Console.WriteLine($"Analyzing build {buildId} at PR head revision '{headSha}'.");
+
+// --- 5. Select the log artifacts of failed or canceled jobs ----------------
+// Roslyn publishes "<job> Attempt <N> Logs" for most jobs, with explicit
+// exceptions for Source Build and the bootstrap-correctness leg. Bases are
+// matched exactly, and every retry attempt is kept.
+var records = (await AdoGet($"timeline of build {buildId}", $"{AdoApi}/build/builds/{buildId}/timeline?api-version=7.1"))
+    .At("records").Items().ToList();
+var failedJobs = records
+    .Where(record => record.At("type").Text() == "Job" && record.At("result").Text() is "failed" or "canceled")
+    .Select(record => (
+        Name: record.At("name").Text(),
+        Id: record.At("id").Text(),
+        Attempts: GetJobAttempts(record)))
+    .Where(job => job.Name.Trim().Length != 0)
+    .ToList();
+EmitNoneIf(failedJobs.Count == 0, $"No failed or canceled jobs in the timeline for build {buildId}.");
+EmitNoneIf(failedJobs.Any(job => job.Attempts.Count == 0),
+    $"Could not resolve every failed job's retry identity in build {buildId}; skipping incomplete failed-job data.");
+
+// Only jobs configured with a publish-logs task can be expected to have an
+// artifact. The task's result is deliberately not filtered: a failed, skipped,
+// or abandoned publish is missing data and must fail the completeness check.
+// Orchestration legs such as `Monitor Helix Jobs` fail without producing one -
+// that is how a Helix test failure surfaces - and demanding an artifact for
+// those would skip most real failures rather than analyze them. Roslyn spells
+// the task `Publish Logs`, and `Publish BuildLogs` in Source-Build.
+var logPublishingJobs = records
+    .Where(record => record.At("type").Text() == "Task")
+    .Select(record => (Task: record.At("name").Text(), Parent: record.At("parentId").Text()))
+    .Where(record => record.Task.StartsWith("Publish", StringComparison.Ordinal) && record.Task.EndsWith("Logs", StringComparison.Ordinal))
+    .Select(record => record.Parent)
+    .Where(parent => parent.Length != 0)
+    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+var logPublishingFailedJobs = failedJobs
+    .Where(job => logPublishingJobs.Contains(job.Id))
+    .ToList();
+var expectedAttempts = logPublishingFailedJobs
+    .SelectMany(job => job.Attempts.Select(attempt => (
+        job.Name,
+        Attempt: attempt.Number,
+        attempt.RecordId)))
+    .ToList();
+
+var attemptLogs = new Regex(@"^(.+) Attempt ([0-9]+) Logs$");
+var sourceBuildLogs = new Regex(@"^BuildLogs_SourceBuild_Managed_Attempt([0-9]+)$");
+var allArtifacts = (await AdoGet($"artifact list of build {buildId}", $"{AdoApi}/build/builds/{buildId}/artifacts?api-version=7.1"))
+    .At("value").Items()
+    .Select(artifact => (
+        Node: artifact,
+        Name: artifact.At("name").Text(),
+        Source: artifact.At("source").Text()))
+    .Where(artifact => attemptLogs.IsMatch(artifact.Name) || sourceBuildLogs.IsMatch(artifact.Name))
+    .ToList();
+
+bool MatchesAttempt(string jobName, int attempt, string recordId, string artifactName, string artifactSource)
+{
+    if (!recordId.Equals(artifactSource, StringComparison.OrdinalIgnoreCase))
+    {
+        return false;
+    }
+
+    if (jobName == "Source-Build (Managed)")
+    {
+        var sourceMatch = sourceBuildLogs.Match(artifactName);
+        return sourceMatch.Success
+            && int.TryParse(sourceMatch.Groups[1].Value, out var sourceAttempt)
+            && sourceAttempt == attempt;
+    }
+
+    var match = attemptLogs.Match(artifactName);
+    var expectedName = jobName == "Correctness_Bootstrap_Build_Default"
+        ? "Correctness_Bootstrap_Build - Default"
+        : jobName;
+    return match.Success
+        && match.Groups[1].Value == expectedName
+        && int.TryParse(match.Groups[2].Value, out var artifactAttempt)
+        && artifactAttempt == attempt;
+}
+
+// A failed job attempt configured to publish logs but whose exact artifact
+// cannot be found is missing data, and it could be the one holding the cause.
+var uncovered = expectedAttempts
+    .Where(expected => !allArtifacts.Any(artifact => MatchesAttempt(
+        expected.Name, expected.Attempt, expected.RecordId, artifact.Name, artifact.Source)))
+    .ToList();
+EmitNoneIf(uncovered.Count != 0,
+    $"Build {buildId} is missing the log artifact of {uncovered.Count} of {expectedAttempts.Count} failed job attempts configured to publish logs "
+        + $"({string.Join(", ", uncovered.Take(3).Select(expected => Extractor.Sanitize($"{expected.Name} Attempt {expected.Attempt}")))}); "
+        + "skipping incomplete failed-job data.");
+
+var selectedArtifacts = expectedAttempts
+    .SelectMany(expected => allArtifacts.Where(artifact => MatchesAttempt(
+        expected.Name, expected.Attempt, expected.RecordId, artifact.Name, artifact.Source)))
+    .Where(artifact => artifact.Name.Trim().Length != 0)
+    .DistinctBy(artifact => artifact.Name, StringComparer.Ordinal)
+    .ToList();
+EmitNoneIf(selectedArtifacts.Count == 0,
+    $"No build-log artifacts matched the failed or canceled jobs in build {buildId}; the failure is likely outside a build leg.");
+Console.WriteLine(
+    $"Selected {selectedArtifacts.Count} of {allArtifacts.Count} build-log artifacts for "
+    + $"{expectedAttempts.Count} attempt(s) of {logPublishingFailedJobs.Count} log-publishing jobs among {failedJobs.Count} failed or canceled.");
+
+// --- 6. Download and extract each selected artifact ------------------------
+// Roslyn's `Correctness_Analyzers` log artifact is routinely ~600 MB, so the
+// per-artifact cap has to be well clear of that or the workflow silently skips
+// exactly the correctness legs it exists to diagnose. Only one archive is on
+// disk at a time, so the cumulative cap is what bounds the sum; it is charged
+// before each transfer so the last artifact cannot start just under the limit
+// and still pull a full MaxZipBytes.
+const long MaxZipBytes = 2147483648;       // 2 GB compressed per artifact
+const long MaxTotalBytes = 4294967296;     // 4 GB extracted across all artifacts
+const long MaxTotalZipBytes = 3221225472;  // 3 GB compressed across all artifacts
+var totalZipBytes = 0L;
+var remainingBytes = MaxTotalBytes;
+
+// Download into a private (0700) directory: in shared /tmp another process
+// could plant a symlink at the download path and redirect the write.
+var zipDir = Directory.CreateTempSubdirectory("binlog-fetch-").FullName;
+var zipTmp = Path.Combine(zipDir, "artifact.zip");
+
+var count = 0;
+var stagedLegs = 0;
+var ai = 0;
+foreach (var (node, name, _) in selectedArtifacts)
+{
+    ai++;
+    // `name` is PR-controlled artifact metadata, so log a sanitized copy only.
+    var safeName = Extractor.Sanitize(name);
+    if (remainingBytes <= 0)
+    {
+        Console.WriteLine($"::warning::Cumulative extracted-byte budget {MaxTotalBytes} is exhausted before {safeName}; stopping downloads.");
+        break;
+    }
+
+    var url = node.At("resource", "downloadUrl").Text();
+    if (url.Length == 0)
+    {
+        Console.WriteLine($"::warning::Skipping {safeName}: no download URL.");
+        continue;
+    }
+
+    // The build ran PR code, so its artifact URL is untrusted; anything outside
+    // dnceng-public/public is skipped, which fails the run closed.
+    if (!IsTrustedArtifactUrl(url))
+    {
+        Console.WriteLine($"::warning::Skipping {safeName}: download URL is not a dnceng-public/public artifact URL.");
+        continue;
+    }
+
+    // Bound this transfer by what is left of the cumulative budget as well as by
+    // the per-artifact cap, so the caps compose by the smaller of the two rather
+    // than granting every artifact the full per-artifact allowance.
+    var zipCap = Math.Min(MaxZipBytes, MaxTotalZipBytes - totalZipBytes);
+    if (zipCap <= 0)
+    {
+        Console.WriteLine($"::warning::Cumulative compressed download budget {MaxTotalZipBytes} is exhausted before {safeName}; stopping downloads.");
+        break;
+    }
+
+    var (chargedZipBytes, archiveBytes, downloadError) = await Download(url, zipTmp, zipCap);
+    totalZipBytes += chargedZipBytes;
+    if (downloadError is not null || archiveBytes == 0)
+    {
+        Console.WriteLine($"::warning::Skipping {safeName}: download failed or was empty ({downloadError ?? "empty body"}).");
+        continue;
+    }
+
+    int extracted;
+    long written;
+    try
+    {
+        (extracted, written) = Extractor.Extract(zipTmp, binlogDir, ai.ToString(), remainingBytes, safeName);
+    }
+    catch (Exception ex)
+    {
+        DeletePartials(ai);
+        Console.WriteLine($"::warning::Skipping {safeName}: extraction failed ({ex.Message.ReplaceLineEndings(" ")}).");
+        continue;
+    }
+
+    if (extracted == 0)
+    {
+        DeletePartials(ai);
+        Console.WriteLine($"::warning::Skipping {safeName}: no binlogs found in the artifact.");
+        continue;
+    }
+
+    remainingBytes -= written;
+    count += extracted;
+    stagedLegs++;
+    Console.WriteLine($"Extracted {extracted} binlog(s) ({written} bytes) from {safeName}.");
+}
+
+TryDelete(zipTmp);
+try { Directory.Delete(zipDir); } catch (Exception) { }
+
+Console.WriteLine($"Extracted {count} binlog(s) from {stagedLegs}/{selectedArtifacts.Count} selected artifacts into {binlogDir}:");
+foreach (var staged in Directory.EnumerateFiles(binlogDir).Order(StringComparer.Ordinal))
+{
+    Console.WriteLine($"  {new FileInfo(staged).Length,12}  {Path.GetFileName(staged)}");
+}
+
+EmitNoneIf(count == 0, $"No *.binlog found in the selected build-log artifacts of build {buildId}.");
+EmitNoneIf(stagedLegs != selectedArtifacts.Count,
+    $"Only {stagedLegs} of {selectedArtifacts.Count} selected artifacts produced a usable binlog; skipping incomplete failed-job data.");
+
+// --- 7. Re-check the revision after a download that can take minutes -------
+// A force-push or base advance during the download would leave the binlogs
+// stale relative to the diff that inline comments are pinned to.
+var latestPr = await GitHubGet($"repos/{repo}/pulls/{prNumber}");
+var latestHead = latestPr.At("head", "sha").Text();
+var latestMerge = latestPr.At("merge_commit_sha").Text();
+EmitNoneIf(latestHead != headSha,
+    $"PR #{prNumber} head changed during download ('{headSha}' -> '{latestHead}') or could not be re-resolved; skipping.");
+EmitNoneIf(latestMerge != buildMergeSha,
+    $"PR #{prNumber} merge revision changed during download ('{buildMergeSha}' -> '{latestMerge}') or could not be re-resolved; skipping.");
+
+TryAppendOutput(
+    "binlog-found=true\n" +
+    $"pr-number={prNumber}\n" +
+    $"pr-head-sha={headSha}\n" +
+    $"pr-merge-sha={buildMergeSha}\n" +
+    $"ado-build-id={buildId}\n" +
+    $"ado-build-url={AdoBuildUi}?buildId={buildId}\n");
+return 0;
+
+static string Env(string name) => Environment.GetEnvironmentVariable(name) ?? string.Empty;
+
+bool TryAppendOutput(string text)
+{
+    try
+    {
+        File.AppendAllText(githubOutput, text);
+        return true;
+    }
+    catch (Exception)
+    {
+        return false;
+    }
+}
+
+void EmitNone(string? reason = null)
+{
+    if (reason is not null)
+    {
+        Console.WriteLine($"::warning::{reason}");
+    }
+
+    TryAppendOutput("binlog-found=false\n");
+    Environment.Exit(0);
+}
+
+void EmitNoneIf(bool condition, string reason)
+{
+    if (condition)
+    {
+        EmitNone(reason);
+    }
+}
+
+static void TryDelete(string path)
+{
+    try
+    {
+        File.Delete(path);
+    }
+    catch (Exception)
+    {
+    }
+}
+
+void DeletePartials(int prefix)
+{
+    foreach (var partial in Directory.EnumerateFiles(binlogDir, $"{prefix}_*.binlog"))
+    {
+        TryDelete(partial);
+    }
+}
+
+static IReadOnlyList<(int Number, string RecordId)> GetJobAttempts(JsonNode? record)
+{
+    var attempts = new List<(int Number, string RecordId)>();
+    foreach (var previous in record.At("previousAttempts").Items())
+    {
+        if (!TryAdd(previous.At("attempt").Text(), previous.At("recordId").Text()))
+        {
+            return [];
+        }
+    }
+
+    if (!TryAdd(record.At("attempt").Text(), record.At("id").Text()))
+    {
+        return [];
+    }
+
+    return attempts.OrderBy(attempt => attempt.Number).ToList();
+
+    bool TryAdd(string numberText, string recordId)
+    {
+        if (!int.TryParse(numberText, out var number) || number <= 0 || recordId.Length == 0
+            || attempts.Any(attempt => attempt.Number == number
+                || attempt.RecordId.Equals(recordId, StringComparison.OrdinalIgnoreCase)))
+        {
+            return false;
+        }
+
+        attempts.Add((number, recordId));
+        return true;
+    }
+}
+
+// A failure is reported as an absent document, so the caller reads empty fields
+// and takes its own data-resolution branch.
+async Task<JsonNode?> GitHubGet(string path)
+{
+    var (body, error) = await Fetch(github, $"https://api.github.com/{path}", TimeSpan.FromSeconds(60),
+        (response, cancellation) => response.Content.ReadAsStringAsync(cancellation));
+    return error is null ? Parse(body!) : null;
+}
+
+// A network failure or non-JSON body is a data-resolution failure, not evidence
+// that there is nothing to analyze, so it stops the run rather than falling
+// through to an empty `records`/`value` and a misleading "no failed jobs".
+async Task<JsonNode?> AdoGet(string what, string url)
+{
+    var (body, error) = await Fetch(ado, url, TimeSpan.FromSeconds(20),
+        (response, cancellation) => response.Content.ReadAsStringAsync(cancellation));
+    var document = error is null && body!.Length != 0 ? Parse(body!) : null;
+    if (document is null)
+    {
+        EmitNone($"Could not fetch a usable {what} from Azure DevOps ({error ?? "empty or non-JSON body"}); treating as a data-resolution failure.");
+    }
+
+    return document;
+}
+
+static JsonNode? Parse(string body)
+{
+    try
+    {
+        return JsonNode.Parse(body);
+    }
+    catch (JsonException)
+    {
+        return null;
+    }
+}
+
+// A 404 is an answer; retry only statuses that can change.
+static bool IsTransient(HttpStatusCode status)
+    => status is HttpStatusCode.RequestTimeout or HttpStatusCode.TooManyRequests
+        or HttpStatusCode.InternalServerError or HttpStatusCode.BadGateway
+        or HttpStatusCode.ServiceUnavailable or HttpStatusCode.GatewayTimeout;
+
+// Only dnceng-public/public artifacts: `Container` URLs are
+// dev.azure.com/dnceng-public/<project>/..., and `PipelineArtifact` URLs are
+// artprod<region>.artifacts.visualstudio.com/
+// A<dnceng-public collection id>/<project id>/... Any other organization,
+// project or tenant is refused.
+static bool IsTrustedArtifactUrl(string url)
+{
+    const string CollectionId = "6fcc92e5-73a7-4f88-8d13-d9045b45fb27";
+    const string ProjectId = "cbb18261-c48f-4abb-8651-8cdcb5474649";
+
+    if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps || !uri.IsDefaultPort)
+    {
+        return false;
+    }
+
+    var path = uri.AbsolutePath;
+    if (uri.Host.Equals("dev.azure.com", StringComparison.OrdinalIgnoreCase))
+    {
+        return path.StartsWith("/dnceng-public/public/", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith($"/dnceng-public/{ProjectId}/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    return Regex.IsMatch(uri.Host, @"^artprod(?:[.-]?[a-z0-9]+)\.artifacts\.visualstudio\.com$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)
+        && path.StartsWith($"/A{CollectionId}/{ProjectId}/", StringComparison.OrdinalIgnoreCase);
+}
+
+// Retries transient failures twice; the workflow's `timeout 600` bounds the run.
+// `read` runs under the attempt's timeout, so a stalled body is covered too.
+static async Task<(T? Value, string? Error)> Fetch<T>(
+    HttpClient client, string url, TimeSpan timeout, Func<HttpResponseMessage, CancellationToken, Task<T>> read)
+{
+    var error = "no attempt was made";
+    for (var attempt = 1; attempt <= 3; attempt++)
+    {
+        if (attempt != 1)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(2 * attempt));
+        }
+
+        try
+        {
+            using var cts = new CancellationTokenSource(timeout);
+            using var response = await client.GetAsync(
+                url, HttpCompletionOption.ResponseHeadersRead, cts.Token);
+            if (response.IsSuccessStatusCode)
+            {
+                return (await read(response, cts.Token), null);
+            }
+
+            error = $"HTTP {(int)response.StatusCode}";
+            if (!IsTransient(response.StatusCode))
+            {
+                break;
+            }
+        }
+        catch (Exception ex) when (ex is OperationCanceledException or HttpRequestException or IOException)
+        {
+            error = ex is OperationCanceledException ? "timed out" : ex.GetType().Name;
+        }
+    }
+
+    return (default, error);
+}
+
+// Streams the artifact to disk and shares `cap` across every retry. Bytes read
+// before a timeout or I/O failure remain charged to the cumulative budget.
+async Task<(long ChargedBytes, long ArchiveBytes, string? Error)> Download(string url, string path, long cap)
+{
+    var consumed = 0L;
+    var (bytes, error) = await Fetch(ado, url, TimeSpan.FromMinutes(2), async (response, cancellation) =>
+    {
+        var attemptCap = cap - consumed;
+        if (attemptCap <= 0)
+        {
+            return -1;
+        }
+
+        await using var source = await response.Content.ReadAsStreamAsync(cancellation);
+        await using var output = File.Create(path);
+        var buffer = new byte[1 << 20];
+        long written = 0;
+        int read;
+        while ((read = await source.ReadAsync(buffer, cancellation)) > 0)
+        {
+            consumed = Math.Min(cap, consumed + read);
+            if ((written += read) > attemptCap)
+            {
+                return -1;
+            }
+
+            await output.WriteAsync(buffer.AsMemory(0, read), cancellation);
+        }
+
+        return written;
+    });
+
+    return error is not null
+        ? (consumed, 0, error)
+        : bytes < 0
+            ? (cap, 0, $"exceeded the {cap}-byte size cap across download attempts")
+            : (consumed, bytes, null);
+}
+
+// Not reachable from the workflow; a manual seam for running archive handling
+// against a local zip while iterating on it.
+static int RunExtractOnly(string[] extractArgs)
+{
+    if (extractArgs.Length is < 4 or > 5 || !long.TryParse(extractArgs[3], out var budgetBytes))
+    {
+        Console.Error.WriteLine("usage: fetch-build-binlogs.cs --extract <archive> <dest> <prefix> <budget> [label]");
+        return 1;
+    }
+
+    try
+    {
+        var (count, written) = Extractor.Extract(
+            extractArgs[0], extractArgs[1], extractArgs[2], budgetBytes,
+            extractArgs.Length == 5 ? extractArgs[4] : string.Empty);
+        Console.Out.WriteLine($"{count} {written}");
+        return 0;
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine(ex.Message);
+        return 1;
+    }
+}
+
+// Extracts the *.binlog entries of one Azure DevOps build-log artifact.
+//
+// The archive comes from a PR-triggered build, so its entry paths, metadata and
+// contents are untrusted. Three properties keep extraction safe: destination
+// names are generated here rather than taken from the archive, so a traversal or
+// absolute path cannot choose where bytes land; writing stops as soon as the
+// remaining budget is exceeded, so a zip bomb cannot fill the runner disk; and
+// metadata reads, entry counts and binlog counts are capped, so an archive
+// cannot turn a modest byte budget into unbounded metadata allocations or
+// millions of filesystem operations.
+// Paths and types are validated up front because an archive containing a
+// traversal path or a link entry is hostile rather than merely odd, so the whole
+// artifact is rejected instead of partially extracted.
+static class Extractor
+{
+    // The byte budgets bound how much is written, never how many times. An
+    // archive of millions of tiny entries stays far inside them while still
+    // costing a validation pass over every entry and one output file per binlog,
+    // which is enough to exhaust inodes or run out the job's wall clock. These
+    // cap the counts instead, generously enough that a real build-log artifact -
+    // a handful of binlogs among the leg's logs - is nowhere near them.
+    private const int MaxEntries = 65536;
+    private const int MaxBinlogs = 256;
+    private const long MaxMetadataBytes = 16 * 1024 * 1024;
+
+    public static (int Count, long Written) Extract(
+        string archivePath, string destination, string prefix, long budgetBytes, string label)
+    {
+        // Re-sanitize rather than trusting the caller.
+        var safeLabel = Sanitize(label);
+
+        using var archive = File.OpenRead(archivePath);
+        using var metadata = new MetadataReadStream(archive);
+        using var zip = new ZipArchive(metadata, ZipArchiveMode.Read);
+
+        // Entries materializes the central directory. Bound the reads used by
+        // .NET's parser itself, rather than trusting ZIP-declared sizes/counts
+        // or implementing a second parser whose interpretation could differ.
+        if (zip.Entries.Count > MaxEntries)
+        {
+            throw new InvalidDataException($"archive holds {zip.Entries.Count} entries, above the {MaxEntries} allowed");
+        }
+
+        metadata.CompleteMetadataRead();
+
+        for (var i = 0; i < zip.Entries.Count; i++)
+        {
+            if (IsUnsafePath(zip.Entries[i].FullName) || IsUnsupportedType(zip.Entries[i]))
+            {
+                throw new InvalidDataException($"archive entry {i} has an unsafe path or an unsupported type");
+            }
+        }
+
+        var selected = zip.Entries
+            .Where(entry => !IsDirectoryEntry(entry) && entry.FullName.EndsWith(".binlog", StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+
+        // One output file per binlog, so this is the cap that keeps a single
+        // artifact from filling the staging directory with entries.
+        if (selected.Length > MaxBinlogs)
+        {
+            throw new InvalidDataException($"archive holds {selected.Length} binlogs, above the {MaxBinlogs} allowed");
+        }
+
+        Directory.CreateDirectory(destination);
+
+        var written = 0L;
+        var buffer = new byte[1024 * 1024];
+        var created = new List<string>(selected.Length);
+        try
+        {
+            for (var index = 0; index < selected.Length; index++)
+            {
+                var stem = safeLabel.Length == 0 ? $"{prefix}_{index}" : $"{prefix}_{index}_{safeLabel}";
+                var outputPath = Path.Combine(destination, $"{stem}.binlog");
+
+                using var source = selected[index].Open();
+                // CreateNew, so a name that somehow already exists is an error rather
+                // than a silent overwrite of a previous artifact's binlog.
+                using var output = new FileStream(outputPath, FileMode.CreateNew, FileAccess.Write);
+                created.Add(outputPath);
+
+                int read;
+                while ((read = source.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    written += read;
+                    if (written > budgetBytes)
+                    {
+                        throw new InvalidDataException("extracted binlogs exceed the remaining budget");
+                    }
+
+                    output.Write(buffer, 0, read);
+                }
+            }
+        }
+        catch
+        {
+            foreach (var path in created)
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (Exception)
+                {
+                    // Preserve the extraction failure that triggered cleanup.
+                }
+            }
+
+            throw;
+        }
+
+        return (selected.Length, written);
+    }
+
+    private sealed class MetadataReadStream(Stream source) : Stream
+    {
+        private long _remaining = MaxMetadataBytes;
+
+        public void CompleteMetadataRead() => _remaining = long.MaxValue;
+
+        public override bool CanRead => true;
+        public override bool CanSeek => true;
+        public override bool CanWrite => false;
+        public override long Length => source.Length;
+        public override long Position
+        {
+            get => source.Position;
+            set => source.Position = value;
+        }
+
+        public override int Read(byte[] buffer, int offset, int count)
+            => Read(buffer.AsSpan(offset, count));
+
+        public override int Read(Span<byte> buffer)
+        {
+            if (buffer.Length != 0 && _remaining == 0)
+            {
+                throw new InvalidDataException($"archive metadata exceeds the {MaxMetadataBytes}-byte read budget");
+            }
+
+            var read = source.Read(buffer[..(int)Math.Min(buffer.Length, _remaining)]);
+            _remaining -= read;
+            return read;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin) => source.Seek(offset, origin);
+        public override void Flush() { }
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    }
+
+    // Maps anything PR-controlled to a conservative set before it reaches a file
+    // name or a log line. Trimming before truncating keeps the 80-char bound.
+    public static string Sanitize(string value)
+    {
+        var result = Regex.Replace(value, "[^A-Za-z0-9._-]", "_").Trim('.', '_', '-');
+        return result.Length > 80 ? result[..80] : result;
+    }
+
+    private static bool IsUnsafePath(string name)
+    {
+        var parts = name.Replace('\\', '/').Split('/');
+        var first = parts[0];
+        return name.Contains('\0')
+            || name.StartsWith('/') || name.StartsWith('\\')
+            || Array.IndexOf(parts, "..") >= 0
+            // "c:/foo" is not rooted by POSIX rules but is still an escape attempt.
+            || (first.Length >= 2 && char.IsAsciiLetter(first[0]) && first[1] == ':');
+    }
+
+    private static bool IsUnsupportedType(ZipArchiveEntry entry)
+    {
+        // S_IFMT type bits, then regular-file and directory only. Entries written
+        // on Windows carry no Unix mode; 0 is unspecified, not evidence of a
+        // hostile type.
+        var fileType = (entry.ExternalAttributes >> 16) & 0xF000;
+        return fileType is not (0 or 0x8000 or 0x4000);
+    }
+
+    private static bool IsDirectoryEntry(ZipArchiveEntry entry)
+        => entry.FullName.EndsWith('/') || entry.Name.Length == 0;
+}
+
+// Third-party JSON whose shape is not guaranteed, so reads are total: a missing
+// property, a null, or the wrong kind all read as absent rather than throwing
+// partway through a validation sequence.
+static class Json
+{
+    public static JsonNode? At(this JsonNode? node, params string[] path)
+    {
+        foreach (var name in path)
+        {
+            node = (node as JsonObject)?[name];
+        }
+
+        return node;
+    }
+
+    // `ToString()` rather than `TryGetValue<string>()` because these payloads mix
+    // scalar kinds: `result`, `name` and `sourceBranch` arrive as JSON strings,
+    // while `total_count`, `id` and `definition.id` arrive as JSON numbers, and
+    // both are read as text here. `JsonNode.ToString()` special-cases strings and
+    // returns them unquoted, so a string reads back verbatim and a number renders
+    // as its digits; `TryGetValue<string>` would return false for the numbers.
+    public static string Text(this JsonNode? node) => (node as JsonValue)?.ToString() ?? string.Empty;
+
+    public static IEnumerable<JsonNode?> Items(this JsonNode? node) => node as JsonArray ?? [];
+}
