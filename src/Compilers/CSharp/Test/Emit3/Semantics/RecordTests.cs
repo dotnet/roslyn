@@ -8946,6 +8946,79 @@ IWithOperation (OperationKind.With, Type: C, IsInvalid) (Syntax: 'c with { ')
       Initializers(0)");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81666")]
+        public void WithBadAssignmentMember()
+        {
+            var src = @"
+record C(int X)
+{
+    public int this[int i] { get => 0; set { } }
+}
+
+class D
+{
+    public int P { get; set; }
+}
+
+class Program
+{
+    static void M(C c, D d, int x)
+    {
+        _ = c with { [0] = 1 };
+        _ = c with { [0] = undefined };
+        _ = c with { 1 = 2 };
+        _ = c with { d.P = ""s"" };
+        _ = c with { [0] = ref x };
+        _ = c with { var(1) = 2 };
+        _ = c with { (_) = 1 };
+    }
+}";
+
+            var comp = CreateCompilation(src);
+            comp.VerifyEmitDiagnostics(
+                // (16,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { [0] = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 1").WithLocation(16, 22),
+                // (17,28): error CS0103: The name 'undefined' does not exist in the current context
+                //         _ = c with { [0] = undefined };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "undefined").WithArguments("undefined").WithLocation(17, 28),
+                // (17,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { [0] = undefined };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = undefined").WithLocation(17, 22),
+                // (18,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { 1 = 2 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "1 = 2").WithLocation(18, 22),
+                // (19,28): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         _ = c with { d.P = "s" };
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""s""").WithArguments("string", "int").WithLocation(19, 28),
+                // (19,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { d.P = "s" };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"d.P = ""s""").WithLocation(19, 22),
+                // (20,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { [0] = ref x };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = ref x").WithLocation(20, 22),
+                // (21,22): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         _ = c with { var(1) = 2 };
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(1)").WithLocation(21, 22),
+                // (21,22): error CS0103: The name 'var' does not exist in the current context
+                //         _ = c with { var(1) = 2 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(21, 22),
+                // (21,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { var(1) = 2 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "var(1) = 2").WithLocation(21, 22),
+                // (22,23): error CS0103: The name '_' does not exist in the current context
+                //         _ = c with { (_) = 1 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(22, 23),
+                // (22,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { (_) = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "(_) = 1").WithLocation(22, 22));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var memberAccess = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            Assert.Equal("System.Int32 D.P { get; set; }", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        }
+
         [Fact]
         public void WithExpr_DefiniteAssignment_01()
         {
