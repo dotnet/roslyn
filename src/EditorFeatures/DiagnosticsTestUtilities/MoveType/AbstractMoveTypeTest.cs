@@ -148,7 +148,8 @@ public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
         ImmutableArray<string> destinationDocumentContainers = default,
         bool expectedCodeAction = true,
         int index = 0,
-        OptionsCollection options = null)
+        OptionsCollection options = null,
+        (string documentName, string expectedText)[] expectedUnchangedDocuments = null)
     {
         var testOptions = new TestParameters(index: index, options: options);
         if (expectedCodeAction)
@@ -181,6 +182,20 @@ public abstract class AbstractMoveTypeTest : AbstractCodeActionTest
             Assert.Equal(oldSourceText.ChecksumAlgorithm, addedSourceText.ChecksumAlgorithm);
 
             AssertEx.Equal(expectedSourceTextAfterRefactoring, newSourceText.ToString());
+
+            // Verify that pre-existing documents which should be left alone keep their original text. This guards
+            // against the refactoring overwriting an existing file (see https://github.com/dotnet/roslyn/issues/84258).
+            if (expectedUnchangedDocuments != null)
+            {
+                foreach (var (documentName, expectedText) in expectedUnchangedDocuments)
+                {
+                    var unchangedDocument = newSolution.Projects
+                        .SelectMany(project => project.Documents)
+                        .Single(document => document.FilePath != null && Path.GetFileName(document.FilePath) == documentName);
+                    var unchangedText = await unchangedDocument.GetTextAsync();
+                    AssertEx.Equal(expectedText, unchangedText.ToString());
+                }
+            }
         }
         else
         {
