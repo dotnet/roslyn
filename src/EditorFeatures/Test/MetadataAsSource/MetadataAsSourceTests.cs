@@ -2856,6 +2856,148 @@ public sealed partial class MetadataAsSourceTests : AbstractMetadataAsSourceTest
             """);
     }
 
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/82258")]
+    public async Task TestNavigationViaNewExtensionMethodCS()
+    {
+        var metadata = """
+            public static class ObjectExtensions
+            {
+                extension(object o)
+                {
+                    public void M(int x) { }
+                }
+            }
+            """;
+        var sourceWithSymbolReference = """
+
+            class C
+            {
+                void M()
+                {
+                    new object().[|M|](5);
+                }
+            }
+            """;
+        using var context = TestContext.Create(
+            LanguageNames.CSharp,
+            [metadata],
+            includeXmlDocComments: false,
+            sourceWithSymbolReference: sourceWithSymbolReference,
+            languageVersion: "Preview",
+            metadataLanguageVersion: "Preview");
+        var navigationSymbol = await context.GetNavigationSymbolAsync();
+        var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+        TestContext.VerifyResult(metadataAsSourceFile, $$"""
+            #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            // {{CodeAnalysisResources.InMemoryAssembly}}
+            #endregion
+
+            public static class ObjectExtensions
+            {
+                extension(object o)
+                {
+                    public void [|M|](int x);
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/82258")]
+    public async Task TestNavigationViaNewExtensionPropertyCS()
+    {
+        var metadata = """
+            public static class ObjectExtensions
+            {
+                extension(object o)
+                {
+                    public int P { get => 1; set { } }
+                }
+            }
+            """;
+        var sourceWithSymbolReference = """
+
+            class C
+            {
+                void M()
+                {
+                    new object().[|P|] = 1;
+                }
+            }
+            """;
+        using var context = TestContext.Create(
+            LanguageNames.CSharp,
+            [metadata],
+            includeXmlDocComments: false,
+            sourceWithSymbolReference: sourceWithSymbolReference,
+            languageVersion: "Preview",
+            metadataLanguageVersion: "Preview");
+        var navigationSymbol = await context.GetNavigationSymbolAsync();
+        var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+        TestContext.VerifyResult(metadataAsSourceFile, $$"""
+            #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            // {{CodeAnalysisResources.InMemoryAssembly}}
+            #endregion
+
+            public static class ObjectExtensions
+            {
+                extension(object o)
+                {
+                    public int [|P|] { get; set; }
+                }
+            }
+            """);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/82258")]
+    public async Task TestNavigationViaNewGenericExtensionMethodCS()
+    {
+        var metadata = """
+            #nullable enable
+
+            public static class ObjectExtensions
+            {
+                extension<T>(T t) where T : class?
+                {
+                    public void M() { }
+                }
+            }
+            """;
+        var sourceWithSymbolReference = """
+
+            class C
+            {
+                void M()
+                {
+                    new object().[|M|]();
+                }
+            }
+            """;
+        using var context = TestContext.Create(
+            LanguageNames.CSharp,
+            [metadata],
+            includeXmlDocComments: false,
+            sourceWithSymbolReference: sourceWithSymbolReference,
+            languageVersion: "Preview",
+            metadataLanguageVersion: "Preview");
+        var navigationSymbol = await context.GetNavigationSymbolAsync();
+        var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+        TestContext.VerifyResult(metadataAsSourceFile, $$"""
+            #region {{FeaturesResources.Assembly}} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            // {{CodeAnalysisResources.InMemoryAssembly}}
+            #endregion
+
+            #nullable enable
+
+            public static class ObjectExtensions
+            {
+                extension<T>(T t) where T : class?
+                {
+                    public void [|M|]();
+                }
+            }
+            """);
+    }
+
     [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/897006")]
     public async Task TestNavigationViaReducedExtensionMethodVB()
     {
