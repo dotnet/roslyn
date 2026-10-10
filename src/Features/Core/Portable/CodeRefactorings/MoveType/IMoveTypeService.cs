@@ -16,4 +16,5 @@ internal interface IMoveTypeService : ILanguageService
     Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
     Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken);
+    Task<string?> GetDesiredDocumentNameAsync(Document document, CancellationToken cancellationToken);
 }
