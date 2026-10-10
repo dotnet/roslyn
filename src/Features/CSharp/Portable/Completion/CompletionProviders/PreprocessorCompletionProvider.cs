@@ -5,8 +5,10 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
@@ -29,4 +31,18 @@ internal sealed class PreprocessorCompletionProvider : AbstractPreprocessorCompl
         => CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
 
     public override ImmutableHashSet<char> TriggerCharacters { get; } = CompletionUtilities.CommonTriggerCharacters;
+
+    protected override bool DefinesPreprocessingSymbolName(SyntaxTrivia trivia, [NotNullWhen(true)] out string? definedName)
+    {
+        definedName = null;
+        var defines = trivia.IsKind(SyntaxKind.DefineDirectiveTrivia);
+        if (defines)
+        {
+            var structure = trivia.GetStructure();
+            Contract.ThrowIfFalse(structure is DefineDirectiveTriviaSyntax);
+            var define = (DefineDirectiveTriviaSyntax)structure;
+            definedName = define.Name.Text;
+        }
+        return defines;
+    }
 }
