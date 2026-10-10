@@ -156,8 +156,8 @@ Concretely, in the generator driver:
 
 1. Post-initialization sources are collected as today.
 2. A `DriverStateTable.Builder` is created **without** the compilation or syntax store - these are not yet available.
-3. Pre-compilation output nodes are evaluated for all generators. Their sources are parsed into syntax trees.
-4. The initial compilation is augmented: `compilation = compilation.AddSyntaxTrees(preCompilationTrees)`.
+3. Pre-compilation output nodes are evaluated for generators selected by the filter. Their sources are parsed into syntax trees, reusing unchanged trees.
+4. When pre-compilation sources are present, the compilation cache builds an augmented compilation from the input compilation and retained post-initialization and pre-compilation trees, or reuses the previous augmented compilation if its inputs match.
 5. `DriverStateTable.Builder.SetCompilation` is called, which stores the compilation and creates the `SyntaxStore.Builder` internally.
 6. Standard source output nodes execute against the augmented compilation.
 
@@ -165,6 +165,7 @@ This means:
 - **Within a single generator**: A `RegisterSourceOutput` callback can query the semantic model and see types produced by that same generator's `RegisterPreCompilationSourceOutput`.
 - **Across generators**: Generator B's `RegisterSourceOutput` can see types produced by Generator A's `RegisterPreCompilationSourceOutput`.
 - **Incremental behavior**: Pre-compilation outputs participate in the standard incremental caching. If the inputs (e.g., additional files) haven't changed, the pre-compilation sources are cached and the compilation is not rebuilt unnecessarily.
+- **Filtered runs**: Excluded generators are not initialized or executed, but their previously generated pre-compilation sources are retained. When pre-compilation sources contribute to the compilation, retained post-initialization trees with current parse options are also included, even if their generator is excluded.
 
 ## Phase Enforcement
 
@@ -198,7 +199,7 @@ Pre-compilation sources appear in `GeneratorRunResult.GeneratedSources` alongsid
 
 ## Parse Options Reparse
 
-Like post-initialization trees, pre-compilation trees are reparsed when parse options change between driver runs. A unified `RequiresConstantTreeReparse` check handles both post-init and pre-compilation trees in a single pass.
+The driver reparses post-initialization and pre-compilation trees when their generator runs with updated parse options. A filtered-out generator retains its existing trees until it is selected again; post-initialization trees awaiting reparsing are excluded from the compilation cache, while previously generated pre-compilation trees continue to participate in it with their existing parse options.
 
 ## Implementation Architecture
 

@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
@@ -695,6 +696,266 @@ class C { }
             var resultB = driver.GetRunResult().Results[1];
             var standardStep = Assert.Single(resultB.TrackedSteps[WellKnownGeneratorOutputs.SourceOutput]);
             Assert.Equal(IncrementalStepRunReason.Cached, standardStep.Outputs[0].Reason);
+        }
+
+        [Theory]
+        [InlineData(true, true, false)]
+        [InlineData(true, false, false)]
+        [InlineData(false, true, false)]
+        [InlineData(false, false, false)]
+        [InlineData(true, true, true)]
+        [InlineData(true, false, true)]
+        [InlineData(false, true, true)]
+        [InlineData(false, false, true)]
+        public void PreCompilation_PostInit_From_Filtered_Generator_Is_Visible_On_Subsequent_Run(
+            bool usePreCompilationOutput, bool runFilteredPass, bool updateParseOptions)
+        {
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation("""
+                class C
+                {
+                    public int M() { return 1; }
+                }
+                """, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            compilation.VerifyEmitDiagnostics();
+
+            int postInitCallCount = 0;
+            int preCompilationCallCount = 0;
+            int consumerCallCount = 0;
+            Compilation? observedCompilation = null;
+            var descriptor = new DiagnosticDescriptor(
+                "PCSG002", "Missing post-init marker", "PostInitMarker is missing",
+                "Generators", DiagnosticSeverity.Error, isEnabledByDefault: true);
+
+            var markerGenerator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ic =>
+                ic.RegisterPostInitializationOutput(ctx =>
+                {
+                    postInitCallCount++;
+                    ctx.AddSource("postInitMarker", "public class PostInitMarker { }");
+                })));
+
+            var preCompilationGenerator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ic =>
+            {
+                if (usePreCompilationOutput)
+                {
+                    ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (ctx, _) =>
+                    {
+                        preCompilationCallCount++;
+                        ctx.AddSource("preCompilationMarker", "public class PreCompilationMarker { }");
+                    });
+                }
+                else
+                {
+                    ic.RegisterSourceOutput(ic.ParseOptionsProvider, (ctx, _) =>
+                    {
+                        preCompilationCallCount++;
+                        ctx.AddSource("preCompilationMarker", "public class PreCompilationMarker { }");
+                    });
+                }
+            }));
+
+            var consumerGenerator = new IncrementalGeneratorWrapper(new IncrementalAndSourceCallbackGenerator(
+                onInit: static _ => { },
+                onExecute: static _ => { },
+                onIncrementalInit: ic => ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, c) =>
+                {
+                    consumerCallCount++;
+                    observedCompilation = c;
+                    if (c.GetTypeByMetadataName("PostInitMarker") is null)
+                        ctx.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(descriptor, Location.None));
+                })));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [markerGenerator, preCompilationGenerator, consumerGenerator],
+                parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyEmitDiagnostics();
+            Assert.Equal(1, consumerCallCount);
+            var originalPostInitTree = Assert.Single(driver.GetRunResult().Results[0].GeneratedSources).SyntaxTree;
+
+            var originalTree = compilation.SyntaxTrees.Single();
+            var editedTree = originalTree.WithChangedText(SourceText.From("""
+                class C
+                {
+                    public int M() { return 2; }
+                }
+                """));
+            Assert.True(originalTree.IsEquivalentTo(editedTree, topLevel: true));
+
+            if (updateParseOptions)
+            {
+                parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp9);
+                editedTree = editedTree.WithRootAndOptions(editedTree.GetRoot(), parseOptions);
+                driver = driver.WithUpdatedParseOptions(parseOptions);
+            }
+
+            compilation = compilation.ReplaceSyntaxTree(originalTree, editedTree);
+            compilation.VerifyEmitDiagnostics();
+
+            if (runFilteredPass)
+            {
+                driver = driver.RunGenerators(compilation, ctx => ctx.Generator == preCompilationGenerator);
+                Assert.Equal(1, consumerCallCount);
+                Assert.Same(originalPostInitTree, Assert.Single(driver.GetRunResult().Results[0].GeneratedSources).SyntaxTree);
+            }
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out diagnostics);
+            outputCompilation.VerifyEmitDiagnostics();
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("PostInitMarker"));
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("PreCompilationMarker"));
+            Assert.Empty(diagnostics);
+            Assert.Equal(2, consumerCallCount);
+
+            var result = driver.GetRunResult();
+            var postInitTree = Assert.Single(result.Results[0].GeneratedSources).SyntaxTree;
+            var preCompilationTree = Assert.Single(result.Results[1].GeneratedSources).SyntaxTree;
+            Assert.Equal(
+                usePreCompilationOutput ? [editedTree, postInitTree, preCompilationTree] : new[] { editedTree, postInitTree },
+                observedCompilation!.SyntaxTrees);
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out diagnostics);
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyEmitDiagnostics();
+            Assert.Equal(1, postInitCallCount);
+            Assert.Equal(updateParseOptions ? 2 : 1, preCompilationCallCount);
+            Assert.Equal(usePreCompilationOutput ? 2 : 3, consumerCallCount);
+
+            if (usePreCompilationOutput)
+            {
+                result = driver.GetRunResult();
+                var preCompilationStep = Assert.Single(result.Results[1].TrackedSteps[WellKnownGeneratorOutputs.PreCompilationSourceOutput]);
+                var consumerStep = Assert.Single(result.Results[2].TrackedSteps[WellKnownGeneratorOutputs.SourceOutput]);
+                Assert.Equal(IncrementalStepRunReason.Cached, Assert.Single(preCompilationStep.Outputs).Reason);
+                Assert.Equal(IncrementalStepRunReason.Cached, Assert.Single(consumerStep.Outputs).Reason);
+            }
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void PreCompilation_PostInit_From_Filtered_Generator_Is_Visible_In_Filtered_Run(bool editCompilation)
+        {
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(
+                "class C { public int M() { return 1; } }",
+                options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+            int postInitCallCount = 0;
+            int preCompilationCallCount = 0;
+            int consumerCallCount = 0;
+            Compilation? observedCompilation = null;
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ic =>
+            {
+                ic.RegisterPostInitializationOutput(ctx =>
+                {
+                    postInitCallCount++;
+                    ctx.AddSource("postInitMarker", "public class PostInitMarker { }");
+                });
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (ctx, _) =>
+                {
+                    preCompilationCallCount++;
+                    ctx.AddSource("preCompilationMarker", "public class PreCompilationMarker { }");
+                });
+            }));
+            var consumer = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ic =>
+                ic.RegisterSourceOutput(ic.CompilationProvider, (_, c) =>
+                {
+                    consumerCallCount++;
+                    observedCompilation = c;
+                })));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [generator, consumer], parseOptions: parseOptions, driverOptions: TestOptions.GeneratorDriverOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyEmitDiagnostics();
+            var sources = driver.GetRunResult().Results[0].GeneratedSources;
+            var postInitTree = Assert.Single(sources, source => source.HintName == "postInitMarker.cs").SyntaxTree;
+            var preCompilationTree = Assert.Single(sources, source => source.HintName == "preCompilationMarker.cs").SyntaxTree;
+
+            if (editCompilation)
+            {
+                var tree = compilation.SyntaxTrees.Single();
+                compilation = compilation.ReplaceSyntaxTree(tree,
+                    tree.WithChangedText(SourceText.From("class C { public int M() { return 2; } }")));
+            }
+
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator == consumer);
+            Assert.Equal(editCompilation ? 2 : 1, consumerCallCount);
+            Assert.NotNull(observedCompilation!.GetTypeByMetadataName("PostInitMarker"));
+            Assert.NotNull(observedCompilation.GetTypeByMetadataName("PreCompilationMarker"));
+            Assert.Equal(new[] { compilation.SyntaxTrees.Single(), postInitTree, preCompilationTree }, observedCompilation.SyntaxTrees);
+
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator == consumer);
+            Assert.Equal(editCompilation ? 2 : 1, consumerCallCount);
+            Assert.Equal(1, postInitCallCount);
+            Assert.Equal(1, preCompilationCallCount);
+            var consumerStep = Assert.Single(driver.GetRunResult().Results[1].TrackedSteps[WellKnownGeneratorOutputs.SourceOutput]);
+            Assert.Equal(IncrementalStepRunReason.Cached, Assert.Single(consumerStep.Outputs).Reason);
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out diagnostics);
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void PreCompilation_PostInit_From_Filtered_Generator_Awaiting_Reparse_Is_Excluded(bool changeLanguageVersion)
+        {
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(
+                "class C { }", options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+            int postInitCallCount = 0;
+            Compilation? observedCompilation = null;
+            var markerGenerator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ic =>
+                ic.RegisterPostInitializationOutput(ctx =>
+                {
+                    postInitCallCount++;
+                    ctx.AddSource("postInitMarker", "public class PostInitMarker { }");
+                })));
+            var consumerGenerator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ic =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider, (ctx, _) =>
+                    ctx.AddSource("preCompilationMarker", "public class PreCompilationMarker { }"));
+                ic.RegisterSourceOutput(ic.CompilationProvider, (_, c) => observedCompilation = c);
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [markerGenerator, consumerGenerator], parseOptions: parseOptions);
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyEmitDiagnostics();
+            var originalPostInitTree = Assert.Single(driver.GetRunResult().Results[0].GeneratedSources).SyntaxTree;
+
+            parseOptions = changeLanguageVersion
+                ? parseOptions.WithLanguageVersion(LanguageVersion.CSharp9)
+                : parseOptions.WithPreprocessorSymbols("UPDATED");
+            var originalTree = compilation.SyntaxTrees.Single();
+            var updatedTree = originalTree.WithRootAndOptions(originalTree.GetRoot(), parseOptions);
+            compilation = compilation.ReplaceSyntaxTree(originalTree, updatedTree);
+            driver = driver.WithUpdatedParseOptions(parseOptions);
+
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator == consumerGenerator);
+            var result = driver.GetRunResult();
+            var preCompilationTree = Assert.Single(result.Results[1].GeneratedSources).SyntaxTree;
+            Assert.Equal(new[] { updatedTree, preCompilationTree }, observedCompilation!.SyntaxTrees);
+            Assert.Null(observedCompilation.GetTypeByMetadataName("PostInitMarker"));
+            Assert.Same(originalPostInitTree, Assert.Single(result.Results[0].GeneratedSources).SyntaxTree);
+            Assert.Same(parseOptions, preCompilationTree.Options);
+            observedCompilation.VerifyEmitDiagnostics();
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out diagnostics);
+            Assert.Empty(diagnostics);
+            outputCompilation.VerifyEmitDiagnostics();
+            var postInitTree = Assert.Single(driver.GetRunResult().Results[0].GeneratedSources).SyntaxTree;
+            Assert.NotSame(originalPostInitTree, postInitTree);
+            Assert.Same(parseOptions, postInitTree.Options);
+            Assert.Equal(new[] { updatedTree, postInitTree, preCompilationTree }, observedCompilation!.SyntaxTrees);
+            Assert.NotNull(observedCompilation.GetTypeByMetadataName("PostInitMarker"));
+            Assert.Equal(1, postInitCallCount);
         }
 
         [Fact]
