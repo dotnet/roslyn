@@ -2,14 +2,17 @@
 
 A test runner tool for the Roslyn repository that executes **already-built** test assemblies from the `artifacts/bin` directory. It does not build anything — you must build test projects before running this tool.
 
-The purpose of RunTests is to run large batches of test assemblies efficiently by saturating the machine with multiple concurrent `dotnet test` processes. For running a single test assembly, just use `dotnet test` directly.
+The purpose of RunTests is to run large batches of test assemblies locally using multiple concurrent VSTest processes (`dotnet exec vstest.console.dll`). For running a single test assembly, just use `dotnet test` directly. To submit tests to Helix instead, use [RunHelix](../RunHelix/README.md).
 
 ## How It Works
 
 1. Scans `artifacts/bin/` for project directories matching `--include` regex patterns (default: `.*UnitTests.*`)
 2. Within each matching project, finds assemblies under `<Configuration>/<TargetFramework>/`
 3. Filters by target framework based on `--testFramework` (core or desktop, repeatable)
-4. Executes tests via multiple concurrent `dotnet test` processes, either locally or on Helix
+4. Creates one work item per assembly and executes tests via concurrent VSTest processes (or one at a time with `--sequential`)
+
+Local execution does not partition assemblies using historical test timings and
+does not require prepared `testlist.json` files.
 
 ## Quick Start
 
@@ -77,11 +80,13 @@ Key options:
 | `--testFramework` | `core` or `desktop` (repeatable, defaults to both) |
 | `--testSet` | `compiler` adds compiler test assembly patterns to any `--include` patterns |
 | `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies`; `runtimeasync` requires `--testFramework:core` |
-| `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |
+| `--testfilter` | VSTest filter expression passed as `/TestCaseFilter` |
 | `--timeout` | Minutes before killing tests (default: 90) |
-| `--html` / `--html-` | Enable/disable HTML reports and opening failed results (default: on locally, off with `--ci` or `--helix`) |
+| `--sequential` | Execute one assembly at a time |
+| `--out` | Test results directory (default: `artifacts/TestResults/<Configuration>`) |
+| `--logs` | Diagnostic log directory (defaults to the test results directory) |
+| `--html` / `--html-` | Enable/disable HTML reports and opening failed results (default: on locally, off with `--ci`) |
 | `--ci` | Apply CI behavior, including disabling HTML reports by default |
-| `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
 
 `--testSet:compiler` selects compiler test assemblies when used alone. With
@@ -96,14 +101,9 @@ Runtime-async validation requires an explicit Core-only selection, for example
 selects both Core and desktop by default and is rejected for runtime-async
 validation; RunTests does not automatically change the selected frameworks.
 
-Helix submission returns after the jobs are submitted; the pipeline's **Monitor
-Helix Jobs** job monitors completion and retries. Test-run names distinguish
-configuration, runtime, architecture, and the test kinds selected through
-`--testKind` or `--env`.
-
-Historical timing data for Helix partitioning can be selected with `--accessToken`,
-`--projectUri`, `--pipelineDefinitionId`, and `--targetBranchName`. When omitted,
-these use the corresponding Azure Pipelines environment variables.
+`Test.cmd`, `test.sh`, build-script test options, single-machine pipeline jobs, and
+Visual Studio integration tests always use RunTests. RunTests accepts local
+execution options only; invoke RunHelix directly for remote submission.
 
 ## Exit Codes
 

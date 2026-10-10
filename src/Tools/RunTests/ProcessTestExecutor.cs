@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace RunTests
+namespace TestRunner.RunTests
 {
     internal sealed class ProcessTestExecutor
     {
@@ -26,7 +26,7 @@ namespace RunTests
             _userCancellationToken = userCancellationToken;
         }
 
-        public static string BuildRspFileContents(WorkItemInfo workItem, Options options, string xmlResultsFilePath, string? htmlResultsFilePath, string diagnosticsDirectory)
+        public static string BuildRspFileContents(WorkItemInfo workItem, RunTestOptions options, string xmlResultsFilePath, string? htmlResultsFilePath, string diagnosticsDirectory)
         {
             var fileContentsBuilder = new StringBuilder();
 
@@ -50,8 +50,7 @@ namespace RunTests
 
             // Local runs allow longer VSIX deployment/hive setup.
             // https://github.com/dotnet/roslyn/issues/59851
-            var timeout = options.UseHelix ? "15minutes" : "25minutes";
-            fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout={timeout};DumpType=full");
+            fileContentsBuilder.AppendLine($"/Blame:{blameOption};TestTimeout=25minutes;DumpType=full");
 
             // Specifies the results directory - this is where dumps from the blame options will get published.
             fileContentsBuilder.AppendLine($"/ResultsDirectory:\"{diagnosticsDirectory}\"");
@@ -101,16 +100,16 @@ namespace RunTests
             return vsTestConsolePath;
         }
 
-        public static string GetResultsFilePath(WorkItemInfo workItemInfo, Options options, string suffix = "xml")
+        public static string GetResultsFilePath(WorkItemInfo workItemInfo, RunTestOptions options, string suffix = "xml")
         {
             var fileName = $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}_test_results.{suffix}";
             return Path.Combine(options.TestResultsDirectory, fileName);
         }
 
-        private static string GetWorkItemDirectory(WorkItemInfo workItemInfo, Options options)
+        private static string GetWorkItemDirectory(WorkItemInfo workItemInfo, RunTestOptions options)
             => Path.Combine(options.TestResultsDirectory, $"WorkItem_{workItemInfo.PartitionIndex}_{options.Architecture}");
 
-        public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, Options options, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(WorkItemInfo workItemInfo, RunTestOptions options, CancellationToken cancellationToken)
         {
             try
             {
@@ -282,12 +281,6 @@ namespace RunTests
 
                 string getRspDirectory()
                 {
-                    // There is no artifacts directory on Helix, just use the current directory
-                    if (options.UseHelix)
-                    {
-                        return Directory.GetCurrentDirectory();
-                    }
-
                     var dirPath = Path.Combine(options.ArtifactsDirectory, "tmp", options.Configuration, "vstest-rsp");
                     Directory.CreateDirectory(dirPath);
                     return dirPath;

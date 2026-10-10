@@ -185,6 +185,7 @@
       "src\\Tools\\CompilerGeneratorTools\\Source\\IOperationGenerator\\CompilersIOperationGenerator.csproj",
       "src\\Tools\\CompilerGeneratorTools\\Source\\VisualBasicErrorFactsGenerator\\VisualBasicErrorFactsGenerator.vbproj",
       "src\\Tools\\CompilerGeneratorTools\\Source\\VisualBasicSyntaxGenerator\\VisualBasicSyntaxGenerator.vbproj",
+      "src\\Tools\\RunHelix\\RunHelix.csproj",
       "src\\Tools\\RunTests\\RunTests.csproj",
       "src\\Tools\\TestDiscoveryWorker\\TestDiscoveryWorker.csproj",
       "src\\VisualStudio\\CSharp\\Impl\\Microsoft.VisualStudio.LanguageServices.CSharp.csproj",

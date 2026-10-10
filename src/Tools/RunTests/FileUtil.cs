@@ -4,7 +4,7 @@
 
 using System.IO;
 
-namespace RunTests
+namespace TestRunner.RunTests
 {
     internal static class FileUtil
     {

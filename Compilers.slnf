@@ -81,6 +81,7 @@
       "src\\Tools\\CompilerGeneratorTools\\Source\\IOperationGenerator\\CompilersIOperationGenerator.csproj",
       "src\\Tools\\CompilerGeneratorTools\\Source\\VisualBasicErrorFactsGenerator\\VisualBasicErrorFactsGenerator.vbproj",
       "src\\Tools\\CompilerGeneratorTools\\Source\\VisualBasicSyntaxGenerator\\VisualBasicSyntaxGenerator.vbproj",
+      "src\\Tools\\RunHelix\\RunHelix.csproj",
       "src\\Tools\\RunTests\\RunTests.csproj",
       "src\\Tools\\TestDiscoveryWorker\\TestDiscoveryWorker.csproj",
       "src\\Workspaces\\CSharp\\Portable\\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj",
