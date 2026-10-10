@@ -8,6 +8,12 @@ using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
+internal enum BrokeredServiceProxyTransport
+{
+    MessagePack,
+    Json,
+}
+
 /// <summary>
 /// A wrapper which takes a service but actually sends calls to it through JsonRpc to ensure we can actually use the service across a wire.
 /// </summary>
@@ -22,41 +28,81 @@ internal sealed class BrokeredServiceProxy<T> : System.IAsyncDisposable where T 
     private JsonRpc? _clientRpc;
     private T? _clientFactoryProxy;
 
-    public BrokeredServiceProxy(T service)
+    public BrokeredServiceProxy(T service, BrokeredServiceProxyTransport transport = BrokeredServiceProxyTransport.MessagePack)
     {
-        var (serverStream, clientStream) = FullDuplexStream.CreatePair();
+        _createConnectionTask = transport switch
+        {
+            BrokeredServiceProxyTransport.MessagePack => CreateMessagePackConnectionAsync(service),
+            BrokeredServiceProxyTransport.Json => CreateJsonConnectionAsync(service),
+            _ => throw new System.ArgumentOutOfRangeException(nameof(transport)),
+        };
 
-        _createConnectionTask = Task.WhenAll(CreateServerAsync(), CreateClientAsync());
         return;
 
-        async Task CreateServerAsync()
+        async Task CreateMessagePackConnectionAsync(T service)
         {
-            // Always yield to ensure caller can proceed.
-            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+            var (serverStream, clientStream) = FullDuplexStream.CreatePair();
 
-            var serverMultiplexingStream = await MultiplexingStream.CreateAsync(serverStream);
-            var serverChannel = await serverMultiplexingStream.AcceptChannelAsync("");
+            await Task.WhenAll(CreateServerAsync(), CreateClientAsync());
 
-            var serverFormatter = new MessagePackFormatter() { MultiplexingStream = serverMultiplexingStream };
-            _serverRpc = new JsonRpc(new LengthHeaderMessageHandler(serverChannel, serverFormatter));
+            async Task CreateServerAsync()
+            {
+                // Always yield to ensure caller can proceed.
+                await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
-            _serverRpc.AddLocalRpcTarget(service, options: null);
-            _serverRpc.StartListening();
+                var serverMultiplexingStream = await MultiplexingStream.CreateAsync(serverStream);
+                var serverChannel = await serverMultiplexingStream.AcceptChannelAsync("");
+
+                var serverFormatter = new MessagePackFormatter() { MultiplexingStream = serverMultiplexingStream };
+                _serverRpc = new JsonRpc(new LengthHeaderMessageHandler(serverChannel, serverFormatter));
+
+                _serverRpc.AddLocalRpcTarget(service, options: null);
+                _serverRpc.StartListening();
+            }
+
+            async Task CreateClientAsync()
+            {
+                // Always yield to ensure caller can proceed.
+                await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
+                var clientMultiplexingStream = await MultiplexingStream.CreateAsync(clientStream);
+                var clientChannel = await clientMultiplexingStream.OfferChannelAsync("");
+
+                var clientFormatter = new MessagePackFormatter() { MultiplexingStream = clientMultiplexingStream };
+                _clientRpc = new JsonRpc(new LengthHeaderMessageHandler(clientChannel, clientFormatter));
+
+                _clientFactoryProxy = _clientRpc.Attach<T>();
+                _clientRpc.StartListening();
+            }
         }
 
-        async Task CreateClientAsync()
+        async Task CreateJsonConnectionAsync(T service)
         {
-            // Always yield to ensure caller can proceed.
-            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+            var (serverStream, clientStream) = FullDuplexStream.CreatePair();
 
-            var clientMultiplexingStream = await MultiplexingStream.CreateAsync(clientStream);
-            var clientChannel = await clientMultiplexingStream.OfferChannelAsync("");
+            await Task.WhenAll(CreateServerAsync(), CreateClientAsync());
 
-            var clientFormatter = new MessagePackFormatter() { MultiplexingStream = clientMultiplexingStream };
-            _clientRpc = new JsonRpc(new LengthHeaderMessageHandler(clientChannel, clientFormatter));
+            async Task CreateServerAsync()
+            {
+                // Always yield to ensure caller can proceed.
+                await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
-            _clientFactoryProxy = _clientRpc.Attach<T>();
-            _clientRpc.StartListening();
+                _serverRpc = new JsonRpc(new HeaderDelimitedMessageHandler(serverStream, serverStream, new JsonMessageFormatter()));
+
+                _serverRpc.AddLocalRpcTarget(service, options: null);
+                _serverRpc.StartListening();
+            }
+
+            async Task CreateClientAsync()
+            {
+                // Always yield to ensure caller can proceed.
+                await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
+                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, new JsonMessageFormatter()));
+
+                _clientFactoryProxy = _clientRpc.Attach<T>();
+                _clientRpc.StartListening();
+            }
         }
     }
 
