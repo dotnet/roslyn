@@ -13,6 +13,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 
 public static partial class SymbolFinder
 {
+    /// <summary>
+    /// Treats the parts of a partial member as the same member.  Find References searches only the definition part,
+    /// while a use can bind to either part, or, in a project that sees the declaring assembly through retargeting, to a
+    /// symbol that exposes no partial parts.
+    /// </summary>
+    private static readonly SymbolEquivalenceComparer s_ignoreAssembliesAndPartialPartsComparer =
+        SymbolEquivalenceComparer.IgnoreAssembliesInstance.With(distinguishPartialParts: false);
+
     private static bool IsAccessible(ISymbol symbol)
     {
         if (symbol.Locations.Any(static l => l.IsInMetadata))
@@ -77,15 +85,15 @@ public static partial class SymbolFinder
 
         // We compare the given searchSymbol and symbolToMatch for equivalence using SymbolEquivalenceComparer
         // as follows:
-        //  1)  We compare the given symbols using the SymbolEquivalenceComparer.IgnoreAssembliesInstance,
-        //      which ignores the containing assemblies for named types equivalence checks. This is required
-        //      to handle equivalent named types which are forwarded to completely different assemblies.
+        //  1)  We compare the given symbols using s_ignoreAssembliesAndPartialPartsComparer, which ignores the
+        //      containing assemblies for named types equivalence checks. This is required to handle equivalent
+        //      named types which are forwarded to completely different assemblies.
         //  2)  If the symbols are NOT equivalent ignoring assemblies, then they cannot be equivalent.
         //  3)  Otherwise, if the symbols ARE equivalent ignoring assemblies, they may or may not be equivalent
         //      if containing assemblies are NOT ignored. We need to perform additional checks to ensure they
         //      are indeed equivalent:
         //
-        //      (a) If IgnoreAssembliesInstance.Equals equivalence visitor encountered any pair of non-nested 
+        //      (a) If the equivalence visitor encountered any pair of non-nested 
         //          named types which were equivalent in all aspects, except that they resided in different 
         //          assemblies, we need to ensure that all such pairs are indeed equivalent types. Such a pair
         //          of named types is equivalent if and only if one of them is a type defined in either 
@@ -96,8 +104,8 @@ public static partial class SymbolFinder
 
         using var _ = PooledDictionary<INamedTypeSymbol, INamedTypeSymbol>.GetInstance(out var equivalentTypesWithDifferingAssemblies);
 
-        // 1) Compare searchSymbol and symbolToMatch using SymbolEquivalenceComparer.IgnoreAssembliesInstance
-        if (!SymbolEquivalenceComparer.IgnoreAssembliesInstance.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies))
+        // 1) Compare searchSymbol and symbolToMatch ignoring assemblies and partial parts
+        if (!s_ignoreAssembliesAndPartialPartsComparer.Equals(searchSymbol, symbolToMatch, equivalentTypesWithDifferingAssemblies))
         {
             // 2) If the symbols are NOT equivalent ignoring assemblies, then they cannot be equivalent.
             return false;
