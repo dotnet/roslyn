@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -87,7 +88,7 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
                 return ReplaceFieldExpression(accessor);
 
             var accessorDeclarationSyntax = accessor.WithBody(Block(
-                OpenBraceToken.WithLeadingTrivia(ElasticCarriageReturnLineFeed),
+                OpenBraceToken.WithLeadingTrivia(ElasticEndOfLine(Environment.NewLine)),
                 [statement],
                 CloseBraceToken.WithTrailingTrivia(accessor.SemicolonToken.TrailingTrivia)));
 
@@ -173,5 +174,14 @@ internal sealed class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProv
         var finalRoot = root.ReplaceNode(property, finalProperty);
 
         return document.WithSyntaxRoot(finalRoot);
+    }
+
+    protected override SyntaxNode NormalizeLineEndings(SyntaxNode root, string lineEnding)
+    {
+        return root.ReplaceTrivia(
+            root.DescendantTrivia(descendIntoTrivia: true),
+            (trivia, _) => trivia.IsKind(SyntaxKind.EndOfLineTrivia) && trivia.ToFullString() != lineEnding
+                ? EndOfLine(lineEnding)
+                : trivia);
     }
 }

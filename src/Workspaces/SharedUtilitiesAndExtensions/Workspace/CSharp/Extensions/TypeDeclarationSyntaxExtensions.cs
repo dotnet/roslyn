@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -98,8 +99,8 @@ internal static class TypeDeclarationSyntaxExtensions
     {
         if (token.IsMissing || token.IsKind(SyntaxKind.None))
         {
-            var leadingTrivia = prependNewLineIfMissing ? token.LeadingTrivia.Insert(0, SyntaxFactory.ElasticCarriageReturnLineFeed) : token.LeadingTrivia;
-            var trailingTrivia = appendNewLineIfMissing ? token.TrailingTrivia.Insert(0, SyntaxFactory.ElasticCarriageReturnLineFeed) : token.TrailingTrivia;
+            var leadingTrivia = prependNewLineIfMissing ? token.LeadingTrivia.Insert(0, SyntaxFactory.ElasticEndOfLine(Environment.NewLine)) : token.LeadingTrivia;
+            var trailingTrivia = appendNewLineIfMissing ? token.TrailingTrivia.Insert(0, SyntaxFactory.ElasticEndOfLine(Environment.NewLine)) : token.TrailingTrivia;
             return SyntaxFactory.Token(leadingTrivia, kind, trailingTrivia).WithAdditionalAnnotations(Formatter.Annotation);
         }
 

@@ -127,7 +127,7 @@ internal sealed partial class CSharpIntroduceVariableService
 
         // Add an elastic newline so that the formatter will place this new lambda body across multiple lines.
         newBody = newBody
-            .WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
+            .WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticEndOfLine(Environment.NewLine)))
             .WithAdditionalAnnotations(Formatter.Annotation);
 
         return document.Document.WithSyntaxRoot(
@@ -255,7 +255,7 @@ internal sealed partial class CSharpIntroduceVariableService
 
         // Add an elastic newline so that the formatter will place this new block across multiple lines.
         newBody = newBody
-            .WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticCarriageReturnLineFeed))
+            .WithOpenBraceToken(newBody.OpenBraceToken.WithAppendedTrailingTrivia(ElasticEndOfLine(Environment.NewLine)))
             .WithAdditionalAnnotations(Formatter.Annotation);
 
         var newRoot = document.Root.ReplaceNode(oldParentingNode, WithBlockBody(oldParentingNode, newBody).WithTriviaFrom(oldParentingNode));
@@ -521,7 +521,7 @@ internal sealed partial class CSharpIntroduceVariableService
 
         // Attempt to use the same end of line as the next statement.  Fall back to an elastic newline if not present.
         newStatement = newStatement.WithTrailingTrivia(
-            nextStatement.GetTrailingTrivia() is [.., (kind: SyntaxKind.EndOfLineTrivia) endOfLine] ? endOfLine : ElasticCarriageReturnLineFeed);
+            nextStatement.GetTrailingTrivia() is [.., (kind: SyntaxKind.EndOfLineTrivia) endOfLine] ? endOfLine : ElasticEndOfLine(Environment.NewLine));
 
         return oldStatements.ReplaceRange(
             nextStatement, [newStatement, nextStatement]);
