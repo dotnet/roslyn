@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetVS)</TargetFramework>
+    <Description>Razor document formatting support for dotnet format.</Description>
+    <IsShippingPackage>false</IsShippingPackage>
+    <IsPackable>false</IsPackable>
+    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\Compiler\Microsoft.CodeAnalysis.Razor.Compiler\src\Microsoft.CodeAnalysis.Razor.Compiler.csproj" />
+    <ProjectReference Include="$(SharedSourceRoot)Microsoft.AspNetCore.Razor.Utilities.Shared\Microsoft.AspNetCore.Razor.Utilities.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Keep the adapter payload small by compiling the required Razor sources rather than referencing Razor Workspaces. -->
+    <Compile Include="..\Microsoft.VisualStudioCode.RazorExtension\ExternalAccess\Razor\RazorAnalyzerAssemblyResolver.cs" Link="RazorAnalyzerAssemblyResolver.cs" />
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Shipped.txt" />
+    <AdditionalFiles Include="PublicAPI\PublicAPI.Unshipped.txt" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.DotNetFormat.UnitTests" Key="$(RazorKey)" />
+  </ItemGroup>
+
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.Workspaces.Shared\Microsoft.CodeAnalysis.Razor.Workspaces.Shared.projitems" Label="Shared" />
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.Formatting\Microsoft.CodeAnalysis.Razor.Formatting.projitems" Label="Shared" />
+</Project>

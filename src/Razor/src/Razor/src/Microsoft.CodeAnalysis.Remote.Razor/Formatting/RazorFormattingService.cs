@@ -3,16 +3,11 @@
 
 using System;
 using System.Collections.Frozen;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
-using Microsoft.AspNetCore.Razor.PooledObjects;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -30,7 +25,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
     private static readonly FrozenSet<string> s_htmlTriggerCharacterSet = FrozenSet.ToFrozenSet(["\n", "{", "}", ";"], StringComparer.Ordinal);
 
     private readonly ImmutableArray<IFormattingPass> _documentFormattingPasses;
-    private readonly ImmutableArray<IFormattingValidationPass> _validationPasses;
+    private readonly FormattingEngine _formattingEngine;
     private readonly CSharpOnTypeFormattingPass _csharpOnTypeFormattingPass;
     private readonly HtmlOnTypeFormattingPass _htmlOnTypeFormattingPass;
 
@@ -46,17 +41,13 @@ internal sealed class RazorFormattingService : IRazorFormattingService
     {
         _htmlOnTypeFormattingPass = new HtmlOnTypeFormattingPass();
         _csharpOnTypeFormattingPass = new CSharpOnTypeFormattingPass(documentMappingService, razorEditService, hostServicesProvider, loggerFactory);
-        _validationPasses =
+        _documentFormattingPasses =
         [
-            new FormattingDiagnosticValidationPass(loggerFactory),
-            new FormattingContentValidationPass(loggerFactory)
+            new HtmlFormattingPass(loggerFactory),
+            new RazorFormattingPass(),
+            new CSharpFormattingPass(hostServicesProvider, loggerFactory)
         ];
-
-        _documentFormattingPasses = [
-                new HtmlFormattingPass(documentMappingService, loggerFactory),
-                new RazorFormattingPass(),
-                new CSharpFormattingPass(hostServicesProvider, documentMappingService, loggerFactory),
-            ];
+        _formattingEngine = new FormattingEngine(loggerFactory);
         _formattingLoggerFactory = formattingLoggerFactory;
     }
 
@@ -67,70 +58,15 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         RazorFormattingOptions options,
         CancellationToken cancellationToken)
     {
-        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-
-        // Range formatting happens on every paste, and if there are Razor diagnostics in the file
-        // that can make some very bad results. eg, given:
-        //
-        // |
-        // @code {
-        // }
-        //
-        // When pasting "<button" at the | the HTML formatter will bring the "@code" onto the same
-        // line as "<button" because as far as it's concerned, its an attribute.
-        //
-        // To defeat that, we simply don't do range formatting if there are diagnostics.
-
-        // Despite what it looks like, getting diagnostics from a CSharpDocument is actually the
-        // Razor diagnostics, not the Roslyn C# diagnostics 🤦‍
-        var sourceText = codeDocument.Source.Text;
-        if (range is { } span)
-        {
-            if (codeDocument.GetRequiredCSharpDocument(declarationDocument: false).Diagnostics.Any(d => d.Span != SourceSpan.Undefined && span.OverlapsWith(sourceText.GetLinePositionSpan(d.Span))))
-            {
-                return [];
-            }
-        }
-
         var logger = _formattingLoggerFactory.CreateLogger(documentSnapshot.FilePath, range is null ? "Full" : "Range");
-        logger?.LogObject("FileKind", documentSnapshot.FileKind);
-        logger?.LogObject("Options", options);
-        logger?.LogObject("HtmlChanges", htmlChanges.SelectAsArray(e => e.ToRazorTextChange()));
-        logger?.LogObject("Range", range);
-        logger?.LogSourceText("InitialDocument", sourceText);
-        LogSyntaxTree(logger, codeDocument);
-
-        var uri = documentSnapshot.Uri;
         var context = FormattingContext.Create(
             documentSnapshot,
-            codeDocument,
+            await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false),
             options,
             logger);
-        var originalText = context.SourceText;
 
-        var result = htmlChanges;
-        foreach (var pass in _documentFormattingPasses)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            result = await pass.ExecuteAsync(context, result, cancellationToken).ConfigureAwait(false);
-        }
-
-        var filteredChanges = range is not { } linePositionSpan
-            ? result
-            : result.WhereAsArray(e => linePositionSpan.LineOverlapsWith(sourceText.GetLinePositionSpan(e.Span)));
-
-        var normalizedChanges = NormalizeLineEndings(originalText, filteredChanges);
-
-        foreach (var validationPass in _validationPasses)
-        {
-            var isValid = await validationPass.IsValidAsync(context, normalizedChanges, cancellationToken).ConfigureAwait(false);
-            if (!isValid)
-            {
-                return [];
-            }
-        }
-
-        return originalText.MinimizeTextChanges(normalizedChanges);
+        return await _formattingEngine.FormatDocumentAsync(
+            context, _documentFormattingPasses, htmlChanges, range, options, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<TextChange>> GetCSharpOnTypeFormattingChangesAsync(RemoteDocumentSnapshot documentSnapshot, RazorFormattingOptions options, int hostDocumentIndex, char triggerCharacter, bool declarationDocument, CancellationToken cancellationToken)
@@ -291,7 +227,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         logger?.LogObject("Parameters", new { hostDocumentIndex, triggerCharacter, collapseChanges, includeCSharpLanguageFeatureEdits, validate, declarationDocument });
         logger?.LogObject("GeneratedDocumentChanges", generatedDocumentChanges);
         logger?.LogSourceText("InitialDocument", codeDocument.Source.Text);
-        LogSyntaxTree(logger, codeDocument);
+        FormattingEngine.LogSyntaxTree(logger, codeDocument);
 
         var context = FormattingContext.CreateForOnTypeFormatting(
             documentSnapshot,
@@ -305,19 +241,12 @@ internal sealed class RazorFormattingService : IRazorFormattingService
 
         var result = await formattingPass.ExecuteAsync(context, generatedDocumentChanges, cancellationToken).ConfigureAwait(false);
         var originalText = context.SourceText;
-        result = NormalizeLineEndings(originalText, result);
+        result = FormattingEngine.NormalizeLineEndings(originalText, result);
         var razorChanges = originalText.MinimizeTextChanges(result);
 
-        if (validate)
+        if (validate && !await _formattingEngine.ValidateAsync(context, razorChanges, cancellationToken).ConfigureAwait(false))
         {
-            foreach (var validationPass in _validationPasses)
-            {
-                var isValid = await validationPass.IsValidAsync(context, razorChanges, cancellationToken).ConfigureAwait(false);
-                if (!isValid)
-                {
-                    return [];
-                }
-            }
+            return [];
         }
 
         if (collapseChanges)
@@ -356,59 +285,12 @@ internal sealed class RazorFormattingService : IRazorFormattingService
     {
         // Currently this method only supports wrapping `$0`, any additional markers aren't formatted properly.
 
-        return ReplaceInChanges(csharpChanges, "$0", "/*$0*/");
+        return FormattingEngine.ReplaceInChanges(csharpChanges, "$0", "/*$0*/");
     }
 
     private static ImmutableArray<TextChange> UnwrapCSharpSnippets(ImmutableArray<TextChange> razorChanges)
     {
-        return ReplaceInChanges(razorChanges, "/*$0*/", "$0");
-    }
-
-    /// <summary>
-    /// This method counts the occurrences of CRLF and LF line endings in the original text. 
-    /// If LF line endings are more prevalent, it removes any CR characters from the text changes 
-    /// to ensure consistency with the LF style.
-    /// </summary>
-    private static ImmutableArray<TextChange> NormalizeLineEndings(SourceText originalText, ImmutableArray<TextChange> changes)
-    {
-        if (originalText.HasLFLineEndings())
-        {
-            return ReplaceInChanges(changes, "\r", "");
-        }
-
-        return changes;
-    }
-
-    private static void LogSyntaxTree(IFormattingLogger? logger, RazorCodeDocument codeDocument)
-    {
-        if (logger is null)
-        {
-            return;
-        }
-
-        var syntaxRoot = (RazorSyntaxNode)codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root;
-        var serializedSyntaxTree = SyntaxSerializer.Default.Serialize(syntaxRoot);
-        logger.LogSourceText("SyntaxTree", SourceText.From(serializedSyntaxTree));
-    }
-
-    private static ImmutableArray<TextChange> ReplaceInChanges(ImmutableArray<TextChange> csharpChanges, string toFind, string replacement)
-    {
-        using var changes = new PooledArrayBuilder<TextChange>(csharpChanges.Length);
-        foreach (var change in csharpChanges)
-        {
-            if (change.NewText is not { } newText ||
-                newText.IndexOf(toFind) == -1)
-            {
-                changes.Add(change);
-                continue;
-            }
-
-            // Formatting doesn't work with syntax errors caused by the cursor marker ($0).
-            // So, let's avoid the error by wrapping the cursor marker in a comment.
-            changes.Add(new(change.Span, newText.Replace(toFind, replacement)));
-        }
-
-        return changes.ToImmutableAndClear();
+        return FormattingEngine.ReplaceInChanges(razorChanges, "/*$0*/", "$0");
     }
 
     internal TestAccessor GetTestAccessor() => new(this);
@@ -419,10 +301,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         public static FrozenSet<string> GetHtmlTriggerCharacterSet() => s_htmlTriggerCharacterSet;
 
         public void SetDebugAssertsEnabled(bool debugAssertsEnabled)
-        {
-            var contentValidationPass = service._validationPasses.OfType<FormattingContentValidationPass>().Single();
-            contentValidationPass.DebugAssertsEnabled = debugAssertsEnabled;
-        }
+            => service._formattingEngine.GetTestAccessor().SetDebugAssertsEnabled(debugAssertsEnabled);
 
         public void SetFormattingLoggerFactory(IFormattingLoggerFactory factory)
         {

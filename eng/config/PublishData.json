@@ -104,6 +104,7 @@
     "Microsoft.AspNetCore.Razor.Utilities.Shared": "arcade",
     "Microsoft.AspNetCore.Razor.Utilities.Shared.Test": "arcade",
     "Microsoft.CodeAnalysis.Razor.Compiler": "arcade",
+    "Microsoft.CodeAnalysis.Razor.DotNetFormat.Transport": "arcade",
     "Microsoft.CodeAnalysis.Razor.Tooling.Internal": "arcade",
     "Microsoft.CodeAnalysis.Razor.Workspaces": "arcade",
     "Microsoft.CodeAnalysis.Remote.Razor": "arcade",

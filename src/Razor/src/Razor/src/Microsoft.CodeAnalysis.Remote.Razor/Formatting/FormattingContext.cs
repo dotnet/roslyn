@@ -1,17 +1,10 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
-using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
@@ -19,55 +12,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
-internal sealed class FormattingContext
+// This partial is compiled only into Remote Razor. It owns the syntax visitor, indentation caches, and transport-option
+// conversion that depend on Remote Razor or Razor Workspaces; the other partial is shared with dotnet format.
+internal sealed partial class FormattingContext
 {
     private ImmutableArray<FormattingSpan>? _formattingSpans;
     private IReadOnlyDictionary<int, IndentationContext>? _indentations;
 
-    private readonly RazorCSharpDocument? _csharpDocument;
-
-    private FormattingContext(
-        RemoteDocumentSnapshot originalSnapshot,
-        RazorCodeDocument codeDocument,
-        bool? declarationDocument,
-        RemoteDocumentSnapshot currentSnapshot,
-        RazorFormattingOptions options,
-        IFormattingLogger? logger,
-        bool includeCSharpLanguageFeatureEdits,
-        int hostDocumentIndex,
-        char triggerCharacter)
-    {
-        OriginalSnapshot = originalSnapshot;
-        CodeDocument = codeDocument;
-        CurrentSnapshot = currentSnapshot;
-        Options = options;
-        Logger = logger;
-        IncludeCSharpLanguageFeatureEdits = includeCSharpLanguageFeatureEdits;
-        HostDocumentIndex = hostDocumentIndex;
-        TriggerCharacter = triggerCharacter;
-
-        if (declarationDocument is { } declDoc)
-        {
-            _csharpDocument = codeDocument.GetRequiredCSharpDocument(declDoc);
-        }
-    }
-
-    public static bool SkipValidateComponents { get; set; }
-
-    public RemoteDocumentSnapshot OriginalSnapshot { get; }
-    public RazorCodeDocument CodeDocument { get; }
-    public RemoteDocumentSnapshot CurrentSnapshot { get; }
-    public RazorFormattingOptions Options { get; }
-    public IFormattingLogger? Logger { get; }
-    public bool IncludeCSharpLanguageFeatureEdits { get; }
-    public int HostDocumentIndex { get; }
-    public char TriggerCharacter { get; }
-
-    public SourceText SourceText => CodeDocument.Source.Text;
-
-    public RazorCSharpDocument CSharpDocument => _csharpDocument.AssumeNotNull("Cannot get C# source text when declaration document is not specified.");
-
-    public string NewLineString => Environment.NewLine;
+    // RazorEditService still accepts the concrete Remote snapshot. Contexts created by this partial preserve that
+    // snapshot type across WithTextAsync, so keep the cast at this Remote-only boundary.
+    public RemoteDocumentSnapshot CurrentRemoteSnapshot => (RemoteDocumentSnapshot)CurrentSnapshot;
 
     /// <summary>A Dictionary of int (line number) to IndentationContext.</summary>
     /// <remarks>
@@ -175,33 +129,6 @@ internal sealed class FormattingContext
         return formattingSpans.ToImmutableAndClear();
     }
 
-    /// <summary>
-    /// Generates a string of indentation based on a specific indentation level. For instance, inside of a C# method represents 1 indentation level. A method within a class would have indentaiton level of 2 by default etc.
-    /// </summary>
-    /// <param name="indentationLevel">The indentation level to represent</param>
-    /// <returns>A whitespace string representing the indentation level based on the configuration.</returns>
-    public string GetIndentationLevelString(int indentationLevel)
-    {
-        if (indentationLevel == 0)
-        {
-            return "";
-        }
-
-        var indentation = GetIndentationOffsetForLevel(indentationLevel);
-        var indentationString = FormattingUtilities.GetIndentationString(indentation, Options.InsertSpaces, Options.TabSize);
-        return indentationString;
-    }
-
-    /// <summary>
-    /// Given a level, returns the corresponding offset.
-    /// </summary>
-    /// <param name="level">A value representing the indentation level.</param>
-    /// <returns></returns>
-    public int GetIndentationOffsetForLevel(int level)
-    {
-        return level * Options.TabSize;
-    }
-
     public bool TryGetIndentationLevel(int position, out int indentationLevel)
     {
         if (TryGetFormattingSpan(position, out var span))
@@ -239,58 +166,6 @@ internal sealed class FormattingContext
         return false;
     }
 
-    public async Task<FormattingContext> WithTextAsync(SourceText changedText, CancellationToken cancellationToken)
-    {
-        var changedSnapshot = OriginalSnapshot.WithText(changedText);
-
-        var codeDocument = await changedSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
-
-        DEBUG_ValidateComponents(CodeDocument, codeDocument);
-
-        var newContext = new FormattingContext(
-            OriginalSnapshot,
-            codeDocument,
-            _csharpDocument?.IsDeclarationDocument,
-            currentSnapshot: changedSnapshot,
-            Options,
-            Logger,
-            IncludeCSharpLanguageFeatureEdits,
-            HostDocumentIndex,
-            TriggerCharacter);
-
-        return newContext;
-    }
-
-    public FormattingContext WithCSharpDocument(bool declarationDocument)
-        => new(
-            OriginalSnapshot,
-            CodeDocument,
-            declarationDocument,
-            CurrentSnapshot,
-            Options,
-            Logger,
-            IncludeCSharpLanguageFeatureEdits,
-            HostDocumentIndex,
-            TriggerCharacter);
-
-    /// <summary>
-    /// It can be difficult in the testing infrastructure to correct constructs input files that work consistently across
-    /// context changes, so this method validates that the number of components isn't changing due to lost tag help info.
-    /// Without this guarantee its hard to reason about test behaviour/failures.
-    /// </summary>
-    [Conditional("DEBUG")]
-    private static void DEBUG_ValidateComponents(RazorCodeDocument oldCodeDocument, RazorCodeDocument newCodeDocument)
-    {
-        if (SkipValidateComponents)
-        {
-            return;
-        }
-
-        var oldTagHelperElements = oldCodeDocument.GetRequiredSyntaxRoot().DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
-        var newTagHelperElements = newCodeDocument.GetRequiredSyntaxRoot().DescendantNodesAndSelf().OfType<MarkupTagHelperElementSyntax>().Count();
-        Debug.Assert(oldTagHelperElements == newTagHelperElements, $"Previous context had {oldTagHelperElements} components, new only has {newTagHelperElements}.");
-    }
-
     public static FormattingContext CreateForOnTypeFormatting(
         RemoteDocumentSnapshot originalSnapshot,
         RazorCodeDocument codeDocument,
@@ -306,7 +181,7 @@ internal sealed class FormattingContext
             codeDocument,
             declarationDocument,
             currentSnapshot: originalSnapshot,
-            options,
+            ToFormattingEngineOptions(options),
             logger,
             includeCSharpLanguageFeatureEdits,
             hostDocumentIndex,
@@ -324,10 +199,22 @@ internal sealed class FormattingContext
             codeDocument,
             declarationDocument: null,
             currentSnapshot: originalSnapshot,
-            options,
+            ToFormattingEngineOptions(options),
             logger,
             includeCSharpLanguageFeatureEdits: false,
             hostDocumentIndex: 0,
             triggerCharacter: '\0');
     }
+
+    // RazorFormattingOptions is the serialized, Razor-wide transport contract. The shared engine intentionally accepts
+    // only the host-neutral subset it needs so the dotnet format adapter does not depend on Razor Workspaces or LSP.
+    private static FormattingEngineOptions ToFormattingEngineOptions(RazorFormattingOptions options)
+        => new()
+        {
+            InsertSpaces = options.InsertSpaces,
+            TabSize = options.TabSize,
+            CodeBlockBraceOnNextLine = options.CodeBlockBraceOnNextLine,
+            AttributeIndentStyle = options.AttributeIndentStyle,
+            CSharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions,
+        };
 }

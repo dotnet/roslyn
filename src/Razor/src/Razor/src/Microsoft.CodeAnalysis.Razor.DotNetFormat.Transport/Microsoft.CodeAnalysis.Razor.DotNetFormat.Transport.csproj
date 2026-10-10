@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.Build.NoTargets">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetVS)</TargetFramework>
+    <Description>Transport package for Razor dotnet format support assemblies. For internal use only.</Description>
+    <IsShipping>false</IsShipping>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
+    <IsPackable>true</IsPackable>
+    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.Razor.DotNetFormat\Microsoft.CodeAnalysis.Razor.DotNetFormat.csproj" PrivateAssets="all" />
+  </ItemGroup>
+
+  <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
+    <ItemGroup>
+      <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.DotNetFormat\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.DotNetFormat.dll" PackagePath="\dotnet-format" />
+      <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.DotNetFormat\$(Configuration)\$(TargetFramework)\**\Microsoft.CodeAnalysis.Razor.DotNetFormat.resources.dll" PackagePath="\dotnet-format\%(RecursiveDir)" />
+      <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.dll" PackagePath="\dotnet-format" />
+      <Content Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" PackagePath="\dotnet-format" />
+    </ItemGroup>
+  </Target>
+
+</Project>
