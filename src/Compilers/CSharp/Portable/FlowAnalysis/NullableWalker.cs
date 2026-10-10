@@ -8907,6 +8907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.MethodGroup:
                     case BoundKind.UnboundLambda:
                     case BoundKind.UnconvertedObjectCreationExpression:
+                    case BoundKind.TupleLiteral:
                     case BoundKind.ConvertedTupleLiteral:
                     case BoundKind.UnconvertedCollectionExpression:
                         return NullableAnnotation.NotAnnotated;
@@ -9000,6 +9001,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!argumentType.HasType)
                 {
                     return argument;
+                }
+
+                if (argument is BoundConvertedTupleLiteral { SourceTuple: { Type: null } typelessTuple } &&
+                    argumentType.Type is NamedTypeSymbol { IsTupleType: true } convertedTupleType &&
+                    convertedTupleType.TupleElementTypesWithAnnotations.Length == typelessTuple.Arguments.Length)
+                {
+                    // A tuple literal without a natural type, e.g. ("A", null), contributed only its elements to the
+                    // initial inference. Give inference the same typeless literal, with each element's type and
+                    // nullability from flow analysis, rather than its converted type.
+                    var convertedElementTypes = convertedTupleType.TupleElementTypesWithAnnotations;
+                    var elements = typelessTuple.Arguments.SelectAsArray(
+                        (element, i, types) => (BoundExpression)new BoundExpressionWithNullability(element.Syntax, element, types[i].NullableAnnotation, types[i].Type),
+                        convertedElementTypes);
+                    return new BoundTupleLiteral(typelessTuple.Syntax, elements, typelessTuple.ArgumentNamesOpt, typelessTuple.InferredNamesOpt, type: null) { WasCompilerGenerated = true };
+                }
+
+                if (argument is BoundConvertedTupleLiteral { SourceTuple: { Type: NamedTypeSymbol { IsTupleType: true } naturalType } sourceTuple } &&
+                    argumentType.Type is NamedTypeSymbol { IsTupleType: true } convertedType &&
+                    naturalType.TupleElementTypesWithAnnotations.Length == convertedType.TupleElementTypesWithAnnotations.Length)
+                {
+                    // Infer from the tuple literal's natural type, as the initial binding did, with the element
+                    // nullability from flow analysis. The converted type already equals the type inferred by
+                    // the initial binding, minus its element names, so as a candidate it would only make the
+                    // inferred tuple lose those names (https://github.com/dotnet/roslyn/issues/74493).
+                    var naturalElements = naturalType.TupleElementTypesWithAnnotations;
+                    var convertedElements = convertedType.TupleElementTypesWithAnnotations;
+                    var elements = naturalElements.SelectAsArray((element, i, converted) => TypeWithAnnotations.Create(element.Type, converted[i].NullableAnnotation), convertedElements);
+                    return new BoundExpressionWithNullability(argument.Syntax, sourceTuple, argumentType.NullableAnnotation, naturalType.WithElementTypes(elements));
                 }
 
                 if (argument is BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithInferredType } || IsTargetTypedExpression(argument))

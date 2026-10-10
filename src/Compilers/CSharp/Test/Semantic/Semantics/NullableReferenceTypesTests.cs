@@ -66668,6 +66668,134 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F").WithLocation(18, 13));
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_NoNames()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M((string Name, object? Value)[] parameters)
+                    {
+                        _ = ToDictionary(Append(parameters, ("A", "A")), t => t.Name, t => t.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_MatchingNames()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M((string Name, object? Value)[] parameters)
+                    {
+                        _ = ToDictionary(Append(parameters, (Name: "A", Value: "A")), t => t.Name, t => t.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_DifferentNames()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M((string Name, object? Value)[] parameters)
+                    {
+                        _ = ToDictionary(Append(parameters, (N: "A", V: "A")), t => t.Name, t => t.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,46): warning CS8123: The tuple element name 'N' is ignored because a different name or no name is specified by the target type '(string Name, object Value)'.
+                //         _ = ToDictionary(Append(parameters, (N: "A", V: "A")), t => t.Name, t => t.Value);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, @"N: ""A""").WithArguments("N", "(string Name, object Value)").WithLocation(8, 46),
+                // (8,54): warning CS8123: The tuple element name 'V' is ignored because a different name or no name is specified by the target type '(string Name, object Value)'.
+                //         _ = ToDictionary(Append(parameters, (N: "A", V: "A")), t => t.Name, t => t.Value);
+                Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, @"V: ""A""").WithArguments("V", "(string Name, object Value)").WithLocation(8, 54));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_NoNaturalType()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M((string Name, object? Value)[] parameters)
+                    {
+                        _ = ToDictionary(Append(parameters, ("A", null)), t => t.Name, t => t.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_Nested()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M(((string Name, object? Value) Inner, int Count)[] parameters)
+                    {
+                        _ = ToDictionary(Append(parameters, (("A", "A"), 1)), t => t.Inner.Name, t => t.Inner.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleExpression_NotLiteral()
+        {
+            var source = """
+                #nullable enable
+                using System;
+                using System.Collections.Generic;
+                class C
+                {
+                    void M((string Name, object? Value)[] parameters, (string, string) none, (string Name, string Value) same, (string N, string V) other)
+                    {
+                        _ = ToDictionary(Append(parameters, none), t => t.Name, t => t.Value);
+                        _ = ToDictionary(Append(parameters, same), t => t.Name, t => t.Value);
+                        _ = ToDictionary(Append(parameters, other), t => t.Name, t => t.Value);
+                    }
+                    static T[] Append<T>(T[] array, T item) => [.. array, item];
+                    static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71419")]
         public void LocalFunction_Member_SetInOneFunction()
         {
