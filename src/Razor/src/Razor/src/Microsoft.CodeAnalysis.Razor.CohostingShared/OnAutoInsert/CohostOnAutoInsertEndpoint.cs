@@ -94,8 +94,9 @@ internal sealed class CohostOnAutoInsertEndpoint(
         var clientSettings = _clientSettingsManager.GetClientSettings();
         var razorFormattingOptions = RazorFormattingOptions.From(
             request.Options,
-            codeBlockBraceOnNextLine: clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine,
-            attributeIndentStyle: clientSettings.AdvancedSettings.AttributeIndentStyle,
+            clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine,
+            clientSettings.AdvancedSettings.AttributeIndentStyle,
+            clientSettings.AdvancedSettings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
             csharpSyntaxFormattingOptions);
         var resolvedCSharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(razorFormattingOptions);
         razorFormattingOptions = razorFormattingOptions with

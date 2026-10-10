@@ -91,6 +91,7 @@ public class ClientSettingsManagerTest(ITestOutputHelper testOutput) : VisualStu
             ColorBackground: true,
             CodeBlockBraceOnNextLine: false,
             AttributeIndentStyle: AttributeIndentStyle.AlignWithFirst,
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor: false,
             CommitElementsWithSpace: false,
             SnippetSetting: SnippetSetting.All,
             LogLevel: LogLevel.None,

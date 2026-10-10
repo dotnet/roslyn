@@ -24,6 +24,7 @@ public class ClientSettingsJsonSerializationTest
                 ColorBackground: true,
                 CodeBlockBraceOnNextLine: true,
                 AttributeIndentStyle: AttributeIndentStyle.IndentByOne,
+                IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor: false,
                 CommitElementsWithSpace: false,
                 SnippetSetting: SnippetSetting.None,
                 LogLevel: LogLevel.Trace,
@@ -61,6 +62,8 @@ public class ClientSettingsJsonSerializationTest
         Assert.True(codeBlockBraceOnNextLine.GetBoolean());
         Assert.True(advancedSettings.TryGetProperty("attributeIndentStyle", out var attributeIndentStyle));
         Assert.Equal((int)AttributeIndentStyle.IndentByOne, attributeIndentStyle.GetInt32());
+        Assert.True(advancedSettings.TryGetProperty("ignoreIndentationInScriptOrStyleBlocksWithComplexRazor", out var ignoreIndentationInScriptOrStyleBlocksWithComplexRazor));
+        Assert.False(ignoreIndentationInScriptOrStyleBlocksWithComplexRazor.GetBoolean());
         Assert.True(advancedSettings.TryGetProperty("commitElementsWithSpace", out var commitElementsWithSpace));
         Assert.False(commitElementsWithSpace.GetBoolean());
         Assert.True(advancedSettings.TryGetProperty("snippetSetting", out var snippetSetting));
