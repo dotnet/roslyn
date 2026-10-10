@@ -28,6 +28,7 @@ internal static class InlineHintsOptionsStorage
             SuppressForParametersThatDifferOnlyBySuffix = globalOptions.GetOption(SuppressForParametersThatDifferOnlyBySuffix, language),
             SuppressForParametersThatMatchMethodIntent = globalOptions.GetOption(SuppressForParametersThatMatchMethodIntent, language),
             SuppressForParametersThatMatchArgumentName = globalOptions.GetOption(SuppressForParametersThatMatchArgumentName, language),
+            SuppressForParametersThatMatchMemberName = globalOptions.GetOption(SuppressForParametersThatMatchMemberName, language),
         };
 
     public static InlineTypeHintsOptions GetInlineTypeHintsOptions(this IGlobalOptionService globalOptions, string language)
@@ -38,6 +39,8 @@ internal static class InlineHintsOptionsStorage
             ForLambdaParameterTypes = globalOptions.GetOption(ForLambdaParameterTypes, language),
             ForImplicitObjectCreation = globalOptions.GetOption(ForImplicitObjectCreation, language),
             ForCollectionExpressions = globalOptions.GetOption(ForCollectionExpressions, language),
+            SuppressForTargetTypedNew = globalOptions.GetOption(SuppressForTargetTypedNew, language),
+            SuppressForTargetTypedCollectionExpressions = globalOptions.GetOption(SuppressForTargetTypedCollectionExpressions, language),
         };
 
     // Note: inlay hints is the term used in LSP, we Want to use the LSP name when communicate with the LSP client.
@@ -85,6 +88,11 @@ internal static class InlineHintsOptionsStorage
             InlineParameterHintsOptions.Default.SuppressForParametersThatMatchArgumentName,
             group: s_inlayHintOptionGroup);
 
+    public static readonly PerLanguageOption2<bool> SuppressForParametersThatMatchMemberName =
+        new("dotnet_suppress_inlay_hints_for_parameters_that_match_member_name",
+            InlineParameterHintsOptions.Default.SuppressForParametersThatMatchMemberName,
+            group: s_inlayHintOptionGroup);
+
     // Type Hints
 
     public static readonly PerLanguageOption2<bool> EnabledForTypes =
@@ -110,5 +118,15 @@ internal static class InlineHintsOptionsStorage
     public static readonly PerLanguageOption2<bool> ForCollectionExpressions =
         new("csharp_enable_inlay_hints_for_collection_expressions",
             defaultValue: InlineTypeHintsOptions.Default.ForCollectionExpressions,
+            group: s_inlayHintOptionGroup);
+
+    public static readonly PerLanguageOption2<bool> SuppressForTargetTypedNew =
+        new("csharp_suppress_inlay_hints_for_target_typed_new",
+            defaultValue: InlineTypeHintsOptions.Default.SuppressForTargetTypedNew,
+            group: s_inlayHintOptionGroup);
+
+    public static readonly PerLanguageOption2<bool> SuppressForTargetTypedCollectionExpressions =
+        new("csharp_suppress_inlay_hints_for_target_typed_collection_expressions",
+            defaultValue: InlineTypeHintsOptions.Default.SuppressForTargetTypedCollectionExpressions,
             group: s_inlayHintOptionGroup);
 }
