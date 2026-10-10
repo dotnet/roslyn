@@ -210,6 +210,21 @@
   <data name="Generate_GetHashCode" xml:space="preserve">
     <value>Generate GetHashCode()</value>
   </data>
+  <data name="Generate_Equals_from_all_members" xml:space="preserve">
+    <value>Generate Equals from all members</value>
+  </data>
+  <data name="Generate_Equals_and_GetHashCode_from_all_members" xml:space="preserve">
+    <value>Generate Equals and GetHashCode from all members</value>
+  </data>
+  <data name="Generate_GetHashCode_from_all_members" xml:space="preserve">
+    <value>Generate GetHashCode from all members</value>
+  </data>
+  <data name="Generate_constructor_from_all_members" xml:space="preserve">
+    <value>Generate constructor from all members</value>
+  </data>
+  <data name="Generate_overrides_for_all_members" xml:space="preserve">
+    <value>Generate overrides for all members</value>
+  </data>
   <data name="Generate_0_1_in_new_file" xml:space="preserve">
     <value>Generate {0} '{1}' in new file</value>
   </data>
