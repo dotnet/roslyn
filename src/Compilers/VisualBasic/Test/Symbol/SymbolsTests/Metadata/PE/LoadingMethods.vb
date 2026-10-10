@@ -1075,5 +1075,22 @@ End Module
             Assert.Equal(biMethods(1), bM2Impl(0))
             Assert.Equal(biMethods(2), bM2Impl(1))
         End Sub
+
+        <Fact>
+        Public Sub MethodKind_GeneratedMethods()
+            Dim source = "
+Class Program
+    Sub M()
+        Dim a = New System.Func(Of Integer)(Function() 1)
+    End Sub
+End Class
+"
+            Dim libCompilation = CreateCompilation(source)
+            Dim libReference = libCompilation.EmitToImageReference()
+            Dim compilation = CreateCompilation("", {libReference}, TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+
+            Dim lambda = compilation.GetMember(Of MethodSymbol)("Program._Closure$__._Lambda$__1-0")
+            Assert.Equal(MethodKind.LambdaMethod, lambda.MethodKind)
+        End Sub
     End Class
 End Namespace
