@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -199,13 +199,10 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.ConstructorDeclaration);
                 {
                     N(SyntaxKind.PartialKeyword);
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.IdentifierToken, "M");
                     N(SyntaxKind.ParameterList);
                     {
@@ -513,9 +510,33 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             }
             """;
 
-        CreateCompilation(
+        var compilation = CreateCompilation(
             src,
-            parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics();
+            parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+        if (typeName == "partial")
+        {
+            compilation.VerifyDiagnostics(
+                // (7,21): error CS1004: Duplicate 'partial' modifier
+                //     private partial partial M();
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(7, 21),
+                // (7,29): error CS1520: Method must have a return type
+                //     private partial partial M();
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(7, 29),
+                // (8,21): error CS1004: Duplicate 'partial' modifier
+                //     private partial partial M() => new();
+                Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(8, 21),
+                // (8,29): error CS1520: Method must have a return type
+                //     private partial partial M() => new();
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "M").WithLocation(8, 29),
+                // (8,36): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
+                //     private partial partial M() => new();
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "new()").WithLocation(8, 36));
+        }
+        else
+        {
+            compilation.VerifyDiagnostics();
+        }
     }
 
     /// <summary>
@@ -604,9 +625,43 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
     }
 
     [Fact]
-    public void PartialThenFile_NoDeclHead_FallsBackToIdentifier()
+    public void PartialThenFile_NoDeclHead_TreatsPartialAsModifier()
     {
-        UsingTree("partial file;");
+        UsingTree(
+            "partial file;",
+            // (1,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
+            // partial file;
+            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "file").WithLocation(1, 9));
+        N(SyntaxKind.CompilationUnit);
+        {
+            N(SyntaxKind.IncompleteMember);
+            {
+                N(SyntaxKind.PartialKeyword);
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "file");
+                }
+            }
+            N(SyntaxKind.GlobalStatement);
+            {
+                N(SyntaxKind.EmptyStatement);
+                {
+                    N(SyntaxKind.SemicolonToken);
+                }
+            }
+            N(SyntaxKind.EndOfFileToken);
+        }
+        EOF();
+    }
+
+    [Fact]
+    public void PartialThenContextualChain_NoDeclHead_FallsBackToIdentifier()
+    {
+        UsingTree(
+            "partial file async required;",
+            // (1,14): error CS1003: Syntax error, ',' expected
+            // partial file async required;
+            Diagnostic(ErrorCode.ERR_SyntaxError, "async").WithArguments(",").WithLocation(1, 14));
         N(SyntaxKind.CompilationUnit);
         {
             N(SyntaxKind.GlobalStatement);
@@ -622,45 +677,6 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
                         N(SyntaxKind.VariableDeclarator);
                         {
                             N(SyntaxKind.IdentifierToken, "file");
-                        }
-                    }
-                    N(SyntaxKind.SemicolonToken);
-                }
-            }
-            N(SyntaxKind.EndOfFileToken);
-        }
-        EOF();
-    }
-
-    [Fact]
-    public void PartialThenContextualChain_NoDeclHead_FallsBackToIdentifier()
-    {
-        UsingTree(
-            "partial file async required;",
-            // (1,1): error CS1031: Type expected
-            // partial file async required;
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 1),
-            // (1,1): error CS1525: Invalid expression term 'partial'
-            // partial file async required;
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
-            // (1,1): error CS1003: Syntax error, ',' expected
-            // partial file async required;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 1));
-        N(SyntaxKind.CompilationUnit);
-        {
-            N(SyntaxKind.GlobalStatement);
-            {
-                N(SyntaxKind.LocalDeclarationStatement);
-                {
-                    M(SyntaxKind.VariableDeclaration);
-                    {
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                        M(SyntaxKind.VariableDeclarator);
-                        {
-                            M(SyntaxKind.IdentifierToken);
                         }
                     }
                     N(SyntaxKind.SemicolonToken);
@@ -806,12 +822,9 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "async");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.ConstructorDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.IdentifierToken, "async");
                     N(SyntaxKind.ParameterList);
                     {
@@ -1171,52 +1184,25 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
             source,
             expectedParsingDiagnostics:
             [
-                // (1,1): error CS1525: Invalid expression term 'partial'
+                // (1,1): error CS1073: Unexpected token 'async'
                 // partial async () => { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 1),
-                // (1,1): error CS1073: Unexpected token 'partial'
-                // partial async () => { }
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "").WithArguments("partial").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("async").WithLocation(1, 1),
             ],
             expectedBindingDiagnostics:
             [
-                // (5,27): error CS1525: Invalid expression term 'partial'
+                // (5,27): error CS0103: The name 'partial' does not exist in the current context
                 //         System.Action x = partial async () => { };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 27),
-                // (5,27): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "partial").WithArguments("partial").WithLocation(5, 27),
+                // (5,35): error CS1002: ; expected
                 //         System.Action x = partial async () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 27),
-                // (5,27): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "async").WithLocation(5, 35),
+                // (5,35): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
                 //         System.Action x = partial async () => { };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "partial").WithLocation(5, 27),
-                // (5,35): error CS1520: Method must have a return type
-                //         System.Action x = partial async () => { };
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "async").WithLocation(5, 35),
-                // (5,35): error CS0751: A partial member must be declared within a partial type
-                //         System.Action x = partial async () => { };
-                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "async").WithLocation(5, 35),
-                // (5,35): error CS9276: Partial member 'C.C()' must have a definition part.
-                //         System.Action x = partial async () => { };
-                Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "async").WithArguments("C.C()").WithLocation(5, 35),
-                // (5,47): error CS1525: Invalid expression term '{'
-                //         System.Action x = partial async () => { };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(5, 47),
-                // (5,47): error CS1002: ; expected
-                //         System.Action x = partial async () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 47),
-                // (5,47): error CS1519: Invalid token '{' in a member declaration
-                //         System.Action x = partial async () => { };
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(5, 47),
-                // (6,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 5),
-                // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1),
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "async () => { }").WithLocation(5, 35),
             ]);
-        M(SyntaxKind.IdentifierName);
+        N(SyntaxKind.IdentifierName);
         {
-            M(SyntaxKind.IdentifierToken);
+            N(SyntaxKind.IdentifierToken, "partial");
         }
         EOF();
     }
@@ -1278,45 +1264,18 @@ public sealed partial class ModifierParserRecoveryTests(ITestOutputHelper output
                 // (5,27): error CS1002: ; expected
                 //         System.Action x = static partial async () => { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(5, 27),
-                // (5,27): error CS0106: The modifier 'static' is not valid for this item
+                // (5,34): error CS0246: The type or namespace name 'partial' could not be found (are you missing a using directive or an assembly reference?)
                 //         System.Action x = static partial async () => { };
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(5, 27),
-                // (5,34): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "partial").WithArguments("partial").WithLocation(5, 34),
+                // (5,42): warning CS8321: The local function 'async' is declared but never used
                 //         System.Action x = static partial async () => { };
-                Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(5, 34),
-                // (5,34): error CS1525: Invalid expression term 'partial'
-                //         System.Action x = static partial async () => { };
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 34),
-                // (5,34): error CS1002: ; expected
-                //         System.Action x = static partial async () => { };
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(5, 34),
-                // (5,34): error CS1513: } expected
-                //         System.Action x = static partial async () => { };
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "partial").WithLocation(5, 34),
-                // (5,42): error CS1520: Method must have a return type
-                //         System.Action x = static partial async () => { };
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "async").WithLocation(5, 42),
-                // (5,42): error CS0751: A partial member must be declared within a partial type
-                //         System.Action x = static partial async () => { };
-                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "async").WithLocation(5, 42),
-                // (5,42): error CS9276: Partial member 'C.C()' must have a definition part.
-                //         System.Action x = static partial async () => { };
-                Diagnostic(ErrorCode.ERR_PartialMemberMissingDefinition, "async").WithArguments("C.C()").WithLocation(5, 42),
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "async").WithArguments("async").WithLocation(5, 42),
                 // (5,54): error CS1525: Invalid expression term '{'
                 //         System.Action x = static partial async () => { };
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "{").WithArguments("{").WithLocation(5, 54),
                 // (5,54): error CS1002: ; expected
                 //         System.Action x = static partial async () => { };
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(5, 54),
-                // (5,54): error CS1519: Invalid token '{' in a member declaration
-                //         System.Action x = static partial async () => { };
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "{").WithArguments("{").WithLocation(5, 54),
-                // (6,5): error CS1022: Type or namespace definition, or end-of-file expected
-                //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 5),
-                // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1),
             ]);
         M(SyntaxKind.IdentifierName);
         {
