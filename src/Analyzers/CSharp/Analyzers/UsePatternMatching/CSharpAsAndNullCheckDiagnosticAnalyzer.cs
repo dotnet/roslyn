@@ -191,7 +191,7 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
                     identifierName.Parent is InvocationExpressionSyntax &&
                     semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction } localFunction &&
                     localFunction.DeclaringSyntaxReferences is [var reference] &&
-                    IsWrittenTo(reference.GetSyntax(cancellationToken), asOperand, semanticModel, cancellationToken))
+                    IsWrittenTo(semanticModel, asOperand, reference.GetSyntax(cancellationToken), cancellationToken))
                 {
                     return;
                 }
@@ -344,7 +344,7 @@ internal sealed partial class CSharpAsAndNullCheckDiagnosticAnalyzer()
         return localSymbol != null && declarator != null;
     }
 
-    private static bool IsWrittenTo(SyntaxNode node, ISymbol symbol, SemanticModel semanticModel, CancellationToken cancellationToken)
+    private static bool IsWrittenTo(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken)
     {
         foreach (var identifierName in node.DescendantNodes().OfType<IdentifierNameSyntax>())
         {
