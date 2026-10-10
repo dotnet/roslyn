@@ -92,6 +92,12 @@ internal static partial class SymbolUsageAnalysis
 
         private void OnWriteReferenceFound(ISymbol symbol, IOperation operation, ValueUsageInfo valueUsageInfo)
         {
+            // Const locals are not tracked. The compiler already reports them if they are unused.
+            if (symbol is ILocalSymbol { IsConst: true })
+            {
+                return;
+            }
+
             // maybeWritten == 'ref' argument.
             var isRef = valueUsageInfo == ValueUsageInfo.ReadableWritableReference;
             _currentAnalysisData.OnWriteReferenceFound(symbol, operation, maybeWritten: isRef, isRef);
