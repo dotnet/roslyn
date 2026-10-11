@@ -613,7 +613,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
             tagName: "span",
             typeName: "SpanTagHelper",
             assemblyName: "TestAssembly",
-            parentTag: "!div"),
+            parentTag: "div"),
         ];
 
         var projectEngine = CreateProjectEngine(builder => builder.SetTagHelpers(tagHelpers));
@@ -630,6 +630,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         // Assert: The span must bind to SpanTagHelper because its escaped parent is div.
         var documentNode = codeDocument.GetRequiredDocumentNode();
         var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
+        Assert.Empty(documentNode.GetAllDiagnostics());
         Assert.Collection(tagHelperNodes,
             node => Assert.Equal("span", node.TagName));
     }
