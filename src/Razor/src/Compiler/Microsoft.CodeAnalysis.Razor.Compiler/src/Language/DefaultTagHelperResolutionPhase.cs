@@ -1154,7 +1154,11 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         if (unresolvedParent != null)
         {
-            return (unresolvedParent.TagName, false);
+            var parentTagName = unresolvedParent.IsEscaped
+                ? "!" + unresolvedParent.TagName
+                : unresolvedParent.TagName;
+
+            return (parentTagName, false);
         }
 
         return (null, false);

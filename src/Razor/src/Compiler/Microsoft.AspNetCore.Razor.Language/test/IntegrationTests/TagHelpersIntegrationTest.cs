@@ -631,8 +631,7 @@ public class TagHelpersIntegrationTest() : IntegrationTestBase(layer: TestProjec
         var documentNode = codeDocument.GetRequiredDocumentNode();
         var tagHelperNodes = documentNode.FindDescendantNodes<TagHelperIntermediateNode>();
         Assert.Empty(documentNode.GetAllDiagnostics());
-        Assert.Collection(tagHelperNodes,
-            node => Assert.Equal("span", node.TagName));
+        Assert.Empty(tagHelperNodes);
     }
     [Fact]
     public void ParentTagConstraint_BindsTagHelperWithWithoutEndTagParent()
