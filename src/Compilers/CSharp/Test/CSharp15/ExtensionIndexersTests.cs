@@ -17982,7 +17982,10 @@ static class E
         CreateCompilation(src).VerifyEmitDiagnostics(
             // (4,14): error CS0747: Invalid initializer member declarator
             // _ = o with { [0] = 42 };
-            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 42").WithLocation(4, 14));
+            Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = 42").WithLocation(4, 14),
+            // (4,14): warning CS8620: Argument of type '(object, object)?' cannot be used for parameter 'o' of type '(object?, object?)?' in 'E.extension((object?, object?)?)' due to differences in the nullability of reference types.
+            // _ = o with { [0] = 42 };
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "[0]").WithArguments("(object, object)?", "(object?, object?)?", "o", "E.extension((object?, object?)?)").WithLocation(4, 14));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/81851")]
