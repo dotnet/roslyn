@@ -214,17 +214,17 @@
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
         <source>Automatically format block on }</source>
-        <target state="translated">} でブロックをオートフォーマットする(B)</target>
+        <target state="translated">} でブロックをオートフォーマットする</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_on_paste">
         <source>Automatically format on paste</source>
-        <target state="translated">貼り付け時にオートフォーマットする(P)</target>
+        <target state="translated">貼り付け時にオートフォーマットする</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_statement_on_semicolon">
         <source>Automatically format statement on ;</source>
-        <target state="translated">; でステートメントをオートフォーマットする(S)</target>
+        <target state="translated">; でステートメントをオートフォーマットする</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
@@ -504,17 +504,17 @@
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter outlining mode when files open</source>
-        <target state="translated">ファイルを開くときにアウトライン モードに入る(O)</target>
+        <target state="translated">ファイルを開くときにアウトライン モードに入る</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for ///</source>
-        <target state="translated">/// が入力されたとき、XML ドキュメント コメントを生成する(G)</target>
+        <target state="translated">/// が入力されたとき、XML ドキュメント コメントを生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="translated">/* */ コメントを記述する際、新しい行の先頭に * を挿入する(I)</target>
+        <target state="translated">/* */ コメントを記述する際、新しい行の先頭に * を挿入する</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_Directives">
@@ -524,7 +524,7 @@
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>Place 'System' directives first when sorting usings</source>
-        <target state="translated">using を並べ替える際に、'System' ディレクティブを先頭に配置する(P)</target>
+        <target state="translated">using を並べ替える際に、'System' ディレクティブを先頭に配置する</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -554,7 +554,7 @@
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in NuGet packages</source>
-        <target state="translated">NuGet パッケージの型に using を提案する(N)</target>
+        <target state="translated">NuGet パッケージの型に using を提案する</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -639,7 +639,7 @@
       </trans-unit>
       <trans-unit id="Split_string_literals_on_enter">
         <source>Split string literals on enter</source>
-        <target state="translated">Enter で文字列リテラルを分割する(E)</target>
+        <target state="translated">Enter で文字列リテラルを分割する</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">

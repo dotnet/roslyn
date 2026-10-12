@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Display inline parameter name hints</source>
-        <target state="translated">显示内联参数名称提示(L)</target>
+        <target state="translated">显示内联参数名称提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>Highlight references to symbol under cursor</source>
-        <target state="translated">突出显示对光标下符号的引用(H)</target>
+        <target state="translated">突出显示对光标下符号的引用</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -514,7 +514,7 @@
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related keywords under cursor</source>
-        <target state="translated">突出显示光标下相关的关键字(K)</target>
+        <target state="translated">突出显示光标下相关的关键字</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1389,12 +1389,12 @@
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename tracking</source>
-        <target state="translated">显示重命名跟踪的预览(T)</target>
+        <target state="translated">显示重命名跟踪的预览</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>Show procedure line separators</source>
-        <target state="translated">显示过程行分隔符(S)</target>
+        <target state="translated">显示过程行分隔符</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

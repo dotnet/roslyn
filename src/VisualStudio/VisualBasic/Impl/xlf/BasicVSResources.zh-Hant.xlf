@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic insertion of Interface and MustOverride members</source>
-        <target state="translated">自動插入 Interface 及 MustOverride 成員(I)</target>
+        <target state="translated">自動插入 Interface 及 MustOverride 成員</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -54,27 +54,27 @@
       </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>Automatic insertion of end constructs</source>
-        <target state="translated">自動插入 End 建構(U)</target>
+        <target state="translated">自動插入 End 建構</target>
         <note />
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>Pretty listing (reformatting) of code</source>
-        <target state="translated">程式碼美化排列 (重新格式化)(P)</target>
+        <target state="translated">程式碼美化排列 (重新格式化)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter outlining mode when files open</source>
-        <target state="translated">開啟檔案時進入大綱模式(E)</target>
+        <target state="translated">開啟檔案時進入大綱模式</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for '''</source>
-        <target state="translated">產生 ''' 的 XML 文件註解(G)</target>
+        <target state="translated">產生 ''' 的 XML 文件註解</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="translated">巡覽至定義於中繼資料內符號的物件瀏覽器(N)</target>
+        <target state="translated">巡覽至定義於中繼資料內符號的物件瀏覽器</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -84,17 +84,17 @@
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in NuGet packages</source>
-        <target state="translated">為 NuGet 套件中的類型建議 Import(N)</target>
+        <target state="translated">為 NuGet 套件中的類型建議 Import</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
         <source>Suggest imports for types in reference assemblies</source>
-        <target state="translated">為參考組件中的類型建議 Import(R)</target>
+        <target state="translated">為參考組件中的類型建議 Import</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_imports">
         <source>Place 'System' directives first when sorting imports</source>
-        <target state="translated">排序 Import 時，先置入 'System' 指示詞(P)</target>
+        <target state="translated">排序 Import 時，先置入 'System' 指示詞</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">
