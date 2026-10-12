@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.PassByCopy:
-                    EmitPassByCopyExpression(((BoundPassByCopy)expression), used);
+                    EmitPassByCopyExpression((BoundPassByCopy)expression, used);
                     break;
 
                 case BoundKind.Parameter:

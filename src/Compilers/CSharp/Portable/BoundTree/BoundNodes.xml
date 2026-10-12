@@ -193,6 +193,7 @@
     nothing on the stack to dup, because optimizer decides that the last use happens 
     before this node is reached. Therefore, it would be popped off the stack at that time
     without leaving any copy on the stack. Or, perhaps, some unrelated value could be on the stack.
+    Nodes like that have IsAlive set to false.
     -->
     <Field Name="IsAlive" Type="bool" Null="NotApplicable"/>
   </Node>
