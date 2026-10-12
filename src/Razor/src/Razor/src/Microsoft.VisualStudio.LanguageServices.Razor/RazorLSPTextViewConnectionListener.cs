@@ -21,19 +21,6 @@ using IServiceProvider = System.IServiceProvider;
 
 namespace Microsoft.VisualStudio.Razor;
 
-// The entire purpose of this class is to workaround quirks in Visual Studio's core editor handling. In Razor scenarios
-// we can have a multitude of content types that represents a Razor file:
-//
-// ** Content Type Mappings **
-// RazorCSharp = .NET Framework Razor editor
-// RazorCoreCSharp = .NET Core Legacy Razor editor
-// Razor = .NET Core Razor editor (LSP / new)
-//
-// Because we have these content types that are applied based on what project the user is operating in we have to workaround
-// quirks on the core editor side to ensure that language services for our "Razor" content type properly get applied. For
-// instance we need to set a language service ID, we need to update options and we need to hookup data tip filters for
-// debugging. Typically all of this would be handled for us but due to bugs on the platform front we need to manually do this.
-// That is what this classes purpose is.
 [Export(typeof(ITextViewConnectionListener))]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]

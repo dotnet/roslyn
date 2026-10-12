@@ -606,7 +606,7 @@ public sealed class FileModifierParsingTests : ParsingTests
             }
             """;
         UsingNode(src,
-            options: TestOptions.Regular14,
+            options: TestOptions.Regular15,
             expectedBindingDiagnostics: new[]
             {
                 // (3,10): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1448,9 +1448,9 @@ public sealed class FileModifierParsingTests : ParsingTests
                 // (1,15): warning CS8981: The type name 'file' only contains lower-cased ascii characters. Such names may become reserved for the language.
                 // public struct file { public int item; }
                 Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "file").WithArguments("file").WithLocation(1, 15),
-                // (3,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (3,8): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // public unsafe class C
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(3, 21)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 8)
             });
 
         N(SyntaxKind.CompilationUnit);
@@ -1685,9 +1685,9 @@ public sealed class FileModifierParsingTests : ParsingTests
                 // (1,15): error CS9056: Types and aliases cannot be named 'file'.
                 // public struct file { public int item; }
                 Diagnostic(ErrorCode.ERR_FileTypeNameDisallowed, "file").WithLocation(1, 15),
-                // (3,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (3,8): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // public unsafe class C
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "C").WithLocation(3, 21),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(3, 8),
                 // (5,22): error CS1519: Invalid token ';' in class, record, struct, or interface member declaration
                 //     public file _file;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(5, 22),

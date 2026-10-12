@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 /// Service for providing helper functionality to a language service regarding hot reload and Edit and Continue operations.
 /// This is currently exported through MEF.
 /// </summary>
-internal interface IManagedHotReloadService
+internal interface IManagedHotReloadState
 {
     /// <summary>
     /// Retrieves a list of active statements for the debugging session.
@@ -59,5 +59,5 @@ internal interface IManagedHotReloadService
     /// to merge them and present unified set of capabilities to the language service.
     /// The merging policy is entirely dependent on how the manager applies changes to multiple runtimes.
     /// </returns>
-    ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellation);
+    ValueTask<ImmutableArray<string>> GetUpdateCapabilitiesAsync(CancellationToken cancellation);
 }

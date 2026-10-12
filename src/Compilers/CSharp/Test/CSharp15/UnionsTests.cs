@@ -21650,6 +21650,293 @@ class Program
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_64_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_65_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_66_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_67_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(int i = 0) => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_68_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_69_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = default;
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = default;
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_70_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    class Result<TSuccess, TFailure>
+    {
+        public object? Value => throw null!;
+        public Result(TSuccess x) => throw null!;
+        public Result(TFailure x) => throw null!;
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_71_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"", null => ""null"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    public readonly union Result<TSuccess, TFailure>(TSuccess, TFailure);
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_72_State_From_Call()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    U M1() => 42;
+
+    void M2()
+    {
+#line 100
+        M1().Value.ToString();
+    }
+
+    void M3()
+    {
+        U u = M1();
+#line 200
+        u.Value.ToString();
+    }
+}
+
+union U(string, int);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseDll);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void NullableAnalysis_MemberProvider_01_State_From_Default()
         {
             var src = @"
@@ -24808,6 +25095,299 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_46_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_47_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_48_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_49_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(int i = 0) => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_50_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        foreach (int i in new[] { 1, 2 })
+        {
+            Result<string, int> r = Make();
+            System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+        }
+    }
+
+    static Result<string, int> Make(System.Threading.CancellationToken cancellationToken = default) => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_51_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = default;
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = default;
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    [System.Runtime.CompilerServices.Union]
+    struct Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85852")]
+        public void NullableAnalysis_MemberProvider_52_State_From_Reassignment()
+        {
+            var source = @"
+#nullable enable
+
+class Program
+{
+    static void Main()
+    {
+        Result<string, int> r = Make();
+#line 100
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+
+        r = Make();
+#line 200
+        System.Console.WriteLine(r switch { string s => s, int f => $""{f}"" });
+    }
+
+    static Result<string, int> Make() => ""x"";
+
+    [System.Runtime.CompilerServices.Union]
+    class Result<TSuccess, TFailure> : Result<TSuccess, TFailure>.IUnionMembers
+    {
+        object? IUnionMembers.Value => throw null!;
+
+        public interface IUnionMembers
+        {
+            public object? Value { get; }
+            public static Result<TSuccess, TFailure> Create(TSuccess x) => throw null!;
+            public static Result<TSuccess, TFailure> Create(TFailure x) => throw null!;
+        }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            comp = CreateCompilation([source, UnionAttributeSource], options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
         }
 
@@ -56575,6 +57155,2230 @@ struct B
                 );
             CompileAndVerify(comp, expectedOutput: @"new B(1); new A(2); A(2)->new B(2); new A(3); new B(4); A(3)->new B(3); B(1)==B(3); 
 False
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_01()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_02()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+            default:
+                ;
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_03()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+            default:
+                System.Console.WriteLine(""unreachable"");
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (20,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("unreachable");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(20, 17)
+                );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (20,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("unreachable");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(20, 17)
+                );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_04()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+            default:
+                System.Console.WriteLine(""unreachable1"");
+                System.Console.WriteLine(""unreachable2"");
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (20,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("unreachable1");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(20, 17)
+                );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (20,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine("unreachable1");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(20, 17)
+                );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_05()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null:
+            default:
+                 return ""c"";
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_06()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            default:
+            case null:
+                 return ""c"";
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_07()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+        }
+
+        System.Console.WriteLine(""unreachable"");
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (21,9): warning CS0162: Unreachable code detected
+                //         System.Console.WriteLine("unreachable");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(21, 9)
+                );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics(
+                // (21,9): warning CS0162: Unreachable code detected
+                //         System.Console.WriteLine("unreachable");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(21, 9)
+                );
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_08()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+
+namespace System.Runtime.CompilerServices
+{
+    public class SwitchExpressionException : InvalidOperationException
+    {
+        public SwitchExpressionException() {}
+        public SwitchExpressionException(object unmatchedValue) => UnmatchedValue = unmatchedValue;
+        public object UnmatchedValue { get; }
+    }
+}
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       88 (0x58)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_0055
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_0055
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_0055
+  IL_0049:  ldloc.2
+  IL_004a:  box        ""Choice""
+  IL_004f:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor(object)""
+  IL_0054:  throw
+  IL_0055:  ldloc.s    V_5
+  IL_0057:  ret
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.Runtime.CompilerServices.SwitchExpressionException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctor);
+            comp.MakeMemberMissing(WellKnownMember.System_InvalidOperationException__ctor);
+
+            comp.VerifyEmitDiagnostics(
+                    // (14,9): error CS0656: Missing compiler required member 'System.InvalidOperationException..ctor'
+                    //         switch (value)
+                    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+        }").WithArguments("System.InvalidOperationException", ".ctor").WithLocation(14, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_09()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        string result;
+
+        switch (value)
+        {
+            case A a: result = a.Text; break;
+            case B b: result = b.Message; break;
+            case null: result = ""c""; break;
+        }
+
+        return result;
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  1
+  .locals init (string V_0, //result
+                A V_1, //a
+                B V_2, //b
+                object V_3)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.3
+  IL_0008:  ldloc.3
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.1
+  IL_000f:  ldloc.1
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.3
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  brtrue.s   IL_002a
+  IL_001c:  ldloc.3
+  IL_001d:  brfalse.s  IL_0033
+  IL_001f:  br.s       IL_003b
+  IL_0021:  ldloc.1
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  stloc.0
+  IL_0028:  br.s       IL_0041
+  IL_002a:  ldloc.2
+  IL_002b:  callvirt   ""string B.Message.get""
+  IL_0030:  stloc.0
+  IL_0031:  br.s       IL_0041
+  IL_0033:  ldstr      ""c""
+  IL_0038:  stloc.0
+  IL_0039:  br.s       IL_0041
+  IL_003b:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_0040:  throw
+  IL_0041:  ldloc.0
+  IL_0042:  ret
+}
+");
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       88 (0x58)
+  .maxstack  1
+  .locals init (string V_0, //result
+            A V_1, //a
+            B V_2, //b
+            Choice V_3,
+            object V_4,
+            Choice V_5,
+            string V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_5
+  IL_0004:  ldloc.s    V_5
+  IL_0006:  stloc.3
+  IL_0007:  ldloca.s   V_3
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.s    V_4
+  IL_0010:  ldloc.s    V_4
+  IL_0012:  isinst     ""A""
+  IL_0017:  stloc.1
+  IL_0018:  ldloc.1
+  IL_0019:  brtrue.s   IL_002c
+  IL_001b:  ldloc.s    V_4
+  IL_001d:  isinst     ""B""
+  IL_0022:  stloc.2
+  IL_0023:  ldloc.2
+  IL_0024:  brtrue.s   IL_0037
+  IL_0026:  ldloc.s    V_4
+  IL_0028:  brfalse.s  IL_0042
+  IL_002a:  br.s       IL_004a
+  IL_002c:  br.s       IL_002e
+  IL_002e:  ldloc.1
+  IL_002f:  callvirt   ""string A.Text.get""
+  IL_0034:  stloc.0
+  IL_0035:  br.s       IL_0050
+  IL_0037:  br.s       IL_0039
+  IL_0039:  ldloc.2
+  IL_003a:  callvirt   ""string B.Message.get""
+  IL_003f:  stloc.0
+  IL_0040:  br.s       IL_0050
+  IL_0042:  ldstr      ""c""
+  IL_0047:  stloc.0
+  IL_0048:  br.s       IL_0050
+  IL_004a:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004f:  throw
+  IL_0050:  ldloc.0
+  IL_0051:  stloc.s    V_6
+  IL_0053:  br.s       IL_0055
+  IL_0055:  ldloc.s    V_6
+  IL_0057:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_10()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        string result = ""c"";
+
+        switch (value)
+        {
+            case A a: result = a.Text; break;
+            case B b: result = b.Message; break;
+        }
+
+        return result;
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       54 (0x36)
+  .maxstack  1
+  .locals init (string V_0, //result
+                A V_1, //a
+                B V_2, //b
+                object V_3)
+  IL_0000:  ldstr      ""c""
+  IL_0005:  stloc.0
+  IL_0006:  ldarga.s   V_0
+  IL_0008:  call       ""object Choice.Value.get""
+  IL_000d:  stloc.3
+  IL_000e:  ldloc.3
+  IL_000f:  isinst     ""A""
+  IL_0014:  stloc.1
+  IL_0015:  ldloc.1
+  IL_0016:  brtrue.s   IL_0024
+  IL_0018:  ldloc.3
+  IL_0019:  isinst     ""B""
+  IL_001e:  stloc.2
+  IL_001f:  ldloc.2
+  IL_0020:  brtrue.s   IL_002d
+  IL_0022:  br.s       IL_0034
+  IL_0024:  ldloc.1
+  IL_0025:  callvirt   ""string A.Text.get""
+  IL_002a:  stloc.0
+  IL_002b:  br.s       IL_0034
+  IL_002d:  ldloc.2
+  IL_002e:  callvirt   ""string B.Message.get""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ret
+}
+");
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       76 (0x4c)
+  .maxstack  1
+  .locals init (string V_0, //result
+                A V_1, //a
+                B V_2, //b
+                Choice V_3,
+                object V_4,
+                Choice V_5,
+                string V_6)
+  IL_0000:  nop
+  IL_0001:  ldstr      ""c""
+  IL_0006:  stloc.0
+  IL_0007:  ldarg.0
+  IL_0008:  stloc.s    V_5
+  IL_000a:  ldloc.s    V_5
+  IL_000c:  stloc.3
+  IL_000d:  ldloca.s   V_3
+  IL_000f:  call       ""object Choice.Value.get""
+  IL_0014:  stloc.s    V_4
+  IL_0016:  ldloc.s    V_4
+  IL_0018:  isinst     ""A""
+  IL_001d:  stloc.1
+  IL_001e:  ldloc.1
+  IL_001f:  brtrue.s   IL_002e
+  IL_0021:  ldloc.s    V_4
+  IL_0023:  isinst     ""B""
+  IL_0028:  stloc.2
+  IL_0029:  ldloc.2
+  IL_002a:  brtrue.s   IL_0039
+  IL_002c:  br.s       IL_0044
+  IL_002e:  br.s       IL_0030
+  IL_0030:  ldloc.1
+  IL_0031:  callvirt   ""string A.Text.get""
+  IL_0036:  stloc.0
+  IL_0037:  br.s       IL_0044
+  IL_0039:  br.s       IL_003b
+  IL_003b:  ldloc.2
+  IL_003c:  callvirt   ""string B.Message.get""
+  IL_0041:  stloc.0
+  IL_0042:  br.s       IL_0044
+  IL_0044:  ldloc.0
+  IL_0045:  stloc.s    V_6
+  IL_0047:  br.s       IL_0049
+  IL_0049:  ldloc.s    V_6
+  IL_004b:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_11()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            default: return ""c"";
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_001e
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0025
+  IL_001c:  br.s       IL_002c
+  IL_001e:  ldloc.0
+  IL_001f:  callvirt   ""string A.Text.get""
+  IL_0024:  ret
+  IL_0025:  ldloc.1
+  IL_0026:  callvirt   ""string B.Message.get""
+  IL_002b:  ret
+  IL_002c:  ldstr      ""c""
+  IL_0031:  ret
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       73 (0x49)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2,
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0031
+  IL_0023:  br.s       IL_003d
+  IL_0025:  br.s       IL_0027
+  IL_0027:  ldloc.0
+  IL_0028:  callvirt   ""string A.Text.get""
+  IL_002d:  stloc.s    V_5
+  IL_002f:  br.s       IL_0046
+  IL_0031:  br.s       IL_0033
+  IL_0033:  ldloc.1
+  IL_0034:  callvirt   ""string B.Message.get""
+  IL_0039:  stloc.s    V_5
+  IL_003b:  br.s       IL_0046
+  IL_003d:  ldstr      ""c""
+  IL_0042:  stloc.s    V_5
+  IL_0044:  br.s       IL_0046
+  IL_0046:  ldloc.s    V_5
+  IL_0048:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_12()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: goto default;
+            default: return ""c"";
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       84 (0x54)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_004b
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_0051
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_0051
+  IL_0040:  br.s       IL_0042
+  IL_0042:  ldstr      ""c""
+  IL_0047:  stloc.s    V_5
+  IL_0049:  br.s       IL_0051
+  IL_004b:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_0050:  throw
+  IL_0051:  ldloc.s    V_5
+  IL_0053:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_13()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+        System.Console.Write(Pick(null));
+    }
+
+    static string Pick(Choice? value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: goto case null;
+            case null:
+            default: return ""c"";
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"accc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       67 (0x43)
+  .maxstack  1
+  .locals init (A V_0, //a
+            Choice V_1,
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""bool Choice?.HasValue.get""
+  IL_0007:  brfalse.s  IL_0037
+  IL_0009:  ldarga.s   V_0
+  IL_000b:  call       ""Choice Choice?.GetValueOrDefault()""
+  IL_0010:  stloc.1
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  call       ""object Choice.Value.get""
+  IL_0018:  stloc.2
+  IL_0019:  ldloc.2
+  IL_001a:  isinst     ""A""
+  IL_001f:  stloc.0
+  IL_0020:  ldloc.0
+  IL_0021:  brtrue.s   IL_0030
+  IL_0023:  ldloc.2
+  IL_0024:  isinst     ""B""
+  IL_0029:  brtrue.s   IL_0037
+  IL_002b:  ldloc.2
+  IL_002c:  brfalse.s  IL_0037
+  IL_002e:  br.s       IL_003d
+  IL_0030:  ldloc.0
+  IL_0031:  callvirt   ""string A.Text.get""
+  IL_0036:  ret
+  IL_0037:  ldstr      ""c""
+  IL_003c:  ret
+  IL_003d:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_0042:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"accc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       95 (0x5f)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice? V_2,
+            Choice V_3,
+            object V_4,
+            Choice? V_5,
+            string V_6)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_5
+  IL_0004:  ldloc.s    V_5
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""bool Choice?.HasValue.get""
+  IL_000e:  brfalse.s  IL_004d
+  IL_0010:  ldloca.s   V_2
+  IL_0012:  call       ""Choice Choice?.GetValueOrDefault()""
+  IL_0017:  stloc.3
+  IL_0018:  ldloca.s   V_3
+  IL_001a:  call       ""object Choice.Value.get""
+  IL_001f:  stloc.s    V_4
+  IL_0021:  ldloc.s    V_4
+  IL_0023:  isinst     ""A""
+  IL_0028:  stloc.0
+  IL_0029:  ldloc.0
+  IL_002a:  brtrue.s   IL_003d
+  IL_002c:  ldloc.s    V_4
+  IL_002e:  isinst     ""B""
+  IL_0033:  stloc.1
+  IL_0034:  ldloc.1
+  IL_0035:  brtrue.s   IL_0049
+  IL_0037:  ldloc.s    V_4
+  IL_0039:  brfalse.s  IL_004d
+  IL_003b:  br.s       IL_0056
+  IL_003d:  br.s       IL_003f
+  IL_003f:  ldloc.0
+  IL_0040:  callvirt   ""string A.Text.get""
+  IL_0045:  stloc.s    V_6
+  IL_0047:  br.s       IL_005c
+  IL_0049:  br.s       IL_004b
+  IL_004b:  br.s       IL_004d
+  IL_004d:  ldstr      ""c""
+  IL_0052:  stloc.s    V_6
+  IL_0054:  br.s       IL_005c
+  IL_0056:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_005b:  throw
+  IL_005c:  ldloc.s    V_6
+  IL_005e:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_14()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+            default:
+                throw null;
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_15()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case null: return ""c"";
+        }
+
+        throw null;
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       59 (0x3b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_0021
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloc.2
+  IL_001d:  brfalse.s  IL_002f
+  IL_001f:  br.s       IL_0035
+  IL_0021:  ldloc.0
+  IL_0022:  callvirt   ""string A.Text.get""
+  IL_0027:  ret
+  IL_0028:  ldloc.1
+  IL_0029:  callvirt   ""string B.Message.get""
+  IL_002e:  ret
+  IL_002f:  ldstr      ""c""
+  IL_0034:  ret
+  IL_0035:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_003a:  throw
+}
+");
+
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                Choice V_2,
+                object V_3,
+                Choice V_4,
+                string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0028
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0034
+  IL_0023:  ldloc.3
+  IL_0024:  brfalse.s  IL_0040
+  IL_0026:  br.s       IL_0049
+  IL_0028:  br.s       IL_002a
+  IL_002a:  ldloc.0
+  IL_002b:  callvirt   ""string A.Text.get""
+  IL_0030:  stloc.s    V_5
+  IL_0032:  br.s       IL_004f
+  IL_0034:  br.s       IL_0036
+  IL_0036:  ldloc.1
+  IL_0037:  callvirt   ""string B.Message.get""
+  IL_003c:  stloc.s    V_5
+  IL_003e:  br.s       IL_004f
+  IL_0040:  ldstr      ""c""
+  IL_0045:  stloc.s    V_5
+  IL_0047:  br.s       IL_004f
+  IL_0049:  newobj     ""System.InvalidOperationException..ctor()""
+  IL_004e:  throw
+  IL_004f:  ldloc.s    V_5
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+        public void SwitchStatementExhaustiveness_16()
+        {
+            var source = @"
+
+class Program
+{
+    static void Main()
+    {
+        System.Console.Write(Pick(new A()));
+        System.Console.Write(Pick(new B()));
+        System.Console.Write(Pick((A)null));
+    }
+
+    static string Pick(Choice value)
+    {
+        switch (value)
+        {
+            case A a: return a.Text;
+            case B b: return b.Message;
+            case var c: return ""c"";
+        }
+    }
+}
+
+public sealed class A
+{
+    public string Text => ""a"";
+}
+
+public sealed class B
+{
+    public string Message => ""b"";
+}
+
+public readonly union Choice(A, B);
+";
+            var comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       50 (0x32)
+  .maxstack  1
+  .locals init (A V_0, //a
+                B V_1, //b
+                object V_2)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       ""object Choice.Value.get""
+  IL_0007:  stloc.2
+  IL_0008:  ldloc.2
+  IL_0009:  isinst     ""A""
+  IL_000e:  stloc.0
+  IL_000f:  ldloc.0
+  IL_0010:  brtrue.s   IL_001e
+  IL_0012:  ldloc.2
+  IL_0013:  isinst     ""B""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  brtrue.s   IL_0025
+  IL_001c:  br.s       IL_002c
+  IL_001e:  ldloc.0
+  IL_001f:  callvirt   ""string A.Text.get""
+  IL_0024:  ret
+  IL_0025:  ldloc.1
+  IL_0026:  callvirt   ""string B.Message.get""
+  IL_002b:  ret
+  IL_002c:  ldstr      ""c""
+  IL_0031:  ret
+}
+");
+            comp = CreateCompilation([source, UnionAttributeSource, IUnionSource], options: TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: @"abc").VerifyDiagnostics();
+            verifier.VerifyIL("Program.Pick", @"
+{
+  // Code size       75 (0x4b)
+  .maxstack  1
+  .locals init (A V_0, //a
+            B V_1, //b
+            Choice V_2, //c
+            object V_3,
+            Choice V_4,
+            string V_5)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""object Choice.Value.get""
+  IL_000e:  stloc.3
+  IL_000f:  ldloc.3
+  IL_0010:  isinst     ""A""
+  IL_0015:  stloc.0
+  IL_0016:  ldloc.0
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.3
+  IL_001a:  isinst     ""B""
+  IL_001f:  stloc.1
+  IL_0020:  ldloc.1
+  IL_0021:  brtrue.s   IL_0031
+  IL_0023:  br.s       IL_003d
+  IL_0025:  br.s       IL_0027
+  IL_0027:  ldloc.0
+  IL_0028:  callvirt   ""string A.Text.get""
+  IL_002d:  stloc.s    V_5
+  IL_002f:  br.s       IL_0048
+  IL_0031:  br.s       IL_0033
+  IL_0033:  ldloc.1
+  IL_0034:  callvirt   ""string B.Message.get""
+  IL_0039:  stloc.s    V_5
+  IL_003b:  br.s       IL_0048
+  IL_003d:  br.s       IL_003f
+  IL_003f:  ldstr      ""c""
+  IL_0044:  stloc.s    V_5
+  IL_0046:  br.s       IL_0048
+  IL_0048:  ldloc.s    V_5
+  IL_004a:  ret
+}
 ");
         }
 

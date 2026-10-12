@@ -131,9 +131,10 @@ internal partial class CodeGenerator
                 return true;
 
             case BoundKind.Call:
-                var methodRefKind = ((BoundCall)expression).Method.RefKind;
-                return methodRefKind == RefKind.Ref ||
-                       (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
+                return callHasHome(addressKind, ((BoundCall)expression).Method.RefKind);
+
+            case BoundKind.FunctionPointerInvocation:
+                return callHasHome(addressKind, ((BoundFunctionPointerInvocation)expression).FunctionPointer.Signature.RefKind);
 
             case BoundKind.FunctionPointerInvocation:
                 var funcPtrRefKind = ((BoundFunctionPointerInvocation)expression).FunctionPointer.Signature.RefKind;
@@ -227,6 +228,12 @@ internal partial class CodeGenerator
 
             default:
                 return false;
+        }
+
+        static bool callHasHome(AddressKind addressKind, RefKind methodRefKind)
+        {
+            return methodRefKind == RefKind.Ref ||
+                   (IsAnyReadOnly(addressKind) && methodRefKind == RefKind.RefReadOnly);
         }
     }
 

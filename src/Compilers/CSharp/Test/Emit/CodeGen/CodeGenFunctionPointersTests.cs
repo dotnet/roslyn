@@ -11919,7 +11919,7 @@ class C<T> {}
                 class C { }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyEmitDiagnostics(
                 // (11,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(B<delegate*<void>[]>.E)").WithLocation(11, 4),
@@ -11964,7 +11964,7 @@ class C<T> {}
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(default(B<delegate*<void>[]>.E))").WithLocation(11, 2),
             };
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(source, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(expectedDiagnostics);
         }
@@ -11987,7 +11987,7 @@ class C<T> {}
                 class C { }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyEmitDiagnostics(
                 // (11,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(default(B<delegate*<void>[]>.E))]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default(B<delegate*<void>[]>.E)").WithLocation(11, 12),
@@ -12074,7 +12074,7 @@ class C<T> {}
                 unsafe class C { }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (3,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     public A(B<delegate*<void>[]>.E e) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "delegate*").WithLocation(3, 16)
@@ -12140,7 +12140,7 @@ class C<T> {}
                 class C { }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
                 // (11,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A(default)]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "default").WithLocation(11, 4)
@@ -12214,7 +12214,7 @@ class C<T> {}
                 """;
 
             // https://github.com/dotnet/roslyn/issues/48765 tracks enabling support for this scenario.
-            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyEmitDiagnostics(
                 // (11,2): error CS8911: Using a function pointer type in this context is not supported.
                 // [A(P = default)]
                 Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported, "A(P = default)").WithLocation(11, 2));
@@ -12525,7 +12525,7 @@ class C<T> {}
                 class C { }
                 """;
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyEmitDiagnostics(
                 // (12,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<object>(B<delegate*<void>[]>.C)]
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "B<delegate*<void>[]>").WithLocation(12, 12),

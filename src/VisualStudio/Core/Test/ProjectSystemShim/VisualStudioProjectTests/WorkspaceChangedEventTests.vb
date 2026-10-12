@@ -127,7 +127,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             Using environment = New TestEnvironment()
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
-                project.AddSourceTextContainer(SourceText.From("// Test").Container, "Z:\Test.cs")
+                project.AddVirtualDocument(SourceText.From("// Test").Container, "Z:\Test.cs", openDocument:=True)
 
                 Assert.Single(environment.Workspace.GetOpenDocumentIds())
 

@@ -73,7 +73,7 @@ namespace RunTests
         public TimeSpan? Timeout { get; set; }
 
         /// <summary>
-        /// Whether or not to collect dumps on crashes and timeouts.
+        /// Enable additional Windows WER crash collection. Timeout collection is always enabled.
         /// </summary>
         public bool CollectDumps { get; set; }
 
@@ -195,7 +195,7 @@ namespace RunTests
                 { "out=", "Test result file directory (when running on Helix, this is relative to the Helix work item directory)", s => resultFileDirectory = s },
                 { "logs=", "Log file directory (when running on Helix, this is relative to the Helix work item directory)", s => logFileDirectory = s },
                 { "artifactspath=", "Path to the artifacts directory (auto-detected from binary location if not set)", s => artifactsPath = s },
-                { "collectdumps", "Gather dumps on timeouts and crashes (process executor only, not supported with --helix)", o => collectDumps = o is object },
+                { "collectdumps", "Enable additional Windows WER crash dumps when elevated (local only; timeout dumps are always attempted)", o => collectDumps = o is object },
                 { "testFramework=", "Test framework to run: core or desktop (can be specified multiple times)", s => testFrameworks.Add(s) },
                 { "testSet=", "Test set to include: compiler (adds compiler test assembly patterns to any --include patterns)", s => testSet = s },
                 { "testKind=", "Test kind to run: ioperation, runtimeasync, usedassemblies. runtimeasync requires --testFramework:core.", s => testKind = s },
@@ -266,6 +266,12 @@ namespace RunTests
                         return null;
                     }
                 }
+            }
+
+            if (timeout <= 0)
+            {
+                ConsoleUtil.Error("Timeouts must be positive.");
+                return null;
             }
 
             var testDesktop = (testRuntime & TestRuntime.Framework) != 0;

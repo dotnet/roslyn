@@ -21,6 +21,7 @@ internal sealed class CohostDocumentPullDiagnosticsRegistration : IDynamicRegist
                 RegisterOptions = new DiagnosticRegistrationOptions()
                 {
                     Identifier = PullDiagnosticCategories.DocumentCompilerSyntax,
+                    InterFileDependencies = true,
                 }
             },
             new Registration()

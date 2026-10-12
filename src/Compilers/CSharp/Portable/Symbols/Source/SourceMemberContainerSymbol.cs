@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out modifierErrors);
 
-            this.CheckUnsafeModifier(mods, diagnostics);
+            this.CheckUnsafeOptionForModifiers(mods, diagnostics);
 
             if (!modifierErrors &&
                 (mods & DeclarationModifiers.Abstract) != 0 &&

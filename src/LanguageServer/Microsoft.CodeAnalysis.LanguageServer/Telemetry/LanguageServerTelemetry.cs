@@ -101,11 +101,11 @@ internal sealed class LanguageServerTelemetry : IDisposable
         if (!useDevKitTelemetry)
         {
             // The VS default session is opted out until the standalone host supplies consent.
-            session.IsOptedIn = IsCopilotCliTelemetryEnabled(telemetryLevel);
+            session.IsOptedIn = IsStandaloneTelemetryEnabled(telemetryLevel);
 
             if (telemetryLevel is not ("all" or "off"))
             {
-                _logger.LogInformation("Unsupported Copilot CLI telemetry level. Telemetry will remain disabled.");
+                _logger.LogInformation("Unsupported standalone telemetry level. Telemetry will remain disabled.");
             }
         }
 
@@ -142,7 +142,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
         FaultReporter.InitializeFatalErrorHandlers();
     }
 
-    internal static bool IsCopilotCliTelemetryEnabled(string? telemetryLevel)
+    internal static bool IsStandaloneTelemetryEnabled(string? telemetryLevel)
         => telemetryLevel == "all";
 
     public RoslynTelemetry Telemetry => _telemetry;
