@@ -118,6 +118,25 @@ public class SnippetCacheTest
     }
 
     [Fact]
+    public void TryResolveSnippetString_RepeatedLiterals_ShareTabStops()
+    {
+        var declarations = """
+            <Literal>
+              <ID>second</ID>
+              <Default>second</Default>
+            </Literal>
+            <Literal>
+              <ID>first</ID>
+              <Default>first</Default>
+            </Literal>
+            """;
+
+        var result = ResolveSnippet(declarations, """<div class="$first$">$second$ $first$</div>$end$""");
+
+        Assert.Equal("""<div class="${1:first}">${2:second} ${1:first}</div>$0""", result);
+    }
+
+    [Fact]
     public void TryResolveSnippetString_NonEditableLiteral_RemainsText()
     {
         var declarations = """
