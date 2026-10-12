@@ -205,8 +205,12 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
 
         foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
         {
+            // Properties from referenced projects cannot be analyzed in this compilation.
+            if (!compilation.ContainsSyntaxTree(group.Key))
+                return false;
+
             var semanticModel = compilation.GetSemanticModel(group.Key);
-            foreach (var accessorBody in accessors)
+            foreach (var accessorBody in group)
             {
                 var operation = semanticModel.GetOperation(accessorBody, cancellationToken);
                 if (operation is null)
