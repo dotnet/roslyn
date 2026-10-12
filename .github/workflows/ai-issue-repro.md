@@ -8,7 +8,9 @@ on:
     names: [ai-repro]
   roles: [admin, maintainer, write, triage]
 
-if: github.event.issue.state == 'open'
+if: >-
+  github.event_name == 'issues' && github.event.action == 'labeled' &&
+  github.event.issue.state == 'open' && !github.event.issue.pull_request
 
 concurrency:
   group: gh-aw-ai-issue-repro-${{ github.event.issue.number }}
@@ -51,6 +53,8 @@ safe-outputs:
   noop:
     report-as-issue: false
   add-comment:
+    issues: true
+    pull-requests: false
     target: triggering
     max: 1
     required-labels: [ai-repro]
@@ -117,7 +121,8 @@ lets a maintainer reproduce the reported behavior before assigning a fix.
 
 ## Reply with a handoff-ready reproduction
 
-Call `add-comment` exactly once for the triggering issue. Use this structure:
+Call `add_comment` exactly once for the triggering issue, never a pull request.
+Use this structure:
 
 1. **Result:** `Verified reproduction`, `Candidate reproduction (not verified)`,
    or `Unable to reproduce`. Summarize the symptom and its connection to the
