@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-public class VisualStudioUnifiedSettingsOptionPersisterTests
+public partial class VisualStudioUnifiedSettingsOptionPersisterTests
 {
     private sealed class MockUnifiedSettingsManager : ISettingsManager
     {
@@ -30,6 +30,11 @@ public class VisualStudioUnifiedSettingsOptionPersisterTests
         private readonly MockSettingsReader _settingsReader = new();
         private readonly MockSettingsWriter _settingsWriter = new();
 
+        public string[]? SubscribedMonikers => _settingsReader.MonikerPatterns;
+
+        public void NotifyChanged(string moniker)
+            => _settingsReader.ChangeHandler?.Invoke(new SettingsUpdate(Guid.NewGuid(), new HashSet<string> { moniker }));
+
         public ISettingsReader GetReader() => _settingsReader;
 
         public ISettingsWriter GetWriter(string callerName) => _settingsWriter;
@@ -40,6 +45,8 @@ public class VisualStudioUnifiedSettingsOptionPersisterTests
     private sealed class MockSettingsReader : ISettingsReader
     {
         public Func<string, Type, SettingRetrieval<object>>? GetValueImpl;
+        public Action<SettingsUpdate>? ChangeHandler;
+        public string[]? MonikerPatterns;
 
         public SettingRetrieval<IReadOnlyList<T>> GetArray<T>(string moniker, SettingReadOptions readOptions = SettingReadOptions.RequireValidation) where T : notnull
         {
@@ -72,7 +79,12 @@ public class VisualStudioUnifiedSettingsOptionPersisterTests
             throw new NotImplementedException();
         }
 
-        public IDisposable SubscribeToChanges(Action<SettingsUpdate> handler, params string[] monikerPatterns) => null!;
+        public IDisposable SubscribeToChanges(Action<SettingsUpdate> handler, params string[] monikerPatterns)
+        {
+            ChangeHandler = handler;
+            MonikerPatterns = monikerPatterns;
+            return null!;
+        }
     }
 
     private sealed class MockSettingsWriter : ISettingsWriter

@@ -1278,7 +1278,7 @@ Additional information: {1}</value>
     <value>Warning: type does not bind</value>
   </data>
   <data name="Display_inline_parameter_name_hints" xml:space="preserve">
-    <value>Disp_lay inline parameter name hints</value>
+    <value>Display inline parameter name hints</value>
   </data>
   <data name="Current_parameter" xml:space="preserve">
     <value>Current parameter</value>
@@ -1721,16 +1721,16 @@ Additional information: {1}</value>
     <value>Insert Snippet</value>
   </data>
   <data name="Show_procedure_line_separators" xml:space="preserve">
-    <value>_Show procedure line separators</value>
+    <value>Show procedure line separators</value>
   </data>
   <data name="Editor_Help" xml:space="preserve">
     <value>Editor Help</value>
   </data>
   <data name="Highlight_related_keywords_under_cursor" xml:space="preserve">
-    <value>Highlight related _keywords under cursor</value>
+    <value>Highlight related keywords under cursor</value>
   </data>
   <data name="Highlight_references_to_symbol_under_cursor" xml:space="preserve">
-    <value>_Highlight references to symbol under cursor</value>
+    <value>Highlight references to symbol under cursor</value>
   </data>
   <data name="Optimize_for_solution_size" xml:space="preserve">
     <value>Optimize for solution size</value>
@@ -1799,7 +1799,7 @@ Additional information: {1}</value>
     <value>Enter key behavior</value>
   </data>
   <data name="Show_preview_for_rename_tracking" xml:space="preserve">
-    <value>Show preview for rename _tracking</value>
+    <value>Show preview for rename tracking</value>
   </data>
   <data name="_Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
     <value>_Only add new line on enter after end of fully typed word</value>
@@ -1858,5 +1858,41 @@ Additional information: {1}</value>
   </data>
   <data name="Formatting_new_document" xml:space="preserve">
     <value>Formatting new document...</value>
+  </data>
+  <data name="AdvancedAutomatic" xml:space="preserve">
+    <value>Automatic</value>
+  </data>
+  <data name="AdvancedOn" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="AdvancedOff" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="Unable_to_update_naming_settings_0" xml:space="preserve">
+    <value>Unable to update Naming settings: {0}</value>
+  </data>
+  <data name="Naming_settings_are_stored_in_settings_json" xml:space="preserve">
+    <value>Naming settings are stored in settings.json and synchronized with legacy profiles.</value>
+  </data>
+  <data name="Reset_naming_preferences" xml:space="preserve">
+    <value>Reset naming preferences</value>
+  </data>
+  <data name="Reset_naming_preferences_confirmation" xml:space="preserve">
+    <value>Reset all naming preferences to their defaults? This removes your custom naming rules, symbol specifications, and styles.</value>
+  </data>
+  <data name="All_files_filter" xml:space="preserve">
+    <value>All files (*.*)|*.*</value>
+    <comment>(*.*)|*.* is a Windows file filter pattern and should not be localized.</comment>
+  </data>
+  <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
+    <value>Prefer 'is null' for reference equality checks</value>
+    <comment>'is null' is a C# expression and should not be localized.</comment>
+  </data>
+  <data name="Prefer_null_check_over_type_check" xml:space="preserve">
+    <value>Prefer 'null' check over type check</value>
+    <comment>'null' is a C# keyword and should not be localized.</comment>
+  </data>
+  <data name="This_setting_is_shared_by_CSharp_and_Visual_Basic" xml:space="preserve">
+    <value>This setting is shared by C# and Visual Basic. Changing it affects both languages.</value>
   </data>
 </root>

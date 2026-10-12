@@ -21,7 +21,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 [UseExportProvider]
-public sealed class VisualStudioSettingsOptionPersisterTests
+public sealed partial class VisualStudioSettingsOptionPersisterTests
 {
     private sealed class MockSettingsSubset : ISettingsSubset
     {
@@ -35,6 +35,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
     {
         public Func<string, Type, (GetValueResult, object?)>? GetValueImpl;
         public Action<string, object?>? SetValueImpl;
+        public Func<string, object?, bool, Task>? SetValueAsyncImpl;
 
         public readonly MockSettingsSubset Subset = new();
 
@@ -51,7 +52,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
         public Task SetValueAsync(string name, object? value, bool isMachineLocal)
         {
             SetValueImpl?.Invoke(name, value);
-            return Task.CompletedTask;
+            return SetValueAsyncImpl?.Invoke(name, value, isMachineLocal) ?? Task.CompletedTask;
         }
 
         public ISettingsList GetOrCreateList(string name, bool isMachineLocal)

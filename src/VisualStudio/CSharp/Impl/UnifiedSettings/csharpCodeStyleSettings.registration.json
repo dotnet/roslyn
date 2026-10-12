@@ -1,0 +1,2621 @@
+{
+  "properties": {
+    "languages.csharp.codeStyle.general.dotnetStyleQualificationForField": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Qualify_field_access_with_this;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 0,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.memberQualification" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleQualificationForFieldSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleQualificationForField} != ''",
+      "order": 1,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleQualificationForProperty": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Qualify_property_access_with_this;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 2,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.memberQualification" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleQualificationForPropertySeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleQualificationForProperty} != ''",
+      "order": 3,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleQualificationForMethod": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Qualify_method_access_with_this;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 4,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.memberQualification" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleQualificationForMethodSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleQualificationForMethod} != ''",
+      "order": 5,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleQualificationForEvent": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Qualify_event_access_with_this;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 6,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.memberQualification" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleQualificationForEventSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleQualificationForEvent} != ''",
+      "order": 7,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePredefinedTypeForLocalsParametersMembers": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:For_locals_parameters_and_members;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 8,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.predefinedTypes" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePredefinedTypeForLocalsParametersMembersSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStylePredefinedTypeForLocalsParametersMembers} != ''",
+      "order": 9,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePredefinedTypeForMemberAccess": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:For_member_access_expressions;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 10,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.predefinedTypes" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePredefinedTypeForMemberAccessSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStylePredefinedTypeForMemberAccess} != ''",
+      "order": 11,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleVarForBuiltInTypes": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:For_built_in_types;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 12,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.varPreferences" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleVarForBuiltInTypesSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleVarForBuiltInTypes} != ''",
+      "order": 13,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleVarWhenTypeIsApparent": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_variable_type_is_apparent;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 14,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.varPreferences" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleVarWhenTypeIsApparentSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleVarWhenTypeIsApparent} != ''",
+      "order": 15,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleVarElsewhere": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Elsewhere;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 16,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.varPreferences" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleVarElsewhereSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleVarElsewhere} != ''",
+      "order": 17,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferAutoProperties": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:analyzer_Prefer_auto_properties;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 18,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.codeBlocks" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferAutoPropertiesSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStylePreferAutoProperties} != ''",
+      "order": 19,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpPreferSimpleUsingStatement": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_simple_using_statement;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 20,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.codeBlocks" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpPreferSimpleUsingStatementSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpPreferSimpleUsingStatement} != ''",
+      "order": 21,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetPreferSystemHashCode": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_System_HashCode_in_GetHashCode;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 22,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.codeBlocks" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetPreferSystemHashCodeSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetPreferSystemHashCode} != ''",
+      "order": 23,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferMethodGroupConversion": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_method_group_conversion;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 24,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.codeBlocks" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferMethodGroupConversionSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferMethodGroupConversion} != ''",
+      "order": 25,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferTopLevelStatements": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_top_level_statements;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 26,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.codeBlocks" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferTopLevelStatementsSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferTopLevelStatements} != ''",
+      "order": 27,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleObjectInitializer": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_object_initializer;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 28,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleObjectInitializerSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleObjectInitializer} != ''",
+      "order": 29,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleCollectionInitializer": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_collection_initializer;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 30,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleCollectionInitializerSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleCollectionInitializer} != ''",
+      "order": 31,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferSimplifiedBooleanExpressions": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_simplified_boolean_expressions;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 32,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferSimplifiedBooleanExpressionsSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStylePreferSimplifiedBooleanExpressions} != ''",
+      "order": 33,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferSwitchExpression": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Prefer_switch_expression;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 34,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferSwitchExpressionSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferSwitchExpression} != ''",
+      "order": 35,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferConditionalExpressionOverAssignment": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_conditional_expression_over_if_with_assignments;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 36,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferConditionalExpressionOverAssignmentSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStylePreferConditionalExpressionOverAssignment} != ''",
+      "order": 37,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferConditionalExpressionOverReturn": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_conditional_expression_over_if_with_returns;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 38,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferConditionalExpressionOverReturnSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStylePreferConditionalExpressionOverReturn} != ''",
+      "order": 39,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleExplicitTupleNames": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_explicit_tuple_name;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 40,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleExplicitTupleNamesSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleExplicitTupleNames} != ''",
+      "order": 41,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpPreferSimpleDefaultExpression": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_simple_default_expression;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 42,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpPreferSimpleDefaultExpressionSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpPreferSimpleDefaultExpression} != ''",
+      "order": 43,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferInferredTupleNames": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_inferred_tuple_names;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 44,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferInferredTupleNamesSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStylePreferInferredTupleNames} != ''",
+      "order": 45,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferInferredAnonymousTypeMemberNames": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_inferred_anonymous_type_member_names;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 46,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferInferredAnonymousTypeMemberNamesSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStylePreferInferredAnonymousTypeMemberNames} != ''",
+      "order": 47,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferLocalOverAnonymousFunction": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_local_function_over_anonymous_function;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 48,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferLocalOverAnonymousFunctionSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferLocalOverAnonymousFunction} != ''",
+      "order": 49,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferCompoundAssignment": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_compound_assignments;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 50,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferCompoundAssignmentSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStylePreferCompoundAssignment} != ''",
+      "order": 51,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleImplicitObjectCreationWhenTypeIsApparent": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Prefer_implicit_object_creation_when_type_is_apparent;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 52,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleImplicitObjectCreationWhenTypeIsApparentSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleImplicitObjectCreationWhenTypeIsApparent} != ''",
+      "order": 53,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferIndexOperator": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_index_operator;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 54,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferIndexOperatorSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferIndexOperator} != ''",
+      "order": 55,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferRangeOperator": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_range_operator;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 56,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferRangeOperatorSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferRangeOperator} != ''",
+      "order": 57,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferTupleSwap": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_tuple_swap;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 58,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferTupleSwapSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferTupleSwap} != ''",
+      "order": 59,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferPatternMatching": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Prefer_pattern_matching;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 60,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.patternMatching" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferPatternMatchingSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferPatternMatching} != ''",
+      "order": 61,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePatternMatchingOverIsWithCastCheck": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Prefer_pattern_matching_over_is_with_cast_check;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 62,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.patternMatching" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePatternMatchingOverIsWithCastCheckSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePatternMatchingOverIsWithCastCheck} != ''",
+      "order": 63,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePatternMatchingOverAsWithNullCheck": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Prefer_pattern_matching_over_as_with_null_check;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 64,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.patternMatching" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePatternMatchingOverAsWithNullCheckSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePatternMatchingOverAsWithNullCheck} != ''",
+      "order": 65,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferNotPattern": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Prefer_pattern_matching_over_mixed_type_check;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 66,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.patternMatching" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferNotPatternSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferNotPattern} != ''",
+      "order": 67,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleInlinedVariableDeclaration": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_inlined_variable_declaration;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 68,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.variables" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleInlinedVariableDeclarationSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleInlinedVariableDeclaration} != ''",
+      "order": 69,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleDeconstructedVariableDeclaration": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_deconstructed_variable_declaration;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 70,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.variables" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleDeconstructedVariableDeclarationSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleDeconstructedVariableDeclaration} != ''",
+      "order": 71,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleThrowExpression": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Prefer_throw_expression;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 72,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.nullChecking" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleThrowExpressionSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleThrowExpression} != ''",
+      "order": 73,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleConditionalDelegateCall": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Prefer_conditional_delegate_call;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 74,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.nullChecking" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleConditionalDelegateCallSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleConditionalDelegateCall} != ''",
+      "order": 75,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleCoalesceExpression": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_coalesce_expression;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 76,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.nullChecking" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleCoalesceExpressionSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleCoalesceExpression} != ''",
+      "order": 77,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleNullPropagation": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_null_propagation;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 78,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.nullChecking" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleNullPropagationSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleNullPropagation} != ''",
+      "order": 79,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_is_null_for_reference_equality_checks;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 80,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.nullChecking" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStylePreferIsNullCheckOverReferenceEqualityMethodSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod} != ''",
+      "order": 81,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferNullCheckOverTypeCheck": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_null_check_over_type_check;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 82,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.nullChecking" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferNullCheckOverTypeCheckSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferNullCheckOverTypeCheck} != ''",
+      "order": 83,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpUsingDirectivePlacement": {
+      "type": "string",
+      "enum": [
+        "inside_namespace",
+        "outside_namespace",
+        "outside_namespace_ignoring_aliases"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Inside_namespace;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.CodeAnalysis.Editor.CSharp.CSharpEditorResources:Outside_namespace;..\\Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.Editor.CSharp.CSharpEditorResources:Outside_namespace;..\\Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Preferred_using_directive_placement;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 84,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.usings" }],
+      "default": "outside_namespace",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpUsingDirectivePlacementSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpUsingDirectivePlacement} != ''",
+      "order": 85,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleReadonlyField": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_readonly_fields;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 86,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.modifiers" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleReadonlyFieldSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleReadonlyField} != ''",
+      "order": 87,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferReadonlyStruct": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_read_only_struct;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 88,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.modifiers" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStylePreferReadonlyStructSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStylePreferReadonlyStruct} != ''",
+      "order": 89,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpPreferStaticLocalFunction": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_static_local_functions;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 90,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.modifiers" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpPreferStaticLocalFunctionSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpPreferStaticLocalFunction} != ''",
+      "order": 91,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpPreferStaticAnonymousFunction": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_static_anonymous_functions;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 92,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.modifiers" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpPreferStaticAnonymousFunctionSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpPreferStaticAnonymousFunction} != ''",
+      "order": 93,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleAllowMultipleBlankLinesExperimental": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Allow_multiple_blank_lines;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 94,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.newLines" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleAllowMultipleBlankLinesExperimentalSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleAllowMultipleBlankLinesExperimental} != ''",
+      "order": 95,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleAllowEmbeddedStatementsOnSameLineExperimental": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Allow_embedded_statements_on_same_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 96,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.newLines" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleAllowEmbeddedStatementsOnSameLineExperimentalSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleAllowEmbeddedStatementsOnSameLineExperimental} != ''",
+      "order": 97,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleAllowBlankLinesBetweenConsecutiveBracesExperimental": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Allow_blank_lines_between_consecutive_braces;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 98,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.newLines" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleAllowBlankLinesBetweenConsecutiveBracesExperimentalSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleAllowBlankLinesBetweenConsecutiveBracesExperimental} != ''",
+      "order": 99,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Allow_statement_immediately_after_block;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 100,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.newLines" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.dotnetStyleAllowStatementImmediatelyAfterBlockExperimentalSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental} != ''",
+      "order": 101,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleAllowBlankLineAfterColonInConstructorInitializerExperimental": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Allow_blank_line_after_colon_in_constructor_initializer;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 102,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.newLines" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleAllowBlankLineAfterColonInConstructorInitializerExperimentalSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleAllowBlankLineAfterColonInConstructorInitializerExperimental} != ''",
+      "order": 103,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleAllowBlankLineAfterTokenInConditionalExpressionExperimental": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Allow_blank_line_after_token_in_conditional_expression;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 104,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.newLines" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleAllowBlankLineAfterTokenInConditionalExpressionExperimentalSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleAllowBlankLineAfterTokenInConditionalExpressionExperimental} != ''",
+      "order": 105,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleAllowBlankLineAfterTokenInArrowExpressionClauseExperimental": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Allow_blank_line_after_token_in_arrow_expression_clause;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 106,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.newLines" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleAllowBlankLineAfterTokenInArrowExpressionClauseExperimentalSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleAllowBlankLineAfterTokenInArrowExpressionClauseExperimental} != ''",
+      "order": 107,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpPreferBraces": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false",
+        "when_multiline"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_on_multiple_lines;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_braces;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 108,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.codeBlocks", "order": 16 }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpPreferBracesSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpPreferBraces} != ''",
+      "order": 109,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleNamespaceDeclarations": {
+      "type": "string",
+      "enum": [
+        "block_scoped",
+        "file_scoped"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Block_scoped;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:File_scoped;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Namespace_declarations;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 110,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.codeBlocks", "order": 17 }],
+      "default": "block_scoped",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleNamespaceDeclarationsSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleNamespaceDeclarations} != ''",
+      "order": 111,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedMethods": {
+      "type": "string",
+      "enum": [
+        "false",
+        "true",
+        "when_on_single_line"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_possible;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_on_single_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Use_expression_body_for_methods;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 112,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedMethodsSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleExpressionBodiedMethods} != ''",
+      "order": 113,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedConstructors": {
+      "type": "string",
+      "enum": [
+        "false",
+        "true",
+        "when_on_single_line"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_possible;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_on_single_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Use_expression_body_for_constructors;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 114,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedConstructorsSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleExpressionBodiedConstructors} != ''",
+      "order": 115,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedOperators": {
+      "type": "string",
+      "enum": [
+        "false",
+        "true",
+        "when_on_single_line"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_possible;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_on_single_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Use_expression_body_for_operators;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 116,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedOperatorsSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleExpressionBodiedOperators} != ''",
+      "order": 117,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedProperties": {
+      "type": "string",
+      "enum": [
+        "false",
+        "true",
+        "when_on_single_line"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_possible;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_on_single_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Use_expression_body_for_properties;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 118,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedPropertiesSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleExpressionBodiedProperties} != ''",
+      "order": 119,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedIndexers": {
+      "type": "string",
+      "enum": [
+        "false",
+        "true",
+        "when_on_single_line"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_possible;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_on_single_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Use_expression_body_for_indexers;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 120,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedIndexersSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleExpressionBodiedIndexers} != ''",
+      "order": 121,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedAccessors": {
+      "type": "string",
+      "enum": [
+        "false",
+        "true",
+        "when_on_single_line"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_possible;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_on_single_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Use_expression_body_for_accessors;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 122,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedAccessorsSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleExpressionBodiedAccessors} != ''",
+      "order": 123,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedLambdas": {
+      "type": "string",
+      "enum": [
+        "false",
+        "true",
+        "when_on_single_line"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_possible;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_on_single_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Use_expression_body_for_lambdas;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 124,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "true",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedLambdasSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleExpressionBodiedLambdas} != ''",
+      "order": 125,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedLocalFunctions": {
+      "type": "string",
+      "enum": [
+        "false",
+        "true",
+        "when_on_single_line"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_possible;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:When_on_single_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Use_expression_body_for_local_functions;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 126,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "false",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleExpressionBodiedLocalFunctionsSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleExpressionBodiedLocalFunctions} != ''",
+      "order": 127,
+      "default": "silent",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleUnusedValueAssignmentPreference": {
+      "type": "string",
+      "enum": [
+        "unused_local_variable",
+        "discard_variable"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Unused_local;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Discard;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Avoid_unused_value_assignments;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 128,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "discard_variable",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleUnusedValueAssignmentPreferenceSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleUnusedValueAssignmentPreference} != ''",
+      "order": 129,
+      "default": "suggestion",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleUnusedValueExpressionStatementPreference": {
+      "type": "string",
+      "enum": [
+        "unused_local_variable",
+        "discard_variable"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Unused_local;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Discard;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Avoid_expression_statements_that_implicitly_ignore_value;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 130,
+      "placements": [{ "category": "languages.csharp.codeStyle.general.expressions" }],
+      "default": "discard_variable",
+      "transientScopesSupported": false
+    },
+    "languages.csharp.codeStyle.general.csharpStyleUnusedValueExpressionStatementPreferenceSeverity": {
+      "type": "string",
+      "enum": [
+        "none",
+        "silent",
+        "suggestion",
+        "warning",
+        "error"
+      ],
+      "enumItemLabels": [
+        "@Microsoft.CodeAnalysis.WorkspacesResources:None;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Refactoring_Only;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Suggestion;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Warning;..\\Microsoft.CodeAnalysis.Workspaces.dll",
+        "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "enableWhen": "${config:languages.csharp.codeStyle.general.csharpStyleUnusedValueExpressionStatementPreference} != ''",
+      "order": 131,
+      "default": "silent",
+      "transientScopesSupported": false
+    }
+  },
+  "categories": {
+    "languages.csharp.codeStyle.general.memberQualification": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:this_preferences_colon;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 0,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.general.predefinedTypes": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:predefined_type_preferences_colon;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 1,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.general.varPreferences": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:var_preferences_colon;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 2,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.general.codeBlocks": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_block_preferences_colon;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 3,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.general.expressions": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Expression_preferences_colon;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 4,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.general.patternMatching": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Pattern_matching_preferences_colon;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 5,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.general.variables": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Variable_preferences_colon;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 6,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.general.nullChecking": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:null_checking_colon;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 7,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.general.usings": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:using_preferences_colon;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 8,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.general.modifiers": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Modifier_preferences_colon;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 9,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.general.newLines": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:New_line_preferences_experimental_colon;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 10,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle": {
+      "title": "#114;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+    },
+    "languages.csharp.codeStyle.general": {
+      "title": "#108;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 0,
+      "keepHeaderVisible": true,
+      "legacyOptionPageId": "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F",
+      "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541",
+      "commands": [
+        {
+          "vsct": {
+            "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Generate_dot_editorconfig_file_from_settings;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+            "set": "47b0d77e-35c4-4b41-9fc4-9309ef73f93b",
+            "id": 256
+          }
+        },
+        {
+          "vsct": {
+            "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Learn_more;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+            "set": "47b0d77e-35c4-4b41-9fc4-9309ef73f93b",
+            "id": 257
+          }
+        }
+      ],
+      "previewUIFactory": {
+        "gel": {
+          "factoryGuid": "b147d67e-5ddf-4106-bd6e-c6cc49b88141",
+          "elementId": 0
+        }
+      }
+    }
+  }
+}

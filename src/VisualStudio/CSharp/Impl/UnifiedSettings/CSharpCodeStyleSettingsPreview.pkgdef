@@ -1,0 +1,4 @@
+// Native Unified Settings preview factory, loaded by the shell's UIProviders registry.
+[$RootKey$\UIProviders\{b147d67e-5ddf-4106-bd6e-c6cc49b88141}]
+@="C# code style previews"
+"Package"="{47b0d77e-35c4-4b41-9fc4-9309ef73f93b}"

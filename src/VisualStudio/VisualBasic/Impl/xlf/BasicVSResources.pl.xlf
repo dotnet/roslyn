@@ -28,8 +28,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
-        <source>Automatic _insertion of Interface and MustOverride members</source>
-        <target state="translated">Automatyczne _wstawianie składowych Interface i MustOverride</target>
+        <source>Automatic insertion of Interface and MustOverride members</source>
+        <target state="needs-review-translation">Automatyczne _wstawianie składowych Interface i MustOverride</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -53,28 +53,28 @@
         <note />
       </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
-        <source>A_utomatic insertion of end constructs</source>
-        <target state="translated">A_utomatyczne wstawianie konstrukcji końcowych</target>
+        <source>Automatic insertion of end constructs</source>
+        <target state="needs-review-translation">A_utomatyczne wstawianie konstrukcji końcowych</target>
         <note />
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
-        <source>_Pretty listing (reformatting) of code</source>
-        <target state="translated">_Automatyczne formatowanie (ponowne formatowanie) kodu</target>
+        <source>Pretty listing (reformatting) of code</source>
+        <target state="needs-review-translation">_Automatyczne formatowanie (ponowne formatowanie) kodu</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>_Enter outlining mode when files open</source>
-        <target state="translated">_Przejdź do trybu konspektu przy otwieraniu plików</target>
+        <source>Enter outlining mode when files open</source>
+        <target state="needs-review-translation">_Przejdź do trybu konspektu przy otwieraniu plików</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">_Generuj komentarze dokumentacji XML dla '''</target>
+        <source>Generate XML documentation comments for '''</source>
+        <target state="needs-review-translation">_Generuj komentarze dokumentacji XML dla '''</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
-        <source>_Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="translated">_Przejdź do przeglądarki obiektów, aby uzyskać symbole zdefiniowane w metadanych</target>
+        <source>Navigate to Object Browser for symbols defined in metadata</source>
+        <target state="needs-review-translation">_Przejdź do przeglądarki obiektów, aby uzyskać symbole zdefiniowane w metadanych</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -83,18 +83,18 @@
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
-        <source>Suggest imports for types in _NuGet packages</source>
-        <target state="translated">Sugeruj dyrektywy import dla typów w pakietach _NuGet</target>
+        <source>Suggest imports for types in NuGet packages</source>
+        <target state="needs-review-translation">Sugeruj dyrektywy import dla typów w pakietach _NuGet</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
-        <source>Suggest imports for types in _reference assemblies</source>
-        <target state="translated">Sugeruj dyrektywy import dla typów w zestawach _referencyjnych</target>
+        <source>Suggest imports for types in reference assemblies</source>
+        <target state="needs-review-translation">Sugeruj dyrektywy import dla typów w zestawach _referencyjnych</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_imports">
-        <source>_Place 'System' directives first when sorting imports</source>
-        <target state="translated">_Umieść najpierw dyrektywy „System” podczas sortowania dyrektyw import</target>
+        <source>Place 'System' directives first when sorting imports</source>
+        <target state="needs-review-translation">_Umieść najpierw dyrektywy „System” podczas sortowania dyrektyw import</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">

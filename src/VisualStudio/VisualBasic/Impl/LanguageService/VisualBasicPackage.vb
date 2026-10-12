@@ -79,10 +79,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideEditorLogicalView(GetType(VisualBasicCodePageEditorFactory), VSConstants.LOGVIEWID.Debugging_string)>
     <ProvideEditorLogicalView(GetType(VisualBasicCodePageEditorFactory), VSConstants.LOGVIEWID.Code_string)>
     <ProvideEditorLogicalView(GetType(VisualBasicCodePageEditorFactory), VSConstants.LOGVIEWID.TextView_string)>
-    <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
+    <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160, IsInUnifiedSettings:=True)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
-    <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
-    <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
+    <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161, IsInUnifiedSettings:=True)>
+    <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162, IsInUnifiedSettings:=True)>
     <ProvideSettingsManifest(PackageRelativeManifestFile:="UnifiedSettings\visualBasicSettings.registration.json")>
     <ProvideService(GetType(IVbTempPECompilerFactory), IsAsyncQueryable:=False, IsCacheable:=True, IsFreeThreaded:=True, ServiceName:="Visual Basic TempPE Compiler Factory Service")>
     <InstalledProductRegistration("#113", "#114", PkgDefProductVersion.InformationalVersion, LanguageIndependentName:="Microsoft Visual Basic")>

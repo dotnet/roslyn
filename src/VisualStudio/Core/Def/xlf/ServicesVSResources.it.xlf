@@ -313,8 +313,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
-        <source>Disp_lay inline parameter name hints</source>
-        <target state="translated">Visua_lizza suggerimenti per i nomi di parametro inline</target>
+        <source>Display inline parameter name hints</source>
+        <target state="needs-review-translation">Visua_lizza suggerimenti per i nomi di parametro inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -503,8 +503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">_Evidenzia riferimenti a simbolo sotto il cursore</target>
+        <source>Highlight references to symbol under cursor</source>
+        <target state="needs-review-translation">_Evidenzia riferimenti a simbolo sotto il cursore</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -513,8 +513,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">Evidenzia _parole chiave correlate sotto il cursore</target>
+        <source>Highlight related keywords under cursor</source>
+        <target state="needs-review-translation">Evidenzia _parole chiave correlate sotto il cursore</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1388,13 +1388,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">Mostra anteprima per verifica _ridenominazione</target>
+        <source>Show preview for rename tracking</source>
+        <target state="needs-review-translation">Mostra anteprima per verifica _ridenominazione</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">_Mostra separatori di riga routine</target>
+        <source>Show procedure line separators</source>
+        <target state="needs-review-translation">_Mostra separatori di riga routine</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -1525,6 +1525,11 @@
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
         <target state="translated">Questo è uno spazio dei nomi non valido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_setting_is_shared_by_CSharp_and_Visual_Basic">
+        <source>This setting is shared by C# and Visual Basic. Changing it affects both languages.</source>
+        <target state="new">This setting is shared by C# and Visual Basic. Changing it affects both languages.</target>
         <note />
       </trans-unit>
       <trans-unit id="Title">
@@ -2801,6 +2806,56 @@ Informazioni aggiuntive: {1}</target>
         <source>Prefer conditional expression over 'if' with returns</source>
         <target state="translated">Preferisci l'espressione condizionale a 'if' con valori restituiti</target>
         <note />
+      </trans-unit>
+      <trans-unit id="AdvancedAutomatic">
+        <source>Automatic</source>
+        <target state="new">Automatic</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AdvancedOn">
+        <source>On</source>
+        <target state="new">On</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="AdvancedOff">
+        <source>Off</source>
+        <target state="new">Off</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_update_naming_settings_0">
+        <source>Unable to update Naming settings: {0}</source>
+        <target state="new">Unable to update Naming settings: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_settings_are_stored_in_settings_json">
+        <source>Naming settings are stored in settings.json and synchronized with legacy profiles.</source>
+        <target state="new">Naming settings are stored in settings.json and synchronized with legacy profiles.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_naming_preferences">
+        <source>Reset naming preferences</source>
+        <target state="new">Reset naming preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_naming_preferences_confirmation">
+        <source>Reset all naming preferences to their defaults? This removes your custom naming rules, symbol specifications, and styles.</source>
+        <target state="new">Reset all naming preferences to their defaults? This removes your custom naming rules, symbol specifications, and styles.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_files_filter">
+        <source>All files (*.*)|*.*</source>
+        <target state="new">All files (*.*)|*.*</target>
+        <note>(*.*)|*.* is a Windows file filter pattern and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="translated">Preferisci 'is null' per i controlli di uguaglianza dei riferimenti</target>
+        <note>'is null' is a C# expression and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="translated">Preferisci il controllo 'null' al controllo del tipo</target>
+        <note>'null' is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>
   </file>
