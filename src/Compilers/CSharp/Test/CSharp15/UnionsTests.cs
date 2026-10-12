@@ -49116,6 +49116,80 @@ union S2(int, bool)
         }
 
         [Fact]
+        public void UnionDeclaration_39()
+        {
+            var src1 = @"
+partial union S1(int, bool)
+{
+}
+";
+            var src2 = @"
+partial union S1
+{
+}
+";
+            var comp = CreateCompilation([src1, src2, UnionAttributeSource, IUnionSource]);
+            comp.VerifyEmitDiagnostics();
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86005")]
+        public void UnionDeclaration_40()
+        {
+            var src1 = @"
+partial union S1
+{
+}
+";
+            var src2 = @"
+partial union S1(int, bool)
+{
+}
+";
+            var comp = CreateCompilation([src1, src2, UnionAttributeSource, IUnionSource]);
+            comp.VerifyEmitDiagnostics();
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Fact]
+        public void UnionDeclaration_41()
+        {
+            var src1 = @"
+partial union S1(int, bool);
+";
+            var src2 = @"
+partial union S1;
+";
+            var comp = CreateCompilation([src1, src2, UnionAttributeSource, IUnionSource]);
+            comp.VerifyEmitDiagnostics();
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86005")]
+        public void UnionDeclaration_42()
+        {
+            var src1 = @"
+partial union S1;
+";
+            var src2 = @"
+partial union S1(int, bool);
+";
+            var comp = CreateCompilation([src1, src2, UnionAttributeSource, IUnionSource]);
+            comp.VerifyEmitDiagnostics();
+
+            Assert.True(comp.GetTypeByMetadataName("S1").IsUnionType);
+            VerifyCaseTypes(comp, "S1", ["System.Int32", "System.Boolean"]);
+        }
+
+        [Fact]
         public void ValueProperty_01()
         {
             var src = @"
