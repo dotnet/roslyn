@@ -571,8 +571,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning restore format
                 };
 
-                // We don't know any other way this can happen, but if it does we recover gracefully in production.
-                Debug.Assert(newCode != oldCode || oldCode == ErrorCode.ERR_InsufficientStack, oldCode.ToString());
+                // Unsafe diagnostics can occur only in strict analysis for imported structs that compatibility analysis treats as empty.
+                Debug.Assert(newCode != oldCode ||
+                    oldCode is ErrorCode.ERR_InsufficientStack or ErrorCode.ERR_UnsafeOperation or ErrorCode.ERR_FeatureInPreview,
+                    oldCode.ToString());
 
                 var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
                 diagnostics.Add(newCode, diagnostic.Location, args);

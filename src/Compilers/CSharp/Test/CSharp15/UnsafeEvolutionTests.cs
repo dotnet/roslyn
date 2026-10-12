@@ -1539,6 +1539,77 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
+    public void Pointer_AddressOf_UnassignedImportedStruct(bool updatedRules, bool useCompilationReference)
+    {
+        var libSource = """
+            #pragma warning disable CS0169 // unreferenced field
+            public struct S
+            {
+                private string _field;
+            }
+            """;
+
+        var lib = CreateCompilation(libSource);
+        var libReference = useCompilationReference ? lib.ToMetadataReference() : lib.EmitToImageReference();
+
+        var source = """
+            #pragma warning disable CS8500 // address of managed type
+            S x;
+            _ = &x;
+            _ = &x;
+            S y = default;
+            _ = &y;
+            S z;
+            unsafe { _ = &z; }
+            _ = &z;
+            """;
+
+        CreateCompilation(source, references: [libReference],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (3,5): error CS9360: This operation may only be used in an unsafe context
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(3, 5));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_UnassignedImportedStruct_OldLanguageVersion(bool useCompilationReference)
+    {
+        var libSource = """
+            #pragma warning disable CS0169 // unreferenced field
+            public struct S
+            {
+                private string _field;
+            }
+            """;
+
+        var lib = CreateCompilation(libSource);
+        var libReference = useCompilationReference ? lib.ToMetadataReference() : lib.EmitToImageReference();
+
+        var source = """
+            #pragma warning disable CS8500 // address of managed type
+            S x;
+            _ = &x;
+            """;
+
+        CreateCompilation(source, references: [libReference],
+            parseOptions: TestOptions.Regular15,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+            // (3,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = &x").WithArguments("updated memory safety rules").WithLocation(3, 1),
+            // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(3, 5),
+            // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&").WithArguments("updated memory safety rules").WithLocation(3, 5));
+    }
+
+    [Theory, CombinatorialData]
     public void Pointer_AddressOf_UnassignedOutParameter(bool updatedRules)
     {
         var source = """
