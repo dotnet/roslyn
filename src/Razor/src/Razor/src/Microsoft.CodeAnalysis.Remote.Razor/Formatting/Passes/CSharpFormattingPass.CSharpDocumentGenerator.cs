@@ -1313,7 +1313,9 @@ internal partial class CSharpFormattingPass
                 // For @attribute we skip over the directive itself and Roslyn can handle the rest
                 // "@attribute [AttributeUsage(AttributeTargets.All)]" to "[AttributeUsage(AttributeTargets.All)]"
                 // Roslyn's parser doesn't care whether the attribute is on a valid member, at least for formatting purposes
-                _builder.AppendLine(attribute.GetContent());
+                // Continuation lines are visited separately.
+                var span = TextSpan.FromBounds(attribute.SpanStart, Math.Min(attribute.EndPosition, _currentLine.End));
+                _builder.AppendLine(_sourceText.ToString(span));
                 return CreateLineInfo(
                     processFormatting: true,
                     originOffset: attribute.SpanStart - _currentToken.Position,

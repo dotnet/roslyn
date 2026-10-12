@@ -3590,6 +3590,69 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86027")]
+    public async Task MultilineAttributeDirective()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @attribute [Obsolete("message",
+                    error:false)]
+
+                @code {
+                void M( ) { }
+                }
+                """,
+            htmlFormatted: """
+                @attribute [Obsolete("message",
+                    error:false)]
+
+                @code {
+                void M( ) { }
+                }
+                """,
+            expected: """
+                @attribute [Obsolete("message",
+                    error: false)]
+
+                @code {
+                    void M() { }
+                }
+                """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86027")]
+    public async Task MultilineAttributeDirective_Tabs()
+    {
+        await RunFormattingTestAsync(
+            input: """
+                @attribute [Obsolete("message",
+                	error:false)]
+
+                @code {
+                void M( ) { }
+                }
+                """,
+            htmlFormatted: """
+                @attribute [Obsolete("message",
+                	error:false)]
+
+                @code {
+                void M( ) { }
+                }
+                """,
+            expected: """
+                @attribute [Obsolete("message",
+                	error: false)]
+
+                @code {
+                	void M() { }
+                }
+                """,
+            insertSpaces: false);
+    }
+
+    [Fact]
     public async Task TypeParam_Unconstrained()
     {
         await RunFormattingTestAsync(
