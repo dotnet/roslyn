@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic insertion of Interface and MustOverride members</source>
-        <target state="needs-review-translation">Automatické _vkládání členů Interface a MustOverride</target>
+        <target state="translated">Automatické vkládání členů Interface a MustOverride</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -54,27 +54,27 @@
       </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>Automatic insertion of end constructs</source>
-        <target state="needs-review-translation">A_utomatické vkládání koncových konstruktorů</target>
+        <target state="translated">Automatické vkládání koncových konstruktorů</target>
         <note />
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>Pretty listing (reformatting) of code</source>
-        <target state="needs-review-translation">_Přehledný výpis (přeformátování) kódu</target>
+        <target state="translated">Přehledný výpis (přeformátování) kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter outlining mode when files open</source>
-        <target state="needs-review-translation">P_o otevření souborů přejít do režimu osnovy</target>
+        <target state="translated">Po otevření souborů přejít do režimu osnovy</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for '''</source>
-        <target state="needs-review-translation">_Generovat komentáře dokumentace XML pro '''</target>
+        <target state="translated">Generovat komentáře dokumentace XML pro '''</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="needs-review-translation">_Přejít do Prohlížeče objektů pro symboly definované v metadatech</target>
+        <target state="translated">Přejít do Prohlížeče objektů pro symboly definované v metadatech</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -84,17 +84,17 @@
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in NuGet packages</source>
-        <target state="needs-review-translation">Navrhovat importy pro typy v balíčcích _NuGet</target>
+        <target state="translated">Navrhovat importy pro typy v balíčcích NuGet</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
         <source>Suggest imports for types in reference assemblies</source>
-        <target state="needs-review-translation">Navrhovat importy pro typy v _referenčních sestaveních</target>
+        <target state="translated">Navrhovat importy pro typy v referenčních sestaveních</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_imports">
         <source>Place 'System' directives first when sorting imports</source>
-        <target state="needs-review-translation">_Při řazení importů umístit jako první direktivy System</target>
+        <target state="translated">Při řazení importů umístit jako první direktivy System</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">

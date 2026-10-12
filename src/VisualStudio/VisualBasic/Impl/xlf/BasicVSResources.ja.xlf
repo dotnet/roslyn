@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic insertion of Interface and MustOverride members</source>
-        <target state="needs-review-translation">インターフェイスと MustOverride メンバーの自動挿入(_I)</target>
+        <target state="translated">インターフェイスと MustOverride メンバーの自動挿入(I)</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -54,27 +54,27 @@
       </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>Automatic insertion of end constructs</source>
-        <target state="needs-review-translation">構造文の終端の自動挿入(_U)</target>
+        <target state="translated">構造文の終端の自動挿入(U)</target>
         <note />
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>Pretty listing (reformatting) of code</source>
-        <target state="needs-review-translation">コードの再フォーマット(_P)</target>
+        <target state="translated">コードの再フォーマット(P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter outlining mode when files open</source>
-        <target state="needs-review-translation">ファイルが開かれたときにアウトライン モードを実行する(_E)</target>
+        <target state="translated">ファイルが開かれたときにアウトライン モードを実行する(E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for '''</source>
-        <target state="needs-review-translation">''' が入力されたときに XML ドキュメント コメントを生成する(_G)</target>
+        <target state="translated">''' が入力されたときに XML ドキュメント コメントを生成する(G)</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="needs-review-translation">メタデータで定義されている記号のオブジェクト ブラウザーに移動する(_N)</target>
+        <target state="translated">メタデータで定義されている記号のオブジェクト ブラウザーに移動する(N)</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -84,17 +84,17 @@
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in NuGet packages</source>
-        <target state="needs-review-translation">NuGet パッケージの型に import を提案する(_N)</target>
+        <target state="translated">NuGet パッケージの型に import を提案する(N)</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
         <source>Suggest imports for types in reference assemblies</source>
-        <target state="needs-review-translation">参照アセンブリの型に import を提案する(_R)</target>
+        <target state="translated">参照アセンブリの型に import を提案する(R)</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_imports">
         <source>Place 'System' directives first when sorting imports</source>
-        <target state="needs-review-translation">import の並び替えのとき、最初に 'System' ディレクティブを配置する(_P)</target>
+        <target state="translated">import の並び替えのとき、最初に 'System' ディレクティブを配置する(P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">

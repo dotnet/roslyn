@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Display inline parameter name hints</source>
-        <target state="needs-review-translation">Zobrazovat nápovědy k názvům v_ložených parametrů</target>
+        <target state="translated">Zobrazovat nápovědy k názvům vložených parametrů</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>Highlight references to symbol under cursor</source>
-        <target state="needs-review-translation">Z_výrazňovat odkazy na symbol pod kurzorem</target>
+        <target state="translated">Zvýrazňovat odkazy na symbol pod kurzorem</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -514,7 +514,7 @@
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related keywords under cursor</source>
-        <target state="needs-review-translation">Zvýrazňovat související _klíčová slova pod kurzorem</target>
+        <target state="translated">Zvýrazňovat související klíčová slova pod kurzorem</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1389,12 +1389,12 @@
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename tracking</source>
-        <target state="needs-review-translation">Zobrazit náhled pro sledování _rename</target>
+        <target state="translated">Zobrazit náhled pro sledování rename</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>Show procedure line separators</source>
-        <target state="needs-review-translation">Zob_razit oddělovače řádků procedur</target>
+        <target state="translated">Zobrazit oddělovače řádků procedur</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

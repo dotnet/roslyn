@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic insertion of Interface and MustOverride members</source>
-        <target state="needs-review-translation">Interface ve MustOverride üyelerini otomatik olarak _ekle</target>
+        <target state="translated">Interface ve MustOverride üyelerini otomatik olarak ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -54,27 +54,27 @@
       </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>Automatic insertion of end constructs</source>
-        <target state="needs-review-translation">Bitiş yapılarını o_tomatik ekle</target>
+        <target state="translated">Bitiş yapılarını otomatik ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>Pretty listing (reformatting) of code</source>
-        <target state="needs-review-translation">Kodu _düzgün listeleme (yeniden biçimlendirme)</target>
+        <target state="translated">Kodu düzgün listeleme (yeniden biçimlendirme)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter outlining mode when files open</source>
-        <target state="needs-review-translation">Dosyalar açılırken ana hat oluşturma moduna _gir</target>
+        <target state="translated">Dosyalar açılırken ana hat oluşturma moduna gir</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for '''</source>
-        <target state="needs-review-translation">''' için XML belge açıklamaları _oluştur</target>
+        <target state="translated">''' için XML belge açıklamaları oluştur</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="needs-review-translation">Meta verilerde tanımlanan semboller için Nesne Tarayıcısı'na _git</target>
+        <target state="translated">Meta verilerde tanımlanan semboller için Nesne Tarayıcısı'na git</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -84,17 +84,17 @@
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in NuGet packages</source>
-        <target state="needs-review-translation">_NuGet paketlerindeki türler için içeri aktarmalar öner</target>
+        <target state="translated">NuGet paketlerindeki türler için içeri aktarmalar öner</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
         <source>Suggest imports for types in reference assemblies</source>
-        <target state="needs-review-translation">_Başvuru bütünleştirilmiş kodlarındaki türler için içeri aktarmalar öner</target>
+        <target state="translated">Başvuru bütünleştirilmiş kodlarındaki türler için içeri aktarmalar öner</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_imports">
         <source>Place 'System' directives first when sorting imports</source>
-        <target state="needs-review-translation">İçeri aktarmaları sıralarken önce 'System' yönergelerini _yerleştir</target>
+        <target state="translated">İçeri aktarmaları sıralarken önce 'System' yönergelerini yerleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">

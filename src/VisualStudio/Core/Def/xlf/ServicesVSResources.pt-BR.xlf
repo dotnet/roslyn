@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Display inline parameter name hints</source>
-        <target state="needs-review-translation">Exi_bir as dicas embutidas de nome de parâmetro</target>
+        <target state="translated">Exibir as dicas embutidas de nome de parâmetro</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>Highlight references to symbol under cursor</source>
-        <target state="needs-review-translation">_Realçar referências a símbolo sob o cursor</target>
+        <target state="translated">Realçar referências a símbolo sob o cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -514,7 +514,7 @@
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related keywords under cursor</source>
-        <target state="needs-review-translation">Realçar _palavras-chave relacionadas usando o cursor</target>
+        <target state="translated">Realçar palavras-chave relacionadas usando o cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1389,12 +1389,12 @@
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename tracking</source>
-        <target state="needs-review-translation">Mostrar visualização para acompanhamento de _renomeação</target>
+        <target state="translated">Mostrar visualização para acompanhamento de renomeação</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>Show procedure line separators</source>
-        <target state="needs-review-translation">_Mostrar separadores de linha de procedimento</target>
+        <target state="translated">Mostrar separadores de linha de procedimento</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

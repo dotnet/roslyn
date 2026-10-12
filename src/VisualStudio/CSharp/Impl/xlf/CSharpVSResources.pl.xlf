@@ -214,17 +214,17 @@
       </trans-unit>
       <trans-unit id="Automatically_format_block_on_close_brace">
         <source>Automatically format block on }</source>
-        <target state="needs-review-translation">Automatycznie formatuj _blok w pozycji znaku }</target>
+        <target state="translated">Automatycznie formatuj blok w pozycji znaku }</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_on_paste">
         <source>Automatically format on paste</source>
-        <target state="needs-review-translation">Automatycznie formatuj przy _wklejeniu</target>
+        <target state="translated">Automatycznie formatuj przy wklejeniu</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_statement_on_semicolon">
         <source>Automatically format statement on ;</source>
-        <target state="needs-review-translation">Automatycznie formatuj _instrukcję w pozycji znaku ;</target>
+        <target state="translated">Automatycznie formatuj instrukcję w pozycji znaku ;</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
@@ -504,17 +504,17 @@
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter outlining mode when files open</source>
-        <target state="needs-review-translation">Przejdź _do trybu konspektu przy otwieraniu plików</target>
+        <target state="translated">Przejdź do trybu konspektu przy otwieraniu plików</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for ///</source>
-        <target state="needs-review-translation">_Generuj komentarze dokumentacji XML dla ///</target>
+        <target state="translated">Generuj komentarze dokumentacji XML dla ///</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="needs-review-translation">_Wstawiaj znak * na początku nowych wierszy podczas pisania komentarzy (/* */)</target>
+        <target state="translated">Wstawiaj znak * na początku nowych wierszy podczas pisania komentarzy (/* */)</target>
         <note />
       </trans-unit>
       <trans-unit id="Using_Directives">
@@ -524,7 +524,7 @@
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>Place 'System' directives first when sorting usings</source>
-        <target state="needs-review-translation">_Umieść dyrektywy „System” jako pierwsze podczas sortowania użyć</target>
+        <target state="translated">Umieść dyrektywy „System” jako pierwsze podczas sortowania użyć</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -554,7 +554,7 @@
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in NuGet packages</source>
-        <target state="needs-review-translation">Sugeruj dyrektywy using dla typów w pakietach _NuGet</target>
+        <target state="translated">Sugeruj dyrektywy using dla typów w pakietach NuGet</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -639,7 +639,7 @@
       </trans-unit>
       <trans-unit id="Split_string_literals_on_enter">
         <source>Split string literals on enter</source>
-        <target state="needs-review-translation">Dziel literały ciągów po _wpisaniu</target>
+        <target state="translated">Dziel literały ciągów po wpisaniu</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">

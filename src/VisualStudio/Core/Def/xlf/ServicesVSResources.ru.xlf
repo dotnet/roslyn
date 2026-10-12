@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Display inline parameter name hints</source>
-        <target state="needs-review-translation">Отображать п_одсказки для имен встроенных параметров</target>
+        <target state="translated">Отображать подсказки для имен встроенных параметров</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>Highlight references to symbol under cursor</source>
-        <target state="needs-review-translation">_Выделить ссылки на символ под курсором</target>
+        <target state="translated">Выделить ссылки на символ под курсором</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -514,7 +514,7 @@
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related keywords under cursor</source>
-        <target state="needs-review-translation">Выделить связанные _ключевые слова под курсором</target>
+        <target state="translated">Выделить связанные ключевые слова под курсором</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1389,12 +1389,12 @@
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename tracking</source>
-        <target state="needs-review-translation">Показывать предпросмотр для _отслеживания переименований</target>
+        <target state="translated">Показывать предпросмотр для отслеживания переименований</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>Show procedure line separators</source>
-        <target state="needs-review-translation">_Показывать разделительные линии процедур</target>
+        <target state="translated">Показывать разделительные линии процедур</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

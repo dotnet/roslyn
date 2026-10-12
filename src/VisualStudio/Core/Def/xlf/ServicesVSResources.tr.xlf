@@ -314,7 +314,7 @@
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
         <source>Display inline parameter name hints</source>
-        <target state="needs-review-translation">Satır içi parametre adı ipuç_larını göster</target>
+        <target state="translated">Satır içi parametre adı ipuçlarını göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>Highlight references to symbol under cursor</source>
-        <target state="needs-review-translation">İmlecin altındaki sembole başvuruları _vurgula</target>
+        <target state="translated">İmlecin altındaki sembole başvuruları vurgula</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -514,7 +514,7 @@
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related keywords under cursor</source>
-        <target state="needs-review-translation">İmlecin altında ilgili ana_htar sözcükleri vurgula</target>
+        <target state="translated">İmlecin altında ilgili anahtar sözcükleri vurgula</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1389,12 +1389,12 @@
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename tracking</source>
-        <target state="needs-review-translation">Yeniden adlandırma i_zlemesi için önizleme göster</target>
+        <target state="translated">Yeniden adlandırma izlemesi için önizleme göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>Show procedure line separators</source>
-        <target state="needs-review-translation">Yordam satır ayıraçlarını _göster</target>
+        <target state="translated">Yordam satır ayıraçlarını göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

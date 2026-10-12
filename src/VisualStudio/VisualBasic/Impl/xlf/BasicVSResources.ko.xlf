@@ -29,7 +29,7 @@
       </trans-unit>
       <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic insertion of Interface and MustOverride members</source>
-        <target state="needs-review-translation">Interface 및 MustOverride 멤버 자동 삽입(_I)</target>
+        <target state="translated">Interface 및 MustOverride 멤버 자동 삽입(I)</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -54,27 +54,27 @@
       </trans-unit>
       <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>Automatic insertion of end constructs</source>
-        <target state="needs-review-translation">맺음 구문 자동 삽입(_U)</target>
+        <target state="translated">맺음 구문 자동 삽입(U)</target>
         <note />
       </trans-unit>
       <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>Pretty listing (reformatting) of code</source>
-        <target state="needs-review-translation">코드 자동 서식 지정(서식 다시 지정)(_P)</target>
+        <target state="translated">코드 자동 서식 지정(서식 다시 지정)(P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter outlining mode when files open</source>
-        <target state="needs-review-translation">개요 모드로 파일 열기(_E)</target>
+        <target state="translated">개요 모드로 파일 열기(E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for '''</source>
-        <target state="needs-review-translation">'''에 대해 XML 문서 주석 생성(_G)</target>
+        <target state="translated">'''에 대해 XML 문서 주석 생성(G)</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="needs-review-translation">메타데이터에 정의된 기호를 위해 개체 브라우저로 이동(_N)</target>
+        <target state="translated">메타데이터에 정의된 기호를 위해 개체 브라우저로 이동(N)</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -84,17 +84,17 @@
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in NuGet packages</source>
-        <target state="needs-review-translation">NuGet 패키지의 형식에 대한 import 제안(_N)</target>
+        <target state="translated">NuGet 패키지의 형식에 대한 import 제안(N)</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
         <source>Suggest imports for types in reference assemblies</source>
-        <target state="needs-review-translation">참조 어셈블리의 형식에 대한 import 제안(_R)</target>
+        <target state="translated">참조 어셈블리의 형식에 대한 import 제안(R)</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_System_directives_first_when_sorting_imports">
         <source>Place 'System' directives first when sorting imports</source>
-        <target state="needs-review-translation">가져오기를 정렬할 때 'System' 지시문을 먼저 배치(_P)</target>
+        <target state="translated">가져오기를 정렬할 때 'System' 지시문을 먼저 배치(P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">
