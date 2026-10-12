@@ -21547,6 +21547,288 @@ Position get for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_ThroughArray_03()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    int this[int i] {get;set;}
+    int Length {get;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int this[int i]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 0;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+
+        try
+        {
+            Shift1((Item[])item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item2[] {};
+
+        try
+        {
+            Shift2((Item[])item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : class, IMoveable
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (T V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem     ""T""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  box        ""T""
+  IL_0016:  ldloc.0
+  IL_0017:  box        ""T""
+  IL_001c:  callvirt   ""int IMoveable.Length.get""
+  IL_0021:  ldloc.1
+  IL_0022:  sub
+  IL_0023:  callvirt   ""int IMoveable.this[int].get""
+  IL_0028:  pop
+  IL_0029:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Shift2<T>",
+@"
+{
+  // Code size       79 (0x4f)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T& V_2,
+                T V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       ""int Program.GetArrayIndex()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_5
+  IL_000a:  initobj    ""T""
+  IL_0010:  ldloc.s    V_5
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldelem     ""T""
+  IL_0020:  stloc.3
+  IL_0021:  ldloca.s   V_3
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldelema    ""T""
+  IL_002c:  stloc.2
+  IL_002d:  ldc.i4.1
+  IL_002e:  ldarg.1
+  IL_002f:  div
+  IL_0030:  stloc.s    V_4
+  IL_0032:  ldloc.2
+  IL_0033:  ldloc.2
+  IL_0034:  constrained. ""T""
+  IL_003a:  callvirt   ""int IMoveable.Length.get""
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  sub
+  IL_0042:  constrained. ""T""
+  IL_0048:  callvirt   ""int IMoveable.this[int].get""
+  IL_004d:  pop
+  IL_004e:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Struct_ThroughArray_03()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    int this[int i] {get;set;}
+    int Length {get;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public int this[int i]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 0;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+
+        try
+        {
+            Shift1(item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item[] {};
+
+        try
+        {
+            Shift2(item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : struct, IMoveable
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       42 (0x2a)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""T""
+  IL_000b:  ldc.i4.1
+  IL_000c:  ldarg.1
+  IL_000d:  div
+  IL_000e:  stloc.0
+  IL_000f:  dup
+  IL_0010:  constrained. ""T""
+  IL_0016:  callvirt   ""int IMoveable.Length.get""
+  IL_001b:  ldloc.0
+  IL_001c:  sub
+  IL_001d:  constrained. ""T""
+  IL_0023:  callvirt   ""int IMoveable.this[int].get""
+  IL_0028:  pop
+  IL_0029:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImplicitIndexIndexer_Class_Ref()
         {
@@ -33283,6 +33565,876 @@ Position Slice for item '2'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray_03()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+
+        try
+        {
+            Shift1((Item[])item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item2[] {};
+
+        try
+        {
+            Shift2((Item[])item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : class, IMoveable
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (T V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem     ""T""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  box        ""T""
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldloc.0
+  IL_0018:  box        ""T""
+  IL_001d:  callvirt   ""int IMoveable.Length.get""
+  IL_0022:  ldloc.1
+  IL_0023:  sub
+  IL_0024:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_0029:  pop
+  IL_002a:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Shift2<T>",
+@"
+{
+  // Code size       80 (0x50)
+  .maxstack  4
+  .locals init (T[] V_0,
+                int V_1,
+                T& V_2,
+                T V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       ""int Program.GetArrayIndex()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_5
+  IL_000a:  initobj    ""T""
+  IL_0010:  ldloc.s    V_5
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldelem     ""T""
+  IL_0020:  stloc.3
+  IL_0021:  ldloca.s   V_3
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldelema    ""T""
+  IL_002c:  stloc.2
+  IL_002d:  ldc.i4.1
+  IL_002e:  ldarg.1
+  IL_002f:  div
+  IL_0030:  stloc.s    V_4
+  IL_0032:  ldloc.2
+  IL_0033:  ldc.i4.0
+  IL_0034:  ldloc.2
+  IL_0035:  constrained. ""T""
+  IL_003b:  callvirt   ""int IMoveable.Length.get""
+  IL_0040:  ldloc.s    V_4
+  IL_0042:  sub
+  IL_0043:  constrained. ""T""
+  IL_0049:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_004e:  pop
+  IL_004f:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray_03()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+
+        try
+        {
+            Shift1(item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item[] {};
+
+        try
+        {
+            Shift2(item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : struct, IMoveable
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""T""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.0
+  IL_0013:  constrained. ""T""
+  IL_0019:  callvirt   ""int IMoveable.Length.get""
+  IL_001e:  ldloc.1
+  IL_001f:  sub
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_002b:  pop
+  IL_002c:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray_04()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+
+        try
+        {
+            Shift1((Item[])item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item2[] {};
+
+        try
+        {
+            Shift2((Item[])item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : class, IMoveable
+    {
+        _ = item[GetArrayIndex()][(1 / zero)..];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][(1 / zero)..];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       43 (0x2b)
+  .maxstack  4
+  .locals init (T V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem     ""T""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  box        ""T""
+  IL_0016:  ldloc.1
+  IL_0017:  ldloc.0
+  IL_0018:  box        ""T""
+  IL_001d:  callvirt   ""int IMoveable.Length.get""
+  IL_0022:  ldloc.1
+  IL_0023:  sub
+  IL_0024:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_0029:  pop
+  IL_002a:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Shift2<T>",
+@"
+{
+  // Code size       81 (0x51)
+  .maxstack  4
+  .locals init (T[] V_0,
+                int V_1,
+                T& V_2,
+                T V_3,
+                int V_4,
+                T V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       ""int Program.GetArrayIndex()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_5
+  IL_000a:  initobj    ""T""
+  IL_0010:  ldloc.s    V_5
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldelem     ""T""
+  IL_0020:  stloc.3
+  IL_0021:  ldloca.s   V_3
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldelema    ""T""
+  IL_002c:  stloc.2
+  IL_002d:  ldc.i4.1
+  IL_002e:  ldarg.1
+  IL_002f:  div
+  IL_0030:  stloc.s    V_4
+  IL_0032:  ldloc.2
+  IL_0033:  ldloc.s    V_4
+  IL_0035:  ldloc.2
+  IL_0036:  constrained. ""T""
+  IL_003c:  callvirt   ""int IMoveable.Length.get""
+  IL_0041:  ldloc.s    V_4
+  IL_0043:  sub
+  IL_0044:  constrained. ""T""
+  IL_004a:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_004f:  pop
+  IL_0050:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray_04()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+
+        try
+        {
+            Shift1(item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item[] {};
+
+        try
+        {
+            Shift2(item2, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, int zero) where T : struct, IMoveable
+    {
+        _ = item[GetArrayIndex()][(1 / zero)..];
+    }
+
+    static void Shift2<T>(T[] item, int zero) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][(1 / zero)..];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       45 (0x2d)
+  .maxstack  4
+  .locals init (T& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""T""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  ldloc.1
+  IL_0012:  ldloc.0
+  IL_0013:  constrained. ""T""
+  IL_0019:  callvirt   ""int IMoveable.Length.get""
+  IL_001e:  ldloc.1
+  IL_001f:  sub
+  IL_0020:  constrained. ""T""
+  IL_0026:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_002b:  pop
+  IL_002c:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray_05()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+class Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+
+        try
+        {
+            Shift1((Item[])item1, ref System.Runtime.CompilerServices.Unsafe.NullRef<System.Range>());
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item2[] {};
+
+        try
+        {
+            Shift2((Item[])item2, ref System.Runtime.CompilerServices.Unsafe.NullRef<System.Range>());
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, ref System.Range r) where T : class, IMoveable
+    {
+        _ = item[GetArrayIndex()][r];
+    }
+
+    static void Shift2<T>(T[] item, ref System.Range r) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][r];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       82 (0x52)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem     ""T""
+  IL_000b:  ldarg.1
+  IL_000c:  ldobj      ""System.Range""
+  IL_0011:  stloc.0
+  IL_0012:  dup
+  IL_0013:  box        ""T""
+  IL_0018:  callvirt   ""int IMoveable.Length.get""
+  IL_001d:  stloc.1
+  IL_001e:  ldloca.s   V_0
+  IL_0020:  call       ""System.Index System.Range.Start.get""
+  IL_0025:  stloc.s    V_4
+  IL_0027:  ldloca.s   V_4
+  IL_0029:  ldloc.1
+  IL_002a:  call       ""int System.Index.GetOffset(int)""
+  IL_002f:  stloc.2
+  IL_0030:  ldloca.s   V_0
+  IL_0032:  call       ""System.Index System.Range.End.get""
+  IL_0037:  stloc.s    V_4
+  IL_0039:  ldloca.s   V_4
+  IL_003b:  ldloc.1
+  IL_003c:  call       ""int System.Index.GetOffset(int)""
+  IL_0041:  ldloc.2
+  IL_0042:  sub
+  IL_0043:  stloc.3
+  IL_0044:  box        ""T""
+  IL_0049:  ldloc.2
+  IL_004a:  ldloc.3
+  IL_004b:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_0050:  pop
+  IL_0051:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Shift2<T>",
+@"
+{
+  // Code size      125 (0x7d)
+  .maxstack  3
+  .locals init (T[] V_0,
+                int V_1,
+                T V_2,
+                System.Range V_3,
+                int V_4,
+                int V_5,
+                int V_6,
+                T V_7,
+                System.Index V_8)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  call       ""int Program.GetArrayIndex()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_7
+  IL_000a:  initobj    ""T""
+  IL_0010:  ldloc.s    V_7
+  IL_0012:  box        ""T""
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  ldelem     ""T""
+  IL_0020:  stloc.2
+  IL_0021:  ldloca.s   V_2
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldelema    ""T""
+  IL_002c:  ldarg.1
+  IL_002d:  ldobj      ""System.Range""
+  IL_0032:  stloc.3
+  IL_0033:  dup
+  IL_0034:  constrained. ""T""
+  IL_003a:  callvirt   ""int IMoveable.Length.get""
+  IL_003f:  stloc.s    V_4
+  IL_0041:  ldloca.s   V_3
+  IL_0043:  call       ""System.Index System.Range.Start.get""
+  IL_0048:  stloc.s    V_8
+  IL_004a:  ldloca.s   V_8
+  IL_004c:  ldloc.s    V_4
+  IL_004e:  call       ""int System.Index.GetOffset(int)""
+  IL_0053:  stloc.s    V_5
+  IL_0055:  ldloca.s   V_3
+  IL_0057:  call       ""System.Index System.Range.End.get""
+  IL_005c:  stloc.s    V_8
+  IL_005e:  ldloca.s   V_8
+  IL_0060:  ldloc.s    V_4
+  IL_0062:  call       ""int System.Index.GetOffset(int)""
+  IL_0067:  ldloc.s    V_5
+  IL_0069:  sub
+  IL_006a:  stloc.s    V_6
+  IL_006c:  ldloc.s    V_5
+  IL_006e:  ldloc.s    V_6
+  IL_0070:  constrained. ""T""
+  IL_0076:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_007b:  pop
+  IL_007c:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85880")]
+        public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray_05()
+        {
+            var source = @"
+using System;
+
+interface IMoveable
+{
+    IMoveable Slice(int start, int length);
+    int Length {get;}
+}
+
+struct Item : IMoveable
+{
+    public string Name {get; set;}
+
+    public IMoveable Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+
+        try
+        {
+            Shift1(item1, ref System.Runtime.CompilerServices.Unsafe.NullRef<System.Range>());
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed1"");
+        }
+
+        var item2 = new Item[] {};
+
+        try
+        {
+            Shift2(item2, ref System.Runtime.CompilerServices.Unsafe.NullRef<System.Range>());
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed2"");
+        }
+    }
+
+    static void Shift1<T>(T[] item, ref System.Range r) where T : struct, IMoveable
+    {
+        _ = item[GetArrayIndex()][r];
+    }
+
+    static void Shift2<T>(T[] item, ref System.Range r) where T : IMoveable
+    {
+        _ = item[GetArrayIndex()][r];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"
+Passed1
+Passed2
+";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1<T>",
+@"
+{
+  // Code size       84 (0x54)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""T""
+  IL_000b:  ldarg.1
+  IL_000c:  ldobj      ""System.Range""
+  IL_0011:  stloc.0
+  IL_0012:  dup
+  IL_0013:  constrained. ""T""
+  IL_0019:  callvirt   ""int IMoveable.Length.get""
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       ""System.Index System.Range.Start.get""
+  IL_0026:  stloc.s    V_4
+  IL_0028:  ldloca.s   V_4
+  IL_002a:  ldloc.1
+  IL_002b:  call       ""int System.Index.GetOffset(int)""
+  IL_0030:  stloc.2
+  IL_0031:  ldloca.s   V_0
+  IL_0033:  call       ""System.Index System.Range.End.get""
+  IL_0038:  stloc.s    V_4
+  IL_003a:  ldloca.s   V_4
+  IL_003c:  ldloc.1
+  IL_003d:  call       ""int System.Index.GetOffset(int)""
+  IL_0042:  ldloc.2
+  IL_0043:  sub
+  IL_0044:  stloc.3
+  IL_0045:  ldloc.2
+  IL_0046:  ldloc.3
+  IL_0047:  constrained. ""T""
+  IL_004d:  callvirt   ""IMoveable IMoveable.Slice(int, int)""
+  IL_0052:  pop
+  IL_0053:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem(63221, "https://github.com/dotnet/roslyn/issues/63221")]
         public void GenericTypeParameterAsReceiver_ImplicitRangeIndexer_RangeExpression_Class_Ref()
         {
@@ -40066,7 +41218,7 @@ Position set for item '-1'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void Receiver_ImplicitIndexIndexer_Class_ThroughArray()
+        public void Receiver_ImplicitIndexIndexer_Class_ThroughArray_01()
         {
             var source = @"
 using System;
@@ -40156,7 +41308,7 @@ Position get for item '1'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void Receiver_ImplicitIndexIndexer_Struct_ThroughArray()
+        public void Receiver_ImplicitIndexIndexer_Struct_ThroughArray_01()
         {
             var source = @"
 using System;
@@ -40244,7 +41396,181 @@ Position get for item '-1'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void Receiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray()
+        public void Receiver_ImplicitIndexIndexer_Class_ThroughArray_02()
+        {
+            var source = @"
+using System;
+
+class Item
+{
+    public string Name {get; set;}
+
+    public int this[int i]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 0;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+        try
+        {
+            Shift1((Item[])item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed"");
+        }
+    }
+
+    static void Shift1(Item[] item, int zero)
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"Passed";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1",
+@"
+{
+  // Code size       26 (0x1a)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem.ref
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldarg.1
+  IL_0009:  div
+  IL_000a:  stloc.0
+  IL_000b:  dup
+  IL_000c:  callvirt   ""int Item.Length.get""
+  IL_0011:  ldloc.0
+  IL_0012:  sub
+  IL_0013:  callvirt   ""int Item.this[int].get""
+  IL_0018:  pop
+  IL_0019:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Receiver_ImplicitIndexIndexer_Struct_ThroughArray_02()
+        {
+            var source = @"
+using System;
+
+struct Item
+{
+    public string Name {get; set;}
+
+    public int this[int i]
+    {
+        get
+        {
+            Console.WriteLine(""Position get for item '{0}'"", Name);
+            return 0;
+        }
+        set
+        {
+            Console.WriteLine(""Position set for item '{0}'"", Name);
+        }
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 0;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+        try
+        {
+            Shift1(item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed"");
+        }
+    }
+
+    static void Shift1(Item[] item, int zero)
+    {
+        _ = item[GetArrayIndex()][^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"Passed";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1",
+@"
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""Item""
+  IL_000b:  ldc.i4.1
+  IL_000c:  ldarg.1
+  IL_000d:  div
+  IL_000e:  stloc.0
+  IL_000f:  dup
+  IL_0010:  call       ""int Item.Length.get""
+  IL_0015:  ldloc.0
+  IL_0016:  sub
+  IL_0017:  call       ""int Item.this[int].get""
+  IL_001c:  pop
+  IL_001d:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Receiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray_01()
         {
             var source = @"
 using System;
@@ -40331,7 +41657,7 @@ Position Slice for item '1'
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void Receiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray()
+        public void Receiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray_01()
         {
             var source = @"
 using System;
@@ -40409,6 +41735,176 @@ Position Slice for item '-1'
   IL_001e:  call       ""Item Item.Slice(int, int)""
   IL_0023:  pop
   IL_0024:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Receiver_ImplicitRangeIndexer_RangeExpression_Class_ThroughArray_02()
+        {
+            var source = @"
+using System;
+
+class Item
+{
+    public string Name {get; set;}
+
+    public Item Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Item2 : Item {}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item2[] {};
+
+        try
+        {
+            Shift1((Item[])item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed"");
+        }
+    }
+
+    static void Shift1(Item[] item, int zero)
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"Passed";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1",
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  4
+  .locals init (Item V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelem.ref
+  IL_0007:  stloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  ldarg.1
+  IL_000a:  div
+  IL_000b:  stloc.1
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldloc.0
+  IL_000f:  callvirt   ""int Item.Length.get""
+  IL_0014:  ldloc.1
+  IL_0015:  sub
+  IL_0016:  callvirt   ""Item Item.Slice(int, int)""
+  IL_001b:  pop
+  IL_001c:  ret
+}
+");
+
+            CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.DebugExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Receiver_ImplicitRangeIndexer_RangeExpression_Struct_ThroughArray_02()
+        {
+            var source = @"
+using System;
+
+struct Item
+{
+    public string Name {get; set;}
+
+    public Item Slice(int start, int length)
+    {
+        Console.WriteLine(""Position Slice for item '{0}'"", Name);
+        return this;
+    }
+
+    public int Length
+    {
+        get
+        {
+            Console.WriteLine(""Position Length for item '{0}'"", Name);
+            return 10;
+        }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var item1 = new Item[] {};
+
+        try
+        {
+            Shift1(item1, 0);
+        }
+        catch (System.IndexOutOfRangeException)
+        {
+            Console.WriteLine(""Passed"");
+        }
+    }
+
+    static void Shift1(Item[] item, int zero)
+    {
+        _ = item[GetArrayIndex()][0..^(1 / zero)];
+    }
+
+    static int GetArrayIndex() => 0;
+}
+";
+
+            var expectedOutput = @"Passed";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.NetLatest, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            verifier.VerifyIL("Program.Shift1",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  4
+  .locals init (Item& V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""int Program.GetArrayIndex()""
+  IL_0006:  ldelema    ""Item""
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldarg.1
+  IL_000e:  div
+  IL_000f:  stloc.1
+  IL_0010:  ldloc.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""int Item.Length.get""
+  IL_0018:  ldloc.1
+  IL_0019:  sub
+  IL_001a:  call       ""Item Item.Slice(int, int)""
+  IL_001f:  pop
+  IL_0020:  ret
 }
 ");
 
