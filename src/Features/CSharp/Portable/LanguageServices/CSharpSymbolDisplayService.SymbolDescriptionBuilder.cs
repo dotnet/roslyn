@@ -118,6 +118,14 @@ internal sealed partial class CSharpSymbolDisplayService
         protected override ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(ISymbol symbol, SemanticModel semanticModel, int position, SymbolDisplayFormat format)
         {
             var displayParts = CodeAnalysis.CSharp.SymbolDisplay.ToMinimalDisplayParts(symbol, semanticModel, position, format);
+
+            if (symbol.RequiresUnsafeContext &&
+                ((format.MemberOptions & SymbolDisplayMemberOptions.IncludeModifiers) == 0 ||
+                 symbol.ContainingModule?.MemorySafetyRulesVersion != MemorySafetyRulesVersion.Version2))
+            {
+                displayParts = [.. Keyword("unsafe"), .. Space(), .. displayParts];
+            }
+
             return WrapConstraints(symbol, displayParts);
         }
 

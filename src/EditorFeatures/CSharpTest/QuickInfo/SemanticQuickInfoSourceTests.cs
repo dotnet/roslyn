@@ -4795,7 +4795,95 @@ public sealed class SemanticQuickInfoSourceTests : AbstractSemanticQuickInfoSour
                 }
             }
             """,
-            MainDescription("void C.Goo([int* x = null])"));
+            MainDescription("unsafe void C.Goo([int* x = null])"));
+
+    private static EditorTestWorkspace CreateWorkspaceWithMemorySafetyRules(
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup,
+        MemorySafetyRulesVersion rulesVersion)
+    {
+        var workspace = EditorTestWorkspace.CreateCSharp(markup, TestOptions.RegularPreview, TestOptions.UnsafeReleaseDll);
+        var project = workspace.CurrentSolution.Projects.Single();
+
+        Assert.True(workspace.SetCurrentSolution(
+            solution => solution.WithProjectCompilationOptions(
+                project.Id, TestOptions.UnsafeReleaseDll.WithMemorySafetyRulesVersion(rulesVersion)),
+            WorkspaceChangeKind.ProjectChanged,
+            project.Id));
+
+        return workspace;
+    }
+
+    private static Action<QuickInfoItem> UnsafeKeyword(bool expected)
+        => item => Assert.Equal(
+            expected ? 1 : 0,
+            item.Sections.Single(section => section.Kind == QuickInfoSectionKinds.Description).TaggedParts.Count(
+                part => part.Tag == TextTags.Keyword && part.Text == "unsafe"));
+
+    [Theory]
+    [InlineData("unsafe void M() { } void Test() { unsafe { $$M(); } }", "unsafe void C.M()", "void C.M()")]
+    [InlineData("unsafe int $$P { get; set; }", "unsafe int C.P { get; set; }", "int C.P { get; set; }")]
+    [InlineData("static unsafe int* $$F;", "(field) static unsafe int* C.F", "(field) unsafe static int* C.F")]
+    [InlineData("unsafe extern void $$M();", "unsafe void C.M()", "void C.M()")]
+    [InlineData("safe extern void $$M();", "void C.M()", "void C.M()")]
+    [InlineData("unsafe int* P { $$get => null; set { } }", "unsafe int* C.P.get", "unsafe int* C.P.get")]
+    [InlineData("int P { get => 0; unsafe $$set { } }", "unsafe void C.P.set", "void C.P.set")]
+    [InlineData("int P { $$get => 0; unsafe set { } }", "int C.P.get", "int C.P.get")]
+    [InlineData("unsafe event System.Action E { $$add { } remove { } }", "unsafe void C.E.add", "void C.E.add")]
+    [InlineData("unsafe event System.Action E; void Test() { unsafe { this.E -$$= null; } }", "unsafe void C.E.remove", "void C.E.remove")]
+    public async Task TestCallerUnsafeMember(string declaration, string updatedDescription, string legacyDescription)
+    {
+        foreach (var rulesVersion in new[] { MemorySafetyRulesVersion.Version1, MemorySafetyRulesVersion.Version2 })
+        {
+            using var workspace = CreateWorkspaceWithMemorySafetyRules("class C { " + declaration + " }", rulesVersion);
+            var description = rulesVersion == MemorySafetyRulesVersion.Version2 ? updatedDescription : legacyDescription;
+
+            await TestWithOptionsAsync(workspace,
+                MainDescription(description),
+                UnsafeKeyword(description.IndexOf("unsafe ", StringComparison.Ordinal) >= 0));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestCallerUnsafeMemberFromMetadata(bool useUpdatedRulesInLibrary)
+    {
+        var markup = """
+            class Caller
+            {
+                void Test()
+                {
+                    unsafe
+                    {
+                        new C().$$M();
+                    }
+                }
+            }
+            """;
+        var librarySource = $$"""
+            public class C
+            {
+                [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.InternalCall)]
+                public unsafe extern void M({{(useUpdatedRulesInLibrary ? "" : "int* p = null")}});
+            }
+            """;
+
+        using var workspace = CreateWorkspaceWithMemorySafetyRules(
+            markup,
+            useUpdatedRulesInLibrary ? MemorySafetyRulesVersion.Version1 : MemorySafetyRulesVersion.Version2);
+        var project = workspace.CurrentSolution.Projects.Single();
+        var library = CSharpCompilation.Create(
+            "Library",
+            [CSharpSyntaxTree.ParseText(librarySource, TestOptions.RegularPreview)],
+            project.MetadataReferences,
+            TestOptions.UnsafeReleaseDll.WithMemorySafetyRulesVersion(
+                useUpdatedRulesInLibrary ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1));
+        library.VerifyDiagnostics();
+
+        Assert.True(workspace.TryApplyChanges(project.AddMetadataReference(library.EmitToImageReference()).Solution));
+
+        await TestWithOptionsAsync(workspace,
+            MainDescription(useUpdatedRulesInLibrary ? "unsafe void C.M()" : "unsafe void C.M([int* p = null])"),
+            UnsafeKeyword(expected: true));
+    }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545098")]
     public Task TestLetIdentifier1()
