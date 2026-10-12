@@ -23,6 +23,9 @@ internal sealed class CSharpRemoveUnusedMembersDiagnosticAnalyzer
 {
     protected override ISemanticFacts SemanticFacts => CSharpSemanticFacts.Instance;
 
+    protected override bool IsStackAllocArrayCreationExpression(SyntaxNode node)
+        => node is StackAllocArrayCreationExpressionSyntax or ImplicitStackAllocArrayCreationExpressionSyntax;
+
     protected override IEnumerable<TypeDeclarationSyntax> GetTypeDeclarations(INamedTypeSymbol namedType, CancellationToken cancellationToken)
     {
         return namedType.DeclaringSyntaxReferences
