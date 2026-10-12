@@ -7862,6 +7862,76 @@ class C
         }
 
         [Theory]
+        [InlineData("-memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/MEMORYSAFETYRULESVERSION:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:\"1\"", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:\" 2 \"", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:+2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:02", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:1 /memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:2 /memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:999 /memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version1)]
+        public void MemorySafetyRules_Parse(string commandLine, MemorySafetyRulesVersion expectedVersion)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify();
+            Assert.Equal(expectedVersion, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData("/memorysafetyrulesversion", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:\"\"", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:\" \"", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:abc", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:1.5", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:0x2", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:2147483648", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:-2147483649", MemorySafetyRulesVersion.Version1)]
+        [InlineData("/memorysafetyrulesversion:2 /memorysafetyrulesversion:abc", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:abc /memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/features:updated-memory-safety-rules /memorysafetyrulesversion:abc", MemorySafetyRulesVersion.Version2)]
+        [InlineData("/memorysafetyrulesversion:abc /features:updated-memory-safety-rules", MemorySafetyRulesVersion.Version2)]
+        public void MemorySafetyRules_SwitchNeedsNumber(string commandLine, MemorySafetyRulesVersion expectedVersion)
+        {
+            var args = FullParse($"{commandLine} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify(
+                // error CS2035: Command-line syntax error: Missing ':<number>' for 'memorysafetyrulesversion' option
+                Diagnostic(ErrorCode.ERR_SwitchNeedsNumber).WithArguments("memorysafetyrulesversion"));
+            Assert.Equal(expectedVersion, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Theory]
+        [InlineData(int.MinValue)]
+        [InlineData(-1)]
+        [InlineData(0)]
+        [InlineData(3)]
+        [InlineData(999)]
+        [InlineData(int.MaxValue)]
+        public void MemorySafetyRules_InvalidVersion(int value)
+        {
+            var args = FullParse($"/memorysafetyrulesversion:{value} /langversion:preview /t:library a.cs", WorkingDirectory);
+            args.Errors.Verify(
+                // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '{value}'. Accepted values are: 1, 2
+                Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", value, "1, 2"));
+            Assert.Equal((MemorySafetyRulesVersion)value, args.CompilationOptions.MemorySafetyRulesVersion);
+        }
+
+        [Fact]
+        public void MemorySafetyRules_Help()
+        {
+            var compiler = CreateCSharpCompiler(null, WorkingDirectory, ["/help", "/nologo", "/preferreduilang:en"]);
+            var output = new StringWriter(CultureInfo.InvariantCulture);
+
+            Assert.Equal(0, compiler.Run(output));
+            AssertEx.AssertContainsToleratingWhitespaceDifferences($"""
+                -memorysafetyrulesversion:<n>  Set memory safety rules version as
+                                              `{(int)MemorySafetyRulesVersion.Version1}` (legacy),
+                                              `{(int)MemorySafetyRulesVersion.Version2}` (updated: unsafe members require unsafe context at use site)
+                """, output.ToString());
+        }
+
+        [Theory]
         [InlineData("", MemorySafetyRulesVersion.Version1)]
         [InlineData("/memorysafetyrulesversion:1", MemorySafetyRulesVersion.Version1)]
         [InlineData("/memorysafetyrulesversion:2", MemorySafetyRulesVersion.Version2)]
