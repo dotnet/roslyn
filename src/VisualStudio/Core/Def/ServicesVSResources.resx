@@ -1690,6 +1690,9 @@ Additional information: {1}</value>
   <data name="Source_generator_execution_requires_restart" xml:space="preserve">
     <value>Source generator execution (requires restart):</value>
   </data>
+  <data name="Source_generator_execution_USX" xml:space="preserve">
+    <value>Source generator execution:</value>
+  </data>
   <data name="Source_Generators" xml:space="preserve">
     <value>Source Generators</value>
   </data>

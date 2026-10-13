@@ -1457,6 +1457,11 @@
         <target state="translated">Generátory zdroje</target>
         <note />
       </trans-unit>
+      <trans-unit id="Source_generator_execution_USX">
+        <source>Source generator execution:</source>
+        <target state="new">Source generator execution:</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Source_generator_execution_requires_restart">
         <source>Source generator execution (requires restart):</source>
         <target state="translated">Spuštění generátoru zdroje (vyžaduje restartování):</target>

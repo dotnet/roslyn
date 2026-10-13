@@ -18,7 +18,8 @@
       "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.InlineDiagnostics" } } }
     },
     "languages.csharp.advanced.analysis.inlineDiagnosticsLocation": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Display_diagnostics_inline;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "string", "default": "placedAtEndOfCode", "order": 30, "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Location;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "string", "default": "placedAtEndOfCode", "order": 30, "transientScopesSupported": false,
+      "enableWhen": "${config:languages.csharp.advanced.analysis.enableInlineDiagnostics}=='true'",
       "enum": [ "placedAtEndOfCode", "placedAtEndOfEditor" ], "enumItemLabels": [ "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:at_the_end_of_the_line_of_code;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:on_the_right_edge_of_the_editor_window;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
       "migration": { "custom": { "mode": "oneTimeFromLegacy", "inputs": [ { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.InlineDiagnostics.LocationOption" } ], "map": [ { "result": "@default", "matches": [ 0 ] }, { "result": "placedAtEndOfCode", "matches": [ 0 ] }, { "result": "placedAtEndOfEditor", "matches": [ 1 ] }, { "result": "@default", "matches": [ "@any" ] } ] } }
     },

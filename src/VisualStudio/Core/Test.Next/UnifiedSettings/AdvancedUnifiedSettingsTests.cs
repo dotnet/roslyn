@@ -239,8 +239,8 @@ public sealed class AdvancedUnifiedSettingsTests
     }
 
     [Theory]
-    [InlineData("csharp", "csharpSettings.registration.json", 15)]
-    [InlineData("basic", "visualBasicSettings.registration.json", 11)]
+    [InlineData("csharp", "csharpSettings.registration.json", 16)]
+    [InlineData("basic", "visualBasicSettings.registration.json", 12)]
     public void DisabledControlsRetainTheirLegacyDependencies(string languageId, string manifest, int count)
     {
         using var document = Load(manifest);
@@ -248,6 +248,7 @@ public sealed class AdvancedUnifiedSettingsTests
         var prefix = $"languages.{languageId}.advanced.";
         var expected = new Dictionary<string, string>
         {
+            ["analysis.inlineDiagnosticsLocation"] = "analysis.enableInlineDiagnostics",
             ["outlining.collapseRegionsWhenFirstOpened"] = "outlining.outlining",
             ["outlining.collapseImportsWhenFirstOpened"] = "outlining.outlining",
             ["outlining.collapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened"] = "outlining.outlining",
@@ -265,6 +266,35 @@ public sealed class AdvancedUnifiedSettingsTests
         Assert.Equal(count, properties.EnumerateObject().Count(property => property.Name.StartsWith(prefix, StringComparison.Ordinal) && property.Value.TryGetProperty("enableWhen", out _)));
         foreach (var (path, dependency) in expected)
             Assert.Equal($"${{config:{prefix}{dependency}}}=='true'", properties.GetProperty(prefix + path).GetProperty("enableWhen").GetString());
+    }
+
+    [Theory]
+    [InlineData("csharpSettings.registration.json", "csharp")]
+    [InlineData("csharpAdvancedSettings.registration.draft.json", "csharp")]
+    [InlineData("visualBasicSettings.registration.json", "basic")]
+    [InlineData("visualBasicAdvancedSettings.registration.draft.json", "basic")]
+    public void InlineDiagnosticsLocationHasItsOwnLabelAndDependsOnItsCheckbox(string manifest, string languageId)
+    {
+        using var document = LoadLive(manifest);
+        var properties = document.RootElement.GetProperty("properties");
+        var prefix = $"languages.{languageId}.advanced.analysis.";
+        var checkbox = properties.GetProperty(prefix + "enableInlineDiagnostics");
+        var location = properties.GetProperty(prefix + "inlineDiagnosticsLocation");
+        Assert.Equal("Display diagnostics inline", TestModel.Utilities.EvalResource(checkbox.GetProperty("title").GetString()!));
+        Assert.Equal("Location", TestModel.Utilities.EvalResource(location.GetProperty("title").GetString()!));
+        Assert.Equal($"${{config:{prefix}enableInlineDiagnostics}}=='true'", location.GetProperty("enableWhen").GetString());
+        Assert.True(location.GetProperty("order").GetInt32() > checkbox.GetProperty("order").GetInt32());
+    }
+
+    [Theory]
+    [InlineData("roslynSettings.registration.json")]
+    [InlineData("roslynAdvancedSettings.registration.draft.json")]
+    public void SourceGeneratorExecutionDeclaresRestartWithoutIncludingItInTheTitle(string manifest)
+    {
+        using var document = LoadLive(manifest);
+        var setting = document.RootElement.GetProperty("properties").GetProperty("languages.dotnet.advanced.sourceGeneratorExecution");
+        Assert.Equal("Source generator execution:", TestModel.Utilities.EvalResource(setting.GetProperty("title").GetString()!));
+        Assert.True(setting.GetProperty("requiresRestart").GetBoolean());
     }
 
     [Fact]
