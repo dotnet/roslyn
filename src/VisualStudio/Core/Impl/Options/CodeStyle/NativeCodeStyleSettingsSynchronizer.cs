@@ -36,12 +36,15 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
     private readonly Action<Task> _observe;
     private readonly CancellationToken _cancellationToken;
     private IDisposable? _subscription;
+    private LegacyChange? _publishingLegacy;
     private int _initialSnapshot;
 
     internal sealed record Binding(CodeStyleSetting Setting, string LegacyKey, string Moniker)
     {
         public string SeverityMoniker => Moniker + "Severity";
     }
+
+    private sealed record LegacyChange(Binding Binding, ICodeStyleOption2 Value);
 
     public NativeCodeStyleSettingsSynchronizer(
         IUnifiedSettingsService native,
@@ -128,11 +131,21 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
 
     private async Task WriteLegacyAsync(Binding binding, ICodeStyleOption2 value)
     {
-        await _legacy.PersistAsync(binding.Setting.Key, binding.LegacyKey, value).ConfigureAwait(false);
-        // XML intentionally normalizes suppressed severity to Hidden. Track its read-back value so our
-        // own legacy notification cannot replace the native suppressed value with Silent.
-        _legacyValues[binding.Moniker] = ReadLegacy(binding, out _);
-        _refresh(binding.Setting.Key, value);
+        // XML normalizes suppressed severity to Hidden. Suppress our own notification using that value,
+        // without re-reading storage that a concurrent profile import may already have changed.
+        var storedValue = value.Notification.Severity == Microsoft.CodeAnalysis.ReportDiagnostic.Suppress
+            ? value.WithNotification(NotificationOption2.Silent) : value;
+        Volatile.Write(ref _publishingLegacy, new(binding, storedValue));
+        try
+        {
+            await _legacy.PersistAsync(binding.Setting.Key, binding.LegacyKey, value).ConfigureAwait(false);
+            _legacyValues[binding.Moniker] = storedValue;
+            _refresh(binding.Setting.Key, value);
+        }
+        finally
+        {
+            Volatile.Write(ref _publishingLegacy, null);
+        }
     }
 
     private async Task CommitAsync(Dictionary<string, string> changes)
@@ -153,16 +166,19 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
 
     private async Task ApplyLegacyChangeAsync(string? propertyName)
     {
-        var bindings = _bindings.Values.Where(binding => binding.LegacyKey == propertyName).ToArray();
-        if (bindings.Length == 0)
+        var publishing = Volatile.Read(ref _publishingLegacy);
+        var snapshots = _bindings.Values.Where(binding => binding.LegacyKey == propertyName)
+            .Select(binding => new LegacyChange(binding, ReadLegacy(binding, out _)))
+            .Where(change => publishing is null || change.Binding.LegacyKey != publishing.Binding.LegacyKey || !change.Value.Equals(publishing.Value))
+            .ToArray();
+        if (snapshots.Length == 0)
             return;
         await _gate.ExecuteAsync(async () =>
         {
             var changes = new Dictionary<string, string>(StringComparer.Ordinal);
-            var pending = new List<(Binding binding, ICodeStyleOption2 value)>(bindings.Length);
-            foreach (var binding in bindings)
+            var pending = new List<(Binding binding, ICodeStyleOption2 value)>(snapshots.Length);
+            foreach (var (binding, value) in snapshots)
             {
-                var value = ReadLegacy(binding, out _);
                 if (_legacyValues.TryGetValue(binding.Moniker, out var previousLegacyValue) && value.Equals(previousLegacyValue))
                     continue;
                 pending.Add((binding, value));
@@ -177,10 +193,17 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
             await CommitAsync(changes).ConfigureAwait(false);
             foreach (var (binding, value) in pending)
             {
-                _legacyValues[binding.Moniker] = value;
+                if (!value.Equals(ReadLegacy(binding, out _)))
+                {
+                    await WriteLegacyAsync(binding, value).ConfigureAwait(false);
+                }
+                else
+                {
+                    _legacyValues[binding.Moniker] = value;
+                    _refresh(binding.Setting.Key, value);
+                }
                 _values[binding.Moniker] = GetScalar(binding, value, severity: false);
                 _values[binding.SeverityMoniker] = GetScalar(binding, value, severity: true);
-                _refresh(binding.Setting.Key, value);
             }
         }, _cancellationToken).ConfigureAwait(false);
     }

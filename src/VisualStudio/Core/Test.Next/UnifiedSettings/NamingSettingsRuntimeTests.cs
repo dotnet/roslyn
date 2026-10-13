@@ -52,6 +52,49 @@ public sealed class NamingSettingsRuntimeTests
         Assert.Equal(1, fixture.Manager.LastWriter!.CommitCount);
     }
 
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task LegacyImportsDuringStartupSurviveNativePublication(string language)
+    {
+        using var fixture = new Fixture(language);
+        var committing = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var resume = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        fixture.Manager.BeforeCommit = () =>
+        {
+            fixture.Manager.BeforeCommit = null;
+            committing.SetResult(true);
+            resume.Task.GetAwaiter().GetResult();
+        };
+        var initialization = Task.Run(fixture.Runtime.InitializeAsync);
+        await committing.Task;
+        Task[] imports;
+        try
+        {
+            var graph = NamingSettingsGraph.Default;
+            var style = graph.NamingStyles[1].ToDictionary(pair => pair.Key, pair => pair.Value);
+            style["name"] = "Imported style";
+            style.Remove("defaultName");
+            fixture.Legacy = new NamingSettingsGraph(graph.SymbolSpecifications, graph.NamingStyles.SetItem(1, style), graph.Rules).ToPreferences();
+            fixture.NotifyLegacy();
+            fixture.Legacy = new([], [], System.Collections.Immutable.ImmutableArray<NamingRule>.Empty);
+            fixture.NotifyLegacy();
+            imports = fixture.Observed.ToArray();
+        }
+        finally
+        {
+            resume.SetResult(true);
+        }
+
+        await initialization;
+        await Task.WhenAll(imports);
+
+        Assert.Empty(fixture.Legacy.Rules.NamingRules);
+        Assert.Empty(fixture.Manager.Reader.Graph.Rules);
+        Assert.Equal(fixture.Legacy, fixture.Refreshes[^1]);
+        Assert.Contains(fixture.Refreshes, preferences => preferences.NamingStyles.Any(style => style.Name == "Imported style"));
+    }
+
     [Fact]
     public async Task FailedStartupReportsFailureAndRecoversAfterNativeCorrection()
     {
@@ -193,20 +236,22 @@ public sealed class NamingSettingsRuntimeTests
         public int LegacyWrites;
         public readonly NamingSettingsRuntime Runtime;
         private readonly JoinableTaskContext _context = new();
+        private readonly string _legacyKey;
 
-        public Fixture()
+        public Fixture(string language = LanguageNames.CSharp)
         {
-            var store = new NamingSettingsStore(Manager, LanguageNames.CSharp);
+            _legacyKey = language == LanguageNames.CSharp ? LegacyKey : "TextEditor.VisualBasic.Specific.NamingPreferences";
+            var store = new NamingSettingsStore(Manager, language);
             var coordinator = new NamingSettingsCoordinator(store, () => Legacy, value =>
             {
                 Legacy = value;
                 LegacyWrites++;
                 NotifyLegacy();
             }, _context, Refreshes.Add);
-            Runtime = new(store, coordinator, Subset.Object, LegacyKey, () => Legacy, Observed.Add, CancellationToken.None);
+            Runtime = new(store, coordinator, Subset.Object, _legacyKey, () => Legacy, Observed.Add, CancellationToken.None);
         }
 
-        public void NotifyLegacy() => Subset.Raise(subset => subset.SettingChangedAsync += null, Subset.Object, new PropertyChangedEventArgs(LegacyKey));
+        public void NotifyLegacy() => Subset.Raise(subset => subset.SettingChangedAsync += null, Subset.Object, new PropertyChangedEventArgs(_legacyKey));
         public void NotifyNative(Guid source) => Manager.Reader.ChangeHandler?.Invoke(new(source, ["languages.csharp.codeStyle.naming.rules"]));
         public void Dispose()
         {

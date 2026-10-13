@@ -158,6 +158,7 @@ public sealed class NamingSettingsStoreTests
         public SettingCommitOutcome CommitOutcome = SettingCommitOutcome.Success;
         public SettingChangeOutcome? RejectedArrayOutcome;
         public bool PublishCommit = true;
+        public Action? BeforeCommit;
         public readonly Dictionary<string, ImmutableArray<IReadOnlyDictionary<string, object>>> CustomizedArrays = [];
 
         public ISettingsReader GetReader() => Reader;
@@ -167,7 +168,7 @@ public sealed class NamingSettingsStoreTests
         public ISettingsWriter GetWriter(string callerName, Guid eventSource)
         {
             LastEventSource = eventSource;
-            return LastWriter = new SettingsWriterMock(CommitOutcome, RejectedArrayOutcome, PublishCommit ? Reader : null, CustomizedArrays);
+            return LastWriter = new SettingsWriterMock(CommitOutcome, RejectedArrayOutcome, PublishCommit ? Reader : null, CustomizedArrays, () => BeforeCommit?.Invoke());
         }
     }
 
@@ -224,7 +225,7 @@ public sealed class NamingSettingsStoreTests
     }
 
     internal sealed class SettingsWriterMock(SettingCommitOutcome commitOutcome, SettingChangeOutcome? rejectedArrayOutcome, SettingsReaderMock? backingReader,
-        Dictionary<string, ImmutableArray<IReadOnlyDictionary<string, object>>> customizedArrays) : SettingsReaderMock, ISettingsWriter
+        Dictionary<string, ImmutableArray<IReadOnlyDictionary<string, object>>> customizedArrays, Action beforeCommit) : SettingsReaderMock, ISettingsWriter
     {
         public readonly List<string> QueuedMonikers = [];
         private readonly Dictionary<string, ImmutableArray<IReadOnlyDictionary<string, object>>> _queuedArrays = [];
@@ -242,6 +243,7 @@ public sealed class NamingSettingsStoreTests
 
         public SettingCommitResult RequestCommit(string changeDescription)
         {
+            beforeCommit();
             CommitCount++;
             if (commitOutcome == SettingCommitOutcome.Success && backingReader is not null)
             {

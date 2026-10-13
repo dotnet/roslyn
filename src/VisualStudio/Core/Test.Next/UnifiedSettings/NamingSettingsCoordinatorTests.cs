@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -80,19 +81,37 @@ public sealed class NamingSettingsCoordinatorTests
         Assert.Equal(0, writes);
     }
 
-    [Fact]
-    public async Task InitialArrayMigrationsUseOneLegacySnapshotAsync()
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task ArrayMigrationCallbacksReadCurrentLegacyPreferencesAsync(string language)
     {
         var manager = new NamingSettingsStoreTests.SettingsManagerMock();
         var legacy = NamingStylePreferences.Default;
-        var coordinator = new NamingSettingsCoordinator(new NamingSettingsStore(manager, LanguageNames.CSharp), () => legacy, _ => throw new InvalidOperationException(), s_context);
-        var specifications = await coordinator.MigrateToUnifiedSettingsAsync(Prefix + "symbolSpecifications", CancellationToken.None);
+        var prefix = language == LanguageNames.CSharp ? Prefix : "languages.basic.codeStyle.naming.";
+        var coordinator = new NamingSettingsCoordinator(new NamingSettingsStore(manager, language), () => legacy, _ => throw new InvalidOperationException(), s_context);
+        Assert.Equal(legacy, (await ReadGraphAsync()).ToPreferences());
         legacy = new NamingStylePreferences([], [], ImmutableArray<NamingRule>.Empty);
-        var styles = await coordinator.MigrateToUnifiedSettingsAsync(Prefix + "namingStyles", CancellationToken.None);
-        var rules = await coordinator.MigrateToUnifiedSettingsAsync(Prefix + "rules", CancellationToken.None);
+        Assert.Equal(legacy, (await ReadGraphAsync()).ToPreferences());
+        legacy = NamingStylePreferences.Default;
+        Assert.Equal(legacy, (await ReadGraphAsync()).ToPreferences());
 
-        var graph = new NamingSettingsGraph(NamingSettingsStorageCodec.DecodeSpecifications(specifications.Items!.ToImmutableArray()), styles.Items!.ToImmutableArray(), rules.Items!.ToImmutableArray());
-        Assert.Equal(NamingStylePreferences.Default, graph.ToPreferences());
+        var graph = NamingSettingsGraph.Default;
+        var style = graph.NamingStyles[1].ToDictionary(pair => pair.Key, pair => pair.Value);
+        style["name"] = "Imported style";
+        style.Remove("defaultName");
+        legacy = new NamingSettingsGraph(graph.SymbolSpecifications, graph.NamingStyles.SetItem(1, style), graph.Rules).ToPreferences();
+        Assert.Equal(legacy, (await ReadGraphAsync()).ToPreferences());
+
+        async Task<NamingSettingsGraph> ReadGraphAsync()
+        {
+            var specifications = await coordinator.MigrateToUnifiedSettingsAsync(prefix + "symbolSpecifications", CancellationToken.None);
+            var repeated = await coordinator.MigrateToUnifiedSettingsAsync(prefix + "symbolSpecifications", CancellationToken.None);
+            Assert.Equal(specifications.Items, repeated.Items);
+            var styles = await coordinator.MigrateToUnifiedSettingsAsync(prefix + "namingStyles", CancellationToken.None);
+            var rules = await coordinator.MigrateToUnifiedSettingsAsync(prefix + "rules", CancellationToken.None);
+            return new NamingSettingsGraph(NamingSettingsStorageCodec.DecodeSpecifications(specifications.Items!.ToImmutableArray()), styles.Items!.ToImmutableArray(), rules.Items!.ToImmutableArray());
+        }
     }
 
     [Fact]

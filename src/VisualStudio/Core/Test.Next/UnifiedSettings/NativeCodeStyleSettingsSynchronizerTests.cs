@@ -127,6 +127,45 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         Assert.Equal(0, host.Native.CommitCount);
     }
 
+    [WpfTheory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task LegacyImportsDuringBootstrapSurviveNativePublication(string language)
+    {
+        using var host = new Host(language);
+        host.Legacy.Value = new CodeStyleOption2<bool>(false, NotificationOption2.Silent).ToXElement().ToString();
+        host.Native.Values[host.Binding.Moniker] = "true";
+        host.Native.Values[host.Binding.SeverityMoniker] = "warning";
+        var reading = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var resume = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        host.Native.BeforeEffectiveRead = async () =>
+        {
+            reading.SetResult(true);
+            await resume.Task;
+        };
+        var initialization = host.Synchronizer.InitializeAsync();
+        await reading.Task;
+        var imported = new CodeStyleOption2<bool>(false, NotificationOption2.Suggestion);
+        try
+        {
+            await host.Legacy.ImportAsync(new CodeStyleOption2<bool>(true, NotificationOption2.Error).ToXElement().ToString());
+            await host.Legacy.ImportAsync(imported.ToXElement().ToString());
+        }
+        finally
+        {
+            resume.SetResult(true);
+        }
+
+        await initialization;
+        await host.DrainAsync();
+
+        Assert.Equal(imported, host.ReadLegacy());
+        Assert.Equal(imported, host.Refreshed);
+        Assert.Equal("false", host.Native.Effective(host.Binding.Moniker));
+        Assert.Equal("suggestion", host.Native.Effective(host.Binding.SeverityMoniker));
+        Assert.Equal(2, host.Native.CommitCount);
+    }
+
     [WpfFact]
     public async Task LegacyImportBeforeNativeEditKeepsTheLatestSiblingAndAcceptsXmlWhitespace()
     {
@@ -240,6 +279,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         private IObserver<SettingsUpdate>? _observer;
         private int _persistedReads;
         public Action? BeforeSeedRead;
+        public Func<Task>? BeforeEffectiveRead;
         public int CommitCount;
         public bool FailNextCommit;
 
@@ -258,11 +298,13 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
 
         public ValueTask<ReadResult> GetValueAsync(string moniker, ReadOptions options, CancellationToken cancellationToken)
             => new(Read(moniker, options));
-        public ValueTask<IReadOnlyCollection<ReadResult>> GetValuesAsync(IReadOnlyCollection<string> patterns, ReadOptions options, CancellationToken cancellationToken)
+        public async ValueTask<IReadOnlyCollection<ReadResult>> GetValuesAsync(IReadOnlyCollection<string> patterns, ReadOptions options, CancellationToken cancellationToken)
         {
             if (options.HasFlag(ReadOptions.NoFallbackToDefault) && ++_persistedReads == 2)
                 BeforeSeedRead?.Invoke();
-            return new(patterns.Select(moniker => Read(moniker, options)).ToArray());
+            if (!options.HasFlag(ReadOptions.NoFallbackToDefault) && BeforeEffectiveRead is { } beforeRead)
+                await beforeRead();
+            return patterns.Select(moniker => Read(moniker, options)).ToArray();
         }
         public ValueTask<IDisposable> SubscribeAsync(IObserver<SettingsUpdate> observer, IReadOnlyCollection<string> patterns, ReadOptions options, CancellationToken cancellationToken)
         {

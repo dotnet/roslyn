@@ -23,9 +23,7 @@ internal sealed class NamingSettingsCoordinator(
     Action<NamingStylePreferences>? refreshRuntime = null) : IArraySettingMigrator
 {
     private readonly ReentrantSemaphore _gate = ReentrantSemaphore.Create(1, joinableTaskContext, ReentrantSemaphore.ReentrancyMode.NotRecognized);
-    private readonly object _migrationGate = new();
     private readonly Guid _eventSource = Guid.NewGuid();
-    private NamingSettingsGraph? _migrationGraph;
     private NamingSettingsGraph? _graph;
     private NamingStylePreferences? _publishingLegacy;
 
@@ -84,9 +82,11 @@ internal sealed class NamingSettingsCoordinator(
         }, cancellationToken);
 
     public Task SynchronizeFromLegacyAsync(CancellationToken cancellationToken)
+        => SynchronizeFromLegacyAsync(readLegacy(), cancellationToken);
+
+    public Task SynchronizeFromLegacyAsync(NamingStylePreferences preferences, CancellationToken cancellationToken)
         => _gate.ExecuteAsync(() =>
         {
-            var preferences = readLegacy();
             var previous = _graph ?? store.ReadGraph();
             var graph = preferences.Equals(NamingStylePreferences.Default)
                 ? NamingSettingsGraph.Default
@@ -125,17 +125,10 @@ internal sealed class NamingSettingsCoordinator(
     public Task<ArraySettingContent> MigrateToUnifiedSettingsAsync(string arraySettingMoniker, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        lock (_migrationGate)
-        {
-            // All three initial imports must come from the same legacy graph, even when invoked separately.
-            if (_migrationGraph is null)
-            {
-                var preferences = readLegacy();
-                _migrationGraph = preferences.Equals(NamingStylePreferences.Default)
-                    ? NamingSettingsGraph.Default : NamingSettingsGraph.FromPreferences(preferences);
-            }
-            return Task.FromResult(new ArraySettingContent(GetItems(_migrationGraph, arraySettingMoniker)));
-        }
+        var preferences = readLegacy();
+        var graph = preferences.Equals(NamingStylePreferences.Default)
+            ? NamingSettingsGraph.Default : NamingSettingsGraph.FromPreferences(preferences);
+        return Task.FromResult(new ArraySettingContent(GetItems(graph, arraySettingMoniker)));
     }
 
     public Task MigrateFromUnifiedSettingsAsync(string arraySettingMoniker, ArraySettingContent arrayContent, CancellationToken cancellationToken)

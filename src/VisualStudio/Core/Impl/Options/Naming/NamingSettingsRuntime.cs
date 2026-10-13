@@ -95,10 +95,11 @@ internal sealed class NamingSettingsRuntime : IDisposable
 
     private async Task RefreshLegacyAsync()
     {
-        if (Coordinator.IsOwnLegacyChange(_readLegacy()))
+        var preferences = _readLegacy();
+        if (Coordinator.IsOwnLegacyChange(preferences))
             return;
         await Ready.ConfigureAwait(false);
-        await Coordinator.SynchronizeFromLegacyAsync(_cancellationToken).ConfigureAwait(false);
+        await Coordinator.SynchronizeFromLegacyAsync(preferences, _cancellationToken).ConfigureAwait(false);
         Provider.NotifyErrorConditionResolved();
     }
 
