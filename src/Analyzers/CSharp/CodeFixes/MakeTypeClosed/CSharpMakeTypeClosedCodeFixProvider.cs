@@ -9,11 +9,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeTypeClosed;
 
@@ -116,7 +116,6 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         INamedTypeSymbol type,
         CancellationToken cancellationToken = default)
     {
-
         var references = await SymbolFinder.FindReferencesAsync(type, solution, cancellationToken).ConfigureAwait(false);
         foreach (var reference in references)
         {
@@ -152,18 +151,46 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         var document = context.Document;
         Contract.ThrowIfNull(document);
 
-        var semanticModel = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+        var diagnostic = context.Diagnostics[0];
+        var diagTree = diagnostic.Location.SourceTree;
+        var diagDocument = diagTree != null ? document.Project.Solution.GetDocument(diagTree) : document;
+        if (diagDocument == null)
+            return;
+
+        var semanticModel = await diagDocument.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
         Contract.ThrowIfNull(semanticModel);
 
-        if (await GetTypeToRefactorWhenValidAsync(
-                document.Project.Solution,
-                semanticModel,
-                context.Diagnostics[0].Location.FindNode(context.CancellationToken),
-                context.CancellationToken
-            ).ConfigureAwait(false) != null)
+        var root = await diagDocument.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        var node = root.FindNode(diagnostic.Location.SourceSpan);
+
+        async Task<Solution> ApplyAsync(CancellationToken ct)
         {
-            RegisterCodeFix(context, CodeFixesResources.Make_class_closed, CodeFixesResources.Make_class_closed);
+            var typeDecl = await GetTypeToRefactorWhenValidAsync(document.Project.Solution, semanticModel, node, ct).ConfigureAwait(false);
+            if (typeDecl == null)
+                return document.Project.Solution;
+
+            var targetDoc = document.Project.Solution.GetDocument(typeDecl.SyntaxTree);
+            if (targetDoc == null)
+                return document.Project.Solution;
+
+            var targetRoot = await targetDoc.GetSyntaxRootAsync(ct).ConfigureAwait(false);
+            var generator = SyntaxGenerator.GetGenerator(targetDoc);
+            var newNode = generator.WithModifiers(
+                typeDecl,
+                generator.GetModifiers(typeDecl)
+                    .WithIsAbstract(false)
+                    .WithIsClosed(true));
+            var newRoot = targetRoot.ReplaceNode(typeDecl, newNode);
+
+            return targetDoc.Project.Solution.WithDocumentSyntaxRoot(targetDoc.Id, newRoot);
         }
+
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                CodeFixesResources.Make_class_closed,
+                ct => ApplyAsync(ct),
+                CodeFixesResources.Make_class_closed),
+            context.Diagnostics);
     }
 
     protected override async Task FixAllAsync(
@@ -177,24 +204,37 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
 
         foreach (var diagnostic in diagnostics)
         {
+            var diagTree = diagnostic.Location.SourceTree;
+            var diagDocument = diagTree != null ? document.Project.Solution.GetDocument(diagTree) : document;
+            if (diagDocument == null)
+                continue;
+
+            var diagSemanticModel = await diagDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var diagRoot = await diagDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = diagRoot.FindNode(diagnostic.Location.SourceSpan);
+
             var typeDeclaration = await GetTypeToRefactorWhenValidAsync(
                     document.Project.Solution,
-                    semanticModel,
-                    diagnostic.Location.FindNode(cancellationToken),
+                    diagSemanticModel,
+                    node,
                     cancellationToken)
                 .ConfigureAwait(false);
 
             if (typeDeclaration != null)
             {
-                editor.ReplaceNode(typeDeclaration,
-                    (currentTypeDeclaration, generator) =>
-                        generator.WithModifiers(
-                            currentTypeDeclaration,
-                            generator.GetModifiers(currentTypeDeclaration)
-                                .WithIsAbstract(false)
-                                .WithIsClosed(true)
-                        )
-                );
+                var targetDoc = document.Project.Solution.GetDocument(typeDeclaration.SyntaxTree);
+                if (targetDoc != null && targetDoc.Id == document.Id)
+                {
+                    editor.ReplaceNode(typeDeclaration,
+                        (currentTypeDeclaration, generator) =>
+                            generator.WithModifiers(
+                                currentTypeDeclaration,
+                                generator.GetModifiers(currentTypeDeclaration)
+                                    .WithIsAbstract(false)
+                                    .WithIsClosed(true)
+                            )
+                    );
+                }
             }
         }
     }
