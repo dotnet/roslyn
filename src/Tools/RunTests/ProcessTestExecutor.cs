@@ -215,12 +215,12 @@ namespace RunTests
                             : $"Global deadline exceeded while running {workItemInfo.DisplayName}.";
                         ConsoleUtil.Error(timeoutMessage);
                         await handleCancellationAsync(resultsFilePath, timeoutMessage).ConfigureAwait(false);
-                        var (result, drainMessage) = await getResultAsync(dotnetProcessInfo.Result).ConfigureAwait(false);
-                        return (result, drainMessage ?? timeoutMessage);
+                        var (result, _) = await getResultAsync(dotnetProcessInfo.Result, reportDrainFailure: false).ConfigureAwait(false);
+                        return (result, timeoutMessage);
                     }
                 }
 
-                async Task<(ProcessResult Result, string? FailureMessage)> getResultAsync(Task<ProcessResult> resultTask)
+                async Task<(ProcessResult Result, string? FailureMessage)> getResultAsync(Task<ProcessResult> resultTask, bool reportDrainFailure = true)
                 {
                     try
                     {
@@ -228,10 +228,17 @@ namespace RunTests
                     }
                     catch (ProcessOutputDrainException ex)
                     {
-                        outputDrainFailed = true;
                         var message = $"Output drain failed for {workItemInfo.DisplayName}.{Environment.NewLine}{ex.Message}";
-                        ConsoleUtil.Error(message);
-                        writeSyntheticFailure(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName, message);
+                        if (reportDrainFailure)
+                        {
+                            outputDrainFailed = true;
+                            ConsoleUtil.Error(message);
+                            writeSyntheticFailure(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName, message);
+                        }
+                        else
+                        {
+                            ConsoleUtil.Warning(message);
+                        }
                         return (ex.Result, message);
                     }
                 }
