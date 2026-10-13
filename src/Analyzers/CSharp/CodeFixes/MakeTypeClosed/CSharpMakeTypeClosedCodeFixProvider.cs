@@ -69,6 +69,7 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
             .OfType<DeclarationPatternSyntax>();
 
         var namedTypeAllowsNulls = namedType.NullableAnnotation == NullableAnnotation.Annotated;
+        // TODO check if there is a null arm if the above is true
 
         if (!await AreAllDerrivedTypesHandledAsync(solution, semanticModel, switchExpression.Arms, namedType, true, cancellationToken).ConfigureAwait(false))
             return null;
@@ -87,7 +88,6 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         bool hasToBeInSameAssembly = true,
         CancellationToken cancellationToken = default)
     {
-
         var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(type, solution, false, [.. solution.Projects], cancellationToken).ConfigureAwait(false);
         foreach (var derivedClass in derivedClasses)
         {
