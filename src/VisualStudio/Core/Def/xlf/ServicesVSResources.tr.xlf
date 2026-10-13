@@ -1067,10 +1067,20 @@
         <target state="translated">Dizin işlecini tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <note>'is null' is a C# expression and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Prefer_method_group_conversion">
         <source>Prefer method group conversion</source>
         <target state="translated">Yöntem grubu dönüştürmeyi tercih et</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="new">Prefer 'null' check over type check</target>
+        <note>'null' is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
@@ -2846,16 +2856,6 @@ Ek bilgiler: {1}</target>
         <source>All files (*.*)|*.*</source>
         <target state="new">All files (*.*)|*.*</target>
         <note>(*.*)|*.* is a Windows file filter pattern and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">Başvuru eşitliği denetimleri için 'is null'ı tercih et</target>
-        <note>'is null' is a C# expression and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="translated">Tür denetimi yerine 'null' denetimini tercih et</target>
-        <note>'null' is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>
   </file>

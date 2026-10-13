@@ -1067,10 +1067,20 @@
         <target state="translated">優先使用索引運算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <note>'is null' is a C# expression and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Prefer_method_group_conversion">
         <source>Prefer method group conversion</source>
         <target state="translated">建議使用方法群組轉換</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="new">Prefer 'null' check over type check</target>
+        <note>'null' is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
@@ -2846,16 +2856,6 @@ Additional information: {1}</source>
         <source>All files (*.*)|*.*</source>
         <target state="new">All files (*.*)|*.*</target>
         <note>(*.*)|*.* is a Windows file filter pattern and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="translated">參考相等檢查最好使用 'is null'</target>
-        <note>'is null' is a C# expression and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="translated">建議使用 'null' 檢查而非鍵入檢查</target>
-        <note>'null' is a C# keyword and should not be localized.</note>
       </trans-unit>
     </body>
   </file>
