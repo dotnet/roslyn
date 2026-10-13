@@ -16,12 +16,10 @@
       // Legacy null means enabled. Put the canonical true value first so reset also writes true.
       "migration": { "custom": { "mode": "full", "inputs": [ { "store": "SettingsManager", "path": "TextEditor.OfferRemoveUnusedReferences" } ], "map": [ { "result": "@default", "matches": [ true ] }, { "result": true, "matches": [ true ] }, { "result": false, "matches": [ false ] }, { "result": "@default", "matches": [ "@any" ] } ] } }
     },
-    // Registry locations cannot be upgraded to FullWithoutDefaults. Default-write behavior remains an onboarding gate.
     "languages.dotnet.advanced.enableFileLoggingForDiagnostics": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Enable_file_logging_for_diagnostics;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": false, "transientScopesSupported": false,
       "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:This_setting_is_shared_by_CSharp_and_Visual_Basic;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "placements": [ { "category": "languages.csharp.advanced.analysis", "order": 50 }, { "category": "languages.basic.advanced.analysis", "order": 50 } ],
-      // Candidate only: native numeric equality also matches QWORD 1, unlike the original DWORD-only codec.
       "migration": { "custom": { "mode": "full", "inputs": [ { "store": "VsUserSettingsRegistry", "path": "Roslyn\\Internal\\Diagnostics\\EnableFileLoggingForDiagnostics" } ], "map": [ { "result": "@default", "matches": [ 0 ] }, { "result": true, "matches": [ 1 ] }, { "result": false, "matches": [ 0 ] }, { "result": "@default", "matches": [ "@any" ] } ] } }
     },
     "languages.dotnet.advanced.skipAnalyzersForImplicitlyTriggeredBuilds": {

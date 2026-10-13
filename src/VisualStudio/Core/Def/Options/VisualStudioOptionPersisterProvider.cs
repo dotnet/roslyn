@@ -26,7 +26,6 @@ internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProv
     private readonly Lazy<ILegacyGlobalOptionService> _legacyGlobalOptions;
     private readonly Lazy<INativeCodeStyleSettingsService> _nativeCodeStyleSettings;
     private readonly Lazy<INamingSettingsService> _namingSettings;
-    private readonly Lazy<INativeAdvancedSettingsService> _nativeAdvancedSettings;
 
     // maps config name to a read fallback:
     private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
@@ -42,14 +41,12 @@ internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProv
         [ImportMany] IEnumerable<Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks,
         Lazy<ILegacyGlobalOptionService> legacyGlobalOptions,
         Lazy<INativeCodeStyleSettingsService> nativeCodeStyleSettings,
-        Lazy<INamingSettingsService> namingSettings,
-        Lazy<INativeAdvancedSettingsService> nativeAdvancedSettings)
+        Lazy<INamingSettingsService> namingSettings)
     {
         _serviceProvider = serviceProvider;
         _legacyGlobalOptions = legacyGlobalOptions;
         _nativeCodeStyleSettings = nativeCodeStyleSettings;
         _namingSettings = namingSettings;
-        _nativeAdvancedSettings = nativeAdvancedSettings;
         _readFallbacks = readFallbacks.ToImmutableDictionary(item => item.Metadata.ConfigName, item => item);
         _lazyPersister = new Lazy<IOptionPersister>(() => CreatePersister());
     }
@@ -75,12 +72,10 @@ internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProv
 
         var featureFlags = GetFreeThreadedService<SVsFeatureFlags, IVsFeatureFlags>();
 
-        var registry = LocalUserRegistryOptionPersister.Create(localRegistry);
-        _nativeAdvancedSettings.Value.Start(registry);
         return new VisualStudioOptionPersister(
             new VisualStudioSettingsOptionPersister(RefreshOption, _readFallbacks, settingsManager),
             new VisualStudioUnifiedSettingsOptionPersister(RefreshOption, unifiedSettingsManager),
-            registry,
+            LocalUserRegistryOptionPersister.Create(localRegistry),
             new FeatureFlagPersister(featureFlags));
     }
 

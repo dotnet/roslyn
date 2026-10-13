@@ -441,9 +441,10 @@ public sealed class AdvancedUnifiedSettingsTests
                 Assert.Equal(path, input.GetProperty("path").GetString());
                 Assert.Equal(option.Definition.Type == typeof(bool?) || option == StackTraceExplorerOptionsStorage.OpenOnFocus ? "full" : "oneTimeFromLegacy", migration.Value.GetProperty("mode").GetString());
                 break;
-            case LocalUserProfileStorage local:
+            case UnifiedSettingsManagerStorage unified:
+                Assert.Equal("languages.dotnet.advanced.enableFileLoggingForDiagnostics", unified.Key);
                 Assert.Equal("VsUserSettingsRegistry", input.GetProperty("store").GetString());
-                Assert.Equal(local.Path + "\\" + local.Key, input.GetProperty("path").GetString());
+                Assert.Equal(@"Roslyn\Internal\Diagnostics\EnableFileLoggingForDiagnostics", input.GetProperty("path").GetString());
                 Assert.Equal("full", migration.Value.GetProperty("mode").GetString());
                 break;
             default:
@@ -564,22 +565,16 @@ public sealed class AdvancedUnifiedSettingsTests
             var properties = document.RootElement.GetProperty("properties");
             foreach (var property in properties.EnumerateObject().Where(property => property.Name.Contains(".advanced.")))
             {
-                if (property.Name == "languages.dotnet.advanced.enableFileLoggingForDiagnostics")
-                {
-                    Assert.False(property.Value.TryGetProperty("migration", out _));
-                    Assert.False(property.Value.GetProperty("transientScopesSupported").GetBoolean());
-                    count++;
-                    continue;
-                }
                 var rule = property.Value.GetProperty("migration").EnumerateObject().Single().Value;
-                Assert.Equal("SettingsManager", GetInput(rule).GetProperty("store").GetString());
-                if (property.Name == "languages.dotnet.advanced.openStackTraceExplorerOnFocus")
+                var logging = property.Name == "languages.dotnet.advanced.enableFileLoggingForDiagnostics";
+                Assert.Equal(logging ? "VsUserSettingsRegistry" : "SettingsManager", GetInput(rule).GetProperty("store").GetString());
+                if (logging || property.Name == "languages.dotnet.advanced.openStackTraceExplorerOnFocus")
                 {
-                    Assert.Equal("StackTraceExplorer.Options.OpenOnFocus", GetInput(rule).GetProperty("path").GetString());
+                    Assert.Equal(logging ? @"Roslyn\Internal\Diagnostics\EnableFileLoggingForDiagnostics" : "StackTraceExplorer.Options.OpenOnFocus", GetInput(rule).GetProperty("path").GetString());
                     Assert.Equal("full", rule.GetProperty("mode").GetString());
                     Assert.Equal("boolean", property.Value.GetProperty("type").GetString());
                     Assert.False(property.Value.GetProperty("default").GetBoolean());
-                    Assert.False((bool)StackTraceExplorerOptionsStorage.OpenOnFocus.Definition.DefaultValue!);
+                    Assert.False((bool)(logging ? VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics : StackTraceExplorerOptionsStorage.OpenOnFocus).Definition.DefaultValue!);
                 }
                 else
                 {

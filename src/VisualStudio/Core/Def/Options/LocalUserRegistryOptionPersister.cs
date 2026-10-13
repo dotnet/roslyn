@@ -3,11 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Win32.SafeHandles;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -23,7 +19,7 @@ internal sealed class LocalUserRegistryOptionPersister
     private readonly object _gate = new();
     private readonly RegistryKey _registryKey;
 
-    internal LocalUserRegistryOptionPersister(RegistryKey registryKey)
+    private LocalUserRegistryOptionPersister(RegistryKey registryKey)
     {
         _registryKey = registryKey;
     }
@@ -55,7 +51,7 @@ internal sealed class LocalUserRegistryOptionPersister
             // Options that are of type bool have to be serialized as integers
             if (optionKey.Option.Type == typeof(bool))
             {
-                value = ReadBooleanRegistryValue(subKey.GetValue(key, defaultValue: WriteBooleanRegistryValue((bool)optionKey.Option.DefaultValue!)));
+                value = subKey.GetValue(key, defaultValue: (bool)optionKey.Option.DefaultValue! ? 1 : 0).Equals(1);
                 return true;
             }
             else if (optionKey.Option.Type == typeof(long))
@@ -123,50 +119,6 @@ internal sealed class LocalUserRegistryOptionPersister
         return false;
     }
 
-    // Unlike numeric USX migration matches, the legacy codec distinguishes DWORD 1 from QWORD 1.
-    internal static bool ReadBooleanRegistryValue(object value)
-        => value.Equals(1);
-
-    internal static int WriteBooleanRegistryValue(bool value)
-        => value ? 1 : 0;
-
-    internal Optional<object?> ReadStoredBoolean(string path, string key)
-    {
-        lock (_gate)
-        {
-            using var subKey = _registryKey.OpenSubKey(path);
-            var value = subKey?.GetValue(key);
-            return value is null ? default : new(ReadBooleanRegistryValue(value));
-        }
-    }
-
-    internal Task WatchChangesAsync(Action changed, CancellationToken cancellationToken)
-        => Task.Factory.StartNew(() =>
-        {
-            using var signal = new AutoResetEvent(false);
-            var handles = new[] { signal, cancellationToken.WaitHandle };
-            while (true)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                // The profile root remains valid when an import creates or deletes the diagnostics subkey.
-                // THREAD_AGNOSTIC keeps the notification alive independently of the registering thread.
-                var error = RegNotifyChangeKeyValue(_registryKey.Handle, true, 0x10000005, signal.SafeWaitHandle, true);
-                if (error != 0)
-                    throw new Win32Exception(error);
-                changed();
-                if (WaitHandle.WaitAny(handles) == 1)
-                    cancellationToken.ThrowIfCancellationRequested();
-            }
-        }, CancellationToken.None, TaskCreationOptions.LongRunning, TaskScheduler.Default);
-
-    [DllImport("advapi32.dll", ExactSpelling = true)]
-    private static extern int RegNotifyChangeKeyValue(
-        SafeRegistryHandle key,
-        [MarshalAs(UnmanagedType.Bool)] bool watchSubtree,
-        uint notifyFilter,
-        SafeWaitHandle signal,
-        [MarshalAs(UnmanagedType.Bool)] bool asynchronous);
-
     public void Persist(OptionKey2 optionKey, string path, string key, object? value)
     {
         Contract.ThrowIfNull(_registryKey);
@@ -181,7 +133,7 @@ internal sealed class LocalUserRegistryOptionPersister
             if (optionType == typeof(bool))
             {
                 Contract.ThrowIfNull(value);
-                subKey.SetValue(key, WriteBooleanRegistryValue((bool)value), RegistryValueKind.DWord);
+                subKey.SetValue(key, (bool)value ? 1 : 0, RegistryValueKind.DWord);
                 return;
             }
 

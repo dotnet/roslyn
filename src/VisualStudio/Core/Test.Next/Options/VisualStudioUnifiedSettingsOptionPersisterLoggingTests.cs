@@ -24,13 +24,13 @@ public partial class VisualStudioUnifiedSettingsOptionPersisterTests
     [Theory]
     [InlineData(false, "false")]
     [InlineData(true, "true")]
-    public async Task LoggingCandidateBooleanStorageRoundTrips(bool value, string serialized)
+    public async Task LoggingBooleanStorageRoundTrips(bool value, string serialized)
     {
         var option = VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics;
         Assert.False((bool)option.Definition.DefaultValue!);
         var key = new OptionKey2(option);
-        // The candidate bridge is not the shipping storage until registry type compatibility is resolved.
-        var storage = new VisualStudioOptionStorage.UnifiedSettingsManagerStorage(LoggingMoniker);
+        var storage = Assert.IsType<VisualStudioOptionStorage.UnifiedSettingsManagerStorage>(VisualStudioOptionStorage.Storages[option.Definition.ConfigName]);
+        Assert.Equal(LoggingMoniker, storage.Key);
         var manager = new MockUnifiedSettingsManager();
         var persister = new VisualStudioUnifiedSettingsOptionPersister((_, _) => Assert.Fail("Persist must not refresh."), manager);
         var writes = 0;
@@ -53,7 +53,7 @@ public partial class VisualStudioUnifiedSettingsOptionPersisterTests
     }
 
     [WpfFact]
-    public async Task LoggingCandidateIncomingNativeUpdatesRefreshCachedFileEventSinkWithoutPersisting()
+    public async Task LoggingIncomingNativeUpdatesAndResetRefreshCachedFileEventSinkWithoutPersisting()
     {
         var composition = EditorTestCompositions.EditorFeatures.GetCompositionConfiguration();
         var factory = RuntimeComposition.CreateRuntimeComposition(composition).CreateExportProviderFactory(joinableTaskFactory: null);
@@ -62,7 +62,7 @@ public partial class VisualStudioUnifiedSettingsOptionPersisterTests
         var threadingContext = exportProvider.GetExportedValue<IThreadingContext>();
         var option = VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics;
         var key = new OptionKey2(option);
-        var storage = new VisualStudioOptionStorage.UnifiedSettingsManagerStorage(LoggingMoniker);
+        var storage = Assert.IsType<VisualStudioOptionStorage.UnifiedSettingsManagerStorage>(VisualStudioOptionStorage.Storages[option.Definition.ConfigName]);
         Assert.False(options.GetOption(option));
         // Only inspect IsEnabled: never queue logging work or write a log file.
         var sink = new FileEventSink(options, threadingContext);

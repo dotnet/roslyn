@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,31 +15,27 @@ public sealed class AdvancedLoggingUnifiedSettingsTests
     private const string Moniker = "languages.dotnet.advanced.enableFileLoggingForDiagnostics";
 
     [Fact]
-    public void LoggingHasNativeUiWithTypeAwareLegacyStorageSynchronization()
+    public void LoggingUsesUsxStorageWithFullRegistryMigration()
     {
         var option = VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics;
         Assert.False((bool)option.Definition.DefaultValue!);
-        var storage = Assert.IsType<VisualStudioOptionStorage.LocalUserProfileStorage>(VisualStudioOptionStorage.Storages[option.Definition.ConfigName]);
-        Assert.Equal(@"Roslyn\Internal\Diagnostics", storage.Path);
-        Assert.Equal("EnableFileLoggingForDiagnostics", storage.Key);
+        var storage = Assert.IsType<VisualStudioOptionStorage.UnifiedSettingsManagerStorage>(VisualStudioOptionStorage.Storages[option.Definition.ConfigName]);
+        Assert.Equal(Moniker, storage.Key);
         using var live = Load("roslynSettings.registration.json");
         var native = live.RootElement.GetProperty("properties").GetProperty(Moniker);
         Assert.Equal("boolean", native.GetProperty("type").GetString());
         Assert.False(native.GetProperty("default").GetBoolean());
-        Assert.False(native.TryGetProperty("migration", out _));
+        Assert.False(native.GetProperty("transientScopesSupported").GetBoolean());
         Assert.Equal(new[] { "languages.csharp.advanced.analysis", "languages.basic.advanced.analysis" },
             native.GetProperty("placements").EnumerateArray().Select(placement => placement.GetProperty("category").GetString()));
         using var draft = Load("roslynAdvancedSettings.registration.draft.json");
         var setting = draft.RootElement.GetProperty("properties").GetProperty(Moniker);
-        Assert.Equal("boolean", setting.GetProperty("type").GetString());
-        Assert.False(setting.GetProperty("default").GetBoolean());
-        var placements = setting.GetProperty("placements").EnumerateArray().Select(placement => placement.GetProperty("category").GetString());
-        Assert.Equal(new[] { "languages.csharp.advanced.analysis", "languages.basic.advanced.analysis" }, placements);
-        var rule = setting.GetProperty("migration").GetProperty("custom");
+        Assert.Equal(JsonSerializer.Serialize(setting), JsonSerializer.Serialize(native));
+        var rule = native.GetProperty("migration").GetProperty("custom");
         Assert.Equal("full", rule.GetProperty("mode").GetString());
         var input = Assert.Single(rule.GetProperty("inputs").EnumerateArray());
         Assert.Equal("VsUserSettingsRegistry", input.GetProperty("store").GetString());
-        Assert.Equal(storage.Path + "\\" + storage.Key, input.GetProperty("path").GetString());
+        Assert.Equal(@"Roslyn\Internal\Diagnostics\EnableFileLoggingForDiagnostics", input.GetProperty("path").GetString());
         var maps = rule.GetProperty("map").EnumerateArray().ToArray();
         Assert.Equal(4, maps.Length);
         Assert.Equal("@default", maps[0].GetProperty("result").GetString());
@@ -57,56 +52,35 @@ public sealed class AdvancedLoggingUnifiedSettingsTests
     [InlineData(int.MinValue)]
     [InlineData(-1)]
     [InlineData(0)]
-    [InlineData(1)]
+    [InlineData(1L)]
     [InlineData(2)]
     [InlineData(int.MaxValue)]
-    public void LoggingDraftPreservesTheDwordCodecIncludingUnknownIntegers(int legacy)
+    public void LoggingMigrationEnablesNumericOneAndDefaultsOtherIntegersToFalse(long legacy)
     {
-        using var draft = Load("roslynAdvancedSettings.registration.draft.json");
-        var maps = draft.RootElement.GetProperty("properties").GetProperty(Moniker).GetProperty("migration").GetProperty("custom").GetProperty("map");
+        using var live = Load("roslynSettings.registration.json");
+        var maps = live.RootElement.GetProperty("properties").GetProperty(Moniker).GetProperty("migration").GetProperty("custom").GetProperty("map");
         var firstMatch = maps.EnumerateArray().First(map => map.GetProperty("matches")[0] is var input
-            && (input.ValueKind == JsonValueKind.String || input.GetInt32() == legacy));
+            && (input.ValueKind == JsonValueKind.String || input.GetInt64() == legacy));
         var output = firstMatch.GetProperty("result");
         var enabled = output.ValueKind == JsonValueKind.True;
-        Assert.Equal(((object)legacy).Equals(1), enabled);
+        Assert.Equal(legacy == 1, enabled);
     }
 
     [Fact]
-    public void NumericManifestLiteralDoesNotRepresentTheLegacyDwordQwordDistinction()
+    public void LoggingMigrationWritesCanonicalIntegersForCheckboxChangesAndReset()
     {
-        object dword = 1;
-        object qword = 1L;
-        Assert.True(dword.Equals(1));
-        Assert.False(qword.Equals(1));
-        // IntegerStoreValue.Equals also equates these via decimal conversion. A public numeric
-        // match cannot request DWORD-only equality; this serialization check is not a native migration test.
-        Assert.Equal(Convert.ToDecimal(dword), Convert.ToDecimal(qword));
-        Assert.Equal(JsonSerializer.Serialize(dword), JsonSerializer.Serialize(qword));
-    }
+        using var live = Load("roslynSettings.registration.json");
+        var maps = live.RootElement.GetProperty("properties").GetProperty(Moniker).GetProperty("migration").GetProperty("custom").GetProperty("map").EnumerateArray().ToArray();
+        foreach (var value in new[] { true, false })
+        {
+            var reverse = maps.First(map => map.GetProperty("result") is var result
+                && result.ValueKind is JsonValueKind.True or JsonValueKind.False && result.GetBoolean() == value);
+            Assert.Equal(value ? 1 : 0, Assert.Single(reverse.GetProperty("matches").EnumerateArray()).GetInt32());
+        }
 
-    [Theory]
-    [InlineData(1, true)]
-    [InlineData(0, false)]
-    [InlineData(-1, false)]
-    [InlineData(2, false)]
-    [InlineData(1L, false)]
-    [InlineData(0L, false)]
-    [InlineData(1.0, false)]
-    [InlineData("1", false)]
-    [InlineData("true", false)]
-    [InlineData(true, false)]
-    [InlineData(false, false)]
-    public void ProductionLoggingRegistryCodecPreservesBoxedValueType(object value, bool expected)
-        => Assert.Equal(expected, LocalUserRegistryOptionPersister.ReadBooleanRegistryValue(value));
-
-    [Theory]
-    [InlineData(false, 0)]
-    [InlineData(true, 1)]
-    public void ProductionLoggingRegistryCodecRoundTripsCanonicalDefaultsAndWrites(bool value, int expected)
-    {
-        var storedValue = LocalUserRegistryOptionPersister.WriteBooleanRegistryValue(value);
-        Assert.Equal(expected, storedValue);
-        Assert.Equal(value, LocalUserRegistryOptionPersister.ReadBooleanRegistryValue(storedValue));
+        var reset = maps.First(map => map.GetProperty("result").ValueKind == JsonValueKind.String
+            && map.GetProperty("result").GetString() == "@default");
+        Assert.Equal(0, Assert.Single(reset.GetProperty("matches").EnumerateArray()).GetInt32());
     }
 
     private static JsonDocument Load(string manifest)

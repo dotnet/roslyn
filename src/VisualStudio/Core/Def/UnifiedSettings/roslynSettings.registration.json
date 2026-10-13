@@ -12,7 +12,8 @@
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Enable_file_logging_for_diagnostics;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean", "default": false, "transientScopesSupported": false,
       "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:This_setting_is_shared_by_CSharp_and_Visual_Basic;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
-      "placements": [ { "category": "languages.csharp.advanced.analysis", "order": 50 }, { "category": "languages.basic.advanced.analysis", "order": 50 } ]
+      "placements": [ { "category": "languages.csharp.advanced.analysis", "order": 50 }, { "category": "languages.basic.advanced.analysis", "order": 50 } ],
+      "migration": { "custom": { "mode": "full", "inputs": [ { "store": "VsUserSettingsRegistry", "path": "Roslyn\\Internal\\Diagnostics\\EnableFileLoggingForDiagnostics" } ], "map": [ { "result": "@default", "matches": [ 0 ] }, { "result": true, "matches": [ 1 ] }, { "result": false, "matches": [ 0 ] }, { "result": "@default", "matches": [ "@any" ] } ] } }
     },
     // This static false default is safe to materialize; SettingsManager notifications refresh Roslyn's cached option.
     "languages.dotnet.advanced.openStackTraceExplorerOnFocus": {
