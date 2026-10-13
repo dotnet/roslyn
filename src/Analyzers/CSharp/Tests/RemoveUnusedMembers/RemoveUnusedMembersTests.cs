@@ -4293,4 +4293,38 @@ public sealed class RemoveUnusedMembersTests
                 }
                 """,
         }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task StackAllocLengthReferencesPrivateConstant()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class B
+                {
+                    private const int Size = 8;
+                    static void {|IDE0051:Unused|}() { }
+
+                    public static int M() { Span<char> b = stackalloc char[Size]; return b.Length; }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task ImplicitStackAllocInitializerReferencesPrivateConstant()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class B
+                {
+                    private const char MyChar = 'x';
+                    static void {|IDE0051:Unused|}() { }
+
+                    public static int M() { Span<char> b = stackalloc[] { MyChar, 'a' }; return b.Length; }
+                }
+                """,
+        }.RunAsync();
 }

@@ -69,7 +69,8 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
     /// <summary>
     /// Returns true if <paramref name="node"/> is a stackalloc array creation expression syntax
-    /// (e.g. 'stackalloc char[8]' or the implicit '[8]' form). Stackalloc expressions currently have no
+    /// (e.g. 'stackalloc char[8]' or the implicit form 'stackalloc[] { 'a', 'b' }' where the
+    /// element type is inferred from the initializer). Stackalloc expressions currently have no
     /// <see cref="IOperation"/> representation (see https://github.com/dotnet/roslyn/issues/66833) and
     /// surface as <see cref="OperationKind.None"/>. Such an operation carries no member reference that
     /// could be missed, so we special-case it to avoid bailing out of analyzing the whole containing type.
