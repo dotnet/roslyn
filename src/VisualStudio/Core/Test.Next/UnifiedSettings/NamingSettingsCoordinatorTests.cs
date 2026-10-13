@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -114,17 +115,91 @@ public sealed class NamingSettingsCoordinatorTests
         }
     }
 
-    [Fact]
-    public async Task ReverseResetUsesRegisteredWholeGraphDefaultsAsync()
+    [Theory]
+    [InlineData(LanguageNames.CSharp, "symbolSpecifications", false)]
+    [InlineData(LanguageNames.CSharp, "namingStyles", false)]
+    [InlineData(LanguageNames.CSharp, "rules", false)]
+    [InlineData(LanguageNames.CSharp, "symbolSpecifications", true)]
+    [InlineData(LanguageNames.CSharp, "namingStyles", true)]
+    [InlineData(LanguageNames.CSharp, "rules", true)]
+    [InlineData(LanguageNames.VisualBasic, "symbolSpecifications", false)]
+    [InlineData(LanguageNames.VisualBasic, "namingStyles", false)]
+    [InlineData(LanguageNames.VisualBasic, "rules", false)]
+    [InlineData(LanguageNames.VisualBasic, "symbolSpecifications", true)]
+    [InlineData(LanguageNames.VisualBasic, "namingStyles", true)]
+    [InlineData(LanguageNames.VisualBasic, "rules", true)]
+    public async Task ReverseMigrationUsesPayloadOrDefaultsAndPreservesSiblingsAsync(string language, string name, bool reset)
     {
         var manager = new NamingSettingsStoreTests.SettingsManagerMock();
-        manager.Reader.Graph = NamingSettingsGraph.Default;
-        var legacy = new NamingStylePreferences([], [], ImmutableArray<NamingRule>.Empty);
-        var coordinator = new NamingSettingsCoordinator(new NamingSettingsStore(manager, LanguageNames.CSharp), () => legacy, value => legacy = value, s_context);
+        var defaults = NamingSettingsGraph.Default;
+        var current = new NamingSettingsGraph(
+            ChangeFirstItem(defaults.SymbolSpecifications, "name", "Reader specification"),
+            ChangeFirstItem(defaults.NamingStyles, "name", "Reader style"),
+            ChangeFirstItem(defaults.Rules, "severity", "warning"));
+        manager.Reader.Graph = current;
+        var items = name switch
+        {
+            "symbolSpecifications" => reset ? defaults.SymbolSpecifications : ChangeFirstItem(current.SymbolSpecifications, "name", "Payload specification"),
+            "namingStyles" => reset ? defaults.NamingStyles : ChangeFirstItem(current.NamingStyles, "prefix", "payload_"),
+            "rules" => reset ? defaults.Rules : ChangeFirstItem(current.Rules, "severity", "error"),
+            _ => throw new InvalidOperationException(name),
+        };
+        var expected = new NamingSettingsGraph(
+            name == "symbolSpecifications" ? items : current.SymbolSpecifications,
+            name == "namingStyles" ? items : current.NamingStyles,
+            name == "rules" ? items : current.Rules);
+        var storedItems = name == "symbolSpecifications" ? NamingSettingsStorageCodec.EncodeSpecifications(items) : items;
+        var legacy = current.ToPreferences();
+        NamingStylePreferences? refreshed = null;
+        var prefix = language == LanguageNames.CSharp ? Prefix : "languages.basic.codeStyle.naming.";
+        var coordinator = new NamingSettingsCoordinator(new NamingSettingsStore(manager, language), () => legacy, value => legacy = value, s_context, value => refreshed = value);
 
-        await coordinator.MigrateFromUnifiedSettingsAsync(Prefix + "rules", new ArraySettingContent(null), CancellationToken.None);
+        await coordinator.MigrateFromUnifiedSettingsAsync(prefix + name, new ArraySettingContent(reset ? null : storedItems), CancellationToken.None);
+
+        Assert.Equal(expected.ToPreferences(), legacy);
+        Assert.Equal(legacy, refreshed);
+        Assert.True(current.ConfigurationEquals(manager.Reader.Graph));
+        Assert.Null(manager.LastWriter);
+        Assert.False(coordinator.SupportsIncompleteItems(prefix + name));
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task ReverseMigrationCanReplaceAnInvalidStaleArrayAsync(string language)
+    {
+        var manager = new NamingSettingsStoreTests.SettingsManagerMock();
+        var defaults = NamingSettingsGraph.Default;
+        manager.Reader.Graph = new(defaults.SymbolSpecifications, defaults.NamingStyles, ChangeFirstItem(defaults.Rules, "severity", "invalid"));
+        var rules = ChangeFirstItem(defaults.Rules, "severity", "warning");
+        var legacy = NamingStylePreferences.Default;
+        var prefix = language == LanguageNames.CSharp ? Prefix : "languages.basic.codeStyle.naming.";
+        var coordinator = new NamingSettingsCoordinator(new NamingSettingsStore(manager, language), () => legacy, value => legacy = value, s_context);
+
+        await coordinator.MigrateFromUnifiedSettingsAsync(prefix + "rules", new ArraySettingContent(rules), CancellationToken.None);
+
+        Assert.Equal(new NamingSettingsGraph(defaults.SymbolSpecifications, defaults.NamingStyles, rules).ToPreferences(), legacy);
+        Assert.Equal("invalid", manager.Reader.Graph.Rules[0]["severity"]);
+        Assert.Null(manager.LastWriter);
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task InvalidReverseMigrationPayloadDoesNotOverwriteLegacyAsync(string language)
+    {
+        var manager = new NamingSettingsStoreTests.SettingsManagerMock();
+        var legacy = NamingStylePreferences.Default;
+        var refreshes = 0;
+        var prefix = language == LanguageNames.CSharp ? Prefix : "languages.basic.codeStyle.naming.";
+        var coordinator = new NamingSettingsCoordinator(new NamingSettingsStore(manager, language), () => legacy, value => legacy = value, s_context, _ => refreshes++);
+        var rules = ChangeFirstItem(NamingSettingsGraph.Default.Rules, "namingStyleId", "missing-style");
+
+        await Assert.ThrowsAsync<InvalidDataException>(() => coordinator.MigrateFromUnifiedSettingsAsync(prefix + "rules", new ArraySettingContent(rules), CancellationToken.None));
 
         Assert.Equal(NamingStylePreferences.Default, legacy);
+        Assert.Equal(0, refreshes);
+        Assert.Null(manager.LastWriter);
     }
 
     [Fact]
@@ -151,5 +226,15 @@ public sealed class NamingSettingsCoordinatorTests
             Assert.Equal("", item["name"]);
             Assert.Equal(true, item["defaultName"]);
         }
+    }
+
+    private static ImmutableArray<IReadOnlyDictionary<string, object>> ChangeFirstItem(
+        ImmutableArray<IReadOnlyDictionary<string, object>> items, string property, object value)
+    {
+        var item = items[0].ToDictionary(pair => pair.Key, pair => pair.Value);
+        item[property] = value;
+        if (property == "name")
+            item.Remove("defaultName");
+        return items.SetItem(0, item);
     }
 }

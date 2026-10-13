@@ -132,13 +132,16 @@ internal sealed class NamingSettingsCoordinator(
     }
 
     public Task MigrateFromUnifiedSettingsAsync(string arraySettingMoniker, ArraySettingContent arrayContent, CancellationToken cancellationToken)
-    {
-        _ = GetItems(NamingSettingsGraph.Default, arraySettingMoniker);
-        // Re-read the whole graph, including effective defaults for reset, instead of overwriting XML with a single array.
-        return SynchronizeFromUnifiedSettingsAsync(cancellationToken);
-    }
+        => _gate.ExecuteAsync(() =>
+        {
+            var items = arrayContent.Items?.ToImmutableArray() ?? GetItems(NamingSettingsGraph.Default, arraySettingMoniker);
+            // The callback payload may not yet be visible to the settings reader.
+            var graph = store.ReadGraph(arraySettingMoniker, items).NormalizeDefaultNames();
+            PublishLegacy(graph);
+            return Task.CompletedTask;
+        }, cancellationToken);
 
-    public bool SupportsIncompleteItems(string arraySettingMoniker) => true;
+    public bool SupportsIncompleteItems(string arraySettingMoniker) => false;
 
     private static ImmutableArray<IReadOnlyDictionary<string, object>> GetItems(NamingSettingsGraph graph, string moniker)
         => moniker.Substring(moniker.LastIndexOf('.') + 1) switch

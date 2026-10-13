@@ -29,15 +29,33 @@ internal sealed class NamingSettingsStore(ISettingsManager settingsManager, stri
             != SettingRetrievalOutcome.NotSupportedInClassicMode;
 
     public NamingSettingsGraph ReadGraph()
+        => ReadGraphCore(null, default);
+
+    public NamingSettingsGraph ReadGraph(string arraySettingMoniker, ImmutableArray<IReadOnlyDictionary<string, object>> items)
+    {
+        if (arraySettingMoniker != _prefix + SettingNames.SymbolSpecifications &&
+            arraySettingMoniker != _prefix + SettingNames.NamingStyles &&
+            arraySettingMoniker != _prefix + SettingNames.Rules)
+        {
+            throw new InvalidDataException($"Unknown naming array '{arraySettingMoniker}'.");
+        }
+
+        return ReadGraphCore(arraySettingMoniker, items);
+    }
+
+    private NamingSettingsGraph ReadGraphCore(string? arraySettingMoniker, ImmutableArray<IReadOnlyDictionary<string, object>> items)
     {
         var reader = settingsManager.GetReader();
         var graph = new NamingSettingsGraph(
-            NamingSettingsStorageCodec.DecodeSpecifications(ReadArray(reader, SettingNames.SymbolSpecifications)),
-            ReadArray(reader, SettingNames.NamingStyles),
-            ReadArray(reader, SettingNames.Rules));
+            NamingSettingsStorageCodec.DecodeSpecifications(ReadItems(SettingNames.SymbolSpecifications)),
+            ReadItems(SettingNames.NamingStyles),
+            ReadItems(SettingNames.Rules));
 
         _ = graph.ToPreferences();
         return graph;
+
+        ImmutableArray<IReadOnlyDictionary<string, object>> ReadItems(string name)
+            => arraySettingMoniker == _prefix + name ? items : ReadArray(reader, name);
     }
 
     public SettingCommitResult WriteGraph(NamingSettingsGraph graph, string changeDescription, Guid eventSource)
