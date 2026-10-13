@@ -88,6 +88,22 @@ public class CohostUriPresentationEndpointTest(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
+    public async Task Component_DifferentNamespace_NoUsing()
+    {
+        await VerifyUriPresentationAsync(
+            input: """
+                <div>
+                    [||]
+                </div>
+                """,
+            additionalFiles: [
+                (FilePath("Other\\Component.razor"), "")
+            ],
+            uris: [FileUri("Other\\Component.razor")],
+            expected: "<SomeProject.Other.Component />");
+    }
+
+    [Fact]
     public async Task ImportsFile()
     {
         await VerifyUriPresentationAsync(
