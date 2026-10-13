@@ -109,3 +109,8 @@ these use the corresponding Azure Pipelines environment variables.
 
 - `0` — All tests passed (or `--help` was shown)
 - `1` — Test failures, timeout, or invalid arguments
+
+Timestamped process lifecycle diagnostics are emitted to the console and
+`runtests.log`: process start, OS exit, stdout/stderr EOF, and completion of the
+exit/output wait. An OS-exit record without EOF records indicates
+pending redirected output, not necessarily a test process that is still running.
