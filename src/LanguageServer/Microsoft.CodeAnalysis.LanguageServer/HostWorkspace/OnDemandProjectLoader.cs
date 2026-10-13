@@ -32,7 +32,6 @@ internal sealed class OnDemandProjectLoaderFactory(
                 projectSystem.GetSupportedProjectFileExtensions(),
                 loggerFactory),
             lspServices.GetRequiredService<IWorkspaceFolderTracker>(),
-            lspServices.GetRequiredService<LanguageServerWorkspaceFactory>(),
             projectSystem,
             globalOptionService,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
@@ -43,7 +42,6 @@ internal sealed class OnDemandProjectLoaderFactory(
 internal sealed partial class OnDemandProjectLoader(
     OnDemandProjectLoader.ProjectDiscovery discovery,
     IWorkspaceFolderTracker workspaceFolderTracker,
-    LanguageServerWorkspaceFactory workspaceFactory,
     LanguageServerProjectLoader projectLoader,
     IGlobalOptionService globalOptionService,
     IAsynchronousOperationListener listener,
@@ -57,7 +55,7 @@ internal sealed partial class OnDemandProjectLoader(
     /// Maps each starting directory to the in-progress task that discovers and loads its projects and
     /// transitive project references. Requests from the same directory share the task.
     /// </summary>
-    private readonly Dictionary<string, Task<Solution?>> _activeTraversals = new(PathUtilities.Comparer);
+    private readonly Dictionary<string, Task> _activeTraversals = new(PathUtilities.Comparer);
 
     private bool IsOnDemandLoadingEnabled
         => globalOptionService.GetOption(LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand) &&
@@ -66,12 +64,10 @@ internal sealed partial class OnDemandProjectLoader(
     public bool CanLoad(DocumentUri uri)
         => IsOnDemandLoadingEnabled && uri.ParsedDocumentUri?.IsFile == true;
 
-    public ValueTask<Solution?> TryLoadProjectsAsync(DocumentUri uri)
+    public Task TryLoadProjectsAsync(DocumentUri uri)
     {
         if (!CanLoad(uri))
-        {
-            return new ValueTask<Solution?>((Solution?)null);
-        }
+            return Task.CompletedTask;
 
         var filePath = Path.GetFullPath(uri.GetDocumentFilePathFromUri());
         var directory = Path.GetDirectoryName(filePath);
@@ -79,35 +75,29 @@ internal sealed partial class OnDemandProjectLoader(
         lock (_activeLoadsGate)
         {
             if (_activeTraversals.TryGetValue(directory, out var activeLoad))
-                return new(activeLoad);
+                return activeLoad;
 
             var workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
             var loadTask = Task.Run(() => LoadDiscoveredProjectsAsync(directory, workspaceFolders));
             _activeTraversals.Add(directory, loadTask);
-            return new(loadTask);
+            return loadTask;
         }
     }
 
-    public ValueTask<Solution> WaitForActiveLoadsAsync()
+    public ValueTask WaitForActiveLoadsAsync()
     {
         if (!IsOnDemandLoadingEnabled)
-            return new(workspaceFactory.HostWorkspace.CurrentSolution);
+            return ValueTask.CompletedTask;
 
         lock (_activeLoadsGate)
         {
             return _activeTraversals.Count == 0
-                ? new(workspaceFactory.HostWorkspace.CurrentSolution)
-                : new(WaitForLoadsAsync(Task.WhenAll(_activeTraversals.Values)));
-        }
-
-        async Task<Solution> WaitForLoadsAsync(Task loads)
-        {
-            await loads.ConfigureAwait(false);
-            return workspaceFactory.HostWorkspace.CurrentSolution;
+                ? ValueTask.CompletedTask
+                : new(Task.WhenAll(_activeTraversals.Values));
         }
     }
 
-    private async Task<Solution?> LoadDiscoveredProjectsAsync(string directory, ImmutableHashSet<string> workspaceFolders)
+    private async Task LoadDiscoveredProjectsAsync(string directory, ImmutableHashSet<string> workspaceFolders)
     {
         using var _ = listener.BeginAsyncOperation(nameof(LoadDiscoveredProjectsAsync));
 
@@ -116,7 +106,7 @@ internal sealed partial class OnDemandProjectLoader(
             _logger.LogDebug("Discovering projects on demand from '{Directory}'.", directory);
             var projectPaths = discovery.DiscoverProjects(directory, workspaceFolders);
             if (projectPaths.IsEmpty)
-                return null;
+                return;
 
             var pendingProjects = new Queue<string>(projectPaths);
             var visitedProjects = new HashSet<string>(PathUtilities.Comparer);
@@ -146,12 +136,10 @@ internal sealed partial class OnDemandProjectLoader(
                 }
             }
 
-            return workspaceFactory.HostWorkspace.CurrentSolution;
         }
         catch (Exception exception) when (FatalError.ReportAndCatch(exception))
         {
             _logger.LogError(exception, "Failed to load projects on demand.");
-            return null;
         }
         finally
         {

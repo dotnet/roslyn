@@ -17,16 +17,10 @@ internal interface IOnDemandProjectLoader : ILspService
     /// <summary>
     /// Attempts to load the projects containing the specified document.
     /// </summary>
-    /// <returns>
-    /// The loaded solution if successful, or null otherwise.
-    /// </returns>
-    ValueTask<Solution?> TryLoadProjectsAsync(DocumentUri uri);
+    Task TryLoadProjectsAsync(DocumentUri uri);
 
     /// <summary>
     /// Waits for all active on-demand projects to load.
     /// </summary>
-    /// <returns>
-    /// The host solution after loading is complete.
-    /// </returns>
-    ValueTask<Solution> WaitForActiveLoadsAsync();
+    ValueTask WaitForActiveLoadsAsync();
 }

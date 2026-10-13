@@ -60,7 +60,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         var loadedSolution = testLspServer.TestWorkspace.CurrentSolution.AddDocument(
             DocumentId.CreateNewId(projectId), "OnDemand.cs", text, filePath: filePath);
         await testLspServer.TestWorkspace.ChangeSolutionAsync(loadedSolution);
-        loader.Complete(loadedSolution);
+        loader.Complete();
 
         var result = await capturedContext.ResolveAsync();
         Assert.Equal(WorkspaceKind.Host, result.Workspace.Kind);
@@ -113,7 +113,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             newDocumentId, "OnDemand.cs", newDocumentText, filePath: newDocumentPath);
         await testLspServer.TestWorkspace.ChangeSolutionAsync(loadedSolution);
 
-        loader.Complete(loadedSolution);
+        loader.Complete();
         var context = await capturedContext.ResolveAsync();
         Assert.Equal(capturedText, (await context.Solution.GetRequiredDocument(existingDocument.Id).GetTextAsync()).ToString());
         Assert.Equal(newDocumentId, context.Document?.Id);
@@ -157,7 +157,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         var loadedSolution = testLspServer.TestWorkspace.CurrentSolution.AddDocument(
             DocumentId.CreateNewId(projectId), "OnDemand.cs", text, filePath: filePath);
         await testLspServer.TestWorkspace.ChangeSolutionAsync(loadedSolution);
-        loader.Complete(loadedSolution);
+        loader.Complete();
 
         var context = await survivingResolution;
         Assert.Equal(WorkspaceKind.Host, context.Workspace.Kind);
@@ -165,20 +165,16 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
 
     private sealed class TestOnDemandProjectLoader : IOnDemandProjectLoader
     {
-        private readonly TaskCompletionSource<Solution?> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<bool> _completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public bool CanLoad(DocumentUri uri) => true;
 
-        public ValueTask<Solution?> TryLoadProjectsAsync(DocumentUri uri) => new(_completion.Task);
+        public Task TryLoadProjectsAsync(DocumentUri uri) => _completion.Task;
 
-        public ValueTask<Solution> WaitForActiveLoadsAsync()
-            => new(WaitForLoadAsync());
+        public ValueTask WaitForActiveLoadsAsync()
+            => new(_completion.Task);
 
-        public void Complete(Solution? solution) => _completion.SetResult(solution);
-
-        private async Task<Solution> WaitForLoadAsync()
-            => await _completion.Task.ConfigureAwait(false)
-                ?? throw new InvalidOperationException("The project load did not produce a solution.");
+        public void Complete() => _completion.SetResult(true);
     }
 
     [Theory, CombinatorialData]

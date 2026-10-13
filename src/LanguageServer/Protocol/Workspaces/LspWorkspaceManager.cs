@@ -250,13 +250,15 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         var initialContext = documentContext.Value;
 
         // If the document comes from a HostWorkspace or we are not allowed to load projects, return the initial context immediately.
-        if (initialContext.Workspace.Kind == WorkspaceKind.Host || !allowProjectLoading || _onDemandProjectLoader is null)
+        if (initialContext.Workspace.Kind == WorkspaceKind.Host ||
+            !allowProjectLoading ||
+            _onDemandProjectLoader is null ||
+            !_onDemandProjectLoader.CanLoad(textDocumentIdentifier.DocumentUri))
+        {
             return new(RecordDocumentFoundResult(initialContext));
+        }
 
-        var projectLoadTask = _onDemandProjectLoader.TryLoadProjectsAsync(textDocumentIdentifier.DocumentUri).AsTask();
-        // A synchronous null result means the loader declined the request without starting asynchronous work.
-        if (projectLoadTask.Status == TaskStatus.RanToCompletion && projectLoadTask.Result is null)
-            return new(RecordDocumentFoundResult(initialContext));
+        var projectLoadTask = _onDemandProjectLoader.TryLoadProjectsAsync(textDocumentIdentifier.DocumentUri);
 
         return new(async () =>
         {
@@ -349,16 +351,17 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             (Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked) initialContext,
             TextDocumentIdentifier textDocumentIdentifier,
             ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-            Task<Solution?> projectLoadTask,
+            Task projectLoadTask,
             CancellationToken cancellationToken)
         {
-            var loadedSolution = await projectLoadTask.WithCancellation(cancellationToken).ConfigureAwait(false);
-            if (loadedSolution is null)
+            await projectLoadTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+
+            var workspace = _lspWorkspaceRegistrationService.GetAllRegistrations()
+                .FirstOrDefault(static workspace => workspace.Kind == WorkspaceKind.Host);
+            if (workspace is null)
                 return initialContext;
 
-            var workspace = loadedSolution.Workspace;
-            if (!_lspWorkspaceRegistrationService.GetAllRegistrations().Contains(workspace))
-                return initialContext;
+            var loadedSolution = workspace.CurrentSolution;
 
             var (solution, isForked) = await GetSolutionWithTrackedTextAsync(
                 loadedSolution, trackedDocuments, cachedFork: null, cancellationToken).ConfigureAwait(false);
@@ -406,7 +409,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         CancellationToken cancellationToken)
     {
         // Task representing on demand in-progress loads.
-        Task<Solution>? projectLoadTask = null;
+        Task? projectLoadTask = null;
         if (allowProjectLoading && _onDemandProjectLoader is not null)
         {
             var activeLoads = _onDemandProjectLoader.WaitForActiveLoadsAsync();
@@ -435,18 +438,17 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         async Task<LspWorkspaceContext> ResolveSolutionAfterProjectLoadAsync(
             LspWorkspaceContext initialContext,
             ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments,
-            Task<Solution> projectLoadTask,
+            Task projectLoadTask,
             CancellationToken cancellationToken)
         {
             await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
-            var loadedSolution = await projectLoadTask.WithCancellation(cancellationToken).ConfigureAwait(false);
-
             var hostWorkspace = initialContext.Workspace;
-            if (loadedSolution.Workspace != hostWorkspace ||
-                !_lspWorkspaceRegistrationService.GetAllRegistrations().Contains(hostWorkspace))
+            await projectLoadTask.WithCancellation(cancellationToken).ConfigureAwait(false);
+            if (!_lspWorkspaceRegistrationService.GetAllRegistrations().Contains(hostWorkspace))
                 return initialContext;
 
+            var loadedSolution = hostWorkspace.CurrentSolution;
             var (solution, isForked) = await GetSolutionWithTrackedTextAsync(
                 loadedSolution, trackedDocuments, cachedFork: null, cancellationToken).ConfigureAwait(false);
             _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(isForked);

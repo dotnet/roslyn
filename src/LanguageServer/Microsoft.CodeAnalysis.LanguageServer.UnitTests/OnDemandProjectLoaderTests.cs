@@ -84,12 +84,12 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
 
         var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
         await build.Started.Task;
-        var snapshot = onDemandLoader.WaitForActiveLoadsAsync();
-        Assert.False(snapshot.IsCompleted);
+        var activeLoads = onDemandLoader.WaitForActiveLoadsAsync();
+        Assert.False(activeLoads.IsCompleted);
         build.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath, projectReferences: [projectPath]);
 
-        Assert.NotNull(await load);
-        Assert.NotNull(await snapshot);
+        await load;
+        await activeLoads;
         Assert.Equal(1, loader.DesignTimeBuildCount);
     }
 
@@ -112,7 +112,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var secondBuild = loader.ExpectDesignTimeBuild(secondProject);
 
         var firstLoad = onDemandLoader.TryLoadProjectsAsync(firstDocument);
-        Task<Solution?>? secondLoad = concurrentDemands ? onDemandLoader.TryLoadProjectsAsync(secondDocument).AsTask() : null;
+        Task? secondLoad = concurrentDemands ? onDemandLoader.TryLoadProjectsAsync(secondDocument) : null;
         await firstBuild.Started.Task;
         firstBuild.CompleteSuccessfully(
             loader.WorkspaceFactory.HostProjectFactory,
@@ -125,9 +125,9 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
             projectReferences: [Path.GetRelativePath(Path.GetDirectoryName(secondProject)!, firstProject)]);
 
         if (secondLoad is not null)
-            Assert.All(await Task.WhenAll(firstLoad.AsTask(), secondLoad), Assert.NotNull);
+            await Task.WhenAll(firstLoad, secondLoad);
         else
-            Assert.NotNull(await firstLoad);
+            await firstLoad;
         Assert.Equal(2, loader.DesignTimeBuildCount);
     }
 
@@ -140,7 +140,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Loose.cs").Path);
         var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
-        Assert.Null(await onDemandLoader.TryLoadProjectsAsync(documentUri));
+        await onDemandLoader.TryLoadProjectsAsync(documentUri);
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
 
@@ -154,8 +154,8 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
 
         var load = onDemandLoader.TryLoadProjectsAsync(new LSP.DocumentUri("untitled:Loose.cs"));
         // Unsupported URIs are rejected before project discovery starts.
-        var completedSynchronously = load.IsCompleted;
-        Assert.Null(await load);
+        var completedSynchronously = load.IsCompletedSuccessfully;
+        await load;
         Assert.True(completedSynchronously);
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
@@ -174,7 +174,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
 
         var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
         Assert.True(load.IsCompletedSuccessfully);
-        Assert.Null(await load);
+        await load;
         Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
@@ -193,7 +193,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
 
         var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
         Assert.True(load.IsCompletedSuccessfully);
-        Assert.Null(await load);
+        await load;
         Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
@@ -206,6 +206,6 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var listener = server.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
         return new OnDemandProjectLoader(
             new OnDemandProjectLoader.ProjectDiscovery([".csproj"], LoggerFactory),
-            tracker, loader.WorkspaceFactory, loader, globalOptions, listener, LoggerFactory);
+            tracker, loader, globalOptions, listener, LoggerFactory);
     }
 }
