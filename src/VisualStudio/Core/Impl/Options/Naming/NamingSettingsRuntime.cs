@@ -22,9 +22,11 @@ internal sealed class NamingSettingsRuntime : IDisposable
     private readonly CancellationTokenSource _lifetime;
     private readonly CancellationToken _cancellationToken;
     private readonly object _initializationGate = new();
+    private readonly object _legacyChangeGate = new();
     private readonly TaskCompletionSource<bool> _ready = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private IDisposable? _subscription;
     private Task? _initialization;
+    private Task _legacyChanges = Task.CompletedTask;
     private bool _disposed;
 
     public NamingSettingsCoordinator Coordinator { get; }
@@ -95,12 +97,31 @@ internal sealed class NamingSettingsRuntime : IDisposable
 
     private async Task RefreshLegacyAsync()
     {
-        var preferences = _readLegacy();
-        if (Coordinator.IsOwnLegacyChange(preferences))
-            return;
-        await Ready.ConfigureAwait(false);
-        await Coordinator.SynchronizeFromLegacyAsync(preferences, _cancellationToken).ConfigureAwait(false);
-        Provider.NotifyErrorConditionResolved();
+        NamingStylePreferences preferences;
+        Task previous;
+        TaskCompletionSource<bool> completed;
+        lock (_legacyChangeGate)
+        {
+            preferences = _readLegacy();
+            if (Coordinator.IsOwnLegacyChange(preferences))
+                return;
+            previous = _legacyChanges;
+            completed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            _legacyChanges = completed.Task;
+        }
+
+        try
+        {
+            await previous.ConfigureAwait(false);
+            await Ready.ConfigureAwait(false);
+            await Coordinator.SynchronizeFromLegacyAsync(preferences, _cancellationToken).ConfigureAwait(false);
+            Provider.NotifyErrorConditionResolved();
+        }
+        finally
+        {
+            // Release the next import even on failure; the callback task reports its own error.
+            completed.SetResult(true);
+        }
     }
 
     public void Dispose()

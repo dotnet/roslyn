@@ -52,6 +52,24 @@ public sealed class NamingSettingsRuntimeTests
         Assert.Equal(1, fixture.Manager.LastWriter!.CommitCount);
     }
 
+    [Fact]
+    public async Task FailedLegacyImportDoesNotPreventLaterRecovery()
+    {
+        using var fixture = new Fixture();
+        await fixture.Runtime.InitializeAsync();
+        fixture.Manager.CommitOutcome = SettingCommitOutcome.InternalError;
+        fixture.Legacy = new([], [], System.Collections.Immutable.ImmutableArray<NamingRule>.Empty);
+        fixture.NotifyLegacy();
+        await Assert.ThrowsAsync<InvalidDataException>(() => fixture.Observed[^1]);
+
+        fixture.Manager.CommitOutcome = SettingCommitOutcome.Success;
+        fixture.NotifyLegacy();
+        await fixture.Observed[^1];
+
+        Assert.Empty(fixture.Manager.Reader.Graph.Rules);
+        Assert.Equal(fixture.Legacy, fixture.Refreshes[^1]);
+    }
+
     [Theory]
     [InlineData(LanguageNames.CSharp)]
     [InlineData(LanguageNames.VisualBasic)]
