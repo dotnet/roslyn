@@ -63,13 +63,6 @@ internal class SyntaxVisualizerToolWindow : ToolWindowPane
         ToolBarLocation = (int)VSTWT_LOCATION.VSTWT_TOP;
     }
 
-    internal TServiceInterface GetVsService<TServiceInterface, TService>()
-        where TServiceInterface : class
-        where TService : class
-    {
-        return (TServiceInterface)GetService(typeof(TService));
-    }
-
     internal void InitializeCommands(IMenuCommandService mcs, Guid guidSyntaxVisualizerMenuCmdSet)
     {
         Contract.Requires(!CommandHandlersInitialized);

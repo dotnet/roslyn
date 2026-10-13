@@ -34,7 +34,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
 
     public async Task<WorkspaceEdit?> HandleRequestAsync(VSInternalMapCodeParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
         //TODO: handle request.Updates if not empty
         if (request.Updates is not null)
@@ -82,7 +82,7 @@ internal sealed class MapCodeHandler : ILspServiceRequestHandler<VSInternalMapCo
             var textDocument = codeMapping.TextDocument
                 ?? throw new ArgumentException($"mapCode sub-request failed: MapCodeMapping.TextDocument not expected to be null.");
 
-            var document = await context.Solution.GetDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
+            var document = await solution.GetDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
             if (document is null)
                 throw new ArgumentException($"mapCode sub-request for {textDocument.DocumentUri} failed: can't find this document in the workspace.");
 

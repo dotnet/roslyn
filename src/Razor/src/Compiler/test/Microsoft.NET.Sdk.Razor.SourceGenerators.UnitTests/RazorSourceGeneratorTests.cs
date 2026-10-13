@@ -721,19 +721,15 @@ namespace MyApp.Pages
         [ConditionalFact(typeof(IsEnglishLocal))]
         public async Task IncrementalCompilation_WhenFallbackComponentMarkupChanges_SlowDiscoveryStaysCached()
         {
-            // A fallback component (one the split can't partition -- here via @inherits) has its descriptor
-            // produced by slow discovery over the fallback decl trees. Its decl is markup-free and
-            // checksum-suppressed, so a markup-only edit leaves it byte-identical. Slow discovery must stay
-            // cached across that edit rather than re-parsing every fallback decl and re-discovering.
+            // A fallback component (one the split can't partition -- here a markup property, which is
+            // descriptor surface that can't move to the markup-free decl half) has its descriptor produced
+            // by slow discovery over the fallback decl trees. Its decl is checksum-suppressed and depends
+            // only on the class body, so an edit to the render markup leaves it byte-identical. Slow
+            // discovery must stay cached across that edit rather than re-parsing every fallback decl and
+            // re-discovering.
             var project = CreateTestProject(new()
             {
-                ["Shared/MyBase.razor"] = "@inherits MyApp.MyComponentBase\n<h1>Base component</h1>",
-            }, new()
-            {
-                ["MyComponentBase.cs"] = """
-                    namespace MyApp;
-                    public class MyComponentBase : Microsoft.AspNetCore.Components.ComponentBase { }
-                    """,
+                ["Shared/MyBase.razor"] = "@code {\n    public Microsoft.AspNetCore.Components.RenderFragment Frag => @<span>frag</span>;\n}\n<h1>Base component</h1>",
             });
             var compilation = await project.GetCompilationAsync();
             var (driver, additionalTexts, _) = await GetDriverWithAdditionalTextAndProviderAsync(project, trackSteps: true);
@@ -741,9 +737,9 @@ namespace MyApp.Pages
             var result = RunGenerator(compilation!, ref driver);
             Assert.Empty(result.Diagnostics);
 
-            // Change only the markup of the fallback component.
+            // Change only the render markup of the fallback component.
             var updated = new TestAdditionalText("Shared/MyBase.razor",
-                SourceText.From("@inherits MyApp.MyComponentBase\n<h2>Base component changed</h2>", Encoding.UTF8));
+                SourceText.From("@code {\n    public Microsoft.AspNetCore.Components.RenderFragment Frag => @<span>frag</span>;\n}\n<h2>Base component changed</h2>", Encoding.UTF8));
             driver = driver.ReplaceAdditionalText(additionalTexts.First(f => f.Path == updated.Path), updated);
 
             result = RunGenerator(compilation!, ref driver);

@@ -233,6 +233,7 @@ internal sealed class InteractiveSession : IDisposable
 
         // Associate the path with both the editor document and our roslyn document so LSP can make requests on it.
         _textDocumentFactoryService.TryGetTextDocument(submissionBuffer, out var textDocument);
+        Contract.ThrowIfNull(textDocument, "We expect each submission buffer to have an ITextDocument.");
         textDocument.Rename(newSubmissionFilePath);
 
         // Chain projects to the the last submission that successfully executed.

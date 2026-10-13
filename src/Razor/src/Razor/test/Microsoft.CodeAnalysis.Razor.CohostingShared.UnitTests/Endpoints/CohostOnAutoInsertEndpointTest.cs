@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor;
@@ -21,6 +20,19 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
+    private static readonly string[] s_newLineBeforeOpenBracePlacements =
+    [
+        "accessors",
+        "types",
+        "methods",
+        "properties",
+        "anonymous_methods",
+        "control_blocks",
+        "anonymous_types",
+        "object_collection_array_initializers",
+        "lambdas",
+    ];
+
     [Fact]
     public void RazorTriggerCharactersMatchOOPAutoInsertProviders()
     {
@@ -493,6 +505,57 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "\n");
     }
 
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_OnEnterAfterOpenBrace(bool isComponent)
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @documentation {
+                    $$
+                }
+                """,
+            output: null,
+            triggerCharacter: "\n",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_OnEnterInBody(
+        bool isComponent,
+        [CombinatorialValues("This is some text", "* A bullet point", "/// Literal slashes")] string text)
+    {
+        await VerifyOnAutoInsertAsync(
+            input: $$"""
+                @documentation {
+                    <summary>
+                    {{text}}
+                    $$
+                    </summary>
+                }
+                """,
+            output: null,
+            triggerCharacter: "\n",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_OnEnterAfterXmlElement(bool isComponent)
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @documentation {
+                    <summary>Some documentation</summary>
+                    $$
+                }
+                """,
+            output: null,
+            triggerCharacter: "\n",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
     [Fact]
     public async Task DoNotAutoInsertCSharp_OnForwardSlashWithFormatOnTypeDisabled()
     {
@@ -565,7 +628,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInControlBlocks);
+            excludedBracePlacement: "control_blocks");
     }
 
     [Fact]
@@ -587,10 +650,15 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                 }
                 """,
             triggerCharacter: "\n",
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = default
-            });
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
     }
 
     [Fact]
@@ -611,7 +679,68 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInMethods);
+            excludedBracePlacement: "methods");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task CSharp_OnEnter_UsesEditorConfig_Razor()
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @code {
+                    private void M() {
+                $$}
+                }
+                """,
+            output: """
+                @code {
+                    private void M() {
+                        $0
+                    }
+                }
+                """,
+            triggerCharacter: "\n",
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task CSharp_OnEnter_UsesEditorConfig_Cshtml()
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @functions {
+                    private void M() {
+                $$}
+                }
+                """,
+            output: """
+                @functions {
+                    private void M() {
+                        $0
+                    }
+                }
+                """,
+            triggerCharacter: "\n",
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
     }
 
     [Fact]
@@ -632,7 +761,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInProperties);
+            excludedBracePlacement: "properties");
     }
 
     [Fact]
@@ -659,7 +788,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     }
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInAccessors);
+            excludedBracePlacement: "accessors");
     }
 
     [Fact]
@@ -680,7 +809,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     };
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInLambdaExpressionBody);
+            excludedBracePlacement: "lambdas");
     }
 
     [Fact]
@@ -701,7 +830,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     };
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInAnonymousMethods);
+            excludedBracePlacement: "anonymous_methods");
     }
 
     [Fact]
@@ -722,7 +851,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     };
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInObjectCollectionArrayInitializers);
+            excludedBracePlacement: "object_collection_array_initializers");
     }
 
     [Fact]
@@ -743,7 +872,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
                     };
                 }
                 """,
-            NewLinePlacement.BeforeOpenBraceInAnonymousTypes);
+            excludedBracePlacement: "anonymous_types");
     }
 
     [Fact]
@@ -794,15 +923,20 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
     private Task VerifyCSharpOnEnterKAndRBracesAsync(
         TestCode input,
         string output,
-        NewLinePlacement newLinePlacement)
+        string excludedBracePlacement)
         => VerifyOnAutoInsertAsync(
             input,
             output,
             triggerCharacter: "\n",
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
-            {
-                NewLines = CSharpSyntaxFormattingOptions.Default.NewLines & ~newLinePlacement
-            });
+            additionalFiles:
+            [
+                (".editorconfig", $$"""
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = {{string.Join(", ", s_newLineBeforeOpenBracePlacements.Where(placement => placement != excludedBracePlacement))}}
+                    """)
+            ]);
 
     private async Task VerifyOnAutoInsertAsync(
         TestCode input,
@@ -814,11 +948,13 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
         bool formatOnType = true,
         bool autoClosingTags = true,
         RazorFileKind? fileKind = null,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
+        (string fileName, string contents)[]? additionalFiles = null)
     {
         fileKind ??= RazorFileKind.Component;
-        csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind);
+        var document = CreateProjectAndRazorDocument(
+            input.Text,
+            fileKind: fileKind,
+            additionalFiles: additionalFiles);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { FormatOnType = formatOnType, AutoClosingTags = autoClosingTags });
@@ -861,7 +997,7 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             Options = formattingOptions
         };
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, csharpSyntaxFormattingOptions, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
 
         if (output is not null)
         {

@@ -568,6 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool TryGetVariable(VariableIdentifier identifier, out int slot)
         {
+            // Only the owning symbol should be used to look up the slot.
+            Debug.Assert(GetOwningSymbolAndContainingSlot(identifier.Symbol, identifier.ContainingSlot) == ((object)identifier.Symbol, identifier.ContainingSlot));
             return _variables.TryGetValue(identifier, out slot);
         }
 
@@ -757,6 +759,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void checkMemberStateOnConstructorExit(MethodSymbol constructor, Symbol member, LocalState state, int thisSlot, Location? exitLocation, ImmutableArray<string> membersWithStateEnforcedByRequiredMembers, bool forcePropertyAnalysis)
             {
+#if DEBUG
+                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                Debug.Assert(AccessCheck.IsSymbolAccessible(member, within: constructor.ContainingType, ref discardedUseSiteInfo));
+#endif
                 var isStatic = !constructor.RequiresInstanceReceiver();
                 if (member.IsStatic != isStatic)
                 {
@@ -855,6 +861,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var member in getMembersNeedingDefaultInitialState())
                         {
+#if DEBUG
+                            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                            Debug.Assert(AccessCheck.IsSymbolAccessible(member, within: method.ContainingType, ref discardedUseSiteInfo));
+#endif
                             if (member.IsStatic != method.IsStatic)
                             {
                                 continue;
@@ -863,7 +873,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var memberToInitialize = member;
                             switch (member)
                             {
-                                case PropertySymbol { IsRequired: true }:
+                                case PropertySymbol { IsRequired: true } requiredProperty when GetAccessibleBackingField(requiredProperty, method.ContainingType) is null:
+                                    // Visit a required property, unless it has a backing field which is accessible in the current context,
+                                    // in which case we expect the field to be visited in another iteration of this loop.
                                     break;
                                 case PropertySymbol:
                                     // skip any manually implemented non-required properties.
@@ -967,19 +979,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: false)
                                 => containingType.GetMembersUnordered().SelectManyAsArray(
-                                    predicate: SymbolExtensions.IsRequired,
-                                    selector: symbol => getAllMembersToBeDefaulted(symbol, filterOverridingProperties: true)),
+                                    predicate: static (symbol, _) => symbol.IsRequired(),
+                                    selector: static (symbol, containingType) => getAllMembersToBeDefaulted(containingType, symbol, filterOverridingProperties: true),
+                                    containingType),
 
                             (includeAllMembers: false, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
-                                => containingType.AllRequiredMembers.SelectManyAsArray(static kvp => getAllMembersToBeDefaulted(kvp.Value, filterOverridingProperties: true)),
+                                => containingType.AllRequiredMembers.SelectManyAsArray(static (kvp, containingType) => getAllMembersToBeDefaulted(containingType, kvp.Value, filterOverridingProperties: true), arg: containingType),
 
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: _, includeBaseRequiredMembers: false)
                                 => containingType.GetMembersUnordered().SelectManyAsArray(
-                                    selector: symbol =>
+                                    selector: static (symbol, containingType) =>
                                     {
-                                        var symbolToInitialize = getFieldSymbolToBeInitialized(symbol);
+                                        var symbolToInitialize = getFieldSymbolToBeInitialized(containingType, symbol);
                                         var prop = symbolToInitialize as PropertySymbol ?? (symbolToInitialize as FieldSymbol)?.AssociatedSymbol as PropertySymbol;
-                                        if (prop is not null && isFilterableOverrideOfAbstractProperty(prop))
+                                        if (prop is not null && isFilterableOverrideOfAbstractProperty(containingType, prop))
                                         {
                                             return OneOrMany<Symbol>.Empty;
                                         }
@@ -987,7 +1000,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         {
                                             return OneOrMany.Create(symbolToInitialize);
                                         }
-                                    }),
+                                    },
+                                    arg: containingType),
 
                             (includeAllMembers: true, includeCurrentTypeRequiredMembers: true, includeBaseRequiredMembers: true)
                                 => getAllTypeAndRequiredMembers(containingType),
@@ -996,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 => throw ExceptionUtilities.Unreachable(),
                         };
 
-                        static ImmutableArray<Symbol> getAllTypeAndRequiredMembers(TypeSymbol containingType)
+                        static ImmutableArray<Symbol> getAllTypeAndRequiredMembers(NamedTypeSymbol containingType)
                         {
                             var members = containingType.GetMembersUnordered();
                             var baseRequiredMembers = containingType.BaseTypeNoUseSiteDiagnostics?.AllRequiredMembers ?? ImmutableSegmentedDictionary<string, Symbol>.Empty;
@@ -1018,19 +1032,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (requiredMember is PropertySymbol { IsAbstract: true } abstractProperty)
                                 {
                                     if (members.FirstOrDefault(static (thisMember, baseMember) => thisMember.IsOverride && (object)thisMember.GetOverriddenMember() == baseMember, requiredMember) is { } overridingMember
-                                        && isFilterableOverrideOfAbstractProperty((PropertySymbol)overridingMember))
+                                        && isFilterableOverrideOfAbstractProperty(containingType, (PropertySymbol)overridingMember))
                                     {
                                         continue;
                                     }
                                 }
 
-                                builder.AddRange(getAllMembersToBeDefaulted(requiredMember, filterOverridingProperties: false));
+                                builder.AddRange(getAllMembersToBeDefaulted(containingType, requiredMember, filterOverridingProperties: false));
                             }
 
                             return builder.ToImmutableAndFree();
                         }
 
-                        static OneOrMany<Symbol> getAllMembersToBeDefaulted(Symbol requiredMember, bool filterOverridingProperties)
+                        static OneOrMany<Symbol> getAllMembersToBeDefaulted(NamedTypeSymbol containingType, Symbol requiredMember, bool filterOverridingProperties)
                         {
                             Debug.Assert(requiredMember.IsRequired());
 
@@ -1042,19 +1056,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 var property = (PropertySymbol)requiredMember;
 
-                                if (filterOverridingProperties && isFilterableOverrideOfAbstractProperty(property))
+                                if (filterOverridingProperties && isFilterableOverrideOfAbstractProperty(containingType, property))
                                 {
                                     return OneOrMany<Symbol>.Empty;
                                 }
 
-                                var @return = OneOrMany.Create(getFieldSymbolToBeInitialized(property));
+                                var @return = OneOrMany.Create(getFieldSymbolToBeInitialized(containingType, property));
 
                                 // If the set method is null (ie missing), that's an error, but we'll recover as best we can
+                                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
                                 foreach (var notNullMemberName in (property.SetMethod?.NotNullMembers ?? property.NotNullMembers))
                                 {
                                     foreach (var member in property.ContainingType.GetMembers(notNullMemberName))
                                     {
-                                        @return = @return.Add(getFieldSymbolToBeInitialized(member));
+                                        if (AccessCheck.IsSymbolAccessible(member, containingType, ref discardedUseSiteInfo))
+                                        {
+                                            @return = @return.Add(getFieldSymbolToBeInitialized(containingType, member));
+                                        }
                                     }
                                 }
 
@@ -1062,10 +1080,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
-                            => requiredMember is SourcePropertySymbolBase { BackingField: { } backingField } ? backingField : requiredMember;
+                        static Symbol getFieldSymbolToBeInitialized(NamedTypeSymbol containingType, Symbol requiredMember)
+                            => requiredMember is PropertySymbol property && GetAccessibleBackingField(property, containingType) is { } backingField ? backingField : requiredMember;
 
-                        static bool isFilterableOverrideOfAbstractProperty(PropertySymbol property)
+                        static bool isFilterableOverrideOfAbstractProperty(NamedTypeSymbol containingType, PropertySymbol property)
                         {
                             // If this is an override of an abstract property, and the overridden property has the same nullable
                             // annotation as us, we can skip default-initializing the property because the chained constructor
@@ -1075,8 +1093,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return false;
                             }
 
-                            var symbolAnnotations = property is SourcePropertySymbolBase { UsesFieldKeyword: true, BackingField: { } field }
-                                ? field!.FlowAnalysisAnnotations
+                            var symbolAnnotations = GetAccessibleBackingField(property, containingType) is { } field
+                                ? field.FlowAnalysisAnnotations
                                 : property.GetFlowAnalysisAnnotations();
                             var symbolType = ApplyUnconditionalAnnotations(property.TypeWithAnnotations, symbolAnnotations);
                             if (!symbolType.NullableAnnotation.IsNotAnnotated())
@@ -1091,6 +1109,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// A property's backing field should only influence behavior of nullable analysis when the field is accessible.
+        /// For example, when the member being analyzed has the same containing type as the property.
+        ///
+        /// Note: this refers to accessibility only in the "accessibility modifier" sense.
+        /// This method may return a non-null symbol even if the field cannot be referenced by name in the current context.
+        /// </summary>
+        /// <param name="containingType">Containing type of the member currently being analyzed.</param>
+        private static SynthesizedBackingFieldSymbol? GetAccessibleBackingField(PropertySymbol property, NamedTypeSymbol containingType)
+        {
+            if (property is not SourcePropertySymbolBase { BackingField: { } backingField })
+                return null;
+
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+            return AccessCheck.IsSymbolAccessible(backingField, within: containingType, ref discardedUseSiteInfo)
+                ? backingField
+                : null;
         }
 
         private void EnforceMemberNotNullOnMember(SyntaxNode? syntaxOpt, LocalState state, MethodSymbol method, string memberName)
@@ -2064,18 +2101,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
                     }
-                case PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property when
-                        variable.ContainingSlot is > 0 and var containingSlot &&
-                        _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
-                        Binder.IsUnionTypeValueProperty(unionType, property):
-                    {
-                        return unionType.UnionValueDeclaredNullableFlowState;
-                    }
 
                 case FieldSymbol:
                 case PropertySymbol:
                 case EventSymbol:
-                    return GetDefaultState(symbol);
+                    return GetDefaultState(variable.ContainingSlot, symbol);
                 case { Kind: SymbolKind.ErrorType }:
                     return NullableFlowState.NotNull;
                 default:
@@ -2267,6 +2297,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (containingSlot > 0 && !IsSlotMember(containingSlot, symbol))
                 return -1;
 
+            (symbol, containingSlot) = GetOwningSymbolAndContainingSlot(symbol, containingSlot);
+            return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty, createIfMissing);
+        }
+
+        /// <summary>
+        /// If the incoming symbol+containingSlot pair shares a slot,
+        /// returns the owning pair. Otherwise returns the arguments.
+        /// </summary>
+        private (Symbol symbol, int containingSlot) GetOwningSymbolAndContainingSlot(Symbol symbol, int containingSlot)
+        {
             // Primary constructor parameter and its backing field share the slot when
             // we are dealing with 'this' instance.
             if (symbol is ParameterSymbol { ContainingSymbol: SynthesizedPrimaryConstructor primaryConstructor } parameter &&
@@ -2291,6 +2331,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Share a slot between backing field and associated property/event in the context of a constructor which owns initialization of that backing field.
+            // https://github.com/dotnet/roslyn/issues/84987: extend this sharing to more methods where the backing field is accessible
             if (this._symbol is MethodSymbol constructor
                 && constructor.IsConstructor()
                 && constructor.IsStatic == symbol.IsStatic)
@@ -2304,17 +2345,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // - property initializer on normal auto-property
                     // - property assignment on getter-only auto-property.
                     // Example test: NullableReferenceTypesTests.ConstructorUsesStateFromInitializers will fail without this.
-                    if (symbol is SynthesizedBackingFieldSymbol { AssociatedSymbol: SourcePropertySymbolBase { UsesFieldKeyword: false } property })
-                        symbol = property;
-                    // If symbol is a property that uses field keyword, then use field to determine initial state and to own the slot.
-                    else if (symbol is SourcePropertySymbolBase { UsesFieldKeyword: true, BackingField: { } backingField })
-                        symbol = backingField;
+                    if (symbol is SynthesizedBackingFieldSymbol { AssociatedProperty.UsesFieldKeyword: false } backingField)
+                    {
+                        symbol = backingField.AssociatedProperty;
+                    }
+                    // If symbol is a property that uses field keyword, and property is not null-resilient, then use field to determine initial state and to own the slot.
+                    else if (symbol is SourcePropertySymbolBase { UsesFieldKeyword: true } property
+                        && GetAccessibleBackingField(property, constructor.ContainingType) is { } accessibleBackingField
+                        && !IsAssociatedPropertyNullResilient(accessibleBackingField))
+                    {
+                        symbol = accessibleBackingField;
+                    }
                     else if (symbol is SourceEventFieldSymbol eventField)
+                    {
                         symbol = eventField.AssociatedSymbol;
+                    }
                 }
             }
 
-            return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty, createIfMissing);
+            return (symbol, containingSlot);
         }
 
         private void VisitAndUnsplitAll<T>(ImmutableArray<T> nodes) where T : BoundNode
@@ -2903,7 +2952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var (variable, slot) in members)
             {
                 var symbol = AsMemberOfType(targetType, variable.Symbol);
-                SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(symbol));
+                SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(targetSlot, symbol));
                 InheritDefaultState(GetTypeOrReturnType(symbol), slot);
             }
             members.Free();
@@ -2947,9 +2996,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeWithAnnotations;
         }
 
-        private NullableFlowState GetDefaultState(Symbol symbol)
+        private NullableFlowState GetDefaultState(int containingSlot, Symbol symbol)
         {
-            return ApplyUnconditionalAnnotations(GetTypeOrReturnTypeWithAnnotations(symbol).ToTypeWithState(), GetRValueAnnotations(symbol)).State;
+            return ApplyUnconditionalAnnotations(GetTypeOrReturnTypeWithAnnotations(symbol).ToTypeWithState(), GetRValueAnnotations(containingSlot, receiverTypeForMemberAccessOpt: null, symbol)).State;
         }
 
         private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int skipSlot)
@@ -3246,7 +3295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // When the local is used before or during initialization, there can potentially be a mismatch between node.LocalSymbol.Type and node.Type. We
                 // need to prefer node.Type as we shouldn't be changing the type of the BoundLocal node during rewrite.
                 // https://github.com/dotnet/roslyn/issues/34158
-                Debug.Assert(node.Type.IsErrorType() || type.Type.IsErrorType());
+                Debug.Assert(node.Type.ContainsErrorType() || type.Type.ContainsErrorType());
                 type = TypeWithAnnotations.Create(node.Type, type.NullableAnnotation);
             }
 
@@ -3603,7 +3652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _ = CheckPossibleNullReceiver(receiver);
 
             var resultType = ResultType.ToTypeWithAnnotations(compilation);
-            var resultState = ApplyUnconditionalAnnotations(resultType.ToTypeWithState(), GetRValueAnnotations(withExpr.CloneMethod));
+            var resultState = ApplyUnconditionalAnnotations(resultType.ToTypeWithState(), GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: withExpr.CloneMethod));
             var resultSlot = GetOrCreatePlaceholderSlot(withExpr);
             // carry over the null state of members of 'receiver' to the result of the with-expression.
             TrackNullableStateForAssignment(receiver, resultType, resultSlot, resultState, MakeSlot(receiver));
@@ -5565,6 +5614,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (binary.Left.ConstantValueOpt is { IsBoolean: true } leftConstant)
                 {
                     Unsplit();
+
+                    // The left operand was visited without its stripped conversion.
+                    if (binary.Left is BoundConversion leftConversionNode && leftConversionNode != leftOperand)
+                    {
+                        VisitConversion(
+                            leftConversionNode,
+                            leftOperand,
+                            leftConversion,
+                            TypeWithAnnotations.Create(leftConversionNode.Type),
+                            leftResult,
+                            checkConversion: true,
+                            fromExplicitCast: false,
+                            useLegacyWarnings: false,
+                            AssignmentKind.Argument);
+                    }
+
                     Visit(binary.Right);
                     UseRvalueOnly(binary.Right);
                     if (IsConditionalState && isEquals(binary) != leftConstant.BooleanValue)
@@ -7372,16 +7437,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeWithState GetReturnTypeWithState(MethodSymbol method)
         {
-            return TypeWithState.Create(method.ReturnTypeWithAnnotations, GetRValueAnnotations(method));
+            return TypeWithState.Create(method.ReturnTypeWithAnnotations, GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: method));
         }
 
-        private FlowAnalysisAnnotations GetRValueAnnotations(Symbol? symbol)
+        private FlowAnalysisAnnotations GetRValueAnnotations(int containingSlotOpt, TypeSymbol? receiverTypeForMemberAccessOpt, Symbol? symbol)
         {
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
             // in attributes are error scenarios, so missing warnings should not be important.)
             if (IsAnalyzingAttribute)
             {
                 return FlowAnalysisAnnotations.None;
+            }
+
+            if (symbol is PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property &&
+                ((containingSlotOpt > 0 ? _variables[containingSlotOpt].Symbol.GetTypeOrReturnType().Type : receiverTypeForMemberAccessOpt) ?? property.ContainingType)
+                    is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
+                Binder.IsUnionTypeValueProperty(unionType, property))
+            {
+                return unionType.UnionValueDeclaredNullableFlowState.MayBeNull() ? FlowAnalysisAnnotations.MaybeNull : FlowAnalysisAnnotations.NotNull;
             }
 
             var annotations = symbol.GetFlowAnalysisAnnotations();
@@ -9603,7 +9676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(targetField.TypeWithAnnotations.Type.StrippedType() is NamedTypeSymbol { IsUnionType: true });
                             int targetFieldSlot = GetOrCreateSlot(targetField, slot);
 
-                            TypeWithState valueFieldType = ApplyUnconditionalAnnotations(valueField.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(valueField));
+                            TypeWithState valueFieldType = ApplyUnconditionalAnnotations(valueField.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: valueField));
                             int valueFieldSlot = -1;
                             if (PossiblyNullableType(valueFieldType.Type))
                             {
@@ -10573,7 +10646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    returnType = ApplyUnconditionalAnnotations(returnType, GetRValueAnnotations(method));
+                    returnType = ApplyUnconditionalAnnotations(returnType, GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: method));
                 }
             }
 
@@ -11291,6 +11364,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        private bool IsAssociatedPropertyNullResilient(SynthesizedBackingFieldSymbol backingField)
+        {
+            // Only possible to answer this question if a null resilience inference is not currently in progress.
+            Debug.Assert(_getterNullResilienceData is null);
+            return backingField.InfersNullableAnnotation && backingField.GetInferredNullableAnnotation() == NullableAnnotation.Annotated;
+        }
+
         private bool IsPropertyOutputMoreStrictThanInput(PropertySymbol property)
         {
             var type = property.TypeWithAnnotations;
@@ -11539,7 +11619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         VisitArgumentOutboundAssignmentsAndPostConditions(
                             receiverType: invocation.ReceiverOpt?.Type,
-                            variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
+                            variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: parameter),
                             new VisitResult(variable.Type.ToTypeWithState(), variable.Type),
                             notNullParametersOpt: null, compareExchangeInfoOpt: default);
                     }
@@ -12185,7 +12265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 updatedProperty = reinferenceResult.Member;
 
                 TypeWithAnnotations typeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
-                FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(updatedProperty);
+                FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: node.ReceiverOpt.Type, symbol: updatedProperty);
                 TypeWithState typeWithState = ApplyUnconditionalAnnotations(typeWithAnnotations.ToTypeWithState(), memberAnnotations);
 
                 SetResult(node, typeWithState, typeWithAnnotations);
@@ -12239,7 +12319,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitPropertyArguments(node, receiverType, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
             }
 
-            var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
+            var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: receiverOpt?.Type, symbol: indexer));
             SetResult(node, resultType, indexer.TypeWithAnnotations);
             SetUpdatedSymbol(node, node.Indexer, indexer);
             return null;
@@ -12326,7 +12406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var type = GetTypeOrReturnTypeWithAnnotations(member);
-            var memberAnnotations = GetRValueAnnotations(member);
+            var memberAnnotations = GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: receiverType.Type, symbol: member);
             var resultType = ApplyUnconditionalAnnotations(type.ToTypeWithState(), memberAnnotations);
 
             // We are supposed to track information for the node. Use whatever we managed to
@@ -13704,8 +13784,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitLockStatement(BoundLockStatement node)
         {
-            VisitRvalue(node.Argument);
-            _ = CheckPossibleNullReceiver(node.Argument);
+            var argument = node.Argument;
+            VisitRvalue(argument);
+            _ = CheckPossibleNullReceiver(argument);
+
+            // Note: CheckPossibleNullReceiver does not report on a typeless expression such as a null literal.
+            if (argument is { Type: null, ConstantValueOpt.IsNull: true, IsSuppressed: false } && !compilation.FeatureStrictEnabled)
+            {
+                ReportDiagnostic(ErrorCode.WRN_NullReferenceReceiver, argument.Syntax);
+            }
+
             VisitStatement(node.Body);
             return null;
         }

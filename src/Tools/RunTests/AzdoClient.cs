@@ -74,9 +74,9 @@ internal sealed class AzdoClient : IDisposable
     }
 
     /// <summary>
-    /// Gets a test run for a build within the build's time range, matching its exact name.
+    /// Gets test runs for a build within the build's time range, matching their exact name.
     /// </summary>
-    public async Task<AzdoTestRun?> GetTestRunAsync(
+    public async Task<List<AzdoTestRun>> GetTestRunsAsync(
         string project,
         AzdoBuild build,
         string testRunName,
@@ -92,9 +92,7 @@ internal sealed class AzdoClient : IDisposable
 
         var runs = await GetListAsync<AzdoTestRun>(url, cancellationToken);
 
-        // If the last successful build had multiple attempts then there are potentially multiple runs with
-        // the same name. Take the last one as it will be the successful one.
-        return runs.LastOrDefault(r => string.Equals(r.Name, testRunName, StringComparison.OrdinalIgnoreCase));
+        return runs.Where(r => string.Equals(r.Name, testRunName, StringComparison.OrdinalIgnoreCase)).ToList();
     }
 
     /// <summary>

@@ -6006,6 +6006,151 @@ class Driver
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        public void IsPatternExpressionInAsyncMethod_DoesNotAffectHoistedLocals()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                await M(new StringCollection("", new('a', 10), new('a', 20), new('a', 30)));
+                Console.WriteLine("done");
+
+                static void Print(bool value)
+                {
+                    Console.WriteLine(value);
+                }
+
+                static async Task M(StringCollection values)
+                {
+                    await Task.Yield();
+                    foreach (var value in values)
+                    {
+                        Print(value.Length is 10 or 20 or 30);
+                        await Task.Delay(1).ConfigureAwait(false);
+                    }
+                }
+
+                // A mutable value-type enumerator that must be hoisted into the async state machine.
+                readonly struct StringCollection
+                {
+                    private readonly string[] _values;
+
+                    public StringCollection(params string[] values)
+                    {
+                        _values = values;
+                    }
+
+                    public Enumerator GetEnumerator() => new Enumerator(_values);
+
+                    public struct Enumerator
+                    {
+                        private readonly string[] _values;
+                        private int _index;
+
+                        public Enumerator(string[] values)
+                        {
+                            _values = values;
+                            _index = -1;
+                        }
+
+                        public string Current => _values[_index];
+
+                        public bool MoveNext() => ++_index < _values.Length;
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                False
+                True
+                True
+                True
+                done
+                """;
+
+            var compilation = CreateCompilationWithTasksExtensions(
+                [source, IAsyncDisposableDefinition],
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            compilation = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                compilation,
+                expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = $"""
+                        {ReturnValueMissing("<Main>$", "0x4b")}
+                        {ReturnValueMissing("<<Main>$>g__M|0_1", "0x72")}
+                        """,
+                }).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72753"), WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        public void IsPatternExpressionInAwaitUsing()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                await using (await GetResourceAsync())
+                {
+                    Exception exception = await GetExceptionAsync();
+                    Console.Write(exception is OperationCanceledException or CustomException { Message: "" });
+                }
+
+                static async Task<Resource> GetResourceAsync()
+                {
+                    await Task.Yield();
+                    return new Resource();
+                }
+
+                static async Task<Exception> GetExceptionAsync()
+                {
+                    await Task.Yield();
+                    return new CustomException("");
+                }
+
+                sealed class Resource : IAsyncDisposable
+                {
+                    public ValueTask DisposeAsync()
+                    {
+                        Console.Write("Disposed");
+                        return default;
+                    }
+                }
+
+                sealed class CustomException : Exception
+                {
+                    public CustomException(string message)
+                        : base(message)
+                    {
+                    }
+                }
+                """;
+
+            var expectedOutput = "TrueDisposed";
+
+            var compilation = CreateCompilationWithTasksExtensions(
+                [source, IAsyncDisposableDefinition],
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            compilation = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                compilation,
+                expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = $$"""
+                        {{ReturnValueMissing("<Main>$", "0x71")}}
+                        [<<Main>$>g__GetResourceAsync|0_0]: Unexpected type on the stack. { Offset = 0x29, Found = ref 'Resource', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<Resource>' }
+                        [<<Main>$>g__GetExceptionAsync|0_1]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'CustomException', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<System.Exception>' }
+                        """,
+                }).VerifyDiagnostics();
+        }
+
         [Fact]
         public void MyTask_16()
         {

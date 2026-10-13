@@ -95,7 +95,7 @@ See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Referenc
 
 動的に挿入されたスクリプト ([`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "HTML ドキュメントでは、document.createElement() メソッドは tagName で指定された HTML 要素、または tagName が認識されない場合は HTMLUnknownElement を作成します。")) は既定で非同期的に読み込まれるため、同期読み込みを有効にするため (つまり、スクリプトが挿入された順序で読み込まれる) には、`async="false"` を設定します。
 
-ブラウザーのサポートに関する注意事項については、[Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) を参照してください。また、[asm.js の非同期スクリプト](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts) も参照してください。</target>
+ブラウザーのサポートに関する注意事項については、[ブラウザーの互換性](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) を参照してください。また、[asm.js の非同期スクリプト](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts) も参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocapitalize">
@@ -243,7 +243,7 @@ If the attribute is not present, the resource is fetched without a [CORS](https:
 
 `anonymous`
 
-クロスオリジン要求 (つまり[`Origin`)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "Origin 要求ヘッダーは、フェッチの送信元を示します。パス情報は含まれませんが、サーバー名のみが含まれます。CORS 要求と POST 要求で送信されます。これは Referer ヘッダーに似ていますが、このヘッダーとは異なり、パス全体は開示されません。) HTTP ヘッダー) は実行されますが、(Cookie、X.509 証明書、HTTP 基本認証など) 資格情報は送信されません。サーバーがオリジン サイトへの認証情報を提供しない場合 ([`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "Access-Control-Allow-Origin レスポンスヘッダーは、指定されたオリジンからの要求コードとレスポンスを共有できるかどうかを示す。") HTTPヘッダー) を設定しない場合、画像は汚染され、その使用が制限されます。
+クロスオリジン要求 (つまり[`Origin`)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "Origin 要求ヘッダーは、フェッチの送信元を示します。パス情報は含まれませんが、サーバー名のみが含まれます。CORS 要求と POST 要求で送信されます。これは Referer ヘッダーに似ていますが、このヘッダーとは異なり、パス全体は開示されません。) HTTP ヘッダー) は実行されますが、(Cookie、X.509 証明書、HTTP 基本認証など) 資格情報は送信されません。サーバーがオリジン サイトへの認証情報を提供しない場合 ([`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "Access-Control-Allow-Origin 応答ヘッダーは、指定されたオリジンからの要求コードと応答を共有できるかどうかを示す。") HTTPヘッダー) を設定しない場合、画像は汚染され、その使用が制限されます。
 
 `use-credentials`
 
@@ -325,8 +325,8 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
         <target state="translated">要素のテキストの方向性を示す列挙型属性です。以下の値を指定できます:
 
 * `ltr`: _lef to right_ を意味し、左から右に書かれる言語 (英語など) に使用します。
-* `rtl`：_right to left_ を意味し、右から左に書く言語 (アラビア語など) に使用します。* `auto`: ユーザー エージェントに決定を委ねます。
-ユーザー エージェントは、要素内の文字を解析し、明確な方向性を持つ文字が見つかるまで処理を進め、その方向性を要素全体に適用します。</target>
+* `rtl`：_right to left_ を意味し、右から左に書く言語 (アラビア語など) に使用します。
+* `auto`: ユーザー エージェントに決定を委ねます。ユーザー エージェントは、要素内の文字を解析し、明確な方向性を持つ文字が見つかるまで処理を進め、その方向性を要素全体に適用します。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_disabled">
@@ -540,7 +540,7 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 * `"content-security-policy"` 
 ページ作成者が現在のページの [content policy](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) を定義できるようにします。コンテンツ ポリシーでは、ほとんどの場合、許可されているサーバー オリジンとスクリプト エンドポイントが指定されています。これは、クロスサイト スクリプティング攻撃から保護するのに役立ちます。
 * `"content-type"`
-ドキュメントの [MIME type](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) を定義し、その後に文字エンコーディングが続きます。これはHTTPの `content-type` エンティティヘッダーフィールドと同じ構文を採用していますが、HTML ページ内にあるため、`text/html` 以外の値はほとんど使用できません。したがって、その `content` の有効な構文は、文字列 '`text/html`' の後に、次の構文を持つ文字セットが続くものです: "`; charset=_IANAcharset_`'。ここで、`IANAcharset` は、[defined by the IANA (IANA によって定義された)](https://www.iana.org/assignments/character-sets) 文字セットの _preferred MIME name_ です。
+ドキュメントの [MIME type](https://developer.mozilla.org/ja-JP/docs/Glossary/MIME_type) を定義し、その後に文字エンコーディングが続きます。これは HTTP の `content-type` エンティティ ヘッダー フィールドと同じ構文を採用していますが、HTML ページ内にあるため、`text/html` 以外の値はほとんど使用できません。したがって、その `content` の有効な構文は、文字列 '`text/html`' の後に、次の構文を持つ文字セットが続くものです: "`; charset=_IANAcharset_`'。ここで、`IANAcharset` は、[IANA によって定義された](https://www.iana.org/assignments/character-sets) 文字セットの _preferred MIME name_ です。
 
 **警告：** この値は廃止されているため、使用しないでください。[`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML の &lt;meta&gt; 要素は、&lt;base&gt;、&lt;link&gt;、&lt;script&gt;、&lt;style&gt;、または &lt;title&gt; といった他の HTML メタ関連要素では表現できないメタデータを表します。") 要素で [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) 属性を使用してください。
 
@@ -696,8 +696,8 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 
 **注:**
 
-* HTML 4 では、これは単に空白で区切られたメディア記述リテラル (すなわち、[media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media)) のリストに限られます。これらは、`print`、`screen`、`aural`、`braille` など、この属性の値として定義され、許可されているものです。HTML5 では、これがあらゆる種類の [メディアクエリ](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) に拡張されました。これらはHTML 4で許可されていた値のスーパーセットです。
-* [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) をサポートしていないブラウザーでは、適切なリンクが認識されない場合があります。HTML 4 で定義されている限定的なメディア クエリのセットを、フォールバック リンクとして設定することを忘れないでください。</target>
+* HTML 4 では、これは単に空白で区切られたメディア記述リテラル (すなわち、[media types and groups](https://developer.mozilla.org/ja-JP/docs/Web/CSS/@media)) のリストに限られます。これらは、`print`、`screen`、`aural`、`braille` など、この属性の値として定義され、許可されているものです。HTML5 では、これがあらゆる種類の [メディア クエリ](https://developer.mozilla.org/ja-JP/docs/Web/CSS/Media_queries) に拡張されました。これらはHTML 4で許可されていた値のスーパーセットです。
+* [CSS3 メディア クエリ](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) をサポートしていないブラウザーでは、適切なリンクが認識されない場合があります。HTML 4 で定義されている限定的なメディア クエリのセットを、フォールバック リンクとして設定することを忘れないでください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_method">
@@ -1517,7 +1517,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 **Note:** Placeholders should only be used to show an example of the type of data that should be entered into a form; they are _not_ a substitute for a proper [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "The HTML &lt;label&gt; element represents a caption for an item in a user interface.") element tied to the input. See [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") in [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") for a full explanation.</source>
         <target state="translated">コントロールに入力できる内容のヒント。プレースホルダー テキスト内の復帰または改行は、ヒントをレンダリングするときに改行として扱う必要があります。
 
-**注:** プレースホルダーは、フォームに入力する必要があるデータの種類の例を示すためにのみ使用する必要があります。入力に関連付けられた適切な [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "HTML &lt;label&gt; 要素はユーザー インターフェイス内の項目のキャプションを表します。") 要素の代わりに _not_ を指定します。[Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "HTML の &lt;input&gt; 要素は、ユーザーからのデータを受け付けるための Web フォーム用インタラクティブ コントロールの作成に使用されます。デバイスやユーザー エージェントに応じて、多種多様な入力データやコントロール ウィジェットが利用可能です。") の [&lt;input&gt;: Input (フォーム入力) 要素](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML の &lt;input&gt; 要素は、ユーザーからのデータを受け付けるための Web ベースのフォーム用インタラクティブ コントロールを作成するために使用されます。デバイスやユーザー エージェントに応じて、多種多様な入力データやコントロール ウィジェットが利用可能です。") を参照してください。</target>
+**注:** プレースホルダーは、フォームに入力する必要があるデータの種類の例を示すためにのみ使用する必要があります。入力に関連付けられた適切な [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "HTML &lt;label&gt; 要素はユーザー インターフェイス内の項目のキャプションを表します。") 要素の代わりに _not_ を指定します。[ラベルとプレースホルダー](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "HTML の &lt;input&gt; 要素は、ユーザーからのデータを受け付けるための Web フォーム用インタラクティブ コントロールの作成に使用されます。デバイスやユーザー エージェントに応じて、多種多様な入力データやコントロール ウィジェットが利用可能です。") の [&lt;input&gt;: Input (フォーム入力) 要素](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML の &lt;input&gt; 要素は、ユーザーからのデータを受け付けるための Web ベースのフォーム用インタラクティブ コントロールを作成するために使用されます。デバイスやユーザー エージェントに応じて、多種多様な入力データやコントロール ウィジェットが利用可能です。") を参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_popover">
@@ -1596,8 +1596,8 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
         <target state="translated">フレーム内のコンテンツに追加の制限を適用します。属性の値は、すべての制限を適用するために空にすることも、スペースで区切られたトークンを使用して特定の制限を解除することもできます。
 
 * `allow-forms`: リソースがフォームを送信できるようにします。このキーワードを使用しない場合、フォームの送信はブロックされます。
-* `allow-modals`: リソースが [open modal windows (モーダル ウィンドウで開ける)](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag) ようにします。
-* `allow-orientation-lock`: リソースの [lock the screen orientation (画面の向きをロック)](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation) します。
+* `allow-modals`: リソースが [モーダル ウィンドウで開ける](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag) ようにします。
+* `allow-orientation-lock`: リソースの [画面の向きをロック](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation) します。
 * `allow-pointer-lock`: リソースで [Pointer Lock API](https://developer.mozilla.org/en-US/docs/WebAPI/Pointer_Lock) を使用できるようにします。
 * `allow-popups`: ポップアップ (`window.open()`、`target="_blank"`、`showModalDialog()` など) を許可します。このキーワードを使用しない場合、ポップアップはサイレントで開かなくなります。
 * `allow-popups-to-escape-sandbox`: サンドボックス化されたドキュメントで、サンドボックスを継承するウィンドウなしで新しいウィンドウを開くことができます。たとえば、広告がリンクされているページに同じ制限を適用することなく、広告を安全にサンドボックス化できます。
@@ -1712,7 +1712,7 @@ The user agent selects any one of the available sources at its discretion. This 
 
 幅記述子とピクセル密度記述子を同じ `srcset` 属性に混在させるのは正しくありません。重複する記述子 (たとえば、両方とも '`2x`' で記述されている同じ `srcset` 内の 2 つのソース) も無効です。
 
-ユーザー エージェントは、任意の判断で利用可能なソースのいずれかを選択します。これにより、ユーザー設定や帯域幅の条件などに基づいて選択を調整するための重要な余裕が提供されます。例については、[Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) チュートリアルを参照してください。</target>
+ユーザー エージェントは、任意の判断で利用可能なソースのいずれかを選択します。これにより、ユーザー設定や帯域幅の条件などに基づいて選択を調整するための重要な余裕が提供されます。例については、[レスポンシブ画像](https://developer.mozilla.org/ja-JP/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) チュートリアルを参照してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_start">
@@ -1735,7 +1735,7 @@ The user agent selects any one of the available sources at its discretion. This 
 * a _negative value_ means that the element should be focusable, but should not be reachable via sequential keyboard navigation;
 * `0` means that the element should be focusable and reachable via sequential keyboard navigation, but its relative order is defined by the platform convention;
 * a _positive value_ means that the element should be focusable and reachable via sequential keyboard navigation; the order in which the elements are focused is the increasing value of the [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex). If several elements share the same tabindex, their relative order follows their relative positions in the document.</source>
-        <target state="translated">要素が入力フォーカスを取得できるかどうかを示す整数属性 (_focusable_)、シーケンシャル キーボード ナビゲーションに参加する必要があるかどうか、その場合はどの位置にあるかを示します。いくつかの値を取る可能性があります:
+        <target state="translated">要素が入力フォーカスを取得できるかどうかを示す整数属性 (is _focusable_)、シーケンシャル キーボード ナビゲーションに参加する必要があるかどうか、その場合はどの位置にあるかを示します。いくつかの値を取る可能性があります:
 
 * _negative value_ は、要素がフォーカス可能である必要がありますが、シーケンシャル キーボード ナビゲーションを介して到達できないことを意味します。
 * `0` は、要素がシーケンシャル キーボード ナビゲーションを介してフォーカス可能で到達可能である必要があることを意味しますが、その相対順序はプラットフォーム規則によって定義されます。
@@ -1786,7 +1786,7 @@ If this attribute is specified, this element must come before any other elements
         <source>The partial URL (starting with '#') of an [image map](https://developer.mozilla.org/en-US/docs/HTML/Element/map) associated with the element.
 
 **Note:** You cannot use this attribute if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") or [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") element.</source>
-        <target state="translated">要素に関連付けられている [image map](https://developer.mozilla.org/en-US/docs/HTML/Element/map) の部分的な URL ('#' で始まる)。
+        <target state="translated">要素に関連付けられている [イメージ マップ](https://developer.mozilla.org/en-US/docs/HTML/Element/map) の部分的な URL ('#' で始まる)。
 
 **注:** `&lt;img&gt;` 要素が [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "HTML の &lt;a&gt; 要素 (アンカー要素) は、他の Web ページ、ファイル、同じページ内の場所、メール アドレス、またはその他の URL へのハイパーリンクを作成します。") または [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML の &lt;button&gt; 要素は、クリック可能なボタンを表します。これは、フォームや、シンプルで標準的なボタン機能が必要なドキュメント内の任意の場所で使用できます。") 要素の子孫である場合、この属性は使用できません。</target>
         <note />

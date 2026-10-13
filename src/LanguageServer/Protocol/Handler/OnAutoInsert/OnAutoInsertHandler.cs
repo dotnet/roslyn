@@ -47,7 +47,7 @@ internal sealed class OnAutoInsertHandler(
         RequestContext context,
         CancellationToken cancellationToken)
     {
-        var document = context.Document;
+        var document = await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (document == null)
             return null;
 

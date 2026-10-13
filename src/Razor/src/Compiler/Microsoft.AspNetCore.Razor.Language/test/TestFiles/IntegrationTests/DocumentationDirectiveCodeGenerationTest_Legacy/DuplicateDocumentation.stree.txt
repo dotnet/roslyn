@@ -1,0 +1,57 @@
+﻿RazorDocument - [0..101)::101 - [@documentation {<summary>First</summary>}LF@documentation {<summary>Second</summary>}LF<p>After</p>LF]
+    MarkupBlock - [0..101)::101
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..43)::43
+            RazorDocumentationDirective - [0..41)::41 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..41)::40
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..41)::27
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [15..16)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [16..40)::24
+                            CSharpStatementLiteral - [16..40)::24 - [<summary>First</summary>] - Gen<Stmt>
+                                Text;[<summary>First</summary>];
+                        RazorMetaCode - [40..41)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [41..43)::2 - Gen<None>
+                NewLine;[LF];
+        CSharpCodeBlock - [43..87)::44
+            RazorDocumentationDirective - [43..85)::42 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring} [RZ2001(43:1,0 [14] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/DuplicateDocumentation.cshtml)]
+                CSharpTransition - [43..44)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [44..85)::41
+                    RazorMetaCode - [44..57)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [57..85)::28
+                        UnclassifiedTextLiteral - [57..58)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [58..59)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [59..84)::25
+                            CSharpStatementLiteral - [59..84)::25 - [<summary>Second</summary>] - Gen<Stmt>
+                                Text;[<summary>Second</summary>];
+                        RazorMetaCode - [84..85)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [85..87)::2 - Gen<None>
+                NewLine;[LF];
+        MarkupElement - [87..99)::12
+            MarkupStartTag - [87..90)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [90..95)::5 - [After] - Gen<Markup>
+                Text;[After];
+            MarkupEndTag - [95..99)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+        MarkupTextLiteral - [99..101)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

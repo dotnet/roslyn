@@ -19,8 +19,6 @@
                     ComponentAttribute - (79:1,60 [11] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
                         CSharpExpression - (79:1,60 [11] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (79:1,60 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
-            CSharpCode - (103:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (103:2,7 [128] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public TParam ParentValue { get; set; } = default;\n\n    public void UpdateValue(TParam value) { ParentValue = value; }\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

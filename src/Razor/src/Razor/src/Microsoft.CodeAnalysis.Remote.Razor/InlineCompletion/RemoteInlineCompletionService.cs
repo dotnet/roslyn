@@ -49,10 +49,12 @@ internal sealed class RemoteInlineCompletionService(in ServiceArgs args) : Razor
         var generatedDocument = await snapshot.GetGeneratedDocumentAsync(inDeclDocument, cancellationToken).ConfigureAwait(false);
         // DocumentUri doesn't serialize through MessagePack nicely, and since we know generated documents always have parsable Uris, since they're
         // created by Roslyn, it's easiest to just use Uri.
+#pragma warning disable CS0618 // Type or member is obsolete - Tracking https://github.com/dotnet/roslyn/issues/84785
         return new InlineCompletionRequestInfo(
-            GeneratedDocumentUri: generatedDocument.GetURI().GetRequiredParsedUri(),
+            GeneratedDocumentUri: generatedDocument.GetURI().GetRequiredLegacySystemUri(),
             Position: mappedPosition,
             InDeclDocument: inDeclDocument);
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     public ValueTask<FormattedInlineCompletionInfo?> FormatInlineCompletionAsync(RazorSolutionWrapper solutionInfo, DocumentId documentId, bool inDeclDocument, RazorFormattingOptions options, LinePositionSpan span, string text, CancellationToken cancellationToken)

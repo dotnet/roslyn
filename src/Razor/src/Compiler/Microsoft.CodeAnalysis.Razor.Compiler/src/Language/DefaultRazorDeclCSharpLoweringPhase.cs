@@ -13,7 +13,7 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// running a second declaration compilation. The matching "impl" half is produced by
 /// <see cref="DefaultRazorCSharpLoweringPhase"/>; both are emitted as <c>partial</c> so they rejoin at
 /// compile time. For anything the split phase left unsplit (a non-component, a suppressed primary body,
-/// or a fallback component) no decl subtree is stashed and this phase is a no-op;
+/// or a fallback component, or a host that didn't opt into the split) no decl subtree is stashed and this phase is a no-op;
 /// <see cref="DefaultRazorCSharpLoweringPhase"/> then produces the whole document as a single file.
 /// </summary>
 internal sealed class DefaultRazorDeclCSharpLoweringPhase : RazorEnginePhaseBase, IRazorCSharpLoweringPhase

@@ -5,7 +5,6 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor.Threading;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Tooltip;
 using Microsoft.CodeAnalysis.Remote.Razor.Tooltip;
@@ -13,25 +12,8 @@ using Roslyn.Text.Adornments;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Completion;
 
-internal class RazorCompletionItemResolver : CompletionItemResolver
+internal static class RazorCompletionItemResolver
 {
-    public override Task<VSInternalCompletionItem?> ResolveAsync(
-        VSInternalCompletionItem completionItem,
-        VSInternalCompletionList containingCompletionList,
-        ICompletionResolveContext originalRequestContext,
-        VSInternalClientCapabilities? clientCapabilities,
-        IComponentAvailabilityService componentAvailabilityService,
-        CancellationToken cancellationToken)
-    {
-        if (originalRequestContext is not RazorCompletionResolveContext razorCompletionResolveContext)
-        {
-            // Can't recognize the original request context, bail.
-            return SpecializedTasks.Null<VSInternalCompletionItem>();
-        }
-
-        return ResolveAsync(completionItem, clientCapabilities, componentAvailabilityService, razorCompletionResolveContext, cancellationToken);
-    }
-
     public static async Task<VSInternalCompletionItem?> ResolveAsync(VSInternalCompletionItem completionItem, VSInternalClientCapabilities? clientCapabilities, IComponentAvailabilityService componentAvailabilityService, RazorCompletionResolveContext razorCompletionResolveContext, CancellationToken cancellationToken)
     {
         var associatedRazorCompletion = razorCompletionResolveContext.CompletionItems.FirstOrDefault(completion =>

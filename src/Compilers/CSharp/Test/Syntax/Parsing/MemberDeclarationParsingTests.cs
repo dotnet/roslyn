@@ -1060,11 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 UsingDeclaration("string Property { init set; }", options: options,
                     // (1,24): error CS8180: { or ; or => expected
                     // string Property { init set; }
-                    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "set").WithLocation(1, 24),
-                    // (1,30): error CS1513: } expected
-                    // string Property { init set; }
-                    Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 30)
-                    );
+                    Diagnostic(ErrorCode.ERR_SemiOrLBraceOrArrowExpected, "set").WithLocation(1, 24));
                 N(SyntaxKind.PropertyDeclaration);
                 {
                     N(SyntaxKind.PredefinedType);
@@ -1078,21 +1074,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.InitAccessorDeclaration);
                         {
                             N(SyntaxKind.InitKeyword);
-                            N(SyntaxKind.Block);
-                            {
-                                M(SyntaxKind.OpenBraceToken);
-                                N(SyntaxKind.ExpressionStatement);
-                                {
-                                    N(SyntaxKind.IdentifierName);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "set");
-                                    }
-                                    N(SyntaxKind.SemicolonToken);
-                                }
-                                N(SyntaxKind.CloseBraceToken);
-                            }
+                            M(SyntaxKind.SemicolonToken);
                         }
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.SetAccessorDeclaration);
+                        {
+                            N(SyntaxKind.SetKeyword);
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
                     }
                 }
                 EOF();
@@ -10493,7 +10482,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (5,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
                 // (11,2): error CS1513: } expected
@@ -10578,7 +10567,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (5,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
                 // (13,2): error CS1513: } expected
@@ -10686,7 +10675,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (5,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5));
 
@@ -10802,10 +10791,10 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (5,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
-                // (17,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (17,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(17, 5),
                 // (22,2): error CS1513: } expected
@@ -10958,10 +10947,10 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (8,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (8,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(8, 5),
-                // (20,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (20,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(20, 5),
                 // (25,2): error CS1513: } expected
@@ -11129,10 +11118,10 @@ public class Class
                 private int field;
                 """;
             UsingTree(text,
-                // (8,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (8,1): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(8, 1),
-                // (20,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (20,1): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(20, 1));
 
@@ -11297,7 +11286,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (7,9): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (7,9): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //         }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(7, 9),
                 // (15,10): error CS1513: } expected
@@ -11428,10 +11417,10 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (10,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (10,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(10, 5),
-                // (22,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (22,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(22, 5),
                 // (25,2): error CS1513: } expected
@@ -11606,7 +11595,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,9): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (5,9): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //         }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 9));
 
@@ -11903,7 +11892,7 @@ public class Class
                 }
                 """;
             UsingTree(text, options: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
-                // (6,9): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (6,9): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //         }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(6, 9));
 
@@ -12224,7 +12213,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (5,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5));
 
@@ -12306,10 +12295,10 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (5,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
-                // (15,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (15,5): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(15, 5),
                 // (21,2): error CS1513: } expected
@@ -12407,7 +12396,7 @@ public class Class
                 SampleNamespace.SampleClass obj = new global::SampleNamespace.SampleClass();
                 """;
             UsingTree(text,
-                // (15,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (15,1): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(15, 1));
 
@@ -12546,7 +12535,7 @@ public class Class
                 private int x;
                 """;
             UsingTree(text,
-                // (3,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (3,1): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(3, 1));
 
@@ -12597,7 +12586,7 @@ public class Class
                 public int P => 0;
                 """;
             UsingTree(text,
-                // (5,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (5,1): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 1));
 
@@ -12696,7 +12685,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (5,1): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 1));
 
@@ -12754,7 +12743,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (5,1): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 1),
                 // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
@@ -12817,7 +12806,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (8,13): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // (8,13): error CS9402: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //             }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(8, 13));
 

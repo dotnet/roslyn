@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
@@ -21,9 +22,8 @@ internal abstract class TestLspServices(IEnumerable<(Type type, object instance)
             : new Default(services);
     }
 
-    public void Dispose()
-    {
-    }
+    public ValueTask DisposeAsync()
+        => ValueTask.CompletedTask;
 
     public T? GetService<T>() where T : notnull
         => TryGetService(typeof(T), out var service) ? (T)service : default;

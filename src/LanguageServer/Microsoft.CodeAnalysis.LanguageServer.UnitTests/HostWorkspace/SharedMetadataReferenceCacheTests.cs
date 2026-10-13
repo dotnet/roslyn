@@ -172,7 +172,7 @@ public sealed class SharedMetadataReferenceCacheTests : TestBase
         var otherReference = GetReference(cache, otherPath);
         Assert.Same(firstReference, GetReference(cache, path));
 
-        File.Copy(typeof(Uri).Assembly.Location, path, overwrite: true);
+        File.Copy(typeof(Console).Assembly.Location, path, overwrite: true);
         File.SetLastWriteTimeUtc(path, timestamp.AddSeconds(1));
 
         Assert.NotSame(firstReference, GetReference(cache, path));

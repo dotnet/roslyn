@@ -97,6 +97,15 @@ public sealed class MSBuildWorkspace : Workspace
     internal void AddLoggerProvider(Microsoft.Extensions.Logging.ILoggerProvider loggerProvider)
         => _loader.LoggerFactory.AddProvider(loggerProvider);
 
+    internal TestAccessor GetTestAccessor()
+        => new(this);
+
+    internal readonly struct TestAccessor(MSBuildWorkspace workspace)
+    {
+        public void SetBeforeKillHungBuildHostProcess(Action<Process>? beforeKillHungBuildHostProcess)
+            => workspace._loader.GetTestAccessor().SetBeforeKillHungBuildHostProcess(beforeKillHungBuildHostProcess);
+    }
+
     protected override void Dispose(bool finalize)
     {
         // Dispose the LoggerFactory to ensure any logger providers added via AddLoggerProvider are disposed.
@@ -757,4 +766,3 @@ public sealed class MSBuildWorkspace : Workspace
     }
     #endregion
 }
-

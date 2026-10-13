@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
 using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
@@ -40,7 +41,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public Task InterpolatedString(string @string)
             => new VerifyCS.Test
             {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultNetFramework,
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = $$"""
                 using System.Diagnostics;
 
@@ -75,7 +76,7 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
         public Task NoCrashOnUsingStaticedAssert()
             => new VerifyCS.Test
             {
-                ReferenceAssemblies = AdditionalMetadataReferences.DefaultNetFramework,
+                ReferenceAssemblies = ReferenceAssemblies.NetFramework.Net472.Default,
                 TestCode = $$"""
                 using static System.Diagnostics.Debug;
 
@@ -84,6 +85,27 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     void M()
                     {
                         [|Assert(false, $"{0}")|];
+                    }
+                }
+
+                {{RoslynDebug}}
+                """,
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
+            }.RunAsync();
+
+        [Fact]
+        public Task NoAssertForInterpolatedStringHandler()
+            => new VerifyCS.Test
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
+                TestCode = $$"""
+                using System.Diagnostics;
+
+                class C
+                {
+                    void M()
+                    {
+                        Debug.Assert(false, $"{0}");
                     }
                 }
 

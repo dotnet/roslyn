@@ -166,6 +166,18 @@ public sealed partial class RazorCodeGenerationOptions
             set => _flags.UpdateFlag(Flags.WriteHtmlUtf8StringLiterals, value);
         }
 
+        /// <summary>
+        /// Gets or sets a value that determines whether a component is split into separate declaration
+        /// and implementation halves. Defaults to <c>false</c>; only a host that consumes both halves
+        /// (the Razor source generator) should opt in, since a host that reads only the implementation
+        /// document would otherwise silently lose the declaration half's code.
+        /// </summary>
+        internal bool EnableMarkupSplit
+        {
+            get => _flags.IsFlagSet(Flags.EnableMarkupSplit);
+            set => _flags.UpdateFlag(Flags.EnableMarkupSplit, value);
+        }
+
         public RazorCodeGenerationOptions ToOptions()
             => new(IndentSize, NewLine, RootNamespace, CssScope, SuppressUniqueIds, RazorWarningLevel, _flags);
     }

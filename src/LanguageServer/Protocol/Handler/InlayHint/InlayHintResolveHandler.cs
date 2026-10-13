@@ -30,13 +30,13 @@ internal sealed class InlayHintResolveHandler(IGlobalOptionService globalOptions
     public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.InlayHint request)
         => GetInlayHintResolveData(request).TextDocument;
 
-    public Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         var options = globalOptions.GetInlineHintsOptions(document.Project.Language);
         var inlayHintCache = context.GetRequiredService<InlayHintCache>();
         var resolveData = GetInlayHintResolveData(request);
-        return ResolveInlayHintAsync(document, request, inlayHintCache, resolveData, options, cancellationToken);
+        return await ResolveInlayHintAsync(document, request, inlayHintCache, resolveData, options, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<LSP.InlayHint> ResolveInlayHintAsync(

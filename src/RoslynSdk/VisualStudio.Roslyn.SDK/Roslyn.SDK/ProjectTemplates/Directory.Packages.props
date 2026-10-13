@@ -1,0 +1,6 @@
+<Project>
+  <!-- These projects are distributed as templates and must retain self-contained package versions. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

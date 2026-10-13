@@ -5,6 +5,7 @@
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -206,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int i = 1; i < arguments.Length; i++)
                 {
-                    builder.Append($", {{{i.ToString()}}}");
+                    builder.Append($", {{{i.ToString(CultureInfo.InvariantCulture)}}}");
                     argumentDisplays[i] = arguments[i].Display;
                 }
 

@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Razor.Remote;
 
 internal interface IRemoteGoToDefinitionService : IRemoteJsonService
 {
-    ValueTask<RemoteResponse<LspLocation[]?>> GetDefinitionsAsync(
+    ValueTask<RemoteResponse<GoToDefinitionResponse?>> GetDefinitionsAsync(
         JsonSerializableRazorSolutionWrapper solutionInfo,
         JsonSerializableDocumentId razorDocumentId,
         Position position,

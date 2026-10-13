@@ -24,6 +24,8 @@ internal sealed class DotnetCliHelperFactory() : ILspServiceFactory
 internal sealed class DotnetCliHelper : ILspService
 {
     internal const string DotnetRootEnvVar = "DOTNET_ROOT";
+    private const string DotnetCliForceUtf8EncodingEnvVar = "DOTNET_CLI_FORCE_UTF8_ENCODING";
+    private const string DotnetCliConsoleUseDefaultEncodingEnvVar = "DOTNET_CLI_CONSOLE_USE_DEFAULT_ENCODING";
 
     private readonly ILogger _logger;
     private readonly Lazy<string> _dotnetExecutablePath;
@@ -79,6 +81,7 @@ internal sealed class DotnetCliHelper : ILspService
     {
         _logger.LogDebug($"Running dotnet CLI command at {_dotnetExecutablePath.Value} in directory {workingDirectory} with arguments '{string.Join(' ', arguments)}'");
 
+        // Avoid mojibake when dotnet writes UTF-8 but Process would decode redirected output using the server's console encoding.
         var startInfo = new ProcessStartInfo(_dotnetExecutablePath.Value)
         {
             CreateNoWindow = true,
@@ -86,6 +89,8 @@ internal sealed class DotnetCliHelper : ILspService
             RedirectStandardInput = true,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
+            StandardOutputEncoding = Encoding.UTF8,
+            StandardErrorEncoding = Encoding.UTF8,
         };
 
         startInfo.ArgumentList.AddRange(arguments);
@@ -105,6 +110,9 @@ internal sealed class DotnetCliHelper : ILspService
             // Set the appropriate environment variable for the process so that we don't get localized output.
             startInfo.Environment["DOTNET_CLI_UI_LANGUAGE"] = "en-US";
         }
+
+        startInfo.Environment[DotnetCliForceUtf8EncodingEnvVar] = "true";
+        startInfo.Environment.Remove(DotnetCliConsoleUseDefaultEncodingEnvVar);
 
         // Since we depend on MSBuild APIs, the following environment variables get set to the version of dotnet that runs this server.
         // However want to use the user specified dotnet version to run the tests, so we need to unset these.

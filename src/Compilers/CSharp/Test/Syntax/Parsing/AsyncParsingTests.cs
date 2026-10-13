@@ -1672,9 +1672,6 @@ class C
 {
     async partial implicit operator
 ",
-                // (4,11): error CS1553: Declaration is not valid; use 'implicit operator <dest-type> (...' instead
-                //     async partial implicit operator
-                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("implicit").WithLocation(4, 11),
                 // (4,36): error CS1031: Type expected
                 //     async partial implicit operator
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 36),
@@ -1700,6 +1697,7 @@ class C
                     N(SyntaxKind.ConversionOperatorDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PartialKeyword);
                         N(SyntaxKind.ImplicitKeyword);
                         N(SyntaxKind.OperatorKeyword);
                         M(SyntaxKind.IdentifierName);
@@ -1783,9 +1781,6 @@ class C
 {
     async partial explicit operator
 ",
-                // (4,11): error CS1553: Declaration is not valid; use 'explicit operator <dest-type> (...' instead
-                //     async partial explicit operator
-                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("explicit").WithLocation(4, 11),
                 // (4,36): error CS1031: Type expected
                 //     async partial explicit operator
                 Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 36),
@@ -1812,6 +1807,7 @@ class C
                     N(SyntaxKind.ConversionOperatorDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PartialKeyword);
                         N(SyntaxKind.ExplicitKeyword);
                         N(SyntaxKind.OperatorKeyword);
                         M(SyntaxKind.IdentifierName);

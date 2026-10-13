@@ -295,7 +295,7 @@ namespace Microsoft.Cci
 
                 PatchModuleVersionIds(mvidFixup, mvidSectionFixup, mvidStringFixup, peContentId.Guid);
 
-                if (privateKeyOpt != null && corFlags.HasFlag(CorFlags.StrongNameSigned))
+                if (privateKeyOpt != null && (corFlags & CorFlags.StrongNameSigned) == CorFlags.StrongNameSigned)
                 {
                     Debug.Assert(strongNameProvider != null);
                     strongNameProvider.SignBuilder(peBuilder, emitBuilders.PortableExecutableBlobBuilder, privateKeyOpt.Value);

@@ -313,7 +313,7 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
 
             // [AssetPath] enables ~/ expansion only for string parameters. On any other type the
             // rewritten Assets[...] value wouldn't be assignable, so ignore the opt-in and warn.
-            if (property.GetAttributes().Any(static a => a.HasFullName(ComponentsApi.AssetPathAttribute.MetadataName)))
+            if (HasAssetPathAttribute(property))
             {
                 if (property.Type.SpecialType == SpecialType.System_String)
                 {
@@ -333,6 +333,19 @@ internal sealed partial class ComponentTagHelperProducer : TagHelperProducer
                 pb.SetDocumentation(xml);
             }
         });
+
+        static bool HasAssetPathAttribute(IPropertySymbol property)
+        {
+            for (IPropertySymbol? current = property; current is not null; current = current.OverriddenProperty)
+            {
+                if (current.GetAttributes().Any(static a => a.HasFullName(ComponentsApi.AssetPathAttribute.MetadataName)))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         static bool HasTypeParameter(ITypeSymbol type)
         {

@@ -15,6 +15,7 @@ internal enum SyntaxKind : byte
     RazorMetaCode,
     RazorDirective,
     RazorUsingDirective,
+    RazorDocumentationDirective,
     RazorDirectiveBody,
     UnclassifiedTextLiteral,
 

@@ -272,6 +272,7 @@ internal sealed class InlineHintsTag : IntraTextAdornmentTag
         {
             e.Handled = true;
             var textChange = _hint.ReplacementTextChange!.Value;
+            Contract.ThrowIfNull(textChange.NewText);
 
             var snapshot = _span.Snapshot;
             var subjectBuffer = snapshot.TextBuffer;

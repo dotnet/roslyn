@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
@@ -18,6 +19,13 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp;
 internal interface IFSharpWorkspaceProjectContextFactory
 {
     IFSharpWorkspaceProjectContext CreateProjectContext(string filePath, string uniqueName);
+
+    /// <summary>
+    /// Creates the project context without blocking. <see cref="CreateProjectContext(string, string)"/> waits for
+    /// this through the main thread, so a caller that runs while the main thread is blocked — inside the Peek
+    /// broker's <c>JoinableTaskFactory.Run</c>, say — deadlocks on it.
+    /// </summary>
+    Task<IFSharpWorkspaceProjectContext> CreateProjectContextAsync(string filePath, string uniqueName, CancellationToken cancellationToken);
 }
 
 internal interface IFSharpWorkspaceProjectContext : IDisposable
@@ -54,6 +62,9 @@ internal sealed class FSharpWorkspaceProjectContextFactory : IFSharpWorkspacePro
     IFSharpWorkspaceProjectContext IFSharpWorkspaceProjectContextFactory.CreateProjectContext(string filePath, string uniqueName)
         => CreateProjectContext(filePath, uniqueName);
 
+    async Task<IFSharpWorkspaceProjectContext> IFSharpWorkspaceProjectContextFactory.CreateProjectContextAsync(string filePath, string uniqueName, CancellationToken cancellationToken)
+        => await CreateProjectContextAsync(filePath, uniqueName, cancellationToken).ConfigureAwait(false);
+
     public FSharpWorkspaceProjectContext CreateProjectContext(string filePath, string uniqueName)
         => CreateProjectContext(
             projectUniqueName: uniqueName,
@@ -62,14 +73,27 @@ internal sealed class FSharpWorkspaceProjectContextFactory : IFSharpWorkspacePro
             hierarchy: null,
             binOutputPath: null);
 
+    public Task<FSharpWorkspaceProjectContext> CreateProjectContextAsync(string filePath, string uniqueName, CancellationToken cancellationToken)
+        => CreateProjectContextAsync(
+            projectUniqueName: uniqueName,
+            projectFilePath: filePath,
+            projectGuid: Guid.NewGuid(),
+            hierarchy: null,
+            binOutputPath: null,
+            cancellationToken);
+
     public FSharpWorkspaceProjectContext CreateProjectContext(string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath)
-        => new(_threadingContext.JoinableTaskFactory.Run(() => _factory.CreateProjectContextAsync(
+        => _threadingContext.JoinableTaskFactory.Run(() => CreateProjectContextAsync(
+            projectUniqueName, projectFilePath, projectGuid, hierarchy, binOutputPath, CancellationToken.None));
+
+    public async Task<FSharpWorkspaceProjectContext> CreateProjectContextAsync(string projectUniqueName, string projectFilePath, Guid projectGuid, object? hierarchy, string? binOutputPath, CancellationToken cancellationToken)
+        => new(await _factory.CreateProjectContextAsync(
             id: projectGuid,
             uniqueName: projectUniqueName,
             languageName: LanguageNames.FSharp,
             data: new FSharpEvaluationData(projectFilePath, binOutputPath),
             hostObject: hierarchy,
-            CancellationToken.None)));
+            cancellationToken).ConfigureAwait(false));
 
     private sealed class FSharpEvaluationData : EvaluationData
     {

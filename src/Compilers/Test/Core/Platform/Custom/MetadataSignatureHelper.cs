@@ -43,11 +43,11 @@ namespace Roslyn.Test.Utilities
             if (showGenericConstraints && type.IsGenericParameter)
             {
                 var typeInfo = type.GetTypeInfo();
-                if (typeInfo.GenericParameterAttributes.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint))
+                if ((typeInfo.GenericParameterAttributes & GenericParameterAttributes.ReferenceTypeConstraint) == GenericParameterAttributes.ReferenceTypeConstraint)
                     sb.Append("class ");
-                if (typeInfo.GenericParameterAttributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint))
+                if ((typeInfo.GenericParameterAttributes & GenericParameterAttributes.NotNullableValueTypeConstraint) == GenericParameterAttributes.NotNullableValueTypeConstraint)
                     sb.Append("valuetype ");
-                if (typeInfo.GenericParameterAttributes.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint))
+                if ((typeInfo.GenericParameterAttributes & GenericParameterAttributes.DefaultConstructorConstraint) == GenericParameterAttributes.DefaultConstructorConstraint)
                     sb.Append(".ctor ");
 
                 var genericConstraints = typeInfo.GetGenericParameterConstraints();
@@ -492,29 +492,29 @@ namespace Roslyn.Test.Utilities
             sb.Append(')');
 
             var implFlags = constructor.GetMethodImplementationFlags();
-            if (implFlags.HasFlag(MethodImplAttributes.IL))
+            if ((implFlags & MethodImplAttributes.IL) == MethodImplAttributes.IL)
                 sb.Append(" cil");
-            if (implFlags.HasFlag(MethodImplAttributes.ForwardRef))
+            if ((implFlags & MethodImplAttributes.ForwardRef) == MethodImplAttributes.ForwardRef)
                 sb.Append(" forwardref");
-            if (implFlags.HasFlag(MethodImplAttributes.InternalCall))
+            if ((implFlags & MethodImplAttributes.InternalCall) == MethodImplAttributes.InternalCall)
                 sb.Append(" internalcall");
-            if (implFlags.HasFlag(MethodImplAttributes.Managed))
+            if ((implFlags & MethodImplAttributes.Managed) == MethodImplAttributes.Managed)
                 sb.Append(" managed");
-            if (implFlags.HasFlag(MethodImplAttributes.Native))
+            if ((implFlags & MethodImplAttributes.Native) == MethodImplAttributes.Native)
                 sb.Append(" native");
-            if (implFlags.HasFlag(MethodImplAttributes.NoInlining))
+            if ((implFlags & MethodImplAttributes.NoInlining) == MethodImplAttributes.NoInlining)
                 sb.Append(" noinlining");
-            if (implFlags.HasFlag(MethodImplAttributes.NoOptimization))
+            if ((implFlags & MethodImplAttributes.NoOptimization) == MethodImplAttributes.NoOptimization)
                 sb.Append(" nooptimization");
-            if (implFlags.HasFlag(MethodImplAttributes.OPTIL))
+            if ((implFlags & MethodImplAttributes.OPTIL) == MethodImplAttributes.OPTIL)
                 sb.Append(" optil");
-            if (implFlags.HasFlag(MethodImplAttributes.PreserveSig))
+            if ((implFlags & MethodImplAttributes.PreserveSig) == MethodImplAttributes.PreserveSig)
                 sb.Append(" preservesig");
-            if (implFlags.HasFlag(MethodImplAttributes.Runtime))
+            if ((implFlags & MethodImplAttributes.Runtime) == MethodImplAttributes.Runtime)
                 sb.Append(" runtime");
-            if (implFlags.HasFlag(MethodImplAttributes.Synchronized))
+            if ((implFlags & MethodImplAttributes.Synchronized) == MethodImplAttributes.Synchronized)
                 sb.Append(" synchronized");
-            if (implFlags.HasFlag(MethodImplAttributes.Unmanaged))
+            if ((implFlags & MethodImplAttributes.Unmanaged) == MethodImplAttributes.Unmanaged)
                 sb.Append(" unmanaged");
         }
 
@@ -553,9 +553,9 @@ namespace Roslyn.Test.Utilities
                 sb.Append("writeonly ");
             }
 
-            if (property.Attributes.HasFlag(PropertyAttributes.SpecialName))
+            if ((property.Attributes & PropertyAttributes.SpecialName) == PropertyAttributes.SpecialName)
                 sb.Append("specialname ");
-            if (property.Attributes.HasFlag(PropertyAttributes.RTSpecialName))
+            if ((property.Attributes & PropertyAttributes.RTSpecialName) == PropertyAttributes.RTSpecialName)
                 sb.Append("rtspecialname ");
 
             var propertyAccessors = property.GetAccessors();
@@ -623,9 +623,9 @@ namespace Roslyn.Test.Utilities
                 sb.Append("literal ");
             if (field.IsNotSerialized)
                 sb.Append("notserialized ");
-            if (field.Attributes.HasFlag(FieldAttributes.SpecialName))
+            if ((field.Attributes & FieldAttributes.SpecialName) == FieldAttributes.SpecialName)
                 sb.Append("specialname ");
-            if (field.Attributes.HasFlag(FieldAttributes.RTSpecialName))
+            if ((field.Attributes & FieldAttributes.RTSpecialName) == FieldAttributes.RTSpecialName)
                 sb.Append("rtspecialname ");
             if (field.IsPinvokeImpl)
                 sb.Append("pinvokeimpl ");
@@ -651,9 +651,9 @@ namespace Roslyn.Test.Utilities
                 sb.Append(' ');
             }
 
-            if (@event.Attributes.HasFlag(EventAttributes.SpecialName))
+            if ((@event.Attributes & EventAttributes.SpecialName) == EventAttributes.SpecialName)
                 sb.Append("specialname ");
-            if (@event.Attributes.HasFlag(EventAttributes.RTSpecialName))
+            if ((@event.Attributes & EventAttributes.RTSpecialName) == EventAttributes.RTSpecialName)
                 sb.Append("rtspecialname ");
 
             AppendType(@event.EventHandlerType, sb);

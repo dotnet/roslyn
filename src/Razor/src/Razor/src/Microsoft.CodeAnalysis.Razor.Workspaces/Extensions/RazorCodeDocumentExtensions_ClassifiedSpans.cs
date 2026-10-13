@@ -156,6 +156,14 @@ internal static partial class RazorCodeDocumentExtensions
             }
         }
 
+        public override void VisitRazorDocumentationDirective(RazorDocumentationDirectiveSyntax node)
+        {
+            using (DirectiveBlock())
+            {
+                base.VisitRazorDocumentationDirective(node);
+            }
+        }
+
         public override void VisitCSharpTemplateBlock(CSharpTemplateBlockSyntax node)
         {
             using (TemplateBlock())

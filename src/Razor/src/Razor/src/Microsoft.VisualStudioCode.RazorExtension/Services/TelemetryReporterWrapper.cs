@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.VisualStudio.Telemetry.Metrics.Events;
 
 namespace Microsoft.VisualStudioCode.RazorExtension.Services;
 
@@ -33,5 +34,10 @@ internal sealed class TelemetryReporterWrapper : ILspService, IOnInitialized
     internal void Report(string name, IDictionary<string, object?> properties)
     {
         _telemetryReporterWrapper?.ReportEvent(name, properties.ToList());
+    }
+
+    internal void ReportMetric(TelemetryMetricEvent metricEvent)
+    {
+        _telemetryReporterWrapper?.ReportMetric(metricEvent);
     }
 }

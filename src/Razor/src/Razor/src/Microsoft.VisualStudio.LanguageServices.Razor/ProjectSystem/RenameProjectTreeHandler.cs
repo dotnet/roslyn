@@ -4,6 +4,7 @@
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -28,6 +29,8 @@ internal sealed partial class RenameProjectTreeHandler(
     JoinableTaskContext joinableTaskContext,
     ILoggerFactory loggerFactory) : ProjectTreeActionHandlerBase
 {
+    private static readonly TimeSpan s_willRenameFilesTimeout = TimeSpan.FromSeconds(5);
+
     private readonly IProjectAsynchronousTasksService _projectAsynchronousTasksService = projectAsynchronousTasksService;
     private readonly SVsServiceProvider _serviceProvider = serviceProvider;
     private readonly Lazy<LSPRequestInvokerWrapper> _requestInvoker = requestInvoker;
@@ -54,33 +57,49 @@ internal sealed partial class RenameProjectTreeHandler(
                 return;
             }
 
-            var response = await _projectAsynchronousTasksService.LoadedProjectAsync(() => _requestInvoker.Value.ReinvokeRequestOnServerAsync<RenameFilesParams, WorkspaceEdit?>(
-                Methods.WorkspaceWillRenameFilesName,
-                RazorLSPConstants.RoslynLanguageServerName,
-                new RenameFilesParams()
-                {
-                    Files =
-                    [
-                        new FileRename()
+            var unloadCancellationToken = _projectAsynchronousTasksService.UnloadCancellationToken;
+            using var timeoutSource = new CancellationTokenSource();
+            timeoutSource.CancelAfter(s_willRenameFilesTimeout);
+            using var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(unloadCancellationToken, timeoutSource.Token);
+            var linkedCancellationToken = linkedSource.Token;
+
+            try
+            {
+                var response = await _projectAsynchronousTasksService.LoadedProjectAsync(() => _requestInvoker.Value.ReinvokeRequestOnServerAsync<RenameFilesParams, WorkspaceEdit?>(
+                    Methods.WorkspaceWillRenameFilesName,
+                    RazorLSPConstants.RoslynLanguageServerName,
+                    new RenameFilesParams()
                     {
-                        OldUri = ProtocolConversions.CreateAbsoluteDocumentUri(oldFilePath),
-                        NewUri = ProtocolConversions.CreateAbsoluteDocumentUri(newFilePath),
-                    }
-                    ]
-                },
-                _projectAsynchronousTasksService.UnloadCancellationToken));
+                        Files =
+                        [
+                            new FileRename()
+                            {
+                                OldUri = ProtocolConversions.CreateAbsoluteDocumentUri(oldFilePath),
+                                NewUri = ProtocolConversions.CreateAbsoluteDocumentUri(newFilePath),
+                            }
+                        ]
+                    },
+                    linkedCancellationToken)).JoinAsync(linkedCancellationToken);
 
-            if (response.Result is null)
-            {
-                return;
+                if (response.Result is null)
+                {
+                    return;
+                }
+
+                request = new ApplyRenameEditParams
+                {
+                    Edit = response.Result,
+                    OldFilePath = oldFilePath,
+                    NewFilePath = newFilePath
+                };
             }
-
-            request = new ApplyRenameEditParams
+            catch (OperationCanceledException) when (timeoutSource.IsCancellationRequested && !unloadCancellationToken.IsCancellationRequested)
             {
-                Edit = response.Result,
-                OldFilePath = oldFilePath,
-                NewFilePath = newFilePath
-            };
+                _logger.LogWarning("Timed out waiting for workspace edits during Razor component rename. The file will still be renamed.");
+            }
+            catch (OperationCanceledException) when (unloadCancellationToken.IsCancellationRequested)
+            {
+            }
         }
         catch (Exception ex)
         {

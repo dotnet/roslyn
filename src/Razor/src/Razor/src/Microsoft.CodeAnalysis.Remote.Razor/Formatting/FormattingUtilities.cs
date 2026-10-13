@@ -338,30 +338,32 @@ internal static class FormattingUtilities
                     // the formatter may have inserted a blank line after the current line too. In that case we need to make sure
                     // we advance the formatted line pointer past it, but also include it. This only applies if the line after the
                     // blank line matches the next original line and the next original line isn't blank (ie, an actual insertion)
-                    while (iFormatted + 1 < formattedText.Lines.Count &&
-                        formattedText.Lines[iFormatted + 1].Span.Length == 0 &&
-                        iOriginal + 1 < originalText.Lines.Count &&
-                        originalText.Lines[iOriginal + 1] is { } nextOriginalLine &&
-                        nextOriginalLine.Span.Length != 0)
+                    if (iOriginal + 1 < originalText.Lines.Count &&
+                        originalText.Lines[iOriginal + 1].GetFirstNonWhitespaceOffset() is not null)
                     {
-                        // Next formatted line is blank but next original line isn't, so the
-                        // formatter inserted a blank line. Consume it and preserve it in the output.
-                        // We insert at EndIncludingLineBreak so the blank line appears after any
-                        // wrapped lines that ConsumeNewLines inserted (which also use EndIncludingLineBreak).
-                        iFormatted++;
-                        formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), context.NewLineString));
+                        while (iFormatted + 1 < formattedText.Lines.Count &&
+                            formattedText.Lines[iFormatted + 1].Span.Length == 0)
+                        {
+                            // Next formatted line is blank but next original line isn't, so the
+                            // formatter inserted a blank line. Consume it and preserve it in the output.
+                            // We insert at EndIncludingLineBreak so the blank line appears after any
+                            // wrapped lines that ConsumeNewLines inserted (which also use EndIncludingLineBreak).
+                            iFormatted++;
+                            formattingChanges.Add(new TextChange(new(originalLine.EndIncludingLineBreak, 0), context.NewLineString));
+                        }
                     }
                 }
             }
-            else if (originalText.Lines[iOriginal] is { } blankOriginalLine &&
-                blankOriginalLine.GetFirstNonWhitespaceOffset() is null)
+            else if (iOriginal + 1 < originalText.Lines.Count &&
+                originalText.Lines[iOriginal] is { } blankOriginalLine &&
+                blankOriginalLine.GetFirstNonWhitespaceOffset() is null &&
+                originalText.Lines[iOriginal + 1].GetFirstNonWhitespaceOffset() is not null)
             {
                 // The current lines are an aligned blank pair. Consume any additional formatted blank lines
-                // before the next non-blank original line so the line mapping remains synchronized.
+                // before the next non-blank mapped original line so the line mapping remains synchronized.
                 while (iFormatted + 1 < formattedText.Lines.Count &&
                     formattedText.Lines[iFormatted + 1].Span.Length == 0 &&
-                    iOriginal + 1 < originalText.Lines.Count &&
-                    originalText.Lines[iOriginal + 1].GetFirstNonWhitespaceOffset() is not null)
+                    (formattedLineInfo[iOriginal + 1].ProcessIndentation || formattedLineInfo[iOriginal + 1].ProcessFormatting))
                 {
                     iFormatted++;
                     formattingChanges.Add(new TextChange(new(blankOriginalLine.EndIncludingLineBreak, 0), context.NewLineString));

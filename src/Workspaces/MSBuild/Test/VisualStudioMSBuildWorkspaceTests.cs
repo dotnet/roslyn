@@ -35,9 +35,10 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 namespace Microsoft.CodeAnalysis.MSBuild.UnitTests;
 
 [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
-public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase
+public sealed class VisualStudioMSBuildWorkspaceTests : MSBuildWorkspaceTestBase, IClassFixture<ProjectGuardFiles>
 {
-    public VisualStudioMSBuildWorkspaceTests(ITestOutputHelper testOutput) : base(testOutput)
+    public VisualStudioMSBuildWorkspaceTests(ITestOutputHelper testOutput, ProjectGuardFiles projectGuardFiles)
+        : base(testOutput, projectGuardFiles)
     {
     }
 

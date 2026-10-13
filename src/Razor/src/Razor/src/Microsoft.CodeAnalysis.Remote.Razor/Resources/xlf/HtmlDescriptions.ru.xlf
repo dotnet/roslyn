@@ -39,11 +39,11 @@ In previous versions of HTML, the different character encodings could be delimit
 
 * слева: таблица отображается в левой части документа; 
 * центр: таблица отображается в центре документа; 
-* справа: таблица отображается в правой части документа. 
+* справа: таблица отображается в правой части документа.
 
 **Примечание по использованию** 
 
-* **Не используйте этот атрибут**, так как он устарел. Элемент [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "HTML-элемент &lt;table&gt; представляет табличные данные — то есть информацию, организованную в виде двумерной таблицы, состоящей из строк и столбцов ячеек с данными.") следует оформлять с помощью [CSS](https://developer.mozilla.org/en-US/docs/CSS). Установите [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "CSS-свойство margin-left задает размер внешнего отступа с левой стороны элемента. Положительное значение отодвигает элемент от соседних, а отрицательное — приближает его.") и [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "CSS-свойство margin-right задает внешний отступ с правой стороны элемента. Положительное значение отодвигает элемент от соседних, а отрицательное — приближает его.") на `auto` или [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "CSS-свойство margin задает область внешнего отступа со всех четырех сторон элемента. Это сокращенная запись для margin-top, margin-right, margin-bottom и margin-left." с `0 auto` для достижения эффекта, аналогичного атрибуту align. 
+* **Не используйте этот атрибут**, так как он устарел. Элемент [`&lt;table&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/table "HTML-элемент &lt;table&gt; представляет табличные данные — то есть информацию, организованную в виде двумерной таблицы, состоящей из строк и столбцов ячеек с данными.") следует оформлять с помощью [CSS](https://developer.mozilla.org/en-US/docs/CSS). Установите [`margin-left`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-left "CSS-свойство margin-left задает размер внешнего отступа с левой стороны элемента. Положительное значение отодвигает элемент от соседних, а отрицательное — приближает его.") и [`margin-right`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin-right "CSS-свойство margin-right задает внешний отступ с правой стороны элемента. Положительное значение отодвигает элемент от соседних, а отрицательное — приближает его.") на `auto` или [`margin`](https://developer.mozilla.org/en-US/docs/Web/CSS/margin "CSS-свойство margin задает область внешнего отступа со всех четырех сторон элемента. Это сокращенная запись для margin-top, margin-right, margin-bottom и margin-left." с `0 auto` для достижения эффекта, аналогичного атрибуту align.
 * До версии Firefox 4 Firefox также поддерживал значения `middle`, `absmiddle` и `abscenter` в качестве синонимов `center`, но только в режиме совместимости.</target>
         <note />
       </trans-unit>
@@ -55,7 +55,7 @@ In previous versions of HTML, the different character encodings could be delimit
       <trans-unit id="HtmlAttribute_allowfullscreen">
         <source>Set to `true` if the `&lt;iframe&gt;` can activate fullscreen mode by calling the [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "The Element.requestFullscreen() method issues an asynchronous request to make the element be displayed in full-screen mode.") method.
 This attribute is considered a legacy attribute and redefined as `allow="fullscreen"`.</source>
-        <target state="translated">Установите значение `true`, если `&lt;iframe&gt;` может активировать полноэкранный режим, вызвав метод [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "Метод Element.requestFullscreen() отправляет асинхронный запрос для отображения элемента в полноэкранном режиме."). 
+        <target state="translated">Установите значение `true`, если `&lt;iframe&gt;` может активировать полноэкранный режим, вызвав метод [`requestFullscreen()`](https://developer.mozilla.org/en-US/docs/Web/API/Element/requestFullscreen "Метод Element.requestFullscreen() отправляет асинхронный запрос для отображения элемента в полноэкранном режиме.").
 Этот атрибут считается устаревшим и переопределен как `allow="fullscreen"`.</target>
         <note />
       </trans-unit>
@@ -65,9 +65,9 @@ This attribute is considered a legacy attribute and redefined as `allow="fullscr
 **Note:** Browsers do not always display the image referenced by the element. This is the case for non-graphical browsers (including those used by people with visual impairments), if the user chooses not to display images, or if the browser cannot display the image because it is invalid or an [unsupported type](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats). In these cases, the browser may replace the image with the text defined in this element's `alt` attribute. You should, for these reasons and others, provide a useful value for `alt` whenever possible.
 
 **Note:** Omitting this attribute altogether indicates that the image is a key part of the content, and no textual equivalent is available. Setting this attribute to an empty string (`alt=""`) indicates that this image is _not_ a key part of the content (decorative), and that non-visual browsers may omit it from rendering.</source>
-        <target state="translated">Этот атрибут определяет альтернативное текстовое описание изображения. 
+        <target state="translated">Этот атрибут определяет альтернативное текстовое описание изображения.
 
-**Примечание:** Браузеры не всегда отображают изображение, на которое ссылается элемент. Это касается текстовых браузеров (в том числе тех, которыми пользуются люди с нарушениями зрения), случаев, когда пользователь отключает отображение изображений, а также ситуаций, когда браузер не может отобразить изображение из-за его некорректности или использования [неподдерживаемого формата](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats). В таких случаях браузер может заменить изображение текстом, указанным в атрибуте `alt` этого элемента. По этим и другим причинам вам следует по возможности указывать полезное значение для `alt`. 
+**Примечание:** Браузеры не всегда отображают изображение, на которое ссылается элемент. Это касается текстовых браузеров (в том числе тех, которыми пользуются люди с нарушениями зрения), случаев, когда пользователь отключает отображение изображений, а также ситуаций, когда браузер не может отобразить изображение из-за его некорректности или использования [неподдерживаемого формата](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/img#Supported_image_formats). В таких случаях браузер может заменить изображение текстом, указанным в атрибуте `alt` этого элемента. По этим и другим причинам вам следует по возможности указывать полезное значение для `alt`.
 
 **Примечание:** Полное отсутствие этого атрибута означает, что изображение является ключевой частью контента, и текстовый эквивалент отсутствует. Установка этого атрибута в значение пустой строки (`alt=""`) указывает на то, что данное изображение _не_ является важной частью контента (оно носит декоративный характер) и что невизуальные браузеры могут не включать его в процесс отображения.</target>
         <note />
@@ -87,13 +87,13 @@ Browsers usually assume the worst case scenario and load scripts synchronously, 
 Dynamically inserted scripts (using [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "In an HTML document, the document.createElement() method creates the HTML element specified by tagName, or an HTMLUnknownElement if tagName isn't recognized.")) load asynchronously by default, so to turn on synchronous loading (i.e. scripts load in the order they were inserted) set `async="false"`.
 
 See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility) for notes on browser support. See also [Async scripts for asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</source>
-        <target state="translated">Это логический атрибут, указывающий на то, что браузер должен, если это возможно, загружать скрипт асинхронно. 
+        <target state="translated">Это логический атрибут, указывающий на то, что браузер должен, если это возможно, загружать скрипт асинхронно.
 
-Этот атрибут не следует использовать, если отсутствует атрибут `src` (т. е. для встроенных сценариев). Если его включить в этот случай, это не возымеет никакого эффекта. 
+Этот атрибут не следует использовать, если отсутствует атрибут `src` (т. е. для встроенных сценариев). Если его включить в этот случай, это не возымеет никакого эффекта.
 
-Браузеры обычно исходят из наихудшего сценария и загружают скрипты синхронно (т.е. `async="false"`) во время анализа HTML. 
+Браузеры обычно исходят из наихудшего сценария и загружают скрипты синхронно (т.е. `async="false"`) во время анализа HTML.
 
-Динамически вставляемые скрипты (с использованием [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "В HTML-документе метод document.createElement() создает HTML-элемент, указанный tagName, или HTMLUnknownElement, если tagName не распознан.")) по умолчанию загружаются асинхронно, поэтому для включения синхронной загрузки (т.е. скрипты загружаются в порядке их вставки) установите `async="false"`. 
+Динамически вставляемые скрипты (с использованием [`document.createElement()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement "В HTML-документе метод document.createElement() создает HTML-элемент, указанный tagName, или HTMLUnknownElement, если tagName не распознан.")) по умолчанию загружаются асинхронно, поэтому для включения синхронной загрузки (т.е. скрипты загружаются в порядке их вставки) установите `async="false"`.
 
 Сведения о поддержке браузерами см. в разделе [Совместимость с браузерами](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/script#Browser_compatibility). См. также [Асинхронные сценарии для asm.js](https://developer.mozilla.org/en-US/docs/Games/Techniques/Async_scripts).</target>
         <note />
@@ -110,7 +110,7 @@ See [Browser compatibility](https://developer.mozilla.org/docs/Web/HTML/Referenc
 * `off` или `none`, автоматическое преобразование в верхний регистр не применяется (все буквы по умолчанию строчные) 
 * `on` или `sentences` первая буква каждого предложения по умолчанию заглавная; все остальные буквы по умолчанию строчные 
 * `words`, первая буква каждого слова по умолчанию заглавная; все остальные буквы по умолчанию строчные 
-* `characters`, все буквы по умолчанию должны быть в верхнем регистре.</target>
+* `characters`, все буквы по умолчанию должны быть в верхнем регистре</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_autocomplete">
@@ -123,10 +123,10 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 **Note:** If you set `autocomplete` to `off` in a form because the document provides its own auto-completion, then you should also set `autocomplete` to `off` for each of the form's `input` elements that the document can auto-complete. For details, see the note regarding Google Chrome in the [Browser Compatibility chart](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</source>
         <target state="translated">Указывает, могут ли входные элементы по умолчанию автоматически выполняться браузером. Этот параметр может быть переопределен атрибутом `autocomplete` у элемента, входящего в состав формы. Возможные значения: 
 
-* `off`: Пользователь должен явно вводить значение в каждое поле при каждом использовании, или документ предоставляет собственный метод автозаполнения; браузер не дополняет записи автоматически. 
-* `on`: Браузер может автоматически дополнять значения на основе значений, которые пользователь ранее ввел в форму. 
+* `off`: Пользователь должен явно вводить значение в каждое поле при каждом использовании, или документ предоставляет собственный метод автозаполнения; браузер не дополняет записи автоматически.
+* `on`: Браузер может автоматически дополнять значения на основе значений, которые пользователь ранее ввел в форму.
 
-В большинстве современных браузеров (включая Firefox 38+, Google Chrome 34+ и IE 11+) установка атрибута autocomplete не помешает встроенному диспетчеру паролей предложить пользователю сохранить данные для входа (имя пользователя и пароль); если пользователь согласится на сохранение, браузер автоматически подставит эти данные при следующем посещении страницы. См. [Атрибут автозаполнения и поля авторизации](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields). 
+В большинстве современных браузеров (включая Firefox 38+, Google Chrome 34+ и IE 11+) установка атрибута autocomplete не помешает встроенному диспетчеру паролей предложить пользователю сохранить данные для входа (имя пользователя и пароль); если пользователь согласится на сохранение, браузер автоматически подставит эти данные при следующем посещении страницы. См. [Атрибут автозаполнения и поля авторизации](https://developer.mozilla.org/en-US/docs/Web/Security/Securing_your_site/Turning_off_form_autocompletion#The_autocomplete_attribute_and_login_fields).
 **Примечание:** Если вы `off` функцию `autocomplete` в форме, поскольку документ предоставляет собственную функцию автозаполнения, то вам также следует `off` функцию `autocomplete` для каждого из элементов `input` формы, для которых документ может выполнять автозаполнение. Подробные сведения см. в заметке о Google Chrome на [диаграмме совместимости браузера](https://developer.mozilla.org/docs/Web/HTML/Reference/Elements/form#compatChart).</target>
         <note />
       </trans-unit>
@@ -144,7 +144,7 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
         <source>This attribute contains a list of space-separated strings. Each string is the `id` of a group of cells that this header applies to.
 
 **Note:** Do not use this attribute as it is obsolete in the latest standard: use the [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope) attribute instead.</source>
-        <target state="translated">Этот атрибут содержит список строк, разделенных пробелами. Каждая строка представляет собой `id` группы ячеек, к которым относится этот заголовок. 
+        <target state="translated">Этот атрибут содержит список строк, разделенных пробелами. Каждая строка представляет собой `id` группы ячеек, к которым относится этот заголовок.
 
 **Примечание:** Не используйте этот атрибут, так как он устарел в последней версии стандарта: вместо него используйте атрибут [`scope`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/th#attr-scope).</target>
         <note />
@@ -169,21 +169,21 @@ For most modern browsers (including Firefox 38+, Google Chrome 34+, IE 11+) sett
 * The [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "The HTML &lt;meta&gt; element represents metadata that cannot be represented by other HTML meta-related elements, like &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; or &lt;title&gt;.") element with a `charset` attribute is a synonym for the pre-HTML5 `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, where _`IANAcharset`_ contains the value of the equivalent [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) attribute. This syntax is still allowed, although no longer recommended.</source>
         <target state="translated">Этот атрибут объявляет кодировку символов страницы. Он должен содержать [стандартное имя MIME по классификации IANA для кодировок символов](https://www.iana.org/assignments/character-sets). Хотя стандарт не требует конкретной кодировки, он предлагает: 
 
-* Авторам рекомендуется использовать [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8). 
-* Во избежание рисков для безопасности авторам не следует использовать кодировки, несовместимые с ASCII: браузеры, не поддерживающие их, могут интерпретировать вредоносный контент как HTML. Это происходит с `JIS_C6226-1983`, `JIS_X0212-1990`, `HZ-GB-2312`, `JOHAB`, семейством ISO-2022 и семейством EBCDIC. 
+* Авторам рекомендуется использовать [`UTF-8`](https://developer.mozilla.org/en-US/docs/Glossary/UTF-8).
+* Во избежание рисков для безопасности авторам не следует использовать кодировки, несовместимые с ASCII: браузеры, не поддерживающие их, могут интерпретировать вредоносный контент как HTML. Это происходит с `JIS_C6226-1983`, `JIS_X0212-1990`, `HZ-GB-2312`, `JOHAB`, семейством ISO-2022 и семейством EBCDIC.
 
 **Примечание:** ASCII-несовместимые кодировки — это те, которые не сопоставляют 8-битные кодовые точки `0x20` — `0x7E` с кодовыми точками Unicode `0x0020` — `0x007E` 
 
-* Авторам **не следует** использовать `CESU-8`, `UTF-7`, `BOCU-1` и/или `SCSU`, поскольку были продемонстрированы атаки с использованием этих кодировок, связанные с [межсайтовым скриптингом](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting). 
-* Авторам не следует использовать `UTF-32`, поскольку не все алгоритмы кодирования HTML5 могут отличить его от `UTF-16`. 
+* Авторам **не следует** использовать `CESU-8`, `UTF-7`, `BOCU-1` и/или `SCSU`, поскольку были продемонстрированы атаки с использованием этих кодировок, связанные с [межсайтовым скриптингом](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting).
+* Авторам не следует использовать `UTF-32`, поскольку не все алгоритмы кодирования HTML5 могут отличить его от `UTF-16`.
 
 **Примечания:** 
 
-* Указанная кодировка символов должна совпадать с кодировкой, с которой была сохранена страница, чтобы избежать искажения символов и уязвимостей безопасности. 
-* Элемент [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Элемент HTML &lt;meta&gt; представляет метаданные, которые не могут быть представлены другими связанными с HTML метаданными элементами, такими как &lt;base&gt;, &lt;link&gt; , &lt;script&gt;, &lt;style&gt; или &lt;title&gt;."), объявляющий кодировку, должен находиться внутри элемента [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "Элемент HTML &lt;head&gt; предоставляет общую информацию (метаданные) о документе, включая его заголовок и ссылки на его скрипты и таблицы стилей.") и **в пределах первых 1024 байт** HTML, поскольку некоторые браузеры анализируют только эти байты перед выбором кодировки. 
-* Этот элемент [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML-элемент &lt;meta&gt; представляет метаданные, которые не могут быть представлены другими связанными с HTML мета-элементами, такими как &lt;base&gt;, &lt;link&gt; , &lt;script&gt;, &lt;style&gt; или &lt;title&gt;.") является лишь частью [алгоритма определения кодировки страницы](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Алгоритм кодировки страницы"). Заголовок [`Content-Type`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) и любые [метки порядка байтов](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "Определение этого термина (метки порядка байтов) еще не написано; пожалуйста, рассмотрите возможность внесения своего вклада!") переопределяют этот элемент. 
-* Настоятельно рекомендуется указать кодировку символов. Если кодировка страницы не определена, возможны методы кросс-скриптинга, такие как [метод кросс-скриптинга с резервным кодом `UTF-7`](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7). 
-* Элемент [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; элемент представляет метаданные, которые не могут быть представлены другими связанными с HTML мета-элементами, такими как &lt;base&gt;, &lt;link&gt; , &lt;script&gt;, &lt;style&gt; или &lt;title&gt;.") с атрибутом `charset` является синонимом элемента `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, существовавшего до HTML5, где _`IANAcharset`_ содержит значение эквивалентного атрибута [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset). Этот синтаксис по-прежнему допускается, хотя больше не рекомендуется.</target>
+* Указанная кодировка символов должна совпадать с кодировкой, с которой была сохранена страница, чтобы избежать искажения символов и уязвимостей безопасности.
+* Элемент [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Элемент HTML &lt;meta&gt; представляет метаданные, которые не могут быть представлены другими связанными с HTML метаданными элементами, такими как &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; или &lt;title&gt;."), объявляющий кодировку, должен находиться внутри элемента [`&lt;head&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/head "Элемент HTML &lt;head&gt; предоставляет общую информацию (метаданные) о документе, включая его заголовок и ссылки на его скрипты и таблицы стилей.") и **в пределах первых 1024 байт** HTML, поскольку некоторые браузеры анализируют только эти байты перед выбором кодировки.
+* Этот элемент [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML-элемент &lt;meta&gt; представляет метаданные, которые не могут быть представлены другими связанными с HTML мета-элементами, такими как &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; или &lt;title&gt;.") является лишь частью [алгоритма определения кодировки страницы](https://www.whatwg.org/specs/web-apps/current-work/multipage/parsing.html#encoding-sniffing-algorithm "Алгоритм кодировки страницы"). Заголовок [`Content-Type`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) и любые [метки порядка байтов](https://developer.mozilla.org/en-US/docs/Glossary/Byte-Order_Mark "Определение этого термина (метки порядка байтов) еще не написано; пожалуйста, рассмотрите возможность внесения своего вклада!") переопределяют этот элемент.
+* Настоятельно рекомендуется указать кодировку символов. Если кодировка страницы не определена, возможны методы кросс-скриптинга, такие как [метод кросс-скриптинга с резервным кодом `UTF-7`](https://code.google.com/p/doctype-mirror/wiki/ArticleUtf7).
+* Элемент [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML &lt;meta&gt; элемент представляет метаданные, которые не могут быть представлены другими связанными с HTML мета-элементами, такими как &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; или &lt;title&gt;.") с атрибутом `charset` является синонимом элемента `&lt;meta http-equiv="Content-Type" content="text/html; charset=_IANAcharset_"&gt;`, существовавшего до HTML5, где _`IANAcharset`_ содержит значение эквивалентного атрибута [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset). Этот синтаксис по-прежнему допускается, хотя больше не рекомендуется.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_cite">
@@ -243,11 +243,11 @@ If the attribute is not present, the resource is fetched without a [CORS](https:
 
 `anonymous`
 
-Запрос из другого источника (т.е. с заголовком [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "Заголовок запроса Origin указывает, откуда исходит запрос. Это не содержит сведений о пути — только имя сервера. Это отправляется с запросами CORS, а также с запросами POST. Это похоже на заголовок Referer, но, в отличие от него, не раскрывает полный путь. При этом передача учетных данных (например, файлов cookie, сертификатов X.509 или данных для базовой проверки подлинности HTTP) не осуществляется. Если сервер не предоставляет учетные данные исходному сайту (не устанавливая заголовок HTTP [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "Заголовок ответа Access-Control-Allow-Origin указывает, можно ли передать ответ запрашивающему коду с данного источника")), изображение будет испорчено, и его использование будет ограничено. 
+Запрос из другого источника (т.е. с заголовком [`Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Origin "Заголовок запроса Origin указывает, откуда исходит запрос. Это не содержит сведений о пути — только имя сервера. Это отправляется с запросами CORS, а также с запросами POST. Это похоже на заголовок Referer, но, в отличие от него, не раскрывает полный путь. При этом передача учетных данных (например, файлов cookie, сертификатов X.509 или данных для базовой проверки подлинности HTTP) не осуществляется. Если сервер не предоставляет учетные данные исходному сайту (не устанавливая заголовок HTTP [`Access-Control-Allow-Origin`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin "Заголовок ответа Access-Control-Allow-Origin указывает, можно ли передать ответ запрашивающему коду с данного источника")), изображение будет испорчено, и его использование будет ограничено.
 
 `use-credentials`
 
-Выполняется междоменный запрос (т.е. с HTTP-заголовком `Origin`), а также отправляются учетные данные (т.е. cookie, сертификат и/или выполняется базовая HTTP-аутентификация). Если сервер не предоставляет учетные данные исходному сайту (через заголовок ответа [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "Заголовок ответа Access-Control-Allow-Credentials сообщает браузерам, следует ли предоставлять ответ коду JavaScript на стороне клиента, если режим учетных данных запроса (Request.credentials) установлен в "include")), ресурс будет _загрязнен_, и его использование будет ограничено. 
+Выполняется междоменный запрос (т.е. с HTTP-заголовком `Origin`), а также отправляются учетные данные (т.е. cookie, сертификат и/или выполняется базовая HTTP-аутентификация). Если сервер не предоставляет учетные данные исходному сайту (через заголовок ответа [`Access-Control-Allow-Credentials`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Credentials "Заголовок ответа Access-Control-Allow-Credentials сообщает браузерам, следует ли предоставлять ответ коду JavaScript на стороне клиента, если режим учетных данных запроса (Request.credentials) установлен в "include")), ресурс будет _загрязнен_, и его использование будет ограничено.
 
 Если атрибут отсутствует, ресурс загружается без запроса [CORS](https://developer.mozilla.org/en-US/docs/Glossary/CORS "CORS: CORS (Cross-Origin Resource Sharing) is a system, consisting of transmitting HTTP headers, that determines whether browsers block frontend JavaScript code from accessing responses for cross-origin requests.") (то есть без отправки HTTP-заголовка `Origin`), что исключает его использование без статуса испорченного. Если значение недопустимо, оно обрабатывается так, как если бы было использовано перечисляемое ключевое слово **anonymous**. Дополнительные сведения см. в [атрибутах параметров CORS](https://developer.mozilla.org/en-US/docs/Web/HTML/CORS_settings_attributes).</target>
         <note />
@@ -283,11 +283,11 @@ Default mode, which indicates no preference for the decoding mode. The browser d
         <target state="translated">Предоставляет браузеру подсказку по декодированию изображения. Допустимые значения: 
 `sync` 
 
-Декодируйте изображение синхронно для атомарного представления с другим содержимым. 
+Декодируйте изображение синхронно для атомарного представления с другим содержимым.
 
 `async`
 
-Декодируйте изображение асинхронно, чтобы уменьшить задержку при отображении другого контента. 
+Декодируйте изображение асинхронно, чтобы уменьшить задержку при отображении другого контента.
 
 `auto`
 
@@ -307,11 +307,11 @@ Scripts with the `defer` attribute will prevent the `DOMContentLoaded` event fro
 This attribute must not be used if the `src` attribute is absent (i.e. for inline scripts), in this case it would have no effect.
 
 To achieve a similar effect for dynamically inserted scripts use `async="false"` instead. Scripts with the `defer` attribute will execute in the order in which they appear in the document.</source>
-        <target state="translated">Этот логический атрибут устанавливается для того, чтобы указать браузеру, что скрипт должен быть выполнен после того, как документ будет проанализирован, но до срабатывания [`DOMContentLoaded`](https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded "/en-US/docs/Web/Events/DOMContentLoaded"). 
+        <target state="translated">Этот логический атрибут устанавливается для того, чтобы указать браузеру, что скрипт должен быть выполнен после того, как документ будет проанализирован, но до срабатывания [`DOMContentLoaded`](https://developer.mozilla.org/en-US/docs/Web/Events/DOMContentLoaded "/en-US/docs/Web/Events/DOMContentLoaded").
 
-Скрипты с атрибутом `defer` предотвратят срабатывание события `DOMContentLoaded` до тех пор, пока скрипт не загрузится и не завершит свою работу. 
+Скрипты с атрибутом `defer` предотвратят срабатывание события `DOMContentLoaded` до тех пор, пока скрипт не загрузится и не завершит свою работу.
 
-Этот атрибут не следует использовать, если атрибут `src` отсутствует (например, для встроенных скриптов), в этом случае он не будет иметь никакого эффекта. 
+Этот атрибут не следует использовать, если атрибут `src` отсутствует (например, для встроенных скриптов), в этом случае он не будет иметь никакого эффекта.
 
 Для достижения аналогичного эффекта при динамической вставке скриптов используйте вместо этого `async="false"`. Сценарии с атрибутом `defer` будут выполняться в том порядке, в котором они встречаются в документе.</target>
         <note />
@@ -343,13 +343,13 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 * Although HTTP(s) URLs need to be in the same-origin, [`blob:` URLs](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) and [`data:` URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs) are allowed so that content generated by JavaScript, such as pictures created in an image-editor Web app, can be downloaded.
 * If the HTTP header [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) gives a different filename than this attribute, the HTTP header takes priority over this attribute.
 * If `Content-Disposition:` is set to `inline`, Firefox prioritizes `Content-Disposition`, like the filename case, while Chrome prioritizes the `download` attribute.</source>
-        <target state="translated">Этот атрибут предписывает браузерам загружать ресурс по указанному URL вместо перехода к нему, благодаря чему пользователю будет предложено сохранить его как локальный файл. Если атрибут имеет значение, он используется в качестве предварительно заполненного имени файла в запросе на сохранение (пользователь по-прежнему может изменить имя файла при его значении). Ограничений на допустимые значения нет, однако символы `/` и `\` заменяются на символы подчеркивания. В большинстве файловых систем существуют ограничения на использование знаков препинания в именах файлов, и браузеры соответствующим образом корректируют предлагаемое имя. 
+        <target state="translated">Этот атрибут предписывает браузерам загружать ресурс по указанному URL вместо перехода к нему, благодаря чему пользователю будет предложено сохранить его как локальный файл. Если атрибут имеет значение, он используется в качестве предварительно заполненного имени файла в запросе на сохранение (пользователь по-прежнему может изменить имя файла при его значении). Ограничений на допустимые значения нет, однако символы `/` и `\` заменяются на символы подчеркивания. В большинстве файловых систем существуют ограничения на использование знаков препинания в именах файлов, и браузеры соответствующим образом корректируют предлагаемое имя.
 
 **Примечания:** 
 
-* Этот атрибут работает только для [URL-адресов одного источника](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy). 
-* Хотя URL-адреса HTTP(s) должны находиться в одном источнике, допускаются URL-адреса [`blob:`](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) и [`data:` URL-адреса](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs), чтобы можно было загружать контент, сгенерированный JavaScript, например, изображения, созданные в веб-приложении для редактирования изображений. 
-* Если заголовок HTTP [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) содержит другое имя файла, отличное от этого атрибута, заголовок HTTP имеет приоритет над этим атрибутом. 
+* Этот атрибут работает только для [URL-адресов одного источника](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy).
+* Хотя URL-адреса HTTP(s) должны находиться в одном источнике, допускаются URL-адреса [`blob:`](https://developer.mozilla.org/en-US/docs/Web/API/URL.createObjectURL) и [`data:` URL-адреса](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs), чтобы можно было загружать контент, сгенерированный JavaScript, например, изображения, созданные в веб-приложении для редактирования изображений.
+* Если заголовок HTTP [`Content-Disposition:`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Disposition) содержит другое имя файла, отличное от этого атрибута, заголовок HTTP имеет приоритет над этим атрибутом.
 * Если для параметра `Content-Disposition:` установлено значение `inline`, Firefox отдает приоритет `Content-Disposition`, как и регистру имени файла, в то время как Chrome отдает приоритет атрибуту `download`.</target>
         <note />
       </trans-unit>
@@ -373,7 +373,7 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
         <target state="translated">Перечисляемый атрибут, указывающий, какие типы контента можно перетащить на элемент с использованием [Drag and Drop API](https://developer.mozilla.org/docs/DragDrop/Drag_and_Drop). Оно может принимать следующие значения: 
 
 * `copy`, что означает, что перетаскивание создаст копию перетаскиваемого элемента 
-* `move`, что означает, что перетащенный элемент будет перемещен в новое место. 
+* `move`, что означает, что перетащенный элемент будет перемещен в новое место.
 * `link` создаст ссылку на перетаскиваемые данные.</target>
         <note />
       </trans-unit>
@@ -387,8 +387,8 @@ To achieve a similar effect for dynamically inserted scripts use `async="false"`
 This value can be overridden by a [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
         <target state="translated">Когда значение атрибута `method` равно `post`, "enctype" представляет собой [MIME-тип](https://en.wikipedia.org/wiki/Mime_type) содержимого, используемого для отправки формы на сервер. Возможные значения: 
 
-* `application/x-www-form-urlencoded`: значение по умолчанию, если атрибут не указан. 
-* `multipart/form-data`: Значение, используемое для элемента [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "Элемент HTML &lt;input&gt; используется для создания интерактивных элементов управления для веб-форм с целью приема данных от пользователя; в зависимости от устройства и пользовательского агента доступно множество типов входных данных и элементов управления") с атрибутом `type`, установленным на "file". 
+* `application/x-www-form-urlencoded`: значение по умолчанию, если атрибут не указан.
+* `multipart/form-data`: Значение, используемое для элемента [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "Элемент HTML &lt;input&gt; используется для создания интерактивных элементов управления для веб-форм с целью приема данных от пользователя; в зависимости от устройства и пользовательского агента доступно множество типов входных данных и элементов управления") с атрибутом `type`, установленным на "file".
 * `text/plain`: (HTML5) 
 
 Это значение может быть переопределено атрибутом [`formenctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formenctype) элемента [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "Элемент HTML &lt;button&gt; представляет собой кликабельную кнопку, которую можно использовать в формах или в любом месте документа, где требуется простая, стандартная функциональность кнопки.") или [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "Элемент HTML &lt;input&gt; используется для создания интерактивных элементов управления для веб-форм с целью приема данных от пользователя; в зависимости от устройства и пользовательского агента доступно множество типов входных данных и элементов управления.").</target>
@@ -413,7 +413,7 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
         <source>The [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) of a [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable) form-related element in the same document as the `&lt;label&gt;` element. The first element in the document with an `id` matching the value of the `for` attribute is the _labeled control_ for this label element, if it is a labelable element. If it is not labelable then the `for` attribute has no effect. If there are other elements which also match the `id` value, later in the document, they are not considered.
 
 **Note**: A `&lt;label&gt;` element can have both a `for` attribute and a contained control element, as long as the `for` attribute points to the contained control element.</source>
-        <target state="translated">Значение атрибута [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) элемента формы, для которого можно создать метку [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable), находящегося в том же документе, что и элемент `&lt;label&gt;`. Первый элемент документа, у которого атрибут `id` совпадает со значением атрибута `for`, является *элементом управления, связанным с меткой* (labeled control) для данного элемента "label" — при условии, что этот элемент допускает связывание с меткой. Если элемент невозможно связать с меткой, то атрибут `for` не оказывает никакого действия. Если в дальнейшем в документе присутствуют другие элементы, которые также соответствуют значению `id`, они не учитываются. 
+        <target state="translated">Значение атрибута [`id`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-id) элемента формы, для которого можно создать метку [labelable](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Form_labelable), находящегося в том же документе, что и элемент `&lt;label&gt;`. Первый элемент документа, у которого атрибут `id` совпадает со значением атрибута `for`, является *элементом управления, связанным с меткой* (labeled control) для данного элемента "label" — при условии, что этот элемент допускает связывание с меткой. Если элемент невозможно связать с меткой, то атрибут `for` не оказывает никакого действия. Если в дальнейшем в документе присутствуют другие элементы, которые также соответствуют значению `id`, они не учитываются.
 
 **Примечание**: Элемент `&lt;label&gt;` может иметь как атрибут `for`, так и содержащийся в нем элемент управления, при условии, что атрибут `for` указывает на содержащийся в нем элемент управления.</target>
         <note />
@@ -438,8 +438,8 @@ This value can be overridden by a [`formenctype`](https://developer.mozilla.org/
 If this attribute is specified, it overrides the [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) attribute of the button's form owner.</source>
         <target state="translated">Если кнопка является кнопкой отправки, этот атрибут указывает тип содержимого, используемого для отправки формы на сервер. Возможные значения: 
 
-* `application/x-www-form-urlencoded`: значение по умолчанию, если атрибут не указан. 
-* `multipart/form-data`: Используйте это значение, если вы используете элемент [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "Элемент HTML &lt;input&gt; используется для создания интерактивных элементов управления для веб-форм с целью приема данных от пользователя; в зависимости от устройства и пользовательского агента доступен широкий спектр типов входных данных и виджетов управления") с атрибутом [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type), установленным в значение `file`. 
+* `application/x-www-form-urlencoded`: значение по умолчанию, если атрибут не указан.
+* `multipart/form-data`: Используйте это значение, если вы используете элемент [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "Элемент HTML &lt;input&gt; используется для создания интерактивных элементов управления для веб-форм с целью приема данных от пользователя; в зависимости от устройства и пользовательского агента доступен широкий спектр типов входных данных и виджетов управления") с атрибутом [`type`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#attr-type), установленным в значение `file`.
 * `text/plain` 
 
 Если этот атрибут указан, он переопределяет атрибут [`enctype`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-enctype) владельца формы кнопки.</target>
@@ -454,8 +454,8 @@ If this attribute is specified, it overrides the [`enctype`](https://developer.m
 If specified, this attribute overrides the [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) attribute of the button's form owner.</source>
         <target state="translated">Если кнопка является кнопкой отправки, этот атрибут указывает метод HTTP, который браузер использует для отправки формы. Возможные значения: 
 
-* `post`: Данные из формы включаются в тело формы и отправляются на сервер. 
-* `get`: Данные из формы добавляются к URI атрибута **form** с разделителем '?', и полученный URI отправляется на сервер. Используйте этот метод, если форма не имеет побочных эффектов и содержит только символы ASCII. 
+* `post`: Данные из формы включаются в тело формы и отправляются на сервер.
+* `get`: Данные из формы добавляются к URI атрибута **form** с разделителем '?', и полученный URI отправляется на сервер. Используйте этот метод, если форма не имеет побочных эффектов и содержит только символы ASCII.
 
 Если этот атрибут указан, он переопределяет атрибут [`method`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-method) формы, к которой относится кнопка.</target>
         <note />
@@ -474,9 +474,9 @@ If specified, this attribute overrides the [`method`](https://developer.mozilla.
 * `_top`: Load the response into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.</source>
         <target state="translated">Если кнопка является кнопкой отправки, этот атрибут представляет собой имя или ключевое слово, указывающее, где следует отобразить ответ, полученный после отправки формы. Это имя или ключевое слово для *контекста просмотра* (например, вкладки, окна или встроенного фрейма). Если этот атрибут указан, он переопределяет атрибут [`target`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/form#attr-target) формы, к которой относится кнопка. Следующие ключевые слова имеют особое значение: 
 
-* `_self`: Загрузить ответ в тот же контекст просмотра, что и текущий. Это значение является значением по умолчанию, если атрибут не указан. 
-* `_blank`: Загрузить ответ в новый безымянный контекст просмотра. 
-* `_parent`: Загрузить ответ в родительский контекст просмотра текущего контекста. Если родительский элемент отсутствует, этот параметр ведет себя так же, как `_self`. 
+* `_self`: Загрузить ответ в тот же контекст просмотра, что и текущий. Это значение является значением по умолчанию, если атрибут не указан.
+* `_blank`: Загрузить ответ в новый безымянный контекст просмотра.
+* `_parent`: Загрузить ответ в родительский контекст просмотра текущего контекста. Если родительский элемент отсутствует, этот параметр ведет себя так же, как `_self`.
 * `_top`: Загрузить ответ в контекст просмотра верхнего уровня (то есть в контекст просмотра, являющийся предком текущего и не имеющий родителя). Если родительского не существует, этот параметр работает так же, как `_self`.</target>
         <note />
       </trans-unit>
@@ -530,28 +530,28 @@ This instruction specifies:
 Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page. Its content must follow the syntax defined in the [IETF HTTP Cookie Specification](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14).
 
 **Warning:** Do not use this instruction, as it is obsolete. Use the HTTP header [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie) instead.</source>
-        <target state="translated">Определяет директиву pragma. Атрибут называется `**http-equiv**(alent)`, потому что все допустимые значения являются именами конкретных HTTP-заголовков: 
+        <target state="translated">Определяет директиву pragma. Атрибут называется `**http-equiv**(alent)`, потому что все допустимые значения являются именами конкретных HTTP-заголовков:
 
-* `"content-language"` 
-Определяет язык страницы по умолчанию. Его можно переопределить атрибутом [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) любого элемента. 
+* `"content-language"`
+Определяет язык страницы по умолчанию. Его можно переопределить атрибутом [lang](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) любого элемента.
 
-**Внимание:** Не используйте это значение, так как оно устарело. Предпочтительнее использовать атрибут `lang` элемента [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "Элемент HTML "&lt;html&gt;" представляет корень (элемент верхнего уровня) HTML-документа, поэтому его также называют корневым элементом. Все остальные элементы должны быть потомками этого элемента." элемента. 
+**Внимание:** Не используйте это значение, так как оно устарело. Предпочтительнее использовать атрибут `lang` элемента [`&lt;html&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/html "Элемент HTML "&lt;html&gt;" представляет корень (элемент верхнего уровня) HTML-документа, поэтому его также называют корневым элементом. Все остальные элементы должны быть потомками этого элемента." элемента.
 
 * `"content-security-policy"` 
-Позволяет авторам страниц определять [политику контента](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) для текущей страницы. Политики контента в основном определяют разрешенные источники серверов и конечные точки скриптов, что помогает защититься от атак межсайтового скриптинга. 
+Позволяет авторам страниц определять [политику контента](https://developer.mozilla.org/en-US/docs/Web/Security/CSP/CSP_policy_directives) для текущей страницы. Политики контента в основном определяют разрешенные источники серверов и конечные точки скриптов, что помогает защититься от атак межсайтового скриптинга.
 * `"content-type"` 
 Определяет [MIME-тип](https://developer.mozilla.org/en-US/docs/Glossary/MIME_type) документа, за которым следует его кодировка символов. Он использует тот же синтаксис, что и поле заголовка сущности `content-type` в протоколе HTTP, однако, поскольку он находится внутри HTML-страницы, использование большинства значений, отличных от `text/html`, невозможно. Таким образом, допустимый синтаксис для его `content` — это строка '`text/html`', за которой следует набор символов со следующим синтаксисом: '`; charset=_IANAcharset_`', где `IANAcharset` — это _предпочтительное MIME-имя_ для набора символов, [определенного IANA.](https://www.iana.org/assignments/character-sets) 
 
-**Внимание:** Не используйте это значение, так как оно устарело. Используйте атрибут [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) для элемента [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Элемент HTML &lt;meta&gt; представляет метаданные, которые не могут быть представлены другими элементами HTML, связанными с метаданными, такими как &lt;base&gt;, &lt;link&gt; , &lt;script&gt;, &lt;style&gt; или &lt;title&gt;."). 
+**Внимание:** Не используйте это значение, так как оно устарело. Используйте атрибут [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset) для элемента [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Элемент HTML &lt;meta&gt; представляет метаданные, которые не могут быть представлены другими элементами HTML, связанными с метаданными, такими как &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; или &lt;title&gt;.").
 
-**Примечание:** Поскольку [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML-элемент &lt;meta&gt; представляет метаданные, которые не могут быть представлены другими связанными с HTML мета-элементами, такими как &lt;base&gt;, &lt;link&gt; , &lt;script&gt;, &lt;style&gt; или &lt;title&gt;.") не может изменять типы документов в XHTML или сериализации XHTML HTML5, никогда не устанавливайте MIME-тип на MIME-тип XHTML с помощью `&lt;meta&gt;`. 
+**Примечание:** Поскольку [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "HTML-элемент &lt;meta&gt; представляет метаданные, которые не могут быть представлены другими связанными с HTML мета-элементами, такими как &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; или &lt;title&gt;.") не может изменять типы документов в XHTML или сериализации XHTML HTML5, никогда не устанавливайте MIME-тип на MIME-тип XHTML с помощью `&lt;meta&gt;`.
 
 * `"refresh"` 
 Данная инструкция указывает: 
-* Количество секунд до перезагрузки страницы — только если атрибут [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) содержит положительное целое число. 
-* Количество секунд до перенаправления страницы на другую — только если атрибут [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) содержит положительное целое число, за которым следует строка '`;url=`' и действительный URL. 
+* Количество секунд до перезагрузки страницы — только если атрибут [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) содержит положительное целое число.
+* Количество секунд до перенаправления страницы на другую — только если атрибут [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) содержит положительное целое число, за которым следует строка '`;url=`' и действительный URL.
 * `"set-cookie"` 
-Определяет [cookie](https://developer.mozilla.org/en-US/docs/cookie) для страницы. Его содержимое должно соответствовать синтаксису, определенному в [спецификации IETF HTTP Cookie](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14). 
+Определяет [cookie](https://developer.mozilla.org/en-US/docs/cookie) для страницы. Его содержимое должно соответствовать синтаксису, определенному в [спецификации IETF HTTP Cookie](https://tools.ietf.org/html/draft-ietf-httpstate-cookie-14).
 
 **Внимание:** Не используйте эту инструкцию, так как она устарела. Вместо этого используйте HTTP-заголовок [`Set-Cookie`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie).</target>
         <note />
@@ -585,7 +585,7 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
         <source>This Boolean attribute indicates that the image is part of a server-side map. If so, the precise coordinates of a click are sent to the server.
 
 **Note:** This attribute is allowed only if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") element with a valid [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href) attribute.</source>
-        <target state="translated">Этот логический атрибут указывает, что изображение является частью карты-изображения на стороне сервера. В этом случае точные координаты клика отправляются на сервер. 
+        <target state="translated">Этот логический атрибут указывает, что изображение является частью карты-изображения на стороне сервера. В этом случае точные координаты клика отправляются на сервер.
 
 **Примечание:** Этот атрибут разрешен только в том случае, если элемент `&lt;img&gt;` является потомком элемента [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "Элемент HTML &lt;a&gt; (или элемент привязки) создает гиперссылку на другие веб-страницы, файлы, места на той же странице, адреса электронной почты или любой другой URL.") с допустимым атрибутом [`href`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a#attr-href).</target>
         <note />
@@ -635,19 +635,19 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
         <target state="translated">Как предполагается использовать текстовую дорожку. Если опущено, по умолчанию используется тип `subtitles`. Если атрибут отсутствует, будет использоваться `subtitles`. Если атрибут содержит недопустимое значение, будет использовано `metadata`. (В версиях Chrome до 52 недопустимое значение рассматривалось как `subtitles`.) Разрешены следующие ключевые слова: 
 
 * `subtitles` 
-* Субтитры обеспечивают перевод контента, который не понятен зрителю. Например, диалог или текст, не на английском языке, в англоязычном фильме. 
-* Субтитры могут содержать дополнительный контент, обычно это дополнительная справочная информация. Например, текст в начале фильмов "Звёздные войны" или дата, время и место действия сцены. 
+* Субтитры обеспечивают перевод контента, который не понятен зрителю. Например, диалог или текст, не на английском языке, в англоязычном фильме.
+* Субтитры могут содержать дополнительный контент, обычно это дополнительная справочная информация. Например, текст в начале фильмов "Звёздные войны" или дата, время и место действия сцены.
 * `captions` 
-* Субтитры содержат транскрипцию и, возможно, перевод аудиозаписи. 
-* Она может включать важную невербальную информацию, такую как музыкальные сигналы или звуковые эффекты. Это может указывать на источник сигнала (например, музыка, текст, персонаж). 
-* Подходит для пользователей с нарушениями слуха или при отключенном звуке. 
+* Субтитры содержат транскрипцию и, возможно, перевод аудиозаписи.
+* Она может включать важную невербальную информацию, такую как музыкальные сигналы или звуковые эффекты. Это может указывать на источник сигнала (например, музыка, текст, персонаж).
+* Подходит для пользователей с нарушениями слуха или при отключенном звуке.
 * `descriptions` 
-* Текстовое описание содержания видео. 
-* Подходит для пользователей с нарушениями зрения или в случаях, когда видео не видно. 
+* Текстовое описание содержания видео.
+* Подходит для пользователей с нарушениями зрения или в случаях, когда видео не видно.
 * `chapters` 
-* Заголовки глав предназначены для использования пользователем при навигации по медиаресурсу. 
+* Заголовки глав предназначены для использования пользователем при навигации по медиаресурсу.
 * `metadata` 
-* Дорожки, используемые скриптами. Невидимо для пользователя.</target>
+* Дорожки, используемые скриптами. Не отображается пользователю.</target>
         <note />
       </trans-unit>
       <trans-unit id="HtmlAttribute_label">
@@ -692,11 +692,11 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 
 * In HTML 4, this can only be a simple white-space-separated list of media description literals, i.e., [media types and groups](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), where defined and allowed as values for this attribute, such as `print`, `screen`, `aural`, `braille`. HTML5 extended this to any kind of [media queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), which are a superset of the allowed values of HTML 4.
 * Browsers not supporting [CSS3 Media Queries](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries) won't necessarily recognize the adequate link; do not forget to set fallback links, the restricted set of media queries defined in HTML 4.</source>
-        <target state="translated">Этот атрибут определяет тип носителя, к которому относится связанный ресурс. Его значением должен быть тип мультимедиа или [запрос мультимедиа](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries). Этот атрибут в основном полезен при подключении к внешним таблицам стилей — он позволяет пользовательскому агенту выбрать наиболее подходящую для устройства, на котором он работает. 
+        <target state="translated">Этот атрибут определяет тип носителя, к которому относится связанный ресурс. Его значением должен быть тип мультимедиа или [запрос мультимедиа](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries). Этот атрибут в основном полезен при подключении к внешним таблицам стилей — он позволяет пользовательскому агенту выбрать наиболее подходящую для устройства, на котором он работает.
 
 **Примечания:** 
 
-* В HTML 4 это может быть только простой список литералов описания медиафайлов, разделенных пробелами, т.е. [типы и группы медиафайлов](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), где определены и разрешены значения для этого атрибута, такие как `print`, `screen`, `aural`, `braille`. HTML5 расширил это до любых типов [медиа-запросов](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), которые являются надмножеством допустимых значений HTML 4. 
+* В HTML 4 это может быть только простой список литералов описания медиафайлов, разделенных пробелами, т.е. [типы и группы медиафайлов](https://developer.mozilla.org/en-US/docs/Web/CSS/@media), где определены и разрешены значения для этого атрибута, такие как `print`, `screen`, `aural`, `braille`. HTML5 расширил это до любых типов [медиа-запросов](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), которые являются надмножеством допустимых значений HTML 4.
 * Браузеры, не поддерживающие [медиазапросы CSS3](https://developer.mozilla.org/en-US/docs/Web/CSS/Media_queries), не обязательно распознают соответствующую ссылку; не забудьте установить резервные ссылки, используя ограниченный набор медиазапросов, определенных в HTML 4.</target>
         <note />
       </trans-unit>
@@ -710,9 +710,9 @@ Defines a [cookie](https://developer.mozilla.org/en-US/docs/cookie) for the page
 This value can be overridden by a [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) attribute on a [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") or [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") element.</source>
         <target state="translated">Метод [HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP), который браузер использует для отправки формы. Возможные значения: 
 
-* `post`: Соответствует методу HTTP [POST](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5); данные формы включаются в тело формы и отправляются на сервер. 
-* `get`: Соответствует методу HTTP [GET](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3); данные формы добавляются к URI атрибута `action` с разделителем '?', и полученный URI отправляется на сервер. Используйте этот метод, если форма не имеет побочных эффектов и содержит только символы ASCII. 
-* `dialog`: Используйте, когда форма находится внутри элемента [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "Элемент HTML &lt;dialog&gt; представляет собой диалоговое окно или другой интерактивный компонент, такой как инспектор или окно."), чтобы закрыть диалоговое окно после отправки. 
+* `post`: Соответствует методу HTTP [POST](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.5); данные формы включаются в тело формы и отправляются на сервер.
+* `get`: Соответствует методу HTTP [GET](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.3); данные формы добавляются к URI атрибута `action` с разделителем '?', и полученный URI отправляется на сервер. Используйте этот метод, если форма не имеет побочных эффектов и содержит только символы ASCII.
+* `dialog`: Используйте, когда форма находится внутри элемента [`&lt;dialog&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog "Элемент HTML &lt;dialog&gt; представляет собой диалоговое окно или другой интерактивный компонент, такой как инспектор или окно."), чтобы закрыть диалоговое окно после отправки.
 
 Это значение может быть переопределено атрибутом [`formmethod`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button#attr-formmethod) элемента [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "HTML-элемент &lt;button&gt; представляет собой кликабельную кнопку, которую можно использовать в формах или в любом другом месте документа, где требуется простая стандартная функциональность кнопки.") или [`&lt;input&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "HTML-элемент &lt;input&gt; используется для создания интерактивных элементов управления веб-форм для получения данных от пользователя; доступно множество типов входных данных и элементов управления в зависимости от устройства и пользовательского агента.").</target>
         <note />
@@ -941,69 +941,69 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * Though unstandardized, this declaration is respected by most mobile browsers due to de-facto dominance.
 * The default values may vary between devices and browsers.
 * To learn about this declaration in Firefox for Mobile, see [this article](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Mobile/Viewport meta tag").</source>
-        <target state="translated">Этот атрибут определяет имя фрагмента метаданных на уровне документа. Его не следует устанавливать, если также установлен один из атрибутов [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop), [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) или [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset). 
+        <target state="translated">Этот атрибут определяет имя фрагмента метаданных на уровне документа. Его не следует устанавливать, если также установлен один из атрибутов [`itemprop`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-itemprop), [`http-equiv`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-http-equiv) или [`charset`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-charset).
 
 Это имя метаданных связано со значением, содержащимся в атрибуте [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content). Возможные значения для атрибута name: 
 
-* `application-name`, определяющий имя приложения, работающего на веб-странице. 
+* `application-name`, определяющий имя приложения, работающего на веб-странице.
 
 **Примечание:** 
 
-* Браузеры могут использовать это для идентификации приложения. Он отличается от элемента [`&lt;title&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title "Элемент HTML Title (&lt;title&gt;) определяет заголовок документа, который отображается в строке заголовка браузера или на вкладке страницы."), который обычно содержит название приложения, но может также содержать информацию, такую как название документа или статус. 
-* Простые веб-страницы не должны определять имя приложения. 
+* Браузеры могут использовать это для идентификации приложения. Он отличается от элемента [`&lt;title&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/title "Элемент HTML Title (&lt;title&gt;) определяет заголовок документа, который отображается в строке заголовка браузера или на вкладке страницы."), который обычно содержит название приложения, но может также содержать информацию, такую как название документа или статус.
+* Простые веб-страницы не должны определять имя приложения.
 
-* `author`, который определяет имя автора документа. 
-* `description`, содержащий краткое и точное описание содержимого страницы. Некоторые браузеры, такие как Firefox и Opera, используют это в качестве описания страниц, добавленных в закладки по умолчанию. 
-* `generator`, содержащий идентификатор программного обеспечения, сгенерировавшего страницу. 
-* `keywords`, содержащие слова, относящиеся к содержимому страницы, разделенные запятыми. 
+* `author`, который определяет имя автора документа.
+* `description`, содержащий краткое и точное описание содержимого страницы. Некоторые браузеры, такие как Firefox и Opera, используют это в качестве описания страниц, добавленных в закладки по умолчанию.
+* `generator`, содержащий идентификатор программного обеспечения, сгенерировавшего страницу.
+* `keywords`, содержащие слова, относящиеся к содержимому страницы, разделенные запятыми.
 * `referrer`, который управляет [заголовком HTTP `Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer), прикрепленным к запросам, отправляемым из документа: 
 
 Значения атрибута `content` объекта `&lt;meta name="referrer"&gt;` 
 
 `no-referrer` 
 
-Не отправляйте HTTP-заголовок `Referrer`. 
+Не отправляйте HTTP-заголовок `Referrer`.
 
 `origin` 
 
-Отправьте [источник](https://developer.mozilla.org/en-US/docs/Glossary/Origin) документа. 
+Отправьте [источник](https://developer.mozilla.org/en-US/docs/Glossary/Origin) документа.
 
 `no-referrer-when-downgrade`
 
-Отправлять [источник](https://developer.mozilla.org/en-US/docs/Glossary/Origin) в качестве реферера для URL-адресов, столь же безопасных, как и текущая страница (https→https), но не отправлять реферер для менее безопасных URL-адресов (https→http). Это поведение по умолчанию. 
+Отправлять [источник](https://developer.mozilla.org/en-US/docs/Glossary/Origin) в качестве реферера для URL-адресов, столь же безопасных, как и текущая страница (https→https), но не отправлять реферер для менее безопасных URL-адресов (https→http). Это поведение по умолчанию.
 
 `origin-when-cross-origin`
 
-Для запросов из одного источника отправляйте полный URL (без параметров), а для остальных случаев — только [источник](https://developer.mozilla.org/en-US/docs/Glossary/Origin). 
+Для запросов из одного источника отправляйте полный URL (без параметров), а для остальных случаев — только [источник](https://developer.mozilla.org/en-US/docs/Glossary/Origin).
 
 `same-origin`
 
-Для запросов с одним и тем [же источником](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) будет отправлен реферер, но запросы с другими источниками не будут содержать никакой информации о реферере. 
+Для запросов с одним и тем [же источником](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) будет отправлен реферер, но запросы с другими источниками не будут содержать никакой информации о реферере.
 
 `strict-origin` 
 
-Отправляйте исходный документ только в качестве реферера в заранее максимально безопасное место назначения (HTTPS-&gt;HTTPS), но не отправляйте его в менее безопасное место назначения (HTTPS-&gt;HTTP). 
+Отправляйте исходный документ только в качестве реферера в заранее максимально безопасное место назначения (HTTPS-&gt;HTTPS), но не отправляйте его в менее безопасное место назначения (HTTPS-&gt;HTTP).
 
 `strict-origin-when-cross-origin`
 
-При выполнении запроса из одного источника необходимо отправить полный URL-адрес, при отправке источника документа — только в заранее максимально защищенное место назначения (HTTPS-&gt;HTTPS), а при отправке менее защищенного места назначения — заголовок не отправлять. 
+При выполнении запроса из одного источника необходимо отправить полный URL-адрес, при отправке источника документа — только в заранее максимально защищенное место назначения (HTTPS-&gt;HTTPS), а при отправке менее защищенного места назначения — заголовок не отправлять.
 
-`unsafe-URL` 
+`unsafe-URL`
 
-Для запросов из одного или нескольких источников необходимо отправить полный URL-адрес (без параметров). 
+Для запросов из одного или нескольких источников необходимо отправить полный URL-адрес (без параметров).
 
-**Примечания:** 
+**Примечания:**
 
-* Некоторые браузеры поддерживают устаревшие значения `always`, `default` и `never` для параметра referrer. 
-* Динамическая вставка `&lt;meta name="referrer"&gt;` (с помощью [`document.write`](https://developer.mozilla.org/en-US/docs/Web/API/Document/write) или [`appendChild`](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild)) делает поведение реферера непредсказуемым. 
-* При определении нескольких противоречащих друг другу политик применяется политика отсутствия рефереров. 
+* Некоторые браузеры поддерживают устаревшие значения `always`, `default` и `never` для параметра referrer.
+* Динамическая вставка `&lt;meta name="referrer"&gt;` (с помощью [`document.write`](https://developer.mozilla.org/en-US/docs/Web/API/Document/write) или [`appendChild`](https://developer.mozilla.org/en-US/docs/Web/API/Node/appendChild)) делает поведение реферера непредсказуемым.
+* При определении нескольких противоречащих друг другу политик применяется политика отсутствия рефереров.
 
 
 Этот атрибут также может иметь значение из расширенного списка, определенного на [странице whatWG Wiki MetaExtensions](https://wiki.whatwg.org/wiki/MetaExtensions). Хотя ни одно из них еще официально не утверждено, вот несколько часто используемых названий: 
 
-* `creator` — это параметр, определяющий имя создателя документа, например, организации или учреждения. Если их больше одного, следует использовать несколько элементов [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Элемент HTML &lt;meta&gt; представляет метаданные, которые не могут быть представлены другими связанными с HTML мета-элементами, такими как &lt;base&gt;, &lt;link&gt; , &lt;script&gt;, &lt;style&gt; или &lt;title&gt;."). 
-* `googlebot`, синоним `robots`, сопровождается только Googlebot (индексирующий веб-краулер Google). 
-* `publisher`, который определяет имя издателя документа. 
+* `creator` — это параметр, определяющий имя создателя документа, например, организации или учреждения. Если их больше одного, следует использовать несколько элементов [`&lt;meta&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta "Элемент HTML &lt;meta&gt; представляет метаданные, которые не могут быть представлены другими связанными с HTML мета-элементами, такими как &lt;base&gt;, &lt;link&gt;, &lt;script&gt;, &lt;style&gt; или &lt;title&gt;.").
+* `googlebot`, синоним `robots`, сопровождается только Googlebot (индексирующий веб-краулер Google).
+* `publisher`, который определяет имя издателя документа.
 * `robots` — параметр, определяющий поведение, которое должны использовать кооперативные веб-краулеры, или "роботы", при работе со страницей. Ниже приведён список значений, разделённых запятыми: 
 
 Значения для содержимого `&lt;meta name="robots"&gt;` 
@@ -1016,25 +1016,25 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 
 `index`
 
-Позволяет роботу индексировать страницу (по умолчанию). 
+Позволяет роботу индексировать страницу (по умолчанию).
 
 Все 
 
 `noindex` 
 
-Запрашивает у робота не индексировать страницу. 
+Запрашивает у робота не индексировать страницу.
 
 Все 
 
 `follow`
 
-Позволяет роботу переходить по ссылкам на странице (по умолчанию). 
+Позволяет роботу переходить по ссылкам на странице (по умолчанию).
 
 Все 
 
 `nofollow` 
 
-Запрашивает у робота не переходить по ссылкам на странице. 
+Запрашивает у робота не переходить по ссылкам на странице.
 
 Все 
 
@@ -1044,110 +1044,110 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 
 [Google](https://support.google.com/webmasters/answer/79812) 
 
-`noodp` 
+`noodp`
 
-Предотвращает использование описания [Open Directory Project](https://www.dmoz.org/), если таковое имеется, в качестве описания страницы в результатах поиска. 
+Предотвращает использование описания [Open Directory Project](https://www.dmoz.org/), если таковое имеется, в качестве описания страницы в результатах поиска.
 
 [Google](https://support.google.com/webmasters/answer/35624#nodmoz), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/meta-tags-robotstxt-yahoo-search-sln2213.html#cont5), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240) 
 
-`noarchive` 
+`noarchive`
 
-Запрашивает у поисковой системы не кэшировать содержимое страницы. 
+Запрашивает у поисковой системы не кэшировать содержимое страницы.
 
-[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/SLN2213.html), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240) 
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Yahoo](https://help.yahoo.com/kb/search-for-desktop/SLN2213.html), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
 
-`nosnippet` 
+`nosnippet`
 
-Предотвращает отображение любого описания страницы в результатах поиска. 
+Предотвращает отображение любого описания страницы в результатах поиска.
 
-[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240) 
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives), [Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
 
-`noimageindex` 
+`noimageindex`
 
-Запрашивает, чтобы эта страница не отображалась как страница-источник индексированного изображения. 
+Запрашивает, чтобы эта страница не отображалась как страница-источник индексированного изображения.
 
-[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives) 
+[Google](https://developers.google.com/webmasters/control-crawl-index/docs/robots_meta_tag#valid-indexing--serving-directives)
 
-`nocache` 
+`nocache`
 
 Синоним слова `noarchive`.
 
-[Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240) 
+[Bing](https://www.bing.com/webmaster/help/which-robots-metatags-does-bing-support-5198d240)
 
-**Примечания:** 
+**Примечания:**
 
-* Только роботы, работающие в режиме сотрудничества, следуют этим правилам. Не рассчитывайте предотвратить сбор адресов электронной почты с их помощью. 
-* Роботу по-прежнему необходимо получить доступ к странице, чтобы прочитать эти правила. Чтобы предотвратить избыточное потребление пропускной способности, используйте _[robots.txt](https://developer.mozilla.org/en-US/docs/Glossary/robots.txt "robots.txt: Robots.txt — это файл, который обычно размещается в корневой директории веб-сайта. Он определяет, разрешен или запрещен доступ поисковых роботов к веб-сайту."_ файл. 
-* Если вы хотите удалить страницу, сработает `noindex`, но только после того, как робот снова посетит эту страницу. Убедитесь, что файл `robots.txt` не препятствует повторным посещениям. 
-* Некоторые значения являются взаимоисключающими, например, `index` и `noindex`, или `follow` и `nofollow`. В этих случаях поведение робота не определено и может различаться между ними. 
-* Некоторые поисковые роботы, такие как Google, Yahoo и Bing, поддерживают одинаковые значения для HTTP-заголовка `X-Robots-Tag`; это позволяет использовать эти правила для не-HTML документов, таких как изображения. 
+* Только роботы, работающие в режиме сотрудничества, следуют этим правилам. Не рассчитывайте предотвратить сбор адресов электронной почты с их помощью.
+* Роботу по-прежнему необходимо получить доступ к странице, чтобы прочитать эти правила. Чтобы предотвратить избыточное потребление пропускной способности, используйте _[robots.txt](https://developer.mozilla.org/en-US/docs/Glossary/robots.txt "robots.txt: Robots.txt — это файл, который обычно размещается в корневой директории веб-сайта. Он определяет, разрешен или запрещен доступ поисковых роботов к веб-сайту."_ файл.
+* Если вы хотите удалить страницу, сработает `noindex`, но только после того, как робот снова посетит эту страницу. Убедитесь, что файл `robots.txt` не препятствует повторным посещениям.
+* Некоторые значения являются взаимоисключающими, например, `index` и `noindex`, или `follow` и `nofollow`. В этих случаях поведение робота не определено и может различаться между ними.
+* Некоторые поисковые роботы, такие как Google, Yahoo и Bing, поддерживают одинаковые значения для HTTP-заголовка `X-Robots-Tag`; это позволяет использовать эти правила для не-HTML документов, таких как изображения.
 
-* `slurp` — синоним слова `robots`, но только для Slurp — поискового робота Yahoo. 
-* `viewport`, который дает подсказки о размере начального размера [области просмотра](https://developer.mozilla.org/en-US/docs/Glossary/viewport "Область просмотра: Область просмотра представляет собой многоугольную (обычно прямоугольную) область в компьютерной графике, которая в данный момент просматривается. В контексте веб-браузеров этот термин обозначает ту часть просматриваемого документа, которая в данный момент видна в окне (или на экране, если документ открыт в полноэкранном режиме). Содержимое, находящееся за пределами видимой области экрана, не отображается на экране до тех пор, пока не будет прокручено и не появится в поле зрения. Используется только на мобильных устройствах. 
+* `slurp` — синоним слова `robots`, но только для Slurp — поискового робота Yahoo.
+* `viewport`, который дает подсказки о размере начального размера [области просмотра](https://developer.mozilla.org/en-US/docs/Glossary/viewport "Область просмотра: Область просмотра представляет собой многоугольную (обычно прямоугольную) область в компьютерной графике, которая в данный момент просматривается. В контексте веб-браузеров этот термин обозначает ту часть просматриваемого документа, которая в данный момент видна в окне (или на экране, если документ открыт в полноэкранном режиме). Содержимое, находящееся за пределами видимой области экрана, не отображается на экране до тех пор, пока не будет прокручено и не появится в поле зрения. Используется только на мобильных устройствах.
 
-Значения для содержимого `&lt;meta name="viewport"&gt;` 
+Значения для содержимого `&lt;meta name="viewport"&gt;`
 
 Значение 
 
-Возможные подзначения 
+Возможные подзначения
 
 Описание 
 
 `width`
 
-Положительное целое число или текст `device-width` 
+Положительное целое число или текст `device-width`
 
-Определяет ширину в пикселях области просмотра, в которой вы хотите отобразить веб-сайт. 
+Определяет ширину в пикселях области просмотра, в которой вы хотите отобразить веб-сайт.
 
 `height`
 
-Положительное целое число или текст `device-height` 
+Положительное целое число или текст `device-height`
 
-Определяет высоту области просмотра. Не используется ни одним браузером. 
+Определяет высоту области просмотра. Не используется ни одним браузером.
 
 `initial-scale`
 
-Положительное число от `0.0` до `10.0` 
+Положительное число от `0.0` до `10.0`
 
-Определяет соотношение между шириной устройства (`device-width` в портретном режиме или `device-height` в альбомном режиме) и размером области просмотра. 
+Определяет соотношение между шириной устройства (`device-width` в портретном режиме или `device-height` в альбомном режиме) и размером области просмотра.
 
 `maximum-scale`
 
-Положительное число от `0.0` до `10.0` 
+Положительное число от `0.0` до `10.0`
 
-Определяет максимальное значение масштабирования. Это значение должно быть больше или равно `minimum-scale`, иначе поведение будет неопределенным. В настройках браузера это правило можно игнорировать, а в iOS 10 и более поздних версиях оно игнорируется по умолчанию. 
+Определяет максимальное значение масштабирования. Это значение должно быть больше или равно `minimum-scale`, иначе поведение будет неопределенным. В настройках браузера это правило можно игнорировать, а в iOS 10 и более поздних версиях оно игнорируется по умолчанию.
 
 `minimum-scale`
 
-Положительное число от `0.0` до `10.0` 
+Положительное число от `0.0` до `10.0`
 
-Определяет минимальный уровень масштабирования. Это значение должно быть меньше или равно `maximum-scale`, иначе поведение будет неопределенным. В настройках браузера это правило можно игнорировать, а в iOS 10 и более поздних версиях оно игнорируется по умолчанию. 
+Определяет минимальный уровень масштабирования. Это значение должно быть меньше или равно `maximum-scale`, иначе поведение будет неопределенным. В настройках браузера это правило можно игнорировать, а в iOS 10 и более поздних версиях оно игнорируется по умолчанию.
 
 `user-scalable`
 
 `yes` или `no`
 
-Если установить значение `no`, пользователь не сможет увеличивать масштаб веб-страницы. Значение по умолчанию — `yes`. В настройках браузера это правило можно игнорировать, а в iOS 10 и более поздних версиях оно игнорируется по умолчанию. 
+Если установить значение `no`, пользователь не сможет увеличивать масштаб веб-страницы. Значение по умолчанию — `yes`. В настройках браузера это правило можно игнорировать, а в iOS 10 и более поздних версиях оно игнорируется по умолчанию.
 
-Спецификация 
+Спецификация
 
 Состояние
 
-Комментарий 
+Комментарий
 
-[Адаптация CSS-устройств 
-Определение '&lt;meta name="viewport"&gt;' в этой спецификации.](https://drafts.csswg.org/css-device-adapt/#viewport-meta) 
+[Адаптация CSS-устройств
+Определение '&lt;meta name="viewport"&gt;' в этой спецификации.](https://drafts.csswg.org/css-device-adapt/#viewport-meta)
 
-Рабочий проект 
+Рабочий проект
 
 Нестандартно описывает элемент VIEWPORT META
 
-См. также: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "Правило CSS @viewport позволяет настроить область просмотра, через которую отображается документ." Он в основном используется на мобильных устройствах, но также используется настольными браузерами, поддерживающими такие функции, как "привязка к краю" (например, Microsoft Edge).) 
+См. также: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewport "Правило CSS @viewport позволяет настроить область просмотра, через которую отображается документ". Он в основном используется на мобильных устройствах, но также используется настольными браузерами, поддерживающими такие функции, как "привязка к краю" (например, Microsoft Edge).) 
 
-**Примечания:** 
+**Примечания:**
 
-* Хотя это утверждение не стандартизировано, большинство мобильных браузеров его соблюдают из-за фактического доминирования. 
-* Значения по умолчанию могут различаться в зависимости от устройства и браузера. 
+* Хотя это утверждение не стандартизировано, большинство мобильных браузеров его соблюдают из-за фактического доминирования.
+* Значения по умолчанию могут различаться в зависимости от устройства и браузера.
 * Чтобы узнать об этом объявлении в Firefox для мобильных устройств, см. [эту статью](https://developer.mozilla.org/en-US/docs/Mobile/Viewport_meta_tag "Метатег Mobile/Viewport").</target>
         <note />
       </trans-unit>
@@ -1515,7 +1515,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
         <source>A hint to the user of what can be entered in the control. Carriage returns or line-feeds within the placeholder text must be treated as line breaks when rendering the hint.
 
 **Note:** Placeholders should only be used to show an example of the type of data that should be entered into a form; they are _not_ a substitute for a proper [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "The HTML &lt;label&gt; element represents a caption for an item in a user interface.") element tied to the input. See [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") in [&lt;input&gt;: The Input (Form Input) element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "The HTML &lt;input&gt; element is used to create interactive controls for web-based forms in order to accept data from the user; a wide variety of types of input data and control widgets are available, depending on the device and user agent.") for a full explanation.</source>
-        <target state="translated">Подсказка для пользователя о том, что можно ввести в элемент управления. Переводы строк или символы возврата каретки внутри текста-заполнителя должны рассматриваться как переносы строк при отображении подсказки. 
+        <target state="translated">Подсказка для пользователя о том, что можно ввести в элемент управления. Переводы строк или символы возврата каретки внутри текста-заполнителя должны рассматриваться как переносы строк при отображении подсказки.
 
 **Примечание:** Заполнители следует использовать только для демонстрации примера типа данных, которые должны быть введены в форму; они _не_ заменяют собой соответствующий элемент [`&lt;label&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/label "HTML-элемент &lt;label&gt; представляет собой подпись к элементу в пользовательском интерфейсе."), связанный с полем ввода. См. [Labels and placeholders](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input#Labels_and_placeholders"HtmL &lt;input&gt; используется для создания интерактивных элементов управления для веб-форм, чтобы принимать данные от пользователя; доступны различные типы входных данных и мини-приложения элементов управления в зависимости от устройства и агента пользователя.) в [&lt;input&gt;: элемент Input (Form Input)](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input "Элемент HTML &lt;input&gt; используется для создания интерактивных элементов управления для веб-форм, чтобы принимать данные от пользователя; доступны различные типы входных данных и мини-приложения элементов управления в зависимости от устройства и агента пользователя.) для полного объяснения.</target>
         <note />
@@ -1543,12 +1543,12 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * `origin` means that the referrer will be the origin of the page, which is roughly the scheme, the host, and the port.
 * `origin-when-cross-origin` means that navigating to other origins will be limited to the scheme, the host, and the port, while navigating on the same origin will include the referrer's path.
 * `unsafe-url` means that the referrer will include the origin and the path (but not the fragment, password, or username). This case is unsafe because it can leak origins and paths from TLS-protected resources to insecure origins.</source>
-        <target state="translated">Строка, указывающая, какой реферер использовать при получении ресурса: 
+        <target state="translated">Строка, указывающая, какой реферер использовать при получении ресурса:
 
-* `no-referrer` означает, что [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "Заголовок запроса Referer содержит адрес предыдущей веб-страницы, с которой была совершена ссылка на текущую запрошенную страницу. Заголовок Referer позволяет серверам определять, откуда пользователи их посещают, и может использовать эти данные для аналитики, ведения журналов или оптимизированного кэширования, например. Заголовок Referer не будет отправлен. 
-* `no-referrer-when-downgrade` означает, что нет [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "Заголовок запроса Referer содержит адрес предыдущей веб-страницы, с которой была совершена ссылка на текущую запрашиваемую страницу. Заголовок Referer позволяет серверам определять, откуда пользователи их посещают, и может использовать эти данные, например, для аналитики, ведения журналов или оптимизированного кэширования. Этот заголовок будет отправлен при переходе на сайт без TLS (HTTPS). Это поведение пользовательского агента по умолчанию, если не указана иная политика. 
-* `origin` означает, что Referrer будет источником страницы, который примерно равен схеме, хосту и порту. 
-* `origin-when-cross-origin` означает, что переход к другим источникам будет ограничен схемой, хостом и портом, в то время как переход к тому же источнику будет включать путь реферера. 
+* `no-referrer` означает, что [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "Заголовок запроса Referer содержит адрес предыдущей веб-страницы, с которой была совершена ссылка на текущую запрошенную страницу. Заголовок Referer позволяет серверам определять, откуда пользователи их посещают, и может использовать эти данные для аналитики, ведения журналов или оптимизированного кэширования, например. Заголовок Referer не будет отправлен.
+* `no-referrer-when-downgrade` означает, что нет [`Referer`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer "Заголовок запроса Referer содержит адрес предыдущей веб-страницы, с которой была совершена ссылка на текущую запрашиваемую страницу. Заголовок Referer позволяет серверам определять, откуда пользователи их посещают, и может использовать эти данные, например, для аналитики, ведения журналов или оптимизированного кэширования. Этот заголовок будет отправлен при переходе на сайт без TLS (HTTPS). Это поведение пользовательского агента по умолчанию, если не указана иная политика.
+* `origin` означает, что Referrer будет источником страницы, который примерно равен схеме, хосту и порту.
+* `origin-when-cross-origin` означает, что переход к другим источникам будет ограничен схемой, хостом и портом, в то время как переход к тому же источнику будет включать путь реферера.
 * `unsafe-url` означает, что в поле Referrer будут указаны источник и путь (но не фрагмент URL, пароль или имя пользователя). Это задание небезопасно, так как может привести к утечке источников и путей от ресурсов, защищенных TLS, к небезопасным источникам.</target>
         <note />
       </trans-unit>
@@ -1593,25 +1593,25 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * When the embedded document has the same origin as the embedding page, it is **strongly discouraged** to use both `allow-scripts` and `allow-same-origin`, as that lets the embedded document remove the `sandbox` attribute — making it no more secure than not using the `sandbox` attribute at all.
 * Sandboxing is useless if the attacker can display content outside a sandboxed `iframe` — such as if the viewer opens the frame in a new tab. Such content should be also served from a _separate origin_ to limit potential damage.
 * The `sandbox` attribute is unsupported in Internet Explorer 9 and earlier.</source>
-        <target state="translated">Применяет дополнительные ограничения к содержимому фрейма. Значение атрибута может быть либо пустым, чтобы применить все ограничения, либо состоять из разделенных пробелами токенов, чтобы снять определенные ограничения: 
+        <target state="translated">Применяет дополнительные ограничения к содержимому фрейма. Значение атрибута может быть либо пустым, чтобы применить все ограничения, либо состоять из разделенных пробелами токенов, чтобы снять определенные ограничения:
 
-* `allow-forms`: Разрешает ресурсу отправлять формы. Если это ключевое слово не используется, отправка формы блокируется. 
-* `allow-modals`: Разрешает ресурсу [открывать модальные окна](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag). 
-* `allow-orientation-lock`: Позволяет ресурсу [блокировать ориентацию экрана](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation). 
-* `allow-pointer-lock`: Позволяет ресурсу использовать [API блокировки указателя](https://developer.mozilla.org/en-US/docs/WebAPI/Pointer_Lock). 
-* `allow-popups`: Разрешает всплывающие окна (например, `window.open()`, `target="_blank"` или `showModalDialog()`). Если это ключевое слово не используется, всплывающее окно молча не откроется. 
-* `allow-popups-to-escape-sandbox`: Позволяет изолированному документу открывать новые окна без того, чтобы эти окна наследовали режим песочницы. Например, это позволяет безопасно изолировать рекламу, не накладывая тех же ограничений на страницу, на которую ведет реклама. 
-* `allow-presentation`: Позволяет ресурсу начать [сессию презентации](https://developer.mozilla.org/en-US/docs/Web/API/PresentationRequest). 
-* `allow-same-origin`: Если этот токен не используется, ресурс рассматривается как находящийся в особом месте, которое всегда не соответствует [политике одного источника](https://developer.mozilla.org/en-US/docs/Glossary/same-origin_policy "политика одного источника: политика одного источника — это критически важный механизм безопасности, который ограничивает взаимодействие документа или скрипта, загруженного из одного источника, с ресурсом из другого источника."). 
-* `allow-scripts`: Позволяет ресурсу запускать скрипты (но не создавать всплывающие окна). 
-* `allow-storage-access-by-user-activation`: Позволяет ресурсу запрашивать доступ к возможностям хранения родительского ресурса с помощью [API доступа к хранилищу](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API). 
-* `allow-top-navigation`: Позволяет ресурсу перемещаться по контексту просмотра верхнего уровня (тому, который называется `_top`). 
-* `allow-top-navigation-by-user-activation`: Позволяет ресурсу перемещаться по контексту просмотра верхнего уровня, но только если это инициируется жестом пользователя. 
+* `allow-forms`: Разрешает ресурсу отправлять формы. Если это ключевое слово не используется, отправка формы блокируется.
+* `allow-modals`: Разрешает ресурсу [открывать модальные окна](https://html.spec.whatwg.org/multipage/origin.html#sandboxed-modals-flag).
+* `allow-orientation-lock`: Позволяет ресурсу [блокировать ориентацию экрана](https://developer.mozilla.org/en-US/docs/Web/API/Screen/lockOrientation).
+* `allow-pointer-lock`: Позволяет ресурсу использовать [API блокировки указателя](https://developer.mozilla.org/en-US/docs/WebAPI/Pointer_Lock).
+* `allow-popups`: Разрешает всплывающие окна (например, `window.open()`, `target="_blank"` или `showModalDialog()`). Если это ключевое слово не используется, всплывающее окно молча не откроется.
+* `allow-popups-to-escape-sandbox`: Позволяет изолированному документу открывать новые окна без того, чтобы эти окна наследовали режим песочницы. Например, это позволяет безопасно изолировать рекламу, не накладывая тех же ограничений на страницу, на которую ведет реклама.
+* `allow-presentation`: Позволяет ресурсу начать [сессию презентации](https://developer.mozilla.org/en-US/docs/Web/API/PresentationRequest).
+* `allow-same-origin`: Если этот токен не используется, ресурс рассматривается как находящийся в особом месте, которое всегда не соответствует [политике одного источника](https://developer.mozilla.org/en-US/docs/Glossary/same-origin_policy "политика одного источника: политика одного источника — это критически важный механизм безопасности, который ограничивает взаимодействие документа или скрипта, загруженного из одного источника, с ресурсом из другого источника.").
+* `allow-scripts`: Позволяет ресурсу запускать скрипты (но не создавать всплывающие окна).
+* `allow-storage-access-by-user-activation`: Позволяет ресурсу запрашивать доступ к возможностям хранения родительского ресурса с помощью [API доступа к хранилищу](https://developer.mozilla.org/en-US/docs/Web/API/Storage_Access_API).
+* `allow-top-navigation`: Позволяет ресурсу перемещаться по контексту просмотра верхнего уровня (тому, который называется `_top`).
+* `allow-top-navigation-by-user-activation`: Позволяет ресурсу перемещаться по контексту просмотра верхнего уровня, но только если это инициируется жестом пользователя.
 
-**Примечания о песочнице:** 
+**Примечания о песочнице:**
 
-* Когда встроенный документ имеет тот же источник, что и страница встраивания, **настоятельно не рекомендуется** использовать одновременно `allow-scripts` и `allow-same-origin`, поскольку это позволяет встроенному документу удалить атрибут `sandbox`, что делает его не более безопасным, чем полное отсутствие атрибута `sandbox`. 
-* Использование песочницы бесполезно, если злоумышленник может отображать контент за пределами изолированного `iframe` — например, если пользователь открывает фрейм в новой вкладке. Такой контент также следует предоставлять из _отдельного источника_, чтобы ограничить потенциальный ущерб. 
+* Когда встроенный документ имеет тот же источник, что и страница встраивания, **настоятельно не рекомендуется** использовать одновременно `allow-scripts` и `allow-same-origin`, поскольку это позволяет встроенному документу удалить атрибут `sandbox`, что делает его не более безопасным, чем полное отсутствие атрибута `sandbox`.
+* Использование песочницы бесполезно, если злоумышленник может отображать контент за пределами изолированного `iframe` — например, если пользователь открывает фрейм в новой вкладке. Такой контент также следует предоставлять из _отдельного источника_, чтобы ограничить потенциальный ущерб.
 * Атрибут `sandbox` не поддерживается в Internet Explorer 9 и более ранних версиях.</target>
         <note />
       </trans-unit>
@@ -1619,7 +1619,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
         <source>This attribute defines the scheme in which metadata is described. A scheme is a context leading to the correct interpretations of the [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content) value, like a format.
 
 **Warning:** Do not use this value, as it is obsolete. There is no replacement as there was no real usage for it.</source>
-        <target state="translated">Этот атрибут определяет схему, в которой описываются метаданные. Схема — это контекст, ведущий к правильной интерпретации значения [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content), подобно формату. 
+        <target state="translated">Этот атрибут определяет схему, в которой описываются метаданные. Схема — это контекст, ведущий к правильной интерпретации значения [`content`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#attr-content), подобно формату.
 
 **Внимание:** Не используйте это значение, так как оно устарело. Замены нет, так как реальной потребности в этом не было.</target>
         <note />
@@ -1645,10 +1645,10 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 * a white-space separated list of sizes, each in the format `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` or `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Each of these sizes must be contained in the resource.
 
 **Note:** Most icon formats are only able to store one single icon; therefore most of the time the [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) contains only one entry. MS's ICO format does, as well as Apple's ICNS. ICO is more ubiquitous; you should definitely use it.</source>
-        <target state="translated">Этот атрибут определяет размеры значков для визуальных мультимедиа, содержащихся в данном ресурсе. Он должен присутствовать, только если [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) содержит значение `icon` или нестандартный тип, например `apple-touch-icon` от Apple. Оно может принимать следующие значения: 
+        <target state="translated">Этот атрибут определяет размеры значков для визуальных мультимедиа, содержащихся в данном ресурсе. Он должен присутствовать, только если [`rel`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/link#attr-rel) содержит значение `icon` или нестандартный тип, например `apple-touch-icon` от Apple. Оно может принимать следующие значения:
 
-* `any` означает, что иконку можно масштабировать до любого размера, поскольку она находится в векторном формате, например, `image/svg+xml`. 
-* Список размеров, разделённых пробелами, каждый в формате `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` или `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Каждый из этих размеров должен содержаться в ресурсе. 
+* `any` означает, что иконку можно масштабировать до любого размера, поскольку она находится в векторном формате, например, `image/svg+xml`.
+* Список размеров, разделённых пробелами, каждый в формате `_&lt;width in pixels&gt;_x_&lt;height in pixels&gt;_` или `_&lt;width in pixels&gt;_X_&lt;height in pixels&gt;_`. Каждый из этих размеров должен содержаться в ресурсе.
 
 **Примечание:** Большинство форматов значков могут хранить только один значок; поэтому в большинстве случаев [`sizes`](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes#attr-sizes) содержит только одну запись. Формат ICO от Майкрософт — тоже, как и ICNS от Apple. ICO встречается повсеместно; вам определенно стоит его использовать.</target>
         <note />
@@ -1663,9 +1663,9 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
 
 * `true`, which indicates that the element should be, if possible, checked for spelling errors;
 * `false`, which indicates that the element should not be checked for spelling errors.</source>
-        <target state="translated">Перечисляемый атрибут определяет, может ли элемент проверяться на наличие орфографических ошибок. Оно может принимать следующие значения: 
+        <target state="translated">Перечисляемый атрибут определяет, может ли элемент проверяться на наличие орфографических ошибок. Оно может принимать следующие значения:
 
-* `true`, что означает, что элемент следует, по возможности, проверить на наличие орфографических ошибок; 
+* `true`, что означает, что элемент следует, по возможности, проверить на наличие орфографических ошибок;
 * `false`, что указывает на то, что элемент не следует проверять на наличие орфографических ошибок.</target>
         <note />
       </trans-unit>
@@ -1673,7 +1673,7 @@ See also: [`@viewport`](https://developer.mozilla.org/en-US/docs/Web/CSS/@viewpo
         <source>This attribute specifies the URI of an external script; this can be used as an alternative to embedding a script directly within a document.
 
 If a `script` element has a `src` attribute specified, it should not have a script embedded inside its tags.</source>
-        <target state="translated">Этот атрибут указывает URI внешнего скрипта; его можно использовать в качестве альтернативы непосредственному встраиванию скрипта в документ. 
+        <target state="translated">Этот атрибут указывает URI внешнего скрипта; его можно использовать в качестве альтернативы непосредственному встраиванию скрипта в документ.
 
 Если у элемента `script` указан атрибут `src`, то внутри его тегов не должно быть встроенного сценария.</target>
         <note />
@@ -1701,16 +1701,16 @@ If no descriptor is specified, the source is assigned the default descriptor: `1
 It is incorrect to mix width descriptors and pixel density descriptors in the same `srcset` attribute. Duplicate descriptors (for instance, two sources in the same `srcset` which are both described with '`2x`') are also invalid.
 
 The user agent selects any one of the available sources at its discretion. This provides them with significant leeway to tailor their selection based on things like user preferences or bandwidth conditions. See our [Responsive images](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images) tutorial for an example.</source>
-        <target state="translated">Список из одной или нескольких строк, разделенных запятыми, который задает набор возможных источников изображений для использования пользовательским агентом. Каждая строка состоит из: 
+        <target state="translated">Список из одной или нескольких строк, разделенных запятыми, который задает набор возможных источников изображений для использования пользовательским агентом. Каждая строка состоит из:
 
-1. URL изображения, 
-2. При желании, пробел, за которым следует один из следующих символов: 
-* Описание ширины или положительное целое число, за которым непосредственно следует '`w`'. Дескриптор ширины делится на размер источника, указанный в атрибуте `sizes`, для вычисления эффективной плотности пикселей. 
-* Дескриптор плотности пикселей, представляющий собой положительное число с плавающей запятой, за которым непосредственно следует '`x`'. 
+1. URL изображения,
+2. При желании, пробел, за которым следует один из следующих символов:
+* Описание ширины или положительное целое число, за которым непосредственно следует '`w`'. Дескриптор ширины делится на размер источника, указанный в атрибуте `sizes`, для вычисления эффективной плотности пикселей.
+* Дескриптор плотности пикселей, представляющий собой положительное число с плавающей запятой, за которым непосредственно следует '`x`'.
 
-Если дескриптор не указан, источнику присваивается дескриптор по умолчанию: `1x`. 
+Если дескриптор не указан, источнику присваивается дескриптор по умолчанию: `1x`.
 
-Неправильно смешивать дескрипторы ширины и дескрипторы плотности пикселей в одном атрибуте `srcset`. Повторяющиеся дескрипторы (например, два источника в одном и том же `srcset`, оба описанные с помощью '`2x`') также недопустимы. 
+Неправильно смешивать дескрипторы ширины и дескрипторы плотности пикселей в одном атрибуте `srcset`. Повторяющиеся дескрипторы (например, два источника в одном и том же `srcset`, оба описанные с помощью '`2x`') также недопустимы.
 
 Агент пользователя выбирает любой из доступных источников по своему усмотрению. Это предоставляет им значительную свободу в выборе, основанном на таких факторах, как пользовательские предпочтения или условия пропускной способности сети. Пример см. в нашем руководстве по [адаптивным изображениям](https://developer.mozilla.org/en-US/docs/Learn/HTML/Multimedia_and_embedding/Responsive_images).</target>
         <note />
@@ -1719,7 +1719,7 @@ The user agent selects any one of the available sources at its discretion. This 
         <source>This integer attribute specifies the start value for numbering the individual list items. Although the ordering type of list elements might be Roman numerals, such as XXXI, or letters, the value of start is always represented as a number. To start numbering elements from the letter "C", use `&lt;ol start="3"&gt;`.
 
 **Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.</source>
-        <target state="translated">Этот целочисленный атрибут задает начальное значение для нумерации отдельных элементов списка. Хотя элементы списка могут нумероваться римскими цифрами (например, XXXI) или буквами, значение параметра start всегда задается числом. Чтобы начать нумерацию элементов с буквы "С", используйте `&lt;ol start="3"&gt;`. 
+        <target state="translated">Этот целочисленный атрибут задает начальное значение для нумерации отдельных элементов списка. Хотя элементы списка могут нумероваться римскими цифрами (например, XXXI) или буквами, значение параметра start всегда задается числом. Чтобы начать нумерацию элементов с буквы "С", используйте `&lt;ol start="3"&gt;`.
 
 **Примечание**: Этот атрибут был устарел в HTML4, но вновь введен в HTML5.</target>
         <note />
@@ -1735,10 +1735,10 @@ The user agent selects any one of the available sources at its discretion. This 
 * a _negative value_ means that the element should be focusable, but should not be reachable via sequential keyboard navigation;
 * `0` means that the element should be focusable and reachable via sequential keyboard navigation, but its relative order is defined by the platform convention;
 * a _positive value_ means that the element should be focusable and reachable via sequential keyboard navigation; the order in which the elements are focused is the increasing value of the [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex). If several elements share the same tabindex, their relative order follows their relative positions in the document.</source>
-        <target state="translated">Целочисленный атрибут, указывающий, может ли элемент получать фокус ввода (является ли он "фокусируемым"), должен ли он участвовать в последовательной навигации с клавиатуры и, если да, то на какой позиции. Оно может принимать несколько значений: 
+        <target state="translated">Целочисленный атрибут, указывающий, может ли элемент получать фокус ввода (является ли он "фокусируемым"), должен ли он участвовать в последовательной навигации с клавиатуры и, если да, то на какой позиции. Оно может принимать несколько значений:
 
-* Отрицательное значение означает, что элемент должен быть фокусируемым, но не должен быть доступен для последовательной навигации с помощью клавиатуры; 
-* `0` означает, что элемент должен быть фокусируемым и доступным посредством последовательной навигации с помощью клавиатуры, но его относительный порядок определяется соглашением платформы; 
+* Отрицательное значение означает, что элемент должен быть фокусируемым, но не должен быть доступен для последовательной навигации с помощью клавиатуры;
+* `0` означает, что элемент должен быть фокусируемым и доступным посредством последовательной навигации с помощью клавиатуры, но его относительный порядок определяется соглашением платформы;
 * Положительное значение означает, что элемент должен быть доступен для фокусировки и управления с помощью последовательной навигации с помощью клавиатуры; порядок фокусировки элементов определяется возрастающим значением [**tabindex**](https://developer.mozilla.org/docs/Web/HTML/Reference/Global_attributes/tabindex#attr-tabindex). Если несколько элементов имеют одинаковое значение tabindex, их относительный порядок определяется их взаимным расположением в документе.</target>
         <note />
       </trans-unit>
@@ -1751,12 +1751,12 @@ The user agent selects any one of the available sources at its discretion. This 
 * `_top`: Load the result into the top-level browsing context (that is, the browsing context that is an ancestor of the current one, and has no parent). If there is no parent, this option behaves the same way as `_self`.
 
 If this attribute is specified, this element must come before any other elements with attributes whose values are URLs.</source>
-        <target state="translated">Имя или ключевое слово, указывающее место по умолчанию для отображения результата при переходе по гиперссылке или отправке формы — для элементов, у которых не задан явный целевой адрес. Это имя или ключевое слово, обозначающее *контекст просмотра* (например, вкладку, окно или встроенный фрейм). Следующие ключевые слова имеют особое значение: 
+        <target state="translated">Имя или ключевое слово, указывающее место по умолчанию для отображения результата при переходе по гиперссылке или отправке формы — для элементов, у которых не задан явный целевой адрес. Это имя или ключевое слово, обозначающее *контекст просмотра* (например, вкладку, окно или встроенный фрейм). Следующие ключевые слова имеют особое значение:
 
-* `_self`: Загрузить результат в тот же контекст просмотра, что и текущий. Это значение является значением по умолчанию, если атрибут не указан. 
-* `_blank`: Загрузить результат в новый безымянный контекст просмотра. 
-* `_parent`: Загрузить результат в контекст просмотра родительского окна текущего окна. Если родительский элемент отсутствует, этот параметр ведет себя так же, как `_self`. 
-* `_top`: Загрузить результат в контекст просмотра верхнего уровня (то есть в контекст просмотра, являющийся предком текущего и не имеющий родителя). Если родительский элемент отсутствует, этот параметр ведет себя так же, как `_self`. 
+* `_self`: Загрузить результат в тот же контекст просмотра, что и текущий. Это значение является значением по умолчанию, если атрибут не указан.
+* `_blank`: Загрузить результат в новый безымянный контекст просмотра.
+* `_parent`: Загрузить результат в контекст просмотра родительского окна текущего окна. Если родительский элемент отсутствует, этот параметр ведет себя так же, как `_self`.
+* `_top`: Загрузить результат в контекст просмотра верхнего уровня (то есть в контекст просмотра, являющийся предком текущего и не имеющий родителя). Если родительский элемент отсутствует, этот параметр ведет себя так же, как `_self`.
 
 Если этот атрибут указан, данный элемент должен располагаться перед любыми другими элементами, имеющими атрибуты, значениями которых являются URL-адреса.</target>
         <note />
@@ -1771,9 +1771,9 @@ If this attribute is specified, this element must come before any other elements
 
 * empty string and `yes`, which indicates that the element will be translated.
 * `no`, which indicates that the element will not be translated.</source>
-        <target state="translated">Перечисляемый атрибут, используемый для указания того, являются ли значения атрибутов элемента и значения его [`Text`](https://developer.mozilla.org/docs/Web/API/Text "Интерфейс Text представляет текстовое содержимое элемента или атрибута. Если элемент не содержит разметки внутри своего содержимого, то у него имеется единственный дочерний узел, реализующий интерфейс Text и содержащий текст этого элемента. Однако если элемент содержит разметку, она разбирается на информационные элементы и текстовые узлы, образующие его дочерние элементы.") должны ли дочерние текстовые узлы переводиться при локализации страницы или оставаться без изменений. Оно может принимать следующие значения: 
+        <target state="translated">Перечисляемый атрибут, используемый для указания того, являются ли значения атрибутов элемента и значения его [`Text`](https://developer.mozilla.org/docs/Web/API/Text "Интерфейс Text представляет текстовое содержимое элемента или атрибута. Если элемент не содержит разметки внутри своего содержимого, то у него имеется единственный дочерний узел, реализующий интерфейс Text и содержащий текст этого элемента. Однако если элемент содержит разметку, она разбирается на информационные элементы и текстовые узлы, образующие его дочерние элементы.") должны ли дочерние текстовые узлы переводиться при локализации страницы или оставаться без изменений. Оно может принимать следующие значения:
 
-* пустая строка и `yes`, указывающая на то, что элемент будет переведен. 
+* пустая строка и `yes`, указывающая на то, что элемент будет переведен.
 * `no`, что означает, что элемент не будет переведен.</target>
         <note />
       </trans-unit>
@@ -1786,7 +1786,7 @@ If this attribute is specified, this element must come before any other elements
         <source>The partial URL (starting with '#') of an [image map](https://developer.mozilla.org/en-US/docs/HTML/Element/map) associated with the element.
 
 **Note:** You cannot use this attribute if the `&lt;img&gt;` element is a descendant of an [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a "The HTML &lt;a&gt; element (or anchor element) creates a hyperlink to other web pages, files, locations within the same page, email addresses, or any other URL.") or [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button "The HTML &lt;button&gt; element represents a clickable button, which can be used in forms or anywhere in a document that needs simple, standard button functionality.") element.</source>
-        <target state="translated">Частичный URL (начинающийся с '#') [карты изображений](https://developer.mozilla.org/en-US/docs/HTML/Element/map), связанной с элементом. 
+        <target state="translated">Частичный URL (начинающийся с '#') [карты изображений](https://developer.mozilla.org/en-US/docs/HTML/Element/map), связанной с элементом.
 
 **Примечание:** Вы не можете использовать этот атрибут, если элемент `&lt;img&gt;` является потомком элемента [`&lt;a&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a Элемент HTML &lt;a&gt; (или элемент привязки) создает гиперссылку на другие веб-страницы, файлы, места на той же странице, адреса электронной почты или любой другой URL-адрес) или [`&lt;button&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/button`. Элемент HTML &lt;button&gt; представляет собой кликабельную кнопку, которую можно использовать в формах или в любом месте документа, где требуется простая стандартная функциональность кнопки.).</target>
         <note />
@@ -1797,9 +1797,9 @@ If this attribute is specified, this element must come before any other elements
 **Note**: This attribute was deprecated in HTML4, but reintroduced in HTML5.
 
 **Note:** Prior to Gecko 9.0, negative values were incorrectly converted to 0. Starting in Gecko 9.0 all integer values are correctly parsed.</source>
-        <target state="translated">Этот целочисленный атрибут указывает текущее порядковое значение элемента списка, определяемое элементом [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "Элемент HTML &lt;ol&gt; представляет собой упорядоченный список элементов, который обычно отображается как нумерованный список."). Единственным допустимым значением для этого атрибута является число, даже если список отображается с использованием римских цифр или букв. Элементы списка, следующие за данным, продолжают нумерацию, исходя из заданного значения. Атрибут **value** не имеет значения для неупорядоченных списков ([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "Элемент HTML &lt;ul&gt; представляет собой неупорядоченный список элементов, обычно отображаемый в виде маркированного списка.")) или для меню ([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "Элемент HTML &lt;menu&gt; представляет собой группу команд, которые пользователь может выполнить или активировать. Это включает в себя как списковые меню, которые могут появляться в верхней части экрана, так и контекстные меню, например, те, которые могут появляться под кнопкой после того, как на нее нажали.")). 
+        <target state="translated">Этот целочисленный атрибут указывает текущее порядковое значение элемента списка, определяемое элементом [`&lt;ol&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ol "Элемент HTML &lt;ol&gt; представляет собой упорядоченный список элементов, который обычно отображается как нумерованный список."). Единственным допустимым значением для этого атрибута является число, даже если список отображается с использованием римских цифр или букв. Элементы списка, следующие за данным, продолжают нумерацию, исходя из заданного значения. Атрибут **value** не имеет значения для неупорядоченных списков ([`&lt;ul&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/ul "Элемент HTML &lt;ul&gt; представляет собой неупорядоченный список элементов, обычно отображаемый в виде маркированного списка.")) или для меню ([`&lt;menu&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/menu "Элемент HTML &lt;menu&gt; представляет собой группу команд, которые пользователь может выполнить или активировать. Это включает в себя как списковые меню, которые могут появляться в верхней части экрана, так и контекстные меню, например, те, которые могут появляться под кнопкой после того, как на нее нажали.")).
 
-**Примечание**: Этот атрибут был устарел в HTML4, но вновь введен в HTML5. 
+**Примечание**: Этот атрибут был устарел в HTML4, но вновь введен в HTML5.
 
 **Примечание:** До версии Gecko 9.0 отрицательные значения некорректно преобразовывались в 0. Начиная с Gecko 9.0, все целочисленные значения обрабатываются правильно.</target>
         <note />
@@ -1810,10 +1810,10 @@ If this attribute is specified, this element must come before any other elements
 * data: Default value. The value is passed to the object's implementation as a string.
 * ref: The value is a URI to a resource where run-time values are stored.
 * object: An ID of another [`&lt;object&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object "The HTML &lt;object&gt; element represents an external resource, which can be treated as an image, a nested browsing context, or a resource to be handled by a plugin.") in the same document.</source>
-        <target state="translated">Задает тип атрибута `value`. Возможные значения: 
+        <target state="translated">Задает тип атрибута `value`. Возможные значения:
 
-* данные: Значение по умолчанию. Значение передается в реализацию объекта в виде строки. 
-* ref: Значение представляет собой URI ресурса, где хранятся значения, полученные во время выполнения. 
+* данные: Значение по умолчанию. Значение передается в реализацию объекта в виде строки.
+* ref: Значение представляет собой URI ресурса, где хранятся значения, полученные во время выполнения.
 * object: Идентификатор другого элемента [`&lt;object&gt;`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/object "HTML-элемент &lt;object&gt; представляет собой внешний ресурс, который может рассматриваться как изображение, вложенный контекст просмотра или ресурс, обрабатываемый плагином.") в том же документе.</target>
         <note />
       </trans-unit>
@@ -1835,11 +1835,11 @@ If this attribute is specified, this element must come before any other elements
 * `off` : Like `soft` but changes appearance to `white-space: pre` so line segments exceeding `cols` are not wrapped and the `&lt;textarea&gt;` becomes horizontally scrollable.
 
 If this attribute is not specified, `soft` is its default value.</source>
-        <target state="translated">Указывает, как элемент управления переносит текст. Возможные значения: 
+        <target state="translated">Указывает, как элемент управления переносит текст. Возможные значения:
 
-* `hard`: Браузер автоматически вставляет переносы строк (CR+LF), так что каждая строка имеет ширину не более ширины элемента управления; для того, чтобы это вступило в силу, необходимо также указать атрибут `cols`. 
-* `soft`: Браузер гарантирует, что все переносы строк в значении состоят из пары CR+LF, но не вставляет никаких дополнительных переносов строк. 
-* `off`: Аналогично `soft`, но изменяет внешний вид на `white-space: pre`, так что отрезки строк, превышающие `cols`, не переносятся, а `&lt;textarea&gt;` становится прокручиваемым по горизонтали. 
+* `hard`: Браузер автоматически вставляет переносы строк (CR+LF), так что каждая строка имеет ширину не более ширины элемента управления; для того, чтобы это вступило в силу, необходимо также указать атрибут `cols`.
+* `soft`: Браузер гарантирует, что все переносы строк в значении состоят из пары CR+LF, но не вставляет никаких дополнительных переносов строк.
+* `off`: Аналогично `soft`, но изменяет внешний вид на `white-space: pre`, так что отрезки строк, превышающие `cols`, не переносятся, а `&lt;textarea&gt;` становится прокручиваемым по горизонтали.
 
 Если этот атрибут не указан, его значением по умолчанию является `soft`.</target>
         <note />

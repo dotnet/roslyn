@@ -7,10 +7,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CaseCorrection;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -136,13 +139,36 @@ public abstract partial class CodeAction
                 // Only care about documents that support syntax.  Non-C#/VB files can't be cleaned.
                 if (document.SupportsSyntaxTree)
                 {
-                    var codeActionOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
+                    var codeActionOptions = await GetCodeActionCleanupOptionsAsync(document, cancellationToken).ConfigureAwait(false);
                     documentIdsAndOptions.Add((documentId, codeActionOptions));
                 }
             }
 
             return documentIdsAndOptions.ToImmutableAndClear();
         }
+    }
+
+    private static async ValueTask<CodeCleanupOptions> GetCodeActionCleanupOptionsAsync(
+        Document document,
+        CancellationToken cancellationToken)
+    {
+        // A source-generated document can represent a different host document whose analyzer-config
+        // options should govern code-action cleanup. For example, Razor maps generated C# back to its
+        // originating .razor or .cshtml document so cleanup uses formatting rules matching that file.
+        if (document is SourceGeneratedDocument sourceGeneratedDocument &&
+            document.Project.Solution.Services.GetService<ISourceGeneratedDocumentAnalyzerConfigOptionsProvider>() is { } sourceGeneratedOptionsProvider &&
+            await sourceGeneratedOptionsProvider.GetOptionsAsync(sourceGeneratedDocument, cancellationToken).ConfigureAwait(false) is { } sourceGeneratedOptions)
+        {
+            var structuredOptions = StructuredAnalyzerConfigOptions.TryGetStructuredOptions(sourceGeneratedOptions, out var options)
+                ? options
+                : StructuredAnalyzerConfigOptions.Create(sourceGeneratedOptions);
+
+            return structuredOptions.GetCodeCleanupOptions(
+                document.Project.GetExtendedLanguageServices().LanguageServices,
+                document.AllowImportsInHiddenRegions());
+        }
+
+        return await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
     }
 
     internal static async ValueTask<Document> CleanupDocumentAsync(Document document, CodeCleanupOptions options, CancellationToken cancellationToken)

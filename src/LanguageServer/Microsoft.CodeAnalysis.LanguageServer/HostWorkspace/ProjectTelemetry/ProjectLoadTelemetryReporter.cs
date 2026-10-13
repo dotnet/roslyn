@@ -25,9 +25,10 @@ internal sealed class ProjectLoadTelemetryReporterFactory(ServerConfiguration se
 
 internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager clientLanguageServerManager, ILoggerFactory loggerFactory, ServerConfiguration serverConfiguration) : ILspService
 {
-    private static readonly string s_hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
-
     private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectLoadTelemetryReporter>();
+
+    // An anonymous, per-server correlation id for the project-load events below.
+    private readonly string _hashedSessionId = VsTfmAndFileExtHashingAlgorithm.HashInput(Guid.NewGuid().ToString());
 
     public sealed record TelemetryInfo
     {
@@ -45,7 +46,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
     /// so that we are able to compare data accurately.
     /// See https://github.com/OmniSharp/omnisharp-roslyn/blob/b2e64c6006beed49460f063117793f42ab2a8a5c/src/OmniSharp.MSBuild/ProjectLoadListener.cs#L36
     /// </summary>
-    public async Task ReportProjectLoadTelemetryAsync(Dictionary<ProjectFileInfo, TelemetryInfo> projectFileInfos, ProjectToLoad projectToLoad, CancellationToken cancellationToken)
+    public async Task ReportProjectLoadTelemetryAsync(Dictionary<ProjectFileInfo, TelemetryInfo> projectFileInfos, string projectPath, Guid? projectGuid, CancellationToken cancellationToken)
     {
         try
         {
@@ -71,7 +72,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
                 return;
             }
 
-            var projectId = await GetProjectIdAsync(projectToLoad, projectFileInfo);
+            var projectId = await GetProjectIdAsync(projectPath, projectFileInfo, projectGuid);
             var targetFrameworks = GetTargetFrameworks(projectFileInfos.Keys);
 
             var projectCapabilities = projectFileInfo.ProjectCapabilities;
@@ -82,7 +83,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
 
             var projectEvent = new ProjectLoadTelemetryEvent(
                 ProjectId: projectId,
-                SessionId: s_hashedSessionId,
+                SessionId: _hashedSessionId,
                 OutputKind: (int)telemetryInfo.OutputKind,
                 ProjectCapabilities: projectCapabilities,
                 TargetFrameworks: targetFrameworks,
@@ -143,20 +144,18 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
     /// This reads the solution file project id or hashes the contents+path
     /// Matches O# implementation - https://github.com/OmniSharp/omnisharp-roslyn/blob/master/src/OmniSharp.MSBuild/ProjectLoadListener.cs#L88
     /// </summary>
-    private static async Task<string> GetProjectIdAsync(ProjectToLoad projectToLoad, ProjectFileInfo projectFileInfo)
+    private static async Task<string> GetProjectIdAsync(string projectPath, ProjectFileInfo projectFileInfo, Guid? projectGuid)
     {
-        if (projectToLoad.ProjectGuid is not null)
+        if (projectGuid is not null)
         {
             // The projectId is formatted as {GUID}.
             // In order to match with O#, we need just the guid.
-            var projectGuid = projectToLoad.ProjectGuid.Replace("{", string.Empty).Replace("}", string.Empty);
-
-            // No need to actually hash the project guid.
-            return projectGuid;
+            return projectGuid.Value.ToString().Replace("{", string.Empty).Replace("}", string.Empty);
         }
 
-        var projectPath = projectToLoad.Path;
-        // The projectToLoad.Path might be a virtual document (misc file), attempt to fall back to the actual file path from the loaded project info.
+        var projectFileName = Path.GetFileName(projectPath);
+
+        // The project path might be a virtual document (misc file), attempt to fall back to the actual file path from the loaded project info.
         if (!File.Exists(projectPath) && projectFileInfo.FilePath is not null)
         {
             projectPath = projectFileInfo.FilePath;
@@ -170,7 +169,7 @@ internal sealed class ProjectLoadTelemetryReporter(IClientLanguageServerManager 
 
         var content = await File.ReadAllTextAsync(projectPath);
         // This should exactly match O# to ensure we get the same hashes.
-        return VsReferenceHashingAlgorithm.HashInput($"Filename: {Path.GetFileName(projectToLoad.Path)}\n{content}");
+        return VsReferenceHashingAlgorithm.HashInput($"Filename: {projectFileName}\n{content}");
     }
 
     private static ImmutableArray<string> GetTargetFrameworks(IEnumerable<ProjectFileInfo> projectFileInfos)

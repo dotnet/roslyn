@@ -11,8 +11,8 @@ using Microsoft.AspNetCore.Razor;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.CodeActions.Models;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -28,6 +28,9 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 
 public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
+    private protected override TestComposition ConfigureLocalComposition(TestComposition composition)
+        => composition.AddParts(typeof(RazorSourceGeneratedDocumentAnalyzerConfigOptionsProvider));
+
     private protected async Task VerifyCodeActionAsync(
         TestCode input,
         string? expected,
@@ -40,9 +43,9 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null,
         bool addDefaultImports = true,
         bool makeDiagnosticsRequest = false,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
+        Action<RazorProjectBuilder>? projectConfigure = null)
     {
-        var document = CreateRazorDocument(input, fileKind, documentFilePath, additionalFiles, addDefaultImports: addDefaultImports);
+        var document = CreateRazorDocument(input, fileKind, documentFilePath, additionalFiles, addDefaultImports: addDefaultImports, projectConfigure: projectConfigure);
 
         var codeAction = await VerifyCodeActionRequestAsync(document, input, codeActionName, codeActionIndex, childActionIndex, expectOffer: expected is not null, makeDiagnosticsRequest);
 
@@ -53,17 +56,22 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         }
 
         Assert.NotNull(expected);
-        csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
 
         var workspaceEdit = codeAction.Data is null
             ? codeAction.Edit.AssumeNotNull()
-            : await ResolveCodeActionAsync(document, codeAction, csharpSyntaxFormattingOptions);
+            : await ResolveCodeActionAsync(document, codeAction);
 
         var expectedChanges = (additionalExpectedFiles ?? []).Select(e => (e.fileUri, e.contents)).Concat([(document.GetURI(), expected)]);
         await workspaceEdit.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 
-    private protected TextDocument CreateRazorDocument(TestCode input, RazorFileKind? fileKind = null, string? documentFilePath = null, (string filePath, string contents)[]? additionalFiles = null, bool addDefaultImports = true)
+    private protected TextDocument CreateRazorDocument(
+        TestCode input,
+        RazorFileKind? fileKind = null,
+        string? documentFilePath = null,
+        (string filePath, string contents)[]? additionalFiles = null,
+        bool addDefaultImports = true,
+        Action<RazorProjectBuilder>? projectConfigure = null)
     {
         var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
         fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(additionalFiles));
@@ -81,7 +89,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
             return options;
         });
 
-        return CreateProjectAndRazorDocument(input.Text, fileKind, documentFilePath, additionalFiles: additionalFiles, addDefaultImports: addDefaultImports);
+        return CreateProjectAndRazorDocument(input.Text, fileKind, documentFilePath, additionalFiles: additionalFiles, addDefaultImports: addDefaultImports, projectConfigure: projectConfigure);
     }
 
     private async Task<CodeAction?> VerifyCodeActionRequestAsync(TextDocument document, TestCode input, string codeActionName, int? codeActionIndex, int childActionIndex, bool expectOffer, bool makeDiagnosticsRequest)
@@ -193,15 +201,12 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         return await endpoint.GetTestAccessor().HandleRequestAsync(document, request, DisposalToken);
     }
 
-    private async Task<WorkspaceEdit> ResolveCodeActionAsync(
-        CodeAnalysis.TextDocument document,
-        CodeAction codeAction,
-        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+    private async Task<WorkspaceEdit> ResolveCodeActionAsync(CodeAnalysis.TextDocument document, CodeAction codeAction)
     {
         var requestInvoker = new TestHtmlRequestInvoker();
         var endpoint = new CohostCodeActionsResolveEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientCapabilitiesService, ClientSettingsManager, requestInvoker);
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, codeAction, csharpSyntaxFormattingOptions, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(document, codeAction, DisposalToken);
 
         Assert.NotNull(result?.Edit);
         return result.Edit;

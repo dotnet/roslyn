@@ -52,15 +52,6 @@ Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (6,2)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter] public TRenderMode RenderModeParam { get; set;}
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

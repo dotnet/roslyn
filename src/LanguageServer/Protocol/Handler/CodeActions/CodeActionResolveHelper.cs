@@ -21,18 +21,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 
 internal sealed class CodeActionResolveHelper
 {
-    public static Task<LSP.WorkspaceEdit> GetCodeActionResolveEditsAsync(RequestContext context, CodeActionResolveData data, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)
+    public static async Task<LSP.WorkspaceEdit> GetCodeActionResolveEditsAsync(RequestContext context, CodeActionResolveData data, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)
     {
-        var solution = context.Solution;
-        Contract.ThrowIfNull(solution);
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
 
-        return GetCodeActionResolveEditsAsync(
+        return await GetCodeActionResolveEditsAsync(
             solution,
             data,
             operations,
             context.GetRequiredClientCapabilities().Workspace?.WorkspaceEdit?.ResourceOperations ?? [],
             context.TraceDebug,
-            cancellationToken);
+            cancellationToken).ConfigureAwait(false);
     }
 
     public static async Task<LSP.WorkspaceEdit> GetCodeActionResolveEditsAsync(Solution solution, CodeActionResolveData data, ImmutableArray<CodeActionOperation> operations, ResourceOperationKind[] resourceOperations, Action<string> logFunction, CancellationToken cancellationToken)

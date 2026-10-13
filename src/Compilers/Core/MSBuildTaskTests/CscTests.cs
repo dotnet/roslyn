@@ -3,8 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
+using Microsoft.CodeAnalysis.CommandLine;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -500,8 +504,21 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2615118")]
         public void BuiltInToolExe(bool useAppHost, bool setToolExe)
         {
-            var csc = new Csc();
-            csc.UseAppHost_TestOnly = useAppHost;
+            using var temp = new TempRoot();
+            var projectDirectory = temp.CreateDirectory();
+            var taskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+                projectDirectory.Path,
+                new Dictionary<string, string>
+                {
+                    [RuntimeHostInfo.DotNetHostPathEnvironmentName] = TestHelpers.GetRootedPath(RuntimeHostInfo.DotNetHostExecutableName)
+                });
+
+            var csc = new Csc()
+            {
+                UseAppHost_TestOnly = useAppHost,
+                TaskEnvironment = taskEnvironment,
+            };
+
             if (setToolExe)
             {
                 csc.ToolExe = $"csc{PlatformInformation.ExeExtension}";
@@ -513,9 +530,68 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
             else
             {
-                AssertEx.Equal(RuntimeHostInfo.GetDotNetPathOrDefault(), csc.GeneratePathToTool());
+                AssertEx.Equal(RuntimeHostInfo.GetDotNetHostPath(taskEnvironment.BuildEnvironment), csc.GeneratePathToTool());
                 AssertEx.Equal(RuntimeHostInfo.GetDotNetExecCommandLine(csc.PathToBuiltInTool, ""), csc.GenerateCommandLineContents());
             }
+        }
+
+        /// <summary>
+        /// The value of `DOTNET_HOST_PATH` will be preferred as is when present
+        /// </summary>
+        [Fact]
+        public void BuiltInToolUsesTaskEnvironmentDotNetHostPathRelative()
+        {
+            var projectDirectory = Temp.CreateDirectory();
+            var dotnetPath = Path.Combine(TestHelpers.Root, RuntimeHostInfo.DotNetHostExecutableName);
+            var csc = new Csc
+            {
+                UseAppHost_TestOnly = false,
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+                    projectDirectory.Path,
+                    new Dictionary<string, string>
+                    {
+                        [RuntimeHostInfo.DotNetHostPathEnvironmentName] = dotnetPath,
+                    }),
+            };
+
+            Assert.Equal(dotnetPath, csc.GeneratePathToTool());
+        }
+
+        [Fact]
+        public void BuiltInToolUsesTaskEnvironmentDotNetHostWhenNull()
+        {
+            var projectDirectory = Temp.CreateDirectory();
+            var csc = new Csc
+            {
+                UseAppHost_TestOnly = false,
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+                    projectDirectory.Path,
+                    new Dictionary<string, string>())
+            };
+
+            Assert.Equal(RuntimeHostInfo.DotNetHostExecutableName, csc.GeneratePathToTool());
+        }
+
+        /// <summary>
+        /// A full path will be returned as is.
+        /// </summary>
+        [Fact]
+        public void BuiltInToolUsesTaskEnvironmentDotNetHostPathFull()
+        {
+            var projectDirectory = Temp.CreateDirectory();
+            var dotnetPath = Path.Combine(TestHelpers.Root, "dotnet-host");
+            var csc = new Csc
+            {
+                UseAppHost_TestOnly = false,
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(
+                    projectDirectory.Path,
+                    new Dictionary<string, string>
+                    {
+                        [RuntimeHostInfo.DotNetHostPathEnvironmentName] = dotnetPath
+                    }),
+            };
+
+            Assert.Equal(dotnetPath, csc.GeneratePathToTool());
         }
 
         [Fact]
@@ -671,6 +747,76 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
                 Assert.Throws<ArgumentException>(() => csc.GenerateResponseFileContents());
             }
+        }
+
+        /// <summary>
+        /// The multithreaded task migration requires relative references to be resolved against the
+        /// task's <see cref="TaskEnvironment.ProjectDirectory"/> rather than the shared process
+        /// working directory. Two task instances pointed at different project directories must resolve
+        /// the same relative reference independently.
+        /// </summary>
+        [Fact]
+        public void ReferenceExistenceResolvesAgainstTaskProjectDirectory()
+        {
+            var directoryWithReference = Temp.CreateDirectory();
+            var directoryWithoutReference = Temp.CreateDirectory();
+            directoryWithReference.CreateFile("ref.dll");
+
+            var taskInDirectoryWithReference = new TestableCsc()
+            {
+                BuildEngine = new MockEngine(TestOutputHelper),
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(directoryWithReference.Path),
+                References = MSBuildUtil.CreateTaskItems("ref.dll"),
+            };
+            var taskInDirectoryWithoutReference = new TestableCsc()
+            {
+                BuildEngine = new MockEngine(TestOutputHelper),
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(directoryWithoutReference.Path),
+                References = MSBuildUtil.CreateTaskItems("ref.dll"),
+            };
+
+            Assert.True(taskInDirectoryWithReference.CheckReferences());
+            Assert.False(taskInDirectoryWithoutReference.CheckReferences());
+        }
+
+        private sealed class TestableCsc : Csc
+        {
+            public bool CheckReferences() => CheckAllReferencesExistOnDisk();
+        }
+
+        /// <summary>
+        /// An empty reference <see cref="ITaskItem.ItemSpec"/> must be reported as a missing reference
+        /// (matching the pre-migration <c>File.Exists</c> behavior) rather than throwing from
+        /// <see cref="TaskEnvironment.GetAbsolutePath"/>.
+        /// </summary>
+        [Fact]
+        public void EmptyReferenceItemSpecIsReportedAsMissingWithoutThrowing()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var task = new TestableCsc()
+            {
+                BuildEngine = engine,
+                References = MSBuildUtil.CreateTaskItems(""),
+            };
+
+            Assert.False(task.CheckReferences());
+            Assert.Contains("MSB3104", engine.Log);
+        }
+
+        [Fact]
+        public void InvalidReferencePathIsReportedAsMissingWithoutThrowing()
+        {
+            var projectDirectory = Temp.CreateDirectory();
+            var engine = new MockEngine(TestOutputHelper);
+            var task = new TestableCsc()
+            {
+                BuildEngine = engine,
+                TaskEnvironment = TaskEnvironment.CreateWithProjectDirectoryAndEnvironment(projectDirectory.Path),
+                References = MSBuildUtil.CreateTaskItems("bad|ref.dll"),
+            };
+
+            Assert.False(task.CheckReferences());
+            Assert.Contains("MSB3104", engine.Log);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/79907")]

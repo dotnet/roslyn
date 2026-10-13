@@ -30,7 +30,7 @@ internal sealed class CallHierarchyIncomingCallsHandler() : ILspServiceDocumentR
         => CallHierarchyHelpers.GetResolveData(request.Item).TextDocument;
 
     public async Task<LSP.CallHierarchyIncomingCall[]?> HandleRequestAsync(LSP.CallHierarchyIncomingCallsParams request, RequestContext context, CancellationToken cancellationToken)
-        => await GetIncomingCallsAsync(context.GetRequiredDocument(), request.Item, allowRazorSourceGeneratedDocuments: false, cancellationToken).ConfigureAwait(false);
+        => await GetIncomingCallsAsync(await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false), request.Item, allowRazorSourceGeneratedDocuments: false, cancellationToken).ConfigureAwait(false);
 
     internal static async Task<LSP.CallHierarchyIncomingCall[]?> GetIncomingCallsAsync(Document document, LSP.CallHierarchyItem item, bool allowRazorSourceGeneratedDocuments, CancellationToken cancellationToken)
     {

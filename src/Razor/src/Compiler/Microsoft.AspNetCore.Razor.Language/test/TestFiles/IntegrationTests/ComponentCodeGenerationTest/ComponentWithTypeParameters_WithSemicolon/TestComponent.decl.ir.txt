@@ -1,3 +1,10 @@
 ﻿Document - 
     NamespaceDeclaration -  - Test
-        ClassDeclaration -  - public partial - TestComponent -  -  - TItem1, TItem2
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (1:0,1 [38] x:\dir\subdir\Test\TestComponent.cshtml) - Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase -  - TItem1, TItem2
+            CSharpCode - (190:11,7 [185] x:\dir\subdir\Test\TestComponent.cshtml)
+                LazyIntermediateToken - (190:11,7 [185] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TItem1 Item1 { get; set; }\n    [Parameter] public List<TItem2> Items2 { get; set; }\n    [Parameter] public RenderFragment<TItem2> ChildContent { get; set; }\n

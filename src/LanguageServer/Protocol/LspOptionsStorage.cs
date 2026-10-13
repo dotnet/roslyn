@@ -15,10 +15,10 @@ internal sealed class LspOptionsStorage
     /// </summary>
     public static readonly Option2<int> MaxCompletionListSize = new("dotnet_lsp_max_completion_list_size", defaultValue: 1000);
 
-    // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
+    // Flag is defined in VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.Extra.pkgdef.
     public static readonly Option2<bool> LspEditorFeatureFlag = new("dotnet_enable_lsp_editor", defaultValue: false);
 
-    // Flag is defined in VisualStudio\Core\Def\PackageRegistration.pkgdef.
+    // Flag is defined in VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.Extra.pkgdef.
     public static readonly Option2<bool> LspSemanticTokensFeatureFlag = new("dotnet_enable_lsp_semantic_tokens", defaultValue: false);
 
     /// <summary>
@@ -32,6 +32,7 @@ internal sealed class LspOptionsStorage
 
     private static readonly OptionGroup s_codeLensOptionGroup = new(name: "code_lens", description: "");
     private static readonly OptionGroup s_formattingOptionGroup = new(name: "formatting", description: "");
+    private static readonly OptionGroup s_testingOptionGroup = new(name: "testing", description: "");
 
     private static readonly OptionGroup s_autoInsertOptionGroup = new(name: "auto_insert", description: "");
 
@@ -44,6 +45,11 @@ internal sealed class LspOptionsStorage
     /// Flag indicating whether or not test and debug code lens items should be returned.
     /// </summary>
     public static readonly PerLanguageOption2<bool> LspEnableTestsCodeLens = new("dotnet_enable_tests_code_lens", defaultValue: true, group: s_codeLensOptionGroup);
+
+    /// <summary>
+    /// Flag indicating whether test discovery should use semantic information to recognize derived test attributes.
+    /// </summary>
+    public static readonly PerLanguageOption2<bool> LspUseSemanticTestDiscovery = new("dotnet_use_semantic_test_discovery", defaultValue: false, group: s_testingOptionGroup);
 
     /// <summary>
     /// Flag indicating whether or not auto-insert should be abled by default in LSP.

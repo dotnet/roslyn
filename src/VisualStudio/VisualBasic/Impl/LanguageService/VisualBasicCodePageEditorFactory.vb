@@ -4,9 +4,11 @@
 
 Imports System.Runtime.InteropServices
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
+Imports Microsoft.VisualStudio.Shell
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <Guid(Guids.VisualBasicCodePageEditorFactoryIdString)>
+    <ProvideView(LogicalView.Designer, "Form")>
     Friend NotInheritable Class VisualBasicCodePageEditorFactory
         Inherits AbstractCodePageEditorFactory
 

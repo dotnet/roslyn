@@ -4,10 +4,12 @@
 
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 
 [Guid(Guids.CSharpCodePageEditorFactoryIdString)]
+[ProvideView(LogicalView.Designer, "Form")]
 internal sealed class CSharpCodePageEditorFactory(AbstractEditorFactory editorFactory) : AbstractCodePageEditorFactory(editorFactory)
 {
 }

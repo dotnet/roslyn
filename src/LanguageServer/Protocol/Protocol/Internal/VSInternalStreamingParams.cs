@@ -8,8 +8,6 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing a streaming pull request parameter used.
-///
-/// TODO: Deprecate VSInternalDiagnosticParams.cs to use this merged param instead.
 /// </summary>
 internal class VSInternalStreamingParams : ITextDocumentParams
 {

@@ -1,0 +1,28 @@
+﻿[$RootKey$\FeatureFlags\Roslyn\LSP\Editor]
+"Description"="Enables the LSP-powered C#/VB editing experience outside of CodeSpaces."
+"Value"=dword:00000000
+"Title"="C#/VB LSP editor (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Roslyn\LSP\SemanticTokens]
+"Description"="Enables the LSP-powered C#/VB semantic tokens experience in the local editor."
+"Value"=dword:00000000
+"Title"="C#/VB LSP semantic tokens experience"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Roslyn\SemanticSearchEnabled]
+"Description"="Enable C# Semantic Search."
+"Value"=dword:00000000
+"Title"="Enable C# Semantic Search"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+[$RootKey$\FeatureFlags\Roslyn\CopilotRenameGetContext]
+"Description"="Add semantic context to Copilot Rename Suggestions in C#."
+"Value"=dword:00000000
+"Title"="Semantic Context in C# Copilot Rename  (requires restart)"
+"PreviewPaneChannels"="IntPreview,int.main"
+
+// Corresponds to WellKnownExperimentNames.LspPullDiagnosticsFeatureFlag
+[$RootKey$\FeatureFlags\Lsp\PullDiagnostics]
+"Description"="Enables the LSP-powered diagnostics for managed .Net projects"
+"Value"=dword:00000001

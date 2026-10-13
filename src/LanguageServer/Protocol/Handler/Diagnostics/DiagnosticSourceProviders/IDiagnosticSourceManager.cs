@@ -16,14 +16,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSo
 internal interface IDiagnosticSourceManager
 {
     /// <summary>
-    /// Returns the names of document level <see cref="IDiagnosticSourceProvider"/>s.
+    /// Returns registration metadata for all enabled diagnostic source providers.
     /// </summary>
-    ImmutableArray<string> GetDocumentSourceProviderNames(ClientCapabilities clientCapabilities);
-
-    /// <summary>
-    /// Returns the names of workspace level <see cref="IDiagnosticSourceProvider"/>s.
-    /// </summary>
-    ImmutableArray<string> GetWorkspaceSourceProviderNames(ClientCapabilities clientCapabilities);
+    ImmutableArray<DiagnosticRegistrationOptions> GetDiagnosticRegistrationOptions(ClientCapabilities clientCapabilities);
 
     /// <summary>
     /// Creates document diagnostic sources for the given <paramref name="providerName"/>.

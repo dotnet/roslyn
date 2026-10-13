@@ -340,6 +340,9 @@ public abstract class IntegrationTestBase
             {
                 builder.NewLine = LineEnding;
                 builder.SuppressUniqueIds = "__UniqueIdSuppressedForTesting__";
+
+                // Tests assert against split output, so they opt in like the source generator does.
+                builder.EnableMarkupSplit = true;
             });
 
             b.RegisterExtensions();

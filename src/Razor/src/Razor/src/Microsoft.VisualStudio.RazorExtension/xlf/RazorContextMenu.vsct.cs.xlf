@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="cmdidShowGeneratedDeclarationCode|ButtonText">
         <source>Show Generated C# Declaration</source>
-        <target state="new">Show Generated C# Declaration</target>
+        <target state="translated">Zobrazit vygenerovanou deklaraci jazyka C#</target>
         <note />
       </trans-unit>
       <trans-unit id="cmdidShowGeneratedHtml|ButtonText">
@@ -124,12 +124,12 @@
       </trans-unit>
       <trans-unit id="menuidShowGenerated|ButtonText">
         <source>Show Generated File</source>
-        <target state="new">Show Generated File</target>
+        <target state="translated">Zobrazit vygenerovaný soubor</target>
         <note />
       </trans-unit>
       <trans-unit id="menuidShowTagHelpers|ButtonText">
         <source>Show Tag Helpers</source>
-        <target state="new">Show Tag Helpers</target>
+        <target state="translated">Zobrazit pomocné rutiny značek</target>
         <note />
       </trans-unit>
       <trans-unit id="menuidToolWindowToolbar|ButtonText">

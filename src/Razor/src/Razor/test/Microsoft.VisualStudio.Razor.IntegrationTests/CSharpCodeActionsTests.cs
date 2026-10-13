@@ -31,7 +31,7 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
         await TestServices.Editor.WaitForCurrentLineTextAsync("private void IncrementCount() => currentCount++;", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
     public async Task CSharpCodeActionsTests_FullyQualify()
     {
         // Open the file
@@ -59,7 +59,7 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
         await TestServices.Editor.WaitForCurrentLineTextAsync("var x = System.Data.ConflictOption.CompareAllSearchableValues;", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
     public async Task CSharpCodeActionsTests_AddUsing()
     {
         // Open the file
@@ -94,7 +94,7 @@ public class CSharpCodeActionsTests(ITestOutputHelper testOutputHelper) : Abstra
             """, ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
     public async Task CSharpCodeActionsTests_AddUsing_WithTypo()
     {
         // Open the file

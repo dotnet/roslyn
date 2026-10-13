@@ -17,6 +17,8 @@ internal sealed class SourceGeneratorProjectEngine
     private readonly IRazorEnginePhase _discoveryPhase;
     private readonly int _discoveryPhaseIndex = -1;
     private readonly int _rewritePhaseIndex = -1;
+    private readonly int _utf8PhaseIndex = -1;
+    private readonly int _csharpLoweringPhaseIndex = -1;
 
     private ReadOnlySpan<IRazorEnginePhase> Phases => _projectEngine.Engine.Phases.AsSpan();
 
@@ -28,11 +30,6 @@ internal sealed class SourceGeneratorProjectEngine
 
         foreach (var phase in Phases)
         {
-            if (_discoveryPhaseIndex >= 0 && _rewritePhaseIndex >= 0)
-            {
-                break;
-            }
-
             switch (phase)
             {
                 case DefaultRazorTagHelperContextDiscoveryPhase:
@@ -43,6 +40,14 @@ internal sealed class SourceGeneratorProjectEngine
                 case DefaultRazorTagHelperRewritePhase:
                     _rewritePhaseIndex = index;
                     break;
+
+                case Utf8WriteLiteralPhase:
+                    _utf8PhaseIndex = index;
+                    break;
+
+                case DefaultRazorCSharpLoweringPhase:
+                    _csharpLoweringPhaseIndex = index;
+                    break;
             }
 
             index++;
@@ -51,7 +56,11 @@ internal sealed class SourceGeneratorProjectEngine
         Debug.Assert(_discoveryPhase is not null);
         Debug.Assert(_discoveryPhaseIndex >= 0);
         Debug.Assert(_rewritePhaseIndex >= 0);
+        Debug.Assert(_utf8PhaseIndex >= 0);
+        Debug.Assert(_csharpLoweringPhaseIndex >= 0);
         Debug.Assert(_discoveryPhaseIndex < _rewritePhaseIndex);
+        Debug.Assert(_rewritePhaseIndex < _utf8PhaseIndex);
+        Debug.Assert(_utf8PhaseIndex < _csharpLoweringPhaseIndex);
     }
 
     public SourceGeneratorRazorCodeDocument ProcessInitialParse(RazorProjectItem projectItem, CancellationToken cancellationToken)
@@ -186,18 +195,34 @@ internal sealed class SourceGeneratorProjectEngine
         return false;
     }
 
-    public SourceGeneratorRazorCodeDocument ProcessRemaining(SourceGeneratorRazorCodeDocument sgDocument, DefaultUtf8WriteLiteralFeature.Utf8SupportMap utf8SupportMap, CancellationToken cancellationToken)
+    public SourceGeneratorRazorCodeDocument ProcessOptimizationPasses(SourceGeneratorRazorCodeDocument sgDocument, CancellationToken cancellationToken)
     {
         var codeDocument = sgDocument.CodeDocument;
         Debug.Assert(codeDocument.GetReferencedTagHelpers() is not null);
 
-        if (_projectEngine.Engine.TryGetFeature<IUtf8WriteLiteralFeature>(out var feature) &&
-            feature is DefaultUtf8WriteLiteralFeature defaultFeature)
-        {
-            defaultFeature.SupportMap = utf8SupportMap;
-        }
+        codeDocument = ExecutePhases(Phases[(_rewritePhaseIndex + 1).._utf8PhaseIndex], codeDocument, cancellationToken);
 
-        codeDocument = ExecutePhases(Phases[(_rewritePhaseIndex + 1)..], codeDocument, cancellationToken);
+        return new SourceGeneratorRazorCodeDocument(codeDocument);
+    }
+
+    /// <summary>
+    ///  Runs the <see cref="Utf8WriteLiteralPhase"/> with the support map and returns the UTF-8 flag
+    ///  it records on the document.
+    /// </summary>
+    /// <remarks>
+    ///  Kept as its own step so the support map stays out of the cached optimization passes.
+    /// </remarks>
+    public bool ProcessUtf8(SourceGeneratorRazorCodeDocument sgDocument, Utf8SupportMap utf8SupportMap, CancellationToken cancellationToken)
+    {
+        var codeDocument = sgDocument.CodeDocument.WithUtf8SupportMap(utf8SupportMap);
+        codeDocument = ExecutePhases(Phases[_utf8PhaseIndex.._csharpLoweringPhaseIndex], codeDocument, cancellationToken);
+
+        return codeDocument.GetDocumentNode()?.Options?.WriteHtmlUtf8StringLiterals ?? false;
+    }
+
+    public SourceGeneratorRazorCodeDocument ProcessCSharp(SourceGeneratorRazorCodeDocument sgDocument, CancellationToken cancellationToken)
+    {
+        var codeDocument = ExecutePhases(Phases[_csharpLoweringPhaseIndex..], sgDocument.CodeDocument, cancellationToken);
 
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }

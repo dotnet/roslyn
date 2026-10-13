@@ -13,6 +13,8 @@ using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.AsyncCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
+using Microsoft.VisualStudio.Debugger.Contracts.HotReload;
+using Microsoft.VisualStudio.HotReload;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.UnitTesting;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
@@ -34,10 +36,19 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup;
 
+[PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
+[ProvideMenuResource("Menus.ctmenu", 22)]
+[ProvideUIContextRule(
+    EditAndContinueUIContext.EncCapableProjectExistsInWorkspaceUIContextString,
+    name: "Managed Edit and Continue capability",
+    expression: "CS | VB",
+    termNames: ["CS", "VB"],
+    termValues: [Guids.CSharpProjectExistsInWorkspaceUIContextString, Guids.VisualBasicProjectExistsInWorkspaceUIContextString])]
 [Guid(Guids.RoslynPackageIdString)]
 [ProvideToolWindow(typeof(ValueTracking.ValueTrackingToolWindow))]
 [ProvideToolWindow(typeof(StackTraceExplorerToolWindow))]
 [ProvideService(typeof(RoslynPackageLoadService), IsAsyncQueryable = true, IsCacheable = true, IsFreeThreaded = true)]
+[ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\roslynSettings.registration.json")]
 internal sealed class RoslynPackage : AbstractPackage
 {
     private static RoslynPackage? s_lazyInstance;
@@ -45,7 +56,6 @@ internal sealed class RoslynPackage : AbstractPackage
     private ThreadSafeMenuCommandService? _menuCommandService;
     private RuleSetEventHandler? _ruleSetEventHandler;
     private SolutionEventMonitor? _solutionEventMonitor;
-    private PdbMatchingSourceTextProvider? _sourceTextProvider;
 
     internal static async ValueTask<RoslynPackage?> GetOrLoadAsync(IThreadingContext threadingContext, IAsyncServiceProvider serviceProvider, CancellationToken cancellationToken)
     {
@@ -115,23 +125,11 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         // Proffer in-process service broker services
         var serviceBrokerContainer = await this.GetServiceAsync<SVsBrokeredServiceContainer, IBrokeredServiceContainer>(cancellationToken).ConfigureAwait(false);
+        var serviceBroker = serviceBrokerContainer.GetFullAccessServiceBroker();
 
         serviceBrokerContainer.Proffer(
             WorkspaceProjectFactoryServiceDescriptor.ServiceDescriptor,
             (_, _, _, _) => ValueTask.FromResult<object?>(new WorkspaceProjectFactoryService(ComponentModel.GetService<IWorkspaceProjectContextFactory>())));
-
-        var hotReloadFactory = ComponentModel.GetService<ManagedHotReloadLanguageServiceFactory>();
-        var solutionSnapshotProvider = ComponentModel.GetService<ISolutionSnapshotProvider>();
-        var hostWorkspaceProvider = ComponentModel.GetService<IHostWorkspaceProvider>();
-
-        _sourceTextProvider = new PdbMatchingSourceTextProvider(hostWorkspaceProvider.Workspace);
-        serviceBrokerContainer.Proffer(
-            ManagedHotReloadLanguageServiceDescriptor.Descriptor,
-            (_, _, serviceBroker, _) =>
-            {
-                var service = hotReloadFactory.Create(serviceBroker, solutionSnapshotProvider, hostWorkspaceProvider, _sourceTextProvider);
-                return ValueTask.FromResult<object?>(service);
-            });
     }
 
     protected override async Task LoadComponentsInBackgroundAfterSolutionFullyLoadedAsync(CancellationToken cancellationToken)
@@ -185,8 +183,6 @@ internal sealed class RoslynPackage : AbstractPackage
 
         _solutionEventMonitor?.Dispose();
         _solutionEventMonitor = null;
-        _sourceTextProvider?.Dispose();
-        _sourceTextProvider = null;
 
         base.Dispose(disposing);
     }

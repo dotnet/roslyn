@@ -25,9 +25,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ConsoleUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\Csc.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\ExitingTraceListener.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\IBuildEnvironment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NamedPipeUtil.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\NativeMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\RuntimeHostInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)..\..\Shared\StandardBuildEnvironment.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Program.cs" />
 
     <None Include="$(MSBuildThisFileDirectory)App.config" Condition="'$(TargetFramework)' == 'net472'" />

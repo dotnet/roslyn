@@ -55,6 +55,7 @@ internal sealed partial class DidChangeConfigurationNotificationHandler
         SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
         LspOptionsStorage.LspEnableReferencesCodeLens,
         LspOptionsStorage.LspEnableTestsCodeLens,
+        LspOptionsStorage.LspUseSemanticTestDiscovery,
         LspOptionsStorage.LspEnableAutoInsert,
         LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
         LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,

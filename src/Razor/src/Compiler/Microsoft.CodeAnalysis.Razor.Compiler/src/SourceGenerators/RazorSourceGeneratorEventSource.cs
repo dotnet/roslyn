@@ -81,5 +81,21 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
         private const int CheckAndRewriteTagHelpersStopId = 20;
         [Event(CheckAndRewriteTagHelpersStopId, Level = EventLevel.Informational)]
         public void CheckAndRewriteTagHelpersStop(string file) => WriteEvent(CheckAndRewriteTagHelpersStopId, file);
+
+        private const int RazorOptimizeStartId = 21;
+        [Event(RazorOptimizeStartId, Level = EventLevel.Informational)]
+        public void RazorOptimizeStart(string file) => WriteEvent(RazorOptimizeStartId, file);
+
+        private const int RazorOptimizeStopId = 22;
+        [Event(RazorOptimizeStopId, Level = EventLevel.Informational)]
+        public void RazorOptimizeStop(string file) => WriteEvent(RazorOptimizeStopId, file);
+
+        private const int RazorComputeUtf8LiteralsStartId = 23;
+        [Event(RazorComputeUtf8LiteralsStartId, Level = EventLevel.Informational)]
+        public void RazorComputeUtf8LiteralsStart(string file) => WriteEvent(RazorComputeUtf8LiteralsStartId, file);
+
+        private const int RazorComputeUtf8LiteralsStopId = 24;
+        [Event(RazorComputeUtf8LiteralsStopId, Level = EventLevel.Informational)]
+        public void RazorComputeUtf8LiteralsStop(string file) => WriteEvent(RazorComputeUtf8LiteralsStopId, file);
     }
 }

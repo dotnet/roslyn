@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -28,7 +28,7 @@ internal sealed class SelectionRangeHandler() : ILspServiceDocumentRequestHandle
 
     public async Task<SelectionRange[]?> HandleRequestAsync(SelectionRangeParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.Document;
+        var document = await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (document is null)
             return null;
 

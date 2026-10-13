@@ -1,0 +1,156 @@
+﻿<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:b="clr-namespace:MSBuildWorkspaceTester.Behaviors"
+        xmlns:vm="clr-namespace:MSBuildWorkspaceTester.ViewModels"
+        xmlns:f="clr-namespace:MSBuildWorkspaceTester.Framework"
+        mc:Ignorable="d"
+        Name="MainWindow"
+        Title="Solution Explorer" Height="768" Width="1024"
+        FontSize="15"
+        f:ViewModel.RegisterCommands="{Binding}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ToolBarTray Grid.Row="0" ToolBarTray.IsLocked="True">
+            <ToolBar>
+                <Button Command="{Binding OpenProjectCommand}" ToolTip="Open project or solution">
+                    <Image Source="{StaticResource OpenFolderIcon}" />
+                </Button>
+            </ToolBar>
+        </ToolBarTray>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200" />
+                <ColumnDefinition Width="5" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TreeView Grid.Column="0" ItemsSource="{Binding Solution}">
+                <TreeView.Resources>
+
+                    <HierarchicalDataTemplate DataType="{x:Type vm:SolutionViewModel}"
+                                              ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2">
+                            <Image Source="{StaticResource SolutionIcon}"
+                                   Margin="0,0,4,0" />
+                            <TextBlock Text="{Binding DisplayName}"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <HierarchicalDataTemplate DataType="{x:Type vm:ProjectViewModel}"
+                                              ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2">
+                            <Image Margin="0,0,4,0">
+                                <Image.Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Source" Value="{StaticResource CSharpProjectIcon}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Language}" Value="Visual Basic">
+                                                <Setter Property="Source" Value="{StaticResource VisualBasicProjectIcon}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+                            </Image>
+                            <TextBlock Text="{Binding DisplayName}"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <HierarchicalDataTemplate DataType="{x:Type vm:FolderViewModel}"
+                                              ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2">
+                            <Image Source="{StaticResource ClosedFolderIcon}"
+                                   Margin="0,0,4,0" />
+                            <TextBlock Text="{Binding DisplayName}"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <HierarchicalDataTemplate DataType="{x:Type vm:ReferencesFolderViewModel}"
+                                              ItemsSource="{Binding Children}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2">
+                            <Image Source="{StaticResource ReferenceIcon}"
+                                   Margin="0,0,4,0" />
+                            <TextBlock Text="{Binding DisplayName}"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <HierarchicalDataTemplate DataType="{x:Type vm:MetadataReferenceViewModel}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2">
+                            <Image Source="{StaticResource ReferenceIcon}"
+                                   Margin="0,0,4,0" />
+                            <TextBlock Text="{Binding DisplayName}"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <HierarchicalDataTemplate DataType="{x:Type vm:ProjectReferenceViewModel}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2">
+                            <Image Margin="0,0,4,0">
+                                <Image.Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Source" Value="{StaticResource CSharpProjectIcon}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Language}" Value="Visual Basic">
+                                                <Setter Property="Source" Value="{StaticResource VisualBasicProjectIcon}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+                            </Image>
+                            <TextBlock Text="{Binding DisplayName}"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+
+                    <HierarchicalDataTemplate DataType="{x:Type vm:DocumentViewModel}">
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="0,2">
+                            <Image Margin="0,0,4,0">
+                                <Image.Style>
+                                    <Style TargetType="Image">
+                                        <Setter Property="Source" Value="{StaticResource CSharpFileIcon}"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Language}" Value="Visual Basic">
+                                                <Setter Property="Source" Value="{StaticResource VisualBasicFileIcon}"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+                            </Image>
+                            <TextBlock Text="{Binding DisplayName}"/>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.Resources>
+
+                <TreeView.ItemContainerStyle>
+                    <Style TargetType="TreeViewItem">
+                        <Setter Property="IsExpanded" Value="{Binding IsExpanded}" />
+                        <Setter Property="b:MouseDoubleClickBehaviors.Command" Value="{Binding DataContext.OpenFileCommand, RelativeSource={RelativeSource FindAncestor, AncestorType=Window}}" />
+                        <Setter Property="b:MouseDoubleClickBehaviors.CommandParameter" Value="{Binding}" />
+                    </Style>
+                </TreeView.ItemContainerStyle>
+            </TreeView>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" />
+
+            <TabControl Grid.Column="2" Name="Tabs" ItemsSource="{Binding Pages}">
+                <TabControl.ItemContainerStyle>
+                    <Style TargetType="TabItem">
+                        <Setter Property="Header" Value="{Binding Caption}" />
+                        <Setter Property="Content" Value="{Binding Content}" />
+                    </Style>
+                </TabControl.ItemContainerStyle>
+            </TabControl>
+        </Grid>
+    </Grid>
+</Window>

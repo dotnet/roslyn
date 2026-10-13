@@ -43,7 +43,7 @@ public class GoToImplementationTests(ITestOutputHelper testOutputHelper) : Abstr
         await TestServices.Editor.WaitForActiveWindowAsync("WeatherForecast.cs", ControlledHangMitigatingCancellationToken);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
     public async Task GoToImplementation_FromCSharp()
     {
         // Open the file

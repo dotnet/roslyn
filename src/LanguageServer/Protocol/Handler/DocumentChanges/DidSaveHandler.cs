@@ -25,7 +25,7 @@ internal class DidSaveHandler() : ILspServiceNotificationHandler<DidSaveTextDocu
 
     public async Task HandleNotificationAsync(DidSaveTextDocumentParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredTextDocument();
+        var document = await context.GetRequiredTextDocumentAsync(cancellationToken).ConfigureAwait(false);
         var workspace = document.Project.Solution.Workspace;
         context.TraceDebug($"RefreshSourceGenerators for {document.Project.Id.DebugName}");
 

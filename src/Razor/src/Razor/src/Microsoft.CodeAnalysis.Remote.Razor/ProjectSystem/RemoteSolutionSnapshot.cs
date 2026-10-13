@@ -17,12 +17,6 @@ internal sealed class RemoteSolutionSnapshot(Solution solution, RemoteSnapshotMa
     private readonly Solution _solution = solution;
     private readonly Dictionary<Project, RemoteProjectSnapshot> _projectMap = [];
 
-    public RemoteProjectSnapshot GetProject(ProjectId projectId)
-    {
-        var project = _solution.GetRequiredProject(projectId);
-        return GetProject(project);
-    }
-
     public RemoteProjectSnapshot GetProject(Project project)
     {
         if (project.Solution != _solution)

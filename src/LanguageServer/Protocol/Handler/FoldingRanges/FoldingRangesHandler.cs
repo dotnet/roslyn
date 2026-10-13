@@ -38,7 +38,7 @@ internal sealed class FoldingRangesHandler : ILspServiceDocumentRequestHandler<F
 
     public async Task<FoldingRange[]?> HandleRequestAsync(FoldingRangeParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.Document;
+        var document = await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (document is null)
             return null;
 

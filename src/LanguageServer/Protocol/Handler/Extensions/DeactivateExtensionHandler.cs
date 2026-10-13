@@ -22,9 +22,8 @@ internal sealed class DeactivateExtensionHandler()
 
     public async Task HandleNotificationAsync(DeactivateExtensionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(context.Solution);
-
-        var service = context.Solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
+        var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();
         await service.UnregisterExtensionAsync(request.AssemblyFilePath, cancellationToken).ConfigureAwait(false);
     }
 }

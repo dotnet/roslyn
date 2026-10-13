@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -121,31 +121,25 @@ public sealed class CopilotDocumentationCommentGeneratorTests
     private sealed class TestCopilotCodeAnalysisService(
         (Dictionary<string, string>? ResponseDictionary, bool IsQuotaExceeded) result) : ICopilotCodeAnalysisService
     {
+        public Task<bool> IsOnTheFlyDocsAvailableAsync(CancellationToken cancellationToken)
+            => throw new NotImplementedException();
+
+        public Task<bool> IsFileExcludedFromOnTheFlyDocsAsync(string filePath, CancellationToken cancellationToken)
+            => throw new NotImplementedException();
+
         public Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)
             => Task.FromResult((result.ResponseDictionary, result.IsQuotaExceeded));
 
-        public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
+        public Task<bool> IsGenerateDocumentationCommentAvailableAsync(CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<ImmutableArray<string>> GetAvailablePromptTitlesAsync(Document document, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
-
-        public Task AnalyzeDocumentAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
-
-        public Task<ImmutableArray<Diagnostic>> GetCachedDocumentDiagnosticsAsync(Document document, TextSpan? span, ImmutableArray<string> promptTitles, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
-
-        public Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
+        public Task<bool> IsFileExcludedFromDocumentationCommentGenerationAsync(string filePath, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public Task<string> GetOnTheFlyDocsPromptAsync(OnTheFlyDocsInfo onTheFlyDocsInfo, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsResponseAsync(string prompt, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
-
-        public Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public Task<bool> IsImplementNotImplementedExceptionsAvailableAsync(CancellationToken cancellationToken)

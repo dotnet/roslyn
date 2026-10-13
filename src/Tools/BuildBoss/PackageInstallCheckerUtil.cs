@@ -195,6 +195,7 @@ namespace BuildBoss
                             new XAttribute("key", "dotnet-public"),
                             new XAttribute("value", "https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public/nuget/v3/index.json"))),
                     new XElement("packageSourceMapping",
+                        new XElement("clear"),
                         new XElement("packageSource",
                             new XAttribute("key", "package-install-validation-local"),
                             GetLocalPackageMappings(packagesDirectory)),

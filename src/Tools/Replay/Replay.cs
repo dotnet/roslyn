@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Basic.CompilerLog.Util;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CommandLine;
 
 var options = ParseOptions(args);
@@ -130,7 +131,7 @@ static async Task<(TimeSpan BuildTime, TimeSpan TotalTime)> RunOneAsync(List<Com
     Directory.CreateDirectory(options.TempDirectory);
 
     using var compilerServerLogger = new CompilerServerLogger("replay", Path.Combine(options.OutputDirectory, "server.log"));
-    if (!BuildServerConnection.TryCreateServer(options.ClientDirectory, options.PipeName, compilerServerLogger, out int serverProcessId))
+    if (!BuildServerConnection.TryCreateServer(options.ClientDirectory, options.PipeName, StandardBuildEnvironment.Instance, compilerServerLogger, out int serverProcessId))
     {
         throw new Exception("Failed to create server");
     }
@@ -267,6 +268,7 @@ static async Task<BuildData> BuildAsync(
         request,
         options.PipeName,
         options.ClientDirectory,
+        StandardBuildEnvironment.Instance,
         compilerServerLogger,
         cancellationToken).ConfigureAwait(false);
     return new BuildData(compilerCall, response);

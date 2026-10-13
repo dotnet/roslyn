@@ -3458,6 +3458,137 @@ IVariableDeclaratorOperation (Symbol: System.ReadOnlySpan<System.Char> span) (Op
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact]
+        public void Cast_UserDefined_01()
+        {
+            string source = @"
+struct S1
+{
+    public static implicit operator S1(int x) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static S1? Test1()
+    {
+        return /*<bind>*/ (S1)10 /*</bind>*/;
+    }   
+}
+";
+            string expectedOperationTree = @"
+IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S1 S1.op_Implicit(System.Int32 x)) (OperationKind.Conversion, Type: S1) (Syntax: '(S1)10')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: S1 S1.op_Implicit(System.Int32 x))
+  Operand:
+    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: []);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Cast_UserDefined_02()
+        {
+            string source = @"
+struct S1
+{
+    public static implicit operator S1(int x) => default;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static S1? Test1()
+    {
+        return /*<bind>*/ (S1?)10 /*</bind>*/;
+    }   
+}
+";
+            string expectedOperationTree = @"
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: S1?) (Syntax: '(S1?)10')
+    Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+    Operand:
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: S1 S1.op_Implicit(System.Int32 x)) (OperationKind.Conversion, Type: S1, IsImplicit) (Syntax: '(S1?)10')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: S1 S1.op_Implicit(System.Int32 x))
+        Operand:
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: []);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Cast_UserDefined_03()
+        {
+            string source = @"
+struct S1
+{
+    public static implicit operator int(S1 x) => default;
+}
+
+class Program
+{
+    static long? Test1(S1 x)
+    {
+        return /*<bind>*/ (long?)x /*</bind>*/;
+    }   
+}
+";
+            string expectedOperationTree = @"
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64?) (Syntax: '(long?)x')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: System.Int32 S1.op_Implicit(S1 x)) (OperationKind.Conversion, Type: System.Int32, IsImplicit) (Syntax: '(long?)x')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: System.Int32 S1.op_Implicit(S1 x))
+      Operand:
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: S1) (Syntax: 'x')
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: []);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        public void Cast_UserDefined_04()
+        {
+            string source = @"
+struct S1
+{
+    public static implicit operator (int a, string b)(S1 x) => default;
+}
+
+class Program
+{
+    static (long c, string d)? Test1(S1 x)
+    {
+        return /*<bind>*/ ((long c, string d)?)x /*</bind>*/;
+    }   
+}
+";
+            string expectedOperationTree = @"
+IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int64 c, System.String d)?) (Syntax: '((long c, string d)?)x')
+  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+  Operand:
+    IConversionOperation (TryCast: False, Unchecked) (OperatorMethod: (System.Int32 a, System.String b) S1.op_Implicit(S1 x)) (OperationKind.Conversion, Type: (System.Int32 a, System.String b), IsImplicit) (Syntax: '((long c, string d)?)x')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: True) (MethodSymbol: (System.Int32 a, System.String b) S1.op_Implicit(S1 x))
+      Operand:
+        IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: S1) (Syntax: 'x')
+";
+
+            VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics: []);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
         public void ConversionExpression_Explicit_ExplicitIdentityConversionCreatesIConversionExpression()
         {
             string source = @"

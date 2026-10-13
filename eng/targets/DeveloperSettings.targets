@@ -1,0 +1,32 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+
+<!--
+  Validate developer machine settings are correct:
+  - For Windows, long paths are enabled
+  - For all platforms, file line endings match platform line endings
+-->
+<Project>
+  <PropertyGroup>
+    <_RoslynDeveloperSettingsValidationCacheFile>$(MSBuildThisFileDirectory)..\..\artifacts\developer-settings-validated.txt</_RoslynDeveloperSettingsValidationCacheFile>
+  </PropertyGroup>
+
+  <Target Name="_ValidateDeveloperSettings" BeforeTargets="Restore" Condition="!Exists('$(_RoslynDeveloperSettingsValidationCacheFile)')">
+    <PropertyGroup>
+      <_RoslynBuildRunsOnWindows>$([MSBuild]::IsOSPlatform('Windows'))</_RoslynBuildRunsOnWindows>
+      <_RoslynSourceHasCarriageReturns>$([System.IO.File]::ReadAllText('$(MSBuildThisFileFullPath)').Contains($([System.Char]::ConvertFromUtf32(13))))</_RoslynSourceHasCarriageReturns>
+      <_RoslynLongPathsEnabled Condition="'$(_RoslynBuildRunsOnWindows)' == 'True'">$([MSBuild]::GetRegistryValueFromView('HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\FileSystem', 'LongPathsEnabled', null, RegistryView.Registry64, RegistryView.Registry32))</_RoslynLongPathsEnabled>
+    </PropertyGroup>
+
+    <Message Importance="Low"
+             Text="Validating developer settings: IsWindows=$(_RoslynBuildRunsOnWindows), SourceHasCarriageReturns=$(_RoslynSourceHasCarriageReturns), LongPathsEnabled=$(_RoslynLongPathsEnabled)" />
+    <Error Condition="'$(_RoslynSourceHasCarriageReturns)' != '$(_RoslynBuildRunsOnWindows)'"
+           Text="Source file line endings do not match the current platform. Re-clone the repository with the correct Git line-ending settings." />
+    <Error Condition="'$(_RoslynBuildRunsOnWindows)' == 'True' and '$(_RoslynLongPathsEnabled)' != '1'"
+           Text="Long paths are required for this project. Please run eng\enable-long-paths.reg" />
+
+    <MakeDir Directories="$(MSBuildThisFileDirectory)..\..\artifacts" />
+    <WriteLinesToFile File="$(_RoslynDeveloperSettingsValidationCacheFile)"
+                      Lines="[$([System.DateTime]::UtcNow.ToString('O'))] Developer settings validated"
+                      Overwrite="true" />
+  </Target>
+</Project>

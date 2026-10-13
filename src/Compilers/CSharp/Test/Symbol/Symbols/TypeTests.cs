@@ -20,6 +20,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class TypeTests : CSharpTestBase
     {
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85937")]
+        [CombinatorialData]
+        public void TypeParameterInterfaces(bool fromMetadata)
+        {
+            var source = """
+                public interface IA { }
+                public interface IB : IA { }
+                public interface IG<T> { }
+                public class Base : IB { }
+                public class C<TNone, TDirect, TExtends, TIndirect, TClass, TGeneric, TStruct>
+                    where TDirect : IA
+                    where TExtends : IB
+                    where TIndirect : TExtends
+                    where TClass : Base
+                    where TGeneric : IG<int>
+                    where TStruct : struct, IA
+                { }
+                """;
+            var compilation = CreateCompilation(source);
+            compilation.VerifyEmitDiagnostics();
+            if (fromMetadata)
+            {
+                compilation = CreateCompilation("", references: [compilation.EmitToImageReference()]);
+            }
+
+            Compilation publicCompilation = compilation;
+            var type = publicCompilation.GetTypeByMetadataName("C`7");
+            var expectedConstraints = new[] { "", "IA", "IB", "TExtends", "Base", "IG<int>", "IA" };
+            Assert.Equal(expectedConstraints.Length, type.TypeParameters.Length);
+            for (int i = 0; i < type.TypeParameters.Length; i++)
+            {
+                ITypeParameterSymbol parameter = type.TypeParameters[i];
+                Assert.Null(parameter.BaseType);
+                Assert.Empty(parameter.Interfaces);
+                Assert.Empty(parameter.AllInterfaces);
+                Assert.Equal(expectedConstraints[i], string.Join(", ", parameter.ConstraintTypes.Select(t => t.ToDisplayString())));
+            }
+
+            Assert.True(type.TypeParameters[6].HasValueTypeConstraint);
+            AssertEx.Equal(["IA"], publicCompilation.GetTypeByMetadataName("IB").AllInterfaces.Select(t => t.ToDisplayString()));
+            AssertEx.Equal(["IB", "IA"], publicCompilation.GetTypeByMetadataName("Base").AllInterfaces.Select(t => t.ToDisplayString()));
+        }
+
+        [Fact]
+        public void MetadataNameNotTruncated()
+        {
+            var name = new string('A', 1100);
+            var compilation = CreateCompilation($"class {name} {{ }} class {name}<T> {{ }}");
+            compilation.VerifyDiagnostics();
+            compilation.VerifyEmitDiagnostics(
+                // (1,7): error CS7013: Name '{name}' exceeds the maximum length allowed in metadata.
+                // class {name} { } class {name}<T> { }
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, name).WithArguments(name).WithLocation(1, 7),
+                // (1,1118): error CS7013: Name '{name}`1' exceeds the maximum length allowed in metadata.
+                // class {name} { } class {name}<T> { }
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, name).WithArguments($"{name}`1").WithLocation(1, 1118));
+
+            ISymbol type = compilation.GlobalNamespace.GetTypeMembers(name, 0).Single().GetPublicSymbol();
+            Assert.Equal(name, type.MetadataName);
+            ISymbol genericType = compilation.GlobalNamespace.GetTypeMembers(name, 1).Single().GetPublicSymbol();
+            Assert.Equal(name + "`1", genericType.MetadataName);
+        }
+
         [ConditionalFact(typeof(NoUsedAssembliesValidation))]
         [WorkItem(30023, "https://github.com/dotnet/roslyn/issues/30023")]
         public void Bug18280()
@@ -2693,12 +2756,12 @@ class C
                 // (7,22): error CS0261: Partial declarations of '.' must be all classes, all record classes, all structs, all record structs, or all interfaces
                 //     partial interface;
                 Diagnostic(ErrorCode.ERR_PartialTypeKindConflict, "").WithArguments("N..").WithLocation(7, 22),
+                // (8,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(8, 5),
                 // (8,18): error CS1001: Identifier expected
                 //     partial enum { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(8, 18),
-                // (8,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial enum { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(8, 18),
                 // (8,18): error CS0542: '': member names cannot be the same as their enclosing type
                 //     partial enum { }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(8, 18),
@@ -2741,12 +2804,12 @@ class C
                 // (20,22): error CS1001: Identifier expected
                 //     partial interface;
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(20, 22),
+                // (21,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
+                //     partial enum { }
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(21, 5),
                 // (21,18): error CS1001: Identifier expected
                 //     partial enum { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(21, 18),
-                // (21,18): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
-                //     partial enum { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "").WithLocation(21, 18),
                 // (21,18): error CS0542: '': member names cannot be the same as their enclosing type
                 //     partial enum { }
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "").WithArguments("").WithLocation(21, 18),

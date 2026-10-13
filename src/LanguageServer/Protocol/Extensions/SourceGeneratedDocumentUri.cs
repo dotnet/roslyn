@@ -31,43 +31,51 @@ internal static class SourceGeneratedDocumentUri
 
     public static DocumentUri Create(SourceGeneratedDocumentIdentity identity)
     {
-        var hintPath = Uri.EscapeDataString(identity.HintName);
+        var hintPath = EscapeDataString(identity.HintName);
         var projectId = identity.DocumentId.ProjectId.Id.ToString(GuidFormat);
         var documentId = identity.DocumentId.Id.ToString(GuidFormat);
-        var hintName = Uri.EscapeDataString(identity.HintName);
-        var assemblyName = Uri.EscapeDataString(identity.Generator.AssemblyName);
-        var assemblyVersion = Uri.EscapeDataString(identity.Generator.AssemblyVersion.ToString());
-        var typeName = Uri.EscapeDataString(identity.Generator.TypeName);
+        var hintName = EscapeDataString(identity.HintName);
+        var assemblyName = EscapeDataString(identity.Generator.AssemblyName);
+        var assemblyVersion = EscapeDataString(identity.Generator.AssemblyVersion.ToString());
+        var typeName = EscapeDataString(identity.Generator.TypeName);
 
         var uri = $"{Scheme}://{projectId}/{hintPath}?{DocumentIdParam}={documentId}&{HintNameParam}={hintName}&{AssemblyNameParam}={assemblyName}&{AssemblyVersionParam}={assemblyVersion}&{TypeNameParam}={typeName}";
 
         // If we have a path (which is technically optional) also append it
         if (identity.Generator.AssemblyPath != null)
-            uri += $"&{AssemblyPathParam}={Uri.EscapeDataString(identity.Generator.AssemblyPath)}";
+            uri += $"&{AssemblyPathParam}={EscapeDataString(identity.Generator.AssemblyPath)}";
 
-        return ProtocolConversions.CreateAbsoluteDocumentUri(uri);
+        return new DocumentUri(uri);
     }
 
-    public static SourceGeneratedDocumentIdentity? DeserializeIdentity(Solution solution, Uri documentUri)
+    private static string EscapeDataString(string value)
+    {
+#pragma warning disable RS0030 // Do not use banned APIs - EscapeDataString just escapes a string to be compatible with a URI and is safe to use.
+        return Uri.EscapeDataString(value);
+#pragma warning restore RS0030 // Do not use banned APIs
+    }
+
+    public static SourceGeneratedDocumentIdentity? DeserializeIdentity(Solution solution, ParsedUri documentUri)
     {
         // This is a generated document, so the "host" portion is just the GUID of the project ID; we'll parse that into an ID and then
         // look up the project in the Solution. This relies on the fact that technically the only part of the ID that matters for equality
         // is the GUID; looking up the project again means we can then recover the ProjectId with the debug name, so anybody looking at a crash
         // dump sees a "normal" ID. It also means if the project is gone we can trivially say there are no usable IDs anymore.
-        var projectIdGuidOnly = ProjectId.CreateFromSerialized(Guid.ParseExact(documentUri.Host, GuidFormat));
+        var projectIdGuidOnly = ProjectId.CreateFromSerialized(Guid.ParseExact(documentUri.Authority, GuidFormat));
         var projectId = solution.GetProject(projectIdGuidOnly)?.Id;
 
         if (projectId == null)
             return null;
 
-        var query = System.Web.HttpUtility.ParseQueryString(documentUri.Query);
-        var documentIdGuid = Guid.ParseExact(GetRequiredQueryValue(DocumentIdParam, query, documentUri.Query), GuidFormat);
-        var hintName = GetRequiredQueryValue(HintNameParam, query, documentUri.Query);
-        var assemblyName = GetRequiredQueryValue(AssemblyNameParam, query, documentUri.Query);
+        var rawQuery = documentUri.RawQuery;
+        var query = System.Web.HttpUtility.ParseQueryString(rawQuery);
+        var documentIdGuid = Guid.ParseExact(GetRequiredQueryValue(DocumentIdParam, query, rawQuery), GuidFormat);
+        var hintName = GetRequiredQueryValue(HintNameParam, query, rawQuery);
+        var assemblyName = GetRequiredQueryValue(AssemblyNameParam, query, rawQuery);
         // this one is actually OK if it's null, since it's optional
         var assemblyPath = query[AssemblyPathParam];
-        var assemblyVersion = Version.Parse(GetRequiredQueryValue(AssemblyVersionParam, query, documentUri.Query));
-        var typeName = GetRequiredQueryValue(TypeNameParam, query, documentUri.Query);
+        var assemblyVersion = Version.Parse(GetRequiredQueryValue(AssemblyVersionParam, query, rawQuery));
+        var typeName = GetRequiredQueryValue(TypeNameParam, query, rawQuery);
 
         var documentId = DocumentId.CreateFromSerialized(projectId, documentIdGuid, isSourceGenerated: true, hintName);
 

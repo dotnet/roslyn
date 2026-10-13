@@ -232,6 +232,9 @@ internal abstract partial class AbstractIntroduceVariableService<TService, TExpr
 
     private bool CanGenerateIntoContainer(State state, CancellationToken cancellationToken)
     {
+        if (!state.IsInTypeDeclarationOrValidCompilationUnit())
+            return false;
+
         var destination = state.Expression.GetAncestor<TTypeDeclarationSyntax>() ?? state.Document.Root;
         if (!destination.OverlapsHiddenPosition(cancellationToken))
         {

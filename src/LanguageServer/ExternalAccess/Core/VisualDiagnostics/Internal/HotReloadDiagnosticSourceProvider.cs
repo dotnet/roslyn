@@ -20,12 +20,13 @@ internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMa
 {
     public string Name => Constants.DiagnosticSourceProviderName;
     public bool IsDocument => isDocument;
+    public bool HasInterFileDependencies => true;
 
     public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 
     public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
     {
-        if (context.Solution is not Solution solution)
+        if (await context.GetSolutionAsync(cancellationToken).ConfigureAwait(false) is not Solution solution)
         {
             return [];
         }

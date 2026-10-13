@@ -74,14 +74,6 @@ internal sealed class InitializeParams : IWorkDoneProgressParams
         set;
     }
 
-    [Obsolete("Use RootDocumentUri instead. This property will be removed in a future version.")]
-    [JsonIgnore]
-    public Uri RootUri
-    {
-        get => RootDocumentUri.GetRequiredParsedUri();
-        set => RootDocumentUri = new DocumentUri(value);
-    }
-
     /// <summary>
     /// Gets or sets the initialization options as specified by the client.
     /// </summary>
@@ -107,14 +99,14 @@ internal sealed class InitializeParams : IWorkDoneProgressParams
     /// Gets or sets the initial trace setting.
     /// </summary>
     [JsonPropertyName("trace")]
-    [DefaultValue(typeof(TraceSetting), "off")]
+    [DefaultValue(typeof(TraceValue), "off")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public TraceSetting Trace
+    public TraceValue Trace
     {
         get;
         set;
 #pragma warning disable SA1500, SA1513 // Braces for multi-line statements should not share line, Closing brace should be followed by blank line
-    } = TraceSetting.Off;
+    } = TraceValue.Off;
 #pragma warning restore SA1500, SA1513 // Braces for multi-line statements should not share line, Closing brace should be followed by blank line
 
     /// <summary>

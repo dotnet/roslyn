@@ -84,7 +84,7 @@ public partial class CSharpGoToDefinition : AbstractEditorTest
         Assert.True(await TestServices.Shell.IsActiveTabProvisionalAsync(HangMitigatingCancellationToken));
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85704")]
     public async Task GoToDefinitionWithMultipleResults()
     {
         await SetUpEditorAsync(

@@ -76,15 +76,6 @@ T
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (5,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    [Parameter] public T Parameter { get; set; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

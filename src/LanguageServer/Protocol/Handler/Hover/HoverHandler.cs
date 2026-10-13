@@ -39,16 +39,16 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
-    public Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         var clientCapabilities = context.GetRequiredClientCapabilities();
 
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
         var supportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(MarkupKind.Markdown) == true;
 
-        return GetHoverAsync(document, linePosition, _globalOptions, supportsVSExtensions, supportsMarkdown, cancellationToken);
+        return await GetHoverAsync(document, linePosition, _globalOptions, supportsVSExtensions, supportsMarkdown, cancellationToken).ConfigureAwait(false);
     }
 
     // Used by the LSIF Generator

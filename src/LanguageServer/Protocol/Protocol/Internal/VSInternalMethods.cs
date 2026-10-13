@@ -11,7 +11,6 @@ internal static class VSInternalMethods
 {
     public const string CopilotRelatedDocumentsName = "copilot/_related_documents";
     public const string DocumentFoldingRangeRefreshName = "textDocument/foldingRange/_vs_refresh";
-    public const string DocumentPullDiagnosticName = "textdocument/_vs_diagnostic";
     public const string DocumentReferencesName = "textDocument/_vs_references";
     public const string OnAutoInsertName = "textDocument/_vs_onAutoInsert";
     public const string TextDocumentDataTipRangeName = "textdocument/_vs_dataTipRange";
@@ -23,7 +22,6 @@ internal static class VSInternalMethods
     public const string TextDocumentValidateBreakableRangeName = "textDocument/_vs_validateBreakableRange";
     public const string WorkspaceMapCodeName = "workspace/_vs_mapCode";
     public const string WorkspaceProjectContextRefreshName = "workspace/projectContext/_vs_refresh";
-    public const string WorkspacePullDiagnosticName = "workspace/_vs_diagnostic";
     public const string WorkspaceSpellCheckableRangesName = "workspace/_vs_spellCheckableRanges";
 
     /// <summary>
@@ -35,16 +33,6 @@ internal static class VSInternalMethods
     /// Strongly typed message object for 'textDocument/_vs_iconMappingResolve'.
     /// </summary>
     public static readonly LspRequest<VSInternalKindAndModifier, VSInternalIconMapping> TextDocumentIconMappingResolve = new(TextDocumentIconMappingResolveName);
-
-    /// <summary>
-    /// Strongly typed message object for 'textDocument/_vs_diagnostic'.
-    /// </summary>
-    public static readonly LspRequest<VSInternalDocumentDiagnosticsParams, VSInternalDiagnosticReport[]> DocumentPullDiagnostic = new(DocumentPullDiagnosticName);
-
-    /// <summary>
-    /// Strongly typed message object for 'workspace/_vs_diagnostic'.
-    /// </summary>
-    public static readonly LspRequest<VSInternalWorkspaceDiagnosticsParams, VSInternalWorkspaceDiagnosticReport[]> WorkspacePullDiagnostic = new(WorkspacePullDiagnosticName);
 
     /// <summary>
     /// Strongly typed message object for 'textDocument/_vs_validateBreakableRange'.

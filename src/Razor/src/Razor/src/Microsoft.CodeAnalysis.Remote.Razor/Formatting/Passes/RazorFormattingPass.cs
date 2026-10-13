@@ -245,21 +245,21 @@ internal sealed class RazorFormattingPass : IFormattingPass
         //    var x = 1;
         // }
         //
-        // The nodes will be a grandchild of a RazorDirective (the "@code") and we expect there to be
+        // The nodes will be a grandchild of a directive (the "@code") and we expect there to be
         // at least three children, being:
         // 1. Optional whitespace
         // 2. The opening brace
         // 3. The C# code
         // 4. The closing brace
         if (node is CSharpCodeBlockSyntax code &&
-            node.Parent?.Parent is RazorDirectiveSyntax directive &&
+            node.Parent?.Parent is BaseRazorDirectiveSyntax directive &&
             !directive.ContainsDiagnostics &&
             directive.IsDirectiveKind(DirectiveKind.CodeBlock))
         {
-            // If we're formatting a @code or @functions directive, the user might have indicated they always want a newline
+            // The brace-placement option applies to documentation headers too, without formatting their XML as a C# block.
             var forceNewLine = context.Options.CodeBlockBraceOnNextLine &&
-                directive.DirectiveBody.Keyword is { } keyword &&
-                IsCodeOrFunctionsBlock(keyword);
+                (directive is RazorDocumentationDirectiveSyntax ||
+                 directive.DirectiveBody.Keyword is { } keyword && IsCodeOrFunctionsBlock(keyword));
 
             var children = code.Children;
             if (TryGetLeadingWhitespace(children, out var whitespace))
@@ -346,7 +346,7 @@ internal sealed class RazorFormattingPass : IFormattingPass
         }
     }
 
-    private static void FormatWhitespaceBetweenDirectiveAndBrace(RazorSyntaxNode node, RazorDirectiveSyntax directive, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, FormattingContext context, bool forceNewLine)
+    private static void FormatWhitespaceBetweenDirectiveAndBrace(RazorSyntaxNode node, BaseRazorDirectiveSyntax directive, ref PooledArrayBuilder<TextChange> changes, RazorSourceDocument source, FormattingContext context, bool forceNewLine)
     {
         if (node.ContainsOnlyWhitespace(includingNewLines: false) && !forceNewLine)
         {

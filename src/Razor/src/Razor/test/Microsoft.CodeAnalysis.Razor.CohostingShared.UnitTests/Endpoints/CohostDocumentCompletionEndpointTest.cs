@@ -14,7 +14,6 @@ using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
@@ -137,6 +136,262 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["var", "char", "DateTime", "Exception"]);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_Keyword(bool isComponent)
+    {
+        var result = await VerifyCompletionListAsync(
+            input: "@$$",
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "@",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["documentation"],
+            itemToResolve: "documentation",
+            expected: "@documentation",
+            expectedResolvedItemDescription: "Specify XML documentation for the generated class.",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static builder => builder.RazorLanguageVersion = RazorLanguageVersion.Version_12_0);
+
+        Assert.NotNull(result);
+        var item = Assert.Single(result.Items, item => item.Label == "documentation");
+        Assert.Equal(CompletionItemKind.Keyword, item.Kind);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_PartialKeyword(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: "@doc$$",
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["documentation"],
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static builder => builder.RazorLanguageVersion = RazorLanguageVersion.Version_12_0);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_SummarySnippet(bool isComponent)
+    {
+        var result = await VerifyCompletionListAsync(
+            input: """
+                <p>Before</p>
+                @$$
+                <p>After</p>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "@",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["documentation", $"documentation {SR.Directive} ..."],
+            itemToResolve: $"documentation {SR.Directive} ...",
+            expected: """
+                <p>Before</p>
+                @documentation {
+                    <summary>
+                        $0
+                    </summary>
+                }
+                <p>After</p>
+                """,
+            expectedResolvedItemDescription: $$"""
+                @documentation {
+                    <summary>
+                        ...
+                    </summary>
+                }
+                {{SR.DirectiveSnippetDescription}}
+                """,
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static builder => builder.RazorLanguageVersion = RazorLanguageVersion.Version_12_0);
+
+        Assert.NotNull(result);
+        var item = Assert.Single(result.Items, item => item.Label == $"documentation {SR.Directive} ...");
+        Assert.Equal(CompletionItemKind.Snippet, item.Kind);
+        Assert.Equal(InsertTextFormat.Snippet, item.InsertTextFormat);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_NotOfferedBeforeRazor12(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: "@$$",
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "@",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["using"],
+            unexpectedItemLabels: ["documentation", $"documentation {SR.Directive} ..."],
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static builder => builder.RazorLanguageVersion = RazorLanguageVersion.Version_11_0);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_XmlElements(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @documentation {
+                    <$$
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["summary", "remarks", "example"],
+            unexpectedItemLabels: ["div", "string", "DateTime"],
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_NestedXmlElements(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @documentation {
+                    <summary>
+                    <$$
+                    </summary>
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["see", "seealso", "c", "code", "para"],
+            unexpectedItemLabels: ["div", "string", "DateTime"],
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_XmlElementCompletionEdit(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <p>Before</p>
+                @documentation {
+                    <su$$
+                }
+                <p>After</p>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["summary"],
+            itemToResolve: "summary",
+            expected: """
+                <p>Before</p>
+                @documentation {
+                    <summary
+                }
+                <p>After</p>
+                """,
+            expectedResolvedItemDescription: "",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_CrefTypeCompletion(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <p>Before</p>
+                @documentation {
+                    <summary>See <see cref="$$"/>.</summary>
+                }
+                <p>After</p>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["DocumentationTarget"],
+            unexpectedItemLabels: ["summary", "div"],
+            itemToResolve: "DocumentationTarget",
+            expected: """
+                <p>Before</p>
+                @documentation {
+                    <summary>See <see cref="DocumentationTarget"/>.</summary>
+                }
+                <p>After</p>
+                """,
+            expectedResolvedItemDescription: "class DocumentationTarget",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                ("DocumentationTarget.cs", """
+                    public class DocumentationTarget
+                    {
+                    }
+                    """)
+            ]);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_CrefMemberCompletion(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <p>Before</p>
+                @documentation {
+                    <summary>See <see cref="DocumentationTarget.$$"/>.</summary>
+                }
+                <p>After</p>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = ".",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["Value"],
+            unexpectedItemLabels: ["summary", "div"],
+            itemToResolve: "Value",
+            expected: """
+                <p>Before</p>
+                @documentation {
+                    <summary>See <see cref="DocumentationTarget.Value"/>.</summary>
+                }
+                <p>After</p>
+                """,
+            expectedResolvedItemDescription: "int DocumentationTarget.Value { get; }",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                ("DocumentationTarget.cs", """
+                    public class DocumentationTarget
+                    {
+                        public int Value => 42;
+                    }
+                    """)
+            ]);
     }
 
     [Fact]
@@ -546,10 +801,114 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["Equals(object? obj)", "GetHashCode()", "SetParametersAsync(ParameterView parameters)", "ToString()"],
             itemToResolve: "SetParametersAsync(ParameterView parameters)",
             expectedResolvedItemDescription: "(awaitable) Task ComponentBase.SetParametersAsync(ParameterView parameters)",
-            csharpSyntaxFormattingOptions: CSharpSyntaxFormattingOptions.Default with
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
+    }
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task CSharpOverrideMethods_UsesEditorConfig_Razor()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @inherits TestBase
+                @code {
+                    public override $$
+                }
+                """,
+            expected: """
+                @inherits TestBase
+                @code {
+                    public override void M()
+                    {
+                    base.M();
+                    }
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
             {
-                Indentation = CSharpSyntaxFormattingOptions.Default.Indentation & ~IndentationPlacement.BlockContents
-            });
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["M()"],
+            itemToResolve: "M()",
+            expectedResolvedItemDescription: "void TestBase.M()",
+            additionalFiles:
+            [
+                ("TestBase.cs", """
+                    using Microsoft.AspNetCore.Components;
+
+                    public abstract class TestBase : ComponentBase
+                    {
+                        public virtual void M()
+                        {
+                        }
+                    }
+                    """),
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
+    }
+
+    [RoslynConditionalFact(typeof(IsEnglishLocal))]
+    [WorkItem("https://github.com/dotnet/razor/issues/5607")]
+    public async Task CSharpOverrideMethods_UsesEditorConfig_Cshtml()
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @inherits TestBase
+                @functions {
+                    public override $$
+                }
+                """,
+            expected: """
+                @inherits TestBase
+                @functions {
+                    public override void M()
+                    {
+                    base.M();
+                    }
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerCharacter = null,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["M()"],
+            itemToResolve: "M()",
+            expectedResolvedItemDescription: "void TestBase.M()",
+            fileKind: RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                ("TestBase.cs", """
+                    public abstract class TestBase : Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic>
+                    {
+                        public virtual void M()
+                        {
+                        }
+                    }
+                    """),
+                (".editorconfig", """
+                    root = true
+
+                    [*.cshtml]
+                    csharp_indent_block_contents = false
+                    """)
+            ]);
     }
 
     // Tests MarkupTransitionCompletionItemProvider
@@ -2012,11 +2371,14 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         RazorFileKind? fileKind = null,
         TimeSpan? retryTimeout = null,
         (string fileName, string contents)[]? additionalFiles = null,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null)
+        Action<RazorProjectBuilder>? projectConfigure = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(
+            input.Text,
+            fileKind,
+            additionalFiles: additionalFiles,
+            projectConfigure: projectConfigure);
         var sourceText = await document.GetTextAsync(DisposalToken);
-        csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = autoInsertAttributeQuotes, CommitElementsWithSpace = commitElementsWithSpace });
 
@@ -2145,7 +2507,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             Assert.NotNull(item);
             Assert.NotNull(expectedResolvedItemDescription);
 
-            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription, request.Position, csharpSyntaxFormattingOptions);
+            await VerifyCompletionResolveAsync(document, completionListCache, item, expected, expectedResolvedItemDescription, request.Position);
         }
 
         return result;
@@ -2199,8 +2561,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         VSInternalCompletionItem item,
         string? expected,
         string expectedResolvedItemDescription,
-        Position position,
-        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+        Position position)
     {
         // We expect data to be a JsonElement, so for tests we have to _not_ strongly type
         item.Data = JsonSerializer.SerializeToElement(item.Data, JsonHelpers.JsonSerializerOptions);
@@ -2219,7 +2580,7 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         Assert.NotNull(tdi);
         Assert.Equal(document.GetURI(), tdi.DocumentUri);
 
-        var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, csharpSyntaxFormattingOptions, DisposalToken);
+        var result = await endpoint.GetTestAccessor().HandleRequestAsync(item, document, DisposalToken);
 
         Assert.NotNull(result);
 

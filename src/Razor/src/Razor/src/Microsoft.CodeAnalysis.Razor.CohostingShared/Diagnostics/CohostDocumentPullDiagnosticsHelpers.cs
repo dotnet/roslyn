@@ -31,15 +31,13 @@ internal static class CohostDocumentPullDiagnosticsHelpers
     internal static LspDiagnostic[] ConvertDiagnostics(Document document, bool supportsVisualStudioExtensions, IGlobalOptionService globalOptionsService, ImmutableArray<DiagnosticData> diagnostics)
     {
         var project = document.Project;
-        // Potential duplicate is only set for workspace diagnostics, which Razor doesn't support
-        const bool PotentialDuplicate = false;
 
         using var result = new PooledArrayBuilder<LspDiagnostic>(diagnostics.Length);
         foreach (var diagnostic in diagnostics)
         {
             if (!diagnostic.IsSuppressed)
             {
-                result.AddRange(ProtocolConversions.ConvertDiagnostic(diagnostic, supportsVisualStudioExtensions, project, PotentialDuplicate, globalOptionsService));
+                result.AddRange(ProtocolConversions.ConvertDiagnostic(diagnostic, supportsVisualStudioExtensions, project, globalOptionsService));
             }
         }
 

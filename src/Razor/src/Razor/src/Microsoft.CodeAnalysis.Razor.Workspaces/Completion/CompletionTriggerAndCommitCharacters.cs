@@ -70,9 +70,6 @@ internal class CompletionTriggerAndCommitCharacters(IClientCapabilitiesService c
     public bool IsValidCSharpTrigger(CompletionContext completionContext)
         => IsValidTrigger(completionContext, _csharpTriggerCharacters);
 
-    public bool IsValidDelegationTrigger(CompletionContext completionContext)
-        => IsValidTrigger(completionContext, DelegationTriggerCharacters);
-
     public bool IsValidHtmlTrigger(CompletionContext completionContext)
         => IsValidTrigger(completionContext, HtmlTriggerCharacters);
 
@@ -87,14 +84,8 @@ internal class CompletionTriggerAndCommitCharacters(IClientCapabilitiesService c
     public bool IsCSharpTriggerCharacter(string ch)
         => ch is [var c] && _csharpTriggerCharacters.Contains(c);
 
-    public bool IsDelegationTriggerCharacter(string ch)
-        => ch is [var c] && DelegationTriggerCharacters.Contains(c);
-
     public bool IsHtmlTriggerCharacter(string ch)
         => ch is [var c] && HtmlTriggerCharacters.Contains(c);
-
-    public bool IsRazorTriggerCharacter(string ch)
-        => ch is [var c] && _razorTriggerCharacters.Contains(c);
 
     public bool IsTransitionCharacter(string ch)
         => ch is [TransitionCharacter];

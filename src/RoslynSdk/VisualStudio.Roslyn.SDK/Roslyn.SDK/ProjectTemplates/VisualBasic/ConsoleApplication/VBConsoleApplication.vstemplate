@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<VSTemplate Version="3.0.0"
+            Type="Project"
+            xmlns="http://schemas.microsoft.com/developer/vstemplate/2005">
+  <TemplateData>
+    <Name>Standalone Code Analysis Tool</Name>
+    <Description>Create a code analysis command-line application</Description>
+    <Icon>CodeAnalysisConsole.ico</Icon>
+    <ProjectType>VisualBasic</ProjectType>
+    <RequiredFrameworkVersion>2.0</RequiredFrameworkVersion>
+    <SortOrder>950</SortOrder>
+    <TemplateID>Microsoft.VisualBasic.StandaloneCodeAnalysis</TemplateID>
+    <CreateNewFolder>true</CreateNewFolder>
+    <CreateInPlace>true</CreateInPlace>
+    <DefaultName>CodeAnalysisApp</DefaultName>
+    <ProvideDefaultName>true</ProvideDefaultName>
+    <PromptForSaveOnCreation>true</PromptForSaveOnCreation>
+    <LanguageTag>Visual Basic</LanguageTag>
+    <PlatformTag>Windows</PlatformTag>
+    <PlatformTag>Linux</PlatformTag>
+    <PlatformTag>macOS</PlatformTag>
+    <ProjectTypeTag>Console</ProjectTypeTag>
+    <ProjectTypeTag>Roslyn</ProjectTypeTag>
+    <ProjectTypeTag>Extensions</ProjectTypeTag>
+  </TemplateData>
+  <TemplateContent>
+    <Project File="ConsoleApplication.vbproj" TargetFileName="$projectname$.vbproj" ReplaceParameters="true">
+      <ProjectItem ReplaceParameters="true" TargetFileName="$safeprojectname$.vb" OpenInEditor="true">Module1.vb</ProjectItem>
+    </Project>
+  </TemplateContent>
+  <WizardExtension>
+    <Assembly>Roslyn.SDK.Template.Wizard, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35</Assembly>
+    <FullClassName>RoslynSDKRootTemplateWizard</FullClassName>
+  </WizardExtension>
+</VSTemplate>

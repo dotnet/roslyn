@@ -684,16 +684,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 : this.HasParameterContainingPointerType() || Type.ContainsPointerOrFunctionPointer();
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (!RequiresUnsafe)
             {
-                return CallerUnsafeMode.None;
+                return RequiresUnsafeMode.None;
             }
 
             return ContainingModule.UseUpdatedMemorySafetyRules
-                ? CallerUnsafeMode.Explicit
-                : CallerUnsafeMode.Implicit;
+                ? RequiresUnsafeMode.Explicit
+                : RequiresUnsafeMode.Implicit;
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
@@ -1035,6 +1035,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 CalculateUseSiteDiagnostic(ref result);
                 var diag = deriveCompilerFeatureRequiredUseSiteInfo();
                 MergeUseSiteDiagnostics(ref diag, result.DiagnosticInfo);
+                diag ??= PEUtilities.DeriveUnrecognizedMemorySafetyRulesAttributeDiagnostic(this);
                 result = result.AdjustDiagnosticInfo(diag);
 
                 if (result.DiagnosticInfo is not null || !result.SecondaryDependencies.IsNullOrEmpty())
