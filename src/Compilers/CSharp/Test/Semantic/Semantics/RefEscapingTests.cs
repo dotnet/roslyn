@@ -11928,7 +11928,7 @@ public struct Vec4
             CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "IOperation validation has a timeout that can fail for this stress test")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
         public void LocalReceiver_EmbeddedStatement_LongElseIfChain()
         {
