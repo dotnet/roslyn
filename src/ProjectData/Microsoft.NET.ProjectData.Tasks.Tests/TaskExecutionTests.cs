@@ -442,10 +442,12 @@ public class TaskExecutionTests
 		{
 			string receiptDirectory = Path.Combine(tempRoot, "phase-evidence");
 			string attemptId = "attempt-1";
+			using StringWriter diagnosticWriter = new();
 			Mock<IEventSource> eventSource = new(MockBehavior.Loose);
 			ProjectDataBuildCompletionLogger logger = new()
 			{
-				Parameters = $"{Convert.ToBase64String(Encoding.UTF8.GetBytes(receiptDirectory))};{attemptId}",
+				Parameters = $"{Convert.ToBase64String(Encoding.UTF8.GetBytes(receiptDirectory))};{attemptId};true",
+				DiagnosticWriter = diagnosticWriter,
 			};
 			logger.Initialize(eventSource.Object);
 			eventSource.Raise(
@@ -466,12 +468,161 @@ public class TaskExecutionTests
 					submissionId: 2));
 			eventSource.Raise(
 				source => source.AnyEventRaised += null,
+				new BuildWarningEventArgs(
+					subcategory: string.Empty,
+					code: "NU1900",
+					file: @"C:\repo\App.csproj",
+					lineNumber: 0,
+					columnNumber: 0,
+					endLineNumber: 0,
+					endColumnNumber: 0,
+					message: "Error occurred while getting package vulnerability data.",
+					helpKeyword: string.Empty,
+					senderName: "NuGet"));
+			eventSource.Raise(
+				source => source.AnyEventRaised += null,
 				new BuildFinishedEventArgs("Build finished", string.Empty, succeeded: true));
 
 			Assert.True(ProjectDataBuildAttemptManifest.TryRead(receiptDirectory, attemptId, out ProjectDataBuildAttemptManifest manifest));
 			Assert.True(manifest.ProjectDataBuildSubmissionObserved);
 			Assert.Contains(manifest.Submissions, submission => submission.SubmissionId == 1 && submission.Phase == "Restore" && submission.MSBuildIsRestoring);
 			Assert.Contains(manifest.Submissions, submission => submission.SubmissionId == 2 && submission.Phase == "ProjectDataBuild" && !submission.MSBuildIsRestoring);
+			Assert.Equal("Restore", Assert.Single(manifest.Diagnostics).Phase);
+			Assert.True(ProjectDataBuildDiagnosticProtocol.TryDecode(
+				diagnosticWriter.ToString().Trim(),
+				attemptId,
+				out ProjectDataBuildDiagnosticRecord observedWarning));
+			Assert.Equal("Warning", observedWarning.Severity);
+			Assert.Equal("Restore", observedWarning.Phase);
+			Assert.Equal("NU1900", observedWarning.Code);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void ProjectDataBuildCompletionLogger_ClassifiesCodeEmptyTargetAssemblyErrorFromFoldedBuildAsProjectDataBuild()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string receiptDirectory = Path.Combine(tempRoot, "folded-phase-evidence");
+			string attemptId = "attempt-1";
+			Mock<IEventSource> eventSource = new(MockBehavior.Loose);
+			ProjectDataBuildCompletionLogger logger = new()
+			{
+				Parameters = $"{Convert.ToBase64String(Encoding.UTF8.GetBytes(receiptDirectory))};{attemptId}",
+			};
+			logger.Initialize(eventSource.Object);
+			eventSource.Raise(
+				source => source.AnyEventRaised += null,
+				new BuildSubmissionStartedEventArgs(
+					new Dictionary<string, string?> { ["MSBuildIsRestoring"] = "true" },
+					[@"C:\repo\App.csproj"],
+					["Restore", "ProjectDataBuild"],
+					BuildRequestDataFlags.None,
+					submissionId: 1));
+			eventSource.Raise(
+				source => source.AnyEventRaised += null,
+				new BuildErrorEventArgs(
+					subcategory: string.Empty,
+					code: string.Empty,
+					file: @"/home/.nuget/packages/benchmarkdotnet.annotations/0.16.0-preview.1/buildTransitive/netstandard2.0/BenchmarkDotNet.Weaver.Common.targets",
+					lineNumber: 32,
+					columnNumber: 5,
+					endLineNumber: 0,
+					endColumnNumber: 0,
+					message: "TargetAssembly does not exist: /repo/artifacts/obj/App/Debug/net10.0/App.dll",
+					helpKeyword: string.Empty,
+					senderName: "BenchmarkDotNet.Weaver")
+				{
+					ProjectFile = @"C:\repo\App.csproj",
+				});
+			eventSource.Raise(
+				source => source.AnyEventRaised += null,
+				new BuildFinishedEventArgs("Build finished", string.Empty, succeeded: false));
+
+			Assert.True(ProjectDataBuildAttemptManifest.TryRead(receiptDirectory, attemptId, out ProjectDataBuildAttemptManifest manifest));
+			Assert.Equal("ProjectDataBuild", Assert.Single(manifest.Submissions).Phase);
+			ProjectDataBuildDiagnosticRecord diagnostic = Assert.Single(manifest.Diagnostics);
+			Assert.Empty(diagnostic.Code);
+			Assert.Equal("ProjectDataBuild", diagnostic.Phase);
+			Assert.Contains("TargetAssembly does not exist", diagnostic.Message, StringComparison.Ordinal);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void ProjectDataBuildCompletionLogger_ProjectDataBuildOwnsDuplicateCrossPhaseDiagnostic()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string receiptDirectory = Path.Combine(tempRoot, "phase-ownership");
+			string attemptId = "attempt-1";
+			string projectPath = Path.Combine(tempRoot, "App.csproj");
+			Mock<IEventSource> eventSource = new(MockBehavior.Loose);
+			ProjectDataBuildCompletionLogger logger = new()
+			{
+				Parameters = $"{Convert.ToBase64String(Encoding.UTF8.GetBytes(receiptDirectory))};{attemptId}",
+			};
+			logger.Initialize(eventSource.Object);
+
+			eventSource.Raise(
+				source => source.AnyEventRaised += null,
+				new BuildSubmissionStartedEventArgs(
+					new Dictionary<string, string?> { ["MSBuildIsRestoring"] = "true" },
+					[projectPath],
+					["Restore"],
+					BuildRequestDataFlags.None,
+					submissionId: 1));
+			RaiseDuplicateCompileError();
+			for (int index = 0; index < 4; index++)
+			{
+				RaiseError($"OTHER{index}", $"Other restore error {index}.");
+			}
+			eventSource.Raise(
+				source => source.AnyEventRaised += null,
+				new BuildSubmissionStartedEventArgs(
+					new Dictionary<string, string?>(),
+					[projectPath],
+					["ProjectDataBuild"],
+					BuildRequestDataFlags.None,
+					submissionId: 2));
+			RaiseDuplicateCompileError(OperatingSystem.IsLinux() ? projectPath : projectPath.ToUpperInvariant());
+			eventSource.Raise(
+				source => source.AnyEventRaised += null,
+				new BuildFinishedEventArgs("Build finished", string.Empty, succeeded: false));
+
+			Assert.True(ProjectDataBuildAttemptManifest.TryRead(receiptDirectory, attemptId, out ProjectDataBuildAttemptManifest manifest));
+			Assert.Equal(5, manifest.Diagnostics.Length);
+			Assert.Equal(0, manifest.TruncatedDiagnosticCount);
+			ProjectDataBuildDiagnosticRecord diagnostic = Assert.Single(manifest.Diagnostics, diagnostic => diagnostic.Code == "NETSDK1022");
+			Assert.Equal("ProjectDataBuild", diagnostic.Phase);
+
+			void RaiseDuplicateCompileError(string? diagnosticProjectPath = null)
+				=> RaiseError("NETSDK1022", "Duplicate 'Compile' items were included.", diagnosticProjectPath);
+
+			void RaiseError(string code, string message, string? diagnosticProjectPath = null)
+			{
+				BuildErrorEventArgs error = new(
+					subcategory: string.Empty,
+					code,
+					file: diagnosticProjectPath ?? projectPath,
+					lineNumber: 1,
+					columnNumber: 1,
+					endLineNumber: 1,
+					endColumnNumber: 1,
+					message,
+					helpKeyword: string.Empty,
+					senderName: "Microsoft.NET.Sdk");
+				eventSource.Raise(source => source.AnyEventRaised += null, error);
+			}
 		}
 		finally
 		{
@@ -569,6 +720,37 @@ public class TaskExecutionTests
 			Assert.Equal(["path", "newestMtimeMs", "updatedUtc"], entry.EnumerateObject().Select(static property => property.Name));
 			Assert.True(entry.TryGetProperty("newestMtimeMs", out _));
 			Assert.True(entry.TryGetProperty("updatedUtc", out _));
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Fact]
+	public void WriteTask_LogsDuplicateItemsAsInternalMessages()
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string projectFile = Path.Combine(tempRoot, "App.csproj");
+			string analyzerPath = Path.Combine(tempRoot, "PolyType.SourceGenerator.dll");
+			BuildEngineStub engine = new();
+			WriteProjectDataSliceTask task = new()
+			{
+				BuildEngine = engine,
+				ProjectFilePath = projectFile,
+				OutputPath = projectFile + ".lscache",
+				CommandLineArguments = ["/noconfig"],
+				AnalyzerReferences = [CreateItem(analyzerPath), CreateItem(analyzerPath)],
+			};
+
+			Assert.True(task.Execute());
+			Assert.True(task.Succeeded);
+			Assert.Empty(engine.Warnings);
+			Assert.Contains(engine.Messages, message =>
+				message.Importance == MessageImportance.Low &&
+				message.Message?.Contains("duplicate analyzerReferences item", StringComparison.Ordinal) == true);
 		}
 		finally
 		{
@@ -1189,8 +1371,10 @@ public class TaskExecutionTests
 		}
 	}
 
-	[Fact]
-	public void ValidatePackagesTask_RejectsStaleRequestedVersion()
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void ValidatePackagesTask_RejectsStaleRequestedVersion(bool centralPackageTransitivePinningEnabled)
 	{
 		string tempRoot = CreateTempRoot();
 		try
@@ -1223,6 +1407,8 @@ public class TaskExecutionTests
 				ProjectFilePath = "App.csproj",
 				AssetsFile = assetsFile,
 				TargetFramework = "net8.0",
+				ManagePackageVersionsCentrally = false,
+				CentralPackageTransitivePinningEnabled = centralPackageTransitivePinningEnabled,
 				PackageReferences = [CreateItem("Test.Package", ("Version", "12.0.3"))],
 				ResolvedPackages = [CreateItem("Test.Package/13.0.1", ("Name", "Test.Package"), ("Version", "13.0.1"), ("Path", packagePath))],
 			};
@@ -1752,6 +1938,7 @@ public class TaskExecutionTests
 				AssetsFile = assetsFile,
 				TargetFramework = "netstandard2.0",
 				TargetFrameworkMoniker = ".NETStandard,Version=v2.0",
+				ManagePackageVersionsCentrally = true,
 				CentralPackageTransitivePinningEnabled = true,
 			};
 
@@ -1802,6 +1989,7 @@ public class TaskExecutionTests
 				AssetsFile = assetsFile,
 				TargetFramework = "netstandard2.0",
 				TargetFrameworkMoniker = ".NETStandard,Version=v2.0",
+				ManagePackageVersionsCentrally = true,
 				CentralPackageTransitivePinningEnabled = true,
 			};
 
@@ -1809,6 +1997,45 @@ public class TaskExecutionTests
 			BuildErrorEventArgs error = Assert.Single(engine.Errors);
 			Assert.Contains($"restore graph '{assetsFile}' could not be read", error.Message);
 			Assert.Contains("resolved target graph for target framework 'netstandard2.0' must be a JSON object", error.Message);
+		}
+		finally
+		{
+			DeleteTempRoot(tempRoot);
+		}
+	}
+
+	[Theory]
+	[InlineData("true", true)]
+	[InlineData("false", true)]
+	[InlineData("true", false)]
+	[InlineData("false", false)]
+	[InlineData("\"true\"", true)]
+	public void ValidatePackagesTask_IgnoresCentralTransitivePinningWhenCentralManagementIsDisabled(
+		string restoredPinningMode,
+		bool currentPinningEnabled)
+	{
+		string tempRoot = CreateTempRoot();
+		try
+		{
+			string assetsFile = WriteCentralTransitiveAssetsFile(
+				tempRoot,
+				centralTransitiveRequests: string.Empty,
+				restoredPinningMode: restoredPinningMode);
+			var engine = new BuildEngineStub();
+			var task = new ValidateProjectDataPackagesTask
+			{
+				BuildEngine = engine,
+				ProjectFilePath = "App.csproj",
+				AssetsFile = assetsFile,
+				TargetFramework = "netstandard2.0",
+				TargetFrameworkMoniker = ".NETStandard,Version=v2.0",
+				ManagePackageVersionsCentrally = false,
+				CentralPackageTransitivePinningEnabled = currentPinningEnabled,
+				PackageVersions = [CreateItem("Pinned.Package", ("Version", "5.0.0"))],
+			};
+
+			Assert.True(task.Execute());
+			Assert.Empty(engine.Errors);
 		}
 		finally
 		{
