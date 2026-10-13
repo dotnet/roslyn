@@ -8386,6 +8386,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A 'union' declaration cannot use a union member provider interface.</value>
   </data>
   <data name="ERR_UnexpectedCloseBraceBeforeTypeMember" xml:space="preserve">
-    <value>Unexpected '}'; either this brace is misplaced, or the following member is outside a type</value>
+    <value>Unexpected '}'. This brace is misplaced because it leaves the following member outside the type.</value>
   </data>
 </root>
