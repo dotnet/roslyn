@@ -93,6 +93,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(GenerateFullPaths), false); }
         }
 
+        public int MemorySafetyRulesVersion
+        {
+            set { _store[nameof(MemorySafetyRulesVersion)] = value; }
+            get { return _store.GetOrDefault(nameof(MemorySafetyRulesVersion), 1); }
+        }
+
         public string? ModuleAssemblyName
         {
             set { _store[nameof(ModuleAssemblyName)] = value; }
@@ -164,12 +170,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
             get { return (string?)_store[nameof(Nullable)]; }
-        }
-
-        public int MemorySafetyRulesVersion
-        {
-            set { _store[nameof(MemorySafetyRulesVersion)] = value; }
-            get { return _store.GetOrDefault(nameof(MemorySafetyRulesVersion), 1); }
         }
 
         #endregion
