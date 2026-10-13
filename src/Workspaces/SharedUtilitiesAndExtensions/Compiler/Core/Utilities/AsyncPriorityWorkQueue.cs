@@ -167,13 +167,10 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
             if (_entireQueueCancellationTokenSource.IsCancellationRequested)
                 return;
 
-            for (var priority = _itemsByPriority.Length - 1; priority >= 0; priority--)
+            for (var priority = newPriority - 1; priority >= 0; priority--)
             {
                 if (!_itemsByPriority[priority].Contains(item))
                     continue;
-
-                if (priority >= newPriority)
-                    return;
 
                 Contract.ThrowIfFalse(_itemsByPriority[priority].Remove(item));
                 Contract.ThrowIfFalse(_itemsByPriority[newPriority].Add(item));
