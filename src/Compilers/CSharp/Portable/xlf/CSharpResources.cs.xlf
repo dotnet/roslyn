@@ -2797,6 +2797,11 @@
         <target state="translated">Argumenty nelze předat základnímu typu bez seznamu parametrů v deklaraci typu.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedCloseBraceBeforeTypeMember">
+        <source>Unexpected '}'; either this brace is misplaced, or the following member is outside a type</source>
+        <target state="new">Unexpected '}'; either this brace is misplaced, or the following member is outside a type</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
         <target state="translated">Neočekávaný seznam parametrů.</target>

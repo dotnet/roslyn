@@ -507,11 +507,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var currentSibling = body.Members[memberToMoveIndex];
                     if (memberToMoveIndex == firstSiblingToMoveInclusive)
                     {
-                        // Move the existing close brace token to the first member as a skipped token, with a
-                        // diagnostic saying that it was unexpected.
+                        // Move the existing close brace token to the first member as a skipped token.  The
+                        // following member is only legal inside a type, so either this brace closed the type
+                        // too early, or the member itself is misplaced.
                         currentSibling = AddLeadingSkippedSyntax(
                             currentSibling,
-                            AddError(typeDeclaration.CloseBraceToken, ErrorCode.ERR_InvalidMemberDecl, "}"));
+                            AddError(typeDeclaration.CloseBraceToken, ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember));
                     }
 
                     finalTypeDeclarationMembers.Add(currentSibling);
@@ -519,13 +520,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 var isLast = lastSiblingToMoveExclusive == body.Members.Count;
 
-                // The existing close brace token is moved to the first member as a skipped token, with a diagnostic saying
-                // it was unexpected.  The type decl will then get a missing close brace token if there are still members
-                // following.  If not, we'll try to eat an actual close brace token.
+                // The existing close brace is already reported as unexpected.  Do not also report "} expected" on
+                // the type we just recovered into; that second error just restates the same recovery.  If this
+                // consumed the last remaining namespace members, still try to take a following close brace so a
+                // later real one can close the type.  If there isn't one, insert a silent missing token.
                 var finalCloseBraceToken = isLast
-                    ? EatToken(SyntaxKind.CloseBraceToken)
-                    : AddError(
-                        SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken), ErrorCode.ERR_RbraceExpected);
+                    ? EatToken(SyntaxKind.CloseBraceToken, reportError: false)
+                    : SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken);
                 var newMembers = _pool.ToListAndFree(finalTypeDeclarationMembers);
 
                 return typeDeclaration.UpdateCore(

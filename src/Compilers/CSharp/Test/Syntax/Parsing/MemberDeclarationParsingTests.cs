@@ -10493,9 +10493,9 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
                 // (11,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(11, 2));
@@ -10578,9 +10578,9 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
                 // (13,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 2));
@@ -10686,12 +10686,9 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
-                // (12,26): error CS1513: } expected
-                //     public int Prop => 0;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26));
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -10805,15 +10802,12 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
-                // (12,26): error CS1513: } expected
-                //     public int Prop => 0;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26),
-                // (17,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
+                // (17,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(17, 5),
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(17, 5),
                 // (22,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(22, 2));
@@ -10964,15 +10958,12 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (8,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (8,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 5),
-                // (15,26): error CS1513: } expected
-                //     public int Prop => 0;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 26),
-                // (20,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(8, 5),
+                // (20,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(20, 5),
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(20, 5),
                 // (25,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(25, 2));
@@ -11138,18 +11129,12 @@ public class Class
                 private int field;
                 """;
             UsingTree(text,
-                // (8,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (8,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 // }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 1),
-                // (16,1): error CS1513: } expected
-                // 
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(16, 1),
-                // (20,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(8, 1),
+                // (20,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 // }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(20, 1),
-                // (24,19): error CS1513: } expected
-                // private int field;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(24, 19));
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(20, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -11312,9 +11297,9 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (7,9): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (7,9): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //         }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(7, 9),
                 // (15,10): error CS1513: } expected
                 //         }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 10),
@@ -11443,15 +11428,12 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (10,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (10,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(10, 5),
-                // (17,63): error CS1513: } expected
-                //     public static Type operator+(Type t1, Type t2) => default;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 63),
-                // (22,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(10, 5),
+                // (22,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(22, 5),
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(22, 5),
                 // (25,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(25, 2));
@@ -11624,9 +11606,9 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,9): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (5,9): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //         }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 9));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -11921,9 +11903,9 @@ public class Class
                 }
                 """;
             UsingTree(text, options: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
-                // (6,9): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (6,9): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //         }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(6, 9));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -12242,12 +12224,9 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
-                // (10,6): error CS1513: } expected
-                //     }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 6));
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -12327,15 +12306,12 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                // (5,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
-                // (10,6): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
+                // (15,5): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
                 //     }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 6),
-                // (15,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
-                //     }
-                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(15, 5),
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(15, 5),
                 // (21,2): error CS1513: } expected
                 // }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(21, 2));
@@ -12402,6 +12378,597 @@ public class Class
                         N(SyntaxKind.CloseBraceToken);
                     }
                     M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86033")]
+        public void UnexpectedCloseBrace_FileScopedFieldAfterTypes()
+        {
+            var text = """
+                namespace SampleNamespace;
+
+                class SampleClass
+                {
+                    public void SampleMethod()
+                    {
+                    }
+                }
+
+                class AnotherSampleClass
+                {
+                    public void AnotherSampleMethod()
+                    {
+                    }
+                }
+
+                SampleNamespace.SampleClass obj = new global::SampleNamespace.SampleClass();
+                """;
+            UsingTree(text,
+                // (15,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // }
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(15, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "SampleNamespace");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "SampleClass");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "SampleMethod");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "AnotherSampleClass");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "AnotherSampleMethod");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.QualifiedName);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "SampleNamespace");
+                                    }
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "SampleClass");
+                                    }
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "obj");
+                                    N(SyntaxKind.EqualsValueClause);
+                                    {
+                                        N(SyntaxKind.EqualsToken);
+                                        N(SyntaxKind.ObjectCreationExpression);
+                                        {
+                                            N(SyntaxKind.NewKeyword);
+                                            N(SyntaxKind.QualifiedName);
+                                            {
+                                                N(SyntaxKind.AliasQualifiedName);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.GlobalKeyword);
+                                                    }
+                                                    N(SyntaxKind.ColonColonToken);
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "SampleNamespace");
+                                                    }
+                                                }
+                                                N(SyntaxKind.DotToken);
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "SampleClass");
+                                                }
+                                            }
+                                            N(SyntaxKind.ArgumentList);
+                                            {
+                                                N(SyntaxKind.OpenParenToken);
+                                                N(SyntaxKind.CloseParenToken);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86033")]
+        public void UnexpectedCloseBrace_CompilationUnitPrivateFieldAfterClass()
+        {
+            var text = """
+                class C
+                {
+                }
+
+                private int x;
+                """;
+            UsingTree(text,
+                // (3,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // }
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(3, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.FieldDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "x");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86033")]
+        public void UnexpectedCloseBrace_MultipleTypeOnlyMembersAfterClass()
+        {
+            var text = """
+                namespace N;
+
+                class C
+                {
+                }
+
+                private int a, b;
+                private void M()
+                {
+                }
+                public int P => 0;
+                """;
+            UsingTree(text,
+                // (5,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // }
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "a");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "b");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "P");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86033")]
+        public void UnexpectedCloseBrace_ExtraCloseAfterAbsorbedMembers()
+        {
+            var text = """
+                namespace N;
+
+                class C
+                {
+                }
+
+                private int x;
+                }
+                """;
+            UsingTree(text,
+                // (5,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // }
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86033")]
+        public void UnexpectedCloseBrace_TwoExtraClosesAfterAbsorbedMembers()
+        {
+            var text = """
+                namespace N;
+
+                class C
+                {
+                }
+
+                private int x;
+                }
+                }
+                """;
+            UsingTree(text,
+                // (5,1): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                // }
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 1),
+                // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(9, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86033")]
+        public void UnexpectedCloseBrace_TwoEarlyClosesOnNestedTypesThenField()
+        {
+            var text = """
+                namespace N
+                {
+                    class Outer
+                    {
+                        class Inner
+                        {
+                            }
+                            }
+                            private int x;
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (8,13): error CS9400: Unexpected '}'; either this brace is misplaced, or the following member is outside a type
+                //             }
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(8, 13));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Outer");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ClassDeclaration);
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                            N(SyntaxKind.IdentifierToken, "Inner");
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86033")]
+        public void UnexpectedCloseBrace_TwoEarlyClosesAtCompilationUnitThenField()
+        {
+            // The extra close is not a sibling member, so it is skipped at the compilation
+            // unit.  The field stays outside the type.
+            var text = """
+                class C
+                {
+                    }
+                    }
+                    private int x;
+                """;
+            UsingTree(text,
+                // (4,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(4, 5));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86033")]
+        public void UnexpectedCloseBrace_ExtraCloseBetweenTypeAndField()
+        {
+            // The extra close ends the namespace before the field, so the field is not a
+            // sibling of the type and is not pulled into it.
+            var text = """
+                namespace N
+                {
+                    class C
+                    {
+                    }
+                    }
+                    private int x;
+                }
+                """;
+            UsingTree(text,
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PrivateKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "x");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
