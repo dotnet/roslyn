@@ -114,3 +114,10 @@ Timestamped process lifecycle diagnostics are emitted to the console and
 `runtests.log`: process start, OS exit, stdout/stderr EOF, and completion of the
 exit/output wait. An OS-exit record without EOF records indicates
 pending redirected output, not necessarily a test process that is still running.
+
+At the existing global deadline, RunTests logs its current process tree with
+PIDs, parent PIDs, names, and start times (plus descendant command lines on Windows), then
+attempts a runner dump under `<logs>/runner-timeout` before canceling work items.
+Existing owned-process dump collection and termination follow. Access failures
+are reported as warnings. The snapshot cannot recover exited ancestors or
+reparented children, and process lineage is not proof of output-handle ownership.

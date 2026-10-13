@@ -109,7 +109,23 @@ namespace RunTests
             if (finishedTask == timeoutTask)
             {
                 if (!cancellationToken.IsCancellationRequested)
+                {
                     ConsoleUtil.Error("Global test timeout exceeded; collecting owned work-item dumps before termination.");
+                    using var runner = Process.GetCurrentProcess();
+                    if (OperatingSystem.IsWindows())
+                        ProcessDiagnostics.LogWindowsProcessTree();
+                    else
+                        await ProcessUtil.LogProcessTreeAsync(runner).ConfigureAwait(false);
+                    try
+                    {
+                        await DumpCollector.CollectAsync([runner], options,
+                            Path.Combine(options.LogFilesDirectory, "runner-timeout")).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        ConsoleUtil.Warning($"Unable to collect runner timeout dump: {ex.Message}");
+                    }
+                }
                 cts.Cancel();
 
                 try
