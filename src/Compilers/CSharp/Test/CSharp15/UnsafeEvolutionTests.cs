@@ -516,9 +516,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics();
 
         var comp = (CSharpCompilation)verifier.Compilation;
-        Assert.Equal(MemorySafetyRulesVersion.Version2, comp.Options.MemorySafetyRulesVersion);
+        var expectedOptionVersion = updatedRules == true ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
+        Assert.Equal(expectedOptionVersion, comp.Options.MemorySafetyRulesVersion);
         Assert.Equal(MemorySafetyRulesVersion.Version2, comp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
-        Assert.True(comp.Options.UseUpdatedMemorySafetyRules);
+        Assert.Equal(updatedRules == true, comp.Options.UseUpdatedMemorySafetyRules);
     }
 
     [Theory, CombinatorialData]
@@ -531,9 +532,52 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
             Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
 
-        Assert.Equal(MemorySafetyRulesVersion.Version2, comp.Options.MemorySafetyRulesVersion);
+        var expectedOptionVersion = updatedRules == true ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
+        Assert.Equal(expectedOptionVersion, comp.Options.MemorySafetyRulesVersion);
         Assert.Equal(MemorySafetyRulesVersion.Version2, comp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
-        Assert.True(comp.Options.UseUpdatedMemorySafetyRules);
+        Assert.Equal(updatedRules == true, comp.Options.UseUpdatedMemorySafetyRules);
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesOption_FeatureFlag_SyntaxTreeUpdates(
+        bool updatedRules,
+        [CombinatorialValues(LanguageVersion.CSharp15, LanguageVersion.Preview)] LanguageVersion langVersion)
+    {
+        var options = TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules);
+        var parseOptions = TestOptions.Regular.WithLanguageVersion(langVersion);
+        var comp = CreateCompilation("",
+            parseOptions: parseOptions.WithFeature(Feature.UpdatedMemorySafetyRules),
+            options: options);
+        var flaggedTree = comp.SyntaxTrees.Single();
+        var unflaggedTree = CSharpSyntaxTree.ParseText("", parseOptions);
+
+        var removed = comp.RemoveAllSyntaxTrees();
+        verify(removed, updatedRules);
+        verify(comp.RemoveSyntaxTrees(flaggedTree), updatedRules);
+        verify(comp.ReplaceSyntaxTree(flaggedTree, unflaggedTree), updatedRules);
+        verify(removed.AddSyntaxTrees(unflaggedTree), updatedRules);
+        verify(removed.AddSyntaxTrees(flaggedTree), expectedUpdatedRules: true);
+        verify(comp.WithOptions(options), expectedUpdatedRules: true);
+        verify(comp.Clone(), expectedUpdatedRules: true);
+        verify(comp, expectedUpdatedRules: true);
+
+        void verify(CSharpCompilation compilation, bool expectedUpdatedRules)
+        {
+            var expectedVersion = expectedUpdatedRules ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
+            Assert.Equal(expectedVersion, compilation.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+            Assert.Same(options, compilation.Options);
+
+            if (expectedUpdatedRules && compilation.LanguageVersion != LanguageVersion.Preview)
+            {
+                compilation.VerifyDiagnostics(
+                    // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", compilation.LanguageVersion.ToDisplayString(), "preview").WithLocation(1, 1));
+            }
+            else
+            {
+                compilation.VerifyEmitDiagnostics();
+            }
+        }
     }
 
     [Fact]
