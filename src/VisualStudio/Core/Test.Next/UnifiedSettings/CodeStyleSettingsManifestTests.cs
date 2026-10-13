@@ -52,16 +52,10 @@ public sealed class CodeStyleSettingsManifestTests
     public void EveryConvertedPreferencePreservesItsLegacyHeadingAndGroupOrder(string file, string categoryMoniker, string language, int groupCount)
     {
         using var workspace = EditorTestWorkspace.CreateCSharp("");
-        var componentModel = new Mock<IComponentModel>(MockBehavior.Loose);
-        componentModel.Setup(model => model.GetService<IContentTypeRegistryService>()).Returns(workspace.ExportProvider.GetExportedValue<IContentTypeRegistryService>());
-        var serviceProvider = new Mock<IServiceProvider>(MockBehavior.Strict);
-        serviceProvider.Setup(provider => provider.GetService(typeof(SComponentModel))).Returns(componentModel.Object);
-        var options = new Mock<IGlobalOptionService>(MockBehavior.Strict);
-        options.Setup(options => options.GetOption<object?>(It.IsAny<OptionKey2>())).Returns((OptionKey2 key) => key.Option.DefaultValue);
-        var store = new OptionStore(options.Object);
+        var (store, serviceProvider) = CreateLegacyDependencies(workspace);
         using AbstractOptionPreviewViewModel legacy = language == LanguageNames.CSharp
-            ? new Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting.StyleViewModel(store, serviceProvider.Object)
-            : new Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.StyleViewModel(store, serviceProvider.Object);
+            ? new Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting.StyleViewModel(store, serviceProvider)
+            : new Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.StyleViewModel(store, serviceProvider);
 
         using var document = Load(file);
         var categories = document.RootElement.GetProperty("categories").EnumerateObject()
@@ -83,6 +77,95 @@ public sealed class CodeStyleSettingsManifestTests
             Assert.Equal(legacyGroups[index].Select(item => categoryMoniker + "." + CodeStyleSetting.ToUnifiedScalarMoniker(item.Option.Definition.ConfigName)), placedPreferences);
             Assert.False(category.Value.TryGetProperty("legacyOptionPageId", out _));
             Assert.False(category.Value.TryGetProperty("previewUIFactory", out _));
+        }
+
+        foreach (var item in legacy.CodeStyleItems.OfType<BooleanCodeStyleOptionViewModel>().Where(item => configNames.Contains(item.Option.Definition.ConfigName)))
+        {
+            var preference = properties.GetProperty(categoryMoniker + "." + CodeStyleSetting.ToUnifiedScalarMoniker(item.Option.Definition.ConfigName));
+            var expectedLabels = preference.GetProperty("enum").EnumerateArray()
+                .Select(value => item.Preferences.Single(choice => choice.IsChecked == bool.Parse(value.GetString()!)).Name);
+            var actualLabels = preference.GetProperty("enumItemLabels").EnumerateArray()
+                .Select(label => TestModel.Utilities.EvalResource(label.GetString()!));
+            Assert.Equal(expectedLabels, actualLabels);
+        }
+    }
+
+    [WpfTheory]
+    [InlineData("newLines", 3)]
+    [InlineData("spacing", 6)]
+    [UseExportProvider]
+    public void FormattingGroupsPreserveLegacyHeadingsAndChoicesWithOneParentPreview(string page, int groupCount)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp("");
+        var (store, serviceProvider) = CreateLegacyDependencies(workspace);
+        using AbstractOptionPreviewViewModel legacy = page == "newLines"
+            ? new Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting.NewLinesViewModel(store, serviceProvider)
+            : new Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting.SpacingViewModel(store, serviceProvider);
+        var legacyGroups = new List<(string Heading, List<object> Items)>();
+        foreach (var item in legacy.Items)
+        {
+            if (item is HeaderItemViewModel header)
+                legacyGroups.Add((header.Header, []));
+            else
+                legacyGroups[^1].Items.Add(item);
+        }
+
+        using var document = Load("csharpFormattingSettings.registration.json");
+        var categoryMoniker = "languages.csharp.codeStyle.formatting." + page;
+        var categories = document.RootElement.GetProperty("categories");
+        var groups = categories.EnumerateObject().Where(category => category.Name.StartsWith(categoryMoniker + ".", StringComparison.Ordinal))
+            .OrderBy(category => category.Value.GetProperty("order").GetInt32()).ToArray();
+        var properties = document.RootElement.GetProperty("properties").EnumerateObject()
+            .Where(property => property.Name.StartsWith(categoryMoniker + ".", StringComparison.Ordinal)).ToArray();
+        Assert.Equal(groupCount, groups.Length);
+        Assert.Equal(legacyGroups.Select(group => group.Heading), groups.Select(group => TestModel.Utilities.EvalResource(group.Value.GetProperty("title").GetString()!)));
+        Assert.True(categories.GetProperty(categoryMoniker).GetProperty("keepHeaderVisible").GetBoolean());
+        Assert.True(categories.GetProperty(categoryMoniker).TryGetProperty("previewUIFactory", out _));
+        for (var index = 0; index < groups.Length; index++)
+        {
+            var group = groups[index];
+            Assert.True(group.Value.GetProperty("hideFromNavigation").GetBoolean());
+            Assert.False(group.Value.TryGetProperty("legacyOptionPageId", out _));
+            Assert.False(group.Value.TryGetProperty("previewUIFactory", out _));
+            var placed = properties.Where(property => Assert.Single(property.Value.GetProperty("placements").EnumerateArray()).GetProperty("category").GetString() == group.Name)
+                .OrderBy(property => property.Value.GetProperty("order").GetInt32()).ToArray();
+            var checkboxes = legacyGroups[index].Items.OfType<AbstractCheckBoxViewModel>().ToArray();
+            var radios = legacyGroups[index].Items.OfType<AbstractRadioButtonViewModel>().ToArray();
+            Assert.Equal(checkboxes.Length + radios.Length, legacyGroups[index].Items.Count);
+            Assert.Equal(checkboxes.Length + (radios.Length > 0 ? 1 : 0), placed.Length);
+            Assert.Equal(checkboxes.Select(item => item.Description), placed.Where(property => property.Value.GetProperty("type").GetString() == "boolean")
+                .Select(property => TestModel.Utilities.EvalResource(property.Value.GetProperty("title").GetString()!)));
+            if (radios.Length > 0)
+            {
+                var preference = Assert.Single(placed, property => property.Value.GetProperty("type").GetString() == "string");
+                Assert.Equal(radios.Select(item => item.Description), preference.Value.GetProperty("enumItemLabels").EnumerateArray()
+                    .Select(label => TestModel.Utilities.EvalResource(label.GetString()!)));
+            }
+        }
+
+        Assert.All(properties, property => Assert.Contains(Assert.Single(property.Value.GetProperty("placements").EnumerateArray()).GetProperty("category").GetString(), groups.Select(group => group.Name)));
+    }
+
+    [Theory]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.codeStyle.general")]
+    [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general")]
+    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting.general")]
+    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting.indentation")]
+    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting.newLines")]
+    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting.spacing")]
+    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting.wrapping")]
+    public void NativePagesExplainEditorConfigOverridesAndProvideTheLearnMoreLink(string file, string categoryMoniker)
+    {
+        using var document = Load(file);
+        var category = document.RootElement.GetProperty("categories").GetProperty(categoryMoniker);
+        var message = Assert.Single(category.GetProperty("messages").EnumerateArray());
+        Assert.Equal(CodeStyleNoticeTextBlock.CodeStylePageHeader, TestModel.Utilities.EvalResource(message.GetProperty("text").GetString()!));
+        Assert.False(message.TryGetProperty("visibleWhen", out _));
+        Assert.Equal(CodeStyleNoticeTextBlock.CodeStylePageHeaderLearnMoreUri.AbsoluteUri, category.GetProperty("helpUri").GetString());
+        if (category.TryGetProperty("commands", out var commands))
+        {
+            var help = Assert.Single(commands.EnumerateArray(), command => command.GetProperty("vsct").GetProperty("id").GetInt32() == CodeStyleSettingsCommands.HelpCommandId);
+            Assert.Equal(CodeStyleNoticeTextBlock.CodeStylePageHeaderLearnMoreText, TestModel.Utilities.EvalResource(help.GetProperty("vsct").GetProperty("text").GetString()!));
         }
     }
 
@@ -474,6 +557,17 @@ public sealed class CodeStyleSettingsManifestTests
             Assert.Contains("\"Package\"=\"{" + package + "}\"", registration);
             Assert.Single(assets, asset => (string?)asset.Attribute("Type") == "Microsoft.VisualStudio.VsPackage" && (string?)asset.Attribute("Path") == @"UnifiedSettings\" + file);
         }
+    }
+
+    private static (OptionStore Store, IServiceProvider ServiceProvider) CreateLegacyDependencies(EditorTestWorkspace workspace)
+    {
+        var componentModel = new Mock<IComponentModel>(MockBehavior.Loose);
+        componentModel.Setup(model => model.GetService<IContentTypeRegistryService>()).Returns(workspace.ExportProvider.GetExportedValue<IContentTypeRegistryService>());
+        var serviceProvider = new Mock<IServiceProvider>(MockBehavior.Strict);
+        serviceProvider.Setup(provider => provider.GetService(typeof(SComponentModel))).Returns(componentModel.Object);
+        var options = new Mock<IGlobalOptionService>(MockBehavior.Strict);
+        options.Setup(options => options.GetOption<object?>(It.IsAny<OptionKey2>())).Returns((OptionKey2 key) => key.Option.DefaultValue);
+        return (new OptionStore(options.Object), serviceProvider.Object);
     }
 
     private static JsonElement GetGeneralProperties(JsonDocument document, string category)

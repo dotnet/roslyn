@@ -7,8 +7,8 @@
         "false"
       ],
       "enumItemLabels": [
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+        "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+        "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Do_not_prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_field_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
       "order": 0,
@@ -45,8 +45,8 @@
         "false"
       ],
       "enumItemLabels": [
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+        "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+        "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Do_not_prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_property_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
       "order": 2,
@@ -83,8 +83,8 @@
         "false"
       ],
       "enumItemLabels": [
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+        "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+        "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Do_not_prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_method_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
       "order": 4,
@@ -121,8 +121,8 @@
         "false"
       ],
       "enumItemLabels": [
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+        "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+        "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Do_not_prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_event_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
       "order": 6,
@@ -159,8 +159,8 @@
         "false"
       ],
       "enumItemLabels": [
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_predefined_type;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_framework_type;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:For_locals_parameters_and_members;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 8,
@@ -197,8 +197,8 @@
         "false"
       ],
       "enumItemLabels": [
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
-        "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_predefined_type;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+        "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_framework_type;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:For_member_access_expressions;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 10,
@@ -1267,6 +1267,7 @@
       "order": 0,
       "keepHeaderVisible": true,
       "legacyOptionPageId": "10C168E1-3470-448A-A1AC-73D6BC070750",
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541",
       "commands": [
         {
