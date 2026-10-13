@@ -64,7 +64,7 @@
       "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.InheritanceMarginCombinedWithIndicatorMargin" } } }
     },
     "languages.dotnet.advanced.splitStringLiterals": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Split_string_literals_on_enter;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "type": "boolean", "default": true, "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Split_string_literals_on_enter_USX;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "type": "boolean", "default": true, "transientScopesSupported": false,
       "placements": [ { "category": "languages.csharp.advanced.editorHelp", "order": 20 } ],
       "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.SplitStringLiterals" } } }
     },

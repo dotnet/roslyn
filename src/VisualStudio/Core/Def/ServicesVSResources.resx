@@ -1278,6 +1278,9 @@ Additional information: {1}</value>
     <value>Warning: type does not bind</value>
   </data>
   <data name="Display_inline_parameter_name_hints" xml:space="preserve">
+    <value>Disp_lay inline parameter name hints</value>
+  </data>
+  <data name="Display_inline_parameter_name_hints_USX" xml:space="preserve">
     <value>Display inline parameter name hints</value>
   </data>
   <data name="Current_parameter" xml:space="preserve">
@@ -1721,15 +1724,24 @@ Additional information: {1}</value>
     <value>Insert Snippet</value>
   </data>
   <data name="Show_procedure_line_separators" xml:space="preserve">
+    <value>_Show procedure line separators</value>
+  </data>
+  <data name="Show_procedure_line_separators_USX" xml:space="preserve">
     <value>Show procedure line separators</value>
   </data>
   <data name="Editor_Help" xml:space="preserve">
     <value>Editor Help</value>
   </data>
   <data name="Highlight_related_keywords_under_cursor" xml:space="preserve">
+    <value>Highlight related _keywords under cursor</value>
+  </data>
+  <data name="Highlight_related_keywords_under_cursor_USX" xml:space="preserve">
     <value>Highlight related keywords under cursor</value>
   </data>
   <data name="Highlight_references_to_symbol_under_cursor" xml:space="preserve">
+    <value>_Highlight references to symbol under cursor</value>
+  </data>
+  <data name="Highlight_references_to_symbol_under_cursor_USX" xml:space="preserve">
     <value>Highlight references to symbol under cursor</value>
   </data>
   <data name="Optimize_for_solution_size" xml:space="preserve">
@@ -1799,6 +1811,9 @@ Additional information: {1}</value>
     <value>Enter key behavior</value>
   </data>
   <data name="Show_preview_for_rename_tracking" xml:space="preserve">
+    <value>Show preview for rename _tracking</value>
+  </data>
+  <data name="Show_preview_for_rename_tracking_USX" xml:space="preserve">
     <value>Show preview for rename tracking</value>
   </data>
   <data name="_Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">

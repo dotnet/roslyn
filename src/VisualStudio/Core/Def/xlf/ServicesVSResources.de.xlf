@@ -313,8 +313,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints</source>
+        <target state="translated">Hinweise zu In_lineparameternamen anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints_USX">
         <source>Display inline parameter name hints</source>
-        <target state="translated">Hinweise zu Inlineparameternamen anzeigen</target>
+        <target state="new">Display inline parameter name hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -503,8 +508,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
+        <source>_Highlight references to symbol under cursor</source>
+        <target state="translated">_Verweise auf Symbol unter Cursor hervorheben</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_references_to_symbol_under_cursor_USX">
         <source>Highlight references to symbol under cursor</source>
-        <target state="translated">Verweise auf Symbol unter Cursor hervorheben</target>
+        <target state="new">Highlight references to symbol under cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -513,8 +523,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
+        <source>Highlight related _keywords under cursor</source>
+        <target state="translated">Verwandte _Schlüsselbegriffe unter Cursor anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_keywords_under_cursor_USX">
         <source>Highlight related keywords under cursor</source>
-        <target state="translated">Verwandte Schlüsselbegriffe unter Cursor anzeigen</target>
+        <target state="new">Highlight related keywords under cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1398,13 +1413,23 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
+        <source>Show preview for rename _tracking</source>
+        <target state="translated">Vorschau für Nachverfolgung beim _Umbenennen anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_preview_for_rename_tracking_USX">
         <source>Show preview for rename tracking</source>
-        <target state="translated">Vorschau für Nachverfolgung beim Umbenennen anzeigen</target>
+        <target state="new">Show preview for rename tracking</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
+        <source>_Show procedure line separators</source>
+        <target state="translated">_Zeilentrennzeichen in Prozeduren anzeigen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_procedure_line_separators_USX">
         <source>Show procedure line separators</source>
-        <target state="translated">Zeilentrennzeichen in Prozeduren anzeigen</target>
+        <target state="new">Show procedure line separators</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

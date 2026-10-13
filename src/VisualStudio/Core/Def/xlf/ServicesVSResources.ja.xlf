@@ -313,8 +313,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
+        <source>Disp_lay inline parameter name hints</source>
+        <target state="translated">インライン パラメーター名のヒントを表示する(_L)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints_USX">
         <source>Display inline parameter name hints</source>
-        <target state="translated">インライン パラメーター名のヒントを表示する</target>
+        <target state="new">Display inline parameter name hints</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -503,8 +508,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
+        <source>_Highlight references to symbol under cursor</source>
+        <target state="translated">カーソルの下にあるシンボルへの参照をハイライトする(_H)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_references_to_symbol_under_cursor_USX">
         <source>Highlight references to symbol under cursor</source>
-        <target state="translated">カーソルの下にあるシンボルへの参照をハイライトする</target>
+        <target state="new">Highlight references to symbol under cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -513,8 +523,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
+        <source>Highlight related _keywords under cursor</source>
+        <target state="translated">カーソルの下にあるキーワードの関連キーワードをハイライトする(_K)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_keywords_under_cursor_USX">
         <source>Highlight related keywords under cursor</source>
-        <target state="translated">カーソルの下にあるキーワードの関連キーワードをハイライトする</target>
+        <target state="new">Highlight related keywords under cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1398,13 +1413,23 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
+        <source>Show preview for rename _tracking</source>
+        <target state="translated">名前変更追跡のプレビューの表示(_T)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_preview_for_rename_tracking_USX">
         <source>Show preview for rename tracking</source>
-        <target state="translated">名前変更追跡のプレビューの表示</target>
+        <target state="new">Show preview for rename tracking</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
+        <source>_Show procedure line separators</source>
+        <target state="translated">プロシージャ行の区切り記号を表示する(_S)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_procedure_line_separators_USX">
         <source>Show procedure line separators</source>
-        <target state="translated">プロシージャ行の区切り記号を表示する</target>
+        <target state="new">Show procedure line separators</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

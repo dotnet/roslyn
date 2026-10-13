@@ -21,7 +21,7 @@
       "default": true,
       "order": 10,
       "transientScopesSupported": false,
-      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_statement_on_semicolon;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_statement_on_semicolon_USX;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "enableWhen": "${config:languages.csharp.codeStyle.formatting.general.formatOnTyping} == 'true'",
       "migration": {
         "pass": {
@@ -38,7 +38,7 @@
       "default": true,
       "order": 20,
       "transientScopesSupported": false,
-      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_block_on_close_brace;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_block_on_close_brace_USX;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "enableWhen": "${config:languages.csharp.codeStyle.formatting.general.formatOnTyping} == 'true'",
       "migration": {
         "pass": {
@@ -71,7 +71,7 @@
       "default": true,
       "order": 40,
       "transientScopesSupported": false,
-      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_on_paste;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_on_paste_USX;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "migration": {
         "pass": {
           "mode": "oneTimeFromLegacy",
