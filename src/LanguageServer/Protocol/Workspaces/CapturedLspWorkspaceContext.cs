@@ -14,23 +14,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </summary>
 internal sealed class CapturedLspWorkspaceContext
 {
-    private Task<LspWorkspaceContext>? _immediateResult;
-    private AsyncLazy<LspWorkspaceContext>? _deferredResult;
+    private AsyncLazy<LspWorkspaceContext>? _result;
 
     public CapturedLspWorkspaceContext(LspWorkspaceContext context)
-        => _immediateResult = Task.FromResult(context);
+        => _result = AsyncLazy.Create(context);
 
     public CapturedLspWorkspaceContext(Func<Task<LspWorkspaceContext>> resolveAsync)
-        => _deferredResult = AsyncLazy.Create(static (resolveAsync, _) => resolveAsync(), resolveAsync);
+        => _result = AsyncLazy.Create(static (resolveAsync, _) => resolveAsync(), resolveAsync);
 
-    public Task<LspWorkspaceContext> ResolveAsync()
-        => Volatile.Read(ref _immediateResult)
-            ?? Volatile.Read(ref _deferredResult)?.GetValueAsync(CancellationToken.None)
+    public Task<LspWorkspaceContext> ResolveAsync(CancellationToken cancellationToken)
+        => _result?.GetValueAsync(cancellationToken)
             ?? throw new InvalidOperationException("Workspace context has been cleared.");
 
     public void Clear()
     {
-        Interlocked.Exchange(ref _immediateResult, null);
-        Interlocked.Exchange(ref _deferredResult, null);
+        _result = null;
     }
 }
