@@ -571,12 +571,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning restore format
                 };
 
+                var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
+
                 // Unsafe diagnostics can occur only in strict analysis for imported structs that compatibility analysis treats as empty.
                 Debug.Assert(newCode != oldCode ||
-                    oldCode is ErrorCode.ERR_InsufficientStack or ErrorCode.ERR_UnsafeOperation or ErrorCode.ERR_FeatureInPreview,
+                    oldCode is ErrorCode.ERR_InsufficientStack or ErrorCode.ERR_UnsafeOperation ||
+                    (oldCode == ErrorCode.ERR_FeatureInPreview &&
+                     args is [LocalizableErrorArgument feature] &&
+                     feature.Equals(MessageID.IDS_FeatureUnsafeEvolution.Localize())),
                     oldCode.ToString());
 
-                var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
                 diagnostics.Add(newCode, diagnostic.Location, args);
             }
 
