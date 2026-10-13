@@ -206,6 +206,6 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var listener = server.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.Workspace);
         return new OnDemandProjectLoader(
             new OnDemandProjectLoader.ProjectDiscovery([".csproj"], LoggerFactory),
-            tracker, loader, globalOptions, listener, LoggerFactory);
+            tracker, loader.WorkspaceFactory, loader, globalOptions, listener, LoggerFactory);
     }
 }

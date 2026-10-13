@@ -25,7 +25,7 @@ internal interface IOnDemandProjectLoader : ILspService
     /// <summary>
     /// Waits for all active on-demand projects to load.
     /// </summary>
-    ///  <returns>
+    /// <returns>
     /// The host solution after loading is complete.
     /// </returns>
     ValueTask<Solution> WaitForActiveLoadsAsync();

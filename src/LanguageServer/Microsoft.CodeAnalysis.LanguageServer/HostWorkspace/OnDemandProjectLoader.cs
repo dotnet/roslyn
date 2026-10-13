@@ -32,6 +32,7 @@ internal sealed class OnDemandProjectLoaderFactory(
                 projectSystem.GetSupportedProjectFileExtensions(),
                 loggerFactory),
             lspServices.GetRequiredService<IWorkspaceFolderTracker>(),
+            lspServices.GetRequiredService<LanguageServerWorkspaceFactory>(),
             projectSystem,
             globalOptionService,
             listenerProvider.GetListener(FeatureAttribute.Workspace),
@@ -42,6 +43,7 @@ internal sealed class OnDemandProjectLoaderFactory(
 internal sealed partial class OnDemandProjectLoader(
     OnDemandProjectLoader.ProjectDiscovery discovery,
     IWorkspaceFolderTracker workspaceFolderTracker,
+    LanguageServerWorkspaceFactory workspaceFactory,
     LanguageServerProjectLoader projectLoader,
     IGlobalOptionService globalOptionService,
     IAsynchronousOperationListener listener,
@@ -52,8 +54,8 @@ internal sealed partial class OnDemandProjectLoader(
     private readonly object _activeLoadsGate = new();
 
     /// <summary>
-    /// Coalesces demands from the same directory for the lifetime of discovery and the complete project-reference
-    /// traversal. Individual project loads remain owned by <see cref="LanguageServerProjectLoader"/>.
+    /// Maps each starting directory to the in-progress task that discovers and loads its projects and
+    /// transitive project references. Requests from the same directory share the task.
     /// </summary>
     private readonly Dictionary<string, Task<Solution?>> _activeTraversals = new(PathUtilities.Comparer);
 
@@ -89,19 +91,19 @@ internal sealed partial class OnDemandProjectLoader(
     public ValueTask<Solution> WaitForActiveLoadsAsync()
     {
         if (!IsOnDemandLoadingEnabled)
-            return new(projectLoader.HostWorkspace.CurrentSolution);
+            return new(workspaceFactory.HostWorkspace.CurrentSolution);
 
         lock (_activeLoadsGate)
         {
             return _activeTraversals.Count == 0
-                ? new(projectLoader.HostWorkspace.CurrentSolution)
+                ? new(workspaceFactory.HostWorkspace.CurrentSolution)
                 : new(WaitForLoadsAsync(Task.WhenAll(_activeTraversals.Values)));
         }
 
         async Task<Solution> WaitForLoadsAsync(Task loads)
         {
             await loads.ConfigureAwait(false);
-            return projectLoader.HostWorkspace.CurrentSolution;
+            return workspaceFactory.HostWorkspace.CurrentSolution;
         }
     }
 
@@ -144,7 +146,7 @@ internal sealed partial class OnDemandProjectLoader(
                 }
             }
 
-            return projectLoader.HostWorkspace.CurrentSolution;
+            return workspaceFactory.HostWorkspace.CurrentSolution;
         }
         catch (Exception exception) when (FatalError.ReportAndCatch(exception))
         {
