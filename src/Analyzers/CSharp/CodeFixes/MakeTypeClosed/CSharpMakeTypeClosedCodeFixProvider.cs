@@ -10,63 +10,192 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MakeTypeClosed;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeTypeClosed;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeTypeClosed), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpMakeTypeClosedCodeFixProvider() : AbstractMakeTypeClosedCodeFixProvider<TypeDeclarationSyntax>
+internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    public override ImmutableArray<string> FixableDiagnosticIds
-           => ["CS8509"];
+    public override ImmutableArray<string> FixableDiagnosticIds => [
+            "CS8509", // warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '{some pattern}' is not covered.
+        ];
 
-    protected override async Task<(bool, TypeDeclarationSyntax?)> GetRefactorContextValidityAndTypeAsync(
-        SyntaxNode? node,
-        SemanticModel semanticModel,
+    private static async Task<TypeDeclarationSyntax?> GetTypeToRefactorWhenValidAsync(
         Solution solution,
-        CancellationToken cancellationToken)
+        SemanticModel semanticModel,
+        SyntaxNode? node,
+        CancellationToken cancellationToken = default)
     {
-        TypeDeclarationSyntax? typeDeclaration = null;
-
         var switchExpression = node?.FirstAncestorOrSelf<SwitchExpressionSyntax>();
         if (switchExpression == null)
-            return (false, typeDeclaration);
+            return null;
 
         var switchedOnType = semanticModel.GetTypeInfo(switchExpression.GoverningExpression, cancellationToken: cancellationToken).Type;
 
         if (switchedOnType is not INamedTypeSymbol namedType)
-            return (false, typeDeclaration);
+            return null;
 
         if (namedType.TypeKind != TypeKind.Class)
-            return (false, typeDeclaration);
+            return null;
+
+        if (namedType.IsStatic)
+            return null;
+
+        if (namedType.IsSealed)
+            return null;
+
+        if (namedType.IsClosed)
+            return null;
 
         var declaration = namedType.DeclaringSyntaxReferences.FirstOrDefault();
         if (declaration == null)
-            return (false, typeDeclaration);
+            return null;
 
-        // Check if the user owns both projects, aka they are in their solution.
-        if (solution.GetProject(namedType.ContainingAssembly, cancellationToken) == null
-            || solution.GetProject(semanticModel.Compilation.Assembly, cancellationToken) == null)
+        if (await declaration.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) is not TypeDeclarationSyntax syntax)
+            return null;
+
+        if (namedType.DeclaredAccessibility == Accessibility.Private)
+            return syntax;
+
+        var switchArmTypes = switchExpression.DescendantNodes()
+            .OfType<SwitchExpressionArmSyntax>()
+            .Select(arm => arm.Pattern)
+            .OfType<DeclarationPatternSyntax>();
+
+        var namedTypeAllowsNulls = namedType.NullableAnnotation == NullableAnnotation.Annotated;
+
+        if (!await AreAllDerrivedTypesHandledAsync(solution, semanticModel, switchExpression.Arms, namedType, true, cancellationToken).ConfigureAwait(false))
+            return null;
+
+        if (!namedType.IsAbstract && await IsTypeEverInstantiatedAsync(solution, namedType, cancellationToken).ConfigureAwait(false))
+            return null;
+
+        return syntax;
+    }
+
+    private static async Task<bool> AreAllDerrivedTypesHandledAsync(
+        Solution solution,
+        SemanticModel semanticModel,
+        SeparatedSyntaxList<SwitchExpressionArmSyntax> switchArms,
+        INamedTypeSymbol type,
+        bool hasToBeInSameAssembly = true,
+        CancellationToken cancellationToken = default)
+    {
+
+        var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(type, solution, false, [.. solution.Projects], cancellationToken).ConfigureAwait(false);
+        foreach (var derivedClass in derivedClasses)
         {
-            return (false, typeDeclaration);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (hasToBeInSameAssembly && !SymbolEqualityComparer.Default.Equals(type.ContainingAssembly, derivedClass.ContainingAssembly))
+                return false;
+
+            var isHandled = switchArms.Any(arm =>
+            {
+                var patternType = semanticModel.GetTypeInfo(arm.Pattern, cancellationToken: cancellationToken).Type;
+                return SymbolEqualityComparer.Default.Equals(patternType, derivedClass);
+            });
+            if (isHandled)
+                continue;
+
+            if (!await AreAllDerrivedTypesHandledAsync(solution, semanticModel, switchArms, derivedClass, false, cancellationToken).ConfigureAwait(false))
+                return false;
         }
 
-        if (namedType.IsStatic)
-            return (false, typeDeclaration);
+        return true;
+    }
 
-        if (namedType.IsSealed)
-            return (false, typeDeclaration);
+    private static async Task<bool> IsTypeEverInstantiatedAsync(
+        Solution solution,
+        INamedTypeSymbol type,
+        CancellationToken cancellationToken = default)
+    {
 
-        if (declaration.GetSyntax(cancellationToken) is not TypeDeclarationSyntax syntax)
-            return (false, typeDeclaration);
+        var references = await SymbolFinder.FindReferencesAsync(type, solution, cancellationToken).ConfigureAwait(false);
+        foreach (var reference in references)
+        {
+            foreach (var location in reference.Locations)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!location.Location.IsInSource)
+                    continue;
 
-        if (await HasExternalDerivedTypesAsync(namedType, solution, cancellationToken).ConfigureAwait(false))
-            return (false, typeDeclaration);
+                var document = solution.GetDocument(location.Location.SourceTree);
+                if (document == null)
+                    continue;
 
-        typeDeclaration = syntax;
-        return (true, typeDeclaration);
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var node = root.FindNode(location.Location.SourceSpan);
+
+                var objectCreation = node.FirstAncestorOrSelf<BaseObjectCreationExpressionSyntax>();
+                if (objectCreation != null)
+                {
+                    var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    var createdType = model.GetTypeInfo(objectCreation, cancellationToken: cancellationToken).Type;
+                    if (SymbolEqualityComparer.Default.Equals(createdType, type))
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        var document = context.Document;
+        Contract.ThrowIfNull(document);
+
+        var semanticModel = await document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(semanticModel);
+
+        if (await GetTypeToRefactorWhenValidAsync(
+                document.Project.Solution,
+                semanticModel,
+                context.Diagnostics[0].Location.FindNode(context.CancellationToken),
+                context.CancellationToken
+            ).ConfigureAwait(false) != null)
+        {
+            RegisterCodeFix(context, CodeFixesResources.Make_class_closed, CodeFixesResources.Make_class_closed);
+        }
+    }
+
+    protected override async Task FixAllAsync(
+        Document document,
+        ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor,
+        CancellationToken cancellationToken)
+    {
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(semanticModel);
+
+        foreach (var diagnostic in diagnostics)
+        {
+            var typeDeclaration = await GetTypeToRefactorWhenValidAsync(
+                    document.Project.Solution,
+                    semanticModel,
+                    diagnostic.Location.FindNode(cancellationToken),
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            if (typeDeclaration != null)
+            {
+                editor.ReplaceNode(typeDeclaration,
+                    (currentTypeDeclaration, generator) =>
+                        generator.WithModifiers(
+                            currentTypeDeclaration,
+                            generator.GetModifiers(currentTypeDeclaration)
+                                .WithIsAbstract(false)
+                                .WithIsClosed(true)
+                        )
+                );
+            }
+        }
     }
 }
