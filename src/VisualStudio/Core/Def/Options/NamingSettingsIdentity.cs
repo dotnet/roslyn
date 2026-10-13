@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using static Microsoft.VisualStudio.LanguageServices.Options.NamingSettingsConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
@@ -39,13 +40,13 @@ internal static class NamingSettingsIdentity
         => s_builtinIds.TryGetValue(legacyId, out id);
 
     public static IEnumerable<string> GetBuiltInIds(string identityKind)
-        => s_builtinIds.Values.Where(id => IsStyleId(id) == (identityKind == "namingStyle"));
+        => s_builtinIds.Values.Where(id => IsStyleId(id) == (identityKind == IdentityKinds.NamingStyle));
 
     public static Guid GetLegacyId(string id, string identityKind)
     {
         foreach (var pair in s_builtinIds)
         {
-            if (pair.Value == id && IsStyleId(id) == (identityKind == "namingStyle"))
+            if (pair.Value == id && IsStyleId(id) == (identityKind == IdentityKinds.NamingStyle))
                 return pair.Key;
         }
 

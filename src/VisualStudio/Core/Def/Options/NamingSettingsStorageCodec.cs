@@ -7,15 +7,16 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using static Microsoft.VisualStudio.LanguageServices.Options.NamingSettingsConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
 internal static class NamingSettingsStorageCodec
 {
-    private static readonly string[] s_listProperties = ["symbolKinds", "accessibilities", "requiredModifiers"];
-    private static readonly string[] s_specificationProperties = ["id", "name", "defaultName", "symbolKinds", "accessibilities", "requiredModifiers"];
-    private static readonly string[] s_styleProperties = ["id", "name", "defaultName", "prefix", "suffix", "wordSeparator", "capitalization"];
-    private static readonly string[] s_ruleProperties = ["symbolSpecificationId", "namingStyleId", "severity"];
+    private static readonly string[] s_listProperties = [Properties.SymbolKinds, Properties.Accessibilities, Properties.RequiredModifiers];
+    private static readonly string[] s_specificationProperties = [Properties.Id, Properties.Name, Properties.DefaultName, Properties.SymbolKinds, Properties.Accessibilities, Properties.RequiredModifiers];
+    private static readonly string[] s_styleProperties = [Properties.Id, Properties.Name, Properties.DefaultName, Properties.Prefix, Properties.Suffix, Properties.WordSeparator, Properties.Capitalization];
+    private static readonly string[] s_ruleProperties = [Properties.SymbolSpecificationId, Properties.NamingStyleId, Properties.Severity];
 
     // Registered object-array defaults support scalar properties, not nested arrays. Tokens contain no commas.
     public static ImmutableArray<IReadOnlyDictionary<string, object>> EncodeSpecifications(ImmutableArray<IReadOnlyDictionary<string, object>> items)

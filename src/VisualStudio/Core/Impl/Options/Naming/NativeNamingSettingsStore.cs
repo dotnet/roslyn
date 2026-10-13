@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.RpcContracts.UnifiedSettings;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using static Microsoft.VisualStudio.LanguageServices.Options.NamingSettingsConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -32,11 +33,11 @@ internal sealed class NativeNamingSettingsStore
         _settings = settings;
         var prefix = language switch
         {
-            LanguageNames.CSharp => "languages.csharp.codeStyle.naming.",
-            LanguageNames.VisualBasic => "languages.basic.codeStyle.naming.",
+            LanguageNames.CSharp => SettingNames.CSharpPrefix,
+            LanguageNames.VisualBasic => SettingNames.VisualBasicPrefix,
             _ => throw ExceptionUtilities.UnexpectedValue(language),
         };
-        _monikers = [prefix + "symbolSpecifications", prefix + "namingStyles", prefix + "rules"];
+        _monikers = [prefix + SettingNames.SymbolSpecifications, prefix + SettingNames.NamingStyles, prefix + SettingNames.Rules];
     }
 
     public async Task<NamingSettingsGraph> ReadAsync(CancellationToken cancellationToken)

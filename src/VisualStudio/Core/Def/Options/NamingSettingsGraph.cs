@@ -11,6 +11,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.NamingStyles;
+using static Microsoft.VisualStudio.LanguageServices.Options.NamingSettingsConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
@@ -40,8 +41,8 @@ internal sealed class NamingSettingsGraph(
         foreach (var item in graph.SymbolSpecifications.Concat(graph.NamingStyles))
         {
             var properties = (Dictionary<string, object>)item;
-            properties["name"] = "";
-            properties["defaultName"] = true;
+            properties[Properties.Name] = "";
+            properties[Properties.DefaultName] = true;
         }
 
         return graph;
@@ -49,10 +50,10 @@ internal sealed class NamingSettingsGraph(
 
     public static NamingSettingsGraph FromPreferences(NamingStylePreferences preferences, NamingSettingsGraph? previous = null)
     {
-        var previousSpecifications = GetPreviousItems(previous?.SymbolSpecifications ?? [], "symbolSpecification");
-        var previousStyles = GetPreviousItems(previous?.NamingStyles ?? [], "namingStyle");
-        var specificationIds = ReserveIds(preferences.SymbolSpecifications.Select(item => item.ID), previousSpecifications, "symbolSpecification");
-        var styleIds = ReserveIds(preferences.NamingStyles.Select(item => item.ID), previousStyles, "namingStyle");
+        var previousSpecifications = GetPreviousItems(previous?.SymbolSpecifications ?? [], IdentityKinds.SymbolSpecification);
+        var previousStyles = GetPreviousItems(previous?.NamingStyles ?? [], IdentityKinds.NamingStyle);
+        var specificationIds = ReserveIds(preferences.SymbolSpecifications.Select(item => item.ID), previousSpecifications, IdentityKinds.SymbolSpecification);
+        var styleIds = ReserveIds(preferences.NamingStyles.Select(item => item.ID), previousStyles, IdentityKinds.NamingStyle);
         var specifications = ImmutableArray.CreateBuilder<IReadOnlyDictionary<string, object>>();
         var styles = ImmutableArray.CreateBuilder<IReadOnlyDictionary<string, object>>();
         var rules = ImmutableArray.CreateBuilder<IReadOnlyDictionary<string, object>>();
@@ -67,11 +68,11 @@ internal sealed class NamingSettingsGraph(
             specificationMap.Add(specification.ID, id);
             var item = new Dictionary<string, object>(StringComparer.Ordinal)
             {
-                ["id"] = id,
-                ["name"] = specification.Name ?? "",
-                ["symbolKinds"] = specification.ApplicableSymbolKindList.Select(SerializeKind).ToArray(),
-                ["accessibilities"] = specification.ApplicableAccessibilityList.Select(SerializeAccessibility).ToArray(),
-                ["requiredModifiers"] = specification.RequiredModifierList.Select(modifier => SerializeModifier(modifier.ModifierKindWrapper)).ToArray(),
+                [Properties.Id] = id,
+                [Properties.Name] = specification.Name ?? "",
+                [Properties.SymbolKinds] = specification.ApplicableSymbolKindList.Select(SerializeKind).ToArray(),
+                [Properties.Accessibilities] = specification.ApplicableAccessibilityList.Select(SerializeAccessibility).ToArray(),
+                [Properties.RequiredModifiers] = specification.RequiredModifierList.Select(modifier => SerializeModifier(modifier.ModifierKindWrapper)).ToArray(),
             };
             PreserveDefaultName(item, existing, specification.Name ?? "", isStyle: false);
             specifications.Add(item);
@@ -85,12 +86,12 @@ internal sealed class NamingSettingsGraph(
             styleMap.Add(style.ID, id);
             var item = new Dictionary<string, object>(StringComparer.Ordinal)
             {
-                ["id"] = id,
-                ["name"] = style.Name ?? "",
-                ["prefix"] = style.Prefix,
-                ["suffix"] = style.Suffix,
-                ["wordSeparator"] = style.WordSeparator,
-                ["capitalization"] = SerializeCapitalization(style.CapitalizationScheme),
+                [Properties.Id] = id,
+                [Properties.Name] = style.Name ?? "",
+                [Properties.Prefix] = style.Prefix,
+                [Properties.Suffix] = style.Suffix,
+                [Properties.WordSeparator] = style.WordSeparator,
+                [Properties.Capitalization] = SerializeCapitalization(style.CapitalizationScheme),
             };
             PreserveDefaultName(item, existing, style.Name ?? "", isStyle: true);
             styles.Add(item);
@@ -100,9 +101,9 @@ internal sealed class NamingSettingsGraph(
         {
             rules.Add(new Dictionary<string, object>(StringComparer.Ordinal)
             {
-                ["symbolSpecificationId"] = specificationMap[rule.SymbolSpecification.ID],
-                ["namingStyleId"] = styleMap[rule.NamingStyle.ID],
-                ["severity"] = SerializeSeverity(rule.EnforcementLevel),
+                [Properties.SymbolSpecificationId] = specificationMap[rule.SymbolSpecification.ID],
+                [Properties.NamingStyleId] = styleMap[rule.NamingStyle.ID],
+                [Properties.Severity] = SerializeSeverity(rule.EnforcementLevel),
             });
         }
 
@@ -125,12 +126,12 @@ internal sealed class NamingSettingsGraph(
         foreach (var item in SymbolSpecifications)
         {
             var id = ReadId(item);
-            var legacyId = ReadLegacyId(item, "symbolSpecification");
+            var legacyId = ReadLegacyId(item, IdentityKinds.SymbolSpecification);
             var specification = new SymbolSpecification(
                 legacyId, ReadName(item, legacyId, isStyle: false),
-                ReadStrings(item, "symbolKinds").Select(ParseKind).ToImmutableArray(),
-                ReadStrings(item, "accessibilities").Select(ParseAccessibility).ToImmutableArray(),
-                ReadStrings(item, "requiredModifiers").Select(token => new SymbolSpecification.ModifierKind(ParseModifier(token))).ToImmutableArray());
+                ReadStrings(item, Properties.SymbolKinds).Select(ParseKind).ToImmutableArray(),
+                ReadStrings(item, Properties.Accessibilities).Select(ParseAccessibility).ToImmutableArray(),
+                ReadStrings(item, Properties.RequiredModifiers).Select(token => new SymbolSpecification.ModifierKind(ParseModifier(token))).ToImmutableArray());
             if (specificationsById.ContainsKey(id) || !specificationGuids.Add(legacyId))
                 throw new InvalidDataException("Symbol specification identities must be unique.");
             specificationsById.Add(id, specification);
@@ -140,10 +141,10 @@ internal sealed class NamingSettingsGraph(
         foreach (var item in NamingStyles)
         {
             var id = ReadId(item);
-            var legacyId = ReadLegacyId(item, "namingStyle");
+            var legacyId = ReadLegacyId(item, IdentityKinds.NamingStyle);
             var style = new NamingStyle(
-                legacyId, ReadName(item, legacyId, isStyle: true), ReadString(item, "prefix"), ReadString(item, "suffix"),
-                ReadString(item, "wordSeparator"), ParseCapitalization(ReadString(item, "capitalization")));
+                legacyId, ReadName(item, legacyId, isStyle: true), ReadString(item, Properties.Prefix), ReadString(item, Properties.Suffix),
+                ReadString(item, Properties.WordSeparator), ParseCapitalization(ReadString(item, Properties.Capitalization)));
             if (stylesById.ContainsKey(id) || !styleGuids.Add(legacyId))
                 throw new InvalidDataException("Naming style identities must be unique.");
             stylesById.Add(id, style);
@@ -152,13 +153,13 @@ internal sealed class NamingSettingsGraph(
 
         foreach (var item in Rules)
         {
-            if (!specificationsById.TryGetValue(ReadString(item, "symbolSpecificationId"), out var specification)
-                || !stylesById.TryGetValue(ReadString(item, "namingStyleId"), out var style))
+            if (!specificationsById.TryGetValue(ReadString(item, Properties.SymbolSpecificationId), out var specification)
+                || !stylesById.TryGetValue(ReadString(item, Properties.NamingStyleId), out var style))
             {
                 throw new InvalidDataException("A naming rule refers to an unknown symbol specification or naming style.");
             }
 
-            rules.Add(new NamingRule(specification, style, ParseSeverity(ReadString(item, "severity"))));
+            rules.Add(new NamingRule(specification, style, ParseSeverity(ReadString(item, Properties.Severity))));
         }
 
         return new NamingStylePreferences(specifications.ToImmutable(), styles.ToImmutable(), rules.ToImmutable());
@@ -166,8 +167,8 @@ internal sealed class NamingSettingsGraph(
 
     private static string ReadName(IReadOnlyDictionary<string, object> item, Guid id, bool isStyle)
     {
-        var name = ReadString(item, "name");
-        if (!item.TryGetValue("defaultName", out var defaultName))
+        var name = ReadString(item, Properties.Name);
+        if (!item.TryGetValue(Properties.DefaultName, out var defaultName))
             return name;
 
         if (defaultName is not bool useDefault)
@@ -195,22 +196,22 @@ internal sealed class NamingSettingsGraph(
     internal static IReadOnlyDictionary<string, object> NormalizeDefinition(IReadOnlyDictionary<string, object> item, bool isStyle)
     {
         var normalized = MaterializeDefinition(item, isStyle).ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
-        var id = NamingSettingsIdentity.GetLegacyId(ReadId(item), isStyle ? "namingStyle" : "symbolSpecification");
-        if ((string)normalized["name"] == GetDefaultName(id, isStyle))
+        var id = NamingSettingsIdentity.GetLegacyId(ReadId(item), isStyle ? IdentityKinds.NamingStyle : IdentityKinds.SymbolSpecification);
+        if ((string)normalized[Properties.Name] == GetDefaultName(id, isStyle))
         {
-            normalized["name"] = "";
-            normalized["defaultName"] = true;
+            normalized[Properties.Name] = "";
+            normalized[Properties.DefaultName] = true;
         }
         return normalized;
     }
 
     internal static IReadOnlyDictionary<string, object> MaterializeDefinition(IReadOnlyDictionary<string, object> item, bool isStyle)
     {
-        var name = ReadName(item, ReadLegacyId(item, isStyle ? "namingStyle" : "symbolSpecification"), isStyle);
+        var name = ReadName(item, ReadLegacyId(item, isStyle ? IdentityKinds.NamingStyle : IdentityKinds.SymbolSpecification), isStyle);
         var result = item.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
-        result["name"] = name;
-        result.Remove("legacyId");
-        result.Remove("defaultName");
+        result[Properties.Name] = name;
+        result.Remove(Properties.LegacyId);
+        result.Remove(Properties.DefaultName);
         return result;
     }
 
@@ -218,25 +219,25 @@ internal sealed class NamingSettingsGraph(
     {
         switch (property)
         {
-            case "name":
+            case Properties.Name:
                 if (string.IsNullOrWhiteSpace(ReadString(item, property)))
                     throw new InvalidDataException(ServicesVSResources.Enter_a_title_for_this_Naming_Style);
                 break;
-            case "prefix" or "suffix" or "wordSeparator" when isStyle:
+            case Properties.Prefix or Properties.Suffix or Properties.WordSeparator when isStyle:
                 _ = ReadString(item, property);
                 break;
-            case "capitalization" when isStyle:
+            case Properties.Capitalization when isStyle:
                 _ = ParseCapitalization(ReadString(item, property));
                 break;
-            case "symbolKinds" when !isStyle:
+            case Properties.SymbolKinds when !isStyle:
                 foreach (var token in ReadStrings(item, property))
                     _ = ParseKind(token);
                 break;
-            case "accessibilities" when !isStyle:
+            case Properties.Accessibilities when !isStyle:
                 foreach (var token in ReadStrings(item, property))
                     _ = ParseAccessibility(token);
                 break;
-            case "requiredModifiers" when !isStyle:
+            case Properties.RequiredModifiers when !isStyle:
                 foreach (var token in ReadStrings(item, property))
                     _ = ParseModifier(token);
                 break;
@@ -252,12 +253,12 @@ internal sealed class NamingSettingsGraph(
 
     private static void PreserveDefaultName(Dictionary<string, object> item, IReadOnlyDictionary<string, object>? previous, string name, bool isStyle)
     {
-        var id = NamingSettingsIdentity.GetLegacyId(ReadId(item), isStyle ? "namingStyle" : "symbolSpecification");
-        if (previous is not null && previous.TryGetValue("defaultName", out var defaultName) && defaultName is true
+        var id = NamingSettingsIdentity.GetLegacyId(ReadId(item), isStyle ? IdentityKinds.NamingStyle : IdentityKinds.SymbolSpecification);
+        if (previous is not null && previous.TryGetValue(Properties.DefaultName, out var defaultName) && defaultName is true
             && name == GetDefaultName(id, isStyle))
         {
-            item["name"] = "";
-            item["defaultName"] = true;
+            item[Properties.Name] = "";
+            item[Properties.DefaultName] = true;
         }
     }
 
@@ -279,7 +280,7 @@ internal sealed class NamingSettingsGraph(
 
     private static Guid ReadLegacyId(IReadOnlyDictionary<string, object> item, string identityKind)
     {
-        if (item.ContainsKey("legacyId"))
+        if (item.ContainsKey(Properties.LegacyId))
             return ReadLegacyId(item);
 
         return NamingSettingsIdentity.GetLegacyId(ReadId(item), identityKind);
@@ -287,7 +288,7 @@ internal sealed class NamingSettingsGraph(
 
     private static string ReadId(IReadOnlyDictionary<string, object> item)
     {
-        var id = ReadString(item, "id");
+        var id = ReadString(item, Properties.Id);
         if (!NamingSettingsIdentity.IsValidId(id))
             throw new InvalidDataException("Naming IDs must start with a lowercase ASCII letter and contain only lowercase letters, digits or underscores.");
         return id;
@@ -295,7 +296,7 @@ internal sealed class NamingSettingsGraph(
 
     private static Guid ReadLegacyId(IReadOnlyDictionary<string, object> item)
     {
-        if (!Guid.TryParse(ReadString(item, "legacyId"), out var id) || id == Guid.Empty)
+        if (!Guid.TryParse(ReadString(item, Properties.LegacyId), out var id) || id == Guid.Empty)
             throw new InvalidDataException("Naming compatibility identities must be nonempty GUIDs.");
         return id;
     }
@@ -320,58 +321,58 @@ internal sealed class NamingSettingsGraph(
     }
 
     internal static string SerializeKind(SymbolSpecification.SymbolKindOrTypeKind kind)
-        => kind.SymbolKind is SymbolKind.Namespace ? "namespace"
-            : kind.SymbolKind is SymbolKind.Property ? "property"
-            : kind.SymbolKind is SymbolKind.Field ? "field"
-            : kind.SymbolKind is SymbolKind.Event ? "event"
-            : kind.SymbolKind is SymbolKind.Parameter ? "parameter"
-            : kind.SymbolKind is SymbolKind.TypeParameter ? "typeParameter"
-            : kind.SymbolKind is SymbolKind.Local ? "local"
-            : kind.TypeKind is TypeKind.Class ? "class"
-            : kind.TypeKind is TypeKind.Struct ? "struct"
-            : kind.TypeKind is TypeKind.Interface ? "interface"
-            : kind.TypeKind is TypeKind.Delegate ? "delegate"
-            : kind.TypeKind is TypeKind.Enum ? "enum"
-            : kind.TypeKind is TypeKind.Module ? "module"
-            : kind.TypeKind is TypeKind.Pointer ? "pointer"
-            : kind.MethodKind is MethodKind.Ordinary ? "method"
-            : kind.MethodKind is MethodKind.LocalFunction ? "localFunction"
-            : kind.SymbolKind is { } symbol ? "symbol:" + symbol
-            : kind.TypeKind is { } type ? "type:" + type
-            : kind.MethodKind is { } method ? "method:" + method
+        => kind.SymbolKind is SymbolKind.Namespace ? SymbolKinds.Namespace
+            : kind.SymbolKind is SymbolKind.Property ? SymbolKinds.Property
+            : kind.SymbolKind is SymbolKind.Field ? SymbolKinds.Field
+            : kind.SymbolKind is SymbolKind.Event ? SymbolKinds.Event
+            : kind.SymbolKind is SymbolKind.Parameter ? SymbolKinds.Parameter
+            : kind.SymbolKind is SymbolKind.TypeParameter ? SymbolKinds.TypeParameter
+            : kind.SymbolKind is SymbolKind.Local ? SymbolKinds.Local
+            : kind.TypeKind is TypeKind.Class ? SymbolKinds.Class
+            : kind.TypeKind is TypeKind.Struct ? SymbolKinds.Struct
+            : kind.TypeKind is TypeKind.Interface ? SymbolKinds.Interface
+            : kind.TypeKind is TypeKind.Delegate ? SymbolKinds.Delegate
+            : kind.TypeKind is TypeKind.Enum ? SymbolKinds.Enum
+            : kind.TypeKind is TypeKind.Module ? SymbolKinds.Module
+            : kind.TypeKind is TypeKind.Pointer ? SymbolKinds.Pointer
+            : kind.MethodKind is MethodKind.Ordinary ? SymbolKinds.Method
+            : kind.MethodKind is MethodKind.LocalFunction ? SymbolKinds.LocalFunction
+            : kind.SymbolKind is { } symbol ? SymbolKinds.SymbolPrefix + symbol
+            : kind.TypeKind is { } type ? SymbolKinds.TypePrefix + type
+            : kind.MethodKind is { } method ? SymbolKinds.MethodPrefix + method
             : throw new InvalidDataException("Unknown symbol kind.");
 
     private static SymbolSpecification.SymbolKindOrTypeKind ParseKind(string token)
     {
         var knownKind = token switch
         {
-            "namespace" => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Namespace),
-            "property" => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property),
-            "field" => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
-            "event" => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Event),
-            "parameter" => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter),
-            "typeParameter" => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.TypeParameter),
-            "local" => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local),
-            "class" => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class),
-            "struct" => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Struct),
-            "interface" => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Interface),
-            "delegate" => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Delegate),
-            "enum" => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Enum),
-            "module" => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Module),
-            "pointer" => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Pointer),
-            "method" => new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary),
-            "localFunction" => new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction),
+            SymbolKinds.Namespace => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Namespace),
+            SymbolKinds.Property => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Property),
+            SymbolKinds.Field => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
+            SymbolKinds.Event => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Event),
+            SymbolKinds.Parameter => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Parameter),
+            SymbolKinds.TypeParameter => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.TypeParameter),
+            SymbolKinds.Local => new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Local),
+            SymbolKinds.Class => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Class),
+            SymbolKinds.Struct => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Struct),
+            SymbolKinds.Interface => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Interface),
+            SymbolKinds.Delegate => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Delegate),
+            SymbolKinds.Enum => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Enum),
+            SymbolKinds.Module => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Module),
+            SymbolKinds.Pointer => new SymbolSpecification.SymbolKindOrTypeKind(TypeKind.Pointer),
+            SymbolKinds.Method => new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.Ordinary),
+            SymbolKinds.LocalFunction => new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction),
             _ => (SymbolSpecification.SymbolKindOrTypeKind?)null,
         };
         if (knownKind is { } kind)
             return kind;
 
-        if (token.StartsWith("symbol:", StringComparison.Ordinal))
-            return new SymbolSpecification.SymbolKindOrTypeKind(ParseEnum<SymbolKind>(token.Substring(7)));
-        if (token.StartsWith("type:", StringComparison.Ordinal))
-            return new SymbolSpecification.SymbolKindOrTypeKind(ParseEnum<TypeKind>(token.Substring(5)));
-        if (token.StartsWith("method:", StringComparison.Ordinal))
-            return new SymbolSpecification.SymbolKindOrTypeKind(ParseEnum<MethodKind>(token.Substring(7)));
+        if (token.StartsWith(SymbolKinds.SymbolPrefix, StringComparison.Ordinal))
+            return new SymbolSpecification.SymbolKindOrTypeKind(ParseEnum<SymbolKind>(token.Substring(SymbolKinds.SymbolPrefix.Length)));
+        if (token.StartsWith(SymbolKinds.TypePrefix, StringComparison.Ordinal))
+            return new SymbolSpecification.SymbolKindOrTypeKind(ParseEnum<TypeKind>(token.Substring(SymbolKinds.TypePrefix.Length)));
+        if (token.StartsWith(SymbolKinds.MethodPrefix, StringComparison.Ordinal))
+            return new SymbolSpecification.SymbolKindOrTypeKind(ParseEnum<MethodKind>(token.Substring(SymbolKinds.MethodPrefix.Length)));
         throw new InvalidDataException($"Unknown symbol kind '{token}'.");
     }
 
@@ -381,83 +382,83 @@ internal sealed class NamingSettingsGraph(
 
     private static string SerializeAccessibility(Accessibility accessibility) => accessibility switch
     {
-        Accessibility.NotApplicable => "local",
-        Accessibility.Public => "public",
-        Accessibility.Private => "private",
-        Accessibility.Internal => "internal",
-        Accessibility.Protected => "protected",
-        Accessibility.ProtectedAndInternal => "privateProtected",
-        Accessibility.ProtectedOrInternal => "protectedInternal",
+        Accessibility.NotApplicable => Accessibilities.Local,
+        Accessibility.Public => Accessibilities.Public,
+        Accessibility.Private => Accessibilities.Private,
+        Accessibility.Internal => Accessibilities.Internal,
+        Accessibility.Protected => Accessibilities.Protected,
+        Accessibility.ProtectedAndInternal => Accessibilities.PrivateProtected,
+        Accessibility.ProtectedOrInternal => Accessibilities.ProtectedInternal,
         _ => throw new InvalidDataException($"Unknown accessibility '{accessibility}'."),
     };
 
     private static Accessibility ParseAccessibility(string token) => token switch
     {
-        "local" => Accessibility.NotApplicable,
-        "public" => Accessibility.Public,
-        "private" => Accessibility.Private,
-        "internal" => Accessibility.Internal,
-        "protected" => Accessibility.Protected,
-        "privateProtected" => Accessibility.ProtectedAndInternal,
-        "protectedInternal" => Accessibility.ProtectedOrInternal,
+        Accessibilities.Local => Accessibility.NotApplicable,
+        Accessibilities.Public => Accessibility.Public,
+        Accessibilities.Private => Accessibility.Private,
+        Accessibilities.Internal => Accessibility.Internal,
+        Accessibilities.Protected => Accessibility.Protected,
+        Accessibilities.PrivateProtected => Accessibility.ProtectedAndInternal,
+        Accessibilities.ProtectedInternal => Accessibility.ProtectedOrInternal,
         _ => throw new InvalidDataException($"Unknown accessibility '{token}'."),
     };
 
     private static string SerializeModifier(SymbolSpecification.ModifierKindEnum modifier) => modifier switch
     {
-        SymbolSpecification.ModifierKindEnum.IsAbstract => "abstract",
-        SymbolSpecification.ModifierKindEnum.IsStatic => "static",
-        SymbolSpecification.ModifierKindEnum.IsAsync => "async",
-        SymbolSpecification.ModifierKindEnum.IsReadOnly => "readonly",
-        SymbolSpecification.ModifierKindEnum.IsConst => "const",
+        SymbolSpecification.ModifierKindEnum.IsAbstract => Modifiers.Abstract,
+        SymbolSpecification.ModifierKindEnum.IsStatic => Modifiers.Static,
+        SymbolSpecification.ModifierKindEnum.IsAsync => Modifiers.Async,
+        SymbolSpecification.ModifierKindEnum.IsReadOnly => Modifiers.ReadOnly,
+        SymbolSpecification.ModifierKindEnum.IsConst => Modifiers.Const,
         _ => throw new InvalidDataException($"Unknown modifier '{modifier}'."),
     };
 
     private static SymbolSpecification.ModifierKindEnum ParseModifier(string token) => token switch
     {
-        "abstract" => SymbolSpecification.ModifierKindEnum.IsAbstract,
-        "static" => SymbolSpecification.ModifierKindEnum.IsStatic,
-        "async" => SymbolSpecification.ModifierKindEnum.IsAsync,
-        "readonly" => SymbolSpecification.ModifierKindEnum.IsReadOnly,
-        "const" => SymbolSpecification.ModifierKindEnum.IsConst,
+        Modifiers.Abstract => SymbolSpecification.ModifierKindEnum.IsAbstract,
+        Modifiers.Static => SymbolSpecification.ModifierKindEnum.IsStatic,
+        Modifiers.Async => SymbolSpecification.ModifierKindEnum.IsAsync,
+        Modifiers.ReadOnly => SymbolSpecification.ModifierKindEnum.IsReadOnly,
+        Modifiers.Const => SymbolSpecification.ModifierKindEnum.IsConst,
         _ => throw new InvalidDataException($"Unknown modifier '{token}'."),
     };
 
     private static string SerializeCapitalization(Capitalization capitalization) => capitalization switch
     {
-        Capitalization.PascalCase => "pascalCase",
-        Capitalization.CamelCase => "camelCase",
-        Capitalization.FirstUpper => "firstUpper",
-        Capitalization.AllUpper => "allUpper",
-        Capitalization.AllLower => "allLower",
+        Capitalization.PascalCase => Capitalizations.PascalCase,
+        Capitalization.CamelCase => Capitalizations.CamelCase,
+        Capitalization.FirstUpper => Capitalizations.FirstUpper,
+        Capitalization.AllUpper => Capitalizations.AllUpper,
+        Capitalization.AllLower => Capitalizations.AllLower,
         _ => throw new InvalidDataException($"Unknown capitalization '{capitalization}'."),
     };
 
     private static Capitalization ParseCapitalization(string token) => token switch
     {
-        "pascalCase" => Capitalization.PascalCase,
-        "camelCase" => Capitalization.CamelCase,
-        "firstUpper" => Capitalization.FirstUpper,
-        "allUpper" => Capitalization.AllUpper,
-        "allLower" => Capitalization.AllLower,
+        Capitalizations.PascalCase => Capitalization.PascalCase,
+        Capitalizations.CamelCase => Capitalization.CamelCase,
+        Capitalizations.FirstUpper => Capitalization.FirstUpper,
+        Capitalizations.AllUpper => Capitalization.AllUpper,
+        Capitalizations.AllLower => Capitalization.AllLower,
         _ => throw new InvalidDataException($"Unknown capitalization '{token}'."),
     };
 
     private static string SerializeSeverity(ReportDiagnostic severity) => severity switch
     {
-        ReportDiagnostic.Hidden => "silent",
-        ReportDiagnostic.Info => "suggestion",
-        ReportDiagnostic.Warn => "warning",
-        ReportDiagnostic.Error => "error",
+        ReportDiagnostic.Hidden => Severities.Silent,
+        ReportDiagnostic.Info => Severities.Suggestion,
+        ReportDiagnostic.Warn => Severities.Warning,
+        ReportDiagnostic.Error => Severities.Error,
         _ => throw new InvalidDataException($"Naming severity '{severity}' cannot be preserved by legacy naming storage."),
     };
 
     private static ReportDiagnostic ParseSeverity(string token) => token switch
     {
-        "silent" => ReportDiagnostic.Hidden,
-        "suggestion" => ReportDiagnostic.Info,
-        "warning" => ReportDiagnostic.Warn,
-        "error" => ReportDiagnostic.Error,
+        Severities.Silent => ReportDiagnostic.Hidden,
+        Severities.Suggestion => ReportDiagnostic.Info,
+        Severities.Warning => ReportDiagnostic.Warn,
+        Severities.Error => ReportDiagnostic.Error,
         _ => throw new InvalidDataException($"Unknown naming severity '{token}'."),
     };
 }

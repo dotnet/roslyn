@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
+using static Microsoft.VisualStudio.LanguageServices.Options.NamingSettingsConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
@@ -17,23 +18,23 @@ internal sealed class NamingSettingsStore(ISettingsManager settingsManager, stri
 
     private readonly string _prefix = language switch
     {
-        LanguageNames.CSharp => "languages.csharp.codeStyle.naming.",
-        LanguageNames.VisualBasic => "languages.basic.codeStyle.naming.",
+        LanguageNames.CSharp => SettingNames.CSharpPrefix,
+        LanguageNames.VisualBasic => SettingNames.VisualBasicPrefix,
         _ => throw ExceptionUtilities.UnexpectedValue(language),
     };
 
     public bool IsUnifiedSettingsEnabled
         => settingsManager.GetReader().GetArray<IReadOnlyDictionary<string, object>>(
-            _prefix + "rules", SettingReadOptions.RequireValidation | SettingReadOptions.NoFallbackToDefault).Outcome
+            _prefix + SettingNames.Rules, SettingReadOptions.RequireValidation | SettingReadOptions.NoFallbackToDefault).Outcome
             != SettingRetrievalOutcome.NotSupportedInClassicMode;
 
     public NamingSettingsGraph ReadGraph()
     {
         var reader = settingsManager.GetReader();
         var graph = new NamingSettingsGraph(
-            NamingSettingsStorageCodec.DecodeSpecifications(ReadArray(reader, "symbolSpecifications")),
-            ReadArray(reader, "namingStyles"),
-            ReadArray(reader, "rules"));
+            NamingSettingsStorageCodec.DecodeSpecifications(ReadArray(reader, SettingNames.SymbolSpecifications)),
+            ReadArray(reader, SettingNames.NamingStyles),
+            ReadArray(reader, SettingNames.Rules));
 
         _ = graph.ToPreferences();
         return graph;
@@ -45,9 +46,9 @@ internal sealed class NamingSettingsStore(ISettingsManager settingsManager, stri
 
         // A writer is private to this attempt so a rejected array cannot leave queued changes for a later commit.
         var writer = settingsManager.GetWriter(nameof(NamingSettingsStore), eventSource);
-        EnqueueArray(writer, "symbolSpecifications", NamingSettingsStorageCodec.EncodeSpecifications(graph.SymbolSpecifications));
-        EnqueueArray(writer, "namingStyles", NamingSettingsStorageCodec.EncodeStyles(graph.NamingStyles));
-        EnqueueArray(writer, "rules", NamingSettingsStorageCodec.EncodeRules(graph.Rules));
+        EnqueueArray(writer, SettingNames.SymbolSpecifications, NamingSettingsStorageCodec.EncodeSpecifications(graph.SymbolSpecifications));
+        EnqueueArray(writer, SettingNames.NamingStyles, NamingSettingsStorageCodec.EncodeStyles(graph.NamingStyles));
+        EnqueueArray(writer, SettingNames.Rules, NamingSettingsStorageCodec.EncodeRules(graph.Rules));
 
         // Preserve PendingApproval and error outcomes; the coordinator must verify publication before updating legacy/runtime state.
         return writer.RequestCommit(changeDescription);
@@ -55,7 +56,7 @@ internal sealed class NamingSettingsStore(ISettingsManager settingsManager, stri
 
     public IDisposable SubscribeToChanges(Action<SettingsUpdate> handler)
         => settingsManager.GetReader().SubscribeToChanges(
-            handler, _prefix + "symbolSpecifications", _prefix + "namingStyles", _prefix + "rules");
+            handler, _prefix + SettingNames.SymbolSpecifications, _prefix + SettingNames.NamingStyles, _prefix + SettingNames.Rules);
 
     private ImmutableArray<IReadOnlyDictionary<string, object>> ReadArray(ISettingsReader reader, string name)
     {

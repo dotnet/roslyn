@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
+using static Microsoft.VisualStudio.LanguageServices.Options.NamingSettingsConstants;
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
@@ -149,9 +150,9 @@ internal sealed class NamingSettingsCoordinator(
     private static ImmutableArray<IReadOnlyDictionary<string, object>> GetItems(NamingSettingsGraph graph, string moniker)
         => moniker.Substring(moniker.LastIndexOf('.') + 1) switch
         {
-            "symbolSpecifications" => NamingSettingsStorageCodec.EncodeSpecifications(graph.SymbolSpecifications),
-            "namingStyles" => NamingSettingsStorageCodec.EncodeStyles(graph.NamingStyles),
-            "rules" => NamingSettingsStorageCodec.EncodeRules(graph.Rules),
+            SettingNames.SymbolSpecifications => NamingSettingsStorageCodec.EncodeSpecifications(graph.SymbolSpecifications),
+            SettingNames.NamingStyles => NamingSettingsStorageCodec.EncodeStyles(graph.NamingStyles),
+            SettingNames.Rules => NamingSettingsStorageCodec.EncodeRules(graph.Rules),
             _ => throw new InvalidDataException($"Unknown naming array '{moniker}'."),
         };
 }
