@@ -2808,8 +2808,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedCloseBraceBeforeTypeMember">
-        <source>Unexpected '}'. This brace is misplaced because it leaves the following member outside the type.</source>
-        <target state="new">Unexpected '}'. This brace is misplaced because it leaves the following member outside the type.</target>
+        <source>Unexpected '}'. This misplaced brace leaves the following member outside the current type.</source>
+        <target state="new">Unexpected '}'. This misplaced brace leaves the following member outside the current type.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
