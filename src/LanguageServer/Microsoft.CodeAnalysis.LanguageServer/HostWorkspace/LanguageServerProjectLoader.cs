@@ -396,7 +396,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     /// </summary>
     internal async Task<LoadedProject> BeginLoadingProjectAsync(
         string projectPath,
-        ProjectReloadPriority reloadPriority)
+        ProjectReloadPriority reloadPriority = ProjectReloadPriority.Medium)
     {
         projectPath = NormalizeProjectPath(projectPath);
         LoadedProject? loadedProject;

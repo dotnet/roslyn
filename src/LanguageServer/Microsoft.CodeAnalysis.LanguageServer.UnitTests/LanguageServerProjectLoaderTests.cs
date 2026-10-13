@@ -456,9 +456,6 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
             return designTimeBuild;
         }
 
-        public Task<LoadedProject> BeginLoadingProjectAsync(string projectPath)
-            => base.BeginLoadingProjectAsync(projectPath, ProjectReloadPriority.Medium);
-
         public async Task<(LoadedProject LoadedProject, ExpectedDesignTimeBuild DesignTimeBuild)> ExpectDesignTimeBuildAndBeginLoadingProjectAsync(string projectPath)
         {
             var designTimeBuild = ExpectDesignTimeBuild(projectPath);
