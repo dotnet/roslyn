@@ -1859,15 +1859,6 @@ Additional information: {1}</value>
   <data name="Formatting_new_document" xml:space="preserve">
     <value>Formatting new document...</value>
   </data>
-  <data name="AdvancedAutomatic" xml:space="preserve">
-    <value>Automatic</value>
-  </data>
-  <data name="AdvancedOn" xml:space="preserve">
-    <value>On</value>
-  </data>
-  <data name="AdvancedOff" xml:space="preserve">
-    <value>Off</value>
-  </data>
   <data name="Unable_to_update_naming_settings_0" xml:space="preserve">
     <value>Unable to update Naming settings: {0}</value>
   </data>

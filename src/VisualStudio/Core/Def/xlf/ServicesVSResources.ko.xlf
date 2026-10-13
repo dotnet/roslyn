@@ -2817,21 +2817,6 @@ Additional information: {1}</source>
         <target state="translated">반환이 포함된 'if'보다 조건식 선호</target>
         <note />
       </trans-unit>
-      <trans-unit id="AdvancedAutomatic">
-        <source>Automatic</source>
-        <target state="new">Automatic</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AdvancedOn">
-        <source>On</source>
-        <target state="new">On</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AdvancedOff">
-        <source>Off</source>
-        <target state="new">Off</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unable_to_update_naming_settings_0">
         <source>Unable to update Naming settings: {0}</source>
         <target state="new">Unable to update Naming settings: {0}</target>

@@ -2817,21 +2817,6 @@ Informazioni aggiuntive: {1}</target>
         <target state="translated">Preferisci l'espressione condizionale a 'if' con valori restituiti</target>
         <note />
       </trans-unit>
-      <trans-unit id="AdvancedAutomatic">
-        <source>Automatic</source>
-        <target state="new">Automatic</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AdvancedOn">
-        <source>On</source>
-        <target state="new">On</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AdvancedOff">
-        <source>Off</source>
-        <target state="new">Off</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unable_to_update_naming_settings_0">
         <source>Unable to update Naming settings: {0}</source>
         <target state="new">Unable to update Naming settings: {0}</target>

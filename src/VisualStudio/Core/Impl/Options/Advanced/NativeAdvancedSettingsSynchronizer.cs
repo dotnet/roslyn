@@ -4,14 +4,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.RpcContracts.UnifiedSettings;
-using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -24,7 +22,6 @@ internal sealed class NativeAdvancedSettingsSynchronizer : IObserver<SettingsUpd
     private const ReadOptions PersistedRead = ReadOptions.NoFallbackToDefault | ReadOptions.RequireValidation | ReadOptions.RequireRegistration;
     private static readonly ChangeSource s_source = new(nameof(NativeAdvancedSettingsSynchronizer), new Guid("31fb6817-5455-4ef5-a7db-e55d35e87db4"));
     private readonly IUnifiedSettingsService _native;
-    private readonly ISettingsSubset _legacySubset;
     private readonly Dictionary<string, Binding> _bindings;
     private readonly Dictionary<string, object?> _values = new(StringComparer.Ordinal);
     private readonly ReentrantSemaphore _gate;
@@ -34,35 +31,26 @@ internal sealed class NativeAdvancedSettingsSynchronizer : IObserver<SettingsUpd
     private IDisposable? _subscription;
     private int _initialSnapshot;
 
-    internal sealed record Binding(OptionKey2 Key, string Moniker, string? LegacyKey, Func<Optional<object?>> ReadLegacy, Func<object?, Task> WriteLegacy)
+    internal sealed record Binding(OptionKey2 Key, string Moniker, Func<Optional<object?>> ReadLegacy, Func<object?, Task> WriteLegacy)
     {
-        public bool IsNullable => Key.Option.Type == typeof(bool?);
         public object? Default => Key.Option.DefaultValue;
 
         public string Serialize(object? value)
-            => IsNullable ? JsonConvert.SerializeObject(value switch { null => "automatic", true => "on", false => "off", _ => throw new InvalidOperationException("Invalid nullable Advanced option value.") })
-                : JsonConvert.SerializeObject((bool)value!);
+            => JsonConvert.SerializeObject((bool)value!);
 
         public object? Deserialize(string json)
         {
             var token = JToken.Parse(json);
-            if (!IsNullable && token.Type == JTokenType.Boolean)
+            if (token.Type == JTokenType.Boolean)
                 return token.Value<bool>();
-            return IsNullable && token.Type == JTokenType.String ? token.Value<string>() switch
-            {
-                "automatic" => null,
-                "on" => true,
-                "off" => false,
-                _ => throw new InvalidOperationException("Invalid Advanced setting: " + Moniker),
-            } : throw new InvalidOperationException("Invalid Advanced setting: " + Moniker);
+            throw new InvalidOperationException("Invalid Advanced setting: " + Moniker);
         }
     }
 
-    public NativeAdvancedSettingsSynchronizer(IUnifiedSettingsService native, ISettingsSubset legacySubset, IEnumerable<Binding> bindings,
+    public NativeAdvancedSettingsSynchronizer(IUnifiedSettingsService native, IEnumerable<Binding> bindings,
         Action<OptionKey2, object?> refresh, Action<Task> observe, JoinableTaskContext context, CancellationToken cancellationToken)
     {
         _native = native;
-        _legacySubset = legacySubset;
         _bindings = bindings.ToDictionary(binding => binding.Moniker, StringComparer.Ordinal);
         _refresh = refresh;
         _observe = observe;
@@ -74,7 +62,6 @@ internal sealed class NativeAdvancedSettingsSynchronizer : IObserver<SettingsUpd
         => _gate.ExecuteAsync(async () =>
         {
             _subscription = await _native.SubscribeAsync(this, _bindings.Keys.ToArray(), PersistedRead, _cancellationToken).ConfigureAwait(false);
-            _legacySubset.SettingChangedAsync += OnLegacyChangedAsync;
             foreach (var binding in _bindings.Values)
             {
                 var legacy = binding.ReadLegacy();
@@ -127,16 +114,8 @@ internal sealed class NativeAdvancedSettingsSynchronizer : IObserver<SettingsUpd
             throw new InvalidOperationException("Advanced settings commit failed: " + result.ResultCode);
     }
 
-    private Task OnLegacyChangedAsync(object sender, PropertyChangedEventArgs args)
-    {
-        // SettingsManager awaits its handlers; queue work rather than re-entering our write gate.
-        _observe(ApplyLegacyChangesAsync(_bindings.Values.Where(binding => binding.LegacyKey is not null &&
-            (args.PropertyName is null || binding.LegacyKey == args.PropertyName)).ToArray()));
-        return Task.CompletedTask;
-    }
-
     internal void OnRegistryChanged()
-        => _observe(ApplyLegacyChangesAsync(_bindings.Values.Where(binding => binding.LegacyKey is null).ToArray()));
+        => _observe(ApplyLegacyChangesAsync(_bindings.Values));
 
     private Task ApplyLegacyChangesAsync(IEnumerable<Binding> bindings)
         => _gate.ExecuteAsync(async () =>
@@ -192,7 +171,6 @@ internal sealed class NativeAdvancedSettingsSynchronizer : IObserver<SettingsUpd
     public void Dispose()
     {
         _subscription?.Dispose();
-        _legacySubset.SettingChangedAsync -= OnLegacyChangedAsync;
         _gate.Dispose();
     }
 }

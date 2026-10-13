@@ -299,12 +299,10 @@ public sealed class AdvancedUnifiedSettingsTests
             VerifyMap(properties.GetProperty(prefix + "analysis.inlineDiagnosticsLocation"), ("placedAtEndOfCode", 0), ("placedAtEndOfEditor", 1));
             VerifyMap(properties.GetProperty(prefix + "implementType.insertionBehavior"), ("withOtherMembersOfTheSameKind", 0), ("atTheEnd", 1));
             VerifyMap(properties.GetProperty(prefix + "implementType.propertyGenerationBehavior"), ("preferThrowingProperties", 0), ("preferAutoProperties", 1));
-            Assert.Equal("automatic", properties.GetProperty(prefix + "inheritanceMargin.showInheritanceMargin").GetProperty("default").GetString());
         }
 
         using var shared = Load("roslynSettings.registration.json");
         VerifyMap(shared.RootElement.GetProperty("properties").GetProperty("languages.dotnet.advanced.sourceGeneratorExecution"), ("automatic", 0), ("balanced", 1));
-        Assert.Equal("automatic", shared.RootElement.GetProperty("properties").GetProperty("languages.dotnet.advanced.offerRemoveUnusedReferences").GetProperty("default").GetString());
     }
 
     private static void VerifyMap(JsonElement setting, params (string Result, int Match)[] expected)
@@ -384,33 +382,46 @@ public sealed class AdvancedUnifiedSettingsTests
     [InlineData("csharpSettings.registration.json", "languages.csharp.advanced.inheritanceMargin.showInheritanceMargin")]
     [InlineData("visualBasicSettings.registration.json", "languages.basic.advanced.inheritanceMargin.showInheritanceMargin")]
     [InlineData("roslynSettings.registration.json", "languages.dotnet.advanced.offerRemoveUnusedReferences")]
-    public void NullableSettingsUseNativeScalarsWithoutTheLossyDraftMigration(string manifest, string moniker)
+    public void NullableLegacySettingsUseBooleanCheckboxesAndReversibleMigration(string manifest, string moniker)
     {
         using var draft = Load(manifest);
         using var live = LoadLive(manifest);
-        var native = live.RootElement.GetProperty("properties").GetProperty(moniker);
-        Assert.Equal("on", native.GetProperty("default").GetString());
-        Assert.Equal(new[] { "automatic", "on", "off" }, native.GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
-        Assert.False(native.TryGetProperty("migration", out _));
-        VerifyResource(native.GetProperty("title").GetString()!);
-        foreach (var label in native.GetProperty("enumItemLabels").EnumerateArray())
-            VerifyResource(label.GetString()!);
-        var setting = draft.RootElement.GetProperty("properties").GetProperty(moniker);
-        Assert.Equal("automatic", setting.GetProperty("default").GetString());
+        var setting = live.RootElement.GetProperty("properties").GetProperty(moniker);
+        Assert.Equal(JsonSerializer.Serialize(draft.RootElement.GetProperty("properties").GetProperty(moniker)), JsonSerializer.Serialize(setting));
+        Assert.Equal("boolean", setting.GetProperty("type").GetString());
+        Assert.True(setting.GetProperty("default").GetBoolean());
+        Assert.False(setting.TryGetProperty("enum", out _));
+        Assert.False(setting.TryGetProperty("enumItemLabels", out _));
+        Assert.Equal("full", setting.GetProperty("migration").GetProperty("custom").GetProperty("mode").GetString());
         var maps = setting.GetProperty("migration").GetProperty("custom").GetProperty("map").EnumerateArray().ToArray();
         Assert.Equal(4, maps.Length);
-        Assert.Equal("automatic", maps[0].GetProperty("result").GetString());
-        Assert.Equal("@missing", maps[0].GetProperty("matches")[0].GetString());
-        Assert.Equal("on", maps[1].GetProperty("result").GetString());
-        Assert.True(maps[1].GetProperty("matches")[0].GetBoolean());
-        Assert.Equal("off", maps[2].GetProperty("result").GetString());
-        Assert.False(maps[2].GetProperty("matches")[0].GetBoolean());
+        Assert.Equal("@default", maps[0].GetProperty("result").GetString());
+        Assert.Equal("@default", maps[^1].GetProperty("result").GetString());
+        Assert.Equal("@any", maps[^1].GetProperty("matches")[0].GetString());
 
-        // The supported reverse algorithm skips @missing: Automatic can only select the @any no-op.
-        // That preserves null/missing but cannot restore Automatic after a customized On/Off value.
-        var reverseAutomatic = maps.First(map => map.GetProperty("result").GetString() == "automatic"
-            && map.GetProperty("matches")[0].GetString() != "@missing");
-        Assert.Equal("@any", reverseAutomatic.GetProperty("matches")[0].GetString());
+        foreach (var legacy in new object?[] { true, false, null, "@missing" })
+        {
+            var forward = maps.First(map => map.GetProperty("matches")[0] is var match
+                && (match.ValueKind == JsonValueKind.String && match.GetString() == "@any"
+                    || match.ValueKind is JsonValueKind.True or JsonValueKind.False && Equals(match.GetBoolean(), legacy)));
+            var result = forward.GetProperty("result");
+            var enabled = result.ValueKind == JsonValueKind.String ? setting.GetProperty("default").GetBoolean() : result.GetBoolean();
+            Assert.Equal(!Equals(legacy, false), enabled);
+            if (legacy is null or "@missing")
+                Assert.Equal("@default", result.GetString());
+        }
+
+        foreach (var value in new[] { true, false })
+        {
+            var reverse = maps.First(map => map.GetProperty("result") is var result
+                && result.ValueKind is JsonValueKind.True or JsonValueKind.False && result.GetBoolean() == value);
+            Assert.Equal(value, reverse.GetProperty("matches")[0].GetBoolean());
+        }
+
+        // Reset must select the canonical Boolean, not the @any no-op fallback.
+        var reset = maps.First(map => map.GetProperty("result").ValueKind == JsonValueKind.String
+            && map.GetProperty("result").GetString() == "@default");
+        Assert.True(reset.GetProperty("matches")[0].GetBoolean());
     }
 
     private static void VerifyOption(IOption2 option, string? language, JsonElement setting)
@@ -428,7 +439,7 @@ public sealed class AdvancedUnifiedSettingsTests
                     : roaming.Key.Replace("%LANGUAGE%", language == LanguageNames.CSharp ? "CSharp" : "VisualBasic");
                 Assert.Equal("SettingsManager", input.GetProperty("store").GetString());
                 Assert.Equal(path, input.GetProperty("path").GetString());
-                Assert.Equal(option == StackTraceExplorerOptionsStorage.OpenOnFocus ? "full" : "oneTimeFromLegacy", migration.Value.GetProperty("mode").GetString());
+                Assert.Equal(option.Definition.Type == typeof(bool?) || option == StackTraceExplorerOptionsStorage.OpenOnFocus ? "full" : "oneTimeFromLegacy", migration.Value.GetProperty("mode").GetString());
                 break;
             case LocalUserProfileStorage local:
                 Assert.Equal("VsUserSettingsRegistry", input.GetProperty("store").GetString());
@@ -439,18 +450,9 @@ public sealed class AdvancedUnifiedSettingsTests
                 throw new InvalidOperationException(option.Definition.ConfigName);
         }
 
-        if (option.Definition.Type == typeof(bool?))
+        if (type == typeof(bool))
         {
-            Assert.Equal("custom", migration.Name);
-            Assert.Equal("string", setting.GetProperty("type").GetString());
-            Assert.Equal("automatic", setting.GetProperty("default").GetString());
-            Assert.Equal(new[] { "automatic", "on", "off" }, setting.GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
-            foreach (var label in setting.GetProperty("enumItemLabels").EnumerateArray())
-                VerifyResource(label.GetString()!);
-        }
-        else if (type == typeof(bool))
-        {
-            Assert.Equal(option == VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics ? "custom" : "pass", migration.Name);
+            Assert.Equal(option.Definition.Type == typeof(bool?) || option == VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics ? "custom" : "pass", migration.Name);
             Assert.Equal("boolean", setting.GetProperty("type").GetString());
             Assert.Equal((bool)option.Definition.DefaultValue!, setting.GetProperty("default").GetBoolean());
         }
@@ -503,12 +505,12 @@ public sealed class AdvancedUnifiedSettingsTests
     }
 
     [Theory]
-    [InlineData("csharpSettings.registration.json", 98)]
-    [InlineData("visualBasicSettings.registration.json", 91)]
-    [InlineData("roslynSettings.registration.json", 16)]
-    [InlineData("csharpAdvancedSettings.registration.draft.json", 98)]
-    [InlineData("visualBasicAdvancedSettings.registration.draft.json", 91)]
-    [InlineData("roslynAdvancedSettings.registration.draft.json", 16)]
+    [InlineData("csharpSettings.registration.json", 95)]
+    [InlineData("visualBasicSettings.registration.json", 88)]
+    [InlineData("roslynSettings.registration.json", 13)]
+    [InlineData("csharpAdvancedSettings.registration.draft.json", 95)]
+    [InlineData("visualBasicAdvancedSettings.registration.draft.json", 88)]
+    [InlineData("roslynAdvancedSettings.registration.draft.json", 13)]
     public void AdvancedDllResourcesUseTheirDeclaredNativeResourceTable(string manifest, int expectedReferences)
     {
         using var document = LoadLive(manifest);
@@ -562,8 +564,7 @@ public sealed class AdvancedUnifiedSettingsTests
             var properties = document.RootElement.GetProperty("properties");
             foreach (var property in properties.EnumerateObject().Where(property => property.Name.Contains(".advanced.")))
             {
-                if (property.Name is "languages.dotnet.advanced.enableFileLoggingForDiagnostics" or "languages.dotnet.advanced.offerRemoveUnusedReferences"
-                    or "languages.csharp.advanced.inheritanceMargin.showInheritanceMargin" or "languages.basic.advanced.inheritanceMargin.showInheritanceMargin")
+                if (property.Name == "languages.dotnet.advanced.enableFileLoggingForDiagnostics")
                 {
                     Assert.False(property.Value.TryGetProperty("migration", out _));
                     Assert.False(property.Value.GetProperty("transientScopesSupported").GetBoolean());
@@ -583,7 +584,9 @@ public sealed class AdvancedUnifiedSettingsTests
                 else
                 {
                     Assert.StartsWith("TextEditor.", GetInput(rule).GetProperty("path").GetString());
-                    Assert.Equal("oneTimeFromLegacy", rule.GetProperty("mode").GetString());
+                    var nullableBoolean = property.Name is "languages.dotnet.advanced.offerRemoveUnusedReferences"
+                        or "languages.csharp.advanced.inheritanceMargin.showInheritanceMargin" or "languages.basic.advanced.inheritanceMargin.showInheritanceMargin";
+                    Assert.Equal(nullableBoolean ? "full" : "oneTimeFromLegacy", rule.GetProperty("mode").GetString());
                 }
                 Assert.Contains(property.Value.GetProperty("type").GetString(), new[] { "boolean", "string" });
                 Assert.Equal(JsonSerializer.Serialize(draft.RootElement.GetProperty("properties").GetProperty(property.Name)), JsonSerializer.Serialize(property.Value));

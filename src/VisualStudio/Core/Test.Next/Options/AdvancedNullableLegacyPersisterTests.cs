@@ -34,7 +34,7 @@ public sealed partial class VisualStudioSettingsOptionPersisterTests
 
     [Theory]
     [MemberData(nameof(AdvancedNullableStorageKeys))]
-    public void AdvancedNullableLegacyReadDistinguishesMissingFromAutomaticWithoutWriting(string optionId, string storageKey)
+    public void AdvancedNullableLegacyReadDistinguishesMissingFromNullWithoutWriting(string optionId, string storageKey)
     {
         var optionKey = GetAdvancedNullableOptionKey(optionId);
         var writes = 0;
@@ -69,7 +69,7 @@ public sealed partial class VisualStudioSettingsOptionPersisterTests
 
     [Theory]
     [MemberData(nameof(AdvancedNullableStorageKeys))]
-    public async Task AdvancedAutomaticAwaitsRealRoamingNullWrite(string optionId, string storageKey)
+    public async Task AdvancedLegacyNullAwaitsRealRoamingWrite(string optionId, string storageKey)
     {
         var optionKey = GetAdvancedNullableOptionKey(optionId);
         var completion = new TaskCompletionSource<object?>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -96,7 +96,7 @@ public sealed partial class VisualStudioSettingsOptionPersisterTests
 
     [Theory]
     [MemberData(nameof(AdvancedNullableStorageKeys))]
-    public async Task AdvancedAutomaticDoesNotReportSuccessWhenLegacyWriteFails(string optionId, string storageKey)
+    public async Task AdvancedLegacyNullDoesNotReportSuccessWhenWriteFails(string optionId, string storageKey)
     {
         var optionKey = GetAdvancedNullableOptionKey(optionId);
         var error = new InvalidOperationException("Legacy storage unavailable");
@@ -112,7 +112,7 @@ public sealed partial class VisualStudioSettingsOptionPersisterTests
 
     [Theory]
     [MemberData(nameof(AdvancedNullableStorageKeys))]
-    public void AdvancedIncomingLegacyUpdatesPreserveExplicitAutomatic(string optionId, string storageKey)
+    public void AdvancedIncomingLegacyUpdatesPreserveExplicitNull(string optionId, string storageKey)
     {
         var optionKey = GetAdvancedNullableOptionKey(optionId);
         bool? storedValue = true;
@@ -130,6 +130,38 @@ public sealed partial class VisualStudioSettingsOptionPersisterTests
             refreshed.Clear();
             storedValue = value;
             settingsManager.Subset.TriggerSettingChanged(storageKey);
+            var change = Assert.Single(refreshed);
+            Assert.Equal(optionKey, change.Key);
+            Assert.Equal(value, change.Value);
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(AdvancedNullableStorageKeys))]
+    public async Task AdvancedCheckboxWritesAndResetRefreshTrackedNullableOptions(string optionId, string storageKey)
+    {
+        var optionKey = GetAdvancedNullableOptionKey(optionId);
+        bool? storedValue = null;
+        var refreshed = new List<(OptionKey2 Key, object? Value)>();
+        var settingsManager = new MockSettingsManager
+        {
+            GetValueImpl = (_, _) => (GetValueResult.Success, storedValue),
+            SetValueImpl = (name, value) =>
+            {
+                Assert.Equal(storageKey, name);
+                storedValue = Assert.IsType<bool>(value);
+            },
+        };
+        var persister = new VisualStudioSettingsOptionPersister((key, value) => refreshed.Add((key, value)), s_noFallbacks, settingsManager);
+        Assert.True(persister.TryFetch(optionKey, storageKey, out var initialValue));
+        Assert.Null(initialValue);
+
+        foreach (var value in new[] { false, true, false, (bool)optionKey.Option.DefaultValue! })
+        {
+            refreshed.Clear();
+            await settingsManager.SetValueAsync(storageKey, value, isMachineLocal: false);
+            settingsManager.Subset.TriggerSettingChanged(storageKey);
+            Assert.Equal(value, storedValue);
             var change = Assert.Single(refreshed);
             Assert.Equal(optionKey, change.Key);
             Assert.Equal(value, change.Value);

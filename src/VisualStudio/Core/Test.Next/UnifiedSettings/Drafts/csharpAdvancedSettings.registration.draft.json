@@ -276,10 +276,9 @@
       "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.InlineTypeHints.ForCollectionExpressions" } } }
     },
     "languages.csharp.advanced.inheritanceMargin.showInheritanceMargin": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_inheritance_margin;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "string", "default": "automatic", "order": 0, "transientScopesSupported": false,
-      "enum": [ "automatic", "on", "off" ], "enumItemLabels": [ "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:AdvancedAutomatic;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:AdvancedOn;..\\Microsoft.VisualStudio.LanguageServices.dll", "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:AdvancedOff;..\\Microsoft.VisualStudio.LanguageServices.dll" ],
-      // Import null/missing as Automatic without writing a boolean fallback. Not shipped: reverse migration cannot delete an existing override.
-      "migration": { "custom": { "mode": "oneTimeFromLegacy", "inputs": [ { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.ShowInheritanceMargin" } ], "map": [ { "result": "automatic", "matches": [ "@missing" ] }, { "result": "on", "matches": [ true ] }, { "result": "off", "matches": [ false ] }, { "result": "automatic", "matches": [ "@any" ] } ] } }
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_inheritance_margin;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": true, "order": 0, "transientScopesSupported": false,
+      // Legacy null means enabled. Put the canonical true value first so reset also writes true.
+      "migration": { "custom": { "mode": "full", "inputs": [ { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.ShowInheritanceMargin" } ], "map": [ { "result": "@default", "matches": [ true ] }, { "result": true, "matches": [ true ] }, { "result": false, "matches": [ false ] }, { "result": "@default", "matches": [ "@any" ] } ] } }
     },
     "languages.csharp.advanced.inheritanceMargin.inheritanceMarginIncludeGlobalImports": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Include_global_imports;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": true, "order": 20, "transientScopesSupported": false,
