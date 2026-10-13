@@ -141,7 +141,6 @@ namespace RunTests
                 File.Create(resultsFilePath).Close();
 
                 var start = DateTime.UtcNow;
-                var outputDrainFailed = false;
                 var dotnetProcessInfo = ProcessRunner.CreateProcess(
                     ProcessRunner.CreateProcessStartInfo(
                         options.DotnetFilePath,
@@ -176,7 +175,7 @@ namespace RunTests
                     if (!_userCancellationToken.IsCancellationRequested)
                     {
                         CheckForCrashes(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName,
-                            workItemDirectory, outputDrainFailed ? null : timeoutMessage);
+                            workItemDirectory, timeoutMessage);
                     }
 
                     if (!File.Exists(syntheticPath) && !ContainsFailedTest(resultsFilePath))
@@ -206,7 +205,7 @@ namespace RunTests
                 {
                     try
                     {
-                        return await getResultAsync(dotnetProcessInfo.Result.WaitAsync(cancellationToken)).ConfigureAwait(false);
+                        return (await dotnetProcessInfo.Result.WaitAsync(cancellationToken), null);
                     }
                     catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                     {
@@ -215,31 +214,7 @@ namespace RunTests
                             : $"Global deadline exceeded while running {workItemInfo.DisplayName}.";
                         ConsoleUtil.Error(timeoutMessage);
                         await handleCancellationAsync(resultsFilePath, timeoutMessage).ConfigureAwait(false);
-                        var (result, _) = await getResultAsync(dotnetProcessInfo.Result, reportDrainFailure: false).ConfigureAwait(false);
-                        return (result, timeoutMessage);
-                    }
-                }
-
-                async Task<(ProcessResult Result, string? FailureMessage)> getResultAsync(Task<ProcessResult> resultTask, bool reportDrainFailure = true)
-                {
-                    try
-                    {
-                        return (await resultTask.ConfigureAwait(false), null);
-                    }
-                    catch (ProcessOutputDrainException ex)
-                    {
-                        var message = $"Output drain failed for {workItemInfo.DisplayName}.{Environment.NewLine}{ex.Message}";
-                        if (reportDrainFailure)
-                        {
-                            outputDrainFailed = true;
-                            ConsoleUtil.Error(message);
-                            writeSyntheticFailure(GetResultsFilePath(workItemInfo, options), workItemInfo.DisplayName, message);
-                        }
-                        else
-                        {
-                            ConsoleUtil.Warning(message);
-                        }
-                        return (ex.Result, message);
+                        return (await dotnetProcessInfo.Result, timeoutMessage);
                     }
                 }
 
