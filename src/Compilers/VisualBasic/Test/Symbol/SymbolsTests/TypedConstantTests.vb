@@ -56,6 +56,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
             Assert.IsType(Of Microsoft.CodeAnalysis.TypedConstant)(common2)
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74326")>
+        Public Sub ToVisualBasicString_FlagsEnum_ExcludesZeroMember()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb">
+&lt;System.Flags&gt; Enum E
+    None = 0
+    A = 1
+    B = 2
+    C = 4
+End Enum
+&lt;System.Flags&gt; Enum U As UInteger
+    None = 0
+    A = 1
+    B = 2
+    C = 4
+End Enum
+    </file>
+</compilation>)
+            Dim signedType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("E")
+            Dim unsignedType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("U")
+
+            Assert.Equal("E.A Or E.C", New TypedConstant(signedType, TypedConstantKind.Enum, 5).ToVisualBasicString())
+            Assert.Equal("U.A Or U.C", New TypedConstant(unsignedType, TypedConstantKind.Enum, 5UI).ToVisualBasicString())
+            Assert.Equal("E.None", New TypedConstant(signedType, TypedConstantKind.Enum, 0).ToVisualBasicString())
+        End Sub
+
         <Fact>
         Public Sub ToVisualBasicString_IncludeTypeCharacter()
             Assert.Equal("42UI", New TypedConstant(_compilation.GetSpecialType(SpecialType.System_UInt32), TypedConstantKind.Primitive, 42UI).ToVisualBasicString(TypedConstantFormattingOptions.IncludeTypeCharacter))
