@@ -8995,40 +8995,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                     };
                 }
 
+                // A literal without a natural type, e.g. ("A", null), contributes through its converted type below,
+                // as before: left typeless, it would contribute nothing, and its elements' nullability would be lost.
+                if ((argument as BoundTupleLiteral ?? (argument as BoundConvertedTupleLiteral)?.SourceTuple) is { Type: NamedTypeSymbol { IsTupleType: true } } sourceTuple &&
+                    visitResult.NestedVisitResults is { } tupleElementVisitResults)
+                {
+                    // MethodTypeInferrer must infer types from the tuple literal as written, as the initial binding
+                    // did, not from its converted type: the converted type can equal the inferred type minus its
+                    // element names, and would make the re-inferred tuple lose them
+                    // (https://github.com/dotnet/roslyn/issues/74493). The nested visit results are those of the
+                    // literal's own elements (see VisitConvertedTupleLiteral).
+                    var sourceElements = sourceTuple.Arguments;
+                    Debug.Assert(tupleElementVisitResults.Length == sourceElements.Length);
+
+                    var elementsBuilder = ArrayBuilder<BoundExpression>.GetInstance(sourceElements.Length);
+                    var elementTypesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance(sourceElements.Length);
+                    for (int i = 0; i < sourceElements.Length; i++)
+                    {
+                        var element = argument is BoundConvertedTupleLiteral converted && UsesConvertedTupleElementForInference(sourceElements[i])
+                            ? converted.Arguments[i]
+                            : sourceElements[i];
+                        elementsBuilder.Add(getArgumentForMethodTypeInference(element, tupleElementVisitResults[i]));
+                        elementTypesBuilder.Add(tupleElementVisitResults[i].RValueType.ToTypeWithAnnotations(compilation));
+                    }
+
+                    // The natural type gets the element nullability from flow analysis.
+                    var naturalType = sourceTuple.Type is NamedTypeSymbol { IsTupleType: true } tupleType && elementTypesBuilder.All(t => t.HasType)
+                        ? tupleType.WithElementTypes(elementTypesBuilder.ToImmutable())
+                        : null;
+                    elementTypesBuilder.Free();
+
+                    return new BoundTupleLiteral(sourceTuple.Syntax, elementsBuilder.ToImmutableAndFree(), sourceTuple.ArgumentNamesOpt, sourceTuple.InferredNamesOpt, naturalType)
+                    {
+                        WasCompilerGenerated = true
+                    };
+                }
+
                 // Note: for `out` arguments, the argument result contains the declaration type (see `VisitArgumentEvaluate`)
                 var argumentType = visitResult.RValueType.ToTypeWithAnnotations(compilation);
 
                 if (!argumentType.HasType)
                 {
                     return argument;
-                }
-
-                if (argument is BoundConvertedTupleLiteral { SourceTuple: { Type: null } typelessTuple } &&
-                    argumentType.Type is NamedTypeSymbol { IsTupleType: true } convertedTupleType &&
-                    convertedTupleType.TupleElementTypesWithAnnotations.Length == typelessTuple.Arguments.Length)
-                {
-                    // A tuple literal without a natural type, e.g. ("A", null), contributed only its elements to the
-                    // initial inference. Give inference the same typeless literal, with each element's type and
-                    // nullability from flow analysis, rather than its converted type.
-                    var convertedElementTypes = convertedTupleType.TupleElementTypesWithAnnotations;
-                    var elements = typelessTuple.Arguments.SelectAsArray(
-                        (element, i, types) => (BoundExpression)new BoundExpressionWithNullability(element.Syntax, element, types[i].NullableAnnotation, types[i].Type),
-                        convertedElementTypes);
-                    return new BoundTupleLiteral(typelessTuple.Syntax, elements, typelessTuple.ArgumentNamesOpt, typelessTuple.InferredNamesOpt, type: null) { WasCompilerGenerated = true };
-                }
-
-                if (argument is BoundConvertedTupleLiteral { SourceTuple: { Type: NamedTypeSymbol { IsTupleType: true } naturalType } sourceTuple } &&
-                    argumentType.Type is NamedTypeSymbol { IsTupleType: true } convertedType &&
-                    naturalType.TupleElementTypesWithAnnotations.Length == convertedType.TupleElementTypesWithAnnotations.Length)
-                {
-                    // Infer from the tuple literal's natural type, as the initial binding did, with the element
-                    // nullability from flow analysis. The converted type already equals the type inferred by
-                    // the initial binding, minus its element names, so as a candidate it would only make the
-                    // inferred tuple lose those names (https://github.com/dotnet/roslyn/issues/74493).
-                    var naturalElements = naturalType.TupleElementTypesWithAnnotations;
-                    var convertedElements = convertedType.TupleElementTypesWithAnnotations;
-                    var elements = naturalElements.SelectAsArray((element, i, converted) => TypeWithAnnotations.Create(element.Type, converted[i].NullableAnnotation), convertedElements);
-                    return new BoundExpressionWithNullability(argument.Syntax, sourceTuple, argumentType.NullableAnnotation, naturalType.WithElementTypes(elements));
                 }
 
                 if (argument is BoundLocal { DeclarationKind: BoundLocalDeclarationKind.WithInferredType } || IsTargetTypedExpression(argument))
@@ -9488,22 +9496,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Visit the source tuple so that the semantic model can correctly report nullability for it
             // Disable diagnostics, as we don't want to duplicate any that are produced by visiting the converted literal below
             VisitWithoutDiagnostics(node.SourceTuple);
+            var sourceElementVisitResults = node.SourceTuple is null ? null : _visitResult.NestedVisitResults;
 
             this.SetState(savedState);
             VisitTupleExpression(node);
 
+            // Method type inference re-infers from the literal as written (see GetArgumentsForMethodTypeInference),
+            // so keep the visit results of the source elements rather than of the converted ones.
+            // Elements with no type of their own (null, default) keep the converted element's result instead.
+            if (node.SourceTuple is { } sourceTuple && sourceElementVisitResults is not null && _visitResult.NestedVisitResults is { } convertedElementVisitResults)
+            {
+                var elementVisitResults = new VisitResult[sourceElementVisitResults.Length];
+                for (int i = 0; i < elementVisitResults.Length; i++)
+                {
+                    elementVisitResults[i] = UsesConvertedTupleElementForInference(sourceTuple.Arguments[i]) ? convertedElementVisitResults[i] : sourceElementVisitResults[i];
+                }
+
+                _visitResult = new VisitResult(_visitResult.RValueType, _visitResult.LValueType, elementVisitResults);
+            }
+
             return null;
         }
+
+        /// <summary>
+        /// A tuple literal element with no type of its own (e.g. null or default) contributes to method type
+        /// inference through its converted form, as before; other elements contribute as written.
+        /// </summary>
+        private static bool UsesConvertedTupleElementForInference(BoundExpression sourceElement)
+            => sourceElement.Type is null && sourceElement.Kind is not (BoundKind.UnboundLambda or BoundKind.Lambda);
 
         private void VisitTupleExpression(BoundTupleExpression node)
         {
             var arguments = node.Arguments;
-            ImmutableArray<TypeWithState> elementTypes = arguments.SelectAsArray((a, w) => w.VisitRvalueWithState(a), this);
+            // Element visit results are kept for method type inference (see GetArgumentsForMethodTypeInference).
+            var elementVisitResults = new VisitResult[arguments.Length];
+            ImmutableArray<TypeWithState> elementTypes = arguments.SelectAsArray((a, i, w) =>
+            {
+                var elementType = w.VisitRvalueWithState(a);
+                elementVisitResults[i] = w._visitResult;
+                return elementType;
+            }, this);
             ImmutableArray<TypeWithAnnotations> elementTypesWithAnnotations = elementTypes.SelectAsArray(a => a.ToTypeWithAnnotations(compilation));
             var tupleOpt = (NamedTypeSymbol?)node.Type;
             if (tupleOpt is null)
             {
-                SetResultType(node, TypeWithState.Create(null, NullableFlowState.NotNull));
+                setTupleResult(TypeWithState.Create(null, NullableFlowState.NotNull));
             }
             else
             {
@@ -9528,7 +9565,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.Free();
                 }
 
-                SetResultType(node, TypeWithState.Create(tupleOpt, NullableFlowState.NotNull));
+                setTupleResult(TypeWithState.Create(tupleOpt, NullableFlowState.NotNull));
+            }
+
+            void setTupleResult(TypeWithState type)
+            {
+                SetResult(node, new VisitResult(type, type.ToTypeWithAnnotations(compilation), elementVisitResults), updateAnalyzedNullability: true, isLvalue: null);
             }
         }
 

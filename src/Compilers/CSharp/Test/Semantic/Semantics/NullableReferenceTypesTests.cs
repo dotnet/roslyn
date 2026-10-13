@@ -66669,6 +66669,26 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
+        public void TypeInference_TupleLiteral_NullElementInOtherArgument()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    void M()
+                    {
+                        object? o = new object();
+                        var a = Create((o, 0), (null, 0), (o, 0));
+                        Take(a);
+                    }
+                    static T[] Create<T>(T x, T y, T z) => [x, y, z];
+                    static void Take((object? o, int)[] a) { }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
         public void TypeInference_TupleLiteral_NoNames()
         {
             var source = """
@@ -66751,7 +66771,16 @@ class C
                     static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
                 }
                 """;
-            CreateCompilation(source).VerifyDiagnostics();
+            // A literal without a natural type still contributes its converted type, which has no names, so the
+            // names are lost as before. Left typeless, it would contribute nothing, not even the nullability of
+            // its elements (see TypeInference_TupleLiteral_NullElementInOtherArgument).
+            CreateCompilation(source).VerifyDiagnostics(
+                // (8,59): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<(string, object?), ?>' (possibly because of nullability attributes).
+                //         _ = ToDictionary(Append(parameters, ("A", null)), t => t.Name, t => t.Value);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "t =>").WithArguments("lambda expression", "System.Func<(string, object?), ?>").WithLocation(8, 59),
+                // (8,72): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<(string, object?), ?>' (possibly because of nullability attributes).
+                //         _ = ToDictionary(Append(parameters, ("A", null)), t => t.Name, t => t.Value);
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate, "t =>").WithArguments("lambda expression", "System.Func<(string, object?), ?>").WithLocation(8, 72));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74493")]
