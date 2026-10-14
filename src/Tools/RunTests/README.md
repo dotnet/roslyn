@@ -105,6 +105,13 @@ Historical timing data for Helix partitioning can be selected with `--accessToke
 `--projectUri`, `--pipelineDefinitionId`, and `--targetBranchName`. When omitted,
 these use the corresponding Azure Pipelines environment variables.
 
+Helix worker commands log timestamped VSTest start and exit markers while
+preserving its exit code. VSTest diagnostic logs (including any companion
+testhost/data-collector logs) are written directly to `HELIX_WORKITEM_UPLOAD_ROOT`
+for upload, without requiring VSTest to return. Post-command markers bracket
+dump/sequence-file collection; they do not indicate that Helix upload completed.
+No additional timeout is introduced.
+
 ## Exit Codes
 
 - `0` — All tests passed (or `--help` was shown)

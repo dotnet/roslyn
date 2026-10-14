@@ -417,7 +417,11 @@ internal sealed class HelixTestRunner
                 // https://docs.microsoft.com/en-us/visualstudio/msbuild/msbuild-special-characters?view=vs-2022
                 command.AppendLine("vstestConsolePath=$(find ${DOTNET_ROOT} -name \"vstest.console.dll\")");
                 command.AppendLine("echo ${vstestConsolePath}");
-                command.AppendLine($"dotnet exec \"${{vstestConsolePath}}\" @{vstestRspFileName}");
+                command.AppendLine("echo \"[$(date -u +%Y-%m-%dT%H:%M:%SZ)] VSTest starting\"");
+                command.AppendLine("vstestExitCode=0");
+                command.AppendLine($"dotnet exec \"${{vstestConsolePath}}\" @{vstestRspFileName} \"/Diag:$HELIX_WORKITEM_UPLOAD_ROOT/vstest-diag.log\" || vstestExitCode=$?");
+                command.AppendLine("echo \"[$(date -u +%Y-%m-%dT%H:%M:%SZ)] VSTest exited with code $vstestExitCode\"");
+                command.AppendLine("exit \"$vstestExitCode\"");
             }
             else
             {
@@ -428,7 +432,11 @@ internal sealed class HelixTestRunner
                 command.AppendLine("where /r %DOTNET_ROOT% vstest.console.dll > temp.txt");
                 command.AppendLine("set /p vstestConsolePath=<temp.txt");
                 command.AppendLine("echo %vstestConsolePath%");
-                command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{vstestRspFileName}");
+                command.AppendLine("echo [%DATE% %TIME%] VSTest starting");
+                command.AppendLine($"dotnet exec \"%vstestConsolePath%\" @{vstestRspFileName} \"/Diag:%HELIX_WORKITEM_UPLOAD_ROOT%\\vstest-diag.log\"");
+                command.AppendLine("set vstestExitCode=%ERRORLEVEL%");
+                command.AppendLine("echo [%DATE% %TIME%] VSTest exited with code %vstestExitCode%");
+                command.AppendLine("exit /b %vstestExitCode%");
             }
 
             return (isUnix ? "command.sh" : "command.cmd", command.ToString());
@@ -456,15 +464,23 @@ internal sealed class HelixTestRunner
                 // Write out this command into a separate file; unfortunately the use of single quotes and ; that is required
                 // for the command to work causes too much escaping issues in MSBuild.
                 command = """
+                    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Diagnostic artifact collection starting"
                     find . -name '*.dmp' -exec cp {} $HELIX_DUMP_FOLDER \;
                     find . -name 'Sequence_*.xml' -exec cp {} $HELIX_DUMP_FOLDER \;
+                    collectionExitCode=$?
+                    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Diagnostic artifact collection finished with code $collectionExitCode"
+                    exit "$collectionExitCode"
                     """;
             }
             else
             {
                 command = """
+                    echo [%DATE% %TIME%] Diagnostic artifact collection starting
                     for /r %%f in (*.dmp) do copy %%f %HELIX_DUMP_FOLDER%
                     for /r %%f in (Sequence_*.xml) do copy %%f %HELIX_DUMP_FOLDER%
+                    set collectionExitCode=%ERRORLEVEL%
+                    echo [%DATE% %TIME%] Diagnostic artifact collection finished with code %collectionExitCode%
+                    exit /b %collectionExitCode%
                     """;
             }
 
