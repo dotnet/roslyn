@@ -22196,7 +22196,7 @@ class C1
 [System.Runtime.CompilerServices.Union]
 class S1
 {
-    public S1(params C1?[] x) => Value = x;
+    public S1(params C1?[]? x) => Value = x;
 
     public object? Value { get; set; }
 }
@@ -22212,12 +22212,7 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
-            // No diagnostict expected - https://github.com/dotnet/roslyn/issues/86055
-            comp.VerifyDiagnostics(
-                // (100,13): warning CS8602: Dereference of a possibly null reference.
-                //         _ = s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -22230,7 +22225,7 @@ class Program
 [System.Runtime.CompilerServices.Union]
 class S1
 {
-    public S1(params string?[] x) => Value = x;
+    public S1(params string?[]? x) => Value = x;
 
     public object? Value { get; set; }
 }
@@ -22250,14 +22245,67 @@ class Program
 #line 200
         _ = s.Value.ToString();
     }
+
+    static void Test3()
+    {
+        var s = new S1();
+#line 300
+        _ = s.Value.ToString();
+    }
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
-            // No diagnostict expected - https://github.com/dotnet/roslyn/issues/86055
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_81_State_From_Conversion_Params()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params string?[] x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1 s = """";
+#line 150
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+#line 200
+        S1 s = (string?)null;
+#line 250
+        _ = s.Value.ToString();
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
             comp.VerifyDiagnostics(
-                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                // (100,16): error CS0029: Cannot implicitly convert type 'string' to 'S1'
+                //         S1 s = "";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "S1").WithLocation(100, 16),
+                // (200,16): error CS0029: Cannot implicitly convert type 'string' to 'S1'
+                //         S1 s = (string?)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string?)null").WithArguments("string", "S1").WithLocation(200, 16),
+                // (200,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         S1 s = (string?)null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string?)null").WithLocation(200, 16),
+                // (250,13): warning CS8602: Dereference of a possibly null reference.
                 //         _ = s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(250, 13)
                 );
         }
 
