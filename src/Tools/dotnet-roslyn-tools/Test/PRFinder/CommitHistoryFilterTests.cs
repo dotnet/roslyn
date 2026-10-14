@@ -13,13 +13,13 @@ public class CommitHistoryFilterTests
     {
         var commits = new[]
         {
-            Commit("head", "Update (#3)", "snap"),
-            Commit("snap", "Replace content from another branch", "discarded", "source"),
-            Commit("discarded", "Old target update (#1)", "base"),
-            Commit("source", "New source update (#2)", "base"),
+            Commit(id: "head", message: "Update (#3)", parents: ["snap"]),
+            Commit(id: "snap", message: "Replace content from another branch", parents: ["discarded", "source"]),
+            Commit(id: "discarded", message: "Old target update (#1)", parents: ["base"]),
+            Commit(id: "source", message: "New source update (#2)", parents: ["base"]),
         };
 
-        var result = await FilterAsync(commits, "head", ("snap", "source"));
+        var result = await FilterAsync(commits, head: "head", overrides: [(Commit: "snap", Tree: "source")]);
 
         Assert.Equal(["head", "snap", "source"], result.Select(commit => commit.CommitId));
     }
@@ -29,12 +29,12 @@ public class CommitHistoryFilterTests
     {
         var commits = new[]
         {
-            Commit("merge", "Keep existing content (#3)", "target", "source"),
-            Commit("target", "Target update (#1)", "base"),
-            Commit("source", "Source update (#2)", "base"),
+            Commit(id: "merge", message: "Keep existing content (#3)", parents: ["target", "source"]),
+            Commit(id: "target", message: "Target update (#1)", parents: ["base"]),
+            Commit(id: "source", message: "Source update (#2)", parents: ["base"]),
         };
 
-        var result = await FilterAsync(commits, "merge", ("merge", "target"));
+        var result = await FilterAsync(commits, head: "merge", overrides: [(Commit: "merge", Tree: "target")]);
 
         Assert.Equal(["merge", "target"], result.Select(commit => commit.CommitId));
     }
@@ -44,12 +44,13 @@ public class CommitHistoryFilterTests
     {
         var commits = new[]
         {
-            Commit("merge", "Merge equivalent snapshots (#3)", "target", "source"),
-            Commit("target", "Target update (#1)", "base"),
-            Commit("source", "Source update (#2)", "base"),
+            Commit(id: "merge", message: "Merge equivalent snapshots (#3)", parents: ["target", "source"]),
+            Commit(id: "target", message: "Target update (#1)", parents: ["base"]),
+            Commit(id: "source", message: "Source update (#2)", parents: ["base"]),
         };
 
-        var result = await FilterAsync(commits, "merge", ("merge", "source"), ("target", "source"));
+        var result = await FilterAsync(
+            commits, head: "merge", overrides: [(Commit: "merge", Tree: "source"), (Commit: "target", Tree: "source")]);
 
         Assert.Equal(commits, result);
     }
@@ -59,13 +60,14 @@ public class CommitHistoryFilterTests
     {
         var commits = new[]
         {
-            Commit("merge", "Merge three branches (#4)", "first", "second", "third"),
-            Commit("first", "First update (#1)", "base"),
-            Commit("second", "Second update (#2)", "base"),
-            Commit("third", "Third update (#3)", "base"),
+            Commit(id: "merge", message: "Merge three branches (#4)", parents: ["first", "second", "third"]),
+            Commit(id: "first", message: "First update (#1)", parents: ["base"]),
+            Commit(id: "second", message: "Second update (#2)", parents: ["base"]),
+            Commit(id: "third", message: "Third update (#3)", parents: ["base"]),
         };
 
-        var result = await FilterAsync(commits, "merge", ("merge", "first"), ("third", "first"));
+        var result = await FilterAsync(
+            commits, head: "merge", overrides: [(Commit: "merge", Tree: "first"), (Commit: "third", Tree: "first")]);
 
         Assert.Equal(["merge", "first", "third"], result.Select(commit => commit.CommitId));
     }
@@ -75,12 +77,12 @@ public class CommitHistoryFilterTests
     {
         var commits = new[]
         {
-            Commit("snap", "Merge main into release/insiders", "target", "source"),
-            Commit("target", "Target update (#1)", "base"),
-            Commit("source", "Source update (#2)", "base"),
+            Commit(id: "snap", message: "Merge main into release/insiders", parents: ["target", "source"]),
+            Commit(id: "target", message: "Target update (#1)", parents: ["base"]),
+            Commit(id: "source", message: "Source update (#2)", parents: ["base"]),
         };
 
-        var result = await FilterAsync(commits, "snap");
+        var result = await FilterAsync(commits, head: "snap");
 
         Assert.Equal(commits, result);
     }
@@ -90,12 +92,12 @@ public class CommitHistoryFilterTests
     {
         var commits = new[]
         {
-            Commit("head", "Merge another branch (#3)", "snap", "target"),
-            Commit("snap", "Merge main into release/insiders", "target", "base"),
-            Commit("target", "Target update (#1)", "base"),
+            Commit(id: "head", message: "Merge another branch (#3)", parents: ["snap", "target"]),
+            Commit(id: "snap", message: "Merge main into release/insiders", parents: ["target", "base"]),
+            Commit(id: "target", message: "Target update (#1)", parents: ["base"]),
         };
 
-        var result = await FilterAsync(commits, "head", ("snap", "base"));
+        var result = await FilterAsync(commits, head: "head", overrides: [(Commit: "snap", Tree: "base")]);
 
         Assert.Equal(commits, result);
     }
@@ -105,14 +107,15 @@ public class CommitHistoryFilterTests
     {
         var commits = new[]
         {
-            Commit("stable", "Merge release/insiders into release/stable", "old-stable", "insiders"),
-            Commit("insiders", "Merge main into release/insiders", "old-insiders", "source"),
-            Commit("old-stable", "Old stable update (#1)", "base"),
-            Commit("old-insiders", "Old insiders update (#2)", "base"),
-            Commit("source", "New source update (#3)", "base"),
+            Commit(id: "stable", message: "Merge release/insiders into release/stable", parents: ["old-stable", "insiders"]),
+            Commit(id: "insiders", message: "Merge main into release/insiders", parents: ["old-insiders", "source"]),
+            Commit(id: "old-stable", message: "Old stable update (#1)", parents: ["base"]),
+            Commit(id: "old-insiders", message: "Old insiders update (#2)", parents: ["base"]),
+            Commit(id: "source", message: "New source update (#3)", parents: ["base"]),
         };
 
-        var result = await FilterAsync(commits, "stable", ("stable", "source"), ("insiders", "source"));
+        var result = await FilterAsync(
+            commits, head: "stable", overrides: [(Commit: "stable", Tree: "source"), (Commit: "insiders", Tree: "source")]);
 
         Assert.Equal(["stable", "insiders", "source"], result.Select(commit => commit.CommitId));
     }
@@ -122,13 +125,13 @@ public class CommitHistoryFilterTests
     {
         var commits = new[]
         {
-            Commit("source", "Source update (#2)", "base"),
-            Commit("target", "Target update (#1)", "base"),
-            Commit("snap", "Merge main into release/insiders", "target", "source"),
-            Commit("head", "Update (#3)", "snap"),
+            Commit(id: "source", message: "Source update (#2)", parents: ["base"]),
+            Commit(id: "target", message: "Target update (#1)", parents: ["base"]),
+            Commit(id: "snap", message: "Merge main into release/insiders", parents: ["target", "source"]),
+            Commit(id: "head", message: "Update (#3)", parents: ["snap"]),
         };
 
-        var result = await FilterAsync(commits, "head", ("snap", "source"));
+        var result = await FilterAsync(commits, head: "head", overrides: [(Commit: "snap", Tree: "source")]);
 
         Assert.Equal(["source", "snap", "head"], result.Select(commit => commit.CommitId));
     }
@@ -136,7 +139,8 @@ public class CommitHistoryFilterTests
     [Fact]
     public async Task EmptyRangeHasNoChanges()
     {
-        var result = await CommitHistoryFilter.FilterAsync([], "head", (_, _) => Task.FromResult("tree"));
+        var result = await CommitHistoryFilter.FilterAsync(
+            commits: [], headCommitId: "head", getTreeIdAsync: (_, _) => Task.FromResult("tree"));
 
         Assert.Empty(result);
     }
@@ -146,11 +150,11 @@ public class CommitHistoryFilterTests
     {
         var commits = new[]
         {
-            Commit("revert", "Restore earlier content (#2)", "update"),
-            Commit("update", "Update (#1)", "base"),
+            Commit(id: "revert", message: "Restore earlier content (#2)", parents: ["update"]),
+            Commit(id: "update", message: "Update (#1)", parents: ["base"]),
         };
 
-        var result = await FilterAsync(commits, "revert", ("revert", "base"));
+        var result = await FilterAsync(commits, head: "revert", overrides: [(Commit: "revert", Tree: "base")]);
 
         Assert.Equal(commits, result);
     }

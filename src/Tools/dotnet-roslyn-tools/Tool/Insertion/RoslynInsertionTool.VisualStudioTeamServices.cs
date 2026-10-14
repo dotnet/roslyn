@@ -569,6 +569,7 @@ internal static partial class RoslynInsertionTool
     internal static async Task<(List<GitCommit> changes, string diffLink)> GetChangesBetweenBuildsFromAzDOAsync(GitHttpClient gitClient, string project, string repoId, string repoUrl, string fromSHA, string toSHA, CancellationToken cancellationToken = default)
     {
         const int PageSize = 1000;
+        // Conservative arbitrarily-picked cap on concurrent requests.
         const int CommitDetailBatchSize = 16;
         var commitRefs = new List<GitCommitRef>();
         var criteria = new GitQueryCommitsCriteria()
