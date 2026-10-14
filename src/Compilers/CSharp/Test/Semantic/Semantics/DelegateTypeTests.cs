@@ -18126,7 +18126,7 @@ class Program
                 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
                 		IL_0006: ret
                 	} // end of method Program::.ctor
-                	.method assembly hidebysig static 
+                	.method private hidebysig static 
                 		void '<<Main>$>g__local1|0_0' (
                 			[opt] valuetype [{{s_libPrefix}}]System.Decimal d
                 		) cil managed 
@@ -18144,7 +18144,7 @@ class Program
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method Program::'<<Main>$>g__local1|0_0'
-                	.method assembly hidebysig static 
+                	.method private hidebysig static 
                 		void '<<Main>$>g__local2|0_1' (
                 			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.Decimal> d
                 		) cil managed 
@@ -18412,7 +18412,7 @@ class Program
                 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
                 		IL_0006: ret
                 	} // end of method Program::.ctor
-                	.method assembly hidebysig static 
+                	.method private hidebysig static 
                 		void '<<Main>$>g__local1|0_0' (
                 			[opt] valuetype [{{s_libPrefix}}]System.DateTime d
                 		) cil managed 
@@ -18429,7 +18429,7 @@ class Program
                 		.maxstack 8
                 		IL_0000: ret
                 	} // end of method Program::'<<Main>$>g__local1|0_0'
-                	.method assembly hidebysig static 
+                	.method private hidebysig static 
                 		void '<<Main>$>g__local2|0_1' (
                 			[opt] valuetype [{{s_libPrefix}}]System.Nullable`1<valuetype [{{s_libPrefix}}]System.DateTime> d
                 		) cil managed 
@@ -19515,7 +19515,7 @@ $@"{s_expressionOfTDelegate1ArgTypeName}[<>f__AnonymousDelegate0`2[System.Int32,
                 		IL_0001: call instance void [{{s_libPrefix}}]System.Object::.ctor()
                 		IL_0006: ret
                 	} // end of method C::.ctor
-                	.method assembly hidebysig static 
+                	.method private hidebysig static 
                 		void '<M>g__local|0_0' (
                 			int32 x,
                 			int32[] ys

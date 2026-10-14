@@ -7347,7 +7347,7 @@ public class Program
 		IL_0001: call instance void [mscorlib]System.Object::.ctor()
 		IL_0006: ret
 	} // end of method Program::.ctor
-	.method assembly hidebysig static 
+	.method private hidebysig static 
 		void '<M>g__M|0_0' (
 			valuetype Program/'<>c__DisplayClass0_1'& ''
 		) cil managed 

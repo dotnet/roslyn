@@ -5699,7 +5699,7 @@ class C
     		IL_0006: nop
     		IL_0007: ret
     	} // end of method C::.ctor
-    	.method assembly hidebysig static 
+    	.method private hidebysig static 
     		void '<M>g__local1|0_0' () cil managed 
     	{
     		.custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -6307,7 +6307,7 @@ public class CAttribute : System.Attribute { }
         IL_0001: call instance void [mscorlib]System.Object::.ctor()
         IL_0006: ret
     } // end of method C::.ctor
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M>g__local|0_0' (
             int32 i
         ) cil managed 

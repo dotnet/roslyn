@@ -35468,7 +35468,7 @@ public class DAttribute : System.Attribute { }
         IL_0001: call void E::'<M>g__local|1_0'<int32>(int32)
         IL_0006: ret
     } // end of method E::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M>g__local|1_0'<T> (
             int32 i2
         ) cil managed 

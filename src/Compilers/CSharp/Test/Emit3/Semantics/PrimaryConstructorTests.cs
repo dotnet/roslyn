@@ -19443,7 +19443,7 @@ class C(int y)
     	IL_000a: call int32 C::'<M>g__local|2_0'(valuetype C/'<>c__DisplayClass2_0'&)
     	IL_000f: ret
     } // end of method C::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
     	int32 '<M>g__local|2_0' (
     		valuetype C/'<>c__DisplayClass2_0'& ''
     	) cil managed 
@@ -19524,7 +19524,7 @@ class C(int y)
     	IL_0014: ldloc.1
     	IL_0015: ret
     } // end of method C::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
     	int32 '<M>g__local|2_0' (
     		valuetype C/'<>c__DisplayClass2_0'& ''
     	) cil managed 
