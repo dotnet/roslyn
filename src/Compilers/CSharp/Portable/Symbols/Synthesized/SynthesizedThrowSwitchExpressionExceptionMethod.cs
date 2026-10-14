@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SynthesizedThrowSwitchExpressionExceptionMethod(SynthesizedPrivateImplementationDetailsType privateImplType, TypeSymbol returnType, TypeSymbol paramType)
             : base(privateImplType, returnType, PrivateImplementationDetails.SynthesizedThrowSwitchExpressionExceptionFunctionName)
         {
+            Debug.Assert(paramType.IsObjectType());
             this.SetParameters(ImmutableArray.Create(SynthesizedParameterSymbol.Create(this, TypeWithAnnotations.Create(paramType), 0, RefKind.None, "unmatchedValue")));
         }
 
@@ -31,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //throw new SwitchExpressionException(unmatchedValue);
 
                 Debug.Assert(unmatchedValue.Type.SpecialType == SpecialType.System_Object);
-                var body = F.Throw(F.New(F.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject), ImmutableArray.Create<BoundExpression>(F.Parameter(unmatchedValue))));
+                var body = GenerateThrow(F, F.Parameter(unmatchedValue));
 
                 // NOTE: we created this block in its most-lowered form, so analysis is unnecessary
                 F.CloseMethod(body);
@@ -41,6 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ex.Diagnostic);
                 F.CloseMethod(F.ThrowNull());
             }
+        }
+
+        public static BoundThrowStatement GenerateThrow(SyntheticBoundNodeFactory f, BoundExpression unmatchedValue)
+        {
+            Debug.Assert(unmatchedValue.Type is not null);
+            Debug.Assert(unmatchedValue.Type.IsObjectType());
+            return f.Throw(f.New(f.WellKnownMethod(WellKnownMember.System_Runtime_CompilerServices_SwitchExpressionException__ctorObject), ImmutableArray.Create<BoundExpression>(unmatchedValue)));
         }
     }
 }

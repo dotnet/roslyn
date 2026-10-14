@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
@@ -24,8 +25,8 @@ internal partial class EditorInProcess
         var trackingPoint = view.TextSnapshot.CreateTrackingPoint(position, PointTrackingMode.Positive);
         var quickInfoSession = await hoverService.TriggerQuickInfoAsync(view, trackingPoint, QuickInfoSessionOptions.None, cancellationToken);
 
-        using var semaphore = new SemaphoreSlim(1);
-        await semaphore.WaitAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        var completionSource = new TaskCompletionSource<IEnumerable<object>>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         if (quickInfoSession is null)
         {
@@ -34,33 +35,24 @@ internal partial class EditorInProcess
 
         quickInfoSession.StateChanged += QuickInfoSession_StateChanged;
 
-        if (QuickInfoResolved(quickInfoSession))
-        {
-            semaphore.Release();
-            quickInfoSession.StateChanged -= QuickInfoSession_StateChanged;
-        }
-
         try
         {
-            await semaphore.WaitAsync(cancellationToken);
+            CompleteIfResolved();
+            return await completionSource.Task.WithCancellation(cancellationToken);
         }
         finally
         {
             quickInfoSession.StateChanged -= QuickInfoSession_StateChanged;
         }
 
-        return quickInfoSession.Content;
-
-        static bool QuickInfoResolved(IAsyncQuickInfoSession quickInfoSession)
-        {
-            return quickInfoSession.State == QuickInfoSessionState.Visible;
-        }
-
         void QuickInfoSession_StateChanged(object sender, QuickInfoSessionStateChangedEventArgs e)
+            => CompleteIfResolved();
+
+        void CompleteIfResolved()
         {
-            if (e.NewState == QuickInfoSessionState.Visible)
+            if (quickInfoSession.State == QuickInfoSessionState.Visible)
             {
-                semaphore.Release();
+                completionSource.TrySetResult(quickInfoSession.Content);
             }
         }
     }

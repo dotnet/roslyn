@@ -30,6 +30,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
     internal const string ServerVersionPropertyName = CommonPropertyPrefix + "serverVersion";
     internal const string ServerPackageVersionPropertyName = CommonPropertyPrefix + "serverPackageVersion";
     internal const string ServerPlatformPropertyName = CommonPropertyPrefix + "serverPlatform";
+    internal const string ClientNamePropertyName = CommonPropertyPrefix + "clientName";
 
     /// <summary>
     /// Collector key used by C# Dev Kit to send language server telemetry to the VS Code cluster.
@@ -100,11 +101,11 @@ internal sealed class LanguageServerTelemetry : IDisposable
         if (!useDevKitTelemetry)
         {
             // The VS default session is opted out until the standalone host supplies consent.
-            session.IsOptedIn = IsCopilotCliTelemetryEnabled(telemetryLevel);
+            session.IsOptedIn = IsStandaloneTelemetryEnabled(telemetryLevel);
 
             if (telemetryLevel is not ("all" or "off"))
             {
-                _logger.LogInformation("Unsupported Copilot CLI telemetry level. Telemetry will remain disabled.");
+                _logger.LogInformation("Unsupported standalone telemetry level. Telemetry will remain disabled.");
             }
         }
 
@@ -141,11 +142,20 @@ internal sealed class LanguageServerTelemetry : IDisposable
         FaultReporter.InitializeFatalErrorHandlers();
     }
 
-    internal static bool IsCopilotCliTelemetryEnabled(string? telemetryLevel)
+    internal static bool IsStandaloneTelemetryEnabled(string? telemetryLevel)
         => telemetryLevel == "all";
 
     public RoslynTelemetry Telemetry => _telemetry;
     public string? SessionId => _telemetrySession?.SessionId;
+
+    internal void SetClientName(string? clientName)
+    {
+        var session = _telemetrySession;
+        Contract.ThrowIfNull(session);
+
+        Contract.ThrowIfFalse(session.TryAddCommonProperty(
+            ClientNamePropertyName, string.IsNullOrWhiteSpace(clientName) ? "unknown" : clientName));
+    }
 
     internal static string GetServerVersion()
         => typeof(LanguageServerTelemetry).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion

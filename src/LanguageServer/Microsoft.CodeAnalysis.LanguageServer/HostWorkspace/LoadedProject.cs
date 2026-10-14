@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.ProjectTelemetry;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -208,6 +209,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         bool hasAllInformation,
         ProjectSystemProjectFactory projectFactory,
         ProjectTargetFrameworkManager targetFrameworkManager,
+        ProjectCapabilityManager projectCapabilityManager,
         LanguageServerWorkspaceFactory workspaceFactory,
         ILogger logger,
         CancellationToken cancellationToken,
@@ -226,7 +228,8 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
             foreach (var loadedProjectInfo in loadedProjectInfos)
             {
-                var target = await GetOrCreateProjectTargetAsync(loadedProjectInfo, projectFactory, workspaceFactory, cancellationToken);
+                var target = await GetOrCreateProjectTargetAsync(
+                    loadedProjectInfo, projectFactory, projectCapabilityManager, workspaceFactory, cancellationToken);
                 staleTargets.Remove(target);
                 await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, hasAllInformation, targetFrameworkManager, logger);
             }
@@ -252,7 +255,12 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         }
     }
 
-    private async Task<Target> GetOrCreateProjectTargetAsync(ProjectFileInfo loadedProjectInfo, ProjectSystemProjectFactory projectFactory, LanguageServerWorkspaceFactory workspaceFactory, CancellationToken cancellationToken)
+    private async Task<Target> GetOrCreateProjectTargetAsync(
+        ProjectFileInfo loadedProjectInfo,
+        ProjectSystemProjectFactory projectFactory,
+        ProjectCapabilityManager projectCapabilityManager,
+        LanguageServerWorkspaceFactory workspaceFactory,
+        CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
@@ -277,7 +285,7 @@ internal sealed partial class LoadedProject : IAsyncDisposable
             workspaceFactory.ProjectSystemHostInfo,
             cancellationToken).ConfigureAwait(false);
 
-        var target = new Target(this, projectSystemProject, projectFactory);
+        var target = new Target(this, projectSystemProject, projectFactory, projectCapabilityManager);
         _targets.Add(target);
         return target;
     }

@@ -11,14 +11,20 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
 
-[ExportCSharpVisualBasicLspServiceFactory(typeof(DocumentPullDiagnosticHandler)), Shared]
+// A document diagnostic partial report is defined as having the first literal send = DocumentDiagnosticReport (aka the sumtype of changed / unchanged) followed
+// by n DocumentDiagnosticPartialResult literals.
+// See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
+[ExportCSharpVisualBasicLspServiceFactory(typeof(DocumentPullDiagnosticsHandler)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class DocumentPullDiagnosticHandlerFactory(
     IDiagnosticSourceManager diagnosticSourceManager,
-    IDiagnosticsRefresher diagnosticsRefresher,
+    IDiagnosticsRefresher diagnosticRefresher,
     IGlobalOptionService globalOptions) : ILspServiceFactory
 {
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new DocumentPullDiagnosticHandler(diagnosticSourceManager, diagnosticsRefresher, globalOptions);
+    {
+        var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        return new DocumentPullDiagnosticsHandler(clientLanguageServerManager, diagnosticSourceManager, diagnosticRefresher, globalOptions);
+    }
 }

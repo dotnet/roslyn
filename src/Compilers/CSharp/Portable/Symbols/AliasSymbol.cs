@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         public override Accessibility DeclaredAccessibility
         {
@@ -385,7 +385,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var flags = BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks;
             if (usingDirective.UnsafeKeyword != default)
             {
-                this.CheckUnsafeModifier(DeclarationModifiers.Unsafe, usingDirective.UnsafeKeyword.GetLocation(), diagnostics);
+                if (!this.CompilationAllowsUnsafe())
+                {
+                    diagnostics.Add(ErrorCode.ERR_IllegalUnsafe, usingDirective.UnsafeKeyword.GetLocation());
+                }
+
                 flags |= BinderFlags.UnsafeRegion;
             }
             else

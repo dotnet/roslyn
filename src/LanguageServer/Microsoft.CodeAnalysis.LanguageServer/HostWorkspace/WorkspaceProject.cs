@@ -24,16 +24,6 @@ internal sealed class WorkspaceProject : IWorkspaceProject
         _logger = logger.CreateLogger<WorkspaceProject>();
     }
 
-    [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
-    public Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
-    {
-        return RunAndReportNFWAsync(() =>
-        {
-            foreach (var additionalFilePath in additionalFilePaths)
-                _project.AddAdditionalFile(additionalFilePath);
-        }, cancellationToken);
-    }
-
     public Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken)
     {
         return RunAndReportNFWAsync(() =>

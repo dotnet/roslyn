@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.razor(2,1): Error RZ2001: The 'documentation' directive may only occur once per document.

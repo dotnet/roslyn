@@ -37,6 +37,7 @@
 
     <!-- Sign 3rd party dlls with 3rd party cert -->
     <FileSignInfo Include="ICSharpCode.Decompiler.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="LibGit2Sharp.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="e_sqlite3.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="SQLitePCLRaw.core.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="SQLitePCLRaw.batteries_v2.dll" CertificateName="3PartySHA2" />
@@ -48,8 +49,12 @@
     <FileSignInfo Include="MessagePack.Annotations.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="MessagePack.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Nerdbank.FullDuplexStream.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="Nerdbank.MessagePack.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Nerdbank.Streams.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="Newtonsoft.Json.Bson.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Newtonsoft.Json.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="Octokit.dll" CertificateName="3PartySHA2" />
+    <FileSignInfo Include="PolyType.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Validation.dll" CertificateName="3PartySHA2" />
     <FileSignInfo Include="Humanizer.dll" CertificateName="3PartySHA2" />
 
@@ -65,6 +70,11 @@
       These are test-only resources and do not need to be signed.
     -->
     <FileSignInfo Include="Microsoft.CodeAnalysis.Compiler.Test.Resources.dll" CertificateName="None" />
+    <FileSignInfo Include="GuidTest1.dll" CertificateName="None" />
+    <FileSignInfo Include="c1.dll" CertificateName="None" />
+    <FileSignInfo Include="c3.dll" CertificateName="None" />
+    <FileSignInfo Include="c4.dll" CertificateName="None" />
+    <FileSignInfo Include="c7.dll" CertificateName="None" />
   </ItemGroup>
 
   <!--

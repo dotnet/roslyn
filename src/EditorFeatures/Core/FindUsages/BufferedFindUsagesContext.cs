@@ -35,7 +35,9 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
     /// <summary>
     /// Lock which controls access to all members below.
     /// </summary>
+#pragma warning disable RS0030 // This gate is only acquired asynchronously.
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
+#pragma warning restore RS0030
 
     /// <summary>
     /// The underlying presenter context to forward messages to once the presenter is opened.  Prior to having 
@@ -55,7 +57,9 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
     {
         get
         {
+#pragma warning disable RS0030 // Reading the gate's count does not block.
             Contract.ThrowIfFalse(_gate.CurrentCount == 0);
+#pragma warning restore RS0030
             return _streamingPresenterContext != null;
         }
     }

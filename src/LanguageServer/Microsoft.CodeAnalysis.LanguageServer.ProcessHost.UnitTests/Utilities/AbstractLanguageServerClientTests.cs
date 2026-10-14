@@ -150,6 +150,14 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
             return Task.CompletedTask;
         }
 
+        public ImmutableArray<WorkDoneProgressUnit> GetProgressUnits()
+        {
+            lock (_gate)
+            {
+                return [.. _unitsByToken.Values];
+            }
+        }
+
         public Task<WorkDoneProgressUnit> WaitForWorkDoneProgressCreation(string title)
         {
             lock (_gate)

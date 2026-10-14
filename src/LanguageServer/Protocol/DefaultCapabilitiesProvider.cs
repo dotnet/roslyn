@@ -204,8 +204,5 @@ internal sealed class DefaultCapabilitiesProvider : ICapabilitiesProvider
         {
             ProjectContextProvider = true,
             BreakableRangeProvider = true,
-
-            // Diagnostic requests are only supported from PullDiagnosticsInProcLanguageClient.
-            SupportsDiagnosticRequests = false,
         };
 }

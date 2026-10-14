@@ -29,6 +29,8 @@ internal static class LanguageServerConstants
 
         public const string EditBasedCodeActionCommand = nameof(EditBasedCodeActionCommand);
 
+        public const string EscapeDocumentationCommentTerminator = nameof(EscapeDocumentationCommentTerminator);
+
         public const string ExtractToCodeBehind = nameof(ExtractToCodeBehind);
 
         public const string ExtractToCss = nameof(ExtractToCss);
@@ -51,7 +53,11 @@ internal static class LanguageServerConstants
 
         public const string SortAndConsolidateUsings = nameof(SortAndConsolidateUsings);
 
+        public const string UseExplicitExpression = nameof(UseExplicitExpression);
+
         public const string WrapAttributes = nameof(WrapAttributes);
+
+        public const string WrapDocumentationInSummary = nameof(WrapDocumentationInSummary);
 
         /// <summary>
         /// Remaps and formats the resolved code action edit

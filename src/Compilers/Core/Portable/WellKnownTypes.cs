@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -381,8 +381,11 @@ namespace Microsoft.CodeAnalysis
 
         System_Memory_T,
         System_ReadOnlyMemory_T,
+
         System_Runtime_CompilerServices_UnionAttribute,
         System_Runtime_CompilerServices_IUnion,
+
+        System_Collections_Immutable_ImmutableArray,
 
         NextAvailable,
         // Remember to update MissingSpecialMember.AllWellKnownTypes and WellKnownTypeValidationTests.AllWellKnownTypes tests when making changes here
@@ -754,8 +757,11 @@ namespace Microsoft.CodeAnalysis
 
             "System.Memory`1",
             "System.ReadOnlyMemory`1",
+
             "System.Runtime.CompilerServices.UnionAttribute",
             "System.Runtime.CompilerServices.IUnion",
+
+            "System.Collections.Immutable.ImmutableArray",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

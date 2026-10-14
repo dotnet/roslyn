@@ -233,6 +233,11 @@ public sealed class RazorProjectEngine
         AddDefaultPhases(builder.Phases);
         AddDefaultFeatures(builder.Features);
 
+        if (configuration.LanguageVersion >= RazorLanguageVersion.Version_12_0)
+        {
+            DocumentationDirective.Register(builder);
+        }
+
         if (configuration.LanguageVersion >= RazorLanguageVersion.Version_5_0)
         {
             builder.Features.Add(new ViewCssScopePass());

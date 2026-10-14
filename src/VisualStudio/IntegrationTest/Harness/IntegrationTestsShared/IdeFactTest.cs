@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.Extensibility.Testing.Xunit.IntegrationTests
             Assert.Equal("RoslynExp", Environment.GetEnvironmentVariable("VSROOTSUFFIX"));
         }
 
-        [IdeFact(EnvironmentVariables = new[] { "CustomKey1=CustomValue", "CustomKey2=A=B;C", "CustomEmptyKey=" })]
+        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85765", EnvironmentVariables = new[] { "CustomKey1=CustomValue", "CustomKey2=A=B;C", "CustomEmptyKey=" })]
         public void TestLaunchWithCustomEnvironmentVariable()
         {
             Assert.Equal("CustomValue", Environment.GetEnvironmentVariable("CustomKey1"));

@@ -1,7 +1,12 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Razor.Completion;
+using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.VisualStudio.Razor.Snippets;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,6 +14,67 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
 public partial class CohostDocumentCompletionEndpointTest
 {
+    [Fact]
+    public void AddSnippets_DoesNotMutateSharedCompletionList()
+    {
+        var snippetCache = new SnippetCache();
+        var snippetCompletionItemProvider = new SnippetCompletionItemProvider(snippetCache);
+        var endpoint = new CohostDocumentCompletionEndpoint(
+            IncompatibleProjectService,
+            RemoteServiceInvoker,
+            ClientSettingsManager,
+            ClientCapabilitiesService,
+            snippetCompletionItemProvider,
+            new TestHtmlRequestInvoker((Methods.TextDocumentCompletionName, (object?)null)),
+            new CompletionListCache(),
+            NoOpTelemetryReporter.Instance,
+            LoggerFactory);
+        var testAccessor = endpoint.GetTestAccessor();
+        var htmlItem = new VSInternalCompletionItem { Label = "div", Kind = CompletionItemKind.Text };
+        var data = new object();
+        var commitCharacters = new[] { ">" };
+        SumType<VSInternalContinueCharacterSingle, VSInternalContinueCharacterRange, VSInternalContinueCharacterClass>[] continueCharacters =
+            [new VSInternalContinueCharacterSingle { Character = "." }];
+        var itemDefaults = new CompletionListItemDefaults();
+        var sharedCompletionList = new RazorVSInternalCompletionList()
+        {
+            Items = [htmlItem],
+            Data = data,
+            CommitCharacters = commitCharacters,
+            ContinueCharacters = continueCharacters,
+            ItemDefaults = itemDefaults,
+            IsIncomplete = true,
+            SuggestionMode = true
+        };
+        var options = new RazorCompletionOptions(
+            SnippetsSupported: true,
+            AutoInsertAttributeQuotes: false,
+            CommitElementsWithSpace: false,
+            IsVsCode: false);
+
+        snippetCache.Update(SnippetLanguage.Html, [new SnippetInfo("first", "first", "", "", SnippetLanguage.Html)]);
+        var firstResult = testAccessor.AddSnippets(sharedCompletionList, RazorLanguageKind.Html, "<", isStartTagContext: true, options);
+
+        snippetCache.Update(SnippetLanguage.Html, [new SnippetInfo("second", "second", "", "", SnippetLanguage.Html)]);
+        var secondResult = testAccessor.AddSnippets(sharedCompletionList, RazorLanguageKind.Html, "<", isStartTagContext: true, options);
+
+        Assert.Same(htmlItem, Assert.Single(sharedCompletionList.Items));
+        Assert.Equal(["first", "div"], firstResult!.Items.Select(item => item.Label));
+        Assert.Equal(["second", "div"], secondResult!.Items.Select(item => item.Label));
+        foreach (var result in new[] { firstResult, secondResult })
+        {
+            Assert.NotNull(result);
+            Assert.NotSame(sharedCompletionList, result);
+            Assert.Same(htmlItem, result.Items[1]);
+            Assert.Same(data, result.Data);
+            Assert.Same(commitCharacters, result.CommitCharacters!.Value.First);
+            Assert.Same(continueCharacters, result.ContinueCharacters);
+            Assert.Same(itemDefaults, result.ItemDefaults);
+            Assert.True(result.IsIncomplete);
+            Assert.True(result.SuggestionMode);
+        }
+    }
+
     [Fact]
     public async Task HtmlAttributeNamesAndTagHelpersCompletion_TriggerWithSpace()
     {
@@ -441,6 +507,48 @@ public partial class CohostDocumentCompletionEndpointTest
                 TriggerKind = CompletionTriggerKind.Invoked
             },
             expectedItemLabels: ["snippet1", "snippet2"],
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_NotAfterIncompleteEndTag_OnExplicitInvocation()
+    {
+        // Cursor is at the true end of the document, immediately after an *incomplete* end tag
+        // (missing '>'). Unlike a complete end tag, this must NOT be treated as (empty) text
+        // content — the caret is still inside markup, not past it.
+        await VerifyCompletionListAsync(
+            input: """
+                <div></di$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: [],
+            unexpectedItemLabels: ["snippet1", "snippet2"],
+            snippetLabels: ["snippet1", "snippet2"]);
+    }
+
+    [Fact]
+    public async Task HtmlSnippetsCompletion_InTextContentAfterScriptBlock_OnExplicitInvocation()
+    {
+        // Cursor is at the true end of the document, immediately after a complete "</script>" end
+        // tag. The caret is now past the script block (not inside it), so snippets should appear,
+        // unlike HtmlSnippetsCompletion_NotInScriptBlock where the caret is inside the block.
+        // htmlItemLabels must be supplied because the local HTML completion provider still treats
+        // this position as within the script block, causing delegation to the (mock) HTML server.
+        await VerifyCompletionListAsync(
+            input: """
+                <script></script>$$
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            htmlItemLabels: ["js-completion"],
+            expectedItemLabels: ["js-completion", "snippet1", "snippet2"],
             snippetLabels: ["snippet1", "snippet2"]);
     }
 

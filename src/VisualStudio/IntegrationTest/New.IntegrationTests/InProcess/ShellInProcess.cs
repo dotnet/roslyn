@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Roslyn.Test.Utilities;
 using Xunit;
 using IAsyncDisposable = System.IAsyncDisposable;
 
@@ -25,6 +24,8 @@ namespace Microsoft.VisualStudio.Extensibility.Testing;
 
 internal sealed partial class ShellInProcess
 {
+    private static readonly TimeSpan s_hangMitigatingTimeout = TimeSpan.FromMinutes(4);
+
     /// <returns>True if the AllInOneSearch is being used for Navigation</returns>
     public async Task<bool> ShowNavigateToDialogAsync(CancellationToken cancellationToken)
     {
@@ -101,7 +102,7 @@ internal sealed partial class ShellInProcess
         ErrorHandler.ThrowOnFailure(commandService.GetControlDataSourceAsync(
             (uint)__VSCOMMANDTYPES.cCommandTypeButton,
             commandName,
-            timeout: ((int)TestHelpers.HangMitigatingTimeout.TotalMilliseconds),
+            timeout: ((int)s_hangMitigatingTimeout.TotalMilliseconds),
             out var dataSourceTask));
 
         Assumes.NotNull(dataSourceTask);

@@ -7708,7 +7708,7 @@ class Program
     IL_0013:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0018:  ldarg.0
     IL_0019:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
-    IL_001e:  ldfld      ""Buffer10<int> C.F""
+    IL_001e:  ldflda     ""Buffer10<int> C.F""
     IL_0023:  pop
     IL_0024:  ldc.i4.0
     IL_0025:  call       ""System.Threading.Tasks.Task<int> Program.FromResult<int>(int)""
@@ -7857,7 +7857,7 @@ class Program
     IL_0013:  stfld      ""C Program.<M2>d__2.<>7__wrap1""
     IL_0018:  ldarg.0
     IL_0019:  ldfld      ""C Program.<M2>d__2.<>7__wrap1""
-    IL_001e:  ldfld      ""Buffer10<int> C.F""
+    IL_001e:  ldflda     ""Buffer10<int> C.F""
     IL_0023:  pop
     IL_0024:  ldc.i4.5
     IL_0025:  call       ""System.Index System.Index.op_Implicit(int)""
@@ -8022,7 +8022,7 @@ class Program
     IL_0016:  stfld      ""C Program.<M2>d__2.<>7__wrap4""
     IL_001b:  ldarg.0
     IL_001c:  ldfld      ""C Program.<M2>d__2.<>7__wrap4""
-    IL_0021:  ldfld      ""Buffer10<int> C.F""
+    IL_0021:  ldflda     ""Buffer10<int> C.F""
     IL_0026:  pop
     IL_0027:  call       ""int Program.Get01()""
     IL_002c:  stloc.1
@@ -8189,7 +8189,7 @@ class Program
     IL_0019:  stfld      ""C Program.<M1>d__1.<>7__wrap3""
     IL_001e:  ldarg.0
     IL_001f:  ldfld      ""C Program.<M1>d__1.<>7__wrap3""
-    IL_0024:  ldfld      ""Buffer10<int> C.F""
+    IL_0024:  ldflda     ""Buffer10<int> C.F""
     IL_0029:  pop
     IL_002a:  call       ""System.Range Program.GetRange()""
     IL_002f:  stloc.2
@@ -20774,7 +20774,7 @@ class Program
     IL_001b:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
     IL_0020:  ldarg.0
     IL_0021:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
-    IL_0026:  ldfld      ""Buffer4<int> C.F""
+    IL_0026:  ldflda     ""Buffer4<int> C.F""
     IL_002b:  pop
     IL_002c:  ldarg.0
     IL_002d:  ldc.i4.0
@@ -20918,7 +20918,7 @@ class Program
                   IL_0000:  ldarg.0
                   IL_0001:  stloc.0
                   IL_0002:  ldloc.0
-                  IL_0003:  ldfld      "Buffer4<int> C.F"
+                  IL_0003:  ldflda     "Buffer4<int> C.F"
                   IL_0008:  pop
                   IL_0009:  ldc.i4.0
                   IL_000a:  stloc.1
@@ -21295,7 +21295,7 @@ class Program
     IL_001b:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
     IL_0020:  ldarg.0
     IL_0021:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
-    IL_0026:  ldfld      ""Buffer4<int> C.F""
+    IL_0026:  ldflda     ""Buffer4<int> C.F""
     IL_002b:  pop
     IL_002c:  ldarg.0
     IL_002d:  ldc.i4.0
@@ -22333,7 +22333,7 @@ class Program
   IL_001e:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
   IL_0023:  ldarg.0
   IL_0024:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
-  IL_0029:  ldfld      ""Buffer4<int> C.F""
+  IL_0029:  ldflda     ""Buffer4<int> C.F""
   IL_002e:  pop
   IL_002f:  ldarg.0
   IL_0030:  ldc.i4.0
@@ -22652,7 +22652,7 @@ class Program
   IL_001e:  stfld      ""C Program.<Test>d__3.<>7__wrap2""
   IL_0023:  ldarg.0
   IL_0024:  ldfld      ""C Program.<Test>d__3.<>7__wrap2""
-  IL_0029:  ldfld      ""Buffer4<int> C.F""
+  IL_0029:  ldflda     ""Buffer4<int> C.F""
   IL_002e:  pop
   IL_002f:  ldarg.0
   IL_0030:  ldc.i4.0

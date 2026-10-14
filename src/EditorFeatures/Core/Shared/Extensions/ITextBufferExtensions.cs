@@ -70,6 +70,7 @@ internal static partial class ITextBufferExtensions
         }
 
         using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
+        Contract.ThrowIfNull(change.NewText);
         edit.Replace(change.Span.ToSpan(), change.NewText);
         return edit.Apply();
     }
@@ -84,6 +85,7 @@ internal static partial class ITextBufferExtensions
         using var edit = buffer.CreateEdit(EditOptions.DefaultMinimalChange, reiteratedVersionNumber: null, editTag: null);
         foreach (var change in changes)
         {
+            Contract.ThrowIfNull(change.NewText);
             edit.Replace(change.Span.ToSpan(), change.NewText);
         }
 

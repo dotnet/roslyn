@@ -210,6 +210,7 @@ public static partial class Extensions
             {
                 foreach (var change in changes)
                 {
+                    Contract.ThrowIfNull(change.NewText);
                     edit.Replace(change.Span.ToSpan(), change.NewText);
                 }
 
@@ -344,9 +345,9 @@ public static partial class Extensions
 
         private IReadOnlyList<TextChangeRange> GetChangeRanges(ITextImage? oldImage, int oldTextLength, ITextImage? newImage)
         {
-            if (oldImage == null ||
-                newImage == null ||
-                oldImage.Version.Identifier != newImage.Version.Identifier)
+            if (oldImage?.Version is not { } oldImageVersion ||
+                newImage?.Version is not { } newImageVersion ||
+                oldImageVersion.Identifier != newImageVersion.Identifier)
             {
                 // Claim its all changed
                 Logger.Log(FunctionId.Workspace_SourceText_GetChangeRanges, "Invalid Snapshots");
@@ -359,7 +360,7 @@ public static partial class Extensions
             }
             else
             {
-                return ITextImageHelpers.GetChangeRanges(oldImage, newImage);
+                return ITextImageHelpers.GetChangeRanges(oldImageVersion, newImageVersion);
             }
         }
 

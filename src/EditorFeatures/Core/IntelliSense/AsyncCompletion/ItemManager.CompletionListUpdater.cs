@@ -134,8 +134,9 @@ internal partial class ItemManager
             // Use a dedicated pool to minimize potentially repeated large allocations,
             // since the completion list could be long with import completion enabled.
             var itemsToBeIncluded = s_listOfMatchResultPool.Allocate();
-            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             var threadLocalPatternMatchHelper = new ThreadLocal<PatternMatchHelper>(() => new PatternMatchHelper(_filterText), trackAllValues: true);
+            Task<(CompletionList<CompletionItemWithHighlight>, ImmutableArray<CompletionFilterWithState>)>? highlightAndFilterTask = null;
 
             try
             {
@@ -151,7 +152,7 @@ internal partial class ItemManager
                 // Sort items based on pattern matching result
                 itemsToBeIncluded.Sort(MatchResult.SortingComparer);
 
-                var highlightAndFilterTask = Task.Run(
+                highlightAndFilterTask = Task.Run(
                     () => GetHighlightedListAndUpdatedFilters(session, itemsToBeIncluded, threadLocalPatternMatchHelper, cancellationTokenSource.Token),
                     cancellationTokenSource.Token);
 
@@ -184,7 +185,17 @@ internal partial class ItemManager
             finally
             {
                 cancellationTokenSource.Cancel();
-                cancellationTokenSource.Dispose();
+
+                // Cancellation is cooperative, so wait for the task to stop using itemsToBeIncluded before releasing it
+                // back to the pool, and to stop using the thread-local pattern matchers.
+                if (highlightAndFilterTask is not null)
+                {
+                    await highlightAndFilterTask.NoThrowAwaitable(captureContext: false);
+
+                    // Don't hide filtering failures from the editor's error handler.
+                    if (highlightAndFilterTask.IsFaulted)
+                        await highlightAndFilterTask.ConfigureAwait(false);
+                }
 
                 // Don't call ClearAndFree, which resets the capacity to a default value.
                 itemsToBeIncluded.Clear();

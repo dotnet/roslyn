@@ -39,6 +39,7 @@ internal static class TextEditApplication
 
         foreach (var change in textChanges)
         {
+            Contract.ThrowIfNull(change.NewText);
             edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
         }
 

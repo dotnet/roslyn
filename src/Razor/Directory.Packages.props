@@ -7,7 +7,7 @@
   -->
   <PropertyGroup>
     <_MicrosoftWebToolsPackageVersion>17.11.11-preview-0001</_MicrosoftWebToolsPackageVersion>
-    <_VisualStudioLanguageServerProtocolVersion>17.12.1-preview</_VisualStudioLanguageServerProtocolVersion>
+    <_VisualStudioLanguageServerProtocolVersion>18.12.5</_VisualStudioLanguageServerProtocolVersion>
     <_MicrosoftExtensionsPackageVersion>10.0.1</_MicrosoftExtensionsPackageVersion>
   </PropertyGroup>
   <ItemGroup>
@@ -16,14 +16,13 @@
     <PackageVersion Include="Microsoft.AspNetCore.App.Runtime.$(NetCoreSDKRuntimeIdentifier)" Version="10.0.11" />
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(_MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.NET.Sdk.Razor" Version="11.0.100-preview.4.26215.114" />
-    <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="18.9.918" />
+    <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="18.11.573" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(VisualStudioEditorPackagesVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Extensions" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="$(_VisualStudioLanguageServerProtocolVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" Version="$(MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(MicrosoftVisualStudioLanguageServicesPackageVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.Shell.Framework" Version="18.9.918" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Implementation" Version="$(VisualStudioEditorPackagesVersion)" NoWarn="NU1701" />
     <PackageVersion Include="Microsoft.VisualStudio.Web" Version="16.10.0-preview-1-31008-014" />
     <PackageVersion Include="Microsoft.WebTools.Languages.Html" Version="$(_MicrosoftWebToolsPackageVersion)" />

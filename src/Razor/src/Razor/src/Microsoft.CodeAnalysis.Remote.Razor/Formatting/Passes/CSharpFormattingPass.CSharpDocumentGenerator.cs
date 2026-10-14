@@ -166,6 +166,7 @@ internal partial class CSharpFormattingPass
             private readonly bool _insertSpaces = options.InsertSpaces;
             private readonly int _tabSize = options.TabSize;
             private readonly AttributeIndentStyle _attributeIndentStyle = options.AttributeIndentStyle;
+            private readonly bool _ignoreIndentationInScriptOrStyleBlocksWithComplexRazor = options.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor;
             private readonly CSharpSyntaxFormattingOptions _csharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions;
             private readonly StringBuilder _builder = builder;
             private readonly ImmutableArray<LineInfo>.Builder _lineInfoBuilder = lineInfoBuilder;
@@ -191,13 +192,12 @@ internal partial class CSharpFormattingPass
             /// </summary>
             private int _htmlIndentationLevelInGeneratedDocument;
             /// <summary>
-            /// The line number of the last line of a block where formatting should be completely ignored
+            /// The line number of the last line of a block where C# formatting should be ignored
             /// </summary>
             /// <remarks>
-            /// Some Html constructs, namely &lt;textarea&gt; and &lt;pre&gt;, should not be formatted at all, and we essentially
-            /// need to treat them as multiline Razor comments. This field is used to track the line number of the last line of such
-            /// an element, so we can ignore every line in it without having to do lots of tree traversal to check "are we parented
-            /// by a pre tag" etc.
+            /// Some Html constructs, such as &lt;textarea&gt; and &lt;pre&gt;, should not be formatted. Script/style bodies with
+            /// complex Razor use this to preserve the indentation from the input to this pass after Html formatting has run.
+            /// This field tracks the last ignored line so we can avoid repeatedly traversing the syntax tree.
             /// </remarks>
             private int? _ignoreUntilLine;
 
@@ -218,8 +218,6 @@ internal partial class CSharpFormattingPass
                         _currentToken = root.FindToken(firstNonWhitespacePosition);
 
                         var length = _builder.Length;
-                        _lineInfoBuilder.Add(Visit(_currentToken.Parent));
-                        Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
 
                         // If there are C# mappings on this line, we want to output additional lines that represent the C# blocks.
                         while (iMapping < sourceMappings.Length)
@@ -235,7 +233,8 @@ internal partial class CSharpFormattingPass
                                 // We've found a span mapping that means there is some C# on this line, so if its an explicit or implicit expression
                                 // we need to format it, but separately to the rest of the document.
                                 var node = root.FindInnermostNode(originalSpan.AbsoluteIndex);
-                                if (node is CSharpExpressionLiteralSyntax)
+                                if (_ignoreUntilLine is null &&
+                                    node is CSharpExpressionLiteralSyntax)
                                 {
                                     AddAdditionalLineFormattingContent(additionalLinesBuilder, node, originalSpan);
                                 }
@@ -247,6 +246,9 @@ internal partial class CSharpFormattingPass
                                 break;
                             }
                         }
+
+                        _lineInfoBuilder.Add(Visit(_currentToken.Parent));
+                        Debug.Assert(_builder.Length > length, "Didn't output any generated code!");
                     }
                     else if (_documentMappingService.IsInStringLiteral(_codeDocument, _csharpSyntaxRoot, _declSyntaxRoot, line.Start, multilineOnly: false))
                     {
@@ -339,6 +341,13 @@ internal partial class CSharpFormattingPass
                 if (_ignoreUntilLine is not null)
                 {
                     return EmitCurrentLineWithNoFormatting();
+                }
+
+                // Body and closing-brace lines start in literal or meta-code nodes, not the directive node.
+                // Route them through the same projection so the XML stays inside the generated doc comment.
+                if (node?.FirstAncestorOrSelf<RazorDocumentationDirectiveSyntax>() is { } documentation)
+                {
+                    return VisitRazorDocumentationDirective(documentation);
                 }
 
                 return base.Visit(node);
@@ -687,10 +696,21 @@ internal partial class CSharpFormattingPass
                     var honouredEndLine = GetLineNumber(closeAngle) - 1;
                     if (honouredEndLine > _currentLine.LineNumber)
                     {
-                        _honourHtmlFormattingUntilLine = honouredEndLine;
+                        if (_ignoreIndentationInScriptOrStyleBlocksWithComplexRazor &&
+                            RazorSyntaxFacts.ContainsComplexRazorInScriptOrStyleBody(node.ParentElement, _sourceText))
+                        {
+                            if (GetLineNumber(node.CloseAngle) == _currentLine.LineNumber)
+                            {
+                                _ignoreUntilLine = GetElementBodyEndLine(node);
+                            }
+                        }
+                        else
+                        {
+                            _honourHtmlFormattingUntilLine = honouredEndLine;
 
-                        // Walk the ancestors once per multiline script/style block so each content line can reuse the result.
-                        _htmlIndentationLevelInGeneratedDocument = GetHtmlIndentationLevel(node);
+                            // Walk the ancestors once per multiline script/style block so each content line can reuse the result.
+                            _htmlIndentationLevelInGeneratedDocument = GetHtmlIndentationLevel(node);
+                        }
                     }
                 }
 
@@ -881,11 +901,37 @@ internal partial class CSharpFormattingPass
                         // If this is the last line of a tag that shouldn't be indented, honour that
                         _ignoreUntilLine = GetLineNumber(startTag.GetEndTag()?.CloseAngle ?? startTag.CloseAngle);
                     }
+                    else if (_ignoreIndentationInScriptOrStyleBlocksWithComplexRazor &&
+                        GetLineNumber(node) == GetLineNumber(startTag.CloseAngle) &&
+                        startTag.ParentElement is { } element &&
+                        RazorSyntaxFacts.IsScriptOrStyleBlock(element) &&
+                        RazorSyntaxFacts.ContainsComplexRazorInScriptOrStyleBody(element, _sourceText))
+                    {
+                        // A multiline start tag reaches this path on its final attribute line. Start ignoring after that so
+                        // only the body keeps its indentation; otherwise the start tag's continuation lines would be ignored too.
+                        var ignoredEndLine = GetElementBodyEndLine(startTag);
+                        if (ignoredEndLine > _currentLine.LineNumber)
+                        {
+                            _ignoreUntilLine = ignoredEndLine;
+                        }
+                    }
 
                     return EmitCurrentLineAsComment(htmlIndentLevel: htmlIndentLevel, additionalIndentation: additionalIndentation);
                 }
 
                 return null;
+            }
+
+            private int GetElementBodyEndLine(BaseMarkupStartTagSyntax startTag)
+            {
+                var endTag = startTag.GetEndTag();
+                Debug.Assert(endTag is not null);
+
+                var endTagLine = _sourceText.Lines.GetLineFromPosition(endTag.SpanStart);
+                // Exclude a line containing only the end tag, but include it when body content appears before the end tag.
+                return endTagLine.GetFirstNonWhitespacePosition() == endTag.SpanStart
+                    ? endTagLine.LineNumber - 1
+                    : endTagLine.LineNumber;
             }
 
             private LineInfo EmitCollectionExpressionAssignmentLine(int htmlIndentLevel = 0, int? additionalIndentation = null)
@@ -1218,6 +1264,72 @@ internal partial class CSharpFormattingPass
                     formattedOffset: 0);
             }
 
+            public override LineInfo VisitRazorDocumentationDirective(RazorDocumentationDirectiveSyntax node)
+            {
+                // We want Roslyn's documentation-comment formatting, not C# statement formatting or our own
+                // XML formatter. Replace the Razor header/braces with C# doc-comment delimiters, essentially
+                // the same way the compiler emits these directives:
+                //
+                // @documentation {             /**
+                //     <summary>...</summary>        <summary>...</summary>
+                // }                            */
+                //
+                // Like the rest of this visitor, we emit only the current line. Keeping the same number of
+                // lines lets LineInfo map Roslyn's formatted output back to the Razor document. Roslyn decides
+                // how to reindent comment exteriors; we don't normalise the XML text ourselves.
+                var children = node.DirectiveBody.CSharpCode.Children;
+                // An incomplete or invalid directive (particularly one containing "*/") cannot safely form
+                // a C# doc comment. Emit an inert placeholder instead, so it cannot affect subsequent code.
+                // When the opening brace is on a later line, the header also needs a placeholder until then.
+                if (node.GetDiagnostics().Any(static diagnostic => diagnostic.Severity == RazorDiagnosticSeverity.Error) ||
+                    !children.TryGetOpenBraceToken(out var openBrace) ||
+                    !children.TryGetCloseBraceToken(out var closeBrace) ||
+                    _currentLine.LineNumber < GetLineNumber(openBrace))
+                {
+                    return EmitCurrentLineAsComment();
+                }
+
+                // XML can share a line with either brace, including a wholly single-line directive.
+                // Select only this line's portion of the body, excluding the Razor header and braces.
+                var isOpeningLine = _currentLine.LineNumber == GetLineNumber(openBrace);
+                var isClosingLine = _currentLine.LineNumber == GetLineNumber(closeBrace);
+                var contentStart = isOpeningLine ? openBrace.Span.End : _currentLine.Start;
+                var contentEnd = isClosingLine ? closeBrace.Position : _currentLine.End;
+
+                // The space prevents a leading '/' or '*' in the body from closing the comment or turning
+                // it into an ordinary block comment.
+                const string commentStart = "/** ";
+                const string commentEnd = "*/";
+                if (isOpeningLine)
+                {
+                    // Roslyn reindents multiline comments relative to their opener. Preserve its original
+                    // column so the body moves by the same delta, rather than drifting on repeated formatting.
+                    _builder.Append(_sourceText.ToString(TextSpan.FromBounds(_currentLine.Start, _currentFirstNonWhitespacePosition)));
+                    _builder.Append(commentStart);
+                }
+
+                _builder.Append(_sourceText.ToString(TextSpan.FromBounds(contentStart, contentEnd)));
+                if (isClosingLine)
+                {
+                    _builder.Append(commentEnd);
+                }
+
+                _builder.AppendLine();
+
+                // LineInfo handles leading indentation separately. Content edits map only the XML: skip the
+                // Razor prefix on the original side and the synthetic delimiters on the formatted side.
+                // A zero FormattedLength normally means "the rest of the line", so disable content edits when
+                // there is no body text to map (e.g. a closing-brace-only line). Indentation can still change.
+                var originalStart = Math.Max(contentStart, _currentFirstNonWhitespacePosition);
+                var originalLength = Math.Max(0, contentEnd - originalStart);
+                return CreateLineInfo(
+                    processFormatting: originalLength > 0,
+                    originOffset: originalStart - _currentFirstNonWhitespacePosition,
+                    formattedLength: originalLength,
+                    formattedOffset: isOpeningLine ? commentStart.Length : 0,
+                    formattedOffsetFromEndOfLine: isClosingLine ? commentEnd.Length : 0);
+            }
+
             private LineInfo VisitTypeParamDirective(RazorSyntaxNode typeParam, RazorSyntaxNode conditions)
             {
                 // For @typeparam we just need C# to format things after the "where", so we construct a local function that looks right
@@ -1240,7 +1352,9 @@ internal partial class CSharpFormattingPass
                 // For @attribute we skip over the directive itself and Roslyn can handle the rest
                 // "@attribute [AttributeUsage(AttributeTargets.All)]" to "[AttributeUsage(AttributeTargets.All)]"
                 // Roslyn's parser doesn't care whether the attribute is on a valid member, at least for formatting purposes
-                _builder.AppendLine(attribute.GetContent());
+                // Continuation lines are visited separately.
+                var span = TextSpan.FromBounds(attribute.SpanStart, Math.Min(attribute.EndPosition, _currentLine.End));
+                _builder.AppendLine(_sourceText.ToString(span));
                 return CreateLineInfo(
                     processFormatting: true,
                     originOffset: attribute.SpanStart - _currentToken.Position,
@@ -1384,7 +1498,8 @@ internal partial class CSharpFormattingPass
 
             private LineInfo EmitCurrentLineWithNoFormatting()
             {
-                _builder.AppendLine();
+                // Keep ignored nonblank lines distinguishable from actual blank lines when mapping the formatted document back.
+                _builder.AppendLine("//");
                 return CreateLineInfo(processIndentation: false);
             }
 

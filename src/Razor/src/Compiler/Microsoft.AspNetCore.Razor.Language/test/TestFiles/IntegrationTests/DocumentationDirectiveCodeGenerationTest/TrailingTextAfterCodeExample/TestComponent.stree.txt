@@ -1,0 +1,36 @@
+﻿RazorDocument - [0..110)::110 - [@documentation {<summary>LF}LF@code { public int Example => 1; }LF</summary> Extra information.}LF<p>After</p>]
+    MarkupBlock - [0..110)::110
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..98)::98
+            RazorDocumentationDirective - [0..96)::96 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..96)::95
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..96)::82
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [15..16)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [16..95)::79
+                            CSharpStatementLiteral - [16..95)::79 - [<summary>LF}LF@code { public int Example => 1; }LF</summary> Extra information.] - Gen<Stmt>
+                                Text;[<summary>LF}LF@code { public int Example => 1; }LF</summary> Extra information.];
+                        RazorMetaCode - [95..96)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [96..98)::2 - Gen<None>
+                NewLine;[LF];
+        MarkupElement - [98..110)::12
+            MarkupStartTag - [98..101)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [101..106)::5 - [After] - Gen<Markup>
+                Text;[After];
+            MarkupEndTag - [106..110)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+    EndOfFile;[];

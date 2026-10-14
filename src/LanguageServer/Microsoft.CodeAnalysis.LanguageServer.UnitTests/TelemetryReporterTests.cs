@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.ApplicationInsights.Extensibility;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Telemetry.Metrics;
 using Microsoft.VisualStudio.Telemetry.Metrics.Events;
+using Roslyn.LanguageServer.Protocol;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -45,7 +46,7 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
-    public void TestServerCommonProperties(bool useDevKitTelemetry)
+    public async Task TestServerCommonProperties(bool useDevKitTelemetry)
     {
         var serverConfiguration = useDevKitTelemetry ? DefaultServerConfiguration : ServerConfigurationWithoutDevKit;
         using var service = CreateReporter(serverConfiguration);
@@ -69,6 +70,15 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
                     ? "macos"
                     : "unknown";
         Assert.Equal(expectedPlatform, Assert.IsType<string>(serverPlatform));
+
+        using var telemetryScope = RoslynTelemetry.SetCurrent(service.Telemetry);
+        await using var server = await CreateLanguageServerAsync(
+            serverConfiguration: serverConfiguration,
+            clientInfo: new ClientInfo { Name = "Visual Studio Code" },
+            processTelemetry: service);
+
+        Assert.True(session.TryGetCommonPropertyValue(LanguageServerTelemetry.ClientNamePropertyName, out var value));
+        Assert.Equal("Visual Studio Code", Assert.IsType<string>(value));
     }
 
     [Theory]
@@ -125,9 +135,9 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     [InlineData(" ", false)]
     [InlineData("invalid", false)]
     [InlineData(null, false)]
-    public void TestCopilotCliTelemetryLevelFailsClosed(string? telemetryLevel, bool expected)
+    public void TestStandaloneTelemetryLevelFailsClosed(string? telemetryLevel, bool expected)
     {
-        Assert.Equal(expected, LanguageServerTelemetry.IsCopilotCliTelemetryEnabled(telemetryLevel));
+        Assert.Equal(expected, LanguageServerTelemetry.IsStandaloneTelemetryEnabled(telemetryLevel));
     }
 
     [Fact]

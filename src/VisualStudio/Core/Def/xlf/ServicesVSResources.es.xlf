@@ -452,6 +452,11 @@
         <target state="translated">Corregir las advertencias y errores del analizador establecidos en EditorConfig</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_generic_type_names_pasted_into_cref_attributes">
+        <source>Fix generic type names pasted into cref attributes</source>
+        <target state="translated">Corregir los nombres de tipos genéricos pegados en los atributos cref</target>
+        <note>"cref" is a documentation comment attribute name and should not be localized</note>
+      </trans-unit>
       <trans-unit id="Fix_text_pasted_into_string_literals">
         <source>Fix text pasted into string literals</source>
         <target state="translated">Corregir el texto pegado en literales de cadena</target>

@@ -10,7 +10,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed partial class SourceNamespaceSymbol : NamespaceSymbol
     {
-        private static readonly ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> s_emptyMap =
-            ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings>.Empty.WithComparers(ReferenceEqualityComparer.Instance);
+        private static readonly ImmutableDictionary<SyntaxReference, AliasesAndUsings> s_emptyMap =
+            ImmutableDictionary<SyntaxReference, AliasesAndUsings>.Empty.WithComparers(SyntaxReferenceEqualityComparer.Instance);
 
         private readonly SourceModuleSymbol _module;
         private readonly Symbol _container;
@@ -36,12 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsings(SingleNamespaceDeclaration)"/>.
         /// </summary>
-        private ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly = s_emptyMap;
+        private ImmutableDictionary<SyntaxReference, AliasesAndUsings> _aliasesAndUsings_doNotAccessDirectly = s_emptyMap;
 #if DEBUG
         /// <summary>
         /// Should only be read using <see cref="GetAliasesAndUsingsForAsserts"/>.
         /// </summary>
-        private ImmutableDictionary<SingleNamespaceDeclaration, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly = s_emptyMap;
+        private ImmutableDictionary<SyntaxReference, AliasesAndUsings> _aliasesAndUsingsForAsserts_doNotAccessDirectly = s_emptyMap;
 #endif
         private MergedGlobalAliasesAndUsings _lazyMergedGlobalAliasesAndUsings;
 

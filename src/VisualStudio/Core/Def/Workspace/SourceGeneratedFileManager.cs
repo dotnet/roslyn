@@ -406,6 +406,7 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
                     // Ensure the encoding matches; this is necessary for debugger checksums to match what is in the PDB.
                     if (_fileManager._textDocumentFactoryService.TryGetTextDocument(_textBuffer, out var textDocument))
                     {
+                        Contract.ThrowIfNull(generatedSource.Encoding, "The generator driver requires an encoding for every added source.");
                         textDocument.Encoding = generatedSource.Encoding;
                     }
 

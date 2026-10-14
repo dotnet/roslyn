@@ -336,6 +336,11 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
             VisitDirective(node, node.DirectiveDescriptor);
         }
 
+        public override void VisitRazorDocumentationDirective(RazorDocumentationDirectiveSyntax node)
+        {
+            VisitDirective(node, node.DirectiveDescriptor);
+        }
+
         private void VisitDirective(BaseRazorDirectiveSyntax node, DirectiveDescriptor descriptor)
         {
             IntermediateNode directiveNode;
@@ -372,7 +377,20 @@ internal class DefaultRazorIntermediateNodeLoweringPhase : RazorEnginePhaseBase,
                 _builder.Push(directiveNode);
             }
 
-            Visit(node.Body);
+            if (node is RazorDocumentationDirectiveSyntax)
+            {
+                var content = node.Body.DescendantNodes().OfType<CSharpStatementLiteralSyntax>().FirstOrDefault();
+                _builder.Add(new DocumentationIntermediateNode
+                {
+                    Content = content?.GetContent() ?? string.Empty,
+                    Source = content is null ? null : BuildSourceSpanFromNode(content),
+                    IsValid = content is not null && !IsMalformed(node.GetDiagnostics()),
+                });
+            }
+            else
+            {
+                Visit(node.Body);
+            }
 
             if (descriptor != null)
             {

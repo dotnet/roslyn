@@ -187,7 +187,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }
         catch (Exception ex)
         {
-            logger.LogDebug("Could not read cache file: {ex.Message}", ex.Message);
+            logger.LogInformation(ex, "Could not read cache file");
         }
 
         cache ??= new Cache(workspaceFolder, DateTimeOffset.MinValue, FileBasedAppFullPaths: [], DirectoriesContainingCsproj: []);
@@ -223,15 +223,17 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         try
         {
             Directory.CreateDirectory(cacheDirectory);
+            // Write the cache to a staging file, then move it into place atomically once it is ready.
             var cacheStagingFilePath = Path.Join(cacheDirectory, "cache.staging.json");
             using (var stagingFile = File.Create(cacheStagingFilePath))
             {
                 JsonSerializer.Serialize(stagingFile, newCache, CacheSerializerContext.Default.Cache);
             }
-            File.Replace(cacheStagingFilePath, cacheFilePath, destinationBackupFileName: null);
+            File.Move(cacheStagingFilePath, cacheFilePath, overwrite: true);
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
+            logger.LogInformation(ex, "Could not write cache file");
         }
 
         return newCache.FileBasedAppFullPaths;

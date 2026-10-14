@@ -71,6 +71,7 @@ public sealed class MergeProjectDataSlicesTask : Microsoft.Build.Utilities.Task
 
 	public override bool Execute()
 	{
+		bool candidateSlicesFound = false;
 		if (string.IsNullOrEmpty(this.OutputPath) && string.IsNullOrEmpty(this.ProjectFilePath))
 		{
 			// Misconfigured task invocation — neither input is supplied so we cannot
@@ -95,7 +96,12 @@ public sealed class MergeProjectDataSlicesTask : Microsoft.Build.Utilities.Task
 					.Where(path => !string.IsNullOrWhiteSpace(path))
 					.ToArray();
 				string[] existing = sliceFiles.Where(File.Exists).ToArray();
-				string[] missing = sliceFiles.Except(existing, StringComparer.OrdinalIgnoreCase).ToArray();
+				string[] missing = sliceFiles.Except(existing, StringComparers.Paths).ToArray();
+				string[] discovered = string.IsNullOrWhiteSpace(this.SliceGlob)
+					? []
+					: ProjectDataMerger.FindSlices(this.SliceGlob)
+						.Except(existing, StringComparers.Paths)
+						.ToArray();
 				if (missing.Length > 0)
 				{
 					this.Log.LogMessage(MessageImportance.Low,
@@ -104,18 +110,33 @@ public sealed class MergeProjectDataSlicesTask : Microsoft.Build.Utilities.Task
 						string.Join(";", missing));
 				}
 
-				if (existing.Length == 0)
+				if (discovered.Length > 0)
+				{
+					this.Log.LogMessage(
+						MessageImportance.Low,
+						"ProjectData: discovered {0} current-configuration fallback slice(s) for {1} via {2}.",
+						discovered.Length,
+						this.ProjectFilePath,
+						this.SliceGlob);
+				}
+
+				if (existing.Length == 0 && discovered.Length == 0)
 				{
 					this.DeleteOutputPathIfNotProjectFolder();
 					return true;
 				}
 
-				this.FoundSlices = true;
-				count = ProjectDataMerger.Merge(this.ResolvedOutputPath, existing, this.TargetFrameworks, this.PreserveExistingSlices, this.IntermediateOutputPath);
+				candidateSlicesFound = true;
+				count = ProjectDataMerger.Merge(
+					this.ResolvedOutputPath,
+					preferredSliceFiles: existing,
+					discoveredSliceFiles: discovered,
+					this.TargetFrameworks,
+					this.PreserveExistingSlices,
+					this.IntermediateOutputPath);
 			}
 			else
 			{
-				this.FoundSlices = true;
 				string[] sliceFiles = ProjectDataMerger.FindSlices(this.SliceGlob).ToArray();
 				if (sliceFiles.Length == 0)
 				{
@@ -124,10 +145,12 @@ public sealed class MergeProjectDataSlicesTask : Microsoft.Build.Utilities.Task
 				}
 				else
 				{
+					candidateSlicesFound = true;
 					count = ProjectDataMerger.Merge(this.ResolvedOutputPath, sliceFiles, this.TargetFrameworks, this.PreserveExistingSlices, this.IntermediateOutputPath);
 				}
 			}
 
+			this.FoundSlices = count > 0;
 			if (count == 0)
 			{
 				this.DeleteOutputPathIfNotProjectFolder();
@@ -143,6 +166,7 @@ public sealed class MergeProjectDataSlicesTask : Microsoft.Build.Utilities.Task
 		}
 		catch (Exception ex)
 		{
+			this.FoundSlices = candidateSlicesFound;
 			// Cache-write failures should not break the user's build, but they must be
 			// visible at default verbosity so the user knows the cache might be stale.
 			// ``LogMessage(Low)`` was invisible under ``-v:minimal`` (the default for

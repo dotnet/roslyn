@@ -94,6 +94,11 @@
         <target state="translated">Редактирование {0} удаляет содержимое, не являющееся пробелами "{1}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="Escape_documentation_comment_terminator">
+        <source>Escape documentation comment terminator</source>
+        <target state="new">Escape documentation comment terminator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
         <source>Extract block to code behind</source>
         <target state="translated">Извлечь блок в код программной части</target>
@@ -229,10 +234,20 @@
         <target state="translated">Не тестировалось</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_explicit_expression">
+        <source>Use explicit expression</source>
+        <target state="new">Use explicit expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_attributes">
         <source>Wrap attributes</source>
         <target state="translated">Перенос атрибутов</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Wrap_in_summary">
+        <source>Wrap in &lt;summary&gt;</source>
+        <target state="new">Wrap in &lt;summary&gt;</target>
+        <note>&lt;summary&gt; is an XML documentation tag and should not be translated.</note>
       </trans-unit>
     </body>
   </file>

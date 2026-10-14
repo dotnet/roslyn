@@ -8,7 +8,8 @@ internal sealed record LspServerLaunchOptions
 {
     public static LspServerLaunchOptions Default { get; } = new();
 
-    public bool AutoLoadProjects { get; init; }
+    public int? AutoLoadProjects { get; init; }
+    public object? InitializationOptions { get; init; }
     public bool IncludeDevKitComponents { get; init; }
     public bool DebugLsp { get; init; }
 
