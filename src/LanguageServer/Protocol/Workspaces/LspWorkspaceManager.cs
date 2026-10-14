@@ -243,7 +243,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         if (initialContext.Workspace.Kind == WorkspaceKind.Host || !canLoadOnDemand)
             return new(RecordDocumentFoundResult(initialContext));
 
-        var projectLoadTask = _onDemandProjectLoader.TryLoadProjectsAsync(uri);
+        var projectLoadTask = _onDemandProjectLoader!.TryLoadProjectsAsync(uri);
 
         return new(async () =>
         {
