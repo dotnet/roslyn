@@ -38,7 +38,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         DiagnosticDescription[] expectedDiagnostics,
         ReadOnlySpan<string> additionalSources = default,
         Verification verify = default,
-        CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit,
+        RequiresUnsafeMode expectedUnsafeMode = RequiresUnsafeMode.Explicit,
         object[]? skipSymbolsInSource = null,
         CSharpParseOptions? parseOptions = null,
         CSharpCompilationOptions? optionsDll = null,
@@ -76,7 +76,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         {
             CreateCompilation([lib, caller, .. additionalSources],
                 targetFramework: targetFramework,
-                parseOptions: TestOptions.Regular14,
+                parseOptions: TestOptions.Regular15,
                 options: optionsExe)
                 .VerifyDiagnostics(expectedDiagnosticsWithOldLangVersion);
         }
@@ -322,7 +322,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         ReadOnlySpan<object> expectedUnsafeSymbols,
         ReadOnlySpan<object> expectedSafeSymbols,
         AttributeDefinition expectedDefinition,
-        CallerUnsafeMode expectedUnsafeMode = CallerUnsafeMode.Explicit)
+        RequiresUnsafeMode expectedUnsafeMode = RequiresUnsafeMode.Explicit)
     {
         const string Name = "RequiresUnsafeAttribute";
         const string FullName = $"System.Diagnostics.CodeAnalysis.{Name}";
@@ -372,11 +372,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         {
             var symbol = getSymbol(symbolGetter);
 
-            var symbolExpectedUnsafeMode = shouldBeUnsafe ? expectedUnsafeMode : CallerUnsafeMode.None;
-            Assert.True(symbolExpectedUnsafeMode == symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty), $"Expected {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' to have {nameof(CallerUnsafeMode)}.{symbolExpectedUnsafeMode} (got {symbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty)}).");
+            var symbolExpectedUnsafeMode = shouldBeUnsafe ? expectedUnsafeMode : RequiresUnsafeMode.None;
+            Assert.True(symbolExpectedUnsafeMode == symbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty), $"Expected {symbol.GetType().Name} '{symbol.ToTestDisplayString()}' to have {nameof(RequiresUnsafeMode)}.{symbolExpectedUnsafeMode} (got {symbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty)}).");
 
             var publicSymbol = symbol.GetPublicSymbol();
-            Assert.Equal(symbolExpectedUnsafeMode != CallerUnsafeMode.None, publicSymbol.RequiresUnsafeContext);
+            Assert.Equal(symbolExpectedUnsafeMode != RequiresUnsafeMode.None, publicSymbol.RequiresUnsafeContext);
 
             var hasAttributeInGetAttributes = symbol.GetAttributes().Any(a => a.AttributeClass?.Name == Name);
             Assert.False(hasAttributeInGetAttributes,
@@ -389,9 +389,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // For PE symbols, the attribute should be present in raw metadata when expected.
             if (module is PEModuleSymbol peModule)
             {
-                verifyAttributeInMetadata(symbol, shouldBeUnsafe && expectedUnsafeMode == CallerUnsafeMode.Explicit);
+                verifyAttributeInMetadata(symbol, shouldBeUnsafe && expectedUnsafeMode == RequiresUnsafeMode.Explicit);
                 if (symbol is PEMethodSymbol { AssociatedSymbol: Symbol associatedSymbol })
-                    verifyAttributeInMetadata(associatedSymbol, associatedSymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit);
+                    verifyAttributeInMetadata(associatedSymbol, associatedSymbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit);
 
                 void verifyAttributeInMetadata(Symbol s, bool shouldHave)
                 {
@@ -1193,7 +1193,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe)).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe)).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
@@ -1207,11 +1207,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
@@ -1232,11 +1232,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // var x = GetPointer();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "GetPointer()").WithArguments("updated memory safety rules").WithLocation(1, 9),
@@ -1261,7 +1261,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
             // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         int* p = null;
@@ -1280,11 +1280,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         int* p = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(6, 9));
@@ -1340,10 +1340,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
     }
 
     [Fact]
@@ -1371,7 +1371,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
@@ -1381,11 +1381,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,11): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // using X = int*;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 11),
@@ -1426,10 +1426,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
     }
 
     [Theory, CombinatorialData]
@@ -1441,7 +1441,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe))
             .VerifyDiagnostics(
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1476,11 +1476,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -1509,7 +1509,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1543,11 +1543,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         int* p = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(6, 9),
@@ -1608,11 +1608,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics([
-                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
                 .. expectedDiagnostics,
             ]);
     }
@@ -1632,11 +1632,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
@@ -1651,7 +1651,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1685,11 +1685,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -1726,11 +1726,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics([
-                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
                 .. expectedDiagnostics,
             ]);
     }
@@ -1750,11 +1750,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
@@ -1769,7 +1769,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1803,11 +1803,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -1834,11 +1834,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
@@ -1854,7 +1854,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1894,11 +1894,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -1926,7 +1926,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -1972,11 +1972,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -2004,7 +2004,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -2042,11 +2042,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int*[] x = [];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -2080,7 +2080,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -2126,11 +2126,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // delegate*<void> x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -2167,11 +2167,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1));
@@ -2194,7 +2194,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source, options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
@@ -2204,11 +2204,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // delegate*<void> f = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 1));
@@ -2242,10 +2242,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
     }
 
     [Fact]
@@ -2269,7 +2269,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
@@ -2295,11 +2295,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,11): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // using X = delegate*<void>;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 11),
@@ -2354,11 +2354,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
     }
 
     [Fact]
@@ -2370,7 +2370,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -2404,11 +2404,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // delegate*<string> x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -2432,11 +2432,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // delegate*<string> x = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 1));
@@ -2452,7 +2452,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (1,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -2489,11 +2489,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,11): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // using X = delegate*<string>;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "delegate*").WithArguments("updated memory safety rules").WithLocation(1, 11),
@@ -2526,7 +2526,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
@@ -2540,11 +2540,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* p = &x;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(2, 1),
@@ -2562,7 +2562,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -2596,11 +2596,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* p = &x;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(2, 1),
@@ -2638,10 +2638,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
     }
 
     [Fact]
@@ -2665,7 +2665,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe).VerifyDiagnostics(
             // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // string* p = &s;
@@ -2691,11 +2691,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // string* p = &s;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "string*").WithArguments("updated memory safety rules").WithLocation(2, 1),
@@ -2755,10 +2755,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(expectedWarnings);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (2,10): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
             // unsafe { string* p = &s; }
             Diagnostic(ErrorCode.WRN_ManagedAddr, "string*").WithArguments("string").WithLocation(2, 10),
@@ -2797,7 +2797,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
@@ -2811,11 +2811,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         fixed (int* p = &x) { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "fixed (int* p = &x) { }").WithArguments("updated memory safety rules").WithLocation(6, 9),
@@ -2858,7 +2858,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
@@ -2872,11 +2872,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (5,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         fixed (int* p = new S()) { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "fixed (int* p = new S()) { }").WithArguments("updated memory safety rules").WithLocation(5, 9),
@@ -2894,7 +2894,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -2931,11 +2931,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // fixed (int* p = &x) { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "fixed (int* p = &x) { }").WithArguments("updated memory safety rules").WithLocation(2, 1),
@@ -2982,10 +2982,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
     }
 
     [Fact]
@@ -3004,7 +3004,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -3074,11 +3074,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics(expectedDiagnostics);
 
         CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (6,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //         fixed (string* p1 = &x) { }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "fixed (string* p1 = &x) { }").WithArguments("updated memory safety rules").WithLocation(6, 9),
@@ -3156,7 +3156,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
@@ -3170,11 +3170,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* p = null;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -3218,7 +3218,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (2,5): error CS0233: 'nint' does not have a predefined size, therefore sizeof can only be used in an unsafe context
@@ -3241,11 +3241,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (2,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = sizeof(nint);
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("updated memory safety rules").WithLocation(2, 5),
@@ -3263,7 +3263,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (1,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
@@ -3303,11 +3303,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics(expectedDiagnostics);
 
         CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
             // _ = sizeof(string);
             Diagnostic(ErrorCode.WRN_ManagedAddr, "sizeof(string)").WithArguments("string").WithLocation(1, 5),
@@ -3334,7 +3334,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -3374,11 +3374,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* p = s.y;
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(2, 1),
@@ -3497,7 +3497,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -3544,11 +3544,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnosticsWithOptIn);
 
         CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // int* x = stackalloc int[3];
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -3737,12 +3737,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             [
-                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
                 .. expectedDiagnostics,
             ]);
     }
@@ -3784,7 +3784,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         };
 
         CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyEmitDiagnostics(expectedDiagnostics);
 
@@ -3805,12 +3805,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics(expectedDiagnostics);
 
         CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
             [
-                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
                 .. expectedDiagnostics,
             ]);
     }
@@ -3850,7 +3850,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseExe)
             .VerifyDiagnostics(
             // (1,5): error CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -3886,7 +3886,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (1,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
@@ -4837,10 +4837,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation(sources,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (7,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe class C;
             Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "C").WithLocation(7, 14),
@@ -4859,18 +4859,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (12,22): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe delegate void D();
             Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "D").WithLocation(12, 22),
-            // (13,1): error CS8803: Top-level statements must precede namespace and type declarations.
+            // (13,14): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             // unsafe union N(int);
-            Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "unsafe union N(int);").WithLocation(13, 1),
-            // (13,8): error CS0246: The type or namespace name 'union' could not be found (are you missing a using directive or an assembly reference?)
-            // unsafe union N(int);
-            Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "union").WithArguments("union").WithLocation(13, 8),
-            // (13,14): error CS8112: Local function 'N(int)' must declare a body because it is not marked 'static extern'.
-            // unsafe union N(int);
-            Diagnostic(ErrorCode.ERR_LocalFunctionMissingBody, "N").WithArguments("N(int)").WithLocation(13, 14),
-            // (13,19): error CS1001: Identifier expected
-            // unsafe union N(int);
-            Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(13, 19),
+            Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "N").WithLocation(13, 14),
             // (16,5): error CS9377: The 'unsafe' modifier does not have any effect here under the current memory safety rules.
             //     unsafe static X() { }
             Diagnostic(ErrorCode.ERR_UnsafeMeaningless, "unsafe").WithLocation(16, 5),
@@ -4923,7 +4914,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics(
             // (29,21): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int Pg { unsafe get; set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(29, 21),
@@ -4975,7 +4966,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
         CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe).VerifyEmitDiagnostics();
         CreateCompilation(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules()).VerifyEmitDiagnostics(
@@ -5001,7 +4992,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilationWithSpan(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (1,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -5062,11 +5053,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics(expectedDiagnostics);
 
         CreateCompilationWithSpan([source],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = new X<string*[]>();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = new X<string*[]>()").WithArguments("updated memory safety rules").WithLocation(1, 1),
@@ -5247,7 +5238,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void UnsafeContext_ExteriorOnly_CallerUnsafeInSignature_DefaultParameterValue()
+    public void UnsafeContext_ExteriorOnly_RequiresUnsafeInSignature_DefaultParameterValue()
     {
         var source = """
             public class Lib
@@ -5259,7 +5250,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             {
                 // Under updated rules, 'unsafe' on a method has no interior meaning.
                 // In signatures (default parameter values, attributes), the unsafe context from
-                // the member modifier was already not applied, so caller-unsafe members should error.
+                // the member modifier was already not applied, so requires-unsafe members should error.
                 unsafe void M(int x = Lib.UnsafeMethod()) { }
 
                 // In an unsafe block, the call is fine.
@@ -5278,10 +5269,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         };
 
         // Without updated rules: default parameter values are not affected by method's unsafe modifier,
-        // so caller-unsafe members in default values error the same way.
+        // so requires-unsafe members in default values error the same way.
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(commonDiagnostics);
 
-        // With updated rules: additionally, caller-unsafe member diagnostics are reported.
+        // With updated rules: additionally, requires-unsafe member diagnostics are reported.
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics([
             .. commonDiagnostics,
             // (11,27): error CS9362: 'Lib.UnsafeMethod()' must be used in an unsafe context because it is marked as 'unsafe'
@@ -5294,7 +5285,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void UnsafeContext_ExteriorOnly_CallerUnsafeInSignature()
+    public void UnsafeContext_ExteriorOnly_RequiresUnsafeInSignature()
     {
         var source = """
             using System;
@@ -5564,7 +5555,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             "C.F",
         ];
 
-        foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular14 })
+        foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular15 })
         {
             CompileAndVerify(source,
                 parseOptions: parseOptions,
@@ -5599,11 +5590,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
 
         source =
         [
@@ -5666,7 +5657,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void Member_Method_Invocation(
         bool apiUpdatedRules,
         bool apiUnsafe,
-        [CombinatorialValues(LanguageVersion.CSharp14, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion callerLangVersion,
+        [CombinatorialValues(LanguageVersion.CSharp15, LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion callerLangVersion,
         bool callerAllowUnsafe,
         bool callerUpdatedRules,
         bool callerUnsafeBlock,
@@ -5754,8 +5745,8 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         if (callerUpdatedRules && callerLangVersion < LanguageVersionFacts.CSharpNext)
         {
             expectedDiagnostics.Add(
-                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
         }
 
         comp.VerifyDiagnostics([.. expectedDiagnostics]);
@@ -6216,7 +6207,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new C().M1()").WithArguments("C.M1()").WithLocation(1, 1),
             // (5,33): error CS9364: Unsafe member 'C.M1()' cannot override safe member 'B.M1()'
             //     unsafe public override void M1() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C.M1()", "B.M1()").WithLocation(5, 33),
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M1").WithArguments("C.M1()", "B.M1()").WithLocation(5, 33),
         };
 
         CompileAndVerifyUnsafe(
@@ -6233,14 +6224,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(expectedDiagnostics);
 
         CreateCompilation([lib, caller],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (5,33): error CS9364: Unsafe member 'C.M1()' cannot override safe member 'B.M1()'
             //     unsafe public override void M1() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C.M1()", "B.M1()").WithLocation(5, 33),
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M1").WithArguments("C.M1()", "B.M1()").WithLocation(5, 33),
             // (1,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // new C().M1();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "new C().M1()").WithArguments("updated memory safety rules").WithLocation(1, 1));
@@ -6338,13 +6329,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "base.M1()").WithArguments("C.M1()").WithLocation(14, 31),
                 // (20,33): error CS9364: Unsafe member 'D2.M2()' cannot override safe member 'C.M2()'
                 //     unsafe public override void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("D2.M2()", "C.M2()").WithLocation(20, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M2").WithArguments("D2.M2()", "C.M2()").WithLocation(20, 33),
                 // (22,33): error CS9364: Unsafe member 'D2.M4()' cannot override safe member 'B.M4()'
                 //     unsafe public override void M4() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(22, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(22, 33),
                 // (24,33): error CS9364: Unsafe member 'D2.M6()' cannot override safe member 'B.M6()'
                 //     unsafe public override void M6() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(24, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(24, 33),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
@@ -6368,22 +6359,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "d2.M6()").WithArguments("D2.M6()").WithLocation(2, 65),
                 // (19,33): error CS9364: Unsafe member 'D2.M1()' cannot override safe member 'B.M1()'
                 //     unsafe public override void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("D2.M1()", "B.M1()").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M1").WithArguments("D2.M1()", "B.M1()").WithLocation(19, 33),
                 // (20,33): error CS9364: Unsafe member 'D2.M2()' cannot override safe member 'C.M2()'
                 //     unsafe public override void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M2").WithArguments("D2.M2()", "C.M2()").WithLocation(20, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M2").WithArguments("D2.M2()", "C.M2()").WithLocation(20, 33),
                 // (21,33): error CS9364: Unsafe member 'D2.M3()' cannot override safe member 'B.M3()'
                 //     unsafe public override void M3() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M3").WithArguments("D2.M3()", "B.M3()").WithLocation(21, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M3").WithArguments("D2.M3()", "B.M3()").WithLocation(21, 33),
                 // (22,33): error CS9364: Unsafe member 'D2.M4()' cannot override safe member 'B.M4()'
                 //     unsafe public override void M4() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(22, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(22, 33),
                 // (23,33): error CS9364: Unsafe member 'D2.M5()' cannot override safe member 'C.M5()'
                 //     unsafe public override void M5() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M5").WithArguments("D2.M5()", "C.M5()").WithLocation(23, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M5").WithArguments("D2.M5()", "C.M5()").WithLocation(23, 33),
                 // (24,33): error CS9364: Unsafe member 'D2.M6()' cannot override safe member 'B.M6()'
                 //     unsafe public override void M6() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(24, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(24, 33),
             ]);
     }
 
@@ -6471,7 +6462,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "b.M()").WithArguments("B.M()").WithLocation(6, 1),
             // (16,33): error CS9364: Unsafe member 'C2.M()' cannot override safe member 'A.M()'
             //     unsafe public override void M() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M").WithArguments("C2.M()", "A.M()").WithLocation(16, 33));
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M").WithArguments("C2.M()", "A.M()").WithLocation(16, 33));
     }
 
     [Fact]
@@ -6560,61 +6551,61 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "i2.M2()").WithArguments("I2.M2()").WithLocation(7, 1),
                 // (12,24): error CS9365: Unsafe member 'C3.M2()' cannot implicitly implement safe member 'I1.M2()'
                 //     unsafe public void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I1.M2()").WithLocation(12, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I1.M2()").WithLocation(12, 24),
                 // (18,20): error CS9366: Unsafe member 'C4.I1.M2()' cannot implement safe member 'I1.M2()'
                 //     unsafe void I1.M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I1.M2()", "I1.M2()").WithLocation(18, 20),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I1.M2()", "I1.M2()").WithLocation(18, 20),
                 // (23,24): error CS9365: Unsafe member 'C5.M1()' cannot implicitly implement safe member 'I2.M1()'
                 //     unsafe public void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I2.M1()").WithLocation(23, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I2.M1()").WithLocation(23, 24),
                 // (24,24): error CS9365: Unsafe member 'C5.M2()' cannot implicitly implement safe member 'I1.M2()'
                 //     unsafe public void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I1.M2()").WithLocation(24, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I1.M2()").WithLocation(24, 24),
                 // (29,24): error CS9365: Unsafe member 'C6.M1()' cannot implicitly implement safe member 'I2.M1()'
                 //     unsafe public void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C6.M1()", "I2.M1()").WithLocation(29, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C6.M1()", "I2.M1()").WithLocation(29, 24),
                 // (30,24): error CS9365: Unsafe member 'C6.M2()' cannot implicitly implement safe member 'I1.M2()'
                 //     unsafe public void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C6.M2()", "I1.M2()").WithLocation(30, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C6.M2()", "I1.M2()").WithLocation(30, 24),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
                 // (11,24): error CS9365: Unsafe member 'C3.M1()' cannot implicitly implement safe member 'I1.M1()'
                 //     unsafe public void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I1.M1()").WithLocation(11, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I1.M1()").WithLocation(11, 24),
                 // (12,24): error CS9365: Unsafe member 'C3.M2()' cannot implicitly implement safe member 'I1.M2()'
                 //     unsafe public void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I1.M2()").WithLocation(12, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I1.M2()").WithLocation(12, 24),
                 // (17,20): error CS9366: Unsafe member 'C4.I1.M1()' cannot implement safe member 'I1.M1()'
                 //     unsafe void I1.M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I1.M1()", "I1.M1()").WithLocation(17, 20),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I1.M1()", "I1.M1()").WithLocation(17, 20),
                 // (18,20): error CS9366: Unsafe member 'C4.I1.M2()' cannot implement safe member 'I1.M2()'
                 //     unsafe void I1.M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I1.M2()", "I1.M2()").WithLocation(18, 20),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I1.M2()", "I1.M2()").WithLocation(18, 20),
                 // (23,24): error CS9365: Unsafe member 'C5.M1()' cannot implicitly implement safe member 'I1.M1()'
                 //     unsafe public void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I1.M1()").WithLocation(23, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I1.M1()").WithLocation(23, 24),
                 // (23,24): error CS9365: Unsafe member 'C5.M1()' cannot implicitly implement safe member 'I2.M1()'
                 //     unsafe public void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I2.M1()").WithLocation(23, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I2.M1()").WithLocation(23, 24),
                 // (24,24): error CS9365: Unsafe member 'C5.M2()' cannot implicitly implement safe member 'I1.M2()'
                 //     unsafe public void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I1.M2()").WithLocation(24, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I1.M2()").WithLocation(24, 24),
                 // (24,24): error CS9365: Unsafe member 'C5.M2()' cannot implicitly implement safe member 'I2.M2()'
                 //     unsafe public void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I2.M2()").WithLocation(24, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I2.M2()").WithLocation(24, 24),
                 // (29,24): error CS9365: Unsafe member 'C6.M1()' cannot implicitly implement safe member 'I2.M1()'
                 //     unsafe public void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C6.M1()", "I2.M1()").WithLocation(29, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C6.M1()", "I2.M1()").WithLocation(29, 24),
                 // (29,24): error CS9365: Unsafe member 'C6.M1()' cannot implicitly implement safe member 'I1.M1()'
                 //     unsafe public void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C6.M1()", "I1.M1()").WithLocation(29, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C6.M1()", "I1.M1()").WithLocation(29, 24),
                 // (30,24): error CS9365: Unsafe member 'C6.M2()' cannot implicitly implement safe member 'I2.M2()'
                 //     unsafe public void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C6.M2()", "I2.M2()").WithLocation(30, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C6.M2()", "I2.M2()").WithLocation(30, 24),
                 // (30,24): error CS9365: Unsafe member 'C6.M2()' cannot implicitly implement safe member 'I1.M2()'
                 //     unsafe public void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C6.M2()", "I1.M2()").WithLocation(30, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C6.M2()", "I1.M2()").WithLocation(30, 24),
             ]);
     }
 
@@ -6714,16 +6705,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "i.M2()").WithArguments("I.M2()").WithLocation(9, 1),
                 // (13,32): error CS9365: Unsafe member 'B2.M1()' cannot implicitly implement safe member 'I.M1()'
                 //     unsafe public virtual void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("B2.M1()", "I.M1()").WithLocation(13, 32),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("B2.M1()", "I.M1()").WithLocation(13, 32),
                 // (19,33): error CS9364: Unsafe member 'C1.M1()' cannot override safe member 'B1.M1()'
                 //     unsafe public override void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C1.M1()", "B1.M1()").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M1").WithArguments("C1.M1()", "B1.M1()").WithLocation(19, 33),
                 // (25,33): error CS9364: Unsafe member 'C2.M1()' cannot override safe member 'B1.M1()'
                 //     unsafe public override void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C2.M1()", "B1.M1()").WithLocation(25, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M1").WithArguments("C2.M1()", "B1.M1()").WithLocation(25, 33),
                 // (25,33): error CS9365: Unsafe member 'C2.M1()' cannot implicitly implement safe member 'I.M1()'
                 //     unsafe public override void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C2.M1()", "I.M1()").WithLocation(25, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C2.M1()", "I.M1()").WithLocation(25, 33),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
@@ -6732,21 +6723,21 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c1.M1()").WithArguments("C1.M1()").WithLocation(2, 1),
                 // (13,32): error CS9365: Unsafe member 'B2.M1()' cannot implicitly implement safe member 'I.M1()'
                 //     unsafe public virtual void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("B2.M1()", "I.M1()").WithLocation(13, 32),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("B2.M1()", "I.M1()").WithLocation(13, 32),
                 // (19,33): error CS9364: Unsafe member 'C1.M1()' cannot override safe member 'B1.M1()'
                 //     unsafe public override void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C1.M1()", "B1.M1()").WithLocation(19, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M1").WithArguments("C1.M1()", "B1.M1()").WithLocation(19, 33),
                 // (25,33): error CS9364: Unsafe member 'C2.M1()' cannot override safe member 'B1.M1()'
                 //     unsafe public override void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C2.M1()", "B1.M1()").WithLocation(25, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M1").WithArguments("C2.M1()", "B1.M1()").WithLocation(25, 33),
                 // (25,33): error CS9365: Unsafe member 'C2.M1()' cannot implicitly implement safe member 'I.M1()'
                 //     unsafe public override void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C2.M1()", "I.M1()").WithLocation(25, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C2.M1()", "I.M1()").WithLocation(25, 33),
             ]);
     }
 
     /// <summary>
-    /// Caller-unsafety should not count as part of the signature for hiding purposes.
+    /// Requires-unsafety should not count as part of the signature for hiding purposes.
     /// </summary>
     [Fact]
     public void Member_Method_Hiding()
@@ -6827,7 +6818,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (10,17): error CS9365: Unsafe member 'C.OnCompleted(Action)' cannot implicitly implement safe member 'INotifyCompletion.OnCompleted(Action)'
             //     unsafe public void OnCompleted(Action continuation) { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "OnCompleted").WithArguments("C.OnCompleted(System.Action)", "System.Runtime.CompilerServices.INotifyCompletion.OnCompleted(System.Action)").WithLocation(10, 17));
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "OnCompleted").WithArguments("C.OnCompleted(System.Action)", "System.Runtime.CompilerServices.INotifyCompletion.OnCompleted(System.Action)").WithLocation(10, 17));
 
         var lib = getLib("");
 
@@ -7404,7 +7395,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (6,24): error CS9365: Unsafe member 'C.Dispose()' cannot implicitly implement safe member 'IDisposable.Dispose()'
             //     unsafe public void Dispose() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "Dispose").WithArguments("C.Dispose()", "System.IDisposable.Dispose()").WithLocation(6, 24));
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "Dispose").WithArguments("C.Dispose()", "System.IDisposable.Dispose()").WithLocation(6, 24));
     }
 
     [Fact]
@@ -8191,7 +8182,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 AssertEx.Equal("unsafe void C.P2.set", comp.GetMember("C.set_P2").ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat.AddMemberOptions(SymbolDisplayMemberOptions.IncludeModifiers)));
             });
 
-        CreateCompilation([lib], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+        CreateCompilation([lib], parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
             // (3,21): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int P1 { unsafe get; set; }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 21),
@@ -8483,7 +8474,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll)
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
             // (3,21): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int P1 { unsafe get; set; }
@@ -8643,16 +8634,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P3").WithArguments("C1.P3.get").WithLocation(4, 8),
                 // (9,42): error CS9364: Unsafe member 'C1.P2.set' cannot override safe member 'B.P2.set'
                 //     unsafe public override int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "set").WithArguments("C1.P2.set", "B.P2.set").WithLocation(9, 42),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "set").WithArguments("C1.P2.set", "B.P2.set").WithLocation(9, 42),
                 // (10,37): error CS9364: Unsafe member 'C1.P3.get' cannot override safe member 'B.P3.get'
                 //     public override int P3 { unsafe get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C1.P3.get", "B.P3.get").WithLocation(10, 37),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "get").WithArguments("C1.P3.get", "B.P3.get").WithLocation(10, 37),
                 // (17,37): error CS9364: Unsafe member 'C2.P3.get' cannot override safe member 'B.P3.get'
                 //     unsafe public override int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C2.P3.get", "B.P3.get").WithLocation(17, 37),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "get").WithArguments("C2.P3.get", "B.P3.get").WithLocation(17, 37),
                 // (17,42): error CS9364: Unsafe member 'C2.P3.set' cannot override safe member 'B.P3.set'
                 //     unsafe public override int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "set").WithArguments("C2.P3.set", "B.P3.set").WithLocation(17, 42),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "set").WithArguments("C2.P3.set", "B.P3.set").WithLocation(17, 42),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
@@ -8667,28 +8658,28 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.P3").WithArguments("C1.P3.get").WithLocation(4, 8),
                 // (9,37): error CS9364: Unsafe member 'C1.P2.get' cannot override safe member 'B.P2.get'
                 //     unsafe public override int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C1.P2.get", "B.P2.get").WithLocation(9, 37),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "get").WithArguments("C1.P2.get", "B.P2.get").WithLocation(9, 37),
                 // (9,42): error CS9364: Unsafe member 'C1.P2.set' cannot override safe member 'B.P2.set'
                 //     unsafe public override int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "set").WithArguments("C1.P2.set", "B.P2.set").WithLocation(9, 42),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "set").WithArguments("C1.P2.set", "B.P2.set").WithLocation(9, 42),
                 // (10,37): error CS9364: Unsafe member 'C1.P3.get' cannot override safe member 'B.P3.get'
                 //     public override int P3 { unsafe get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C1.P3.get", "B.P3.get").WithLocation(10, 37),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "get").WithArguments("C1.P3.get", "B.P3.get").WithLocation(10, 37),
                 // (15,37): error CS9364: Unsafe member 'C2.P1.get' cannot override safe member 'B.P1.get'
                 //     unsafe public override int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C2.P1.get", "B.P1.get").WithLocation(15, 37),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "get").WithArguments("C2.P1.get", "B.P1.get").WithLocation(15, 37),
                 // (15,42): error CS9364: Unsafe member 'C2.P1.set' cannot override safe member 'B.P1.set'
                 //     unsafe public override int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "set").WithArguments("C2.P1.set", "B.P1.set").WithLocation(15, 42),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "set").WithArguments("C2.P1.set", "B.P1.set").WithLocation(15, 42),
                 // (16,37): error CS9364: Unsafe member 'C2.P2.get' cannot override safe member 'B.P2.get'
                 //     public override int P2 { unsafe get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C2.P2.get", "B.P2.get").WithLocation(16, 37),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "get").WithArguments("C2.P2.get", "B.P2.get").WithLocation(16, 37),
                 // (17,37): error CS9364: Unsafe member 'C2.P3.get' cannot override safe member 'B.P3.get'
                 //     unsafe public override int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "get").WithArguments("C2.P3.get", "B.P3.get").WithLocation(17, 37),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "get").WithArguments("C2.P3.get", "B.P3.get").WithLocation(17, 37),
                 // (17,42): error CS9364: Unsafe member 'C2.P3.set' cannot override safe member 'B.P3.set'
                 //     unsafe public override int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "set").WithArguments("C2.P3.set", "B.P3.set").WithLocation(17, 42),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "set").WithArguments("C2.P3.set", "B.P3.set").WithLocation(17, 42),
             ]);
     }
 
@@ -8739,43 +8730,43 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "i.P2").WithArguments("I.P2.get").WithLocation(3, 8),
                 // (9,33): error CS9365: Unsafe member 'C1.P2.set' cannot implicitly implement safe member 'I.P2.set'
                 //     unsafe public int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "set").WithArguments("C1.P2.set", "I.P2.set").WithLocation(9, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "set").WithArguments("C1.P2.set", "I.P2.set").WithLocation(9, 33),
                 // (10,28): error CS9365: Unsafe member 'C1.P3.get' cannot implicitly implement safe member 'I.P3.get'
                 //     public int P3 { unsafe get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C1.P3.get", "I.P3.get").WithLocation(10, 28),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "get").WithArguments("C1.P3.get", "I.P3.get").WithLocation(10, 28),
                 // (17,28): error CS9365: Unsafe member 'C2.P3.get' cannot implicitly implement safe member 'I.P3.get'
                 //     unsafe public int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P3.get", "I.P3.get").WithLocation(17, 28),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P3.get", "I.P3.get").WithLocation(17, 28),
                 // (17,33): error CS9365: Unsafe member 'C2.P3.set' cannot implicitly implement safe member 'I.P3.set'
                 //     unsafe public int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "set").WithArguments("C2.P3.set", "I.P3.set").WithLocation(17, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "set").WithArguments("C2.P3.set", "I.P3.set").WithLocation(17, 33),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
                 // (9,28): error CS9365: Unsafe member 'C1.P2.get' cannot implicitly implement safe member 'I.P2.get'
                 //     unsafe public int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C1.P2.get", "I.P2.get").WithLocation(9, 28),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "get").WithArguments("C1.P2.get", "I.P2.get").WithLocation(9, 28),
                 // (9,33): error CS9365: Unsafe member 'C1.P2.set' cannot implicitly implement safe member 'I.P2.set'
                 //     unsafe public int P2 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "set").WithArguments("C1.P2.set", "I.P2.set").WithLocation(9, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "set").WithArguments("C1.P2.set", "I.P2.set").WithLocation(9, 33),
                 // (10,28): error CS9365: Unsafe member 'C1.P3.get' cannot implicitly implement safe member 'I.P3.get'
                 //     public int P3 { unsafe get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C1.P3.get", "I.P3.get").WithLocation(10, 28),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "get").WithArguments("C1.P3.get", "I.P3.get").WithLocation(10, 28),
                 // (15,28): error CS9365: Unsafe member 'C2.P1.get' cannot implicitly implement safe member 'I.P1.get'
                 //     unsafe public int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P1.get", "I.P1.get").WithLocation(15, 28),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P1.get", "I.P1.get").WithLocation(15, 28),
                 // (15,33): error CS9365: Unsafe member 'C2.P1.set' cannot implicitly implement safe member 'I.P1.set'
                 //     unsafe public int P1 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "set").WithArguments("C2.P1.set", "I.P1.set").WithLocation(15, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "set").WithArguments("C2.P1.set", "I.P1.set").WithLocation(15, 33),
                 // (16,28): error CS9365: Unsafe member 'C2.P2.get' cannot implicitly implement safe member 'I.P2.get'
                 //     public int P2 { unsafe get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P2.get", "I.P2.get").WithLocation(16, 28),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P2.get", "I.P2.get").WithLocation(16, 28),
                 // (17,28): error CS9365: Unsafe member 'C2.P3.get' cannot implicitly implement safe member 'I.P3.get'
                 //     unsafe public int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P3.get", "I.P3.get").WithLocation(17, 28),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "get").WithArguments("C2.P3.get", "I.P3.get").WithLocation(17, 28),
                 // (17,33): error CS9365: Unsafe member 'C2.P3.set' cannot implicitly implement safe member 'I.P3.set'
                 //     unsafe public int P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "set").WithArguments("C2.P3.set", "I.P3.set").WithLocation(17, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "set").WithArguments("C2.P3.set", "I.P3.set").WithLocation(17, 33),
             ]);
     }
 
@@ -8933,7 +8924,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c2[0]").WithArguments("C2.this[int].set").WithLocation(4, 1),
             ]);
 
-        CreateCompilation([lib], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+        CreateCompilation([lib], parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
             // (3,30): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int this[int i] { unsafe get => i; set { } }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("updated memory safety rules").WithLocation(3, 30),
@@ -9094,7 +9085,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll)
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll)
             .VerifyDiagnostics(
             // (3,30): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //     public int this[int i] { unsafe get => i; set { } }
@@ -9288,10 +9279,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("C1.E4.add").WithLocation(5, 6),
                 // (13,48): error CS9364: Unsafe member 'C1.E3' cannot override safe member 'B.E3'
                 //     unsafe public override event System.Action E3;
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E3").WithArguments("C1.E3", "B.E3").WithLocation(13, 48),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "E3").WithArguments("C1.E3", "B.E3").WithLocation(13, 48),
                 // (14,48): error CS9364: Unsafe member 'C1.E4' cannot override safe member 'B.E4'
                 //     unsafe public override event System.Action E4 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E4").WithArguments("C1.E4", "B.E4").WithLocation(14, 48),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "E4").WithArguments("C1.E4", "B.E4").WithLocation(14, 48),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
@@ -9303,16 +9294,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("C1.E4.add").WithLocation(5, 6),
                 // (13,48): error CS9364: Unsafe member 'C1.E3' cannot override safe member 'B.E3'
                 //     unsafe public override event System.Action E3;
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E3").WithArguments("C1.E3", "B.E3").WithLocation(13, 48),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "E3").WithArguments("C1.E3", "B.E3").WithLocation(13, 48),
                 // (14,48): error CS9364: Unsafe member 'C1.E4' cannot override safe member 'B.E4'
                 //     unsafe public override event System.Action E4 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E4").WithArguments("C1.E4", "B.E4").WithLocation(14, 48),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "E4").WithArguments("C1.E4", "B.E4").WithLocation(14, 48),
                 // (19,48): error CS9364: Unsafe member 'C2.E1' cannot override safe member 'B.E1'
                 //     unsafe public override event System.Action E1;
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E1").WithArguments("C2.E1", "B.E1").WithLocation(19, 48),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "E1").WithArguments("C2.E1", "B.E1").WithLocation(19, 48),
                 // (20,48): error CS9364: Unsafe member 'C2.E2' cannot override safe member 'B.E2'
                 //     unsafe public override event System.Action E2 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "E2").WithArguments("C2.E2", "B.E2").WithLocation(20, 48),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "E2").WithArguments("C2.E2", "B.E2").WithLocation(20, 48),
             ]);
     }
 
@@ -9367,25 +9358,25 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("I.E1.add").WithLocation(2, 6),
                 // (10,39): error CS9365: Unsafe member 'C1.E2' cannot implicitly implement safe member 'I.E2'
                 //     unsafe public event System.Action E2;
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C1.E2", "I.E2").WithLocation(10, 39),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C1.E2", "I.E2").WithLocation(10, 39),
                 // (16,39): error CS9365: Unsafe member 'C2.E2' cannot implicitly implement safe member 'I.E2'
                 //     unsafe public event System.Action E2 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C2.E2", "I.E2").WithLocation(16, 39),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C2.E2", "I.E2").WithLocation(16, 39),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
                 // (10,39): error CS9365: Unsafe member 'C1.E2' cannot implicitly implement safe member 'I.E2'
                 //     unsafe public event System.Action E2;
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C1.E2", "I.E2").WithLocation(10, 39),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C1.E2", "I.E2").WithLocation(10, 39),
                 // (16,39): error CS9365: Unsafe member 'C2.E2' cannot implicitly implement safe member 'I.E2'
                 //     unsafe public event System.Action E2 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C2.E2", "I.E2").WithLocation(16, 39),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "E2").WithArguments("C2.E2", "I.E2").WithLocation(16, 39),
                 // (21,39): error CS9365: Unsafe member 'C3.E1' cannot implicitly implement safe member 'I.E1'
                 //     unsafe public event System.Action E1;
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E1").WithArguments("C3.E1", "I.E1").WithLocation(21, 39),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "E1").WithArguments("C3.E1", "I.E1").WithLocation(21, 39),
                 // (27,39): error CS9365: Unsafe member 'C4.E1' cannot implicitly implement safe member 'I.E1'
                 //     unsafe public event System.Action E1 { add { } remove { } }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "E1").WithArguments("C4.E1", "I.E1").WithLocation(27, 39),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "E1").WithArguments("C4.E1", "I.E1").WithLocation(27, 39),
             ]);
     }
 
@@ -10849,7 +10840,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.F"],
                 expectedSafeSymbols: ["C", (object)getFunctionPointerType, (object)getFunctionPointerMethod],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
@@ -10870,7 +10861,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (2,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -11735,13 +11726,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.F2"],
                 expectedSafeSymbols: ["C", "C.F1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -11836,13 +11827,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.M2"],
                 expectedSafeSymbols: ["C", "C.M1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (3,6): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -11919,13 +11910,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.M2"],
                 expectedSafeSymbols: ["C", "C.M1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -11983,7 +11974,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 module.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: [],
                 expectedSafeSymbols: ["C", "I", "C.M", "D"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None);
         }
     }
@@ -12082,13 +12073,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["E.M2"],
                 expectedSafeSymbols: ["E", "E.M1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (2,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -12178,13 +12169,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["E.M2", ExtensionMember("E", "M2")],
                 expectedSafeSymbols: ["E", "E.M1", ExtensionMember("E", "M1")],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (2,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -12320,13 +12311,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "base.M3()").WithArguments("B.M3()").WithLocation(14, 53),
             // (22,33): error CS9364: Unsafe member 'D2.M4()' cannot override safe member 'B.M4()'
             //     public unsafe override void M4() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(22, 33),
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(22, 33),
             // (23,33): error CS9364: Unsafe member 'D2.M5()' cannot override safe member 'C.M5()'
             //     public unsafe override void M5() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M5").WithArguments("D2.M5()", "C.M5()").WithLocation(23, 33),
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M5").WithArguments("D2.M5()", "C.M5()").WithLocation(23, 33),
             // (24,33): error CS9364: Unsafe member 'D2.M6()' cannot override safe member 'B.M6()'
             //     public unsafe override void M6() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(24, 33));
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(24, 33));
     }
 
     [Theory, CombinatorialData]
@@ -12382,14 +12373,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeMemberOperationCompat, "i.M1()").WithArguments("I.M1()").WithLocation(2, 1),
             // (20,24): error CS9365: Unsafe member 'C3.M2()' cannot implicitly implement safe member 'I.M2()'
             //     public unsafe void M2() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(20, 24),
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(20, 24),
             // (26,19): error CS9366: Unsafe member 'C4.I.M2()' cannot implement safe member 'I.M2()'
             //     unsafe void I.M2() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(26, 19));
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(26, 19));
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -12470,20 +12461,20 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyDiagnostics(
             // (19,26): error CS9365: Unsafe member 'C3.M1()' cannot implicitly implement safe member 'I<int*[]>.M1()'
             //     public unsafe int*[] M1() => null;
-            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I<int*[]>.M1()").WithLocation(19, 26),
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I<int*[]>.M1()").WithLocation(19, 26),
             // (20,24): error CS9365: Unsafe member 'C3.M2()' cannot implicitly implement safe member 'I<int*[]>.M2()'
             //     public unsafe void M2() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I<int*[]>.M2()").WithLocation(20, 24),
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I<int*[]>.M2()").WithLocation(20, 24),
             // (25,29): error CS9366: Unsafe member 'C4.I<int*[]>.M1()' cannot implement safe member 'I<int*[]>.M1()'
             //     unsafe int*[] I<int*[]>.M1() => null;
-            Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I<int*[]>.M1()", "I<int*[]>.M1()").WithLocation(25, 29),
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I<int*[]>.M1()", "I<int*[]>.M1()").WithLocation(25, 29),
             // (26,27): error CS9366: Unsafe member 'C4.I<int*[]>.M2()' cannot implement safe member 'I<int*[]>.M2()'
             //     unsafe void I<int*[]>.M2() { }
-            Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I<int*[]>.M2()", "I<int*[]>.M2()").WithLocation(26, 27));
+            Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I<int*[]>.M2()", "I<int*[]>.M2()").WithLocation(26, 27));
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (5,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -12580,13 +12571,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.P2", "C.get_P2", "C.set_P2"],
                 expectedSafeSymbols: ["C", "C.P1", "C.get_P1", "C.set_P1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -12678,13 +12669,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: [ExtensionMember("E", "P2"), "E.get_P2", ExtensionMember("E", "get_P2"), "E.set_P2", ExtensionMember("E", "set_P2")],
                 expectedSafeSymbols: ["E", ExtensionMember("E", "P1"), "E.get_P1", ExtensionMember("E", "get_P1"), "E.set_P1", ExtensionMember("E", "set_P1")],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -12780,13 +12771,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C2.this[]", "C2.get_Item", "C2.set_Item"],
                 expectedSafeSymbols: ["C1", "C2", "C1.this[]", "C1.get_Item", "C1.set_Item"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (4,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -12858,13 +12849,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.E2", "C.add_E2", "C.remove_E2"],
                 expectedSafeSymbols: ["C", "C.E1", "C.add_E1", "C.remove_E1"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -12926,13 +12917,13 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: [Overload("C..ctor", parameterCount: 1)],
                 expectedSafeSymbols: ["C", Overload("C..ctor", parameterCount: 0)],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
         CreateCompilation(source,
             [libRef],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseExe)
             .VerifyDiagnostics(
             // (2,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -13003,7 +12994,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 m.ReferencedAssemblySymbols.Single(a => a.Name == "lib").Modules.Single(),
                 expectedUnsafeSymbols: ["C.op_SubtractionAssignment"],
                 expectedSafeSymbols: ["C", "C.op_AdditionAssignment"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None))
             .VerifyDiagnostics();
 
@@ -13071,11 +13062,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext,
@@ -13083,7 +13074,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
     }
@@ -13216,7 +13207,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
 
         CreateCompilation(getLibSource("extern"),
-            parseOptions: TestOptions.Regular14)
+            parseOptions: TestOptions.Regular15)
             .VerifyDiagnostics(
             // (4,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     public extern int* M();
@@ -13249,7 +13240,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.M"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None);
         }
     }
@@ -13420,7 +13411,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M5()").WithArguments("C.M5()").WithLocation(6, 43),
                 // (12,40): error CS9364: Unsafe member 'C.M4()' cannot override safe member 'B.M4()'
                 //     unsafe public extern override void M4();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("C.M4()", "B.M4()").WithLocation(12, 40),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M4").WithArguments("C.M4()", "B.M4()").WithLocation(12, 40),
                 // (24,31): error CS9362: 'C.M1()' must be used in an unsafe context because it is marked as 'unsafe'
                 //     public void BaseCalls() { base.M1(); base.M2(); base.M3(); base.M4(); base.M5(); base.M6(); }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "base.M1()").WithArguments("C.M1()").WithLocation(24, 31),
@@ -13438,16 +13429,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "base.M5()").WithArguments("C.M5()").WithLocation(24, 75),
                 // (32,33): error CS9364: Unsafe member 'D2.M4()' cannot override safe member 'B.M4()'
                 //     public unsafe override void M4() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(32, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(32, 33),
                 // (34,33): error CS9364: Unsafe member 'D2.M6()' cannot override safe member 'B.M6()'
                 //     public unsafe override void M6() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(34, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(34, 33),
                 // (42,40): error CS9364: Unsafe member 'D3.M4()' cannot override safe member 'B.M4()'
                 //     unsafe public extern override void M4();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D3.M4()", "B.M4()").WithLocation(42, 40),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M4").WithArguments("D3.M4()", "B.M4()").WithLocation(42, 40),
                 // (44,40): error CS9364: Unsafe member 'D3.M6()' cannot override safe member 'B.M6()'
                 //     unsafe public extern override void M6();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D3.M6()", "B.M6()").WithLocation(44, 40),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M6").WithArguments("D3.M6()", "B.M6()").WithLocation(44, 40),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
@@ -13513,10 +13504,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "c.M5()").WithArguments("C.M5()").WithLocation(6, 43),
                 // (10,40): error CS9364: Unsafe member 'C.M1()' cannot override safe member 'B.M1()'
                 //     unsafe public extern override void M1();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("C.M1()", "B.M1()").WithLocation(10, 40),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M1").WithArguments("C.M1()", "B.M1()").WithLocation(10, 40),
                 // (12,40): error CS9364: Unsafe member 'C.M4()' cannot override safe member 'B.M4()'
                 //     unsafe public extern override void M4();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("C.M4()", "B.M4()").WithLocation(12, 40),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M4").WithArguments("C.M4()", "B.M4()").WithLocation(12, 40),
                 // (24,31): error CS9362: 'C.M1()' must be used in an unsafe context because it is marked as 'unsafe'
                 //     public void BaseCalls() { base.M1(); base.M2(); base.M3(); base.M4(); base.M5(); base.M6(); }
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "base.M1()").WithArguments("C.M1()").WithLocation(24, 31),
@@ -13531,28 +13522,28 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "base.M5()").WithArguments("C.M5()").WithLocation(24, 75),
                 // (29,33): error CS9364: Unsafe member 'D2.M1()' cannot override safe member 'B.M1()'
                 //     public unsafe override void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("D2.M1()", "B.M1()").WithLocation(29, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M1").WithArguments("D2.M1()", "B.M1()").WithLocation(29, 33),
                 // (31,33): error CS9364: Unsafe member 'D2.M3()' cannot override safe member 'B.M3()'
                 //     public unsafe override void M3() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M3").WithArguments("D2.M3()", "B.M3()").WithLocation(31, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M3").WithArguments("D2.M3()", "B.M3()").WithLocation(31, 33),
                 // (32,33): error CS9364: Unsafe member 'D2.M4()' cannot override safe member 'B.M4()'
                 //     public unsafe override void M4() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(32, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M4").WithArguments("D2.M4()", "B.M4()").WithLocation(32, 33),
                 // (34,33): error CS9364: Unsafe member 'D2.M6()' cannot override safe member 'B.M6()'
                 //     public unsafe override void M6() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(34, 33),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M6").WithArguments("D2.M6()", "B.M6()").WithLocation(34, 33),
                 // (39,40): error CS9364: Unsafe member 'D3.M1()' cannot override safe member 'B.M1()'
                 //     unsafe public extern override void M1();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M1").WithArguments("D3.M1()", "B.M1()").WithLocation(39, 40),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M1").WithArguments("D3.M1()", "B.M1()").WithLocation(39, 40),
                 // (41,40): error CS9364: Unsafe member 'D3.M3()' cannot override safe member 'B.M3()'
                 //     unsafe public extern override void M3();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M3").WithArguments("D3.M3()", "B.M3()").WithLocation(41, 40),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M3").WithArguments("D3.M3()", "B.M3()").WithLocation(41, 40),
                 // (42,40): error CS9364: Unsafe member 'D3.M4()' cannot override safe member 'B.M4()'
                 //     unsafe public extern override void M4();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M4").WithArguments("D3.M4()", "B.M4()").WithLocation(42, 40),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M4").WithArguments("D3.M4()", "B.M4()").WithLocation(42, 40),
                 // (44,40): error CS9364: Unsafe member 'D3.M6()' cannot override safe member 'B.M6()'
                 //     unsafe public extern override void M6();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeOverridingSafe, "M6").WithArguments("D3.M6()", "B.M6()").WithLocation(44, 40),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeOverridingSafe, "M6").WithArguments("D3.M6()", "B.M6()").WithLocation(44, 40),
             ]);
     }
 
@@ -13621,43 +13612,43 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "i.M1()").WithArguments("I.M1()").WithLocation(3, 1),
                 // (21,24): error CS9365: Unsafe member 'C3.M2()' cannot implicitly implement safe member 'I.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(21, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(21, 24),
                 // (27,19): error CS9366: Unsafe member 'C4.I.M2()' cannot implement safe member 'I.M2()'
                 //     unsafe void I.M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(27, 19),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(27, 19),
                 // (33,31): error CS9365: Unsafe member 'C5.M2()' cannot implicitly implement safe member 'I.M2()'
                 //     unsafe public extern void M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 31),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 31),
                 // (39,26): error CS9366: Unsafe member 'C6.I.M2()' cannot implement safe member 'I.M2()'
                 //     unsafe extern void I.M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 26),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 26),
             ],
             expectedDiagnosticsWhenReferencingLegacyLib:
             [
                 // (20,24): error CS9365: Unsafe member 'C3.M1()' cannot implicitly implement safe member 'I.M1()'
                 //     public unsafe void M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I.M1()").WithLocation(20, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C3.M1()", "I.M1()").WithLocation(20, 24),
                 // (21,24): error CS9365: Unsafe member 'C3.M2()' cannot implicitly implement safe member 'I.M2()'
                 //     public unsafe void M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(21, 24),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C3.M2()", "I.M2()").WithLocation(21, 24),
                 // (26,19): error CS9366: Unsafe member 'C4.I.M1()' cannot implement safe member 'I.M1()'
                 //     unsafe void I.M1() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I.M1()", "I.M1()").WithLocation(26, 19),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C4.I.M1()", "I.M1()").WithLocation(26, 19),
                 // (27,19): error CS9366: Unsafe member 'C4.I.M2()' cannot implement safe member 'I.M2()'
                 //     unsafe void I.M2() { }
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(27, 19),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C4.I.M2()", "I.M2()").WithLocation(27, 19),
                 // (32,31): error CS9365: Unsafe member 'C5.M1()' cannot implicitly implement safe member 'I.M1()'
                 //     unsafe public extern void M1();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I.M1()").WithLocation(32, 31),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M1").WithArguments("C5.M1()", "I.M1()").WithLocation(32, 31),
                 // (33,31): error CS9365: Unsafe member 'C5.M2()' cannot implicitly implement safe member 'I.M2()'
                 //     unsafe public extern void M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 31),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe, "M2").WithArguments("C5.M2()", "I.M2()").WithLocation(33, 31),
                 // (38,26): error CS9366: Unsafe member 'C6.I.M1()' cannot implement safe member 'I.M1()'
                 //     unsafe extern void I.M1();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C6.I.M1()", "I.M1()").WithLocation(38, 26),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M1").WithArguments("C6.I.M1()", "I.M1()").WithLocation(38, 26),
                 // (39,26): error CS9366: Unsafe member 'C6.I.M2()' cannot implement safe member 'I.M2()'
                 //     unsafe extern void I.M2();
-                Diagnostic(ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 26),
+                Diagnostic(ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe, "M2").WithArguments("C6.I.M2()", "I.M2()").WithLocation(39, 26),
             ]);
     }
 
@@ -13702,11 +13693,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext,
@@ -13714,7 +13705,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
     }
@@ -13777,11 +13768,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext,
@@ -13789,7 +13780,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
     }
@@ -13914,7 +13905,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
 
         CreateCompilation(getLibSource("extern"),
-            parseOptions: TestOptions.Regular14)
+            parseOptions: TestOptions.Regular15)
             .VerifyDiagnostics(
             // (4,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     public extern int* P { set; }
@@ -13947,7 +13938,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.P", "C.set_P"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None);
         }
     }
@@ -14024,11 +14015,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext,
@@ -14036,7 +14027,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
     }
@@ -14115,7 +14106,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
 
         CreateCompilation(getLibSource("extern"),
-            parseOptions: TestOptions.Regular14)
+            parseOptions: TestOptions.Regular15)
             .VerifyDiagnostics(
             // (4,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     public extern int* this[int i] { get; set; }
@@ -14151,7 +14142,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.this[]", "C.get_Item", "C.set_Item"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None);
         }
     }
@@ -14224,11 +14215,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext,
@@ -14236,7 +14227,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
     }
@@ -14331,7 +14322,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.E", "C.add_E", "C.remove_E"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None);
         }
     }
@@ -14407,11 +14398,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
 
         CreateCompilation(libSource,
             parseOptions: TestOptions.RegularNext,
@@ -14419,7 +14410,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation(libSource,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
     }
@@ -14467,7 +14458,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(getLibSource("extern")).VerifyDiagnostics();
 
         CreateCompilation(getLibSource("extern"),
-            parseOptions: TestOptions.Regular14)
+            parseOptions: TestOptions.Regular15)
             .VerifyDiagnostics(
             // (4,21): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     public extern C(int* p);
@@ -14500,7 +14491,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C..ctor"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None);
         }
     }
@@ -14574,11 +14565,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
 
         CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
             parseOptions: TestOptions.RegularNext,
@@ -14586,7 +14577,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics();
 
         CreateCompilation([libSource, CompilerFeatureRequiredAttribute],
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll)
             .VerifyEmitDiagnostics();
     }
@@ -14660,7 +14651,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation([getLibSource("extern"), CompilerFeatureRequiredAttribute]).VerifyDiagnostics();
 
         CreateCompilation([getLibSource("extern"), CompilerFeatureRequiredAttribute],
-            parseOptions: TestOptions.Regular14)
+            parseOptions: TestOptions.Regular15)
             .VerifyDiagnostics(
             // (4,36): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     public extern void operator +=(int* p);
@@ -14693,7 +14684,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 libAssemblySymbol.Modules.Single(),
                 expectedUnsafeSymbols: ["C.op_AdditionAssignment"],
                 expectedSafeSymbols: ["C"],
-                expectedUnsafeMode: CallerUnsafeMode.Implicit,
+                expectedUnsafeMode: RequiresUnsafeMode.Implicit,
                 expectedDefinition: AttributeDefinition.None);
         }
     }
@@ -14740,11 +14731,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         var comp = CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
         comp.VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1),
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
             // (1,7): warning CS8981: The type name 'safe' only contains lower-cased ascii characters. Such names may become reserved for the language.
             // class safe { }
             Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "safe").WithArguments("safe").WithLocation(1, 7));
@@ -14839,7 +14830,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             .VerifyEmitDiagnostics(expectedUnsafeDiagnostics);
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
             .VerifyDiagnostics(
         [
@@ -15111,7 +15102,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyEmitDiagnostics(expectedUnsafeDiagnostics);
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe))
             .VerifyDiagnostics(
         [
             .. expectedUnsafeDiagnostics,
@@ -15434,7 +15425,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.ReleaseDll.WithAllowUnsafe(allowUnsafe)).VerifyEmitDiagnostics();
 
         CreateCompilation(source,
@@ -15603,7 +15594,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular14 })
+        foreach (var parseOptions in new[] { TestOptions.RegularPreview, TestOptions.RegularNext, TestOptions.Regular15 })
         {
             CompileAndVerify(source,
                 parseOptions: parseOptions,
@@ -15630,11 +15621,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
 
         CreateCompilation(source,
-            parseOptions: TestOptions.Regular14,
+            parseOptions: TestOptions.Regular15,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics(
-            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 14.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "14.0", "preview").WithLocation(1, 1));
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
     }
 
     [Fact]
@@ -15879,7 +15870,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var refA = CompileIL(sourceA, prependDefaultHeader: false);
 
         var a = CreateCompilation("", [refA]).VerifyDiagnostics().GetReferencedAssemblySymbol(refA);
-        Assert.Equal(CallerUnsafeMode.None, a.GlobalNamespace.GetMember("A.M").GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty));
+        Assert.Equal(RequiresUnsafeMode.None, a.GlobalNamespace.GetMember("A.M").GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty));
 
         var sourceB = """
             A.M();
@@ -15925,7 +15916,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var refA = CompileIL(sourceA, prependDefaultHeader: false);
 
         var a = CreateCompilation("", [refA]).VerifyDiagnostics().GetReferencedAssemblySymbol(refA);
-        Assert.Equal(CallerUnsafeMode.Explicit, a.GlobalNamespace.GetMember("A.M").GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty));
+        Assert.Equal(RequiresUnsafeMode.Explicit, a.GlobalNamespace.GetMember("A.M").GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty));
 
         var sourceB = """
             A.M();
@@ -15973,7 +15964,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         var refA = CompileIL(sourceA, prependDefaultHeader: false);
 
         var a = CreateCompilation("", [refA]).VerifyDiagnostics().GetReferencedAssemblySymbol(refA);
-        Assert.Equal(CallerUnsafeMode.Explicit, a.GlobalNamespace.GetMember("A.M").GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty));
+        Assert.Equal(RequiresUnsafeMode.Explicit, a.GlobalNamespace.GetMember("A.M").GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty));
 
         var sourceB = """
             A.M();
@@ -16343,7 +16334,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
             // (9,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             //             await Task.Yield();
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "await").WithArguments("updated memory safety rules").WithLocation(9, 13));
@@ -16383,7 +16374,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_BadAwaitInFixed, "await").WithLocation(10, 17),
         };
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules()).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
@@ -16407,7 +16398,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
             // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed (int* p = a)
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (int* p = a)
@@ -16451,7 +16442,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
             // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed (byte* p = await GetAsync())
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (byte* p = await GetAsync())
@@ -16494,7 +16485,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
             // (6,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (byte* p1 = await GetAsync(), p2 = await GetAsync())
@@ -16545,7 +16536,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             }
             """;
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
             // (7,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //         fixed (int* p = a)
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, @"fixed (int* p = a)

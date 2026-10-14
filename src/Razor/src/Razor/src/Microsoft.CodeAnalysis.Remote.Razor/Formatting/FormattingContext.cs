@@ -215,6 +215,7 @@ internal sealed partial class FormattingContext
             TabSize = options.TabSize,
             CodeBlockBraceOnNextLine = options.CodeBlockBraceOnNextLine,
             AttributeIndentStyle = options.AttributeIndentStyle,
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = options.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
             CSharpSyntaxFormattingOptions = options.CSharpSyntaxFormattingOptions,
         };
 }

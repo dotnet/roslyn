@@ -24,6 +24,14 @@ their original sub-tree layout
 - `.razor` -- Blazor components.
 - `.cshtml` -- Razor views/pages (referred to as "Legacy" in the codebase).
 
+## Formatting Tests
+
+- Put the intended indentation directly in raw string literals, including literal tabs.
+  Do not use string replacements to construct formatting-test input or expected output.
+- Tabs, trailing whitespace, and whitespace-only lines inside formatting-test literals
+  can be deliberate test data. Preserve them even when `git diff --check` or a formatter
+  flags them; normal whitespace rules still apply outside the literals.
+
 ## Code Patterns
 
 - **Collections**: Use `ListPool<T>.GetPooledObject(out var list)` and `PooledArrayBuilder<T>`

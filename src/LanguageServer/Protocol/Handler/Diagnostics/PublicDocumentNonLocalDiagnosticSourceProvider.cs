@@ -25,6 +25,7 @@ internal sealed class PublicDocumentNonLocalDiagnosticSourceProvider(
     public const string NonLocal = nameof(NonLocal);
     public bool IsDocument => true;
     public string Name => NonLocal;
+    public bool HasInterFileDependencies => true;
 
     public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 

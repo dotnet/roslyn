@@ -17,6 +17,7 @@ internal readonly record struct FormattingEngineOptions
     public string NewLine { get; init; } = Environment.NewLine;
     public bool CodeBlockBraceOnNextLine { get; init; }
     public AttributeIndentStyle AttributeIndentStyle { get; init; } = AttributeIndentStyle.AlignWithFirst;
+    public bool IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor { get; init; } = true;
     public CSharpSyntaxFormattingOptions CSharpSyntaxFormattingOptions { get; init; } = CSharpSyntaxFormattingOptions.Default;
 
     public FormattingEngineOptions()

@@ -23,6 +23,8 @@ internal readonly record struct RazorFormattingOptions
     public CSharpSyntaxFormattingOptions CSharpSyntaxFormattingOptions { get; init; } = CSharpSyntaxFormattingOptions.Default;
     [DataMember(Order = 5)]
     public bool FromPaste { get; init; } = false;
+    [DataMember(Order = 6)]
+    public bool IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor { get; init; } = true;
 
     public RazorFormattingOptions()
     {
@@ -32,23 +34,36 @@ internal readonly record struct RazorFormattingOptions
         => CSharpSyntaxFormattingOptions.GetResolvedCSharpSyntaxFormattingOptions(
             InsertSpaces, TabSize, CSharpSyntaxFormattingOptions.Default.NewLine);
 
-    public static RazorFormattingOptions From(LspFormattingOptions options, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+    public static RazorFormattingOptions From(
+        LspFormattingOptions options,
+        bool codeBlockBraceOnNextLine,
+        AttributeIndentStyle attributeIndentStyle,
+        bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor,
+        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
         => new()
         {
             InsertSpaces = options.InsertSpaces,
             TabSize = options.TabSize,
             CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
             AttributeIndentStyle = attributeIndentStyle,
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = ignoreIndentationInScriptOrStyleBlocksWithComplexRazor,
             CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
         };
 
-    public static RazorFormattingOptions From(LspFormattingOptions options, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions, bool fromPaste)
+    public static RazorFormattingOptions From(
+        LspFormattingOptions options,
+        bool codeBlockBraceOnNextLine,
+        AttributeIndentStyle attributeIndentStyle,
+        bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor,
+        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
+        bool fromPaste)
         => new()
         {
             InsertSpaces = options.InsertSpaces,
             TabSize = options.TabSize,
             CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
             AttributeIndentStyle = attributeIndentStyle,
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = ignoreIndentationInScriptOrStyleBlocksWithComplexRazor,
             CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
             FromPaste = fromPaste
         };

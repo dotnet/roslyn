@@ -22,6 +22,7 @@ internal sealed class WorkspaceTaskDiagnosticSourceProvider([Import] IGlobalOpti
 {
     public bool IsDocument => false;
     public string Name => PullDiagnosticCategories.Task;
+    public bool HasInterFileDependencies => false;
 
     public bool IsEnabled(ClientCapabilities capabilities) => capabilities.HasVisualStudioLspCapability();
 

@@ -20,6 +20,7 @@ internal abstract class HotReloadDiagnosticSourceProvider(IHotReloadDiagnosticMa
 {
     public string Name => Constants.DiagnosticSourceProviderName;
     public bool IsDocument => isDocument;
+    public bool HasInterFileDependencies => true;
 
     public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 

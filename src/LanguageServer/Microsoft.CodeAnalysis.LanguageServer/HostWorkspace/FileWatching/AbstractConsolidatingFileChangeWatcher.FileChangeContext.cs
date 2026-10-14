@@ -3,17 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
-internal sealed partial class DefaultFileChangeWatcher
+internal abstract partial class AbstractConsolidatingFileChangeWatcher
 {
     internal sealed class FileChangeContext : IFileChangeContext
     {
-        private readonly DefaultFileChangeWatcher _owner;
+        private readonly AbstractConsolidatingFileChangeWatcher _owner;
         private readonly RoslynTelemetry _telemetry;
 
         /// <summary>
@@ -31,13 +30,13 @@ internal sealed partial class DefaultFileChangeWatcher
 
         /// <summary>
         /// A map from a file path to the number of times <see cref="EnqueueWatchingFile(string)"/> was called for that file path, and the IDisposable for the
-        /// return from <see cref="DefaultFileChangeWatcher.AcquireDirectoryWatch"/> when it was called for the first time.
+        /// return from <see cref="AbstractConsolidatingFileChangeWatcher.AcquireDirectoryWatch"/> when it was called for the first time.
         /// </summary>
         private readonly Dictionary<string, (int count, IDisposable directoryWatch)> _explicitlyWatchedFiles = new(s_pathStringComparer);
 
         private bool _disposed;
 
-        public FileChangeContext(DefaultFileChangeWatcher owner, ImmutableArray<WatchedDirectory> watchedDirectories)
+        public FileChangeContext(AbstractConsolidatingFileChangeWatcher owner, ImmutableArray<WatchedDirectory> watchedDirectories)
         {
             _owner = owner;
             _telemetry = RoslynTelemetry.Current;
@@ -88,41 +87,19 @@ internal sealed partial class DefaultFileChangeWatcher
         /// Routes a filesystem event to this context when the changed path matches one of the context's watched
         /// directories or explicitly watched files.
         /// </summary>
-        internal void OnFileSystemEvent(FileSystemEventArgs e)
+        internal void OnFileChanged(FileChangedEventArgs e)
         {
-            // The underlying FileSystemWatcher is shared between contexts (and so between servers), and raises its
-            // events on an OS notification thread whose context is whichever caller happened to arm the watch, so
+            // The underlying watcher is shared between contexts (and possibly between servers), so
             // attribute to the instance that owns this context rather than to the ambient one.
             using var _ = RoslynTelemetry.SetCurrent(_telemetry);
 
-            bool shouldRaiseForNewPath;
-            bool shouldRaiseForOldPath = false;
-
             lock (_gate)
             {
-                if (_disposed)
+                if (_disposed || !ShouldRaiseForPath_NoLock(e.FilePath))
                     return;
-
-                shouldRaiseForNewPath = ShouldRaiseForPath_NoLock(e.FullPath);
-
-                if (e is RenamedEventArgs renamedEventArgs && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    shouldRaiseForOldPath = ShouldRaiseForPath_NoLock(renamedEventArgs.OldFullPath);
             }
 
-            if (shouldRaiseForNewPath)
-            {
-                var changeKind = e.ChangeType switch
-                {
-                    WatcherChangeTypes.Created or WatcherChangeTypes.Renamed => FileChangeKind.Created,
-                    WatcherChangeTypes.Deleted => FileChangeKind.Deleted,
-                    _ => FileChangeKind.Changed,
-                };
-
-                FileChanged?.Invoke(this, new(e.FullPath, changeKind));
-            }
-
-            if (shouldRaiseForOldPath)
-                FileChanged?.Invoke(this, new(((RenamedEventArgs)e).OldFullPath, FileChangeKind.Deleted));
+            FileChanged?.Invoke(this, e);
         }
 
         /// <summary>

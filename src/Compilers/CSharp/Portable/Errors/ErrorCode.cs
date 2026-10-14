@@ -2467,9 +2467,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnsafeUninitializedStackAlloc = 9361,
         ERR_UnsafeMemberOperation = 9362,
         ERR_UnsafeMemberOperationCompat = 9363,
-        ERR_CallerUnsafeOverridingSafe = 9364,
-        ERR_CallerUnsafeImplicitlyImplementingSafe = 9365,
-        ERR_CallerUnsafeExplicitlyImplementingSafe = 9366,
+        ERR_RequiresUnsafeOverridingSafe = 9364,
+        ERR_RequiresUnsafeImplicitlyImplementingSafe = 9365,
+        ERR_RequiresUnsafeExplicitlyImplementingSafe = 9366,
 
         ERR_ExpressionTreeContainsUnionConversion = 9369,
         ERR_UnionDeclarationNeedsCaseTypes = 9370,
