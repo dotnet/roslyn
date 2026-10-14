@@ -10482,7 +10482,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (5,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
                 // (11,2): error CS1513: } expected
@@ -10567,7 +10567,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (5,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
                 // (13,2): error CS1513: } expected
@@ -10675,7 +10675,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (5,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5));
 
@@ -10791,10 +10791,10 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (5,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
-                // (17,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (17,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(17, 5),
                 // (22,2): error CS1513: } expected
@@ -10947,10 +10947,10 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (8,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (8,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(8, 5),
-                // (20,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (20,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(20, 5),
                 // (25,2): error CS1513: } expected
@@ -11118,10 +11118,10 @@ public class Class
                 private int field;
                 """;
             UsingTree(text,
-                // (8,1): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (8,1): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(8, 1),
-                // (20,1): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (20,1): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(20, 1));
 
@@ -11286,7 +11286,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (7,9): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (7,9): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //         }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(7, 9),
                 // (15,10): error CS1513: } expected
@@ -11417,10 +11417,10 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (10,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (10,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(10, 5),
-                // (22,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (22,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(22, 5),
                 // (25,2): error CS1513: } expected
@@ -11595,7 +11595,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,9): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (5,9): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //         }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 9));
 
@@ -11892,7 +11892,7 @@ public class Class
                 }
                 """;
             UsingTree(text, options: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
-                // (6,9): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (6,9): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //         }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(6, 9));
 
@@ -12213,7 +12213,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (5,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5));
 
@@ -12295,10 +12295,10 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (5,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5),
-                // (15,5): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (15,5): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //     }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(15, 5),
                 // (21,2): error CS1513: } expected
@@ -12384,7 +12384,7 @@ public class Class
                 private int x;
                 """;
             UsingTree(text,
-                // (3,1): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (3,1): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(3, 1));
 
@@ -12433,7 +12433,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,1): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (5,1): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 // }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 1),
                 // (9,1): error CS1022: Type or namespace definition, or end-of-file expected
@@ -12496,7 +12496,7 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (8,13): error CS9402: Misplaced '}'. Move it after all the following members.
+                // (8,13): error CS9402: Misplaced '}'. Move '}' after all the following members.
                 //             }
                 Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(8, 13));
 

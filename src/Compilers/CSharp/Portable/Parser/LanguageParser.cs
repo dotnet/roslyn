@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         // This '}' is the type's close-brace.  It is just too early: the following members belong
                         // in the type, so attach the brace to the first of them as skipped syntax and tell
-                        // the user to move it after all of those members.
+                        // the user to move '}' after all of those members.
                         currentSibling = AddLeadingSkippedSyntax(
                             currentSibling,
                             AddError(typeDeclaration.CloseBraceToken, ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember));
