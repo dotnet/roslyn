@@ -420,8 +420,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // that case, we have no extra work to do and can return immediately.
             //
             // If we do see errant type-only members (like a method/property/constructor/etc.), then see if they follow
-            // some normal type declaration.  If so, it's likely there was a misplaced close curly that preemptively
-            // ended the type declaration, and the member declaration was supposed to go in it instead.
+            // some normal type declaration.  If so, treat the type's '}' as the real closer, just too early, and move
+            // those members into the type.
             if (!sawMemberDeclarationOnlyValidWithinTypeDeclaration)
                 return;
 
@@ -507,9 +507,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var currentSibling = body.Members[memberToMoveIndex];
                     if (memberToMoveIndex == firstSiblingToMoveInclusive)
                     {
-                        // Move the existing close brace token to the first member as a skipped token.  The
-                        // following member is only legal inside a type, so either this brace closed the type
-                        // too early, or the member itself is misplaced.
+                        // This '}' is the type's closer.  It is just too early: the following members belong
+                        // in the type, so attach the brace to the first of them as skipped syntax and tell
+                        // the user to move it after all of those members.
                         currentSibling = AddLeadingSkippedSyntax(
                             currentSibling,
                             AddError(typeDeclaration.CloseBraceToken, ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember));
@@ -520,10 +520,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 var isLast = lastSiblingToMoveExclusive == body.Members.Count;
 
-                // The existing close brace is already reported as unexpected.  Do not also report "} expected" on
-                // the type we just recovered into; that second error just restates the same recovery.  If this
-                // consumed the last remaining namespace members, still try to take a following close brace so a
-                // later real one can close the type.  If there isn't one, insert a silent missing token.
+                // We already have the type's closer; it was just in the wrong place.  Do not also report
+                // "} expected" on a synthesized close.  That would look like we never found a closer, when
+                // the real instruction is to move this one.  If these were the last remaining namespace
+                // members, still take a following close brace when one is present so a later real '}' can
+                // sit on the type.  Otherwise insert a silent missing token.
                 var finalCloseBraceToken = isLast
                     ? EatToken(SyntaxKind.CloseBraceToken, reportError: false)
                     : SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken);

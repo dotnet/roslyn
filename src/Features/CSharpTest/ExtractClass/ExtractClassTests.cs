@@ -2798,7 +2798,7 @@ public sealed class ExtractClassTests
                 {
                     // /0/Test0.cs(5,6): error CS1513: } expected
                     DiagnosticResult.CompilerError("CS1513").WithSpan(5, 6, 5, 6),
-                    // /0/Test1.cs(5,5): error CS9402: Unexpected '}'. This misplaced brace leaves the following member outside the current type.
+                    // /0/Test1.cs(5,5): error CS9402: Misplaced '}'. Move it after all the following members.
                     DiagnosticResult.CompilerError("CS9402").WithSpan("/0/Test1.cs", 5, 5, 5, 6),
                     // /0/Test1.cs(7,17): error CS0547: 'MyBase.N': property or indexer cannot have void type
                     DiagnosticResult.CompilerError("CS0547").WithSpan("/0/Test1.cs", 7, 17, 7, 18).WithArguments("N.MyBase.N"),
@@ -2808,7 +2808,7 @@ public sealed class ExtractClassTests
             },
             ExpectedDiagnostics =
             {
-                // /0/Test0.cs(5,5): error CS9402: Unexpected '}'. This misplaced brace leaves the following member outside the current type.
+                // /0/Test0.cs(5,5): error CS9402: Misplaced '}'. Move it after all the following members.
                 DiagnosticResult.CompilerError("CS9402").WithSpan(5, 5, 5, 6),
                 // /0/Test0.cs(7,17): error CS0547: 'C.N': property or indexer cannot have void type
                 DiagnosticResult.CompilerError("CS0547").WithSpan(7, 17, 7, 18).WithArguments("N.C.N"),
