@@ -280,7 +280,8 @@ internal sealed class NamingSettingsGraph(
 
     private static Guid ReadLegacyId(IReadOnlyDictionary<string, object> item, string identityKind)
     {
-        if (item.ContainsKey(Properties.LegacyId))
+        // Reverse migration fills omitted compatibility IDs with their registered empty-string default.
+        if (item.ContainsKey(Properties.LegacyId) && ReadString(item, Properties.LegacyId).Length != 0)
             return ReadLegacyId(item);
 
         return NamingSettingsIdentity.GetLegacyId(ReadId(item), identityKind);

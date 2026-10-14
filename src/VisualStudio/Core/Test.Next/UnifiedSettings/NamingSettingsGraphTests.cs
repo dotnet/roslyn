@@ -83,22 +83,33 @@ public sealed class NamingSettingsGraphTests
         Assert.Equal(original.NamingStyles.Length, graph.NamingStyles.Length);
     }
 
-    [Fact]
-    public void HandAuthoredItemsDoNotRequireGuidMetadata()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void HandAuthoredItemsDoNotRequireGuidMetadata(bool includeEmptyCompatibilityIds)
     {
         var original = NamingSettingsGraph.FromPreferences(NamingStylePreferences.Default);
         var graph = new NamingSettingsGraph(
-            original.SymbolSpecifications.Select(item => (IReadOnlyDictionary<string, object>)item.Where(pair => pair.Key != "legacyId").ToDictionary(pair => pair.Key, pair => pair.Value)).ToImmutableArray(),
-            original.NamingStyles.Select(item => (IReadOnlyDictionary<string, object>)item.Where(pair => pair.Key != "legacyId").ToDictionary(pair => pair.Key, pair => pair.Value)).ToImmutableArray(),
+            original.SymbolSpecifications.Select(PrepareItem).ToImmutableArray(),
+            original.NamingStyles.Select(PrepareItem).ToImmutableArray(),
             original.Rules);
 
         var first = graph.ToPreferences();
         var second = graph.ToPreferences();
         var restored = NamingSettingsGraph.FromPreferences(first, graph);
+        Assert.Equal(original.ToPreferences(), first);
         Assert.Equal(first, second);
         Assert.Equal(original.NamingStyles.Select(item => item["id"]), restored.NamingStyles.Select(item => item["id"]));
         Assert.All(restored.SymbolSpecifications, item => Assert.False(item.ContainsKey("legacyId")));
         Assert.All(restored.NamingStyles, item => Assert.False(item.ContainsKey("legacyId")));
+
+        IReadOnlyDictionary<string, object> PrepareItem(IReadOnlyDictionary<string, object> item)
+        {
+            var prepared = item.Where(pair => pair.Key != "legacyId").ToDictionary(pair => pair.Key, pair => pair.Value);
+            if (includeEmptyCompatibilityIds)
+                prepared["legacyId"] = "";
+            return prepared;
+        }
     }
 
     [Fact]
@@ -166,7 +177,10 @@ public sealed class NamingSettingsGraphTests
     [Theory]
     [InlineData("capitalization", "not_a_capitalization")]
     [InlineData("legacyId", "not_a_guid")]
-    public void InvalidStylePropertiesAreRejected(string property, string value)
+    [InlineData("legacyId", "00000000-0000-0000-0000-000000000000")]
+    [InlineData("legacyId", true)]
+    [InlineData("legacyId", 42)]
+    public void InvalidStylePropertiesAreRejected(string property, object value)
     {
         var graph = NamingSettingsGraph.FromPreferences(NamingStylePreferences.Default);
         var broken = new Dictionary<string, object>(graph.NamingStyles[0].ToDictionary(pair => pair.Key, pair => pair.Value))

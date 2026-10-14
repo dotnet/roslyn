@@ -117,13 +117,16 @@ public sealed class NamingSettingsManifestTests
 
     internal static ImmutableArray<IReadOnlyDictionary<string, object>> ReadDefaults(JsonElement array)
         => array.GetProperty("default").EnumerateArray().Select(item => (IReadOnlyDictionary<string, object>)item.EnumerateObject().ToDictionary(
-            property => property.Name, property => property.Value.ValueKind switch
-            {
-                JsonValueKind.String => (object)property.Value.GetString()!,
-                JsonValueKind.True => true,
-                JsonValueKind.False => false,
-                _ => throw new InvalidOperationException("Registered Naming object-array defaults must be scalars."),
-            })).ToImmutableArray();
+            property => property.Name, property => ReadScalar(property.Value))).ToImmutableArray();
+
+    internal static object ReadScalar(JsonElement value)
+        => value.ValueKind switch
+        {
+            JsonValueKind.String => (object)value.GetString()!,
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            _ => throw new InvalidOperationException("Registered Naming object-array defaults must be scalars."),
+        };
 
     private static void CheckResources(JsonElement value)
     {

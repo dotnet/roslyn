@@ -128,7 +128,7 @@ public sealed class NamingSettingsCoordinatorTests
     [InlineData(LanguageNames.VisualBasic, "symbolSpecifications", true)]
     [InlineData(LanguageNames.VisualBasic, "namingStyles", true)]
     [InlineData(LanguageNames.VisualBasic, "rules", true)]
-    public async Task ReverseMigrationUsesPayloadOrDefaultsAndPreservesSiblingsAsync(string language, string name, bool reset)
+    public async Task ReverseMigrationUsesCompletedPayloadOrDefaultsAndPreservesSiblingsAsync(string language, string name, bool reset)
     {
         var manager = new NamingSettingsStoreTests.SettingsManagerMock();
         var defaults = NamingSettingsGraph.Default;
@@ -148,10 +148,25 @@ public sealed class NamingSettingsCoordinatorTests
             name == "symbolSpecifications" ? items : current.SymbolSpecifications,
             name == "namingStyles" ? items : current.NamingStyles,
             name == "rules" ? items : current.Rules);
+        var prefix = language == LanguageNames.CSharp ? Prefix : "languages.basic.codeStyle.naming.";
         var storedItems = name == "symbolSpecifications" ? NamingSettingsStorageCodec.EncodeSpecifications(items) : items;
+        if (!reset)
+        {
+            using var manifest = NamingSettingsManifestTests.Load(language == LanguageNames.CSharp
+                ? "csharpNamingSettings.registration.json" : "visualBasicNamingSettings.registration.json");
+            var propertyDefaults = manifest.RootElement.GetProperty("properties").GetProperty(prefix + name)
+                .GetProperty("items").GetProperty("properties").EnumerateObject().ToDictionary(
+                    property => property.Name, property => NamingSettingsManifestTests.ReadScalar(property.Value.GetProperty("default")), StringComparer.Ordinal);
+            storedItems = storedItems.Select(item =>
+            {
+                var completed = new Dictionary<string, object>(propertyDefaults, StringComparer.Ordinal);
+                foreach (var property in item)
+                    completed[property.Key] = property.Value;
+                return (IReadOnlyDictionary<string, object>)completed;
+            }).ToImmutableArray();
+        }
         var legacy = current.ToPreferences();
         NamingStylePreferences? refreshed = null;
-        var prefix = language == LanguageNames.CSharp ? Prefix : "languages.basic.codeStyle.naming.";
         var coordinator = new NamingSettingsCoordinator(new NamingSettingsStore(manager, language), () => legacy, value => legacy = value, s_context, value => refreshed = value);
 
         await coordinator.MigrateFromUnifiedSettingsAsync(prefix + name, new ArraySettingContent(reset ? null : storedItems), CancellationToken.None);
