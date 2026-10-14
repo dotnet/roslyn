@@ -59,7 +59,7 @@ public sealed class CodeStyleSettingsManifestTests
 
         using var document = Load(file);
         var categories = document.RootElement.GetProperty("categories").EnumerateObject()
-            .Where(category => category.Name.StartsWith(categoryMoniker + ".", StringComparison.Ordinal))
+            .Where(category => category.Name[..category.Name.LastIndexOf('.')] == categoryMoniker)
             .OrderBy(category => category.Value.GetProperty("order").GetInt32()).ToArray();
         var properties = document.RootElement.GetProperty("properties");
         var configNames = NativeCodeStyleSettingsDefinitions.GetConfigNames(language).ToHashSet();
@@ -70,18 +70,24 @@ public sealed class CodeStyleSettingsManifestTests
         for (var index = 0; index < categories.Length; index++)
         {
             var category = categories[index];
-            var placedPreferences = properties.EnumerateObject().Where(property => !property.Name.EndsWith("Severity", StringComparison.Ordinal))
-                .Where(property => Assert.Single(property.Value.GetProperty("placements").EnumerateArray()).GetProperty("category").GetString() == category.Name)
-                .OrderBy(property => property.Value.GetProperty("placements")[0].TryGetProperty("order", out var order) ? order.GetInt32() : property.Value.GetProperty("order").GetInt32())
+            var placedPreferences = properties.EnumerateObject().Where(property => property.Name.EndsWith(".preference", StringComparison.Ordinal))
+                .Where(property => Assert.Single(property.Value.GetProperty("placements").EnumerateArray()).GetProperty("category").GetString()!.StartsWith(category.Name + ".", StringComparison.Ordinal))
+                .OrderBy(property => document.RootElement.GetProperty("categories").GetProperty(property.Name[..property.Name.LastIndexOf('.')]).GetProperty("order").GetInt32())
                 .Select(property => property.Name).ToArray();
-            Assert.Equal(legacyGroups[index].Select(item => categoryMoniker + "." + CodeStyleSetting.ToUnifiedScalarMoniker(item.Option.Definition.ConfigName)), placedPreferences);
+            Assert.Equal(legacyGroups[index].Select(item => NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, item.Option.Definition.ConfigName) + ".preference"), placedPreferences);
             Assert.False(category.Value.TryGetProperty("legacyOptionPageId", out _));
             Assert.False(category.Value.TryGetProperty("previewUIFactory", out _));
         }
 
+        foreach (var item in legacy.CodeStyleItems.Where(item => configNames.Contains(item.Option.Definition.ConfigName)))
+        {
+            var row = document.RootElement.GetProperty("categories").GetProperty(NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, item.Option.Definition.ConfigName));
+            Assert.Equal(item.Description, TestModel.Utilities.EvalResource(row.GetProperty("title").GetString()!));
+        }
+
         foreach (var item in legacy.CodeStyleItems.OfType<BooleanCodeStyleOptionViewModel>().Where(item => configNames.Contains(item.Option.Definition.ConfigName)))
         {
-            var preference = properties.GetProperty(categoryMoniker + "." + CodeStyleSetting.ToUnifiedScalarMoniker(item.Option.Definition.ConfigName));
+            var preference = properties.GetProperty(NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, item.Option.Definition.ConfigName) + ".preference");
             var expectedLabels = preference.GetProperty("enum").EnumerateArray()
                 .Select(value => item.Preferences.Single(choice => choice.IsChecked == bool.Parse(value.GetString()!)).Name);
             var actualLabels = preference.GetProperty("enumItemLabels").EnumerateArray()
@@ -178,7 +184,7 @@ public sealed class CodeStyleSettingsManifestTests
     {
         using var document = Load(file);
         var categories = document.RootElement.GetProperty("categories");
-        var groups = categories.EnumerateObject().Where(category => category.Name.StartsWith(general + ".", StringComparison.Ordinal)).ToArray();
+        var groups = categories.EnumerateObject().Where(category => category.Name[..category.Name.LastIndexOf('.')] == general).ToArray();
         Assert.Equal(count, groups.Length);
         Assert.All(groups, group =>
         {
@@ -241,6 +247,7 @@ public sealed class CodeStyleSettingsManifestTests
     public void EveryPreferenceHasDependentSeverityControlAndNativePreview(string file, string categoryMoniker, int count, string legacyPageId)
     {
         using var document = Load(file);
+        var language = categoryMoniker.StartsWith("languages.csharp.", StringComparison.Ordinal) ? LanguageNames.CSharp : LanguageNames.VisualBasic;
         var properties = GetGeneralProperties(document, categoryMoniker);
         var preferences = properties.EnumerateObject().Where(property => !property.Name.EndsWith("_severity", StringComparison.Ordinal)).ToArray();
         Assert.Equal(count, preferences.Length);
@@ -257,11 +264,16 @@ public sealed class CodeStyleSettingsManifestTests
             Assert.Equal(5, severity.GetProperty("enumItemLabels").GetArrayLength());
             Assert.Equal("@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}", severity.GetProperty("title").GetString());
             Assert.Equal(preference.Value.GetProperty("order").GetInt32() + 1, severity.GetProperty("order").GetInt32());
-            var parentMoniker = categoryMoniker + "." + CodeStyleSetting.ToUnifiedScalarMoniker(preference.Name);
+            var rowMoniker = NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, preference.Name);
+            var parentMoniker = rowMoniker + ".preference";
             Assert.Equal("${config:" + parentMoniker + "} != ''", severity.GetProperty("enableWhen").GetString());
             Assert.All(preference.Value.GetProperty("enum").EnumerateArray(), value => Assert.False(string.IsNullOrEmpty(value.GetString())));
             Assert.False(preference.Value.TryGetProperty("enableWhen", out _));
+            Assert.Equal(rowMoniker, Assert.Single(preference.Value.GetProperty("placements").EnumerateArray()).GetProperty("category").GetString());
             Assert.False(severity.TryGetProperty("placements", out _));
+            Assert.Equal("Preference", TestModel.Utilities.EvalResource(preference.Value.GetProperty("title").GetString()!));
+            Assert.False(preference.Value.GetProperty("transientScopesSupported").GetBoolean());
+            Assert.False(severity.GetProperty("transientScopesSupported").GetBoolean());
             Assert.False(severity.TryGetProperty("description", out _));
         }
         var category = document.RootElement.GetProperty("categories").GetProperty(categoryMoniker);
@@ -273,6 +285,30 @@ public sealed class CodeStyleSettingsManifestTests
         Assert.Equal(new Guid(factoryId), new Guid(preview.GetProperty("factoryGuid").GetString()!));
         Assert.Equal(0, preview.GetProperty("elementId").GetInt32());
         Assert.Equal("https://go.microsoft.com/fwlink/?linkid=866541", category.GetProperty("helpUri").GetString());
+    }
+
+    [Theory]
+    [InlineData("csharpCodeStyleSettings.registration.json")]
+    [InlineData("visualBasicCodeStyleSettings.registration.json")]
+    [InlineData("csharpFormattingSettings.registration.json")]
+    [InlineData("csharpSettings.registration.json")]
+    [InlineData("visualBasicSettings.registration.json")]
+    [InlineData("roslynSettings.registration.json")]
+    public void NativeSettingsWithDependenciesDoNotDefineExplicitPlacements(string file)
+    {
+        using var document = Load(file);
+        foreach (var property in document.RootElement.GetProperty("properties").EnumerateObject())
+        {
+            foreach (var condition in new[] { "enableWhen", "visibleWhen" })
+            {
+                if (property.Value.TryGetProperty(condition, out var expression) &&
+                    expression.GetString() is { } text && text.Contains("${config:", StringComparison.Ordinal))
+                {
+                    // Native registration inherits placement from the dependency and rejects explicit placements.
+                    Assert.False(property.Value.TryGetProperty("placements", out _), property.Name);
+                }
+            }
+        }
     }
 
     [Theory]
@@ -576,14 +612,24 @@ public sealed class CodeStyleSettingsManifestTests
     {
         var language = category.StartsWith("languages.csharp.", StringComparison.Ordinal) ? LanguageNames.CSharp : LanguageNames.VisualBasic;
         var properties = document.RootElement.GetProperty("properties");
-        Assert.Equal(NativeCodeStyleSettingsDefinitions.GetConfigNames(language).Count() * 2, properties.EnumerateObject().Count());
+        Assert.Equal(NativeCodeStyleSettingsDefinitions.GetConfigNames(language).Count() * 2 + 1, properties.EnumerateObject().Count());
         Assert.DoesNotContain(properties.EnumerateObject(), property => property.Value.GetProperty("type").GetString() == "external");
+        var table = properties.GetProperty(category + ".options");
+        Assert.Equal("mappedTable", table.GetProperty("type").GetString());
+        Assert.Equal(category, table.GetProperty("monikerPrefix").GetString());
+        Assert.Equal(1, table.GetProperty("groupingMonikerSegments").GetInt32());
+        Assert.False(table.TryGetProperty("visibleWhen", out _));
+        Assert.Equal("Description", TestModel.Utilities.EvalResource(table.GetProperty("pivotColumnTitle").GetString()!));
+        Assert.False(table.TryGetProperty("default", out _));
+        Assert.False(table.TryGetProperty("migration", out _));
         var mapped = new Dictionary<string, JsonElement>();
         foreach (var configName in NativeCodeStyleSettingsDefinitions.GetConfigNames(language))
         {
-            var moniker = category + "." + CodeStyleSetting.ToUnifiedScalarMoniker(configName);
-            mapped[configName] = properties.GetProperty(moniker);
-            mapped[configName + "_severity"] = properties.GetProperty(moniker + "Severity");
+            var moniker = NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, configName);
+            mapped[configName] = properties.GetProperty(moniker + ".preference");
+            mapped[configName + "_severity"] = properties.GetProperty(moniker + ".severity");
+            var row = document.RootElement.GetProperty("categories").GetProperty(moniker);
+            Assert.True(row.GetProperty("hideFromNavigation").GetBoolean());
         }
         using var result = JsonDocument.Parse(JsonSerializer.Serialize(mapped));
         return result.RootElement.Clone();

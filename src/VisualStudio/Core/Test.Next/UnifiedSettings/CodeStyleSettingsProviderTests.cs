@@ -559,22 +559,48 @@ public sealed class CodeStyleSettingsProviderTests
         Assert.Equal(0, options.PersistCount);
     }
 
-    [Fact]
-    public async Task ViewModelOverlaysUpdatePreviewWithoutLeakingIntoTheBackingStore()
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task PivotCellOverlaysUpdatePreviewWithoutLeakingIntoTheBackingStore(string language)
     {
         var options = new TestGlobalOptions();
-        var setting = StyleSetting(LanguageNames.CSharp);
+        var setting = StyleSetting(language);
         options.Incoming(setting.Key, new CodeStyleOption2<bool>(false, NotificationOption2.Silent));
-        using var provider = new CodeStyleSettingsProvider(options, LanguageNames.CSharp, [setting]);
+        using var provider = new CodeStyleSettingsProvider(options, language, [setting]);
         var preview = provider.CreatePreviewStore();
-        var prefix = "languages.csharp.codeStyle.general.options.";
-        provider.ApplyPreviewValue(preview, prefix + setting.Moniker, "true");
-        provider.ApplyPreviewValue(preview, prefix + setting.Moniker + "_severity", "error");
-        Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Error), preview.GetOption<CodeStyleOption2<bool>>(setting.Key.Option, LanguageNames.CSharp));
+        var row = NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, setting.Moniker);
+        Assert.Same(setting, provider.FindSetting(row + ".preference"));
+        Assert.Same(setting, provider.FindSetting(row + ".severity"));
+        provider.ApplyPreviewValue(preview, row + ".preference", "true");
+        provider.ApplyPreviewValue(preview, row + ".severity", "error");
+        Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Error), preview.GetOption<CodeStyleOption2<bool>>(setting.Key.Option, language));
         Assert.Equal("false", Value(await provider.GetValueAsync<string>(setting.Moniker, s_token)));
         await provider.CommitPendingChangesAsync(s_token);
         Assert.Equal(0, options.PersistCount);
         Assert.False(options.GetOption<CodeStyleOption2<bool>>(setting.Key).Value);
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task PivotCellsShareCompoundPendingValuesAndEditorConfigWithoutCommitting(string language)
+    {
+        var options = new TestGlobalOptions();
+        var setting = StyleSetting(language);
+        options.Incoming(setting.Key, new CodeStyleOption2<bool>(false, NotificationOption2.Silent));
+        using var provider = new CodeStyleSettingsProvider(options, language, [setting]);
+        var row = NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, setting.Moniker);
+        await provider.SetValueAsync(row + ".preference", "true", s_token);
+        await provider.SetValueAsync(row + ".severity", "error", s_token);
+        Assert.Equal("true", Value(await provider.GetValueAsync<string>(setting.Moniker, s_token)));
+        Assert.Equal("error", Value(await provider.GetValueAsync<string>(setting.Moniker + "_severity", s_token)));
+        var text = CodeStyleSettingsCommands.GenerateText([("Code style", ImmutableArray.Create(setting.Key.Option))], provider.CreatePreviewStore(), language);
+        Assert.Contains(setting.Moniker + " = true:error", text);
+        Assert.Equal(0, options.PersistCount);
+        await provider.CommitPendingChangesAsync(s_token);
+        Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Error), options.GetOption<CodeStyleOption2<bool>>(setting.Key));
+        Assert.Equal(1, options.PersistCount);
     }
 
     [Fact]

@@ -93,11 +93,19 @@ internal sealed class CodeStyleSettingsProvider : ICachingExternalSettingsProvid
     }
 
     internal static bool IsSeverityMoniker(string moniker)
-        => moniker.EndsWith("_severity", StringComparison.Ordinal) || moniker.EndsWith("Severity", StringComparison.Ordinal);
+        => moniker.EndsWith("_severity", StringComparison.Ordinal) || moniker.EndsWith("Severity", StringComparison.Ordinal) || moniker.EndsWith(".severity", StringComparison.Ordinal);
 
     internal CodeStyleSetting? FindSetting(string? moniker)
-        => moniker is null ? null : _settings.Values.FirstOrDefault(setting =>
+    {
+        if (moniker is null)
+            return null;
+
+        if (moniker.EndsWith(".preference", StringComparison.Ordinal) || moniker.EndsWith(".severity", StringComparison.Ordinal))
+            moniker = moniker[..moniker.LastIndexOf('.')];
+
+        return _settings.Values.FirstOrDefault(setting =>
             MatchesMoniker(moniker, setting.Moniker) || MatchesMoniker(moniker, string.Join(".", setting.Moniker.Split('.').Select(CodeStyleSetting.ToUnifiedScalarMoniker))));
+    }
 
     private static bool MatchesMoniker(string moniker, string settingMoniker)
         => moniker == settingMoniker || moniker == settingMoniker + "_severity" || moniker == settingMoniker + "Severity" ||

@@ -87,7 +87,7 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
             {
                 var key = new OptionKey2(option, option.IsPerLanguage ? language : null);
                 var storage = (VisualStudioOptionStorage.RoamingProfileStorage)VisualStudioOptionStorage.Storages[option.Definition.ConfigName];
-                var moniker = "languages." + (language == LanguageNames.CSharp ? "csharp" : "basic") + ".codeStyle.general." + CodeStyleSetting.ToUnifiedScalarMoniker(option.Definition.ConfigName);
+                var moniker = NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, option.Definition.ConfigName);
                 yield return new(new CodeStyleSetting(option.Definition.ConfigName, option, language, string.Empty), storage.GetKey(key.Language), moniker);
             }
         }

@@ -283,7 +283,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         {
             var setting = new CodeStyleSetting("dotnet_style_qualification_for_field", CodeStyleOptions2.QualifyFieldAccess, language, "Field");
             var storage = (VisualStudioOptionStorage.RoamingProfileStorage)VisualStudioOptionStorage.Storages[setting.Moniker];
-            Binding = new(setting, storage.GetKey(language), "languages." + (language == LanguageNames.CSharp ? "csharp" : "basic") + ".codeStyle.general.dotnetStyleQualificationForField");
+            Binding = new(setting, storage.GetKey(language), NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, setting.Moniker));
             Legacy.Key = Binding.LegacyKey;
             Native = new NativeStore(Binding);
             var persister = new VisualStudioSettingsOptionPersister((_, _) => { }, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty, Legacy);

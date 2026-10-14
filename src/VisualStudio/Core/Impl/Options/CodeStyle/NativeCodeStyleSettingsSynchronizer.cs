@@ -39,9 +39,10 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
     private LegacyChange? _publishingLegacy;
     private int _initialSnapshot;
 
-    internal sealed record Binding(CodeStyleSetting Setting, string LegacyKey, string Moniker)
+    internal sealed record Binding(CodeStyleSetting Setting, string LegacyKey, string RowMoniker)
     {
-        public string SeverityMoniker => Moniker + "Severity";
+        public string Moniker => RowMoniker + ".preference";
+        public string SeverityMoniker => RowMoniker + ".severity";
     }
 
     private sealed record LegacyChange(Binding Binding, ICodeStyleOption2 Value);

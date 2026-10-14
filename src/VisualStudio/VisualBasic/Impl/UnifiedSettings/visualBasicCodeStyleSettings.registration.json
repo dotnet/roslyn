@@ -1,6 +1,6 @@
 {
   "properties": {
-    "languages.basic.codeStyle.general.dotnetStyleQualificationForField": {
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForField.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -10,13 +10,17 @@
         "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
         "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Do_not_prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_field_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 0,
-      "placements": [{ "category": "languages.basic.codeStyle.general.memberQualification" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForField"
+        }
+      ],
       "default": "false",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleQualificationForFieldSeverity": {
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForField.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -33,12 +37,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleQualificationForField} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForField.preference} != ''",
       "order": 1,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleQualificationForProperty": {
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForProperty.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -48,13 +52,17 @@
         "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
         "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Do_not_prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_property_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 2,
-      "placements": [{ "category": "languages.basic.codeStyle.general.memberQualification" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForProperty"
+        }
+      ],
       "default": "false",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleQualificationForPropertySeverity": {
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForProperty.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -71,12 +79,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleQualificationForProperty} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForProperty.preference} != ''",
       "order": 3,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleQualificationForMethod": {
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForMethod.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -86,13 +94,17 @@
         "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
         "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Do_not_prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_method_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 4,
-      "placements": [{ "category": "languages.basic.codeStyle.general.memberQualification" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForMethod"
+        }
+      ],
       "default": "false",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleQualificationForMethodSeverity": {
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForMethod.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -109,12 +121,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleQualificationForMethod} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForMethod.preference} != ''",
       "order": 5,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleQualificationForEvent": {
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForEvent.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -124,13 +136,17 @@
         "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
         "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Do_not_prefer_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_event_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 6,
-      "placements": [{ "category": "languages.basic.codeStyle.general.memberQualification" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForEvent"
+        }
+      ],
       "default": "false",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleQualificationForEventSeverity": {
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForEvent.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -147,12 +163,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleQualificationForEvent} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForEvent.preference} != ''",
       "order": 7,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePredefinedTypeForLocalsParametersMembers": {
+    "languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForLocalsParametersMembers.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -162,13 +178,17 @@
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_predefined_type;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_framework_type;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:For_locals_parameters_and_members;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 8,
-      "placements": [{ "category": "languages.basic.codeStyle.general.predefinedTypes" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForLocalsParametersMembers"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePredefinedTypeForLocalsParametersMembersSeverity": {
+    "languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForLocalsParametersMembers.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -185,12 +205,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStylePredefinedTypeForLocalsParametersMembers} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForLocalsParametersMembers.preference} != ''",
       "order": 9,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePredefinedTypeForMemberAccess": {
+    "languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForMemberAccess.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -200,13 +220,17 @@
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_predefined_type;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_framework_type;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:For_member_access_expressions;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 10,
-      "placements": [{ "category": "languages.basic.codeStyle.general.predefinedTypes" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForMemberAccess"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePredefinedTypeForMemberAccessSeverity": {
+    "languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForMemberAccess.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -223,12 +247,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStylePredefinedTypeForMemberAccess} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForMemberAccess.preference} != ''",
       "order": 11,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleParenthesesInArithmeticBinaryOperators": {
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInArithmeticBinaryOperators.preference": {
       "type": "string",
       "enum": [
         "always_for_clarity",
@@ -238,13 +262,17 @@
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Always_for_clarity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never_if_unnecessary;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:In_arithmetic_binary_operators;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 12,
-      "placements": [{ "category": "languages.basic.codeStyle.general.parentheses" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInArithmeticBinaryOperators"
+        }
+      ],
       "default": "always_for_clarity",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleParenthesesInArithmeticBinaryOperatorsSeverity": {
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInArithmeticBinaryOperators.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -261,12 +289,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleParenthesesInArithmeticBinaryOperators} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInArithmeticBinaryOperators.preference} != ''",
       "order": 13,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleParenthesesInOtherBinaryOperators": {
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherBinaryOperators.preference": {
       "type": "string",
       "enum": [
         "always_for_clarity",
@@ -276,13 +304,17 @@
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Always_for_clarity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never_if_unnecessary;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:In_other_binary_operators;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 14,
-      "placements": [{ "category": "languages.basic.codeStyle.general.parentheses" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherBinaryOperators"
+        }
+      ],
       "default": "always_for_clarity",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleParenthesesInOtherBinaryOperatorsSeverity": {
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherBinaryOperators.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -299,12 +331,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleParenthesesInOtherBinaryOperators} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherBinaryOperators.preference} != ''",
       "order": 15,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleParenthesesInRelationalBinaryOperators": {
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInRelationalBinaryOperators.preference": {
       "type": "string",
       "enum": [
         "always_for_clarity",
@@ -314,13 +346,17 @@
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Always_for_clarity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never_if_unnecessary;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:In_relational_binary_operators;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 16,
-      "placements": [{ "category": "languages.basic.codeStyle.general.parentheses" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInRelationalBinaryOperators"
+        }
+      ],
       "default": "always_for_clarity",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleParenthesesInRelationalBinaryOperatorsSeverity": {
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInRelationalBinaryOperators.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -337,12 +373,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleParenthesesInRelationalBinaryOperators} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInRelationalBinaryOperators.preference} != ''",
       "order": 17,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleParenthesesInOtherOperators": {
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherOperators.preference": {
       "type": "string",
       "enum": [
         "always_for_clarity",
@@ -352,13 +388,17 @@
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Always_for_clarity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Never_if_unnecessary;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:In_other_operators;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 18,
-      "placements": [{ "category": "languages.basic.codeStyle.general.parentheses" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherOperators"
+        }
+      ],
       "default": "never_if_unnecessary",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleParenthesesInOtherOperatorsSeverity": {
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherOperators.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -375,12 +415,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleParenthesesInOtherOperators} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherOperators.preference} != ''",
       "order": 19,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferAutoProperties": {
+    "languages.basic.codeStyle.general.codeBlocks.dotnetStylePreferAutoProperties.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -390,13 +430,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:analyzer_Prefer_auto_properties;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 20,
-      "placements": [{ "category": "languages.basic.codeStyle.general.codeBlocks" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.codeBlocks.dotnetStylePreferAutoProperties"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferAutoPropertiesSeverity": {
+    "languages.basic.codeStyle.general.codeBlocks.dotnetStylePreferAutoProperties.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -413,12 +457,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStylePreferAutoProperties} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.codeBlocks.dotnetStylePreferAutoProperties.preference} != ''",
       "order": 21,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetPreferSystemHashCode": {
+    "languages.basic.codeStyle.general.codeBlocks.dotnetPreferSystemHashCode.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -428,13 +472,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_System_HashCode_in_GetHashCode;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 22,
-      "placements": [{ "category": "languages.basic.codeStyle.general.codeBlocks" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.codeBlocks.dotnetPreferSystemHashCode"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetPreferSystemHashCodeSeverity": {
+    "languages.basic.codeStyle.general.codeBlocks.dotnetPreferSystemHashCode.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -451,12 +499,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetPreferSystemHashCode} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.codeBlocks.dotnetPreferSystemHashCode.preference} != ''",
       "order": 23,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleObjectInitializer": {
+    "languages.basic.codeStyle.general.expressions.dotnetStyleObjectInitializer.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -466,13 +514,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_object_initializer;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 24,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.dotnetStyleObjectInitializer"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleObjectInitializerSeverity": {
+    "languages.basic.codeStyle.general.expressions.dotnetStyleObjectInitializer.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -489,12 +541,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleObjectInitializer} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStyleObjectInitializer.preference} != ''",
       "order": 25,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleCollectionInitializer": {
+    "languages.basic.codeStyle.general.expressions.dotnetStyleCollectionInitializer.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -504,13 +556,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_collection_initializer;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 26,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.dotnetStyleCollectionInitializer"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleCollectionInitializerSeverity": {
+    "languages.basic.codeStyle.general.expressions.dotnetStyleCollectionInitializer.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -527,12 +583,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleCollectionInitializer} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStyleCollectionInitializer.preference} != ''",
       "order": 27,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferSimplifiedBooleanExpressions": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferSimplifiedBooleanExpressions.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -542,13 +598,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_simplified_boolean_expressions;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 28,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.dotnetStylePreferSimplifiedBooleanExpressions"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferSimplifiedBooleanExpressionsSeverity": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferSimplifiedBooleanExpressions.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -565,12 +625,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStylePreferSimplifiedBooleanExpressions} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferSimplifiedBooleanExpressions.preference} != ''",
       "order": 29,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleExplicitTupleNames": {
+    "languages.basic.codeStyle.general.expressions.dotnetStyleExplicitTupleNames.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -580,13 +640,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_explicit_tuple_name;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 30,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.dotnetStyleExplicitTupleNames"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleExplicitTupleNamesSeverity": {
+    "languages.basic.codeStyle.general.expressions.dotnetStyleExplicitTupleNames.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -603,12 +667,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleExplicitTupleNames} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStyleExplicitTupleNames.preference} != ''",
       "order": 31,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferInferredTupleNames": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredTupleNames.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -618,13 +682,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_inferred_tuple_names;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 32,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredTupleNames"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferInferredTupleNamesSeverity": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredTupleNames.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -641,12 +709,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStylePreferInferredTupleNames} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredTupleNames.preference} != ''",
       "order": 33,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferInferredAnonymousTypeMemberNames": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredAnonymousTypeMemberNames.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -656,13 +724,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_inferred_anonymous_type_member_names;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 34,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredAnonymousTypeMemberNames"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferInferredAnonymousTypeMemberNamesSeverity": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredAnonymousTypeMemberNames.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -679,12 +751,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStylePreferInferredAnonymousTypeMemberNames} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredAnonymousTypeMemberNames.preference} != ''",
       "order": 35,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferConditionalExpressionOverAssignment": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverAssignment.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -694,13 +766,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_conditional_expression_over_if_with_assignments;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 36,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverAssignment"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferConditionalExpressionOverAssignmentSeverity": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverAssignment.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -717,12 +793,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStylePreferConditionalExpressionOverAssignment} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverAssignment.preference} != ''",
       "order": 37,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferConditionalExpressionOverReturn": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverReturn.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -732,13 +808,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_conditional_expression_over_if_with_returns;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 38,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverReturn"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferConditionalExpressionOverReturnSeverity": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverReturn.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -755,12 +835,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStylePreferConditionalExpressionOverReturn} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverReturn.preference} != ''",
       "order": 39,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferCompoundAssignment": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferCompoundAssignment.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -770,13 +850,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_compound_assignments;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 40,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.dotnetStylePreferCompoundAssignment"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferCompoundAssignmentSeverity": {
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferCompoundAssignment.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -793,12 +877,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStylePreferCompoundAssignment} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferCompoundAssignment.preference} != ''",
       "order": 41,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.visualBasicStylePreferIsnotExpression": {
+    "languages.basic.codeStyle.general.expressions.visualBasicStylePreferIsnotExpression.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -808,13 +892,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_IsNot_expression;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 42,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.visualBasicStylePreferIsnotExpression"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.visualBasicStylePreferIsnotExpressionSeverity": {
+    "languages.basic.codeStyle.general.expressions.visualBasicStylePreferIsnotExpression.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -831,12 +919,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.visualBasicStylePreferIsnotExpression} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.visualBasicStylePreferIsnotExpression.preference} != ''",
       "order": 43,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.visualBasicStylePreferSimplifiedObjectCreation": {
+    "languages.basic.codeStyle.general.expressions.visualBasicStylePreferSimplifiedObjectCreation.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -846,13 +934,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_simplified_object_creation;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 44,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.visualBasicStylePreferSimplifiedObjectCreation"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.visualBasicStylePreferSimplifiedObjectCreationSeverity": {
+    "languages.basic.codeStyle.general.expressions.visualBasicStylePreferSimplifiedObjectCreation.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -869,12 +961,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.visualBasicStylePreferSimplifiedObjectCreation} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.visualBasicStylePreferSimplifiedObjectCreation.preference} != ''",
       "order": 45,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.visualBasicStyleUnusedValueAssignmentPreference": {
+    "languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueAssignmentPreference.preference": {
       "type": "string",
       "enum": [
         "unused_local_variable"
@@ -882,13 +974,17 @@
       "enumItemLabels": [
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Unused_local;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Avoid_unused_value_assignments;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 46,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueAssignmentPreference"
+        }
+      ],
       "default": "unused_local_variable",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.visualBasicStyleUnusedValueAssignmentPreferenceSeverity": {
+    "languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueAssignmentPreference.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -905,12 +1001,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.visualBasicStyleUnusedValueAssignmentPreference} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueAssignmentPreference.preference} != ''",
       "order": 47,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.visualBasicStyleUnusedValueExpressionStatementPreference": {
+    "languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueExpressionStatementPreference.preference": {
       "type": "string",
       "enum": [
         "unused_local_variable"
@@ -918,13 +1014,17 @@
       "enumItemLabels": [
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Unused_local;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Avoid_expression_statements_that_implicitly_ignore_value;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 48,
-      "placements": [{ "category": "languages.basic.codeStyle.general.expressions" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueExpressionStatementPreference"
+        }
+      ],
       "default": "unused_local_variable",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.visualBasicStyleUnusedValueExpressionStatementPreferenceSeverity": {
+    "languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueExpressionStatementPreference.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -941,12 +1041,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.visualBasicStyleUnusedValueExpressionStatementPreference} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueExpressionStatementPreference.preference} != ''",
       "order": 49,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleCoalesceExpression": {
+    "languages.basic.codeStyle.general.nothingChecking.dotnetStyleCoalesceExpression.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -956,13 +1056,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_coalesce_expression;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 50,
-      "placements": [{ "category": "languages.basic.codeStyle.general.nothingChecking" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.nothingChecking.dotnetStyleCoalesceExpression"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleCoalesceExpressionSeverity": {
+    "languages.basic.codeStyle.general.nothingChecking.dotnetStyleCoalesceExpression.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -979,12 +1083,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleCoalesceExpression} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.nothingChecking.dotnetStyleCoalesceExpression.preference} != ''",
       "order": 51,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleNullPropagation": {
+    "languages.basic.codeStyle.general.nothingChecking.dotnetStyleNullPropagation.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -994,13 +1098,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_null_propagation;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 52,
-      "placements": [{ "category": "languages.basic.codeStyle.general.nothingChecking" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.nothingChecking.dotnetStyleNullPropagation"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleNullPropagationSeverity": {
+    "languages.basic.codeStyle.general.nothingChecking.dotnetStyleNullPropagation.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -1017,12 +1125,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleNullPropagation} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.nothingChecking.dotnetStyleNullPropagation.preference} != ''",
       "order": 53,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod": {
+    "languages.basic.codeStyle.general.nothingChecking.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -1032,13 +1140,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_Is_Nothing_for_reference_equality_checks;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 54,
-      "placements": [{ "category": "languages.basic.codeStyle.general.nothingChecking" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.nothingChecking.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStylePreferIsNullCheckOverReferenceEqualityMethodSeverity": {
+    "languages.basic.codeStyle.general.nothingChecking.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -1055,12 +1167,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.nothingChecking.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod.preference} != ''",
       "order": 55,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleReadonlyField": {
+    "languages.basic.codeStyle.general.modifiers.dotnetStyleReadonlyField.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -1070,13 +1182,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_readonly_fields;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 56,
-      "placements": [{ "category": "languages.basic.codeStyle.general.modifiers" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.modifiers.dotnetStyleReadonlyField"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleReadonlyFieldSeverity": {
+    "languages.basic.codeStyle.general.modifiers.dotnetStyleReadonlyField.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -1093,12 +1209,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleReadonlyField} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.modifiers.dotnetStyleReadonlyField.preference} != ''",
       "order": 57,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetCodeQualityUnusedParameters": {
+    "languages.basic.codeStyle.general.parameters.dotnetCodeQualityUnusedParameters.preference": {
       "type": "string",
       "enum": [
         "non_public",
@@ -1108,13 +1224,17 @@
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Non_public_methods;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
         "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:All_methods;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Avoid_unused_parameters;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 58,
-      "placements": [{ "category": "languages.basic.codeStyle.general.parameters" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.parameters.dotnetCodeQualityUnusedParameters"
+        }
+      ],
       "default": "all",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetCodeQualityUnusedParametersSeverity": {
+    "languages.basic.codeStyle.general.parameters.dotnetCodeQualityUnusedParameters.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -1131,12 +1251,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetCodeQualityUnusedParameters} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.parameters.dotnetCodeQualityUnusedParameters.preference} != ''",
       "order": 59,
       "default": "suggestion",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleAllowMultipleBlankLinesExperimental": {
+    "languages.basic.codeStyle.general.newLines.dotnetStyleAllowMultipleBlankLinesExperimental.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -1146,13 +1266,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Allow_multiple_blank_lines;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 60,
-      "placements": [{ "category": "languages.basic.codeStyle.general.newLines" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.newLines.dotnetStyleAllowMultipleBlankLinesExperimental"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleAllowMultipleBlankLinesExperimentalSeverity": {
+    "languages.basic.codeStyle.general.newLines.dotnetStyleAllowMultipleBlankLinesExperimental.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -1169,12 +1293,12 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleAllowMultipleBlankLinesExperimental} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.newLines.dotnetStyleAllowMultipleBlankLinesExperimental.preference} != ''",
       "order": 61,
       "default": "silent",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental": {
+    "languages.basic.codeStyle.general.newLines.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental.preference": {
       "type": "string",
       "enum": [
         "true",
@@ -1184,13 +1308,17 @@
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:Yes;..\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "@Microsoft.CodeAnalysis.EditorFeaturesResources:No;..\\Microsoft.CodeAnalysis.EditorFeatures.dll"
       ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Allow_statement_immediately_after_block;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "order": 62,
-      "placements": [{ "category": "languages.basic.codeStyle.general.newLines" }],
+      "placements": [
+        {
+          "category": "languages.basic.codeStyle.general.newLines.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental"
+        }
+      ],
       "default": "true",
       "transientScopesSupported": false
     },
-    "languages.basic.codeStyle.general.dotnetStyleAllowStatementImmediatelyAfterBlockExperimentalSeverity": {
+    "languages.basic.codeStyle.general.newLines.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental.severity": {
       "type": "string",
       "enum": [
         "none",
@@ -1207,10 +1335,18 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
-      "enableWhen": "${config:languages.basic.codeStyle.general.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental} != ''",
+      "enableWhen": "${config:languages.basic.codeStyle.general.newLines.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental.preference} != ''",
       "order": 63,
       "default": "silent",
       "transientScopesSupported": false
+    },
+    "languages.basic.codeStyle.general.options": {
+      "type": "mappedTable",
+      "monikerPrefix": "languages.basic.codeStyle.general",
+      "groupingMonikerSegments": 1,
+      "pivotColumnTitle": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Description;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Preference;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 0
     }
   },
   "categories": {
@@ -1291,6 +1427,166 @@
           "elementId": 0
         }
       }
+    },
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForField": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_field_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 0,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForProperty": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_property_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 2,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForMethod": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_method_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 4,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForEvent": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Qualify_event_access_with_Me;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 6,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForLocalsParametersMembers": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:For_locals_parameters_and_members;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 8,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForMemberAccess": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:For_member_access_expressions;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 10,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInArithmeticBinaryOperators": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:In_arithmetic_binary_operators;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 12,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherBinaryOperators": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:In_other_binary_operators;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 14,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInRelationalBinaryOperators": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:In_relational_binary_operators;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 16,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherOperators": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:In_other_operators;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 18,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.codeBlocks.dotnetStylePreferAutoProperties": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:analyzer_Prefer_auto_properties;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 20,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.codeBlocks.dotnetPreferSystemHashCode": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_System_HashCode_in_GetHashCode;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 22,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.dotnetStyleObjectInitializer": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_object_initializer;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 24,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.dotnetStyleCollectionInitializer": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_collection_initializer;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 26,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferSimplifiedBooleanExpressions": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_simplified_boolean_expressions;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 28,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.dotnetStyleExplicitTupleNames": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_explicit_tuple_name;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 30,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredTupleNames": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_inferred_tuple_names;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 32,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredAnonymousTypeMemberNames": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_inferred_anonymous_type_member_names;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 34,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverAssignment": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_conditional_expression_over_if_with_assignments;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 36,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverReturn": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_conditional_expression_over_if_with_returns;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 38,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.dotnetStylePreferCompoundAssignment": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_compound_assignments;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 40,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.visualBasicStylePreferIsnotExpression": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_IsNot_expression;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 42,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.visualBasicStylePreferSimplifiedObjectCreation": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_simplified_object_creation;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 44,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueAssignmentPreference": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Avoid_unused_value_assignments;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 46,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueExpressionStatementPreference": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Avoid_expression_statements_that_implicitly_ignore_value;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 48,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.nothingChecking.dotnetStyleCoalesceExpression": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_coalesce_expression;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 50,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.nothingChecking.dotnetStyleNullPropagation": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_null_propagation;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 52,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.nothingChecking.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Prefer_Is_Nothing_for_reference_equality_checks;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "order": 54,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.modifiers.dotnetStyleReadonlyField": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Prefer_readonly_fields;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 56,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.parameters.dotnetCodeQualityUnusedParameters": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Avoid_unused_parameters;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 58,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.newLines.dotnetStyleAllowMultipleBlankLinesExperimental": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Allow_multiple_blank_lines;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 60,
+      "hideFromNavigation": true
+    },
+    "languages.basic.codeStyle.general.newLines.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Allow_statement_immediately_after_block;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "order": 62,
+      "hideFromNavigation": true
     }
   }
 }
