@@ -103,22 +103,8 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
             if (_entireQueueCancellationTokenSource.IsCancellationRequested)
                 return;
 
-            // If it's already at a higher priority, then nothing further to do
-            for (var priorityToCheck = _itemsByPriority.Length - 1; priorityToCheck > priority; priorityToCheck--)
-            {
-                if (_itemsByPriority[priorityToCheck].Contains(item))
-                    return;
-            }
-
-            if (!_itemsByPriority[priority].Add(item))
-            {
-                // Item was already that priority, so return and nothing new must happen
+            if (!TryRaiseWorkPriority_NoLock(item, priority, addIfUnscheduled: true))
                 return;
-            }
-
-            // We've definitely added it; if it's at any lower priorities, then remove it
-            for (var priorityToCheck = priority - 1; priorityToCheck >= 0; priorityToCheck--)
-                _itemsByPriority[priorityToCheck].Remove(item);
 
             // If we don't already have an active task, start one
             if (!_taskInFlight)
@@ -167,16 +153,30 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
             if (_entireQueueCancellationTokenSource.IsCancellationRequested)
                 return;
 
-            for (var priority = newPriority - 1; priority >= 0; priority--)
-            {
-                if (!_itemsByPriority[priority].Contains(item))
-                    continue;
-
-                Contract.ThrowIfFalse(_itemsByPriority[priority].Remove(item));
-                Contract.ThrowIfFalse(_itemsByPriority[newPriority].Add(item));
-                return;
-            }
+            TryRaiseWorkPriority_NoLock(item, newPriority, addIfUnscheduled: false);
         }
+    }
+
+    /// <summary>
+    /// Raises the priority of the specified work item. Optionally adds it if it is not already scheduled.
+    /// </summary>
+    /// <returns>True if the item was added or its priority was successfully raised.</returns>
+    private bool TryRaiseWorkPriority_NoLock(TItem item, int priority, bool addIfUnscheduled)
+    {
+        for (var priorityToCheck = _itemsByPriority.Length - 1; priorityToCheck >= 0; priorityToCheck--)
+        {
+            if (!_itemsByPriority[priorityToCheck].Contains(item))
+                continue;
+
+            if (priorityToCheck >= priority)
+                return false;
+
+            Contract.ThrowIfFalse(_itemsByPriority[priorityToCheck].Remove(item));
+            Contract.ThrowIfFalse(_itemsByPriority[priority].Add(item));
+            return true;
+        }
+
+        return addIfUnscheduled && _itemsByPriority[priority].Add(item);
     }
 
     private void StartWork()

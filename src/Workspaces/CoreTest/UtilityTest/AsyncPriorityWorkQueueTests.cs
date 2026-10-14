@@ -208,6 +208,35 @@ public sealed class AsyncPriorityWorkQueueTests
     }
 
     [Fact]
+    public async Task RaisePriorityDoesNotScheduleAbsentItem()
+    {
+        var processed = new List<string>();
+        var callbackCount = 0;
+        var listener = new AsynchronousOperationListener();
+        using var queue = new AsyncPriorityWorkQueue<string>(
+            maximumPriority: 3,
+            delay: TimeSpan.FromDays(1), // ExpeditedWaitAsync skips this delay
+            processBatchAsync: async (workToProcess, cancellationToken) =>
+            {
+                callbackCount++;
+                processed.AddRange(await DrainAsync(workToProcess));
+            },
+            equalityComparer: EqualityComparer<string>.Default,
+            asyncListener: listener);
+
+        queue.RaiseWorkPriorityIfScheduled("absent", newPriority: 3);
+        await listener.ExpeditedWaitAsync();
+        Assert.Equal(0, callbackCount);
+
+        queue.AddWork("scheduled", priority: 0);
+        queue.RaiseWorkPriorityIfScheduled("absent", newPriority: 3);
+        await listener.ExpeditedWaitAsync();
+
+        Assert.Equal(1, callbackCount);
+        Assert.Equal(new[] { "scheduled" }, processed);
+    }
+
+    [Fact]
     public async Task ChangePriorityUsesEqualityComparer()
     {
         var processed = new List<string>();
