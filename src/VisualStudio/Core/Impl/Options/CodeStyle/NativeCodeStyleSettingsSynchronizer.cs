@@ -220,8 +220,10 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
         => _gate.ExecuteAsync(async () =>
         {
             var results = update.Values.ToDictionary(result => result.Moniker, StringComparer.Ordinal);
+            var pendingScalars = new List<(string moniker, string scalar)>(2);
             foreach (var binding in _bindings.Values)
             {
+                pendingScalars.Clear();
                 ICodeStyleOption2? merged = null;
                 foreach (var severity in new[] { false, true })
                 {
@@ -238,10 +240,14 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
                     }
                     merged ??= ReadLegacy(binding, out _);
                     merged = (ICodeStyleOption2)binding.Setting.Update(merged, scalar, severity);
-                    _values[moniker] = scalar;
+                    pendingScalars.Add((moniker, scalar));
                 }
                 if (merged is not null)
+                {
                     await WriteLegacyAsync(binding, merged).ConfigureAwait(false);
+                    foreach (var (moniker, scalar) in pendingScalars)
+                        _values[moniker] = scalar;
+                }
             }
         }, _cancellationToken);
 

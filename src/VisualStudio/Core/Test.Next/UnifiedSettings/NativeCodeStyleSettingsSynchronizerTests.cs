@@ -113,6 +113,48 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         Assert.Equal(2, host.Native.CommitCount);
     }
 
+    [WpfTheory]
+    [InlineData(LanguageNames.CSharp, true, false)]
+    [InlineData(LanguageNames.CSharp, false, true)]
+    [InlineData(LanguageNames.CSharp, true, true)]
+    [InlineData(LanguageNames.VisualBasic, true, false)]
+    [InlineData(LanguageNames.VisualBasic, false, true)]
+    [InlineData(LanguageNames.VisualBasic, true, true)]
+    public async Task FailedNativeUpdateCanBeRetriedWithoutLosingEitherComponent(string language, bool changePreference, bool changeSeverity)
+    {
+        using var host = new Host(language);
+        var initial = new CodeStyleOption2<bool>(false, NotificationOption2.Warning);
+        host.Legacy.Value = initial.ToXElement().ToString();
+        await host.InitializeAsync();
+        var commits = host.Native.CommitCount;
+        if (changePreference)
+            host.Native.Values[host.Binding.Moniker] = "true";
+        if (changeSeverity)
+            host.Native.Values[host.Binding.SeverityMoniker] = "error";
+        host.Legacy.FailNextWrite = true;
+
+        host.Native.Notify();
+        await Assert.ThrowsAsync<InvalidOperationException>(host.DrainAsync);
+        Assert.Equal(initial, host.ReadLegacy());
+        Assert.Null(host.Refreshed);
+        Assert.Equal(0, host.Legacy.WriteCount);
+
+        host.Native.Notify();
+        await host.DrainAsync();
+        var expected = new CodeStyleOption2<bool>(changePreference, changeSeverity ? NotificationOption2.Error : NotificationOption2.Warning);
+        Assert.Equal(expected, host.ReadLegacy());
+        Assert.Equal(expected, host.Refreshed);
+        Assert.Equal(1, host.Legacy.WriteCount);
+
+        host.Native.Change(changePreference ? host.Binding.SeverityMoniker : host.Binding.Moniker, changePreference ? "suggestion" : "true");
+        await host.DrainAsync();
+        var afterSiblingEdit = new CodeStyleOption2<bool>(true, changePreference ? NotificationOption2.Suggestion : NotificationOption2.Error);
+        Assert.Equal(afterSiblingEdit, host.ReadLegacy());
+        Assert.Equal(afterSiblingEdit, host.Refreshed);
+        Assert.Equal(2, host.Legacy.WriteCount);
+        Assert.Equal(commits, host.Native.CommitCount);
+    }
+
     [WpfFact]
     public async Task BatchedNativeImportWritesTheXmlPairOnceAndDoesNotEcho()
     {
@@ -359,6 +401,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         public string? Value;
         public string Key = string.Empty;
         public int WriteCount;
+        public bool FailNextWrite;
         public event PropertyChangedAsyncEventHandler? SettingChangedAsync;
         public ISettingsSubset GetSubset(string pattern) => this;
         public GetValueResult TryGetValue<T>(string name, out T value)
@@ -369,6 +412,11 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         public async Task SetValueAsync(string name, object? value, bool isMachineLocal)
         {
             Assert.False(isMachineLocal);
+            if (FailNextWrite)
+            {
+                FailNextWrite = false;
+                throw new InvalidOperationException("Legacy settings write failed.");
+            }
             Value = (string?)value;
             WriteCount++;
             if (SettingChangedAsync is { } handlers)
