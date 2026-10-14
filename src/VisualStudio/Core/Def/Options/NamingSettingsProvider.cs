@@ -142,6 +142,12 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
         }
     }
 
+    public async Task<ExternalSettingOperationResult> ResetAsync(CancellationToken cancellationToken)
+    {
+        var expected = await _coordinator.ReadAsync(cancellationToken).ConfigureAwait(false);
+        return await ApplyGraphAsync(NamingSettingsGraph.Default, expected, cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<ExternalSettingOperationResult> ApplyGraphAsync(NamingSettingsGraph graph, NamingSettingsGraph expected, CancellationToken cancellationToken)
     {
         NamingSettingsGraph? pending;
@@ -250,7 +256,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
                 if (arrayItemIndex < 0 || arrayItemIndex >= arraySettingContent.Count
                     || arraySettingContent.Count < previous.Length || arraySettingContent.Count > previous.Length + 1)
                 {
-                    throw new InvalidDataException("Naming definition rows changed while the editor was open. Reload the settings before editing.");
+                    throw new InvalidDataException(ServicesVSResources.Naming_definition_rows_changed_while_the_editor_was_open);
                 }
 
                 // Other fields in an add/edit dialog can still be incomplete; save validates the entire graph.
@@ -362,18 +368,18 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
         {
             var name = NamingSettingsGraph.ReadString(item, Properties.Name);
             if (string.IsNullOrWhiteSpace(name))
-                throw new InvalidDataException(ServicesVSResources.Enter_a_title_for_this_Naming_Style);
+                throw new InvalidDataException(ServicesVSResources.Enter_a_name);
             IReadOnlyDictionary<string, object>? original = null;
             if (item.TryGetValue(Properties.Id, out var id))
             {
                 if (id is not string identifier || !byId.TryGetValue(identifier, out original))
-                    throw new InvalidDataException("Existing naming definition identities cannot be changed.");
+                    throw new InvalidDataException(ServicesVSResources.Existing_naming_definition_identities_cannot_be_changed);
             }
             var updated = original is null ? new Dictionary<string, object>(StringComparer.Ordinal) : CloneItem(original);
             if (original is null)
                 updated[Properties.Id] = NamingSettingsIdentity.CreateId(Guid.Empty, name, usedIds);
             else if (item.TryGetValue(Properties.LegacyId, out var legacyId) && (!original.TryGetValue(Properties.LegacyId, out var existingLegacyId) || !Equals(legacyId, existingLegacyId)))
-                throw new InvalidDataException("Existing naming compatibility identities cannot be changed.");
+                throw new InvalidDataException(ServicesVSResources.Existing_naming_compatibility_identities_cannot_be_changed);
 
             updated[Properties.Name] = name;
             updated.Remove(Properties.LegacyId);

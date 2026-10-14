@@ -121,6 +121,55 @@ public sealed class NamingSettingsManagementTests
         Assert.Equal(ReportDiagnostic.Warn, manager.Reader.Graph.ToPreferences().Rules.NamingRules.Last().EnforcementLevel);
     }
 
+    [Theory]
+    [InlineData(LanguageNames.CSharp, false)]
+    [InlineData(LanguageNames.CSharp, true)]
+    [InlineData(LanguageNames.VisualBasic, false)]
+    [InlineData(LanguageNames.VisualBasic, true)]
+    public async Task EmptyConfigurationCanBeBuiltAndSavedIncrementally(string language, bool styleFirst)
+    {
+        var manager = new NamingSettingsStoreTests.SettingsManagerMock();
+        using var provider = CreateProvider(manager, language);
+        manager.Reader.Graph = new([], [], []);
+        foreach (var moniker in styleFirst ? new[] { "namingStyles", "symbolSpecifications" } : new[] { "symbolSpecifications", "namingStyles" })
+        {
+            var definition = moniker == "namingStyles"
+                ? new Dictionary<string, object>
+                {
+                    ["name"] = "Custom style",
+                    ["prefix"] = "T",
+                    ["suffix"] = "",
+                    ["wordSeparator"] = "_",
+                    ["capitalization"] = "camelCase",
+                }
+                : new Dictionary<string, object>
+                {
+                    ["name"] = "Custom specification",
+                    ["symbolKinds"] = new[] { "class" },
+                    ["accessibilities"] = new[] { "public" },
+                    ["requiredModifiers"] = Array.Empty<string>(),
+                };
+            AssertSuccess(await provider.SetValueAsync(moniker, new[] { definition }, CancellationToken.None));
+            Assert.Single(await ReadAsync(provider, moniker));
+            AssertSuccess(await provider.CommitPendingChangesAsync(CancellationToken.None));
+            Assert.Empty(manager.Reader.Graph.Rules);
+        }
+
+        var graph = await provider.GetGraphAsync(CancellationToken.None);
+        var rule = new Dictionary<string, object>
+        {
+            ["symbolSpecificationId"] = graph.SymbolSpecifications.Single()["id"],
+            ["namingStyleId"] = graph.NamingStyles.Single()["id"],
+            ["severity"] = "warning",
+        };
+        AssertSuccess(await provider.SetValueAsync("rules", new[] { rule }, CancellationToken.None));
+        AssertSuccess(await provider.CommitPendingChangesAsync(CancellationToken.None));
+        var preferences = manager.Reader.Graph.ToPreferences();
+        Assert.Equal("Custom specification", Assert.Single(preferences.SymbolSpecifications).Name);
+        Assert.Equal("Custom style", Assert.Single(preferences.NamingStyles).Name);
+        Assert.Equal(ReportDiagnostic.Warn, Assert.Single(preferences.Rules.NamingRules).EnforcementLevel);
+    }
+
     [Fact]
     public async Task UnusedDefinitionCanBeRemovedWithoutChangingRules()
     {

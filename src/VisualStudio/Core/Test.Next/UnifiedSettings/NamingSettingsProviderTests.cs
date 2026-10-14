@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
@@ -21,6 +22,43 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 public sealed class NamingSettingsProviderTests
 {
     private static readonly JoinableTaskContext s_context = new();
+
+    [Theory]
+    [InlineData("symbolSpecifications")]
+    [InlineData("namingStyles")]
+    public async Task EmptyDefinitionNamesUseTheNeutralLocalizedPromptAsync(string moniker)
+    {
+        var manager = new NamingSettingsStoreTests.SettingsManagerMock();
+        using var provider = CreateProvider(manager);
+        var result = await provider.GetValueAsync<IReadOnlyList<IDictionary<string, object>>>(moniker, CancellationToken.None);
+        var rows = Assert.IsType<ExternalSettingOperationResult<IReadOnlyList<IDictionary<string, object>>>.Success>(result).Value;
+        rows[0]["name"] = " ";
+        var content = rows.Select(item => (IReadOnlyDictionary<string, object>)item.ToDictionary(pair => pair.Key, pair => pair.Value)).ToArray();
+
+        var messages = provider.ValidateArrayItemProperty(moniker, 0, "name", content);
+        Assert.Equal(1, messages.Count);
+        Assert.Equal(ServicesVSResources.Enter_a_name, messages[0].Text);
+        var failure = Assert.IsType<ExternalSettingOperationResult.Failure>(await provider.SetValueAsync(moniker, rows, CancellationToken.None));
+        Assert.Equal(string.Format(ServicesVSResources.Unable_to_update_naming_settings_0, ServicesVSResources.Enter_a_name), failure.ErrorMessage);
+    }
+
+    [Fact]
+    public async Task RemovingAReferencedStyleUsesALocalizedValidationDetailAsync()
+    {
+        var manager = new NamingSettingsStoreTests.SettingsManagerMock();
+        using var provider = CreateProvider(manager);
+        var graph = manager.Reader.Graph;
+        var styles = graph.NamingStyles.Where(item => !Equals(item["id"], graph.Rules[0]["namingStyleId"])).ToArray();
+
+        var messages = provider.ValidateSetting("namingStyles", styles);
+
+        Assert.Equal(1, messages.Count);
+        var expected = string.Format(ServicesVSResources.Unable_to_update_naming_settings_0,
+            ServicesVSResources.A_naming_rule_refers_to_an_unknown_symbol_specification_or_naming_style);
+        Assert.Equal(expected, messages[0].Text);
+        var failure = Assert.IsType<ExternalSettingOperationResult.Failure>(await provider.SetValueAsync("namingStyles", styles, CancellationToken.None));
+        Assert.Equal(expected, failure.ErrorMessage);
+    }
 
     [Theory]
     [InlineData(LanguageNames.CSharp)]
@@ -51,12 +89,93 @@ public sealed class NamingSettingsProviderTests
         new NamingSettingsStore(manager, language).WriteGraph(customized, "Customize", Guid.NewGuid());
         Assert.Equal(3, manager.CustomizedArrays.Count);
         using var provider = new NamingSettingsProvider(CreateCoordinator(manager, language), language);
-        var snapshot = await provider.GetGraphAsync(CancellationToken.None);
+        var pendingRules = customized.Rules.Select(item => item.ToDictionary(pair => pair.Key, pair => pair.Value)).ToArray();
+        pendingRules[0]["severity"] = "error";
+        Assert.IsType<ExternalSettingOperationResult.Success>(await provider.SetValueAsync("rules", pendingRules, CancellationToken.None));
 
-        Assert.IsType<ExternalSettingOperationResult.Success>(await provider.ApplyGraphAsync(defaults, snapshot, CancellationToken.None));
+        Assert.IsType<ExternalSettingOperationResult.Success>(await provider.ResetAsync(CancellationToken.None));
 
         Assert.Empty(manager.CustomizedArrays);
         Assert.True(defaults.ConfigurationEquals(manager.Reader.Graph));
+        Assert.True(defaults.ConfigurationEquals(await provider.GetGraphAsync(CancellationToken.None)));
+        var writer = manager.LastWriter;
+        Assert.IsType<ExternalSettingOperationResult.Success>(await provider.CommitPendingChangesAsync(CancellationToken.None));
+        Assert.Same(writer, manager.LastWriter);
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task FailedResetPreservesBufferedEditsAsync(string language)
+    {
+        var manager = new NamingSettingsStoreTests.SettingsManagerMock { CommitOutcome = SettingCommitOutcome.InternalError };
+        using var provider = new NamingSettingsProvider(CreateCoordinator(manager, language), language);
+        var rules = manager.Reader.Graph.Rules.Select(item => item.ToDictionary(pair => pair.Key, pair => pair.Value)).ToArray();
+        rules[0]["severity"] = "warning";
+        Assert.IsType<ExternalSettingOperationResult.Success>(await provider.SetValueAsync("rules", rules, CancellationToken.None));
+
+        Assert.IsType<ExternalSettingOperationResult.Failure>(await provider.ResetAsync(CancellationToken.None));
+
+        Assert.Equal("warning", (await provider.GetGraphAsync(CancellationToken.None)).Rules[0]["severity"]);
+        manager.CommitOutcome = SettingCommitOutcome.Success;
+        Assert.IsType<ExternalSettingOperationResult.Success>(await provider.CommitPendingChangesAsync(CancellationToken.None));
+        Assert.Equal("warning", manager.Reader.Graph.Rules[0]["severity"]);
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp, false)]
+    [InlineData(LanguageNames.CSharp, true)]
+    [InlineData(LanguageNames.VisualBasic, false)]
+    [InlineData(LanguageNames.VisualBasic, true)]
+    public async Task LegacyPublicationCanBeRetriedUnlessNativeStateChangedAsync(string language, bool concurrentChange)
+    {
+        var manager = new NamingSettingsStoreTests.SettingsManagerMock();
+        var legacy = NamingStylePreferences.Default;
+        var failWrite = true;
+        var refreshes = new List<NamingStylePreferences>();
+        var coordinator = new NamingSettingsCoordinator(new NamingSettingsStore(manager, language), () => legacy, value =>
+        {
+            if (failWrite)
+                throw new InvalidOperationException("Injected legacy write failure.");
+            legacy = value;
+        }, s_context, refreshes.Add);
+        using var provider = new NamingSettingsProvider(coordinator, language);
+        var original = manager.Reader.Graph;
+        var rules = original.Rules.Select(item => item.ToDictionary(pair => pair.Key, pair => pair.Value)).ToArray();
+        rules[0]["severity"] = "error";
+        Assert.IsType<ExternalSettingOperationResult.Success>(await provider.SetValueAsync("rules", rules, CancellationToken.None));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => provider.CommitPendingChangesAsync(CancellationToken.None));
+        Assert.Equal("error", manager.Reader.Graph.Rules[0]["severity"]);
+        Assert.Equal(NamingStylePreferences.Default, legacy);
+        Assert.Empty(refreshes);
+        var writer = manager.LastWriter;
+        failWrite = false;
+        if (concurrentChange)
+        {
+            var changedRule = original.Rules[0].ToDictionary(pair => pair.Key, pair => pair.Value);
+            changedRule["severity"] = "warning";
+            manager.Reader.Graph = new(original.SymbolSpecifications, original.NamingStyles, original.Rules.SetItem(0, changedRule));
+            coordinator.NotifyChanged();
+        }
+
+        var result = await provider.CommitPendingChangesAsync(CancellationToken.None);
+
+        if (concurrentChange)
+        {
+            Assert.IsType<ExternalSettingOperationResult.Failure>(result);
+            Assert.Equal(NamingStylePreferences.Default, legacy);
+            Assert.Empty(refreshes);
+            Assert.Equal("error", (await provider.GetGraphAsync(CancellationToken.None)).Rules[0]["severity"]);
+        }
+        else
+        {
+            Assert.IsType<ExternalSettingOperationResult.Success>(result);
+            Assert.Equal(manager.Reader.Graph.ToPreferences(), legacy);
+            Assert.Equal(legacy, Assert.Single(refreshes));
+            Assert.IsType<ExternalSettingOperationResult.Success>(await provider.CommitPendingChangesAsync(CancellationToken.None));
+        }
+        Assert.Same(writer, manager.LastWriter);
     }
 
     [Fact]
@@ -219,9 +338,13 @@ public sealed class NamingSettingsProviderTests
 
         var result = await provider.SetValueAsync("rules", Array.Empty<IReadOnlyDictionary<string, object>>(), CancellationToken.None);
 
-        Assert.IsType<ExternalSettingOperationResult.Failure>(result);
+        Assert.IsType<ExternalSettingOperationResult.Success>(result);
         Assert.Null(manager.LastWriter);
-        Assert.Equal(NamingStylePreferences.Default, manager.Reader.Graph.ToPreferences());
+        Assert.IsType<ExternalSettingOperationResult.Success>(await provider.CommitPendingChangesAsync(CancellationToken.None));
+        var preferences = manager.Reader.Graph.ToPreferences();
+        Assert.Empty(preferences.Rules.NamingRules);
+        Assert.True(NamingStylePreferences.Default.SymbolSpecifications.SequenceEqual(preferences.SymbolSpecifications));
+        Assert.True(NamingStylePreferences.Default.NamingStyles.SequenceEqual(preferences.NamingStyles));
     }
 
     [Fact]
@@ -255,7 +378,7 @@ public sealed class NamingSettingsProviderTests
     public async Task InvalidJsonProducesAnExplicitRegionErrorAsync()
     {
         var manager = new NamingSettingsStoreTests.SettingsManagerMock();
-        manager.Reader.Graph = new NamingSettingsGraph(manager.Reader.Graph.SymbolSpecifications, manager.Reader.Graph.NamingStyles, []);
+        manager.Reader.Graph = new NamingSettingsGraph([], manager.Reader.Graph.NamingStyles, manager.Reader.Graph.Rules);
         using var provider = CreateProvider(manager);
 
         var result = await provider.GetValueAsync<IReadOnlyList<IReadOnlyDictionary<string, object>>>("rules", CancellationToken.None);

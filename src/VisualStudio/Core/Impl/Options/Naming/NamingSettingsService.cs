@@ -141,8 +141,7 @@ internal sealed class NamingSettingsService : INamingSettingsService, IDisposabl
     public async Task ResetAsync(string language, CancellationToken cancellationToken)
     {
         var provider = await GetProviderAsync(language, cancellationToken).ConfigureAwait(false);
-        var graph = await provider.GetGraphAsync(cancellationToken).ConfigureAwait(false);
-        var result = await provider.ApplyGraphAsync(NamingSettingsGraph.Default, graph, cancellationToken).ConfigureAwait(false);
+        var result = await provider.ResetAsync(cancellationToken).ConfigureAwait(false);
         if (result is ExternalSettingOperationResult.Failure failure)
             throw new InvalidDataException(failure.ErrorMessage);
     }

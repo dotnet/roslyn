@@ -112,9 +112,6 @@ internal sealed class NamingSettingsGraph(
 
     public NamingStylePreferences ToPreferences()
     {
-        if (Rules.IsEmpty != SymbolSpecifications.IsEmpty || Rules.IsEmpty != NamingStyles.IsEmpty)
-            throw new InvalidDataException("Naming rules, symbol specifications and naming styles must either all be empty or all be nonempty.");
-
         var specifications = ImmutableArray.CreateBuilder<SymbolSpecification>();
         var styles = ImmutableArray.CreateBuilder<NamingStyle>();
         var rules = ImmutableArray.CreateBuilder<NamingRule>();
@@ -133,7 +130,7 @@ internal sealed class NamingSettingsGraph(
                 ReadStrings(item, Properties.Accessibilities).Select(ParseAccessibility).ToImmutableArray(),
                 ReadStrings(item, Properties.RequiredModifiers).Select(token => new SymbolSpecification.ModifierKind(ParseModifier(token))).ToImmutableArray());
             if (specificationsById.ContainsKey(id) || !specificationGuids.Add(legacyId))
-                throw new InvalidDataException("Symbol specification identities must be unique.");
+                throw new InvalidDataException(ServicesVSResources.Symbol_specification_identities_must_be_unique);
             specificationsById.Add(id, specification);
             specifications.Add(specification);
         }
@@ -146,7 +143,7 @@ internal sealed class NamingSettingsGraph(
                 legacyId, ReadName(item, legacyId, isStyle: true), ReadString(item, Properties.Prefix), ReadString(item, Properties.Suffix),
                 ReadString(item, Properties.WordSeparator), ParseCapitalization(ReadString(item, Properties.Capitalization)));
             if (stylesById.ContainsKey(id) || !styleGuids.Add(legacyId))
-                throw new InvalidDataException("Naming style identities must be unique.");
+                throw new InvalidDataException(ServicesVSResources.Naming_style_identities_must_be_unique);
             stylesById.Add(id, style);
             styles.Add(style);
         }
@@ -156,7 +153,7 @@ internal sealed class NamingSettingsGraph(
             if (!specificationsById.TryGetValue(ReadString(item, Properties.SymbolSpecificationId), out var specification)
                 || !stylesById.TryGetValue(ReadString(item, Properties.NamingStyleId), out var style))
             {
-                throw new InvalidDataException("A naming rule refers to an unknown symbol specification or naming style.");
+                throw new InvalidDataException(ServicesVSResources.A_naming_rule_refers_to_an_unknown_symbol_specification_or_naming_style);
             }
 
             rules.Add(new NamingRule(specification, style, ParseSeverity(ReadString(item, Properties.Severity))));
@@ -172,14 +169,14 @@ internal sealed class NamingSettingsGraph(
             return name;
 
         if (defaultName is not bool useDefault)
-            throw new InvalidDataException("Naming defaultName must be a Boolean.");
+            throw new InvalidDataException(ServicesVSResources.Naming_defaultName_must_be_a_Boolean);
 
         if (!useDefault)
             return name;
 
         var localizedName = GetDefaultName(id, isStyle);
         if (name.Length != 0 || localizedName is null)
-            throw new InvalidDataException("Only built-in naming definitions with an empty name can use defaultName.");
+            throw new InvalidDataException(ServicesVSResources.Only_built_in_naming_definitions_with_an_empty_name_can_use_defaultName);
 
         return localizedName;
     }
@@ -221,7 +218,7 @@ internal sealed class NamingSettingsGraph(
         {
             case Properties.Name:
                 if (string.IsNullOrWhiteSpace(ReadString(item, property)))
-                    throw new InvalidDataException(ServicesVSResources.Enter_a_title_for_this_Naming_Style);
+                    throw new InvalidDataException(ServicesVSResources.Enter_a_name);
                 break;
             case Properties.Prefix or Properties.Suffix or Properties.WordSeparator when isStyle:
                 _ = ReadString(item, property);
@@ -291,31 +288,31 @@ internal sealed class NamingSettingsGraph(
     {
         var id = ReadString(item, Properties.Id);
         if (!NamingSettingsIdentity.IsValidId(id))
-            throw new InvalidDataException("Naming IDs must start with a lowercase ASCII letter and contain only lowercase letters, digits or underscores.");
+            throw new InvalidDataException(ServicesVSResources.Invalid_naming_identity);
         return id;
     }
 
     private static Guid ReadLegacyId(IReadOnlyDictionary<string, object> item)
     {
         if (!Guid.TryParse(ReadString(item, Properties.LegacyId), out var id) || id == Guid.Empty)
-            throw new InvalidDataException("Naming compatibility identities must be nonempty GUIDs.");
+            throw new InvalidDataException(ServicesVSResources.Naming_compatibility_identities_must_be_nonempty_GUIDs);
         return id;
     }
 
     internal static string ReadString(IReadOnlyDictionary<string, object> item, string property)
         => item.TryGetValue(property, out var value) && value is string text
-            ? text : throw new InvalidDataException($"Naming property '{property}' must be a string.");
+            ? text : throw new InvalidDataException(string.Format(ServicesVSResources.Naming_property_0_must_be_a_string, property));
 
     internal static ImmutableArray<string> ReadStrings(IReadOnlyDictionary<string, object> item, string property)
     {
         if (!item.TryGetValue(property, out var value) || value is not IEnumerable sequence || value is string)
-            throw new InvalidDataException($"Naming property '{property}' must be an array.");
+            throw new InvalidDataException(string.Format(ServicesVSResources.Naming_property_0_must_be_an_array, property));
         var result = ImmutableArray.CreateBuilder<string>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var element in sequence)
         {
             if (element is not string text || !seen.Add(text))
-                throw new InvalidDataException($"Naming property '{property}' must contain unique strings.");
+                throw new InvalidDataException(string.Format(ServicesVSResources.Naming_property_0_must_contain_unique_strings, property));
             result.Add(text);
         }
         return result.ToImmutable();
@@ -374,12 +371,12 @@ internal sealed class NamingSettingsGraph(
             return new SymbolSpecification.SymbolKindOrTypeKind(ParseEnum<TypeKind>(token.Substring(SymbolKinds.TypePrefix.Length)));
         if (token.StartsWith(SymbolKinds.MethodPrefix, StringComparison.Ordinal))
             return new SymbolSpecification.SymbolKindOrTypeKind(ParseEnum<MethodKind>(token.Substring(SymbolKinds.MethodPrefix.Length)));
-        throw new InvalidDataException($"Unknown symbol kind '{token}'.");
+        throw new InvalidDataException(string.Format(ServicesVSResources.Unsupported_naming_setting_value_0, token));
     }
 
     private static T ParseEnum<T>(string token) where T : struct, Enum
         => Enum.TryParse<T>(token, out var value) && Enum.IsDefined(typeof(T), value)
-            ? value : throw new InvalidDataException($"Unknown {typeof(T).Name} value '{token}'.");
+            ? value : throw new InvalidDataException(string.Format(ServicesVSResources.Unsupported_naming_setting_value_0, token));
 
     private static string SerializeAccessibility(Accessibility accessibility) => accessibility switch
     {
@@ -402,7 +399,7 @@ internal sealed class NamingSettingsGraph(
         Accessibilities.Protected => Accessibility.Protected,
         Accessibilities.PrivateProtected => Accessibility.ProtectedAndInternal,
         Accessibilities.ProtectedInternal => Accessibility.ProtectedOrInternal,
-        _ => throw new InvalidDataException($"Unknown accessibility '{token}'."),
+        _ => throw new InvalidDataException(string.Format(ServicesVSResources.Unsupported_naming_setting_value_0, token)),
     };
 
     private static string SerializeModifier(SymbolSpecification.ModifierKindEnum modifier) => modifier switch
@@ -422,7 +419,7 @@ internal sealed class NamingSettingsGraph(
         Modifiers.Async => SymbolSpecification.ModifierKindEnum.IsAsync,
         Modifiers.ReadOnly => SymbolSpecification.ModifierKindEnum.IsReadOnly,
         Modifiers.Const => SymbolSpecification.ModifierKindEnum.IsConst,
-        _ => throw new InvalidDataException($"Unknown modifier '{token}'."),
+        _ => throw new InvalidDataException(string.Format(ServicesVSResources.Unsupported_naming_setting_value_0, token)),
     };
 
     private static string SerializeCapitalization(Capitalization capitalization) => capitalization switch
@@ -442,7 +439,7 @@ internal sealed class NamingSettingsGraph(
         Capitalizations.FirstUpper => Capitalization.FirstUpper,
         Capitalizations.AllUpper => Capitalization.AllUpper,
         Capitalizations.AllLower => Capitalization.AllLower,
-        _ => throw new InvalidDataException($"Unknown capitalization '{token}'."),
+        _ => throw new InvalidDataException(string.Format(ServicesVSResources.Unsupported_naming_setting_value_0, token)),
     };
 
     private static string SerializeSeverity(ReportDiagnostic severity) => severity switch
@@ -460,6 +457,6 @@ internal sealed class NamingSettingsGraph(
         Severities.Suggestion => ReportDiagnostic.Info,
         Severities.Warning => ReportDiagnostic.Warn,
         Severities.Error => ReportDiagnostic.Error,
-        _ => throw new InvalidDataException($"Unknown naming severity '{token}'."),
+        _ => throw new InvalidDataException(string.Format(ServicesVSResources.Unsupported_naming_setting_value_0, token)),
     };
 }

@@ -94,7 +94,7 @@ public sealed class NamingSettingsStoreTests
         var manager = new SettingsManagerMock();
         var store = new NamingSettingsStore(manager, LanguageNames.CSharp);
         var original = NamingSettingsGraph.FromPreferences(NamingStylePreferences.Default);
-        var invalid = new NamingSettingsGraph(original.SymbolSpecifications, original.NamingStyles, []);
+        var invalid = new NamingSettingsGraph([], original.NamingStyles, original.Rules);
 
         Assert.Throws<InvalidDataException>(() => store.WriteGraph(invalid, "Naming settings change", Guid.NewGuid()));
         Assert.Null(manager.LastWriter);

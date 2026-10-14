@@ -75,7 +75,7 @@ public sealed class NamingSettingsCoordinatorTests
         var manager = new NamingSettingsStoreTests.SettingsManagerMock();
         var writes = 0;
         var coordinator = new NamingSettingsCoordinator(new NamingSettingsStore(manager, LanguageNames.CSharp), () => NamingStylePreferences.Default, _ => writes++, s_context);
-        manager.Reader.Graph = new NamingSettingsGraph(manager.Reader.Graph.SymbolSpecifications, manager.Reader.Graph.NamingStyles, []);
+        manager.Reader.Graph = new NamingSettingsGraph([], manager.Reader.Graph.NamingStyles, manager.Reader.Graph.Rules);
 
         await Assert.ThrowsAsync<InvalidDataException>(() => coordinator.SynchronizeFromUnifiedSettingsAsync(CancellationToken.None));
 

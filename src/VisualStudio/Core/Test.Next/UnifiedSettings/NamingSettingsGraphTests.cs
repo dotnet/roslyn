@@ -78,9 +78,27 @@ public sealed class NamingSettingsGraphTests
         var original = NamingSettingsGraph.FromPreferences(NamingStylePreferences.Default);
         var graph = new NamingSettingsGraph(original.SymbolSpecifications, original.NamingStyles, []);
 
-        Assert.Throws<InvalidDataException>(() => graph.ToPreferences());
-        Assert.Equal(original.SymbolSpecifications.Length, graph.SymbolSpecifications.Length);
-        Assert.Equal(original.NamingStyles.Length, graph.NamingStyles.Length);
+        var restored = NamingSettingsGraph.FromPreferences(graph.ToPreferences(), graph);
+        Assert.Empty(restored.Rules);
+        Assert.Equal(original.SymbolSpecifications.Length, restored.SymbolSpecifications.Length);
+        Assert.Equal(original.NamingStyles.Length, restored.NamingStyles.Length);
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void DefinitionsWithoutRulesRoundTrip(bool includeSpecifications, bool includeStyles)
+    {
+        var defaults = NamingSettingsGraph.Default;
+        var graph = new NamingSettingsGraph(
+            includeSpecifications ? defaults.SymbolSpecifications : [],
+            includeStyles ? defaults.NamingStyles : [], []);
+
+        var restored = NamingSettingsGraph.FromPreferences(graph.ToPreferences(), graph);
+
+        Assert.True(graph.ConfigurationEquals(restored));
     }
 
     [Theory]

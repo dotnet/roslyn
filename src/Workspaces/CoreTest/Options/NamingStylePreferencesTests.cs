@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
@@ -34,6 +35,37 @@ public sealed class NamingStylePreferencesTests
         => AssertTrimmedEqual(
             NamingStylePreferences.DefaultNamingPreferencesString,
             ReserializePreferences(NamingStylePreferences.DefaultNamingPreferencesString));
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void DefinitionsWithoutRulesSurviveSerialization(bool includeSpecifications, bool includeStyles)
+    {
+        var defaults = NamingStylePreferences.Default;
+        var preferences = new NamingStylePreferences(
+            includeSpecifications ? defaults.SymbolSpecifications : [],
+            includeStyles ? defaults.NamingStyles : [], ImmutableArray<NamingRule>.Empty);
+
+        var restored = NamingStylePreferences.FromXElement(preferences.CreateXElement());
+
+        Assert.Equal(preferences, restored);
+        Assert.Equal(includeSpecifications, !restored.SymbolSpecifications.IsEmpty);
+        Assert.Equal(includeStyles, !restored.NamingStyles.IsEmpty);
+        Assert.Empty(restored.Rules.NamingRules);
+    }
+
+    [Theory]
+    [InlineData("SymbolSpecifications")]
+    [InlineData("NamingStyles")]
+    public void UndefinedRuleReferencesAreRejectedDuringDeserialization(string collection)
+    {
+        var serialized = NamingStylePreferences.Default.CreateXElement();
+        serialized.Element(collection)!.RemoveNodes();
+
+        Assert.Throws<InvalidOperationException>(() => NamingStylePreferences.FromXElement(serialized));
+    }
 
     [Fact]
     public void TestCannotUpgrade3To5()

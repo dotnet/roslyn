@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pt-BR" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_naming_rule_refers_to_an_unknown_symbol_specification_or_naming_style">
+        <source>A naming rule refers to an unknown symbol specification or naming style.</source>
+        <target state="new">A naming rule refers to an unknown symbol specification or naming style.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">Um namespace será criado</target>
@@ -382,6 +387,11 @@
         <target state="translated">Insira um valor de site de chamada ou escolha um tipo de injeção de valor diferente</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_a_name">
+        <source>Enter a name.</source>
+        <target state="new">Enter a name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_key_behavior">
         <source>Enter key behavior</source>
         <target state="translated">Inserir comportamento da tecla</target>
@@ -415,6 +425,16 @@
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">Erro ao atualizar supressões: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Existing_naming_compatibility_identities_cannot_be_changed">
+        <source>Existing naming compatibility identities cannot be changed.</source>
+        <target state="new">Existing naming compatibility identities cannot be changed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Existing_naming_definition_identities_cannot_be_changed">
+        <source>Existing naming definition identities cannot be changed.</source>
+        <target state="new">Existing naming definition identities cannot be changed.</target>
         <note />
       </trans-unit>
       <trans-unit id="Experimental_feature">
@@ -631,6 +651,11 @@
         <source>Introduce undefined TODO variables</source>
         <target state="translated">Introduzir variáveis de TODO indefinidas</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
+      </trans-unit>
+      <trans-unit id="Invalid_naming_identity">
+        <source>Naming IDs must start with a lowercase ASCII letter and contain only lowercase letters, digits or underscores.</source>
+        <target state="new">Naming IDs must start with a lowercase ASCII letter and contain only lowercase letters, digits or underscores.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Invalid_type_name">
         <source>Invalid type name</source>
@@ -892,9 +917,49 @@
         <target state="translated">Parâmetro de Tipo</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
       </trans-unit>
+      <trans-unit id="Naming_compatibility_identities_must_be_nonempty_GUIDs">
+        <source>Naming compatibility identities must be nonempty GUIDs.</source>
+        <target state="new">Naming compatibility identities must be nonempty GUIDs.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_defaultName_must_be_a_Boolean">
+        <source>Naming defaultName must be a Boolean.</source>
+        <target state="new">Naming defaultName must be a Boolean.</target>
+        <note>{Locked="defaultName"} A property in the naming configuration.</note>
+      </trans-unit>
+      <trans-unit id="Naming_definition_rows_changed_while_the_editor_was_open">
+        <source>Naming definition rows changed while the editor was open. Reload the settings before editing.</source>
+        <target state="new">Naming definition rows changed while the editor was open. Reload the settings before editing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_property_0_must_be_a_string">
+        <source>Naming property '{0}' must be a string.</source>
+        <target state="new">Naming property '{0}' must be a string.</target>
+        <note>{0} is a property name in the naming configuration.</note>
+      </trans-unit>
+      <trans-unit id="Naming_property_0_must_be_an_array">
+        <source>Naming property '{0}' must be an array.</source>
+        <target state="new">Naming property '{0}' must be an array.</target>
+        <note>{0} is a property name in the naming configuration.</note>
+      </trans-unit>
+      <trans-unit id="Naming_property_0_must_contain_unique_strings">
+        <source>Naming property '{0}' must contain unique strings.</source>
+        <target state="new">Naming property '{0}' must contain unique strings.</target>
+        <note>{0} is a property name in the naming configuration.</note>
+      </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="translated">Regras de nomenclatura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_settings_changed_while_the_editor_was_open">
+        <source>Naming settings changed while the editor was open. Reload the settings before applying this edit.</source>
+        <target state="new">Naming settings changed while the editor was open. Reload the settings before applying this edit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_style_identities_must_be_unique">
+        <source>Naming style identities must be unique.</source>
+        <target state="new">Naming style identities must be unique.</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">
@@ -971,6 +1036,11 @@
         <source>Only add new line on enter after end of fully typed word</source>
         <target state="translated">Somente adiciona uma nova linha após digitar toda palavra</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Only_built_in_naming_definitions_with_an_empty_name_can_use_defaultName">
+        <source>Only built-in naming definitions with an empty name can use defaultName.</source>
+        <target state="new">Only built-in naming definitions with an empty name can use defaultName.</target>
+        <note>{Locked="defaultName"} A property in the naming configuration.</note>
       </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
@@ -1507,6 +1577,11 @@
         <target state="translated">Suprimir as dicas quando os nomes de parâmetros diferirem somente pelo sufixo</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_specification_identities_must_be_unique">
+        <source>Symbol specification identities must be unique.</source>
+        <target state="new">Symbol specification identities must be unique.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbols_without_references">
         <source>Symbols without references</source>
         <target state="translated">Símbolos sem referências</target>
@@ -1606,6 +1681,11 @@
         <source>Underline reassigned variables</source>
         <target state="translated">Sublinhar variáveis reatribuídas</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_naming_setting_value_0">
+        <source>'{0}' is not a supported value for this naming setting.</source>
+        <target state="new">'{0}' is not a supported value for this naming setting.</target>
+        <note>{0} is a value from the naming configuration.</note>
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>

@@ -49,7 +49,13 @@ internal sealed class NamingSettingsCoordinator(
             cancellationToken.ThrowIfCancellationRequested();
             var current = store.ReadGraph();
             if (!current.ConfigurationEquals(expected))
-                throw new InvalidDataException("Naming settings changed while the editor was open. Reload the settings before applying this edit.");
+            {
+                if (!current.ConfigurationEquals(graph))
+                    throw new InvalidDataException(ServicesVSResources.Naming_settings_changed_while_the_editor_was_open);
+
+                PublishLegacy(current);
+                return new ValueTask<SettingCommitResult>(new SettingCommitResult(SettingCommitOutcome.NoChangesQueued, null));
+            }
 
             var result = store.WriteGraph(graph, description, _eventSource);
             if (result.Outcome is SettingCommitOutcome.Success or SettingCommitOutcome.NoChangesQueued)

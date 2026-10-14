@@ -1884,6 +1884,60 @@ Additional information: {1}</value>
   <data name="Unable_to_update_naming_settings_0" xml:space="preserve">
     <value>Unable to update Naming settings: {0}</value>
   </data>
+  <data name="Enter_a_name" xml:space="preserve">
+    <value>Enter a name.</value>
+  </data>
+  <data name="A_naming_rule_refers_to_an_unknown_symbol_specification_or_naming_style" xml:space="preserve">
+    <value>A naming rule refers to an unknown symbol specification or naming style.</value>
+  </data>
+  <data name="Symbol_specification_identities_must_be_unique" xml:space="preserve">
+    <value>Symbol specification identities must be unique.</value>
+  </data>
+  <data name="Naming_style_identities_must_be_unique" xml:space="preserve">
+    <value>Naming style identities must be unique.</value>
+  </data>
+  <data name="Naming_settings_changed_while_the_editor_was_open" xml:space="preserve">
+    <value>Naming settings changed while the editor was open. Reload the settings before applying this edit.</value>
+  </data>
+  <data name="Naming_definition_rows_changed_while_the_editor_was_open" xml:space="preserve">
+    <value>Naming definition rows changed while the editor was open. Reload the settings before editing.</value>
+  </data>
+  <data name="Existing_naming_definition_identities_cannot_be_changed" xml:space="preserve">
+    <value>Existing naming definition identities cannot be changed.</value>
+  </data>
+  <data name="Existing_naming_compatibility_identities_cannot_be_changed" xml:space="preserve">
+    <value>Existing naming compatibility identities cannot be changed.</value>
+  </data>
+  <data name="Unsupported_naming_setting_value_0" xml:space="preserve">
+    <value>'{0}' is not a supported value for this naming setting.</value>
+    <comment>{0} is a value from the naming configuration.</comment>
+  </data>
+  <data name="Invalid_naming_identity" xml:space="preserve">
+    <value>Naming IDs must start with a lowercase ASCII letter and contain only lowercase letters, digits or underscores.</value>
+  </data>
+  <data name="Naming_compatibility_identities_must_be_nonempty_GUIDs" xml:space="preserve">
+    <value>Naming compatibility identities must be nonempty GUIDs.</value>
+  </data>
+  <data name="Naming_defaultName_must_be_a_Boolean" xml:space="preserve">
+    <value>Naming defaultName must be a Boolean.</value>
+    <comment>{Locked="defaultName"} A property in the naming configuration.</comment>
+  </data>
+  <data name="Only_built_in_naming_definitions_with_an_empty_name_can_use_defaultName" xml:space="preserve">
+    <value>Only built-in naming definitions with an empty name can use defaultName.</value>
+    <comment>{Locked="defaultName"} A property in the naming configuration.</comment>
+  </data>
+  <data name="Naming_property_0_must_be_a_string" xml:space="preserve">
+    <value>Naming property '{0}' must be a string.</value>
+    <comment>{0} is a property name in the naming configuration.</comment>
+  </data>
+  <data name="Naming_property_0_must_be_an_array" xml:space="preserve">
+    <value>Naming property '{0}' must be an array.</value>
+    <comment>{0} is a property name in the naming configuration.</comment>
+  </data>
+  <data name="Naming_property_0_must_contain_unique_strings" xml:space="preserve">
+    <value>Naming property '{0}' must contain unique strings.</value>
+    <comment>{0} is a property name in the naming configuration.</comment>
+  </data>
   <data name="Naming_settings_are_stored_in_settings_json" xml:space="preserve">
     <value>Naming settings are stored in settings.json and synchronized with legacy profiles.</value>
   </data>
