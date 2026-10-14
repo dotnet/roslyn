@@ -87,10 +87,13 @@ internal sealed class CodeStyleSettingsPreview : UserControl
     {
         HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
         VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+        VerticalContentAlignment = VerticalAlignment.Top,
     };
 
     public CodeStyleSettingsPreview()
     {
+        Height = 150;
+        VerticalAlignment = VerticalAlignment.Top;
         Content = _preview;
         _preview.PreviewMouseWheel += (_, e) =>
         {
@@ -225,6 +228,7 @@ internal sealed class CodeStyleSettingsPreview : UserControl
     {
         view.Options.SetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId, false);
         view.Options.SetOptionValue(DefaultTextViewHostOptions.VerticalScrollBarId, false);
+        view.VisualElement.VerticalAlignment = VerticalAlignment.Top;
         // Let the Auto ScrollViewer scroll the full preview rather than an editor-sized viewport.
         view.VisualElement.Height = view.LineHeight * view.TextSnapshot.LineCount;
     }

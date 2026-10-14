@@ -20,8 +20,12 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
+using Microsoft.VisualStudio.LanguageServices.UnitTests;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 using Moq;
 using Roslyn.Test.Utilities;
@@ -99,9 +103,12 @@ public sealed class CodeStyleSettingsProviderTests
     public void NativePreviewContainsOnlyTheEditorHostAndNoActionButtons()
     {
         var preview = new CodeStyleSettingsPreview();
+        Assert.Equal(150, preview.Height);
+        Assert.Equal(VerticalAlignment.Top, preview.VerticalAlignment);
         var host = Assert.IsType<ScrollViewer>(preview.Content);
         Assert.Equal(ScrollBarVisibility.Auto, host.VerticalScrollBarVisibility);
         Assert.Equal(ScrollBarVisibility.Disabled, host.HorizontalScrollBarVisibility);
+        Assert.Equal(VerticalAlignment.Top, host.VerticalContentAlignment);
         Assert.Null(host.Content);
     }
 
@@ -119,6 +126,7 @@ public sealed class CodeStyleSettingsProviderTests
 
         Assert.False(view.Options.GetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId));
         Assert.False(view.Options.GetOptionValue(DefaultTextViewHostOptions.VerticalScrollBarId));
+        Assert.Equal(VerticalAlignment.Top, view.VisualElement.VerticalAlignment);
         Assert.Equal(horizontal, globalOptions.GetOptionValue(DefaultTextViewHostOptions.HorizontalScrollBarId));
         Assert.Equal(vertical, globalOptions.GetOptionValue(DefaultTextViewHostOptions.VerticalScrollBarId));
     }
@@ -138,7 +146,7 @@ public sealed class CodeStyleSettingsProviderTests
             var preview = new CodeStyleSettingsPreview();
             var scrollViewer = Assert.IsType<ScrollViewer>(preview.Content);
             scrollViewer.Content = editor.HostControl;
-            Layout(200);
+            Layout(150);
 
             Assert.Equal(expectedVisibility, scrollViewer.ComputedVerticalScrollBarVisibility);
             Assert.Equal(Visibility.Collapsed, scrollViewer.ComputedHorizontalScrollBarVisibility);
@@ -150,21 +158,106 @@ public sealed class CodeStyleSettingsProviderTests
                 Assert.True(scrollViewer.VerticalOffset > 0);
             }
 
-            Layout(view.VisualElement.Height + 100);
+            Layout(800);
+            Assert.Equal(expectedVisibility, scrollViewer.ComputedVerticalScrollBarVisibility);
+
+            Layout(double.PositiveInfinity);
+            Assert.Equal(expectedVisibility, scrollViewer.ComputedVerticalScrollBarVisibility);
+
+            view.TextBuffer.Replace(new Span(0, view.TextSnapshot.Length), "class C { }");
+            CodeStyleSettingsPreview.ConfigureEditor(view);
+            Layout(double.PositiveInfinity);
             Assert.Equal(Visibility.Collapsed, scrollViewer.ComputedVerticalScrollBarVisibility);
             Assert.Equal(0, scrollViewer.ScrollableHeight);
+            Assert.Equal(0, scrollViewer.VerticalOffset);
 
             void Layout(double height)
             {
-                var size = new Size(400, height);
-                preview.Measure(size);
-                preview.Arrange(new Rect(size));
+                preview.Measure(new Size(400, height));
+                Assert.Equal(150, preview.DesiredSize.Height);
+                preview.Arrange(new Rect(new Size(400, preview.DesiredSize.Height)));
                 preview.UpdateLayout();
+                Assert.Equal(150, preview.ActualHeight);
+                Assert.Equal(400, preview.ActualWidth);
             }
         }
         finally
         {
             editor.Close();
+        }
+    }
+
+    [WpfTheory]
+    [InlineData(149, Visibility.Collapsed)]
+    [InlineData(150, Visibility.Collapsed)]
+    [InlineData(151, Visibility.Visible)]
+    public void NativePreviewVerticalScrollbarReflectsTheFixedHeightBoundary(double contentHeight, Visibility expectedVisibility)
+    {
+        var preview = new CodeStyleSettingsPreview();
+        var scrollViewer = Assert.IsType<ScrollViewer>(preview.Content);
+        scrollViewer.Content = new Border { Height = contentHeight };
+        preview.Measure(new Size(400, double.PositiveInfinity));
+        preview.Arrange(new Rect(new Size(400, preview.DesiredSize.Height)));
+        preview.UpdateLayout();
+
+        Assert.Equal(150, preview.ActualHeight);
+        Assert.Equal(150, scrollViewer.ViewportHeight);
+        Assert.Equal(contentHeight, scrollViewer.ExtentHeight);
+        Assert.Equal(expectedVisibility, scrollViewer.ComputedVerticalScrollBarVisibility);
+        Assert.Equal(Math.Max(0, contentHeight - 150), scrollViewer.ScrollableHeight);
+    }
+
+    [WpfTheory]
+    [InlineData("Display();")]
+    [InlineData("Display();\n\nDisplay();")]
+    [InlineData("Display();\n")]
+    [UseExportProvider]
+    public void PreviewProjectionPreservesSampleLinesWithoutAddingATerminalLine(string code)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp("class C { }");
+        var componentModel = new MockComponentModel(workspace.ExportProvider);
+        componentModel.ProvideService(workspace.ExportProvider);
+        var serviceProvider = new Mock<IServiceProvider>(MockBehavior.Strict);
+        serviceProvider.Setup(provider => provider.GetService(typeof(SComponentModel))).Returns(componentModel);
+        using var model = new Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting.StyleViewModel(new OptionStore(new TestGlobalOptions()), serviceProvider.Object);
+        model.UpdatePreview($$"""
+            class C
+            {
+                void M()
+                {
+            //[
+            {{code}}
+            //]
+                }
+            }
+            """);
+
+        var editor = model.TextViewHost;
+        var view = editor.TextView;
+        var snapshot = Assert.IsAssignableFrom<IProjectionSnapshot>(view.TextSnapshot);
+        Assert.Equal(code, snapshot.GetText().ReplaceLineEndings("\n"));
+        var source = snapshot.GetSourceSpans()[0].Snapshot;
+        var marker = source.GetLineFromPosition(source.GetText().IndexOf("//]", StringComparison.Ordinal));
+        Assert.True(source.GetLineFromLineNumber(marker.LineNumber - 1).LineBreakLength > 0);
+
+        CodeStyleSettingsPreview.ConfigureEditor(view);
+        var preview = new CodeStyleSettingsPreview();
+        var scrollViewer = Assert.IsType<ScrollViewer>(preview.Content);
+        scrollViewer.Content = editor.HostControl;
+        Layout();
+        Assert.Equal(150, preview.ActualHeight);
+        Assert.Equal(0, view.VisualElement.TranslatePoint(new Point(), scrollViewer).Y);
+
+        preview.Height = view.VisualElement.Height;
+        Layout();
+        Assert.Equal(Visibility.Collapsed, scrollViewer.ComputedVerticalScrollBarVisibility);
+        Assert.Equal(0, scrollViewer.ScrollableHeight);
+
+        void Layout()
+        {
+            preview.Measure(new Size(400, double.PositiveInfinity));
+            preview.Arrange(new Rect(new Size(400, preview.DesiredSize.Height)));
+            preview.UpdateLayout();
         }
     }
 
