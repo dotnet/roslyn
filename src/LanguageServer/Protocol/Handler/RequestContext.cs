@@ -105,16 +105,16 @@ internal readonly struct RequestContext
     }
 
     public async ValueTask<Workspace> GetRequiredWorkspaceAsync(CancellationToken cancellationToken)
-        => (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Workspace;
+        => (await GetRequiredWorkspaceContextAsync(cancellationToken).ConfigureAwait(false)).Workspace;
 
     public async ValueTask<Solution> GetRequiredSolutionAsync(CancellationToken cancellationToken)
-        => (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Solution;
+        => (await GetRequiredWorkspaceContextAsync(cancellationToken).ConfigureAwait(false)).Solution;
 
     public async ValueTask<TextDocument?> GetTextDocumentAsync(CancellationToken cancellationToken)
-        => (await GetRequiredWorkspaceContextAsync().WithCancellation(cancellationToken).ConfigureAwait(false)).Document;
+        => (await GetRequiredWorkspaceContextAsync(cancellationToken).ConfigureAwait(false)).Document;
 
-    private Task<LspWorkspaceContext> GetRequiredWorkspaceContextAsync()
-        => _capturedWorkspaceContext?.ResolveAsync() ?? throw new InvalidOperationException("Workspace context was not requested.");
+    private Task<LspWorkspaceContext> GetRequiredWorkspaceContextAsync(CancellationToken cancellationToken)
+        => _capturedWorkspaceContext?.ResolveAsync(cancellationToken) ?? throw new InvalidOperationException("Workspace context was not requested.");
 
     public void ClearSolutionContext()
     {
@@ -127,7 +127,7 @@ internal readonly struct RequestContext
 
     public async ValueTask<Document?> GetDocumentAsync(CancellationToken cancellationToken)
     {
-        return (await GetTextDocumentAsync(cancellationToken).ConfigureAwait(false)) switch
+        return await GetTextDocumentAsync(cancellationToken).ConfigureAwait(false) switch
         {
             null => null,
             Document document => document,

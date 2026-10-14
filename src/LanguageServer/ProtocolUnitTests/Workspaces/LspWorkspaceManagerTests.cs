@@ -62,7 +62,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         await testLspServer.TestWorkspace.ChangeSolutionAsync(loadedSolution);
         loader.Complete();
 
-        var result = await capturedContext.ResolveAsync();
+        var result = await capturedContext.ResolveAsync(CancellationToken.None);
         Assert.Equal(WorkspaceKind.Host, result.Workspace.Kind);
         Assert.Single(miscellaneousWorkspace.CurrentSolution.GetDocumentIds(uri));
 
@@ -70,7 +70,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
             CreateTextDocumentIdentifier(uri), manager.GetTrackedDocuments(),
             allowProjectLoading: false, CancellationToken.None);
         Assert.NotNull(nextContext);
-        var nextResult = await nextContext.ResolveAsync();
+        var nextResult = await nextContext.ResolveAsync(CancellationToken.None);
         Assert.Equal(WorkspaceKind.Host, nextResult.Workspace.Kind);
         Assert.Empty(miscellaneousWorkspace.CurrentSolution.GetDocumentIds(uri));
     }
@@ -114,7 +114,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         await testLspServer.TestWorkspace.ChangeSolutionAsync(loadedSolution);
 
         loader.Complete();
-        var context = await capturedContext.ResolveAsync();
+        var context = await capturedContext.ResolveAsync(CancellationToken.None);
         Assert.Equal(capturedText, (await context.Solution.GetRequiredDocument(existingDocument.Id).GetTextAsync()).ToString());
         Assert.Equal(newDocumentId, context.Document?.Id);
     }
@@ -148,8 +148,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         Assert.NotNull(canceledCapture);
         Assert.NotNull(survivingCapture);
 
-        var canceledResolution = canceledCapture.ResolveAsync();
-        var survivingResolution = survivingCapture.ResolveAsync();
+        var canceledResolution = canceledCapture.ResolveAsync(CancellationToken.None);
+        var survivingResolution = survivingCapture.ResolveAsync(CancellationToken.None);
         cancellation.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => canceledResolution);
 

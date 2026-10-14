@@ -943,7 +943,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             var manager = GetManager();
             var capturedContext = await manager.CaptureLspDocumentContextAsync(
                 identifier, manager.GetTrackedDocuments(), allowProjectLoading: false, cancellationToken).ConfigureAwait(false);
-            return capturedContext is null ? null : await capturedContext.ResolveAsync().ConfigureAwait(false);
+            return capturedContext is null ? null : await capturedContext.ResolveAsync(cancellationToken).ConfigureAwait(false);
         }
 
         internal async Task<LspWorkspaceContext?> CaptureLspSolutionContextAsync(CancellationToken cancellationToken = default)
@@ -951,7 +951,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
             var manager = GetManager();
             var capturedContext = await manager.CaptureLspWorkspaceContextAsync(
                 manager.GetTrackedDocuments(), allowProjectLoading: false, cancellationToken).ConfigureAwait(false);
-            return capturedContext is null ? null : await capturedContext.ResolveAsync().ConfigureAwait(false);
+            return capturedContext is null ? null : await capturedContext.ResolveAsync(cancellationToken).ConfigureAwait(false);
         }
 
         internal AbstractLanguageServer<RequestContext>.TestAccessor GetServerAccessor() => _languageServer.Value.GetTestAccessor();
