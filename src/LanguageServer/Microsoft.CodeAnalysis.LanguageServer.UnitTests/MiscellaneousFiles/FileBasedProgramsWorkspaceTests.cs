@@ -1316,6 +1316,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
 
         // Restore before loading so a delayed assets-file notification cannot reload the edited Util.cs.
+        // Intentionally narrows this test to projects that don't need to be restored before loading.
         Assert.True(await RestoreHandler.RestoreAsync(
             [appCsFile.Path],
             testLspServer.GetRequiredLspService<WorkDoneProgressManager>(),
