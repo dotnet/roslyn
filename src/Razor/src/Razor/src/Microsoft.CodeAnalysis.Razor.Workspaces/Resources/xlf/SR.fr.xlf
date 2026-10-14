@@ -54,19 +54,9 @@
         <target state="translated">L’éditeur Razor utilise le générateur de source Razor, qui requiert que les fichiers *.razor et *.cshtml soient AdditionalFiles dans le projet. {0} semble provenir de '{1}', qui contient des documents Razor, mais ce fichier n’est pas un AdditionalFile. L’expérience d’édition sera donc limitée. Aucun autre message ne sera enregistré pour ce projet.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">Décalage non valide.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">Mot clé {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Les services de langage Razor ne sont pas configurés correctement, le service de langage «{0}» manquant.</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">
