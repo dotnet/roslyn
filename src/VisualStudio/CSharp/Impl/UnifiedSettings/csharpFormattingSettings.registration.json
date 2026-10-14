@@ -1499,14 +1499,14 @@
       "title": "#108;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "order": 0,
       "legacyOptionPageId": "DA0446DD-55BA-401F-A364-7D3238412AE4",
-      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541"
     },
     "languages.csharp.codeStyle.formatting.indentation": {
       "title": "#109;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "order": 1,
       "legacyOptionPageId": "5E21D017-6D2A-4114-A1F1-C923F001CBBB",
-      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541",
       "commands": [
         {
@@ -1536,7 +1536,7 @@
       "order": 2,
       "keepHeaderVisible": true,
       "legacyOptionPageId": "EADC6AD3-91D4-3CC8-BE96-3CDE7D3080F0",
-      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541",
       "commands": [
         {
@@ -1566,7 +1566,7 @@
       "order": 3,
       "keepHeaderVisible": true,
       "legacyOptionPageId": "234FB566-73DD-4612-8DE4-29031FF27052",
-      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541",
       "commands": [
         {
@@ -1595,7 +1595,7 @@
       "title": "#110;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "order": 4,
       "legacyOptionPageId": "8E334D9C-B7DC-4CF3-B7B7-014B831FE76B",
-      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541",
       "commands": [
         {

@@ -159,7 +159,9 @@ public sealed class CodeStyleSettingsManifestTests
         using var document = Load(file);
         var category = document.RootElement.GetProperty("categories").GetProperty(categoryMoniker);
         var message = Assert.Single(category.GetProperty("messages").EnumerateArray());
-        Assert.Equal(CodeStyleNoticeTextBlock.CodeStylePageHeader, TestModel.Utilities.EvalResource(message.GetProperty("text").GetString()!));
+        var text = TestModel.Utilities.EvalResource(message.GetProperty("text").GetString()!);
+        var link = "[More info](" + CodeStyleNoticeTextBlock.CodeStylePageHeaderLearnMoreUri.AbsoluteUri + ")";
+        Assert.Equal(CodeStyleNoticeTextBlock.CodeStylePageHeader.Replace("More info", link), text);
         Assert.False(message.TryGetProperty("visibleWhen", out _));
         Assert.Equal(CodeStyleNoticeTextBlock.CodeStylePageHeaderLearnMoreUri.AbsoluteUri, category.GetProperty("helpUri").GetString());
         if (category.TryGetProperty("commands", out var commands))
