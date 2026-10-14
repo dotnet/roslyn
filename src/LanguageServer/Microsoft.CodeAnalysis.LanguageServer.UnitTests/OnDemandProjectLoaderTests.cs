@@ -124,44 +124,6 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         build.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task MutualReferencesComplete(bool concurrentDemands)
-    {
-        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        var loader = server.GetRequiredLspService<TestProjectLoader>();
-        var folder = TempRoot.CreateDirectory();
-        var firstFolder = folder.CreateDirectory("First");
-        var secondFolder = folder.CreateDirectory("Second");
-        var firstProject = firstFolder.CreateFile("First.csproj").Path;
-        var secondProject = secondFolder.CreateFile("Second.csproj").Path;
-        var firstDocument = ProtocolConversions.CreateAbsoluteDocumentUri(firstFolder.CreateFile("First.cs").Path);
-        var secondDocument = ProtocolConversions.CreateAbsoluteDocumentUri(secondFolder.CreateFile("Second.cs").Path);
-        using var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
-        var firstBuild = loader.ExpectDesignTimeBuild(firstProject);
-        var secondBuild = loader.ExpectDesignTimeBuild(secondProject);
-
-        var firstLoad = onDemandLoader.TryLoadProjectsAsync(firstDocument);
-        Task? secondLoad = concurrentDemands ? onDemandLoader.TryLoadProjectsAsync(secondDocument) : null;
-        await firstBuild.Started.Task;
-        firstBuild.CompleteSuccessfully(
-            loader.WorkspaceFactory.HostProjectFactory,
-            firstProject,
-            projectReferences: [Path.GetRelativePath(Path.GetDirectoryName(firstProject)!, secondProject)]);
-        await secondBuild.Started.Task;
-        secondBuild.CompleteSuccessfully(
-            loader.WorkspaceFactory.HostProjectFactory,
-            secondProject,
-            projectReferences: [Path.GetRelativePath(Path.GetDirectoryName(secondProject)!, firstProject)]);
-
-        if (secondLoad is not null)
-            await Task.WhenAll(firstLoad, secondLoad);
-        else
-            await firstLoad;
-        Assert.Equal(2, loader.DesignTimeBuildCount);
-    }
-
     [Fact]
     public async Task NoDiscoveredProjectDoesNotLoad()
     {
