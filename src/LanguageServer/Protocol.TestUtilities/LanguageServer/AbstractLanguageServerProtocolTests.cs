@@ -940,6 +940,8 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
         internal AbstractLanguageServer<RequestContext>.TestAccessor GetServerAccessor() => _languageServer.Value.GetTestAccessor();
 
+        internal JsonRpc GetClientRpc() => _clientRpc;
+
         internal T GetRequiredLspService<T>() where T : class => _languageServer.Value.GetTestAccessor().GetRequiredLspService<T>();
 
         internal ImmutableArray<SourceText> GetTrackedTexts() => [.. GetManager().GetTrackedLspText().Values.Select(v => v.SourceText)];
@@ -968,11 +970,17 @@ public abstract partial class AbstractLanguageServerProtocolTests
                 await ExitTestServerAsync();
             }
 
-            // Wait for all the exit notifications to run to completion.
+            // Wait for server cleanup before closing the client connection.
             await _languageServer.Value.WaitForExitAsync();
 
-            TestWorkspace.Dispose();
             _clientRpc.Dispose();
+
+            // Closing the connection does not wait for RPC callbacks, including the exit notification.
+            var serverRpc = GetServerAccessor().GetServerRpc();
+            await Task.WhenAll(_clientRpc.Completion, serverRpc.Completion);
+            await Task.WhenAll(_clientRpc.DispatchCompletion, serverRpc.DispatchCompletion);
+
+            TestWorkspace.Dispose();
         }
     }
 }
