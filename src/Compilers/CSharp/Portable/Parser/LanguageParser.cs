@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // that case, we have no extra work to do and can return immediately.
             //
             // If we do see errant type-only members (like a method/property/constructor/etc.), then see if they follow
-            // some normal type declaration.  If so, treat the type's '}' as the real closer, just too early, and move
+            // some normal type declaration.  If so, treat the type's '}' as the real close-brace, just too early, and move
             // those members into the type.
             if (!sawMemberDeclarationOnlyValidWithinTypeDeclaration)
                 return;
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var currentSibling = body.Members[memberToMoveIndex];
                     if (memberToMoveIndex == firstSiblingToMoveInclusive)
                     {
-                        // This '}' is the type's closer.  It is just too early: the following members belong
+                        // This '}' is the type's close-brace.  It is just too early: the following members belong
                         // in the type, so attach the brace to the first of them as skipped syntax and tell
                         // the user to move it after all of those members.
                         currentSibling = AddLeadingSkippedSyntax(
@@ -520,10 +520,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 var isLast = lastSiblingToMoveExclusive == body.Members.Count;
 
-                // We already have the type's closer; it was just in the wrong place.  Do not also report
-                // "} expected" on a synthesized close.  That would look like we never found a closer, when
+                // We already have the type's close-brace; it was just in the wrong place.  Do not also report
+                // "} expected" on a synthesized close-brace.  That would look like we never found a close-brace, when
                 // the real instruction is to move this one.  If these were the last remaining namespace
-                // members, still take a following close brace when one is present so a later real '}' can
+                // members, still take a following close-brace when one is present so a later real '}' can
                 // sit on the type.  Otherwise insert a silent missing token.
                 var finalCloseBraceToken = isLast
                     ? EatToken(SyntaxKind.CloseBraceToken, reportError: false)
