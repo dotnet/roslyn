@@ -135,9 +135,9 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
     [InlineData(" ", false)]
     [InlineData("invalid", false)]
     [InlineData(null, false)]
-    public void TestCopilotCliTelemetryLevelFailsClosed(string? telemetryLevel, bool expected)
+    public void TestStandaloneTelemetryLevelFailsClosed(string? telemetryLevel, bool expected)
     {
-        Assert.Equal(expected, LanguageServerTelemetry.IsCopilotCliTelemetryEnabled(telemetryLevel));
+        Assert.Equal(expected, LanguageServerTelemetry.IsStandaloneTelemetryEnabled(telemetryLevel));
     }
 
     [Fact]

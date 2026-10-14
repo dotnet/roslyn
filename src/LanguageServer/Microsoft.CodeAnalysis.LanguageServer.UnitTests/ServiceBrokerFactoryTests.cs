@@ -21,7 +21,6 @@ using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Utilities.ServiceBroker;
 using Nerdbank.Streams;
 using Xunit.Abstractions;
-using DebuggerContracts = Microsoft.VisualStudio.Debugger.Contracts.HotReload;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -131,7 +130,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
     }
 
     [Fact]
-    public async Task ManagedHotReloadLanguageServiceIsAvailableAsync()
+    public async Task ManagedHotReloadLanguageServiceIsAdvertisedAsync()
     {
         await using var server = await CreateLanguageServerAsync();
         await using var brokeredServiceClient = new TestBrokeredServiceClient();
@@ -139,13 +138,7 @@ public sealed class ServiceBrokerFactoryTests(ITestOutputHelper testOutputHelper
         await brokeredServiceClient.ConnectAsync(server);
 
         var serverServices = await GetAvailableServerServicesAsync(brokeredServiceClient.ServiceBroker, CancellationToken.None);
-        Assert.Contains(ManagedHotReloadLanguageServiceDescriptor.Descriptor.Moniker, serverServices);
-
-        var languageService = await GetRequiredServiceAsync<DebuggerContracts.IManagedHotReloadLanguageService3>(
-            brokeredServiceClient.ServiceBroker,
-            ManagedHotReloadLanguageServiceDescriptor.Descriptor,
-            CancellationToken.None);
-        Assert.NotNull(languageService);
+        Assert.Contains(ManagedHotReloadUpdatesProviderDescriptor.Moniker, serverServices);
     }
 
     [Fact]

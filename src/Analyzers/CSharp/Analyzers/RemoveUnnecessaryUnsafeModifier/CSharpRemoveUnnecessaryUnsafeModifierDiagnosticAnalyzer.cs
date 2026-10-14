@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -28,10 +30,11 @@ internal sealed partial class CSharpRemoveUnnecessaryUnsafeModifierDiagnosticAna
             if (!options.AllowUnsafe)
                 return;
 
-            context.RegisterSemanticModelAction(AnalyzeSemanticModel);
+            var checkForSafetyComment = compilation.SourceModule.MemorySafetyRulesVersion is MemorySafetyRulesVersion.Version2;
+            context.RegisterSemanticModelAction(context => AnalyzeSemanticModel(context, checkForSafetyComment));
         });
 
-    private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+    private void AnalyzeSemanticModel(SemanticModelAnalysisContext context, bool checkForSafetyComment)
     {
         if (ShouldSkipAnalysis(context, notification: null))
             return;
@@ -41,10 +44,20 @@ internal sealed partial class CSharpRemoveUnnecessaryUnsafeModifierDiagnosticAna
 
         foreach (var declaration in unnecessaryNodes)
         {
+            if (checkForSafetyComment && HasSafetyComment(declaration))
+                continue;
+
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor,
                 UnnecessaryUnsafeModifierUtilities.GetUnsafeModifier(declaration).GetLocation(),
                 [declaration.GetLocation()]));
         }
     }
+
+    private static bool HasSafetyComment(SyntaxNode declaration)
+        => declaration.GetLeadingTrivia().Any(static trivia =>
+            trivia.GetStructure() is DocumentationCommentTriviaSyntax documentationComment &&
+            documentationComment.DescendantNodes().Any(static node =>
+                node is XmlElementSyntax { StartTag.Name.LocalName.ValueText: "safety" }
+                     or XmlEmptyElementSyntax { Name.LocalName.ValueText: "safety" }));
 }

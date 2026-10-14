@@ -31,14 +31,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     : ILspServiceRequestHandler<TDiagnosticsParams, TReturn?>
     where TDiagnosticsParams : IPartialResultParams<TReport>
 {
-    /// <summary>
-    /// Special value we use to designate workspace diagnostics vs document diagnostics.  Document diagnostics
-    /// should always <see cref="VSInternalDiagnosticReport.Supersedes"/> a workspace diagnostic as the former are 'live'
-    /// while the latter are cached and may be stale.
-    /// </summary>
-    protected const int WorkspaceDiagnosticIdentifier = 1;
-    protected const int DocumentDiagnosticIdentifier = 2;
-
     private readonly IDiagnosticsRefresher _diagnosticRefresher = diagnosticRefresher;
 
     protected readonly IGlobalOptionService GlobalOptions = globalOptions;
@@ -49,8 +41,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// one cache for DocumentSyntax, another for DocumentSemantic, another for WorkspaceSemantic, etc etc.
     /// </summary>
     private readonly ConcurrentDictionary<string, DiagnosticsPullCache> _categoryToVersionedCache = [];
-
-    protected virtual bool PotentialDuplicate => false;
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
@@ -70,7 +60,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// <summary>
     /// Creates the appropriate LSP type to report a new set of diagnostics and resultId.
     /// </summary>
-    protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[] diagnostics, string resultId);
+    protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[] diagnostics, string resultId, ClientCapabilities clientCapabilities);
 
     /// <summary>
     /// Creates the appropriate LSP type to report unchanged diagnostics. Can return <see langword="false"/> to
@@ -82,7 +72,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// <summary>
     /// Creates the appropriate LSP type to report a removed file.
     /// </summary>
-    protected abstract TReport CreateRemovedReport(TextDocumentIdentifier identifier);
+    protected abstract TReport CreateRemovedReport(TextDocumentIdentifier identifier, ClientCapabilities clientCapabilities);
 
     protected abstract TReturn? CreateReturn(BufferedProgress<TReport> progress);
 
@@ -134,7 +124,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
-            HandleRemovedDocuments(context, removedDocuments, progress);
+            HandleRemovedDocuments(context, removedDocuments, progress, clientCapabilities);
 
             // Next process each file in priority order. Determine if diagnostics are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
@@ -196,7 +186,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
                 if (!seenDiagnosticSourceIds.Contains(projectOrDocumentId) &&
                     !removedDocuments.Contains(previousDiagnosticParams))
                 {
-                    progress.Report(CreateRemovedReport(previousDiagnosticParams.TextDocument));
+                    progress.Report(CreateRemovedReport(previousDiagnosticParams.TextDocument, clientCapabilities));
                 }
             }
 
@@ -288,11 +278,11 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         foreach (var diagnostic in diagnostics)
             result.AddRange(ConvertDiagnostic(diagnosticSource, diagnostic, clientCapabilities));
 
-        var report = CreateReport(documentIdentifier, result.ToArray(), newResultId);
+        var report = CreateReport(documentIdentifier, result.ToArray(), newResultId, clientCapabilities);
         progress.Report(report);
     }
 
-    private void HandleRemovedDocuments(RequestContext context, HashSet<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress)
+    private void HandleRemovedDocuments(RequestContext context, HashSet<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress, ClientCapabilities clientCapabilities)
     {
         foreach (var removedResult in removedPreviousResults)
         {
@@ -302,7 +292,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             // the workspace). Report a (null-diagnostics, null-result-id) response to the client as that
             // means they should just consider the file deleted and should remove all diagnostics
             // information they've cached for it.
-            progress.Report(CreateRemovedReport(removedResult.TextDocument));
+            progress.Report(CreateRemovedReport(removedResult.TextDocument, clientCapabilities));
         }
     }
 
@@ -312,7 +302,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             diagnosticData,
             capabilities.HasVisualStudioLspCapability(),
             diagnosticSource.GetProject(),
-            PotentialDuplicate,
             GlobalOptions);
     }
 }

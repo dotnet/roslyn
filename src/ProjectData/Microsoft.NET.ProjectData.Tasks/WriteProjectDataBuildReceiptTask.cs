@@ -40,3 +40,30 @@ public sealed class WriteProjectDataBuildReceiptTask : Microsoft.Build.Utilities
 		}
 	}
 }
+
+/// <summary>
+/// Computes the path-safe stable project identity used to isolate one project's staged slices.
+/// </summary>
+public sealed class GetProjectDataBuildProjectIdTask : Microsoft.Build.Utilities.Task
+{
+	[Required]
+	public string ProjectFilePath { get; set; } = string.Empty;
+
+	[Output]
+	public string ProjectId { get; set; } = string.Empty;
+
+	public override bool Execute()
+	{
+		try
+		{
+			string receiptPath = ProjectDataBuildReceipt.GetReceiptFilePath(Path.GetTempPath(), this.ProjectFilePath);
+			this.ProjectId = Path.GetFileNameWithoutExtension(receiptPath);
+			return true;
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException and not StackOverflowException)
+		{
+			this.Log.LogError("ProjectData: failed to compute the build-attempt project identity for {0}: {1}", this.ProjectFilePath, ex.Message);
+			return false;
+		}
+	}
+}

@@ -115,6 +115,7 @@
     <PackageReference Include="Basic.Reference.Assemblies.Net70" />
     <PackageReference Include="Basic.Reference.Assemblies.Net40" />
     <PackageReference Include="Basic.Reference.Assemblies.Net461" />
+    <PackageReference Include="Microsoft.Diagnostics.NETCore.Client" />
     <PackageReference Include="Microsoft.ILVerification" />
   </ItemGroup>
 </Project>

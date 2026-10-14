@@ -505,6 +505,57 @@ public class CohostOnAutoInsertEndpointTest(ITestOutputHelper testOutputHelper) 
             triggerCharacter: "\n");
     }
 
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_OnEnterAfterOpenBrace(bool isComponent)
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @documentation {
+                    $$
+                }
+                """,
+            output: null,
+            triggerCharacter: "\n",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_OnEnterInBody(
+        bool isComponent,
+        [CombinatorialValues("This is some text", "* A bullet point", "/// Literal slashes")] string text)
+    {
+        await VerifyOnAutoInsertAsync(
+            input: $$"""
+                @documentation {
+                    <summary>
+                    {{text}}
+                    $$
+                    </summary>
+                }
+                """,
+            output: null,
+            triggerCharacter: "\n",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_OnEnterAfterXmlElement(bool isComponent)
+    {
+        await VerifyOnAutoInsertAsync(
+            input: """
+                @documentation {
+                    <summary>Some documentation</summary>
+                    $$
+                }
+                """,
+            output: null,
+            triggerCharacter: "\n",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
     [Fact]
     public async Task DoNotAutoInsertCSharp_OnForwardSlashWithFormatOnTypeDisabled()
     {

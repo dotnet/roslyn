@@ -1,0 +1,24 @@
+﻿RazorDocument - [0..122)::122 - [@documentation {<summary>Missing end tag}LF<p>After</p>LF@functions { public string EndTag => "</summary>"; /* note */ }LF]
+    MarkupBlock - [0..122)::122
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..122)::122
+            RazorDocumentationDirective - [0..120)::120 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring} [RZ1047(116:2,59 [2] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/ClosingTagInFollowingCode.cshtml)]
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..120)::119
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..120)::106
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [15..16)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [16..119)::103
+                            CSharpStatementLiteral - [16..119)::103 - [<summary>Missing end tag}LF<p>After</p>LF@functions { public string EndTag => "</summary>"; /* note */ ] - Gen<Stmt>
+                                Text;[<summary>Missing end tag}LF<p>After</p>LF@functions { public string EndTag => "</summary>"; /* note */ ];
+                        RazorMetaCode - [119..120)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [120..122)::2 - Gen<None>
+                NewLine;[LF];
+    EndOfFile;[];

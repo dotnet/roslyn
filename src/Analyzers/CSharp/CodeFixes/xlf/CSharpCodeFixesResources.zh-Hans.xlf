@@ -17,6 +17,11 @@
         <target state="translated">添加括号</target>
         <note />
       </trans-unit>
+      <trans-unit id="Add_safety_documentation">
+        <source>Add '&lt;safety&gt;' documentation</source>
+        <target state="translated">添加 '&lt;safety&gt;' 文档</target>
+        <note>{Locked="&lt;safety&gt;"} "safety" is an XML documentation element name and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Add_this">
         <source>Add 'this.'</source>
         <target state="translated">添加 "this."</target>

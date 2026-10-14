@@ -40,8 +40,6 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
 
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
-        result.AddRange(GetOtherPartsOfPartial(symbol));
-
         // If the given symbol is an extension member, cascade to its implementation method
         result.AddIfNotNull(symbol.AssociatedExtensionImplementation);
 
@@ -50,18 +48,6 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
             result.Add(method);
 
         return result.ToImmutableAndClear();
-    }
-
-    private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
-    {
-        // https://github.com/dotnet/roslyn/issues/73772: define/use a similar helper for PropertySymbolReferenceFinder+PropertyAccessorSymbolReferenceFinder?
-        if (symbol.PartialDefinitionPart != null)
-            return [symbol.PartialDefinitionPart];
-
-        if (symbol.PartialImplementationPart != null)
-            return [symbol.PartialImplementationPart];
-
-        return [];
     }
 
     protected override async Task DetermineDocumentsToSearchAsync<TData>(

@@ -584,9 +584,9 @@ public class Generic<T> { }
             lib3 = CreateCompilation(libSource3, assemblyName: "lib3").EmitToImageReference();
 
             CreateCompilation(source, new[] { lib1, lib2, lib3 }, TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (10,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (10,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe public class B1 : Generic<int*[]> { }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B1").WithLocation(10, 21),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(10, 1),
                 // (10,21): warning CS3009: 'B1': base type 'Generic<int*[]>' is not CLS-compliant
                 // unsafe public class B1 : Generic<int*[]> { }
                 Diagnostic(ErrorCode.WRN_CLS_BadBase, "B1").WithArguments("B1", "Generic<int*[]>").WithLocation(10, 21),
@@ -734,12 +734,12 @@ public interface Bad { }
 public interface Generic<T> { }
 ";
             CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (8,25): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (8,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe public interface B : Generic<int*[]> { }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B").WithLocation(8, 25),
-                // (14,25): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(8, 1),
+                // (14,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe public interface E : Bad, Generic<int*[]> { }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E").WithLocation(14, 25),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(14, 1),
                 // (10,18): warning CS3027: 'C' is not CLS-compliant because base interface 'Bad' is not CLS-compliant
                 // public interface C : Good, Bad { }
                 Diagnostic(ErrorCode.WRN_CLS_BadInterface, "C").WithArguments("C", "Bad").WithLocation(10, 18),
@@ -838,12 +838,12 @@ public interface Generic<T> { }
 ";
             // Implemented interfaces are not required to be compliant - only inherited ones.
             CreateCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (8,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (8,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe public class B : Generic<int*[]> { }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "B").WithLocation(8, 21),
-                // (14,21): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(8, 1),
+                // (14,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe public class E : Bad, Generic<int*[]> { }
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "E").WithLocation(14, 21));
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(14, 1));
 
             // Implemented interfaces are not required to be compliant - only inherited ones.
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics();

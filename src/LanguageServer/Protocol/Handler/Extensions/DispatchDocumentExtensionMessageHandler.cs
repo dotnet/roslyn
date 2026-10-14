@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Extensions;
 internal sealed class DispatchDocumentExtensionMessageHandler()
     : AbstractExtensionHandler, ILspServiceDocumentRequestHandler<DispatchDocumentExtensionMessageParams, DispatchExtensionMessageResponse>
 {
-    private const string MethodName = "textDocument/_vs_dipatchExtensionMessage";
+    private const string MethodName = "textDocument/_vs_dispatchExtensionMessage";
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(DispatchDocumentExtensionMessageParams request)
         => request.TextDocument;
 
     public async Task<DispatchExtensionMessageResponse> HandleRequestAsync(DispatchDocumentExtensionMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+        var document = await context.GetRequiredTextDocumentAsync(cancellationToken).ConfigureAwait(false);
         var solution = document.Project.Solution;
 
         var service = solution.Services.GetRequiredService<IExtensionMessageHandlerService>();

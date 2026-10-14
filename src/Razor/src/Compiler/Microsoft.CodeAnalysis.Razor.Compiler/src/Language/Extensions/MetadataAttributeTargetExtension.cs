@@ -34,11 +34,11 @@ internal class MetadataAttributeTargetExtension : IMetadataAttributeTargetExtens
         context.CodeWriter.Write(CompiledItemAttributeName);
         context.CodeWriter.Write("(typeof(");
         context.CodeWriter.Write(node.TypeName);
-        context.CodeWriter.Write("), @\"");
-        context.CodeWriter.Write(node.Kind);
-        context.CodeWriter.Write("\", @\"");
-        context.CodeWriter.Write(node.Identifier);
-        context.CodeWriter.WriteLine("\")]");
+        context.CodeWriter.Write("), ");
+        context.CodeWriter.WriteVerbatimStringLiteral(node.Kind.AsMemory());
+        context.CodeWriter.Write(", ");
+        context.CodeWriter.WriteVerbatimStringLiteral(node.Identifier.AsMemory());
+        context.CodeWriter.WriteLine(")]");
     }
 
     public void WriteRazorCompiledItemMetadataAttribute(CodeRenderingContext context, RazorCompiledItemMetadataAttributeIntermediateNode node)
@@ -99,8 +99,8 @@ internal class MetadataAttributeTargetExtension : IMetadataAttributeTargetExtens
         context.CodeWriter.Write(node.ChecksumAlgorithm.ToString());
         context.CodeWriter.Write("\", @\"");
         context.CodeWriter.Write(ChecksumUtilities.BytesToString(node.Checksum));
-        context.CodeWriter.Write("\", @\"");
-        context.CodeWriter.Write(node.Identifier);
-        context.CodeWriter.WriteLine("\")]");
+        context.CodeWriter.Write("\", ");
+        context.CodeWriter.WriteVerbatimStringLiteral(node.Identifier.AsMemory());
+        context.CodeWriter.WriteLine(")]");
     }
 }

@@ -1,0 +1,14 @@
+﻿Source Location: (1:0,1 [13] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/IdentifierInRazor11.cshtml)
+|documentation|
+Generated Location: (2096:28,6 [13] )
+|documentation|
+
+Source Location: (32:1,12 [48] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/IdentifierInRazor11.cshtml)
+|
+    private string documentation => "Value";
+|
+Generated Location: (2408:39,0 [48] )
+|
+    private string documentation => "Value";
+|
+

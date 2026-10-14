@@ -11,6 +11,9 @@ parameters:
     values: [ 'Debug', 'Release' ] 
   - name: timeout
     type: number
+  - name: warnAsError
+    type: boolean
+    default: false
   - name: testPlatform
     type: string
     default: x64
@@ -32,6 +35,7 @@ stages:
       jobName: Build_Windows_${{ parameters.configuration }}
       testArtifactName: Transport_Artifacts_Windows_${{ parameters.configuration }}
       configuration: ${{ parameters.configuration }}
+      warnAsError: ${{ parameters.warnAsError }}
       poolParameters: 
         name: ${{ parameters.poolName }}
         demands: ImageOverride -equals ${{ parameters.buildQueueName }}

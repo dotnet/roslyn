@@ -94,7 +94,7 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
         // form, ahead of the resolution and optimization passes that mutate them.
         var declDocNode = BuildDeclDocument(documentNode, primaryNamespace, primaryClass, renderMethod, plan);
         MakeImplInPlace(primaryClass, renderMethod, plan);
-        StripClassAttributesFromImpl(documentNode, primaryNamespace);
+        StripClassDecorationsFromImpl(documentNode, primaryNamespace);
 
         documentNode.DeclDocumentNode = declDocNode;
 
@@ -305,23 +305,24 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
     // and are shared into the decl subtree; the same node kept in the impl half decorates the impl partial
     // too, emitting the attribute twice on the combined type -- a CS0579 for a single-instance attribute,
     // a duplicate route for @page (RouteAttribute allows multiples, so it compiles but registers twice).
+    // Documentation also belongs only on the decl partial, so C# does not combine duplicate comments.
     // The class body, usings, directives, and synthesized helpers stay in the impl.
-    private static void StripClassAttributesFromImpl(
+    private static void StripClassDecorationsFromImpl(
         DocumentIntermediateNode documentNode,
         NamespaceDeclarationIntermediateNode primaryNamespace)
     {
-        RemoveClassAttributeChildren(primaryNamespace.Children);
-        RemoveClassAttributeChildren(documentNode.Children);
+        RemoveClassDecorationChildren(primaryNamespace.Children);
+        RemoveClassDecorationChildren(documentNode.Children);
     }
 
-    private static void RemoveClassAttributeChildren(IntermediateNodeCollection children)
+    private static void RemoveClassDecorationChildren(IntermediateNodeCollection children)
     {
         for (var i = children.Count - 1; i >= 0; i--)
         {
             // @layout/@attribute lower to a CSharpCodeIntermediateNode, @page to a RouteAttributeExtensionNode.
             // A compiler-synthesized decoration (e.g. the @rendermode attribute helper) is impl-half plumbing
             // and isn't shared into the decl, so it stays in the impl.
-            if (children[i] is CSharpCodeIntermediateNode { IsSynthesizedHelper: false } or RouteAttributeExtensionNode)
+            if (children[i] is CSharpCodeIntermediateNode { IsSynthesizedHelper: false } or RouteAttributeExtensionNode or DocumentationIntermediateNode)
             {
                 children.RemoveAt(i);
             }

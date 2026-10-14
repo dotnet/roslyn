@@ -70,7 +70,7 @@ internal partial class RawStringLiteralCommandHandler : IChainedCommandHandler<T
         using var transaction = CaretPreservingEditTransaction.TryCreate(
             CSharpEditorResources.Grow_raw_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
-        var edit = subjectBuffer.CreateEdit();
+        using var edit = subjectBuffer.CreateEdit();
         edit.Insert(textChange.Span.Start, textChange.NewText);
         edit.Apply();
 

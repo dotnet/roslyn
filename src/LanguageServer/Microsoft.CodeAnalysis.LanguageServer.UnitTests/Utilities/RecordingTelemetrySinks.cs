@@ -44,25 +44,23 @@ internal sealed class RecordingEventSink(
 }
 
 internal sealed class RecordingMetricSink(
-    Action? onMeasurement = null,
+    Action<RecordingMetricSink.Measurement>? onMeasurement = null,
     Action? onFlush = null) : IMetricSink
 {
-    private int _measurementCount;
+    private readonly ConcurrentQueue<Measurement> _measurements = new();
     private int _flushCount;
 
-    public int MeasurementCount => Volatile.Read(ref _measurementCount);
+    public ImmutableArray<Measurement> Measurements => [.. _measurements];
     public int FlushCount => Volatile.Read(ref _flushCount);
 
     public void Count(string eventName, string metricName, long delta, ReadOnlySpan<KeyValuePair<string, object?>> tags)
-    {
-        Interlocked.Increment(ref _measurementCount);
-        onMeasurement?.Invoke();
-    }
+        => Record(eventName, metricName, delta, tags);
 
     public void Record(string eventName, string metricName, long value, ReadOnlySpan<KeyValuePair<string, object?>> tags)
     {
-        Interlocked.Increment(ref _measurementCount);
-        onMeasurement?.Invoke();
+        var measurement = new Measurement(eventName, [.. tags]);
+        _measurements.Enqueue(measurement);
+        onMeasurement?.Invoke(measurement);
     }
 
     public void Flush()
@@ -70,6 +68,10 @@ internal sealed class RecordingMetricSink(
         Interlocked.Increment(ref _flushCount);
         onFlush?.Invoke();
     }
+
+    public readonly record struct Measurement(
+        string EventName,
+        ImmutableArray<KeyValuePair<string, object?>> Tags);
 }
 
 internal sealed class RecordingPoster : VSMetricSink.IMetricPoster

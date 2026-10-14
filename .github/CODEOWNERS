@@ -28,18 +28,17 @@ src/CodeStyle/ @dotnet/roslyn-ide
 src/Compilers/ @dotnet/roslyn-compiler
 
 # Both IDE and Compiler traits are in this file, so we don't want to ping each other for changes to just this file.
-
-# Technically this means that if someone changes _just_ this file no reviewers will be tagged, but this isn't likely
-
-# to happen.
-
+# Technically this means that if someone changes _just_ this file no reviewers will be tagged, but this isn't likely to happen.
 src/Compilers/Test/Core/Traits/Traits.cs
+
 src/EditorFeatures/ @dotnet/roslyn-ide
+src/ExpressionEvaluator/ @dotnet/roslyn-ide @dotnet/roslyn-compiler @tmat
 src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
 src/LanguageServer/ @dotnet/roslyn-ide
 src/NuGet/ @dotnet/roslyn-infrastructure
-src/Razor/ @dotnet/razor-tooling
+src/Razor/ @dotnet/razor-tooling @dotnet/roslyn-ide
+src/Razor/src/Compiler/ @dotnet/razor-tooling @dotnet/roslyn-ide @dotnet/razor-compiler
 src/RoslynAnalyzers/ @dotnet/roslyn-ide
 src/Scripting/ @dotnet/roslyn-interactive
 src/Setup/ @dotnet/roslyn-infrastructure

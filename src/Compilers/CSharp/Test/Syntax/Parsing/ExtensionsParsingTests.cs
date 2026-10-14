@@ -3332,7 +3332,7 @@ static class C
     }
 }
 """;
-        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
+        var comp = CreateCompilation(src, parseOptions: TestOptions.Regular15);
         comp.VerifyEmitDiagnostics(
             // (5,19): error CS1642: Fixed size buffer fields may only be members of structs
             //         fixed int field[10];

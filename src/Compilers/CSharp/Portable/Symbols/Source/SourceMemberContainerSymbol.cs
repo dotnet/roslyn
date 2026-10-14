@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out modifierErrors);
 
-            this.CheckUnsafeModifier(mods, diagnostics);
+            this.CheckUnsafeOptionForModifiers(mods, diagnostics);
 
             if (!modifierErrors &&
                 (mods & DeclarationModifiers.Abstract) != 0 &&
@@ -5046,7 +5046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_NoImplicitConversionToObject, typeSyntax, parameterType.Type);
                         }
 
-                        var ctor = new SynthesizedUnionCtor(this, typeSyntax.Location, parameterType, memberOffset: --memberOffset);
+                        var ctor = new SynthesizedUnionCtor(this, typeSyntax, parameterType, memberOffset: --memberOffset);
                         members.Add(ctor);
                     }
 

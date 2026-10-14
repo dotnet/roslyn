@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.razor(1,2): Warning RZ1048: The '@documentation' syntax will be treated as a directive in Razor 12.0. Use an explicit expression ('@(...)') to preserve the current meaning.

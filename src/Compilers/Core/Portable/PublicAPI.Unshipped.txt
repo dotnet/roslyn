@@ -42,3 +42,5 @@ Microsoft.CodeAnalysis.ITypeSymbol.UnionCaseTypes.get -> System.Collections.Immu
 [RSEXPERIMENTAL007]Microsoft.CodeAnalysis.PreCompilationSourceProductionContext.PreCompilationSourceProductionContext() -> void
 Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.PreCompilation = 16 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
 const Microsoft.CodeAnalysis.WellKnownGeneratorOutputs.PreCompilationSourceOutput = "PreCompilationSourceOutput" -> string!
+static Microsoft.CodeAnalysis.Operations.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation? operation, System.Func<Microsoft.CodeAnalysis.IOperation!, bool>? descendIntoChildren) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation!>!
+static Microsoft.CodeAnalysis.Operations.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation? operation, System.Func<Microsoft.CodeAnalysis.IOperation!, bool>? descendIntoChildren) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation!>!

@@ -64,7 +64,6 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         await CascadeBetweenAnonymousFunctionParametersAsync(solution, parameter, symbols, cancellationToken).ConfigureAwait(false);
         CascadeBetweenPropertyAndAccessorParameters(parameter, symbols);
         CascadeBetweenDelegateMethodParameters(parameter, symbols);
-        CascadeBetweenPartialMethodParameters(parameter, symbols);
         CascadeBetweenPrimaryConstructorParameterAndProperties(parameter, symbols, cancellationToken);
         CascadeBetweenAnonymousDelegateParameters(parameter, symbols);
 
@@ -235,21 +234,5 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
     {
         if (parameters != null && ordinal < parameters.Value.Length)
             results.Add(parameters.Value[ordinal]);
-    }
-
-    private static void CascadeBetweenPartialMethodParameters(
-        IParameterSymbol parameter,
-        ArrayBuilder<ISymbol> results)
-    {
-        // https://github.com/dotnet/roslyn/issues/73772: also cascade partial indexer parameters
-        if (parameter.ContainingSymbol is IMethodSymbol method)
-        {
-            var ordinal = parameter.Ordinal;
-            if (ordinal < method.PartialDefinitionPart?.Parameters.Length)
-                results.Add(method.PartialDefinitionPart.Parameters[ordinal]);
-
-            if (ordinal < method.PartialImplementationPart?.Parameters.Length)
-                results.Add(method.PartialImplementationPart.Parameters[ordinal]);
-        }
     }
 }

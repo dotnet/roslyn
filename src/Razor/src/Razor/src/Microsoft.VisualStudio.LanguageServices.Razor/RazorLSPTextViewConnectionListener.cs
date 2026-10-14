@@ -21,19 +21,6 @@ using IServiceProvider = System.IServiceProvider;
 
 namespace Microsoft.VisualStudio.Razor;
 
-// The entire purpose of this class is to workaround quirks in Visual Studio's core editor handling. In Razor scenarios
-// we can have a multitude of content types that represents a Razor file:
-//
-// ** Content Type Mappings **
-// RazorCSharp = .NET Framework Razor editor
-// RazorCoreCSharp = .NET Core Legacy Razor editor
-// Razor = .NET Core Razor editor (LSP / new)
-//
-// Because we have these content types that are applied based on what project the user is operating in we have to workaround
-// quirks on the core editor side to ensure that language services for our "Razor" content type properly get applied. For
-// instance we need to set a language service ID, we need to update options and we need to hookup data tip filters for
-// debugging. Typically all of this would be handled for us but due to bugs on the platform front we need to manually do this.
-// That is what this classes purpose is.
 [Export(typeof(ITextViewConnectionListener))]
 [TextViewRole(PredefinedTextViewRoles.Document)]
 [ContentType(RazorConstants.RazorLSPContentTypeName)]
@@ -87,19 +74,19 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
             throw new ArgumentNullException(nameof(textView));
         }
 
-        var vsTextView = _editorAdaptersFactory.GetViewAdapter(textView);
-
-        Assumes.NotNull(vsTextView);
-
         // In remote client scenarios there's a custom language service applied to buffers in order to enable delegation of interactions.
         // Because of this we don't want to break that experience so we ensure not to "set" a language service for remote clients.
-        if (!_editorFeatureDetector.IsRemoteClient())
+        if (!_editorFeatureDetector.IsRemoteClient() &&
+            _editorAdaptersFactory.GetBufferAdapter(textView.TextViewModel.DataBuffer) is { } vsBuffer)
         {
-            vsTextView.GetBuffer(out var vsBuffer);
             vsBuffer.SetLanguageServiceID(RazorConstants.RazorLanguageServiceGuid);
         }
 
-        RazorLSPTextViewFilter.CreateAndRegister(vsTextView, textView, _joinableTaskContext.Factory, _interceptedCommands);
+        // Multi-diff views don't have a view adapter, but still need the managed editor setup below.
+        if (_editorAdaptersFactory.GetViewAdapter(textView) is { } vsTextView)
+        {
+            RazorLSPTextViewFilter.CreateAndRegister(vsTextView, textView, _joinableTaskContext.Factory, _interceptedCommands);
+        }
 
         if (!textView.TextBuffer.IsRazorLSPBuffer())
         {

@@ -79,6 +79,8 @@ Key options:
 | `--testKind` | `ioperation`, `runtimeasync`, or `usedassemblies`; `runtimeasync` requires `--testFramework:core` |
 | `--testfilter` | xUnit filter expression passed to `dotnet test --filter` |
 | `--timeout` | Minutes before killing tests (default: 90) |
+| `--html` / `--html-` | Enable/disable HTML reports and opening failed results (default: on locally, off with `--ci` or `--helix`) |
+| `--ci` | Apply CI behavior, including disabling HTML reports by default |
 | `--helix` | Submit test work items to Helix instead of running locally |
 | `--env:KEY=VALUE` | Set environment variable in test processes |
 

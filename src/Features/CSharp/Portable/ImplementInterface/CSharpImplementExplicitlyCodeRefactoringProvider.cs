@@ -52,11 +52,9 @@ internal sealed class CSharpImplementExplicitlyCodeRefactoringProvider() : Abstr
         var references = await SymbolFinder.FindReferencesAsync(
             implMember, solution, findRefsOptions, cancellationToken).ConfigureAwait(false);
 
-        var implReferences = references.FirstOrDefault();
-        if (implReferences == null)
-            return;
-
-        var referenceByDocument = implReferences.Locations.GroupBy(loc => loc.Document);
+        // The references may be reported under any of the symbols that are the same symbol as implMember (its copies
+        // in linked files, or the parts of a partial member), so take them all.
+        var referenceByDocument = references.SelectMany(r => r.Locations).GroupBy(loc => loc.Document);
 
         foreach (var group in referenceByDocument)
         {
