@@ -119,7 +119,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         await activeLoads;
 
         Assert.False(onDemandLoader.CanLoad(documentUri));
-        Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
+        await onDemandLoader.WaitForActiveLoadsAsync();
 
         build.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
     }
@@ -206,7 +206,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
         Assert.True(load.IsCompletedSuccessfully);
         await load;
-        Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
+        await onDemandLoader.WaitForActiveLoadsAsync();
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
 
@@ -225,7 +225,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
         Assert.True(load.IsCompletedSuccessfully);
         await load;
-        Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
+        await onDemandLoader.WaitForActiveLoadsAsync();
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
 
