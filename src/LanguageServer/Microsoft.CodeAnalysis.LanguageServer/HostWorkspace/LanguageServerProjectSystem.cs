@@ -259,7 +259,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
                 TargetFrameworkIdentifier = snapshot.Properties["TargetFrameworkIdentifier"],
                 TargetFrameworkVersion = snapshot.Properties["TargetFrameworkVersion"],
                 ProjectAssetsFilePath = snapshot.Properties["ProjectAssetsFile"],
-                CommandLineArgs = GetItems("CommandLineArgument").Select(static item => item.ItemSpec).ToArray(),
+                CommandLineArgs = RehydrateCommandLineArguments(),
                 Documents = GetItems("Compile").Select(CreateDocumentFileInfo).ToArray(),
                 AdditionalDocuments = GetItems("AdditionalFile").Select(CreateDocumentFileInfo).ToArray(),
                 AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(CreateDocumentFileInfo).ToArray(),
@@ -276,6 +276,42 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ImmutableArray<ProjectDataItem> GetItems(string itemType)
                 => snapshot.ItemsByType.TryGetValue(itemType, out var items) ? items : [];
 
+            string[] RehydrateCommandLineArguments()
+            {
+                var arguments = GetItems("CommandLineArgument").Select(static item => item.ItemSpec).ToList();
+
+                // The standalone language server's project system reads metadata and analyzer references
+                // from compiler command-line arguments, but the cache stores them as separate items.
+                // Restore those arguments before adding the cached project to the workspace.
+                foreach (var reference in GetItems("MetadataReference"))
+                {
+                    var option = reference.Metadata["embedInteropTypes"] is null ? "reference" : "link";
+                    var aliases = GetAliases(reference);
+                    var path = $"\"{reference.ItemSpec}\"";
+                    if (aliases.Length == 0)
+                    {
+                        arguments.Add($"/{option}:{path}");
+                    }
+                    else
+                    {
+                        // The compiler accepts one alias per argument; an unaliased reference preserves "global".
+                        foreach (var alias in aliases)
+                        {
+                            arguments.Add(string.Equals(alias, "global", StringComparison.OrdinalIgnoreCase)
+                                ? $"/{option}:{path}"
+                                : $"/{option}:{alias}={path}");
+                        }
+                    }
+                }
+
+                foreach (var analyzer in GetItems("AnalyzerReference"))
+                {
+                    arguments.Add($"/analyzer:\"{analyzer.ItemSpec}\"");
+                }
+
+                return [.. arguments];
+            }
+
             static DocumentFileInfo CreateDocumentFileInfo(ProjectDataItem item)
             {
                 var link = item.Metadata["Link"];
@@ -289,4 +325,12 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
     internal static bool GetReferenceOutputAssembly(ProjectDataItem item)
         => !string.Equals(item.Metadata["ReferenceOutputAssembly"], bool.FalseString, StringComparison.OrdinalIgnoreCase);
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(LanguageServerProjectSystem projectSystem)
+    {
+        public Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+            => projectSystem.TryLoadProjectFromCacheAsync(projectPath, cancellationToken);
+    }
 }
