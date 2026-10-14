@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -71,6 +72,11 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
         /// Removes a file (like a .editorconfig) used to configure analyzers.
         /// </summary>
         void RemoveAnalyzerConfigFile(string filePath);
+
+        /// <summary>
+        /// Creates a batching scope for this context.
+        /// </summary>
+        ValueTask<IAsyncDisposable> CreateBatchScopeAsync(CancellationToken cancellationToken);
 
         void StartBatch();
         IAsyncDisposable CreateBatchScope();
