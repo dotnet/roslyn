@@ -27,6 +27,91 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 public sealed class NativeCodeStyleSettingsSynchronizerTests
 {
     [WpfTheory]
+    [InlineData(LanguageNames.CSharp, "legacyWrite")]
+    [InlineData(LanguageNames.CSharp, "seedCommit")]
+    [InlineData(LanguageNames.CSharp, "invalidScalar")]
+    [InlineData(LanguageNames.VisualBasic, "legacyWrite")]
+    [InlineData(LanguageNames.VisualBasic, "seedCommit")]
+    [InlineData(LanguageNames.VisualBasic, "invalidScalar")]
+    public async Task ServiceLifetimeRecoversFromFailedBootstrap(string language, string failure)
+    {
+        using var cancellation = new CancellationTokenSource();
+        var ready = new TaskCompletionSource<Host>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var failures = new List<Task>();
+        Host? failedHost = null;
+        var attempts = 0;
+        var lifetime = NativeCodeStyleSettingsService.RunAsync(async () =>
+        {
+            using var host = new Host(language);
+            if (++attempts == 1)
+            {
+                failedHost = host;
+                switch (failure)
+                {
+                    case "legacyWrite":
+                        host.Native.Values[host.Binding.Moniker] = "true";
+                        host.Legacy.FailNextWrite = true;
+                        break;
+                    case "seedCommit":
+                        host.Legacy.Value = new CodeStyleOption2<bool>(true, NotificationOption2.Warning).ToXElement().ToString();
+                        host.Native.FailNextCommit = true;
+                        break;
+                    case "invalidScalar":
+                        host.Native.Values[host.Binding.SeverityMoniker] = "invalid";
+                        break;
+                    default:
+                        throw new InvalidOperationException(failure);
+                }
+            }
+            await host.InitializeAsync();
+            ready.SetResult(host);
+            await Task.Delay(Timeout.Infinite, cancellation.Token);
+        }, failures.Add, cancellation.Token);
+
+        Host recovered;
+        try
+        {
+            recovered = await ready.Task;
+            Assert.Equal(2, attempts);
+            await Assert.ThrowsAnyAsync<Exception>(() => Assert.Single(failures));
+            Assert.False(failedHost!.Native.HasSubscription);
+            recovered.Native.Change(recovered.Binding.Moniker, "true");
+            await recovered.DrainAsync();
+            Assert.True(recovered.ReadLegacy().Value);
+            await recovered.Legacy.ImportAsync(new CodeStyleOption2<bool>(false, NotificationOption2.Error).ToXElement().ToString());
+            await recovered.DrainAsync();
+            Assert.Equal("false", recovered.Native.Effective(recovered.Binding.Moniker));
+            Assert.Equal("error", recovered.Native.Effective(recovered.Binding.SeverityMoniker));
+        }
+        finally
+        {
+            cancellation.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => lifetime);
+        }
+        Assert.False(recovered.Native.HasSubscription);
+        _ = Assert.Single(failures);
+    }
+
+    [WpfFact]
+    public async Task ServiceDisposalCancelsBootstrapRetry()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var failed = new TaskCompletionSource<Task>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var attempts = 0;
+        var lifetime = NativeCodeStyleSettingsService.RunAsync(() =>
+        {
+            attempts++;
+            throw new InvalidOperationException("Unavailable settings service.");
+        }, task => failed.SetResult(task), cancellation.Token);
+
+        var failure = await failed.Task;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => failure);
+        cancellation.Cancel();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => lifetime);
+        Assert.Equal(1, attempts);
+    }
+
+    [WpfTheory]
     [InlineData(LanguageNames.CSharp)]
     [InlineData(LanguageNames.VisualBasic)]
     public async Task BootstrapMigratesCompoundXmlUsingExistingHiddenSeverityContract(string language)
@@ -319,6 +404,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         public readonly Dictionary<string, string> Values = [];
         public readonly Dictionary<string, string> Defaults = [];
         private IObserver<SettingsUpdate>? _observer;
+        public bool HasSubscription => _observer is not null;
         private int _persistedReads;
         public Action? BeforeSeedRead;
         public Func<Task>? BeforeEffectiveRead;

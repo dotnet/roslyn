@@ -56,7 +56,11 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
         if (Interlocked.Exchange(ref _started, 1) != 0)
             return;
         var cancellationToken = _threadingContext.DisposalToken;
-        _threadingContext.JoinableTaskFactory.RunAsync(async () =>
+        _threadingContext.JoinableTaskFactory.RunAsync(() => RunAsync(SynchronizeAsync,
+            task => task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken), cancellationToken))
+            .Task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
+
+        async Task SynchronizeAsync()
         {
             // Do not re-enter the option persister's Lazy while it is being created.
             await System.Threading.Tasks.Task.Yield();
@@ -74,7 +78,26 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
                 task => task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken), _threadingContext.JoinableTaskContext, cancellationToken);
             await synchronizer.InitializeAsync().ConfigureAwait(false);
             await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
-        }).Task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
+        }
+    }
+
+    internal static async Task RunAsync(Func<Task> synchronizeAsync, Action<Task> observe, CancellationToken cancellationToken)
+    {
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                await synchronizeAsync().ConfigureAwait(false);
+                return;
+            }
+            catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+            {
+                observe(Task.FromException(e));
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private IEnumerable<NativeCodeStyleSettingsSynchronizer.Binding> CreateBindings()
