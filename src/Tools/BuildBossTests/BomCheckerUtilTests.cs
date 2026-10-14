@@ -69,6 +69,101 @@ public sealed class BomCheckerUtilTests
         Assert.True(succeeded, output.ToString());
     }
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void CheckFilesRejectsUnexpectedBomForUtf8(bool withBom, bool expectedSuccess)
+    {
+        using var repository = new TemporaryRepository();
+        repository.WriteText(".editorconfig", "root = true\n[*.cs]\ncharset = utf-8\n");
+        repository.WriteBytes("file.cs", withBom);
+
+        var output = new StringWriter();
+        var succeeded = new BomCheckerUtil(repository.Path).CheckFiles(new[] { "file.cs" }, output);
+
+        Assert.Equal(expectedSuccess, succeeded);
+        Assert.Equal(expectedSuccess ? "" : "file.cs: expected utf-8" + Environment.NewLine, output.ToString());
+    }
+
+    [Theory]
+    [InlineData("src/Unset.cs", false, true)]
+    [InlineData("src/Unset.cs", true, true)]
+    [InlineData("src/nested/Override.cs", false, true)]
+    [InlineData("src/nested/Override.cs", true, false)]
+    public void CheckFilesHonorsAncestorUnsetAndNestedCharsetOverride(string relativePath, bool withBom, bool expectedSuccess)
+    {
+        using var repository = new TemporaryRepository();
+        repository.WriteText(".editorconfig", "root = true\n[*.cs]\ncharset = utf-8-bom\n");
+        repository.WriteText("src/.editorconfig", "[*.cs]\ncharset = unset\n");
+        repository.WriteText("src/nested/.editorconfig", "[*.cs]\ncharset = utf-8\n");
+        repository.WriteBytes(relativePath, withBom);
+
+        var output = new StringWriter();
+        var succeeded = new BomCheckerUtil(repository.Path).CheckFiles(new[] { relativePath }, output);
+
+        Assert.Equal(expectedSuccess, succeeded);
+        Assert.Equal(expectedSuccess ? "" : relativePath + ": expected utf-8" + Environment.NewLine, output.ToString());
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    public void CheckFilesChecksShebangWithoutCharset(bool withBom, bool expectedSuccess)
+    {
+        using var repository = new TemporaryRepository();
+        repository.WriteText(".editorconfig", "root = true\n");
+        repository.WriteText("script.sh", "#!/usr/bin/env bash\n", withBom);
+
+        var output = new StringWriter();
+        var succeeded = new BomCheckerUtil(repository.Path).CheckFiles(new[] { "script.sh" }, output);
+
+        Assert.Equal(expectedSuccess, succeeded);
+        Assert.Equal(
+            expectedSuccess ? "" : "script.sh: expected shebang at byte zero (no BOM)" + Environment.NewLine,
+            output.ToString());
+    }
+
+    [Fact]
+    public void CheckFilesSkipsEngCommonBeforeReadingFilesOrConfigs()
+    {
+        using var repository = new TemporaryRepository();
+        repository.WriteText(".editorconfig", "root = true\n[*]\ncharset = utf-16\n");
+        repository.WriteText("eng/common/.editorconfig", "[*]\ncharset = utf-16\n");
+        repository.WriteText("eng/common/script.sh", "#!/usr/bin/env bash\n", withBom: true);
+        repository.WriteBytes("ordinary.cs", withBom: false);
+        using var rootConfig = File.Open(System.IO.Path.Combine(repository.Path, ".editorconfig"), FileMode.Open, FileAccess.Read, FileShare.None);
+        using var syncedConfig = File.Open(System.IO.Path.Combine(repository.Path, "eng", "common", ".editorconfig"), FileMode.Open, FileAccess.Read, FileShare.None);
+        using var syncedFile = File.Open(System.IO.Path.Combine(repository.Path, "eng", "common", "script.sh"), FileMode.Open, FileAccess.Read, FileShare.None);
+
+        var output = new StringWriter();
+        var checker = new BomCheckerUtil(repository.Path);
+        var succeeded = checker.CheckFiles(new[] { "eng/common/.editorconfig", "eng/common/script.sh" }, output);
+
+        Assert.True(succeeded, output.ToString());
+        Assert.Equal("", output.ToString());
+        Assert.Throws<IOException>(() => checker.CheckFiles(new[] { "ordinary.cs" }, output));
+    }
+
+    [Fact]
+    public void CheckFilesAcceptsBomForSdkSyncedSourceWithoutCharset()
+    {
+        using var repository = new TemporaryRepository();
+        repository.WriteText(".editorconfig", "root = true\n[*.cs]\ncharset = utf-8\n");
+        repository.WriteText("src/Workspaces/CSharp/Portable/SyncedSource/FileBasedPrograms/.editorconfig", """
+            root = true
+            [*.cs]
+            generated_code = true
+            """);
+        const string relativePath = "src/Workspaces/CSharp/Portable/SyncedSource/FileBasedPrograms/Present.cs";
+        repository.WriteBytes(relativePath, withBom: true);
+
+        var output = new StringWriter();
+        var succeeded = new BomCheckerUtil(repository.Path).CheckFiles(new[] { relativePath }, output);
+
+        Assert.True(succeeded, output.ToString());
+        Assert.Equal("", output.ToString());
+    }
+
     [Fact]
     public void CheckFilesDistinguishesMissingCharsetFromExplicitUnsetForSdkSyncedSources()
     {
@@ -156,6 +251,7 @@ public sealed class BomCheckerUtilTests
     public void CheckReportsGitFailureAndStandardError()
     {
         using var repository = new TemporaryRepository(initializeGit: false);
+        repository.WriteText(".git", "gitdir: missing\n");
 
         var output = new StringWriter();
         var succeeded = new BomCheckerUtil(repository.Path).Check(output);
@@ -167,7 +263,7 @@ public sealed class BomCheckerUtilTests
 
     private sealed class TemporaryRepository : IDisposable
     {
-        public string Path { get; } = System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+        public string Path { get; } = System.IO.Path.Combine(AppContext.BaseDirectory, "BomCheckerTests", Guid.NewGuid().ToString("N"));
 
         public TemporaryRepository(bool initializeGit = true)
         {

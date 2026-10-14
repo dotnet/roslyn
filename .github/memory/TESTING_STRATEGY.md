@@ -22,6 +22,8 @@ the one for your area):
 | Project-data tests | `src/ProjectData/Microsoft.NET.ProjectData{,.Generators,.Tasks}.Tests/`; assemblies use the `UnitTests` suffix. |
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
 
+BuildBoss BOM fixtures use isolated repositories under the test output directory. A Git-failure fixture uses an invalid `.git` file to prevent Git from discovering the enclosing Roslyn repository.
+
 Frameworks: xUnit with Roslyn test utilities.
 
 ## Repo-wide Authoring Conventions
