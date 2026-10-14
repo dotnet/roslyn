@@ -131,38 +131,29 @@ internal sealed partial class OnDemandProjectLoader(
             if (projectPaths.IsEmpty)
                 return;
 
-            var pendingProjects = new Queue<string>(projectPaths);
+            var projectsToLoad = new List<Task<LoadedProject?>>();
             var visitedProjects = new HashSet<string>(PathUtilities.Comparer);
 
-            while (pendingProjects.Count > 0)
+            foreach (var projectPath in projectPaths)
+                QueueProject(projectPath, projectsToLoad, visitedProjects);
+
+            while (projectsToLoad.Count > 0)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var projectsToLoad = new List<Task<LoadedProject>>();
-                while (pendingProjects.TryDequeue(out var projectPath))
+                var completedLoad = await Task.WhenAny(projectsToLoad).WaitAsync(cancellationToken);
+                projectsToLoad.Remove(completedLoad);
+
+                var project = await completedLoad;
+                if (project is null)
+                    continue;
+
+                foreach (var referencePath in await project.GetProjectReferencePathsAsync(cancellationToken))
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    if (!visitedProjects.Add(projectPath))
-                        continue;
-
-                    _logger.LogInformation("Loading project on demand for '{ProjectPath}'.", projectPath);
-                    projectsToLoad.Add(projectLoader.BeginLoadingProjectAsync(projectPath, LanguageServerProjectLoader.ProjectReloadPriority.High));
-                }
-
-                foreach (var project in await Task.WhenAll(projectsToLoad).WaitAsync(cancellationToken))
-                {
-                    if (!await project.WaitForLoadAsync(cancellationToken))
-                        continue;
-
-                    foreach (var referencePath in await project.GetProjectReferencePathsAsync(cancellationToken))
-                    {
-                        if (discovery.IsSupportedProject(referencePath))
-                            pendingProjects.Enqueue(referencePath);
-                    }
+                    if (discovery.IsSupportedProject(referencePath))
+                        QueueProject(referencePath, projectsToLoad, visitedProjects);
                 }
             }
-
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -176,6 +167,35 @@ internal sealed partial class OnDemandProjectLoader(
             lock (_activeLoadsGate)
             {
                 _activeTraversals.Remove(directory);
+            }
+        }
+
+        void QueueProject(string projectPath, List<Task<LoadedProject?>> projectsToLoad, HashSet<string> visitedProjects)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (visitedProjects.Add(projectPath))
+                projectsToLoad.Add(LoadProjectAsync(projectPath, cancellationToken));
+        }
+
+        async Task<LoadedProject?> LoadProjectAsync(string projectPath, CancellationToken cancellationToken)
+        {
+            try
+            {
+                _logger.LogInformation("Loading project on demand for '{ProjectPath}'.", projectPath);
+                var project = await projectLoader.BeginLoadingProjectAsync(
+                    projectPath, LanguageServerProjectLoader.ProjectReloadPriority.High).WaitAsync(cancellationToken);
+
+                return await project.WaitForLoadAsync(cancellationToken) ? project : null;
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return null;
+            }
+            catch (Exception exception) when (FatalError.ReportAndCatch(exception))
+            {
+                _logger.LogError(exception, "Failed to load project on demand for '{ProjectPath}'.", projectPath);
+                return null;
             }
         }
     }
