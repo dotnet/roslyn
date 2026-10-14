@@ -22259,7 +22259,160 @@ class Program
         }
 
         [Fact]
-        public void NullableAnalysis_81_State_From_Conversion_Params()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86064")]
+        public void NullableAnalysis_81_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params MyCollection x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        var s = new S1("""");
+#line 150
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+#line 200
+        var s = new S1((string?)null);
+#line 250
+        _ = s.Value.ToString();
+    }
+
+    static void Test3()
+    {
+#line 300
+        var s = new S1();
+#line 350
+        _ = s.Value.ToString();
+    }
+
+    static void Test4()
+    {
+#line 400
+        _ = new S1([""""]);
+#line 500
+        _ = new S1([null]);
+#line 600
+        _ = new S1([]);
+    }
+}
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+    private readonly List<object?> _list;
+    public MyCollection(List<object?> list) { _list = list; }
+    public IEnumerator<object?> GetEnumerator() => _list.GetEnumerator();
+}
+class MyCollectionBuilder
+{
+    public static MyCollection? Create(ReadOnlySpan<object?> items)
+    {
+        return new MyCollection(new List<object?>(items.ToArray()));
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net100);
+
+            // Note, expecting warnings for lines 100, 150, 200, 250, 300, 350. Tracked by https://github.com/dotnet/roslyn/issues/86064
+            comp.VerifyDiagnostics(
+                // (400,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([""]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, @"[""""]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(400, 20),
+                // (500,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([null]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[null]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(500, 20),
+                // (600,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(600, 20)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86064")]
+        public void NullableAnalysis_82_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params MyCollection? x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+        var s = new S1((string?)null);
+#line 200
+        _ = s.Value.ToString();
+    }
+
+    static void Test3()
+    {
+        var s = new S1();
+#line 300
+        _ = s.Value.ToString();
+    }
+}
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+    private readonly List<object?> _list;
+    public MyCollection(List<object?> list) { _list = list; }
+    public IEnumerator<object?> GetEnumerator() => _list.GetEnumerator();
+}
+class MyCollectionBuilder
+{
+    public static MyCollection? Create(ReadOnlySpan<object?> items)
+    {
+        return new MyCollection(new List<object?>(items.ToArray()));
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net100);
+
+            // Note, expecting warnings for lines 100, 200, 300. Tracked by https://github.com/dotnet/roslyn/issues/86064
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_83_State_From_Conversion_Params()
         {
             var src = @"
 #nullable enable

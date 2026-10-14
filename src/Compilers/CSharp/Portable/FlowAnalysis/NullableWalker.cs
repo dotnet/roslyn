@@ -4497,7 +4497,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (node.Expanded)
                             {
-                                // We can assume that an expanded collection is never null
+                                // For now, assume that an expanded collection is never null.
+                                // This might not be the case with collection builders, tracked by https://github.com/dotnet/roslyn/issues/86064.
+                                // Still better than potentially inferring from an argument that maps to an element or using default state.
+                                // Especially that nullable builders are unlikely to exist outside of compiler tests.
                                 SetUnionValueState(slot, valueProperty, NullableFlowState.NotNull);
                             }
                             else if (!argumentConversionResultsOpt.IsDefaultOrEmpty)
