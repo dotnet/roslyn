@@ -485,13 +485,12 @@ internal sealed partial class SolutionCompilationState
 
                 // Next we need to check if this particular generator was run as part of the prior driver execution.
                 // Either we have no state for the generator, in which case it can't have run. If we do have state,
-                // the contract from the generator driver is that a generator that hasn't run yet produces a default
-                // ImmutableArray for GeneratedSources. Note that this is different from an empty array, which
-                // indicates that the generator ran, but didn't produce any documents:
+                // A generator that hasn't been initialized produces a default ImmutableArray for GeneratedSources.
+                // Initialization and shared-source phases are not filtered by the driver. We select uninitialized
+                // generators here so their regular outputs are initially eligible, unless a shared phase fails.
 
-                // - GeneratedSources == default ImmutableArray: the generator was not invoked during that run (must run).
-                // - GeneratedSources == non-default empty array: the generator ran but produced no documents (may skip).
-                // - GeneratedSources == non-default non-empty array: the generator ran and produced documents (may skip).
+                // - GeneratedSources == default ImmutableArray: the generator has not been initialized (must run).
+                // - GeneratedSources == non-default array: the generator has been initialized (may skip).
 
                 if (!priorRunResult.Results.Any(r => r.Generator == context.Generator && !r.GeneratedSources.IsDefault))
                     return true;

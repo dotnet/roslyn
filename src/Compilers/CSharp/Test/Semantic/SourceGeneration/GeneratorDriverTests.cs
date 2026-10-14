@@ -4846,12 +4846,13 @@ class C { }
         }
 
         [Fact]
-        public void GeneratorDriver_ReturnsEmptyRunResult_IfFiltered_BeforeRunning()
+        public void GeneratorDriver_InitializesFilteredGenerators_WithoutRunningStandardOutputs()
         {
             bool initWasCalled = false;
+            bool executeWasCalled = false;
 
             var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen1Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator1"); }); }).AsSourceGenerator();
-            var generator2 = new PipelineCallbackGenerator2((ctx) => { initWasCalled = true; ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen2Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator2"); }); }).AsSourceGenerator();
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { initWasCalled = true; ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { executeWasCalled = true; spc.AddSource("gen2Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator2"); }); }).AsSourceGenerator();
 
             var compilation = CreateCompilation("class Compilation1{}");
             GeneratorDriver driver = CSharpGeneratorDriver.Create(generator1, generator2);
@@ -4869,10 +4870,23 @@ class C { }
             Assert.Equal(generator1, result.Results[0].Generator);
             Assert.Equal(1, result.Results[0].GeneratedSources.Length);
 
-            // the second generator was never initialized and produced no results
-            Assert.False(initWasCalled);
+            // The second generator is initialized, but its regular outputs are filtered.
+            Assert.True(initWasCalled);
+            Assert.False(executeWasCalled);
             Assert.Equal(generator2, result.Results[1].Generator);
-            Assert.True(result.Results[1].GeneratedSources.IsDefault);
+            Assert.Empty(result.Results[1].GeneratedSources);
+        }
+
+        [Fact]
+        public void GeneratorDriver_Filtering_DoesNotSuppressInitializationFailure()
+        {
+            var generator = new PipelineCallbackGenerator(_ =>
+                throw new InvalidOperationException("initialization failure")).AsSourceGenerator();
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator);
+            driver = driver.RunGenerators(CreateCompilation("class C { }"), static _ => false);
+            var result = Assert.Single(driver.GetRunResult().Results);
+            Assert.Equal("initialization failure", Assert.IsType<InvalidOperationException>(result.Exception).Message);
+            Assert.Equal("CS8784", Assert.Single(result.Diagnostics).Id);
         }
 
         [Fact]
@@ -4930,10 +4944,8 @@ class C { }
             Assert.Single(results.GeneratedTrees);
         }
 
-        // check post init trees get re-parsed if we change parse options while suppressed
-
         [Fact]
-        public void GeneratorDriver_DoesNotIncludePostInitTrees_WhenFiltered()
+        public void GeneratorDriver_IncludesPostInitTrees_WhenFiltered()
         {
             var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterPostInitializationOutput(postInitCtx => { postInitCtx.AddSource("staticSource.cs", "//static"); }); }).AsSourceGenerator();
 
@@ -4944,12 +4956,12 @@ class C { }
             driver = driver.RunGenerators(compilation, (ctx) => false);
             var result = driver.GetRunResult();
 
-            Assert.Empty(result.GeneratedTrees);
+            var postInitTree = Assert.Single(result.GeneratedTrees);
 
             driver = driver.RunGenerators(compilation);
             result = driver.GetRunResult();
 
-            Assert.Single(result.GeneratedTrees);
+            Assert.Same(postInitTree, Assert.Single(result.GeneratedTrees));
         }
 
         [Fact]
@@ -4973,18 +4985,19 @@ class C { }
             driver = driver.RunGenerators(compilation, (ctx) => ctx.Generator == generator1);
             result = driver.GetRunResult();
 
-            // the post init tree from generator2 still has the old parse options, as it didn't run
+            // Shared trees are reparsed even when regular execution is filtered.
             Assert.Equal(2, result.GeneratedTrees.Length);
             Assert.Same(newParseOptions, result.GeneratedTrees[0].Options);
-            Assert.Same(parseOptions, result.GeneratedTrees[1].Options);
+            Assert.Same(newParseOptions, result.GeneratedTrees[1].Options);
+            var filteredPostInitTree = result.GeneratedTrees[1];
 
-            // now run everything and ensure it brings the init trees up to date
             driver = driver.RunGenerators(compilation);
             result = driver.GetRunResult();
 
             Assert.Equal(2, result.GeneratedTrees.Length);
             Assert.Same(newParseOptions, result.GeneratedTrees[0].Options);
             Assert.Same(newParseOptions, result.GeneratedTrees[1].Options);
+            Assert.Same(filteredPostInitTree, result.GeneratedTrees[1]);
         }
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.

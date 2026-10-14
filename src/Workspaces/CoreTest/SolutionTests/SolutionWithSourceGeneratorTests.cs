@@ -150,6 +150,43 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
     }
 
+#pragma warning disable RSEXPERIMENTAL007
+    [Fact]
+    public async Task BalancedModeInitialRunSeesSharedSources()
+    {
+        using var workspace = CreateWorkspace();
+        var configuration = Assert.IsType<TestWorkspaceConfigurationService>(
+            workspace.Services.GetRequiredService<IWorkspaceConfigurationService>());
+        configuration.Options = configuration.Options with { SourceGeneratorExecution = SourceGeneratorExecutionPreference.Balanced };
+        var parseOptions = CSharpParseOptions.Default;
+        var regularCallCount = 0;
+        var generator = new PipelineCallbackGenerator(ic =>
+        {
+            ic.RegisterPostInitializationOutput(ctx => ctx.AddSource("postInit", "public class PostInitMarker { }"));
+            ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider,
+                (ctx, _) => ctx.AddSource("preCompilation", "public class PreCompilationMarker { }"));
+            ic.RegisterSourceOutput(ic.CompilationProvider, (ctx, compilation) =>
+            {
+                regularCallCount++;
+                Assert.NotNull(compilation.GetTypeByMetadataName("PostInitMarker"));
+                Assert.NotNull(compilation.GetTypeByMetadataName("PreCompilationMarker"));
+                ctx.AddSource("regular", "public class RegularMarker { }");
+            });
+        }).AsSourceGenerator();
+        var project = AddEmptyProject(workspace.CurrentSolution)
+            .WithParseOptions(parseOptions)
+            .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+            .AddMetadataReference(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
+            .AddAnalyzerReference(new TestGeneratorReference(generator));
+        var result = await project.GetRequiredCompilationAsync(CancellationToken.None);
+        Assert.Equal(1, regularCallCount);
+        Assert.NotNull(result.GetTypeByMetadataName("RegularMarker"));
+        using var image = new MemoryStream();
+        var emit = result.Emit(image);
+        Assert.True(emit.Success, string.Join(Environment.NewLine, emit.Diagnostics));
+    }
+#pragma warning restore RSEXPERIMENTAL007
+
     // We only run this test on Release, as the compiler has asserts that trigger in Debug that the type names probably shouldn't be the same.
     [ConditionalTheory(typeof(IsRelease)), CombinatorialData]
     public async Task GeneratorAddedWithDifferentFilePathsProducesDistinctDocumentIds(TestHost testHost)

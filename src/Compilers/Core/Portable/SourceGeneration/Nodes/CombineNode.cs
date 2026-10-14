@@ -70,6 +70,8 @@ namespace Microsoft.CodeAnalysis
                     (EntryState.Cached, false) => EntryState.Modified,
                     _ => entry1.State
                 };
+                if (previousTable is null && state != EntryState.Removed)
+                    state = EntryState.Added;
 
                 var entry = (entry1.Item, input2);
                 if (state != EntryState.Modified || _comparer is null || !tableBuilder.TryModifyEntry(entry, stopwatch.Elapsed, stepInputs, state))

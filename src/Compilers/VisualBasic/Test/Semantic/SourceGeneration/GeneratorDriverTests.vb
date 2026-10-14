@@ -36,6 +36,82 @@ End Class
             Assert.NotEqual(compilation, outputCompilation)
         End Sub
 
+#Disable Warning RSEXPERIMENTAL007
+        <Fact>
+        Public Sub Filtering_Only_Applies_To_Regular_Outputs()
+            Dim parseOptions = TestOptions.Regular
+            Dim compilation As Compilation = GetCompilation(parseOptions)
+            Dim postInitCallCount = 0
+            Dim preCompilationCallCount = 0
+            Dim standardCallCount = 0
+            Dim observedCompilation As Compilation = Nothing
+            Dim producer = New PipelineCallbackGenerator(
+                Sub(ctx)
+                    ctx.RegisterPostInitializationOutput(
+                        Sub(output)
+                            postInitCallCount += 1
+                            output.AddSource("postInitMarker", "Public Class PostInitMarker" & vbCrLf & "End Class")
+                        End Sub)
+                    ctx.RegisterPreCompilationSourceOutput(ctx.ParseOptionsProvider,
+                        Sub(output, options)
+                            preCompilationCallCount += 1
+                            output.AddSource("preCompilationMarker", "Public Class PreCompilationMarker" & vbCrLf & "End Class")
+                        End Sub)
+                    ctx.RegisterSourceOutput(ctx.ParseOptionsProvider,
+                        Sub(output, options)
+                            standardCallCount += 1
+                            output.AddSource("standardMarker", "Public Class StandardMarker" & vbCrLf & "End Class")
+                        End Sub)
+                End Sub).AsSourceGenerator()
+            Dim consumer = New PipelineCallbackGenerator2(
+                Sub(ctx)
+                    ctx.RegisterSourceOutput(ctx.CompilationProvider,
+                        Sub(output, input) observedCompilation = input)
+                End Sub).AsSourceGenerator()
+            Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(
+                ImmutableArray.Create(producer, consumer), parseOptions:=parseOptions)
+
+            driver = driver.RunGenerators(compilation, Function(context) context.Generator Is consumer)
+            Assert.NotNull(observedCompilation.GetTypeByMetadataName("PostInitMarker"))
+            Assert.NotNull(observedCompilation.GetTypeByMetadataName("PreCompilationMarker"))
+            Assert.Null(observedCompilation.GetTypeByMetadataName("StandardMarker"))
+            Assert.Equal(1, postInitCallCount)
+            Assert.Equal(1, preCompilationCallCount)
+            Assert.Equal(0, standardCallCount)
+            observedCompilation.VerifyEmitDiagnostics()
+
+            Dim outputCompilation As Compilation = Nothing
+            Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, diagnostics)
+            Assert.Empty(diagnostics)
+            outputCompilation.VerifyEmitDiagnostics()
+            Dim standardTree = driver.GetRunResult().Results(0).GeneratedSources.Single(
+                Function(source) source.HintName = "standardMarker.vb").SyntaxTree
+
+            parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.VisualBasic14)
+            Dim tree = compilation.SyntaxTrees.Single()
+            compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(tree.GetRoot(), parseOptions))
+            driver = driver.WithUpdatedParseOptions(parseOptions)
+            driver = driver.RunGenerators(compilation, Function(context) context.Generator Is consumer)
+            Assert.NotNull(observedCompilation.GetTypeByMetadataName("PostInitMarker"))
+            Assert.NotNull(observedCompilation.GetTypeByMetadataName("PreCompilationMarker"))
+            Assert.Equal(1, postInitCallCount)
+            Assert.Equal(2, preCompilationCallCount)
+            Assert.Equal(1, standardCallCount)
+            Dim sources = driver.GetRunResult().Results(0).GeneratedSources
+            Assert.Same(parseOptions, sources.Single(Function(source) source.HintName = "postInitMarker.vb").SyntaxTree.Options)
+            Assert.Same(parseOptions, sources.Single(Function(source) source.HintName = "preCompilationMarker.vb").SyntaxTree.Options)
+            Assert.Same(standardTree, sources.Single(Function(source) source.HintName = "standardMarker.vb").SyntaxTree)
+            observedCompilation.VerifyEmitDiagnostics()
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, diagnostics)
+            Assert.Empty(diagnostics)
+            outputCompilation.VerifyEmitDiagnostics()
+            Assert.NotNull(outputCompilation.GetTypeByMetadataName("StandardMarker"))
+            Assert.Equal(2, standardCallCount)
+        End Sub
+#Enable Warning RSEXPERIMENTAL007
+
         <Fact>
         Public Sub Can_Access_Additional_Files()
 
