@@ -239,6 +239,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         }
 
         var canLoadOnDemand = allowProjectLoading && _onDemandProjectLoader?.CanLoad(uri) == true;
+
         if (initialContext.Workspace.Kind == WorkspaceKind.Host || !canLoadOnDemand)
             return new(RecordDocumentFoundResult(initialContext));
 
@@ -474,9 +475,12 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         var cachedFork = hasCachedSolution ? cachedSolution.TryGetReusableFork(workspaceCurrentSolution) : null;
 
         var result = await GetSolutionWithTrackedTextAsync(workspaceCurrentSolution, trackedDocuments, cachedFork, cancellationToken).ConfigureAwait(false);
-        _cachedLspSolutions[workspace] = result.IsForked
-            ? new(workspaceCurrentSolution.SolutionStateContentVersion, workspaceCurrentSolution.CompilationState.SourceGeneratorExecutionVersionMap.GetChecksum(), result.Solution)
-            : new(null, null, result.Solution);
+
+        if (result.IsForked)
+            _cachedLspSolutions[workspace] = new(workspaceCurrentSolution.SolutionStateContentVersion, workspaceCurrentSolution.CompilationState.SourceGeneratorExecutionVersionMap.GetChecksum(), result.Solution);
+        else
+            _cachedLspSolutions[workspace] = new(null, null, result.Solution);
+
         return result;
 
         async ValueTask TryOpenAndEditDocumentsInMutatingWorkspaceAsync(Workspace workspace, ImmutableDictionary<DocumentUri, TrackedDocumentInfo> trackedDocuments, CancellationToken cancellationToken)
