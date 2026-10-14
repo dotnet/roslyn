@@ -404,17 +404,17 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">安全でないメンバー '{0}' は安全なメンバー '{1}' を実装できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">安全でないメンバー '{0}' は、安全なメンバー '{1}' を暗黙的に実装できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">安全でないメンバー '{0}' はセーフ メンバー '{1}' をオーバーライドできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">

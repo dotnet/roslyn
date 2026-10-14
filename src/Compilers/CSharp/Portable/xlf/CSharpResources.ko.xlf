@@ -404,17 +404,17 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">안전하지 않은 멤버 '{0}'은(는) 안전한 멤버 '{1}'을(를) 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">안전하지 않은 멤버 '{0}'은(는) 안전한 멤버 '{1}'을(를) 암시적으로 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">안전하지 않은 멤버 '{0}'은(는) 안전한 멤버 '{1}'을(를) 재정의할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">

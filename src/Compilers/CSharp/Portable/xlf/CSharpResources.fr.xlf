@@ -404,17 +404,17 @@
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implement safe member '{1}'</target>
+        <target state="translated">Le membre non sécurisé « {0} » ne peut pas implémenter le membre sécurisé « {1} »</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot implicitly implement safe member '{1}'</target>
+        <target state="translated">Un membre non sécurisé « {0} » ne peut pas implémenter implicitement un membre sécurisé « {1} »</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RequiresUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
-        <target state="new">Unsafe member '{0}' cannot override safe member '{1}'</target>
+        <target state="translated">Le membre non sécurisé « {0} » ne peut pas remplacer le membre approuvé « {1} »</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
