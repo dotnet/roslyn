@@ -54,39 +54,6 @@ namespace RunTests
             }
         }
 
-        internal static async Task LogProcessTreeAsync(Process root)
-        {
-            var processes = new List<Process> { root };
-            try
-            {
-                var parents = await GetParentProcessIdsAsync().ConfigureAwait(false);
-                processes.AddRange(await GetChildProcessesAsync(root).ConfigureAwait(false));
-                foreach (var process in processes)
-                {
-                    try
-                    {
-                        ConsoleUtil.WriteLine($"[{DateTime.UtcNow:O}] Timeout process tree: PID={process.Id}, " +
-                            $"parent={(parents.TryGetValue(process.Id, out var parent) ? parent : -1)}, " +
-                            $"name={process.ProcessName}, started={process.StartTime.ToUniversalTime():O}");
-                    }
-                    catch (Exception ex)
-                    {
-                        ConsoleUtil.Warning($"Unable to inspect timeout process {process.Id}: {ex.Message}");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ConsoleUtil.Warning($"Unable to capture timeout process tree: {ex.Message}");
-            }
-            finally
-            {
-                foreach (var process in processes)
-                    if (process != root)
-                        process.Dispose();
-            }
-        }
-
         /// <summary>
         /// Finds descendants using a single parent-process snapshot. The caller owns the returned
         /// Process instances. Children that have already been reparented are not included.

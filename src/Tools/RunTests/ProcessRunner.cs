@@ -79,8 +79,6 @@ namespace RunTests
             var outputLines = new List<string>();
             var process = new Process();
             process.StartInfo = processStartInfo;
-            process.Exited += (_, _) => logLifecycle($"OS process exited with code {process.ExitCode}.");
-            process.EnableRaisingEvents = true;
 
             process.OutputDataReceived += (s, e) =>
             {
@@ -88,10 +86,6 @@ namespace RunTests
                 {
                     onOutputDataReceived?.Invoke(e);
                     outputLines.Add(e.Data);
-                }
-                else
-                {
-                    logLifecycle("Standard output reached EOF.");
                 }
             };
 
@@ -101,14 +95,9 @@ namespace RunTests
                 {
                     errorLines.Add(e.Data);
                 }
-                else
-                {
-                    logLifecycle("Standard error reached EOF.");
-                }
             };
 
             process.Start();
-            logLifecycle($"Started {processStartInfo.FileName}; redirected stdout={processStartInfo.RedirectStandardOutput}, stderr={processStartInfo.RedirectStandardError}.");
             onProcessStartHandler?.Invoke(process);
 
             if (lowPriority)
@@ -128,13 +117,9 @@ namespace RunTests
 
             return new ProcessInfo(process, processStartInfo, CompleteAsync());
 
-            void logLifecycle(string message)
-                => ConsoleUtil.WriteLine($"[{DateTime.UtcNow:O}] Process {process.Id}: {message}");
-
             async Task<ProcessResult> CompleteAsync()
             {
                 await process.WaitForExitAsync().ConfigureAwait(false);
-                logLifecycle("Process exit and redirected output wait completed.");
                 return new ProcessResult(process, process.ExitCode,
                     new ReadOnlyCollection<string>(outputLines), new ReadOnlyCollection<string>(errorLines));
             }
