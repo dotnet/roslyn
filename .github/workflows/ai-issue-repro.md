@@ -29,7 +29,7 @@ network:
     - dotnet
 
 engine: copilot
-model: gpt-5-mini
+model: gpt-5.6-sol
 
 tools:
   github:
@@ -88,16 +88,35 @@ lets a maintainer reproduce the reported behavior before assigning a fix.
   tests. Distinguish facts from assumptions; a stack trace alone does not prove
   which input caused the failure. Do not manufacture missing details.
 
-## Construct and exercise a minimal reproduction
+## Deliverable: a concrete reproduction, not an investigation report
 
-- Prefer a focused regression test in the existing test project when the issue
-  can be exercised through Roslyn's test infrastructure. Otherwise use a small
-  standalone C#/VB program, sample project, or precise editor steps appropriate
-  to the issue. Include every required input, reference, option, and setup step.
-- For a regression test, assert the intended correct behavior so it fails on
-  the bug. Do not create a passing test that merely asserts the buggy behavior,
-  throw the reported exception yourself, mock out the failing path, or modify
-  production code to force a failure.
+Produce the smallest concrete artifact that lets a maintainer exercise the
+reported behavior. Reading the issue and locating relevant tests is not enough.
+
+1. First attempt a focused test in an existing repository test file. Identify
+   the exact file and class, and provide a minimal applicable diff containing
+   the complete test and any required imports. Follow nearby test patterns.
+2. Assert the intended correct behavior. A verified reproduction must fail
+   because of the reported bug, not because of setup errors or an unrelated
+   assertion. A passing test of a related component is not a reproduction.
+   Do not assert buggy behavior, throw the reported exception yourself, mock
+   out the failing path, or modify production code to force a failure.
+3. Run the exact test with a fully qualified filter. Record the test count and
+   relevant observed output. If execution is blocked, still provide the
+   concrete candidate test when justified, clearly marked as unverified.
+4. If repository tests cannot exercise the reported scenario, provide a
+   minimal sample instead: exact filenames, complete file contents, setup
+   commands, and the shortest sequence of actions that triggers the symptom.
+   Establish that boundary by tracing the implementation and existing test
+   harness, not merely because the report mentions an editor. Explain the
+   specific testing boundary in one sentence. Do not substitute generic
+   instructions such as "create a project and try Code Cleanup."
+5. Do not invent missing inputs. If the evidence is insufficient to construct
+   a meaningful artifact, state what is missing rather than manufacturing a
+   test that cannot reproduce the report.
+
+## Execute safely and record evidence
+
 - Temporary local edits may add a test or self-contained repro only. Do not
   change production behavior, repository instructions, workflows, dependency
   manifests, or test infrastructure. A standalone sample may have its own
@@ -111,6 +130,10 @@ lets a maintainer reproduce the reported behavior before assigning a fix.
   A restore/build error, test discovery failure, or unrelated assertion failure
   is not a verified reproduction. Inspect test counts to ensure the new test
   actually ran.
+- For a sample, create the files locally and run the non-UI setup and build
+  commands even when the final editor action is unavailable. Verify that the
+  documented filenames, solution format, and commands match what was created.
+  Distinguish successful sample setup from verification of the reported bug.
 - Attempt to minimize the input while preserving the same failure. Do not
   claim version-specific behavior was verified with a different compiler.
 - Bound each build/test attempt with a timeout. Spend at most 35 minutes on
@@ -119,29 +142,41 @@ lets a maintainer reproduce the reported behavior before assigning a fix.
   or missing issue details prevent execution, report that explicitly instead
   of implying success.
 
-## Reply with a handoff-ready reproduction
+## Issue comment format
 
 Call `add_comment` exactly once for the triggering issue, never a pull request.
-Use this structure:
+Use only these sections:
 
-1. **Result:** `Verified reproduction`, `Candidate reproduction (not verified)`,
-   or `Unable to reproduce`. Summarize the symptom and its connection to the
-   report. Use "Verified" only for behavior observed by running the repro.
-2. **Environment:** repository commit, OS, actual SDK/compiler version, and
-   any relevant language version, references, options, or editor prerequisites.
-3. **Reproduction:** complete copy/paste code and commands, or complete manual
-   steps. For a repository test, include the exact test file/class, a minimal
-   applicable diff (including needed imports), and the targeted test command.
-   Do not refer only to files in this disposable runner.
-4. **Expected vs. actual:** intended behavior, observed behavior, and a short
-   relevant output excerpt. Label predicted output as unverified; never invent
-   execution logs or test results.
-5. **Limits / missing information:** assumptions, unsuccessful attempts, and
-   the smallest specific information needed from the reporter. If current
-   code does not reproduce it, say so; do not conclude it is fixed or invalid.
+**Result:** `Verified reproduction` / `Candidate reproduction (not verified)` /
+`Unable to reproduce` - followed by one sentence. Use "Verified" only for the
+reported behavior observed by running the repro.
+
+**Repro:** Exact existing test file and class, then a minimal diff; or exact
+sample files and their contents. Include all required inputs and options.
+Use fenced code blocks for diffs, file contents, commands, and output.
+Do not refer only to files in this disposable runner.
+
+**Run:** One copy/paste command, or numbered actions for a UI-only scenario.
+
+**Expected / actual:** The intended result and the observed result, with a
+short relevant output excerpt. Explicitly say when execution was not performed.
+Label predicted output as unverified; never invent execution logs or test results.
+
+**Context / blocker:** Commit, OS, and relevant versions in one line. Include
+only blockers or missing information necessary to reproduce the issue. If
+current code does not reproduce it, say so; do not conclude it is fixed or invalid.
+
+Keep prose under 150 words, excluding code, diffs, commands, and output.
+Do not include an issue recap, an investigation diary, lists of related source
+files, repeated instructions, suggested fixes, or offers to do further work.
+
+Before commenting, check that the artifact is complete and the instructions
+match the execution evidence. Include actual environment values, never
+unevaluated command substitutions or placeholders. For UI steps, specify the
+required profile options. Remove duplicate explanation and extra sections.
 
 If a useful reproduction already exists, verify and reference it rather than
 duplicating it. If no safe, meaningful candidate can be constructed, omit the
 code and explain what you investigated and what information is missing.
-Keep the comment concise but self-contained. Do not propose or implement a fix,
-create a pull request, commit, push, close the issue, or change its labels.
+Do not propose or implement a fix, create a pull request, commit, push, close
+the issue, or change its labels.
