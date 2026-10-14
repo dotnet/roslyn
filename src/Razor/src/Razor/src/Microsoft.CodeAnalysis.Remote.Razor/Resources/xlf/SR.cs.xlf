@@ -96,7 +96,7 @@
       </trans-unit>
       <trans-unit id="Escape_documentation_comment_terminator">
         <source>Escape documentation comment terminator</source>
-        <target state="new">Escape documentation comment terminator</target>
+        <target state="translated">Řídicí sekvence pro ukončení dokumentačního komentáře</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
@@ -236,7 +236,7 @@
       </trans-unit>
       <trans-unit id="Use_explicit_expression">
         <source>Use explicit expression</source>
-        <target state="new">Use explicit expression</target>
+        <target state="translated">Použít explicitní výraz</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_attributes">
@@ -246,7 +246,7 @@
       </trans-unit>
       <trans-unit id="Wrap_in_summary">
         <source>Wrap in &lt;summary&gt;</source>
-        <target state="new">Wrap in &lt;summary&gt;</target>
+        <target state="translated">Zabalit do &lt;summary&gt;</target>
         <note>&lt;summary&gt; is an XML documentation tag and should not be translated.</note>
       </trans-unit>
     </body>
