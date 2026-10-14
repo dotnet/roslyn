@@ -19,19 +19,26 @@ internal sealed partial class OnDemandProjectLoader
         private readonly ImmutableHashSet<string> _supportedProjectFileExtensions = supportedProjectFileExtensions.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
         private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectDiscovery>();
 
-        internal ImmutableArray<string> DiscoverProjects(string directory, ImmutableHashSet<string> workspaceFolders)
+        internal ImmutableArray<string> DiscoverProjects(
+            string directory,
+            ImmutableHashSet<string> workspaceFolders,
+            CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             if (!PathUtilities.IsAbsolute(directory))
                 return [];
 
-            var workspaceFolder = GetDeepestContainingWorkspaceFolder(directory, workspaceFolders);
+            var workspaceFolder = GetDeepestContainingWorkspaceFolder(directory, workspaceFolders, cancellationToken);
             if (workspaceFolder is null)
                 return [];
 
             var currentDirectory = directory;
             while (currentDirectory is not null && PathUtilities.IsSameDirectoryOrChildOf(currentDirectory, workspaceFolder, s_pathComparison))
             {
-                var projects = GetProjectsInDirectory(currentDirectory);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var projects = GetProjectsInDirectory(currentDirectory, cancellationToken);
                 if (!projects.IsEmpty)
                     return projects;
 
@@ -45,11 +52,15 @@ internal sealed partial class OnDemandProjectLoader
         }
 
         private static string? GetDeepestContainingWorkspaceFolder(
-            string directory, ImmutableHashSet<string> workspaceFolders)
+            string directory,
+            ImmutableHashSet<string> workspaceFolders,
+            CancellationToken cancellationToken)
         {
             string? deepestWorkspaceFolder = null;
             foreach (var workspaceFolder in workspaceFolders)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (PathUtilities.IsSameDirectoryOrChildOf(directory, workspaceFolder, s_pathComparison) &&
                     (deepestWorkspaceFolder is null || workspaceFolder.Length > deepestWorkspaceFolder.Length))
                 {
@@ -60,13 +71,15 @@ internal sealed partial class OnDemandProjectLoader
             return deepestWorkspaceFolder;
         }
 
-        private ImmutableArray<string> GetProjectsInDirectory(string directory)
+        private ImmutableArray<string> GetProjectsInDirectory(string directory, CancellationToken cancellationToken)
         {
             try
             {
                 var builder = ImmutableArray.CreateBuilder<string>();
                 foreach (var filePath in Directory.EnumerateFiles(directory))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     if (IsSupportedProject(filePath))
                         builder.Add(filePath);
                 }

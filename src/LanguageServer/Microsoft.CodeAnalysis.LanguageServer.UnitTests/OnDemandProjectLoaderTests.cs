@@ -42,7 +42,10 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
 
         AssertEx.SetEqual(
             [project],
-            discovery.DiscoverProjects(sourceFolder.Path, ImmutableHashSet.Create(PathUtilities.Comparer, workspaceFolder.Path)));
+            discovery.DiscoverProjects(
+                sourceFolder.Path,
+                ImmutableHashSet.Create(PathUtilities.Comparer, workspaceFolder.Path),
+                CancellationToken.None));
     }
 
     [Fact]
@@ -55,7 +58,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var workspaceFolders = ImmutableHashSet.Create(PathUtilities.Comparer, outerFolder.Path, innerFolder.Path);
         var discovery = new OnDemandProjectLoader.ProjectDiscovery([".csproj"], LoggerFactory);
 
-        Assert.Empty(discovery.DiscoverProjects(sourceFolder.Path, workspaceFolders));
+        Assert.Empty(discovery.DiscoverProjects(sourceFolder.Path, workspaceFolders, CancellationToken.None));
     }
 
     [Fact]
@@ -68,7 +71,10 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
 
         AssertEx.SetEqual(
             [supportedProject],
-            discovery.DiscoverProjects(workspaceFolder.Path, ImmutableHashSet.Create(PathUtilities.Comparer, workspaceFolder.Path)));
+            discovery.DiscoverProjects(
+                workspaceFolder.Path,
+                ImmutableHashSet.Create(PathUtilities.Comparer, workspaceFolder.Path),
+                CancellationToken.None));
     }
 
     [Fact]
@@ -79,7 +85,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var folder = TempRoot.CreateDirectory();
         var projectPath = folder.CreateFile("Project.csproj").Path;
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Document.cs").Path);
-        var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
+        using var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
         var build = loader.ExpectDesignTimeBuild(projectPath);
 
         var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
@@ -91,6 +97,31 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         await load;
         await activeLoads;
         Assert.Equal(1, loader.DesignTimeBuildCount);
+    }
+
+    [Fact]
+    public async Task ShutdownCancelsActiveTraversal()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var folder = TempRoot.CreateDirectory();
+        var projectPath = folder.CreateFile("Project.csproj").Path;
+        var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Document.cs").Path);
+        using var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
+        var build = loader.ExpectDesignTimeBuild(projectPath);
+
+        var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
+        await build.Started.Task;
+        var activeLoads = onDemandLoader.WaitForActiveLoadsAsync();
+
+        await onDemandLoader.ShutdownAsync();
+        await load;
+        await activeLoads;
+
+        Assert.False(onDemandLoader.CanLoad(documentUri));
+        Assert.True(onDemandLoader.WaitForActiveLoadsAsync().IsCompletedSuccessfully);
+
+        build.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
     }
 
     [Theory]
@@ -107,7 +138,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var secondProject = secondFolder.CreateFile("Second.csproj").Path;
         var firstDocument = ProtocolConversions.CreateAbsoluteDocumentUri(firstFolder.CreateFile("First.cs").Path);
         var secondDocument = ProtocolConversions.CreateAbsoluteDocumentUri(secondFolder.CreateFile("Second.cs").Path);
-        var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
+        using var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
         var firstBuild = loader.ExpectDesignTimeBuild(firstProject);
         var secondBuild = loader.ExpectDesignTimeBuild(secondProject);
 
@@ -132,25 +163,25 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
     }
 
     [Fact]
-    public async Task NoDiscoveredProjectReturnsNull()
+    public async Task NoDiscoveredProjectDoesNotLoad()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
         var folder = TempRoot.CreateDirectory();
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Loose.cs").Path);
-        var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
+        using var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
         await onDemandLoader.TryLoadProjectsAsync(documentUri);
         Assert.Equal(0, loader.DesignTimeBuildCount);
     }
 
     [Fact]
-    public async Task NonFileUriReturnsNull()
+    public async Task NonFileUriDoesNotLoad()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
         var loader = server.GetRequiredLspService<TestProjectLoader>();
         var folder = TempRoot.CreateDirectory();
-        var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
+        using var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
         var load = onDemandLoader.TryLoadProjectsAsync(new LSP.DocumentUri("untitled:Loose.cs"));
         // Unsupported URIs are rejected before project discovery starts.
@@ -170,7 +201,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Document.cs").Path);
         var globalOptions = server.ExportProvider.GetExportedValue<IGlobalOptionService>();
         globalOptions.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.LoadProjectsOnDemand, false);
-        var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
+        using var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
         var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
         Assert.True(load.IsCompletedSuccessfully);
@@ -189,7 +220,7 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
         var documentUri = ProtocolConversions.CreateAbsoluteDocumentUri(folder.CreateFile("Document.cs").Path);
         var globalOptions = server.ExportProvider.GetExportedValue<IGlobalOptionService>();
         globalOptions.SetGlobalOption(LspOptionsStorage.LspUsingDevkitFeatures, true);
-        var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
+        using var onDemandLoader = CreateOnDemandLoader(server, loader, folder.Path);
 
         var load = onDemandLoader.TryLoadProjectsAsync(documentUri);
         Assert.True(load.IsCompletedSuccessfully);

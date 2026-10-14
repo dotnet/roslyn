@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
@@ -45,9 +46,10 @@ internal sealed partial class OnDemandProjectLoader(
     LanguageServerProjectLoader projectLoader,
     IGlobalOptionService globalOptionService,
     IAsynchronousOperationListener listener,
-    ILoggerFactory loggerFactory) : IOnDemandProjectLoader
+    ILoggerFactory loggerFactory) : IOnDemandProjectLoader, IOnServerShutdown, IDisposable
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<OnDemandProjectLoader>();
+    private readonly CancellationTokenSource _shutdownCancellationSource = new();
 
     private readonly object _activeLoadsGate = new();
 
@@ -62,7 +64,9 @@ internal sealed partial class OnDemandProjectLoader(
            !globalOptionService.GetOption(LspOptionsStorage.LspUsingDevkitFeatures);
 
     public bool CanLoad(DocumentUri uri)
-        => IsOnDemandLoadingEnabled && uri.ParsedDocumentUri?.IsFile == true;
+        => IsOnDemandLoadingEnabled &&
+           !_shutdownCancellationSource.IsCancellationRequested &&
+           uri.ParsedDocumentUri?.IsFile == true;
 
     public Task TryLoadProjectsAsync(DocumentUri uri)
     {
@@ -78,7 +82,8 @@ internal sealed partial class OnDemandProjectLoader(
                 return activeLoad;
 
             var workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
-            var loadTask = Task.Run(() => LoadDiscoveredProjectsAsync(directory, workspaceFolders));
+            var cancellationToken = _shutdownCancellationSource.Token;
+            var loadTask = Task.Run(() => LoadDiscoveredProjectsAsync(directory, workspaceFolders, cancellationToken));
             _activeTraversals.Add(directory, loadTask);
             return loadTask;
         }
@@ -97,14 +102,32 @@ internal sealed partial class OnDemandProjectLoader(
         }
     }
 
-    private async Task LoadDiscoveredProjectsAsync(string directory, ImmutableHashSet<string> workspaceFolders)
+    public Task ShutdownAsync()
+    {
+        _shutdownCancellationSource.Cancel();
+        return Task.CompletedTask;
+    }
+
+    public Task ExitAsync()
+        => Task.CompletedTask;
+
+    public void Dispose()
+    {
+        _shutdownCancellationSource.Cancel();
+        _shutdownCancellationSource.Dispose();
+    }
+
+    private async Task LoadDiscoveredProjectsAsync(
+        string directory,
+        ImmutableHashSet<string> workspaceFolders,
+        CancellationToken cancellationToken)
     {
         using var _ = listener.BeginAsyncOperation(nameof(LoadDiscoveredProjectsAsync));
 
         try
         {
             _logger.LogDebug("Discovering projects on demand from '{Directory}'.", directory);
-            var projectPaths = discovery.DiscoverProjects(directory, workspaceFolders);
+            var projectPaths = discovery.DiscoverProjects(directory, workspaceFolders, cancellationToken);
             if (projectPaths.IsEmpty)
                 return;
 
@@ -113,9 +136,13 @@ internal sealed partial class OnDemandProjectLoader(
 
             while (pendingProjects.Count > 0)
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var projectsToLoad = new List<Task<LoadedProject>>();
                 while (pendingProjects.TryDequeue(out var projectPath))
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     if (!visitedProjects.Add(projectPath))
                         continue;
 
@@ -123,12 +150,12 @@ internal sealed partial class OnDemandProjectLoader(
                     projectsToLoad.Add(projectLoader.BeginLoadingProjectAsync(projectPath, LanguageServerProjectLoader.ProjectReloadPriority.High));
                 }
 
-                foreach (var project in await Task.WhenAll(projectsToLoad))
+                foreach (var project in await Task.WhenAll(projectsToLoad).WaitAsync(cancellationToken))
                 {
-                    if (!await project.WaitForLoadAsync(CancellationToken.None))
+                    if (!await project.WaitForLoadAsync(cancellationToken))
                         continue;
 
-                    foreach (var referencePath in await project.GetProjectReferencePathsAsync())
+                    foreach (var referencePath in await project.GetProjectReferencePathsAsync(cancellationToken))
                     {
                         if (discovery.IsSupportedProject(referencePath))
                             pendingProjects.Enqueue(referencePath);
@@ -136,6 +163,9 @@ internal sealed partial class OnDemandProjectLoader(
                 }
             }
 
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
         }
         catch (Exception exception) when (FatalError.ReportAndCatch(exception))
         {
