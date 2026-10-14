@@ -4,7 +4,12 @@
     <TargetFramework>$(NetVS)</TargetFramework>
     <Description>Razor document formatting support for dotnet format.</Description>
     <IsShippingPackage>false</IsShippingPackage>
-    <IsPackable>false</IsPackable>
+    <!-- This is an SDK payload, not a library package; dotnet format already supplies the Roslyn dependencies. -->
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IncludeSymbols>false</IncludeSymbols>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
     <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
 
@@ -27,4 +32,13 @@
 
   <Import Project="..\Microsoft.CodeAnalysis.Razor.Workspaces.Shared\Microsoft.CodeAnalysis.Razor.Workspaces.Shared.projitems" Label="Shared" />
   <Import Project="..\Microsoft.CodeAnalysis.Razor.Formatting\Microsoft.CodeAnalysis.Razor.Formatting.projitems" Label="Shared" />
+
+  <Target Name="PackLayout" BeforeTargets="$(GenerateNuspecDependsOn)">
+    <ItemGroup>
+      <Content Include="$(TargetPath)" PackagePath="\dotnet-format" />
+      <Content Include="$(TargetDir)**\$(AssemblyName).resources.dll" PackagePath="\dotnet-format\%(RecursiveDir)" />
+      <Content Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Razor.Compiler\$(Configuration)\$(TargetFramework)\Microsoft.CodeAnalysis.Razor.Compiler.dll" PackagePath="\dotnet-format" />
+      <Content Include="$(ArtifactsBinDir)Microsoft.AspNetCore.Razor.Utilities.Shared\$(Configuration)\$(TargetFramework)\Microsoft.AspNetCore.Razor.Utilities.Shared.dll" PackagePath="\dotnet-format" />
+    </ItemGroup>
+  </Target>
 </Project>
