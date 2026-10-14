@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Text;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using static Microsoft.VisualStudio.Razor.Snippets.XmlSnippetParser;
 
@@ -61,13 +62,43 @@ internal sealed class SnippetCache
 
         foreach (var part in parsedSnippet.Parts)
         {
-            var toAppend = part is SnippetShortcutPart
-                ? snippet.Shortcut
-                : part.DefaultText;
+            switch (part)
+            {
+                case SnippetCursorPart:
+                    functionSnippetBuilder.Append(part.DefaultText);
+                    break;
 
-            functionSnippetBuilder.Append(toAppend);
+                case SnippetFieldPart { EditIndex: { } editIndex }:
+                    functionSnippetBuilder.Append("${").Append(editIndex);
+                    if (part.DefaultText.Length > 0)
+                    {
+                        functionSnippetBuilder.Append(':');
+                        AppendEscapedText(functionSnippetBuilder, part.DefaultText);
+                    }
+
+                    functionSnippetBuilder.Append('}');
+                    break;
+
+                default:
+                    var text = part is SnippetShortcutPart ? snippet.Shortcut : part.DefaultText;
+                    AppendEscapedText(functionSnippetBuilder, text);
+                    break;
+            }
         }
 
         return functionSnippetBuilder.ToString();
+
+        static void AppendEscapedText(StringBuilder builder, string text)
+        {
+            foreach (var character in text)
+            {
+                if (character is '$' or '}' or '\\')
+                {
+                    builder.Append('\\');
+                }
+
+                builder.Append(character);
+            }
+        }
     }
 }
