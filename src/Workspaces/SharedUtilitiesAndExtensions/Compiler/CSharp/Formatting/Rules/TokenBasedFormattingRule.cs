@@ -87,6 +87,7 @@ internal sealed class TokenBasedFormattingRule : BaseFormattingRule
                         !currentToken.IsCommaInVariableDeclaration() &&
                         !currentToken.IsCommaInTupleExpression() &&
                         !currentToken.IsCommaInCollectionExpression() &&
+                        !currentToken.IsCommaInSwitchExpression() &&
                         !currentToken.IsParenInArgumentList() &&
                         !currentToken.IsDotInMemberAccess() &&
                         !currentToken.IsCloseParenInStatement() &&

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
+using RazorSyntaxToken = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxToken;
 
 namespace Microsoft.CodeAnalysis.Razor;
 
@@ -175,6 +176,92 @@ internal static class RazorSyntaxFacts
 
         return string.Equals(tagName, "script", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(tagName, "style", StringComparison.OrdinalIgnoreCase);
+    }
+
+    internal static bool ContainsComplexRazorInScriptOrStyleBody(BaseMarkupElementSyntax element, SourceText sourceText)
+    {
+        if (!IsScriptOrStyleBlock(element) ||
+            element.StartTag is not { } startTag ||
+            element.EndTag is not { } endTag ||
+            endTag.SpanStart < startTag.EndPosition)
+        {
+            return false;
+        }
+
+        var bodySpan = TextSpan.FromBounds(startTag.EndPosition, endTag.SpanStart);
+        foreach (var token in element.DescendantTokens(bodySpan))
+        {
+            // Razor comments are projected as placeholders, which makes script/style indentation unsafe to delegate.
+            if (token.Kind == SyntaxKind.RazorCommentTransition)
+            {
+                return true;
+            }
+
+            // Only non-escaped Razor transitions can introduce code that makes the block complex.
+            if (token.Kind != SyntaxKind.Transition ||
+                IsEscapedTransition(token))
+            {
+                continue;
+            }
+
+            // Allow only single-line expressions embedded within script/style content; every other Razor construct is complex.
+            var expression = token.Parent?.AncestorsAndSelf().FirstOrDefault(
+                static node => node is CSharpImplicitExpressionSyntax or CSharpExplicitExpressionSyntax);
+            if (expression is null ||
+                !IsSingleLineInlineExpression(expression, sourceText, startTag.EndPosition, endTag.SpanStart))
+            {
+                return true;
+            }
+        }
+
+        return false;
+
+        static bool IsSingleLineInlineExpression(RazorSyntaxNode expression, SourceText sourceText, int bodyStart, int bodyEnd)
+        {
+            var linePositionSpan = sourceText.GetLinePositionSpan(expression.Span);
+            if (linePositionSpan.Start.Line != linePositionSpan.End.Line ||
+                expression.DescendantNodes().Any(static node =>
+                    node is CSharpTemplateBlockSyntax or
+                        CSharpStatementSyntax or
+                        RazorCommentBlockSyntax or
+                        RazorDirectiveSyntax))
+            {
+                return false;
+            }
+
+            var line = sourceText.Lines[linePositionSpan.Start.Line];
+            return ContainsNonWhitespace(sourceText, Math.Max(line.Start, bodyStart), expression.SpanStart) &&
+                ContainsNonWhitespace(sourceText, expression.EndPosition, Math.Min(line.End, bodyEnd));
+        }
+
+        static bool IsEscapedTransition(RazorSyntaxToken token)
+        {
+            if (IsInEphemeralTextLiteral(token))
+            {
+                return true;
+            }
+
+            var previousToken = token.GetPreviousToken();
+            return previousToken.Kind == SyntaxKind.Transition &&
+                previousToken.EndPosition == token.Position &&
+                IsInEphemeralTextLiteral(previousToken);
+        }
+
+        static bool IsInEphemeralTextLiteral(RazorSyntaxToken token)
+            => token.Parent?.AncestorsAndSelf().Any(static node => node is MarkupEphemeralTextLiteralSyntax) == true;
+
+        static bool ContainsNonWhitespace(SourceText sourceText, int start, int end)
+        {
+            for (var i = start; i < end; i++)
+            {
+                if (!char.IsWhiteSpace(sourceText[i]))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     internal static bool IsAttributeName(RazorSyntaxNode node, [NotNullWhen(true)] out BaseMarkupStartTagSyntax? startTag)
