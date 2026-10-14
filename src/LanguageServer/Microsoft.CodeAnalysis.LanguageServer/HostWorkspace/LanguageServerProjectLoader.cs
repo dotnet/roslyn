@@ -415,46 +415,56 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             _loadedProjects.Add(projectPath, loadedProject);
 
             loadedProject.NeedsReload += LoadedProject_NeedsReload;
-            _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)reloadPriority);
+            _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)ProjectReloadPriority.Low);
         }
 
         // Try to load the contents from the project cache if we have one; we'll do this outside the lock
-        try
+        var applied = await TryApplyCachedProjectInfoAsync(projectPath, loadedProject);
+        if (!applied)
         {
-            var cachedProjectStateAndFactory = await TryLoadProjectFromCacheAsync(projectPath, CancellationToken.None);
-
-            if (cachedProjectStateAndFactory is not null)
-            {
-                var (cachedProjectState, projectFactory) = cachedProjectStateAndFactory.Value;
-
-                var applied = await loadedProject.TryApplyLoadedProjectInfosAsync(
-                    cachedProjectState,
-                    isMiscellaneousFile: false,
-                    hasAllInformation: true,
-                    projectFactory,
-                    _projectTargetFrameworkManager,
-                    _projectCapabilityManager,
-                    _workspaceFactory,
-                    _logger,
-                    CancellationToken.None,
-                    onlyIfNoTargets: true);
-
-                if (applied)
-                {
-                    // We'll count the cached load as sufficient for this project being fully loaded
-                    loadedProject.CompleteInitialLoad();
-
-                    // And since we now have loaded from the cache, we can deprioritize this project
-                    _projectsToReload.ChangeWorkPriorityIfScheduled(loadedProject.ProjectFilePath, (int)ProjectReloadPriority.Low);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            _logger.LogWarning(e, "Exception encountered while trying to load cached state for {ProjectPath}", projectPath);
+            // Since we were unable to load from the cache, we can raise its priority to ensure it gets reloaded.
+            _projectsToReload.RaiseWorkPriorityIfScheduled(loadedProject.ProjectFilePath, (int)reloadPriority);
         }
 
         return loadedProject;
+
+        async Task<bool> TryApplyCachedProjectInfoAsync(string projectPath, LoadedProject loadedProject)
+        {
+            try
+            {
+                var cachedProjectStateAndFactory = await TryLoadProjectFromCacheAsync(projectPath, CancellationToken.None);
+
+                if (cachedProjectStateAndFactory is not null)
+                {
+                    var (cachedProjectState, projectFactory) = cachedProjectStateAndFactory.Value;
+
+                    var applied = await loadedProject.TryApplyLoadedProjectInfosAsync(
+                        cachedProjectState,
+                        isMiscellaneousFile: false,
+                        hasAllInformation: true,
+                        projectFactory,
+                        _projectTargetFrameworkManager,
+                        _projectCapabilityManager,
+                        _workspaceFactory,
+                        _logger,
+                        CancellationToken.None,
+                        onlyIfNoTargets: true);
+
+                    if (applied)
+                    {
+                        // We'll count the cached load as sufficient for this project being fully loaded
+                        loadedProject.CompleteInitialLoad();
+                        return true;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning(e, "Exception encountered while trying to load cached state for {ProjectPath}", projectPath);
+            }
+
+            return false;
+        }
     }
 
     protected void LoadedProject_NeedsReload(object? sender, string triggeringFilePath)
