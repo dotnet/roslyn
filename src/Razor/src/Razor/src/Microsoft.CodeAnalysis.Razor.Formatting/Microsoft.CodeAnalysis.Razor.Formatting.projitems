@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>5f72aeab-d450-4339-83f3-855672914418</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.CodeAnalysis.Razor.Formatting</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="$(MSBuildThisFileDirectory)Resources\SR.resx">
+      <GenerateSource>true</GenerateSource>
+      <Namespace>Microsoft.CodeAnalysis.Razor.Formatting.Resources</Namespace>
+      <LogicalName>Microsoft.CodeAnalysis.Razor.Formatting.Resources.SR.resources</LogicalName>
+      <XlfTranslatedFilename>FormattingSR.resx</XlfTranslatedFilename>
+    </EmbeddedResource>
+    <None Include="$(MSBuildThisFileDirectory)Resources\xlf\SR*.xlf" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentFormatting\IHostServicesProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentFormatting\IDocumentSnapshot.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentFormatting\FormattingContext.Shared.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentFormatting\FormattingEngineOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)DocumentMapping\DocumentMappingHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormattingEngine.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormattingLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormattingLoggerFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\CSharpFormattingPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\CSharpFormattingPass.CSharpDocumentGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\FormattingContentValidationPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\FormattingDiagnosticValidationPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\RazorFormattingPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormattedDocument.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)FormattingUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IFormattingLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IFormattingLoggerFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IFormattingPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IFormattingValidationPass.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IndentCache.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)LineInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Passes\RoslynWorkspaceHelper.cs" />
+  </ItemGroup>
+</Project>
