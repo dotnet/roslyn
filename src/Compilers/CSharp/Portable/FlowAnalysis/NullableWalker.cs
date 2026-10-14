@@ -8995,9 +8995,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     };
                 }
 
-                // A literal without a natural type, e.g. ("A", null), contributes through its converted type below,
-                // as before: left typeless, it would contribute nothing, and its elements' nullability would be lost.
-                if ((argument as BoundTupleLiteral ?? (argument as BoundConvertedTupleLiteral)?.SourceTuple) is { Type: NamedTypeSymbol { IsTupleType: true } } sourceTuple &&
+                if ((argument as BoundTupleLiteral ?? (argument as BoundConvertedTupleLiteral)?.SourceTuple) is { } sourceTuple &&
                     visitResult.NestedVisitResults is { } tupleElementVisitResults)
                 {
                     // MethodTypeInferrer must infer types from the tuple literal as written, as the initial binding
@@ -9019,10 +9017,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         elementTypesBuilder.Add(tupleElementVisitResults[i].RValueType.ToTypeWithAnnotations(compilation));
                     }
 
-                    // The natural type gets the element nullability from flow analysis.
-                    var naturalType = sourceTuple.Type is NamedTypeSymbol { IsTupleType: true } tupleType && elementTypesBuilder.All(t => t.HasType)
-                        ? tupleType.WithElementTypes(elementTypesBuilder.ToImmutable())
-                        : null;
+                    // The natural type gets the element nullability from flow analysis. A literal without one, e.g.
+                    // (null, 0), gets it from its elements' results, so their nullability still reaches inference.
+                    NamedTypeSymbol? naturalType = null;
+                    if (elementTypesBuilder.All(t => t.HasType))
+                    {
+                        naturalType = sourceTuple.Type is NamedTypeSymbol { IsTupleType: true } tupleType
+                            ? tupleType.WithElementTypes(elementTypesBuilder.ToImmutable())
+                            : NamedTypeSymbol.CreateTuple(locationOpt: null, elementTypesBuilder.ToImmutable(), elementLocations: default, sourceTuple.ArgumentNamesOpt,
+                                compilation, shouldCheckConstraints: false, includeNullability: false, errorPositions: default);
+                    }
                     elementTypesBuilder.Free();
 
                     return new BoundTupleLiteral(sourceTuple.Syntax, elementsBuilder.ToImmutableAndFree(), sourceTuple.ArgumentNamesOpt, sourceTuple.InferredNamesOpt, naturalType)
