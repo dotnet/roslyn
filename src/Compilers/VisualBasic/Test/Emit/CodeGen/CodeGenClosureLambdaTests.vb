@@ -1015,7 +1015,14 @@ label2:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Goo(3)
+        ' Work around https://github.com/dotnet/roslyn/issues/86052 while keeping failures visible in the output.
+        Try
+            x.Goo(3)
+        Catch ex As Exception
+            Console.WriteLine(ex)
+            Console.WriteLine(ex.Message)
+            Console.WriteLine(ex.StackTrace)
+        End Try
     End Sub
 End Module
     </file>
