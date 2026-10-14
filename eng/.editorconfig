@@ -7,8 +7,5 @@ charset = utf-8
 [generate-vssdk-versions.cs]
 charset = utf-8
 
-[validate-bom.cs]
-charset = utf-8
-
 [get-roslyn-commit-hash-in-vs.cs]
 charset = utf-8
