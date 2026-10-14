@@ -31,6 +31,8 @@ internal sealed class RazorProjectGeneratorRunResult(RazorGeneratorResult genera
             ? RazorSourceGenerator.GetDeclIdentifierFromHintName(implementationHintName)
             : implementationHintName;
 
+        // TODO: Match by hint name until generator assembly locations are compared case-insensitively on Windows:
+        // https://github.com/dotnet/roslyn/issues/76869
         var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
         return generatedDocuments.SingleOrDefault(document => document.HintName == hintName)
             ?? throw new InvalidOperationException($"The Razor source generator did not produce generated document '{hintName}'.");
