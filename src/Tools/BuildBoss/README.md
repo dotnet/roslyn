@@ -14,16 +14,10 @@ Each check writes a log to `artifacts/log/<configuration>/BuildBoss`.  CI publis
 
 ## Options
 
-Most checks run unconditionally.  One check is opt in:
+Most checks run unconditionally.  Two checks are opt in:
 
 - `--check-package-install`: verifies our NuGet packages can be installed into a customer project.  See [NuGet Package Install](#nuget-package-install) below.  It is enabled only in the `Correctness_Build_Artifacts` job.
-- `--check-bom-only`: runs only the tracked-file BOM and shebang check, without discovering MSBuild or checking build artifacts. It writes `BOM.log` under `artifacts/log/<configuration>/BuildBoss`; use this for a focused local check.
-
-The BOM and shebang validation also runs as part of every normal BuildBoss invocation. Run it directly from the repository root with:
-
-``` cmd
-> artifacts\bin\BuildBoss\Debug\net472\BuildBoss.exe -r . --check-bom-only
-```
+- `--check-bom`: validates tracked-file BOM settings using Roslyn's EditorConfig parser and checks shebang placement. It writes `BOM.log` and is enabled only in the `Correctness_Build_Artifacts` job's `Validate Build Artifacts` step.
 
 ## Project Content Verified 
 

@@ -18,11 +18,8 @@ the one for your area):
 | Unit tests | Sibling `*Test` / `*.UnitTests` project next to the product project (e.g., `Workspaces/Core` ↔ `Workspaces/CoreTest`). |
 | Compiler tests | `src/Compilers/*/Test/`. |
 | IDE/analyzer tests | `*Test` projects under `src/Features`, `src/Analyzers`, `src/EditorFeatures`. |
-| BuildBoss tests | `src/Tools/BuildBossTests/`; the test project references the BuildBoss executable. |
 | Project-data tests | `src/ProjectData/Microsoft.NET.ProjectData{,.Generators,.Tasks}.Tests/`; assemblies use the `UnitTests` suffix. |
 | Integration tests | VS integration tests (`azure-pipelines-integration*.yml`); runnable locally on **Windows** hosts with a VS install, also run in CI. |
-
-BuildBoss BOM fixtures use isolated repositories under the test output directory. A Git-failure fixture uses an invalid `.git` file to prevent Git from discovering the enclosing Roslyn repository.
 
 Frameworks: xUnit with Roslyn test utilities.
 
@@ -58,7 +55,6 @@ Frameworks: xUnit with Roslyn test utilities.
 ```bash
 dotnet test <path/to/Specific.UnitTests.csproj>
 dotnet test <proj> --filter "FullyQualifiedName~MyTestClass"
-dotnet test src/Tools/BuildBossTests/BuildBoss.UnitTests.csproj -c Release -f net472
 ```
 Targeted runs are strongly preferred — the full suite is large and slow. Tests can take a while to build/run; wait for completion unless you're confident a run is hung.
 

@@ -32,6 +32,5 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="README.md" />
-    <InternalsVisibleTo Include="BuildBoss.UnitTests" />
   </ItemGroup>
 </Project>

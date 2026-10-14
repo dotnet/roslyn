@@ -405,11 +405,8 @@ stages:
       - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -warnAsError -restore -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
         displayName: Build
 
-      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.slnx --check-package-install
+      - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.slnx --check-package-install --check-bom
         displayName: Validate Build Artifacts
-
-      - script: dotnet test $(Build.SourcesDirectory)\src\Tools\BuildBossTests\BuildBoss.UnitTests.csproj -c Release --no-restore
-        displayName: Test BuildBoss BOM validation
 
       - powershell: eng/validate-rules-missing-documentation.ps1 -ci -warnAsError
         displayName: Validate rules missing documentation
