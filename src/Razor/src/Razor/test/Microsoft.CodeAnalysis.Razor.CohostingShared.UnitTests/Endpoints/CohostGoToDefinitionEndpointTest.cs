@@ -11,6 +11,8 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Remote.Razor;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -969,11 +971,132 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(FileUri("Pages/Counter.razor"), location.DocumentUri);
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData(RazorFileKind.Legacy, "css/site.css")]
+    [InlineData(RazorFileKind.Legacy, "js/site.js")]
+    [InlineData(RazorFileKind.Legacy, "images/logo.png")]
+    [InlineData(RazorFileKind.Legacy, "LICENSE")]
+    [InlineData(RazorFileKind.Component, "css/site.css")]
+    [InlineData(RazorFileKind.Component, "js/site.js")]
+    [InlineData(RazorFileKind.Component, "images/logo.png")]
+    [InlineData(RazorFileKind.Component, "LICENSE")]
+    public async Task StringLiteral_TildePath_AnyFileKind(RazorFileKind fileKind, string fileName)
+    {
+        TestCode input = $$"""
+            @{
+                var path = "~/{{fileName}}$$";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            fileKind,
+            expectedFileName: fileName,
+            additionalFiles: [(FilePath(fileName), "")]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public async Task StringLiteral_TildePath_PrefersWwwroot(RazorFileKind fileKind)
+    {
+        TestCode input = """
+            @{
+                var path = "~/css/si$$te.css";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            fileKind,
+            expectedFileName: "wwwroot/css/site.css",
+            additionalFiles: [
+                (FilePath("wwwroot/css/site.css"), ""),
+                (FilePath("css/site.css"), "")]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public async Task StringLiteral_TildePath_FallsBackToProjectRoot(RazorFileKind fileKind)
+    {
+        TestCode input = """
+            @{
+                var path = "~/js/si$$te.js";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            fileKind,
+            expectedFileName: "js/site.js",
+            additionalFiles: [
+                (FilePath("wwwroot/js/other.js"), ""),
+                (FilePath("js/site.js"), "")]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    public async Task StringLiteral_RelativePath_AnyFileKind_Legacy()
+    {
+        TestCode input = """
+            @{
+                var path = "../images/lo$$go.png";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            RazorFileKind.Legacy,
+            expectedFileName: "Views/images/logo.png",
+            additionalFiles: [
+                (FilePath("Views/images/logo.png"), ""),
+                (FilePath("wwwroot/images/logo.png"), "")],
+            documentFilePath: FilePath("Views/Home/Index.cshtml"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    public async Task StringLiteral_RelativePath_AnyFileKind_Component()
+    {
+        TestCode input = """
+            @{
+                var path = "../images/lo$$go.png";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            RazorFileKind.Component,
+            expectedFileName: "Views/images/logo.png",
+            additionalFiles: [
+                (FilePath("Views/images/logo.png"), ""),
+                (FilePath("wwwroot/images/logo.png"), "")],
+            documentFilePath: FilePath("Views/Home/Index.razor"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    public async Task StringLiteral_TildePath_Backslashes()
+    {
+        TestCode input = """
+            @{
+                var path = @"~\images\lo$$go.png";
+            }
+            """;
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            RazorFileKind.Legacy,
+            expectedFileName: "wwwroot/images/logo.png",
+            additionalFiles: [(FilePath("wwwroot/images/logo.png"), "")]);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/razor/issues/4325")]
     [InlineData("~/Pages/Counter")]
     [InlineData("Not a file")]
     [InlineData("~/Program.cs")]
     [InlineData("File.razor is cool")]
+    [InlineData("~/images/missing.png")]
+    [InlineData("https://example.com/site.css")]
+    [InlineData("invalid\\0path")]
     public async Task StringLiteral_NotFileReference(string literalContents)
     {
         var input = $$"""
@@ -1048,6 +1171,30 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         var text = SourceText.From(surveyPrompt.Text);
         var range = text.GetRange(surveyPrompt.Span);
         Assert.Equal(range, location.Range);
+    }
+
+    private async Task VerifyFilePathDefinitionAsync(
+        TestCode input,
+        RazorFileKind fileKind,
+        string expectedFileName,
+        (string filePath, string contents)[] additionalFiles,
+        string? documentFilePath = null)
+    {
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind, documentFilePath: documentFilePath);
+        SetFileSystem(additionalFiles);
+
+        var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
+
+        Assumes.NotNull(result);
+        var location = Assert.Single(result.Value.Second);
+        Assert.Equal(FileUri(expectedFileName), location.DocumentUri);
+        Assert.Equal(LspFactory.DefaultRange, location.Range);
+    }
+
+    private void SetFileSystem((string filePath, string contents)[] files)
+    {
+        var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
+        fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(files));
     }
 
     private async Task VerifyGoToDefinitionAsync(

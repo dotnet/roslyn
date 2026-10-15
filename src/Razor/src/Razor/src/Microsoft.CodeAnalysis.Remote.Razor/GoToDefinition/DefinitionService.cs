@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Composition;
 using System.Diagnostics;
 using System.IO;
@@ -11,6 +12,8 @@ using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Utilities;
+using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
@@ -23,11 +26,13 @@ internal sealed class DefinitionService(
     IRazorComponentSearchEngine componentSearchEngine,
     ITagHelperSearchEngine? tagHelperSearchEngine,
     IDocumentMappingService documentMappingService,
+    IFileSystem fileSystem,
     ILoggerFactory loggerFactory) : IDefinitionService
 {
     private readonly IRazorComponentSearchEngine _componentSearchEngine = componentSearchEngine;
     private readonly ITagHelperSearchEngine? _tagHelperSearchEngine = tagHelperSearchEngine;
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
+    private readonly IFileSystem _fileSystem = fileSystem;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<DefinitionService>();
 
     public async Task<LspLocation[]?> GetDefinitionAsync(
@@ -146,51 +151,75 @@ internal sealed class DefinitionService(
     {
         resolvedPath = string.Empty;
 
-        if (string.IsNullOrWhiteSpace(filePath))
-        {
-            return false;
-        }
-
-        // Only process if it looks like a Razor file path
-        if (!filePath.IsRazorFilePath())
+        // Leave empty values and external URLs to the normal definition handlers.
+        if (string.IsNullOrWhiteSpace(filePath) || filePath.IndexOf("://", StringComparison.Ordinal) >= 0)
         {
             return false;
         }
 
         var project = documentSnapshot.ProjectSnapshot;
+        var normalizedPath = FilePathNormalizer.Normalize(filePath);
 
-        // Handle tilde paths (~/ or ~\) - these are relative to the project root
+        // Tilde paths (~/ or ~\) may point to web content or project files.
         if (filePath is ['~', '/' or '\\', ..])
         {
             var projectDirectory = Path.GetDirectoryName(project.FilePath);
             if (projectDirectory is null)
             {
+                _logger.LogDebug("Could not resolve a tilde path without a project directory.");
                 return false;
             }
 
-            // Remove the tilde and normalize path separators
-            var relativePath = filePath.Substring(2).Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
-            var candidatePath = Path.GetFullPath(Path.Combine(projectDirectory, relativePath));
+            var relativePath = normalizedPath[2..];
 
-            if (project.ContainsDocument(candidatePath))
+            // Prefer wwwroot for web content such as stylesheets, scripts, and images.
+            if (TryResolveFilePath(project, Path.Combine(projectDirectory, "wwwroot"), relativePath, out resolvedPath))
             {
-                resolvedPath = candidatePath;
                 return true;
             }
+
+            // Fall back to the project root if wwwroot is absent or doesn't contain the file.
+            return TryResolveFilePath(project, projectDirectory, relativePath, out resolvedPath);
         }
 
-        // Handle relative paths - relative to the current document
-        var currentDocumentDirectory = Path.GetDirectoryName(documentSnapshot.FilePath);
-        if (currentDocumentDirectory is not null)
-        {
-            var normalizedPath = filePath.Replace('/', Path.DirectorySeparatorChar).Replace('\\', Path.DirectorySeparatorChar);
-            var candidatePath = Path.GetFullPath(Path.Combine(currentDocumentDirectory, normalizedPath));
+        // Unlike tilde paths, ordinary relative paths are based on the current Razor document.
+        return TryResolveFilePath(project, Path.GetDirectoryName(documentSnapshot.FilePath), normalizedPath, out resolvedPath);
+    }
 
-            if (project.ContainsDocument(candidatePath))
-            {
-                resolvedPath = candidatePath;
-                return true;
-            }
+    private bool TryResolveFilePath(RemoteProjectSnapshot project, string? directory, string filePath, out string resolvedPath)
+    {
+        resolvedPath = string.Empty;
+
+        if (directory is null)
+        {
+            _logger.LogDebug("Could not resolve a file path without a base directory.");
+            return false;
+        }
+
+        string candidatePath;
+        try
+        {
+            // Resolve . and .. so workspace and file-system lookups use the same absolute path.
+            candidatePath = Path.GetFullPath(Path.Combine(directory, filePath));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug($"Could not resolve file path '{filePath}': {ex.Message}");
+            return false;
+        }
+
+        // Razor documents are tracked by the project snapshot, so check there before accessing disk.
+        if (candidatePath.IsRazorFilePath() && project.ContainsDocument(candidatePath))
+        {
+            resolvedPath = candidatePath;
+            return true;
+        }
+
+        // Check that the candidate file exists on disk before returning its path.
+        if (_fileSystem.FileExists(candidatePath))
+        {
+            resolvedPath = candidatePath;
+            return true;
         }
 
         return false;

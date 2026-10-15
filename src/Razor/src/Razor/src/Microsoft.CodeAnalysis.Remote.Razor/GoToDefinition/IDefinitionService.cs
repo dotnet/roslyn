@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 
 /// <summary>
-///  Go to Definition support for Razor tag helpers (Mvc tag helpers and components).
+/// Go to Definition support for Razor tag helpers (Mvc tag helpers and components) and literal file paths.
 /// </summary>
 internal interface IDefinitionService
 {
