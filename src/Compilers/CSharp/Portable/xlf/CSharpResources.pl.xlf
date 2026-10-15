@@ -1184,7 +1184,7 @@
       </trans-unit>
       <trans-unit id="ERR_IllegalUnsafeModifier">
         <source>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</source>
-        <target state="new">Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</target>
+        <target state="translated">Modyfikatory deklaracji typu „unsafe” lub „safe” mogą pojawiać się wyłącznie w przypadku kompilacji z opcją /unsafe.</target>
         <note>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</note>
       </trans-unit>
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
@@ -1544,7 +1544,7 @@
       </trans-unit>
       <trans-unit id="ERR_LayoutFieldRequiresUnsafeOrSafe">
         <source>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</source>
-        <target state="new">Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</target>
+        <target state="translated">Pole w typie o układzie jawnym lub rozszerzonym, o rozmiarze upakowania innym od zera lub o rozmiarze innym od zera musi być oznaczone jako „unsafe” lub „safe”.</target>
         <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
@@ -4353,8 +4353,8 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="needs-review-translation">
-                             Opcje kompilatora języka Visual C#
+        <target state="translated">
+                             Opcje kompilatora Visual C#
 
                        - PLIKI WYJŚCIOWE - 
 -out:&lt;file&gt;                   Określanie nazwy pliku wyjściowego (domyślnie: nazwa podstawowa
@@ -4368,7 +4368,7 @@
                               zestawu (skrócona postać: -t:module)
 -target:appcontainerexe       Tworzenie pliku wykonywalnego Appcontainer (skrócona postać:
                               -t:appcontainerexe)
--target:winmdobj              Tworzenie pośredniego pliku środowiska uruchomieniowego systemu Windows, który
+-target:winmdobj              Tworzenie pośredniego pliku środowiska wykonawczego systemu Windows, który
                               jest używany przez WinMDExp (skrócona postać: -t:winmdobj)
 -doc:&lt;file&gt;                       Plik dokumentacji XML do wygenerowania
 -refout:&lt;file&gt;                    Odwołanie do danych wyjściowych zestawu do wygenerowania
@@ -4440,7 +4440,7 @@
 
                        - JĘZYK -
 -checked[+|-]                 Generowanie testów przepełnienia
--unsafe[+|-]                  Zezwalanie na kod „unsafe”
+-unsafe[+|-]                  Zezwól na kod „unsafe” i modyfikatory „safe”
 -define:&lt;symbol list&gt;             Definiowanie symboli kompilacji warunkowej (skrócona
                               postać: -d)
 -langversion:?                Wyświetlanie dozwolone wartości dla wersji językowej
