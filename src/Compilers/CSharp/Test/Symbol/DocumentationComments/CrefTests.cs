@@ -3750,6 +3750,116 @@ partial class P
         }
 
         [Fact]
+        public void InheritdocDocumentsMissingParamTags()
+        {
+            var source = """
+                class C
+                {
+                    /// <param name="x">x</param>
+                    /// <param name="y">y</param>
+                    void M(int x, int y) { }
+
+                    /// <inheritdoc cref="M(int, int)"/>
+                    /// <param name="z">z</param>
+                    void M(int x, int y, int z) { }
+
+                    /// <inheritdoc cref="M(int, int)"/>
+                    void Chain(int x, int y) { }
+
+                    /// <inheritdoc cref="Chain(int, int)"/>
+                    /// <param name="z">z</param>
+                    void Chain(int x, int y, int z) { }
+
+                    /// <param name="x">x</param>
+                    /// <param name="y">y</param>
+                    public virtual void N(int x, int y) { }
+                }
+
+                class D : C
+                {
+                    /// <inheritdoc/>
+                    /// <param name="x">x</param>
+                    public override void N(int x, int y) { }
+                }
+
+                interface I
+                {
+                    /// <param name="x">x</param>
+                    /// <param name="y">y</param>
+                    void P(int x, int y);
+                }
+
+                class E : I
+                {
+                    /// <inheritdoc/>
+                    /// <param name="x">x</param>
+                    public void P(int x, int y) { }
+                }
+                """;
+
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InheritdocDocumentsMissingTypeParamTags()
+        {
+            var source = """
+                class C
+                {
+                    /// <typeparam name="T">T</typeparam>
+                    /// <typeparam name="U">U</typeparam>
+                    void M<T, U>() { }
+
+                    /// <inheritdoc cref="M{T, U}"/>
+                    /// <typeparam name="V">V</typeparam>
+                    void N<T, U, V>() { }
+                }
+
+                /// <typeparam name="T">T</typeparam>
+                /// <typeparam name="U">U</typeparam>
+                class Base<T, U> { }
+
+                /// <inheritdoc/>
+                /// <typeparam name="V">V</typeparam>
+                class Derived<T, U, V> : Base<T, U> { }
+                """;
+
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InheritdocDoesNotSuppressMissingTagsAbsentFromInheritedDocumentation()
+        {
+            var source = """
+                class C
+                {
+                    /// <param name="x">x</param>
+                    void M(int x, int y) { }
+
+                    /// <inheritdoc cref="M(int, int)"/>
+                    /// <param name="x">x</param>
+                    void N(int x, int y) { }
+
+                    /// <param name="x">x</param>
+                    /// <param name="y">y</param>
+                    void P(int x, int y) { }
+
+                    /// <summary><inheritdoc cref="P(int, int)"/></summary>
+                    /// <param name="x">x</param>
+                    void Q(int x, int y) { }
+                }
+                """;
+
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (4,23): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.M(int, int)' (but other parameters do)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.M(int, int)"),
+                // (9,23): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.N(int, int)' (but other parameters do)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.N(int, int)"),
+                // (17,23): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.Q(int, int)' (but other parameters do)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.Q(int, int)"));
+        }
+
+        [Fact]
         public void WRN_DuplicateTypeParamTag()
         {
             var source = @"

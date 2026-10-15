@@ -573,6 +573,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Write(withUnprocessedIncludes);
             }
 
+            if (!_isForSingleSymbol
+                && (documentedParameters != null || documentedTypeParameters != null)
+                && (!includeElementNodes.IsEmpty || withUnprocessedIncludes.IndexOf("<inheritdoc", StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                string xmlForInheritance = includeElementNodes.IsEmpty
+                    ? withUnprocessedIncludes
+                    : symbol.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: _cancellationToken);
+                AddInheritedDocumentationTags(symbol, xmlForInheritance, ref documentedParameters, ref documentedTypeParameters);
+            }
+
             bool reportParameterOrTypeParameterDiagnostics = GetLocationInTreeReportingDocumentationCommentDiagnostics(symbol) != null;
             if (reportParameterOrTypeParameterDiagnostics)
             {
