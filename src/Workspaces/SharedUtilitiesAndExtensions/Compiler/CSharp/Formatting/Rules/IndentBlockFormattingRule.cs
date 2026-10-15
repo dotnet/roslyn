@@ -284,8 +284,8 @@ internal sealed class IndentBlockFormattingRule : BaseFormattingRule
 
             SetAlignmentBlockOperation(list, baseToken, firstToken, lastToken, option);
 
-            // If the '[' starts its own line, indent the contents relative to it.
-            if (!FormattingHelpers.AreOnSameLine(baseToken, firstToken))
+            // If the '[' of a list pattern starts its own line, indent the contents relative to it.
+            if (node.Kind() == SyntaxKind.ListPattern && !FormattingHelpers.AreOnSameLine(baseToken, firstToken))
                 SetAlignmentBlockOperation(list, firstToken, firstToken.GetNextToken(includeZeroWidth: true), lastToken, option);
         }
     }
