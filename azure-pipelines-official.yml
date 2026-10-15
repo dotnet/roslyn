@@ -180,10 +180,11 @@ extends:
                   azureDevOpsServiceConnection: dnceng-azure-public-vs-impl-push
                   feedUrl: https://pkgs.dev.azure.com/azure-public/vside/_packaging/vssdk/nuget/v3/index.json
 
-              # Authenticate to DevDiv tooling feed (still using PAT-based service connection)
+              # Authenticate to DevDiv dotnet-core-internal-tooling feed via WIF service connection
               - task: NuGetAuthenticate@1
                 inputs:
-                  nuGetServiceConnections: devdiv/dotnet-core-internal-tooling
+                  azureDevOpsServiceConnection: dnceng-devdiv-dotnet-core-internal-tooling-feed-rw-wif
+                  feedUrl: https://pkgs.dev.azure.com/devdiv/_packaging/dotnet-core-internal-tooling/nuget/v3/index.json
 
               # Authenticate to DevDiv engineering feed via WIF service connection
               - task: NuGetAuthenticate@1
