@@ -86,6 +86,406 @@ class C
         }
 
         [Fact]
+        [WorkItem(23303, "https://github.com/dotnet/roslyn/issues/23303")]
+        public void AccessModifiersForLocalFunctions_NoCapture()
+        {
+            var code = """
+                public static class App{
+                    static void Main()
+                    {
+                        local();
+                        void local() {
+                            System.Console.WriteLine("Hello");
+                        }
+                    }
+                }
+                """;
+            var expectedOutput = "Hello";
+            var expectedIL = """
+                .class public auto ansi abstract sealed beforefieldinit App
+                    extends [netstandard]System.Object
+                {
+                    // Methods
+                    .method private hidebysig static 
+                        void Main () cil managed 
+                    {
+                        // Method begins at RVA 0x2067
+                        // Code size 6 (0x6)
+                        .maxstack 8
+                        .entrypoint
+                        IL_0000: call void App::'<Main>g__local|0_0'()
+                        IL_0005: ret
+                    } // end of method App::Main
+                    .method private hidebysig static 
+                        void '<Main>g__local|0_0' () cil managed 
+                    {
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x206e
+                        // Code size 11 (0xb)
+                        .maxstack 8
+                        IL_0000: ldstr "Hello"
+                        IL_0005: call void [netstandard]System.Console::WriteLine(string)
+                        IL_000a: ret
+                    } // end of method App::'<Main>g__local|0_0'
+                } // end of class App
+                """;
+
+            var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
+            verifier.VerifyTypeIL("App", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem(23303, "https://github.com/dotnet/roslyn/issues/23303")]
+        public void AccessModifiersForLocalFunctions_ThisCapture()
+        {
+            var code = """
+                public class App{
+                    static void Main() => new App().Do();
+
+                    void Do()
+                    {
+                        local();
+                        void local() {
+                            System.Console.WriteLine(this.ToString());
+                        }
+                    }
+                }
+                """;
+            var expectedOutput = "App";
+            var expectedIL = """
+                .class public auto ansi beforefieldinit App
+                    extends [netstandard]System.Object
+                {
+                    // Methods
+                    .method private hidebysig static 
+                        void Main () cil managed 
+                    {
+                        // Method begins at RVA 0x2067
+                        // Code size 11 (0xb)
+                        .maxstack 8
+                        .entrypoint
+                        IL_0000: newobj instance void App::.ctor()
+                        IL_0005: call instance void App::Do()
+                        IL_000a: ret
+                    } // end of method App::Main
+                    .method private hidebysig 
+                        instance void Do () cil managed 
+                    {
+                        // Method begins at RVA 0x2073
+                        // Code size 7 (0x7)
+                        .maxstack 8
+                        IL_0000: ldarg.0
+                        IL_0001: call instance void App::'<Do>g__local|1_0'()
+                        IL_0006: ret
+                    } // end of method App::Do
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor () cil managed 
+                    {
+                        // Method begins at RVA 0x207b
+                        // Code size 7 (0x7)
+                        .maxstack 8
+                        IL_0000: ldarg.0
+                        IL_0001: call instance void [netstandard]System.Object::.ctor()
+                        IL_0006: ret
+                    } // end of method App::.ctor
+                    .method private hidebysig 
+                        instance void '<Do>g__local|1_0' () cil managed 
+                    {
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x2083
+                        // Code size 12 (0xc)
+                        .maxstack 8
+                        IL_0000: ldarg.0
+                        IL_0001: callvirt instance string [netstandard]System.Object::ToString()
+                        IL_0006: call void [netstandard]System.Console::WriteLine(string)
+                        IL_000b: ret
+                    } // end of method App::'<Do>g__local|1_0'
+                } // end of class App
+                """;
+
+            var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
+            verifier.VerifyTypeIL("App", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem(23303, "https://github.com/dotnet/roslyn/issues/23303")]
+        public void AccessModifiersForLocalFunctions_CaptureLocal()
+        {
+            var code = """
+                public class App{
+                    static void Main() => new App().Do();
+
+                    void Do()
+                    {
+                        var text = "Hello";
+                        local();
+
+                        void local() {
+                            System.Console.WriteLine(text);
+                        }
+                    }
+                }
+                """;
+            var expectedOutput = "Hello";
+            var expectedIL = """
+                .class public auto ansi beforefieldinit App
+                    extends [netstandard]System.Object
+                {
+                    // Nested Types
+                    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+                        extends [netstandard]System.ValueType
+                    {
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Fields
+                        .field public string text
+                    } // end of class <>c__DisplayClass1_0
+                    // Methods
+                    .method private hidebysig static 
+                        void Main () cil managed 
+                    {
+                        // Method begins at RVA 0x2067
+                        // Code size 11 (0xb)
+                        .maxstack 8
+                        .entrypoint
+                        IL_0000: newobj instance void App::.ctor()
+                        IL_0005: call instance void App::Do()
+                        IL_000a: ret
+                    } // end of method App::Main
+                    .method private hidebysig 
+                        instance void Do () cil managed 
+                    {
+                        // Method begins at RVA 0x2074
+                        // Code size 20 (0x14)
+                        .maxstack 2
+                        .locals init (
+                            [0] valuetype App/'<>c__DisplayClass1_0'
+                        )
+                        IL_0000: ldloca.s 0
+                        IL_0002: ldstr "Hello"
+                        IL_0007: stfld string App/'<>c__DisplayClass1_0'::text
+                        IL_000c: ldloca.s 0
+                        IL_000e: call void App::'<Do>g__local|1_0'(valuetype App/'<>c__DisplayClass1_0'&)
+                        IL_0013: ret
+                    } // end of method App::Do
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor () cil managed 
+                    {
+                        // Method begins at RVA 0x2094
+                        // Code size 7 (0x7)
+                        .maxstack 8
+                        IL_0000: ldarg.0
+                        IL_0001: call instance void [netstandard]System.Object::.ctor()
+                        IL_0006: ret
+                    } // end of method App::.ctor
+                    .method private hidebysig static 
+                        void '<Do>g__local|1_0' (
+                            valuetype App/'<>c__DisplayClass1_0'& ''
+                        ) cil managed 
+                    {
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x209c
+                        // Code size 12 (0xc)
+                        .maxstack 8
+                        IL_0000: ldarg.0
+                        IL_0001: ldfld string App/'<>c__DisplayClass1_0'::text
+                        IL_0006: call void [netstandard]System.Console::WriteLine(string)
+                        IL_000b: ret
+                    } // end of method App::'<Do>g__local|1_0'
+                } // end of class App
+                """;
+
+            var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
+            verifier.VerifyTypeIL("App", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem(23303, "https://github.com/dotnet/roslyn/issues/23303")]
+        public void AccessModifiersForLocalFunctions_CaptureLocalWithLambda()
+        {
+            var code = """
+                public class App{
+                    static void Main() => new App().Do();
+
+                    void Do()
+                    {
+                        var text = "Hello";
+                        
+                        System.Action lambda = () => {
+                            System.Console.Write(text);
+                            text = " World";
+                        };
+
+                        lambda();
+                        local();
+
+                        void local() {
+                            System.Console.WriteLine(text);
+                        }
+                    }
+                }
+                """;
+            var expectedOutput = "Hello World";
+            var expectedIL = """
+                .class public auto ansi beforefieldinit App
+                    extends [netstandard]System.Object
+                {
+                    // Nested Types
+                    .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
+                        extends [netstandard]System.Object
+                    {
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Fields
+                        .field public string text
+                        // Methods
+                        .method public hidebysig specialname rtspecialname 
+                            instance void .ctor () cil managed 
+                        {
+                            // Method begins at RVA 0x209b
+                            // Code size 7 (0x7)
+                            .maxstack 8
+                            IL_0000: ldarg.0
+                            IL_0001: call instance void [netstandard]System.Object::.ctor()
+                            IL_0006: ret
+                        } // end of method '<>c__DisplayClass1_0'::.ctor
+                        .method assembly hidebysig 
+                            instance void '<Do>b__0' () cil managed 
+                        {
+                            // Method begins at RVA 0x20a3
+                            // Code size 23 (0x17)
+                            .maxstack 8
+                            IL_0000: ldarg.0
+                            IL_0001: ldfld string App/'<>c__DisplayClass1_0'::text
+                            IL_0006: call void [netstandard]System.Console::Write(string)
+                            IL_000b: ldarg.0
+                            IL_000c: ldstr " World"
+                            IL_0011: stfld string App/'<>c__DisplayClass1_0'::text
+                            IL_0016: ret
+                        } // end of method '<>c__DisplayClass1_0'::'<Do>b__0'
+                        .method assembly hidebysig 
+                            instance void '<Do>g__local|1' () cil managed 
+                        {
+                            // Method begins at RVA 0x20bb
+                            // Code size 12 (0xc)
+                            .maxstack 8
+                            IL_0000: ldarg.0
+                            IL_0001: ldfld string App/'<>c__DisplayClass1_0'::text
+                            IL_0006: call void [netstandard]System.Console::WriteLine(string)
+                            IL_000b: ret
+                        } // end of method '<>c__DisplayClass1_0'::'<Do>g__local|1'
+                    } // end of class <>c__DisplayClass1_0
+                    // Methods
+                    .method private hidebysig static 
+                        void Main () cil managed 
+                    {
+                        // Method begins at RVA 0x2067
+                        // Code size 11 (0xb)
+                        .maxstack 8
+                        .entrypoint
+                        IL_0000: newobj instance void App::.ctor()
+                        IL_0005: call instance void App::Do()
+                        IL_000a: ret
+                    } // end of method App::Main
+                    .method private hidebysig 
+                        instance void Do () cil managed 
+                    {
+                        // Method begins at RVA 0x2073
+                        // Code size 39 (0x27)
+                        .maxstack 8
+                        IL_0000: newobj instance void App/'<>c__DisplayClass1_0'::.ctor()
+                        IL_0005: dup
+                        IL_0006: ldstr "Hello"
+                        IL_000b: stfld string App/'<>c__DisplayClass1_0'::text
+                        IL_0010: dup
+                        IL_0011: ldftn instance void App/'<>c__DisplayClass1_0'::'<Do>b__0'()
+                        IL_0017: newobj instance void [netstandard]System.Action::.ctor(object, native int)
+                        IL_001c: callvirt instance void [netstandard]System.Action::Invoke()
+                        IL_0021: callvirt instance void App/'<>c__DisplayClass1_0'::'<Do>g__local|1'()
+                        IL_0026: ret
+                    } // end of method App::Do
+                    .method public hidebysig specialname rtspecialname 
+                        instance void .ctor () cil managed 
+                    {
+                        // Method begins at RVA 0x209b
+                        // Code size 7 (0x7)
+                        .maxstack 8
+                        IL_0000: ldarg.0
+                        IL_0001: call instance void [netstandard]System.Object::.ctor()
+                        IL_0006: ret
+                    } // end of method App::.ctor
+                } // end of class App
+                """;
+
+            var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
+            verifier.VerifyTypeIL("App", expectedIL);
+        }
+
+        [Fact]
+        [WorkItem(86043, "https://github.com/dotnet/roslyn/issues/86043")]
+        public void AccessModifiersForLocalFunctions_StaticLocalFunction()
+        {
+            var code = """
+                using System;
+
+                public struct App
+                {
+                    public static void Main()
+                    {
+                        Do();
+                        static void Do(){
+                            Console.WriteLine("Hello World!");
+                        }
+                    }
+                }
+                """;
+            var expectedOutput = "Hello World!";
+            var expectedIL = """
+                .class public sequential ansi sealed beforefieldinit App
+                    extends [netstandard]System.ValueType
+                {
+                    .pack 0
+                    .size 1
+                    // Methods
+                    .method public hidebysig static 
+                        void Main () cil managed 
+                    {
+                        // Method begins at RVA 0x2067
+                        // Code size 6 (0x6)
+                        .maxstack 8
+                        .entrypoint
+                        IL_0000: call void App::'<Main>g__Do|0_0'()
+                        IL_0005: ret
+                    } // end of method App::Main
+                    .method private hidebysig static 
+                        void '<Main>g__Do|0_0' () cil managed 
+                    {
+                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                            01 00 00 00
+                        )
+                        // Method begins at RVA 0x206e
+                        // Code size 11 (0xb)
+                        .maxstack 8
+                        IL_0000: ldstr "Hello World!"
+                        IL_0005: call void [netstandard]System.Console::WriteLine(string)
+                        IL_000a: ret
+                    } // end of method App::'<Main>g__Do|0_0'
+                } // end of class App
+                """;
+
+            var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
+            verifier.VerifyTypeIL("App", expectedIL);
+        }
+
+        [Fact]
         [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
         public void Repro481125()
         {
