@@ -306,7 +306,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC32042: Too few type arguments to 'IEnumerable(Of Out T)'.
+BC32042: Too few type arguments to 'IEnumerable(Of T)'.
     Public Iterator Function goo As IEnumerable
                                     ~~~~~~~~~~~
 BC36939: 'Yield' cannot be used inside a 'Catch' statement or a 'Finally' statement.
@@ -468,7 +468,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <errors>
-BC32042: Too few type arguments to 'IEnumerable(Of Out T)'.
+BC32042: Too few type arguments to 'IEnumerable(Of T)'.
     Public Iterator Function f1(o As Object) As IEnumerable
                                                 ~~~~~~~~~~~
 </errors>)
@@ -720,13 +720,13 @@ BC36938: Iterator functions must return either IEnumerable(Of T), or IEnumerator
 BC30201: Expression expected.
         g1(Iterator Sub() Yield, 5)
                                ~
-BC32042: Too few type arguments to 'IEnumerator(Of Out T)'.
+BC32042: Too few type arguments to 'IEnumerator(Of T)'.
     Sub g0(ByVal x As Func(Of IEnumerator))
                               ~~~~~~~~~~~
-BC32042: Too few type arguments to 'IEnumerator(Of Out T)'.
+BC32042: Too few type arguments to 'IEnumerator(Of T)'.
     Sub g1(ByVal x As Func(Of IEnumerator), ByVal y As Integer)
                               ~~~~~~~~~~~
-BC32042: Too few type arguments to 'IEnumerator(Of Out T)'.
+BC32042: Too few type arguments to 'IEnumerator(Of T)'.
     Iterator Function f() As IEnumerator
                              ~~~~~~~~~~~
 BC30201: Expression expected.
