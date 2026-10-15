@@ -86,7 +86,7 @@ namespace RunTests
                     startInfo.ArgumentList.Add(process.Id.ToString(CultureInfo.InvariantCulture));
                     startInfo.ArgumentList.Add(ProcessUtil.GetProcessStartIdentity(process).ToString(CultureInfo.InvariantCulture));
                     startInfo.ArgumentList.Add(path);
-                    Logger.Log($"Dumping owned process {process.Id} to {dumpPath}");
+                    ConsoleUtil.WriteLine($"Dumping owned process {process.Id} to {dumpPath}");
                     var helper = ProcessRunner.CreateProcess(startInfo);
                     Logger.Log($"Dump helper {helper.Id} for owned process {process.Id}");
                     var result = await helper.Result.ConfigureAwait(false);
