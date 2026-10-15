@@ -4338,13 +4338,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructor, delayCompletionForTargetMember: isTargetTyped);
 
             ImmutableArray<VisitResult> argumentResults = reinferenceResult.Results;
+            ImmutableArray<VisitResult> argumentConversionResultsOpt = reinferenceResult.ConversionResultsOpt;
             ArgumentsCompletionDelegate<MethodSymbol>? argumentsCompletion = reinferenceResult.Completion;
             Debug.Assert(isTargetTyped == argumentsCompletion is not null);
 
             var type = node.Type;
             var initializerOpt = node.InitializerExpressionOpt;
-            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion) =
-                inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped, hasObjectInitializer: initializerOpt is { });
+            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int>? initialStateInferenceCompletion) =
+                inferInitialObjectState(node, type, constructor, arguments, argumentResults, argumentConversionResultsOpt, isTargetTyped, hasObjectInitializer: initializerOpt is { });
 
             InitializerCompletionAfterTargetType? initializerCompletion = null;
             if (initializerOpt != null)
@@ -4361,7 +4362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? type,
                 ImmutableArray<VisitResult> argumentResults,
                 ArgumentsCompletionDelegate<MethodSymbol>? argumentsCompletion,
-                Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion,
+                Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int>? initialStateInferenceCompletion,
                 InitializerCompletionAfterTargetType? initializerCompletion,
                 NullableFlowState resultState,
                 bool isTargetTyped)
@@ -4390,7 +4391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundObjectCreationExpressionBase node,
                 ImmutableArray<VisitResult> argumentResults,
                 ArgumentsCompletionDelegate<MethodSymbol> argumentsCompletion,
-                Func<TypeSymbol, MethodSymbol?, int> initialStateInferenceCompletion,
+                Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int> initialStateInferenceCompletion,
                 InitializerCompletionAfterTargetType? initializerCompletion,
                 NullableFlowState resultState)
             {
@@ -4404,8 +4405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var type = resultTypeWithAnnotations.Type;
                         MethodSymbol? constructor = getConstructor(node, type);
 
-                        argumentsCompletion(argumentResults, constructor?.Parameters ?? default, constructor);
-                        int slot = initialStateInferenceCompletion(type, constructor);
+                        (_, ImmutableArray<VisitResult> conversionResults, _) = argumentsCompletion(argumentResults, constructor?.Parameters ?? default, constructor);
+                        int slot = initialStateInferenceCompletion(type, constructor, conversionResults);
                         initializerCompletion?.Invoke(slot, type);
 
                         return setAnalyzedNullability(
@@ -4426,9 +4427,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constructor;
             }
 
-            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? completion) inferInitialObjectState(
+            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int>? completion) inferInitialObjectState(
                 BoundExpression node, TypeSymbol type, MethodSymbol? constructor,
-                ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitResult> argumentResults,
+                ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitResult> argumentResults, ImmutableArray<VisitResult> argumentConversionResultsOpt,
                 bool isTargetTyped,
                 bool hasObjectInitializer)
             {
@@ -4492,10 +4493,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         SetState(ref this.State, slot, resultState);
 
-                        if (isSuitableUnionConstruction(type, constructor, out PropertySymbol? valueProperty))
+                        if (isSuitableUnionConstruction(type, constructor, out PropertySymbol? valueProperty) && !argumentConversionResultsOpt.IsDefaultOrEmpty)
                         {
                             // When a union constructor is called, the new union's Value gets the null state of the incoming value.
-                            SetUnionValueStateFromConstructorArgument(arguments[0], argumentResults[0].RValueType, slot, valueProperty);
+                            SetUnionValueStateFromConstructorArgument(arguments[0], argumentConversionResultsOpt[0].RValueType, slot, valueProperty);
                         }
                     }
                 }
@@ -4519,15 +4520,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Func<TypeSymbol, MethodSymbol?, int> inferInitialObjectStateAsContinuation(
+            Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int> inferInitialObjectStateAsContinuation(
                 BoundExpression node,
                 ImmutableArray<BoundExpression> arguments,
                 ImmutableArray<VisitResult> argumentResults,
                 bool hasObjectInitializer)
             {
-                return (TypeSymbol type, MethodSymbol? constructor) =>
+                return (TypeSymbol type, MethodSymbol? constructor, ImmutableArray<VisitResult> argumentConversionResultsOpt) =>
                 {
-                    var (slot, resultState, completion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped: false, hasObjectInitializer);
+                    var (slot, resultState, completion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, argumentConversionResultsOpt, isTargetTyped: false, hasObjectInitializer);
                     Debug.Assert(completion is null);
                     Debug.Assert(resultState == NullableFlowState.NotNull);
                     return slot;
@@ -4712,7 +4713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (argumentsCompletion is not null)
                     {
-                        (symbol, _) = argumentsCompletion(argumentResults, parameters, member: symbol);
+                        (symbol, _, _) = argumentsCompletion(argumentResults, parameters, member: symbol);
                     }
 
                     Debug.Assert(initializationCompletion is null || symbol is not null);
@@ -7624,17 +7625,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(reinferenceResult.Completion is null);
         }
 
-        private delegate (TMember? member, bool returnNotNull) ArgumentsCompletionDelegate<TMember>(ImmutableArray<VisitResult> argumentResults, ImmutableArray<ParameterSymbol> parametersOpt, TMember? member) where TMember : Symbol;
+        private delegate (TMember? member, ImmutableArray<VisitResult> conversionResults, bool returnNotNull) ArgumentsCompletionDelegate<TMember>(ImmutableArray<VisitResult> argumentResults, ImmutableArray<ParameterSymbol> parametersOpt, TMember? member) where TMember : Symbol;
 
         private delegate void InitializerCompletionAfterTargetType(int containingSlot, TypeSymbol containingType);
         private delegate void InitializerCompletionAfterUpdatedSymbol(int containingSlot, Symbol updatedSymbol);
 
-        private readonly struct ReinferenceResult<TMember>(TMember? member, ImmutableArray<VisitResult> results,
+        private readonly struct ReinferenceResult<TMember>(TMember? member, ImmutableArray<VisitResult> results, ImmutableArray<VisitResult> conversionResultsOpt,
             bool returnNotNull, ArgumentsCompletionDelegate<TMember>? completion)
             where TMember : Symbol
         {
             public readonly TMember? Member = member;
             public readonly ImmutableArray<VisitResult> Results = results;
+            public readonly ImmutableArray<VisitResult> ConversionResultsOpt = conversionResultsOpt;
             public readonly bool ReturnNotNull = returnNotNull;
             public readonly ArgumentsCompletionDelegate<TMember>? Completion = completion;
         }
@@ -7699,7 +7701,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (delayCompletionForTargetMember)
                 {
-                    return new ReinferenceResult<TMember>(member, results, shouldReturnNotNull, visitArgumentsCoreAsContinuation(
+                    return new ReinferenceResult<TMember>(member, results, conversionResultsOpt: default, shouldReturnNotNull, visitArgumentsCoreAsContinuation(
                                                                       receiverType,
                                                                       node, arguments, argumentsNoConversions, conversions, refKindsOpt,
                                                                       argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver));
@@ -7814,8 +7816,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                conversionResultsBuilder.Free();
-
                 if (node is BoundCall { Method: { OriginalDefinition: LocalFunctionSymbol localFunction } })
                 {
                     VisitLocalFunctionUse(localFunction);
@@ -7869,7 +7869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 notNullParametersBuilder?.Free();
-                return new ReinferenceResult<TMember>(member, results, shouldReturnNotNull, completion: null);
+                return new ReinferenceResult<TMember>(member, results, conversionResultsBuilder.ToImmutableAndFree(), shouldReturnNotNull, completion: null);
             }
 
             ArgumentsCompletionDelegate<TMember> visitArgumentsCoreAsContinuation(
@@ -7893,7 +7893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            member, delayCompletionForTargetMember: false);
                            Debug.Assert(result.Completion is null);
 
-                           return (result.Member, result.ReturnNotNull);
+                           return (result.Member, result.ConversionResultsOpt, result.ReturnNotNull);
                        };
             }
 

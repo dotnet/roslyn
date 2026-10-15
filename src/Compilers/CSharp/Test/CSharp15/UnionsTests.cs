@@ -21937,6 +21937,331 @@ union U(string, int);
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_73_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1?(string s) => null; }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_74_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1(string? s) => new C1(); }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1((string?)null);
+#line 100
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_75_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1?(string s) => null; }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1 x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        var s = new S1("""");
+#line 150
+        _ = s.Value.ToString();
+    } 
+
+    static void Test2()
+    {
+#line 200
+        var s = new S1(null);
+#line 250
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,24): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(C1 x)'.
+                //         var s = new S1("");
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, @"""""").WithArguments("x", "S1.S1(C1 x)").WithLocation(100, 24),
+                // (150,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(150, 13),
+                // (200,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         var s = new S1(null);
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(200, 24),
+                // (250,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(250, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_76_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1?(string s) => null; }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        S1 s = new("""");
+#line 100
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        public void NullableAnalysis_77_State_From_Constructor()
+        {
+            var src = @"
+#nullable enable
+
+class C1 { public static implicit operator C1(string? s) => new C1(); }
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+  public S1(C1? x) => Value = x;
+  public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        S1 s = new((string?)null);
+#line 100
+        _ = s.Value.ToString();
+    } 
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85978")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86057")]
+        public void NullableAnalysis_78_State_From_Constructor_PostCondition()
+        {
+            var src = @"
+#nullable enable
+class C1
+{
+    public static implicit operator C1? (string s) => null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1([System.Diagnostics.CodeAnalysis.NotNull] C1? x)
+    {
+        if (x is null)
+            throw new System.ArgumentNullException(nameof(x));
+        Value = x;
+    }
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+
+    static void Test2(string? x)
+    {
+        var s = new S2(x);
+#line 200
+        _ = x.ToString();
+    }
+}
+
+class S2
+{
+    public S2([System.Diagnostics.CodeAnalysis.NotNull] C2? x)
+    {
+        if (x is null)
+            throw new System.ArgumentNullException(nameof(x));
+    }
+}
+
+class C2
+{
+    public static implicit operator C2? (string? s) => """";
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource, NotNullAttributeDefinition]);
+            // Diagnostic at line 100 is not expected, but it is expected at line 200 - https://github.com/dotnet/roslyn/issues/86057
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        public void NullableAnalysis_79_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+class C1
+{
+    public static implicit operator C1? (string s) => null;
+}
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params C1?[] x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            // No diagnostict expected - https://github.com/dotnet/roslyn/issues/86055
+            comp.VerifyDiagnostics(
+                // (100,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        public void NullableAnalysis_80_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params string?[] x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+        var s = new S1((string?)null);
+#line 200
+        _ = s.Value.ToString();
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+            // No diagnostict expected - https://github.com/dotnet/roslyn/issues/86055
+            comp.VerifyDiagnostics(
+                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                //         _ = s.Value.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 13)
+                );
+        }
+
+        [Fact]
         public void NullableAnalysis_MemberProvider_01_State_From_Default()
         {
             var src = @"
