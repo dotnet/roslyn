@@ -4002,6 +4002,28 @@ partial class P
         }
 
         [Fact]
+        public void InheritdocBoundsRecursiveTraversalWithCyclesAndEmptySelections()
+        {
+            var source = new System.Text.StringBuilder("class C\n{\n");
+            source.AppendLine("    /// <inheritdoc cref=\"M0(int)\" path=\"/param\"/>");
+            source.AppendLine("    void M0(int x) { }");
+            for (var i = 1; i <= 17; i++)
+            {
+                source.AppendLine($"    /// <inheritdoc cref=\"M{i - 1}(int)\" path=\"/param\"/>");
+                source.AppendLine($"    /// <inheritdoc cref=\"M{i - 1}(int)\" path=\"/param\"/>");
+                source.AppendLine($"    void M{i}(int x) {{ }}");
+            }
+
+            source.AppendLine("    /// <inheritdoc cref=\"M17(int)\" path=\"/param\"/>");
+            source.AppendLine("    /// <param name=\"y\">y</param>");
+            source.AppendLine("    void Target(int x, int y) { }");
+            source.AppendLine("}");
+            CreateCompilationWithMscorlib40AndDocumentationComments(source.ToString()).VerifyDiagnostics(
+                // warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.Target(int, int)' (but other parameters do)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.Target(int, int)"));
+        }
+
+        [Fact]
         public void InheritdocDoesNotSuppressMissingTagsAbsentFromInheritedDocumentation()
         {
             var source = """

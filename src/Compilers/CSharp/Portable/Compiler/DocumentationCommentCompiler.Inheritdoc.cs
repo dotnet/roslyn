@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class DocumentationCommentCompiler
     {
         private const int MaxInheritedDocumentationNodeCount = 10_000;
+        private const int MaxInheritedDocumentationExpansionCount = 10_000;
 
         // Keep candidate selection and XPath handling aligned with Workspaces' ISymbolExtensions.GetDocumentationComment.
         // The compiler layer cannot reference Workspaces.
@@ -46,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var visitedSymbols = new HashSet<ISymbol>(SymbolEqualityComparer.Default) { publicSymbol };
             var expandedDocumentation = new Dictionary<ISymbol, XDocument>(SymbolEqualityComparer.Default);
             var remainingNodeBudget = MaxInheritedDocumentationNodeCount;
-            ExpandInheritedDocumentation(publicSymbol, document, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, out _);
+            var remainingExpansionBudget = MaxInheritedDocumentationExpansionCount;
+            ExpandInheritedDocumentation(publicSymbol, document, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, ref remainingExpansionBudget, out _);
             CollectDocumentationNames(document, parameterNames, typeParameterNames);
 
             if (documentedParameters != null)
@@ -78,6 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<ISymbol> visitedSymbols,
             Dictionary<ISymbol, XDocument> expandedDocumentation,
             ref int remainingNodeBudget,
+            ref int remainingExpansionBudget,
             out bool isComplete)
         {
             isComplete = true;
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var xpath = string.IsNullOrEmpty(path)
                     ? BuildXPathForElement(element.Parent)
                     : path.StartsWith("/", StringComparison.Ordinal) ? "/*" + path : path;
-                var inheritedDocument = GetExpandedDocumentation(inheritedSymbol, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, out var inheritedIsComplete);
+                var inheritedDocument = GetExpandedDocumentation(inheritedSymbol, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, ref remainingExpansionBudget, out var inheritedIsComplete);
                 isComplete &= inheritedIsComplete;
                 var inheritedNodes = TrySelectNodes(inheritedDocument, xpath).ToArray();
                 var nodeCount = 0;
@@ -129,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<ISymbol> visitedSymbols,
             Dictionary<ISymbol, XDocument> expandedDocumentation,
             ref int remainingNodeBudget,
+            ref int remainingExpansionBudget,
             out bool isComplete)
         {
             if (expandedDocumentation.TryGetValue(member, out var cachedDocument))
@@ -136,6 +140,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isComplete = true;
                 return cachedDocument;
             }
+
+            if (remainingExpansionBudget == 0)
+            {
+                isComplete = false;
+                return new XDocument(new XElement("doc"));
+            }
+
+            remainingExpansionBudget--;
 
             if (!visitedSymbols.Add(member))
             {
@@ -150,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (IsEligibleForAutomaticInheritdoc(member) && GetInheritdocCandidate(member) is { } candidate)
                     {
-                        var inheritedDocument = GetExpandedDocumentation(candidate, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, out isComplete);
+                        var inheritedDocument = GetExpandedDocumentation(candidate, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, ref remainingExpansionBudget, out isComplete);
                         if (isComplete)
                         {
                             expandedDocumentation[member] = inheritedDocument;
@@ -178,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return emptyDocument;
                 }
 
-                ExpandInheritedDocumentation(member, document, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, out isComplete);
+                ExpandInheritedDocumentation(member, document, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, ref remainingExpansionBudget, out isComplete);
                 if (isComplete)
                 {
                     expandedDocumentation[member] = document;
