@@ -243,19 +243,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             bool isCurrentTree(SyntaxTree? tree)
-            {
-                if (tree is null || _state.CompilationCache.Compilation.ContainsSyntaxTree(tree))
-                    return true;
-                foreach (var generatorState in _state.GeneratorStates)
-                {
-                    foreach (var currentTree in GetCurrentRegularTrees(generatorState))
-                    {
-                        if (ReferenceEquals(tree, currentTree.Tree))
-                            return true;
-                    }
-                }
-                return false;
-            }
+                => tree is null || _state.CompilationCache.Compilation.ContainsSyntaxTree(tree);
         }
 
         private static ImmutableArray<GeneratedSyntaxTree> GetCurrentRegularTrees(GeneratorState generatorState)

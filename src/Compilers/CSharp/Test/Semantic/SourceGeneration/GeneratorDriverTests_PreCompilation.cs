@@ -1400,7 +1400,8 @@ class C { }
 
         [Theory, CombinatorialData]
         public void PreCompilation_Filtered_Diagnostics_Exclude_Replaced_Source_Trees(
-            bool changeParseOptions, bool useAdditionalLocation)
+            [CombinatorialValues("none", "parseOptions", "sharedText", "userText")] string inputChange,
+            bool useAdditionalLocation)
         {
             var parseOptions = TestOptions.RegularPreview;
             Compilation compilation = CreateCompilation("class C { }", parseOptions: parseOptions);
@@ -1420,29 +1421,42 @@ class C { }
                     ctx.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(descriptor,
                         useAdditionalLocation ? Location.Create(input.SyntaxTrees.First(), new TextSpan(0, 1)) : sharedLocation,
                         additionalLocations: useAdditionalLocation ? [sharedLocation] : []));
+                    ctx.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic.Create(descriptor, Location.None));
+                    ctx.AddSource("regular", "public class RegularMarker { }");
                 });
             }).AsSourceGenerator();
             GeneratorDriver driver = CSharpGeneratorDriver.Create(
                 [generator], additionalTexts: [text], parseOptions: parseOptions);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out _, out var diagnostics);
-            Assert.Equal("PCSG003", Assert.Single(diagnostics).Id);
-            if (changeParseOptions)
+            Assert.Equal(2, diagnostics.Length);
+            var locationlessDiagnostic = Assert.Single(diagnostics, diagnostic => diagnostic.Location == Location.None);
+            if (inputChange == "parseOptions")
             {
                 parseOptions = parseOptions.WithPreprocessorSymbols("UPDATED");
                 var tree = compilation.SyntaxTrees.Single();
                 compilation = compilation.ReplaceSyntaxTree(tree, tree.WithRootAndOptions(tree.GetRoot(), parseOptions));
                 driver = driver.WithUpdatedParseOptions(parseOptions);
             }
-            else
+            else if (inputChange == "sharedText")
             {
                 driver = driver.ReplaceAdditionalText(text,
                     new InMemoryAdditionalText("source.txt", "public class SharedMarker { public const int Value = 1; }"));
             }
+            else if (inputChange == "userText")
+            {
+                var tree = compilation.SyntaxTrees.Single();
+                compilation = compilation.ReplaceSyntaxTree(tree, tree.WithChangedText(SourceText.From("class Updated { }")));
+            }
             driver = driver.RunGenerators(compilation, static _ => false);
-            Assert.Empty(Assert.Single(driver.GetRunResult().Results).Diagnostics);
+            bool retainSourceDiagnostic = inputChange == "none" || (inputChange == "userText" && !useAdditionalLocation);
+            AssertEx.Equal(retainSourceDiagnostic ? diagnostics : ImmutableArray.Create(locationlessDiagnostic),
+                Assert.Single(driver.GetRunResult().Results).Diagnostics);
             Assert.Equal(1, regularCallCount);
             driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out diagnostics);
-            var diagnostic = Assert.Single(diagnostics);
+            Assert.Equal(2, diagnostics.Length);
+            var diagnostic = Assert.Single(diagnostics, diagnostic => diagnostic.Location.IsInSource);
+            Assert.Equal("PCSG003", diagnostic.Id);
+            Assert.Single(diagnostics, diagnostic => diagnostic.Location == Location.None);
             Assert.Contains(diagnostic.Location.SourceTree, output.SyntaxTrees);
             Assert.All(diagnostic.AdditionalLocations, location => Assert.Contains(location.SourceTree, output.SyntaxTrees));
             Assert.Equal(2, regularCallCount);
