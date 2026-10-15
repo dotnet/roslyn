@@ -157,6 +157,13 @@
     <ProjectReference Include="..\..\..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
   </ItemGroup>
 
+  <!-- Without R2R, the RID-specific host consumes runtime-independent library builds. -->
+  <ItemGroup Condition="'$(PublishReadyToRun)' != 'true'">
+    <ProjectReference Update="@(ProjectReference)">
+      <GlobalPropertiesToRemove>%(ProjectReference.GlobalPropertiesToRemove);RuntimeIdentifier;SelfContained</GlobalPropertiesToRemove>
+    </ProjectReference>
+  </ItemGroup>
+
   <!-- Remote.Razor publish needs Roslyn references copy-local for R2R closure. -->
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0' and '$(PublishReadyToRun)' == 'true' and '$(RuntimeIdentifier)' != ''">
     <ProjectReference Update="..\Microsoft.CodeAnalysis.Razor.Workspaces\Microsoft.CodeAnalysis.Razor.Workspaces.csproj">

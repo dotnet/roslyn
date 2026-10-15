@@ -24,6 +24,8 @@
     <ProjectReference Include="..\..\..\Tools\CompilerGeneratorTools\Source\CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj">
       <OutputItemType>Analyzer</OutputItemType>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <!-- The generator runs in the compiler process, not on the target runtime. -->
+      <GlobalPropertiesToRemove>RuntimeIdentifier;PlatformTarget;SelfContained;PublishReadyToRun</GlobalPropertiesToRemove>
       <!-- The generator project currently builds as both a console app and a source generator,
            depending upon which TFM is built. No matter what the this project builds as,
            we want to grab the generator.-->
