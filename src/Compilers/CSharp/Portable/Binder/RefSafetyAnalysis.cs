@@ -398,37 +398,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitPossibleEmbeddedStatement(BoundStatement? node)
         {
-            using var _ = new LocalScope(this, ImmutableArray<LocalSymbol>.Empty, adjustDepth: node is not null and not BoundBlock);
+            var originalDepth = _localScopeDepth;
+            _localScopeDepth = _localScopeDepth.Narrower();
             Visit(node);
+            _localScopeDepth = originalDepth;
         }
 
         public override BoundNode? VisitIfStatement(BoundIfStatement node)
         {
             var originalDepth = _localScopeDepth;
-            try
+            while (true)
             {
-                while (true)
+                Visit(node.Condition);
+                VisitPossibleEmbeddedStatement(node.Consequence);
+                var alternative = node.AlternativeOpt;
+                if (alternative is BoundIfStatement elseIfStatement)
                 {
-                    Visit(node.Condition);
-                    VisitPossibleEmbeddedStatement(node.Consequence);
-                    var alternative = node.AlternativeOpt;
-                    if (alternative is BoundIfStatement elseIfStatement)
-                    {
-                        // Each else-if is an embedded statement, but visit the chain iteratively to avoid stack overflow.
-                        _localScopeDepth = _localScopeDepth.Narrower();
-                        node = elseIfStatement;
-                    }
-                    else
-                    {
-                        VisitPossibleEmbeddedStatement(alternative);
-                        break;
-                    }
+                    // Each else-if is an embedded statement, but visit the chain iteratively to avoid stack overflow.
+                    _localScopeDepth = _localScopeDepth.Narrower();
+                    node = elseIfStatement;
+                }
+                else
+                {
+                    VisitPossibleEmbeddedStatement(alternative);
+                    break;
                 }
             }
-            finally
-            {
-                _localScopeDepth = originalDepth;
-            }
+            _localScopeDepth = originalDepth;
             return null;
         }
 
