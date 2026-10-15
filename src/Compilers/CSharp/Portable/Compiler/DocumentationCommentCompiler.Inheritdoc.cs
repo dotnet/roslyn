@@ -7,11 +7,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -40,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeParameterNames = new HashSet<string>(StringComparer.Ordinal);
             var publicSymbol = symbol.GetPublicSymbol();
             var visitedSymbols = new HashSet<ISymbol>(SymbolEqualityComparer.Default) { publicSymbol };
-            CollectDocumentationNames(publicSymbol, document, parameterNames, typeParameterNames, visitedSymbols);
+            ExpandInheritedDocumentation(publicSymbol, document, visitedSymbols);
+            CollectDocumentationNames(document, parameterNames, typeParameterNames);
 
             if (documentedParameters != null)
             {
@@ -65,60 +68,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void CollectDocumentationNames(
-            ISymbol member,
-            XNode node,
-            HashSet<string> parameterNames,
-            HashSet<string> typeParameterNames,
-            HashSet<ISymbol> visitedSymbols)
+        private void ExpandInheritedDocumentation(ISymbol member, XContainer container, HashSet<ISymbol> visitedSymbols)
         {
-            if (node is XElement element)
+            foreach (var element in container.Descendants().ToArray())
             {
-                if (ElementNameIs(element, DocumentationCommentXmlNames.ParameterElementName))
+                if (!ElementNameIs(element, DocumentationCommentXmlNames.InheritdocElementName))
                 {
-                    AddName(element, parameterNames);
-                }
-                else if (ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterElementName))
-                {
-                    AddName(element, typeParameterNames);
-                }
-                else if (ElementNameIs(element, DocumentationCommentXmlNames.InheritdocElementName))
-                {
-                    var cref = element.Attribute(DocumentationCommentXmlNames.CrefAttributeName);
-                    var inheritedSymbol = cref == null
-                        ? GetInheritdocCandidate(member)
-                        : DocumentationCommentId.GetFirstSymbolForDeclarationId(cref.Value, _compilation);
-
-                    if (inheritedSymbol != null)
-                    {
-                        var path = element.Attribute(DocumentationCommentXmlNames.PathAttributeName)?.Value;
-                        var xpath = string.IsNullOrEmpty(path)
-                            ? BuildXPathForElement(element.Parent)
-                            : path.StartsWith("/", StringComparison.Ordinal) ? "/*" + path : path;
-
-                        CollectInheritedDocumentationNames(inheritedSymbol, xpath, parameterNames, typeParameterNames, visitedSymbols);
-                    }
-
-                    return;
+                    continue;
                 }
 
-                foreach (var child in element.Nodes())
+                var cref = element.Attribute(DocumentationCommentXmlNames.CrefAttributeName);
+                var inheritedSymbol = cref == null
+                    ? GetInheritdocCandidate(member)
+                    : DocumentationCommentId.GetFirstSymbolForDeclarationId(cref.Value, _compilation);
+                if (inheritedSymbol == null)
                 {
-                    CollectDocumentationNames(member, child, parameterNames, typeParameterNames, visitedSymbols);
+                    element.Remove();
+                    continue;
                 }
+
+                var path = element.Attribute(DocumentationCommentXmlNames.PathAttributeName)?.Value;
+                var xpath = string.IsNullOrEmpty(path)
+                    ? BuildXPathForElement(element.Parent)
+                    : path.StartsWith("/", StringComparison.Ordinal) ? "/*" + path : path;
+                var inheritedDocument = GetExpandedDocumentation(inheritedSymbol, visitedSymbols);
+                var inheritedNodes = TrySelectNodes(inheritedDocument, xpath).ToArray();
+                element.ReplaceWith(inheritedNodes.Select(static node => CopyNode(node)).ToArray());
             }
         }
 
-        private void CollectInheritedDocumentationNames(
-            ISymbol member,
-            string xpath,
-            HashSet<string> parameterNames,
-            HashSet<string> typeParameterNames,
-            HashSet<ISymbol> visitedSymbols)
+        private XDocument GetExpandedDocumentation(ISymbol member, HashSet<ISymbol> visitedSymbols)
         {
             if (!visitedSymbols.Add(member))
             {
-                return;
+                return new XDocument(new XElement("doc"));
             }
 
             try
@@ -128,10 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (IsEligibleForAutomaticInheritdoc(member) && GetInheritdocCandidate(member) is { } candidate)
                     {
-                        CollectInheritedDocumentationNames(candidate, xpath, parameterNames, typeParameterNames, visitedSymbols);
+                        return GetExpandedDocumentation(candidate, visitedSymbols);
                     }
 
-                    return;
+                    return new XDocument(new XElement("doc"));
                 }
 
                 XDocument document;
@@ -141,13 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 catch (XmlException)
                 {
-                    return;
+                    return new XDocument(new XElement("doc"));
                 }
 
-                foreach (var inheritedNode in TrySelectNodes(document, xpath))
-                {
-                    CollectDocumentationNames(member, inheritedNode, parameterNames, typeParameterNames, visitedSymbols);
-                }
+                ExpandInheritedDocumentation(member, document, visitedSymbols);
+                return document;
             }
             finally
             {
@@ -155,9 +136,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private static void CollectDocumentationNames(
+            XContainer container,
+            HashSet<string> parameterNames,
+            HashSet<string> typeParameterNames)
+        {
+            foreach (var element in container.Descendants())
+            {
+                if (ElementNameIs(element, DocumentationCommentXmlNames.ParameterElementName))
+                {
+                    AddName(element, parameterNames);
+                }
+                else if (ElementNameIs(element, DocumentationCommentXmlNames.TypeParameterElementName))
+                {
+                    AddName(element, typeParameterNames);
+                }
+            }
+        }
+
         private static bool IsEligibleForAutomaticInheritdoc(ISymbol member)
-            => member.IsOverride
-                || (member is IMethodSymbol or IPropertySymbol or IEventSymbol) && GetInheritdocCandidate(member) != null;
+        {
+            if (member is IMethodSymbol method)
+            {
+                return method.MethodKind is not (MethodKind.Constructor or MethodKind.StaticConstructor)
+                    && (method.IsOverride || GetInheritdocCandidate(member) != null);
+            }
+
+            return member.IsOverride
+                || (member is IPropertySymbol or IEventSymbol) && GetInheritdocCandidate(member) != null;
+        }
 
         private static ISymbol GetInheritdocCandidate(ISymbol member)
         {
@@ -326,12 +333,41 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void AddName(XElement element, HashSet<string> names)
         {
-            var name = element.Attribute(DocumentationCommentXmlNames.NameAttributeName)?.Value;
-            if (!string.IsNullOrWhiteSpace(name))
+            if (element.Attribute(DocumentationCommentXmlNames.NameAttributeName) is { } nameAttribute)
             {
-                names.Add(name);
+                var nameSyntax = ParseNameAttribute(nameAttribute.ToString(), element.Name.LocalName);
+                names.Add(nameSyntax.Identifier.Identifier.ValueText);
             }
         }
+
+        private static XmlNameAttributeSyntax ParseNameAttribute(string attributeText, string elementName)
+        {
+            // NOTE: Rather than introducing a new code path that will have to be kept in
+            // sync with other mode changes distributed throughout Lexer, SyntaxParser, and
+            // DocumentationCommentParser, we'll just wrap the text in some lexable syntax
+            // and then extract the piece we want.
+            string commentText = string.Format(@"/// <{0} {1}/>", elementName, attributeText);
+
+            SyntaxTriviaList leadingTrivia = SyntaxFactory.ParseLeadingTrivia(commentText, CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
+            Debug.Assert(leadingTrivia.Count == 1);
+            SyntaxTrivia trivia = leadingTrivia.ElementAt(0);
+            DocumentationCommentTriviaSyntax structure = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
+            Debug.Assert(structure.Content.Count == 2);
+            XmlEmptyElementSyntax elementSyntax = (XmlEmptyElementSyntax)structure.Content[1];
+            Debug.Assert(elementSyntax.Attributes.Count == 1);
+            return (XmlNameAttributeSyntax)elementSyntax.Attributes[0];
+        }
+
+        private static XNode CopyNode(XNode node)
+            => node switch
+            {
+                XElement element => new XElement(element),
+                XCData cdata => new XCData(cdata.Value),
+                XText text => new XText(text.Value),
+                XComment comment => new XComment(comment.Value),
+                XProcessingInstruction instruction => new XProcessingInstruction(instruction.Target, instruction.Data),
+                _ => throw ExceptionUtilities.UnexpectedValue(node.NodeType),
+            };
 
         private static bool ElementNameIs(XElement element, string name)
             => string.IsNullOrEmpty(element.Name.NamespaceName) && DocumentationCommentXmlNames.ElementEquals(element.Name.LocalName, name);

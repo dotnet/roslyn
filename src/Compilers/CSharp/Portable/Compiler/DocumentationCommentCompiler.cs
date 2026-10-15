@@ -553,6 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // If there are no include elements, then there's nothing to expand.
+            string xmlForInheritance = withUnprocessedIncludes;
             if (!includeElementNodes.IsDefaultOrEmpty)
             {
                 _cancellationToken.ThrowIfCancellationRequested();
@@ -561,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // XML, not XML mixed with documentation comment trivia (e.g. ///).  If we expanded them before formatting,
                 // the formatting engine would have trouble determining what prefix to remove from each line.
                 TextWriter? expanderWriter = shouldSkipPartialDefinitionComments ? null : _writer; // Don't actually write partial method definition parts.
-                IncludeElementExpander.ProcessIncludes(withUnprocessedIncludes, symbol, includeElementNodes,
+                xmlForInheritance = IncludeElementExpander.ProcessIncludes(withUnprocessedIncludes, symbol, includeElementNodes,
                     _compilation, ref documentedParameters, ref documentedTypeParameters, ref _includedFileCache, expanderWriter, _diagnostics, _cancellationToken);
             }
             else if (_writer != null && !shouldSkipPartialDefinitionComments)
@@ -577,9 +578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 && (documentedParameters != null || documentedTypeParameters != null)
                 && (!includeElementNodes.IsEmpty || withUnprocessedIncludes.IndexOf("<inheritdoc", StringComparison.OrdinalIgnoreCase) >= 0))
             {
-                string xmlForInheritance = includeElementNodes.IsEmpty
-                    ? withUnprocessedIncludes
-                    : symbol.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: _cancellationToken);
                 AddInheritedDocumentationTags(symbol, xmlForInheritance, ref documentedParameters, ref documentedTypeParameters);
             }
 

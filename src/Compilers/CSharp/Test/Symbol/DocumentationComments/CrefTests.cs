@@ -3828,6 +3828,125 @@ partial class P
         }
 
         [Fact]
+        public void InheritdocPathIncludesTagsFromNestedInheritance()
+        {
+            var source = """
+                class C
+                {
+                    /// <param name="x">x</param>
+                    /// <param name="y">y</param>
+                    void M(int x, int y) { }
+
+                    /// <inheritdoc cref="M(int, int)"/>
+                    void N(int x, int y) { }
+
+                    /// <inheritdoc cref="N(int, int)" path="/param"/>
+                    /// <param name="z">z</param>
+                    void N(int x, int y, int z) { }
+
+                    /// <typeparam name="T">T</typeparam>
+                    /// <typeparam name="U">U</typeparam>
+                    void G<T, U>() { }
+
+                    /// <inheritdoc cref="G{T, U}"/>
+                    void H<T, U>() { }
+
+                    /// <inheritdoc cref="H{T, U}" path="/typeparam"/>
+                    /// <typeparam name="V">V</typeparam>
+                    void H<T, U, V>() { }
+                }
+                """;
+
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InheritdocDoesNotAutomaticallyInheritFromConstructor()
+        {
+            var source = """
+                class Base
+                {
+                    /// <param name="x">x</param>
+                    public Base(int x) { }
+                }
+
+                class Derived : Base
+                {
+                    public Derived(int x) : base(x) { }
+                }
+
+                class C
+                {
+                    /// <inheritdoc cref="Derived.Derived(int)"/>
+                    /// <param name="y">y</param>
+                    void M(int x, int y) { }
+                }
+                """;
+
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (17,16): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.M(int, int)' (but other parameters do)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.M(int, int)"));
+        }
+
+        [Fact]
+        public void InheritdocDecodesEscapedParameterAndTypeParameterNames()
+        {
+            var source = """
+                class C
+                {
+                    /// <param name="\u0062">b</param>
+                    void M(int b) { }
+
+                    /// <inheritdoc cref="M(int)"/>
+                    /// <param name="c">c</param>
+                    void M(int b, int c) { }
+
+                    /// <typeparam name="\u0054">T</typeparam>
+                    void G<T>() { }
+
+                    /// <inheritdoc cref="G{T}"/>
+                    /// <typeparam name="U">U</typeparam>
+                    void G<T, U>() { }
+                }
+                """;
+
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InheritdocWarningsUseCurrentPartialDeclarationIncludes()
+        {
+            var root = Temp.CreateDirectory();
+            root.CreateFile("docs.xml").WriteAllText("<doc><summary>Included summary.</summary></doc>");
+
+            var source = """
+                partial class C
+                {
+                    /// <param name="x">x</param>
+                    /// <include file="docs.xml" path="/doc/summary"/>
+                    partial void M(int x, int y);
+                }
+
+                partial class C
+                {
+                    /// <param name="x">x</param>
+                    /// <param name="y">y</param>
+                    partial void M(int x, int y) { }
+                }
+                """;
+            var tree = Parse(source, options: TestOptions.RegularWithDocumentationComments);
+            var compilation = CSharpCompilation.Create(
+                "Test",
+                [tree],
+                [MscorlibRef],
+                TestOptions.ReleaseDll.WithXmlReferenceResolver(new XmlFileResolver(root.Path)));
+
+            compilation.VerifyDiagnostics(
+                // (5,31): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.M(int, int)' (but other parameters do)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.M(int, int)"));
+        }
+
+        [Fact]
         public void InheritdocDoesNotSuppressMissingTagsAbsentFromInheritedDocumentation()
         {
             var source = """
