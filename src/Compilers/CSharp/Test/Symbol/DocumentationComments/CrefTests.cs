@@ -4024,6 +4024,29 @@ partial class P
         }
 
         [Fact]
+        public void InheritdocInNestedContainerUsesMemberRootedXPath()
+        {
+            var source = """
+                class C
+                {
+                    /// <remarks>
+                    /// <param name="x">x</param>
+                    /// </remarks>
+                    /// <param name="z">z</param>
+                    void Source(int x, int z) { }
+
+                    /// <remarks>
+                    /// <inheritdoc cref="Source(int, int)"/>
+                    /// </remarks>
+                    /// <param name="z">z</param>
+                    void Target(int x, int z) { }
+                }
+                """;
+
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void InheritdocDoesNotSuppressMissingTagsAbsentFromInheritedDocumentation()
         {
             var source = """

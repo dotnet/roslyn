@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             XElement document;
             try
             {
-                document = XElement.Parse("<doc>" + xmlText + "</doc>", LoadOptions.PreserveWhitespace);
+                document = XElement.Parse(xmlText, LoadOptions.PreserveWhitespace);
             }
             catch (XmlException)
             {
