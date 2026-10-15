@@ -1348,6 +1348,143 @@ class C { }
             }
         }
 
+        [Theory, CombinatorialData]
+        public void PreCompilation_Filtered_Combine_Preserves_Sources_After_Input_Removal(
+            bool runInitialFullPass,
+            bool runFilteredPass,
+            bool trackSteps,
+            bool combineCompilation,
+            [CombinatorialValues(0, 1, 2, -1)] int removedIndex)
+        {
+            var parseOptions = TestOptions.RegularPreview;
+            var compilation = CreateCompilation("class C { }", parseOptions: parseOptions);
+            AdditionalText[] texts =
+            [
+                new InMemoryAdditionalText("A", "A"),
+                new InMemoryAdditionalText("B", "B"),
+                new InMemoryAdditionalText("C", "C")
+            ];
+            int regularCallCount = 0;
+            var generator = new PipelineCallbackGenerator(ic =>
+            {
+                var shared = ic.AdditionalTextsProvider;
+                ic.RegisterPreCompilationSourceOutput(shared, (ctx, text) =>
+                    ctx.AddSource("shared_" + text.Path, $"public class Shared{text.Path} {{ }}"));
+                if (combineCompilation)
+                {
+                    ic.RegisterSourceOutput(shared.Combine(ic.CompilationProvider),
+                        (ctx, pair) => AddRegularSource(ctx, pair.Left));
+                }
+                else
+                {
+                    ic.RegisterSourceOutput(shared.Combine(ic.ParseOptionsProvider),
+                        (ctx, pair) => AddRegularSource(ctx, pair.Left));
+                }
+
+                void AddRegularSource(SourceProductionContext ctx, AdditionalText text)
+                {
+                    regularCallCount++;
+                    ctx.AddSource("regular_" + text.Path, $"public class Regular{text.Path} {{ }}");
+                }
+            }).AsSourceGenerator();
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [generator], additionalTexts: texts, parseOptions: parseOptions,
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackSteps));
+            if (runInitialFullPass)
+                driver = driver.RunGenerators(compilation);
+            if (runFilteredPass)
+                driver = driver.RunGenerators(compilation, static _ => false);
+
+            var removed = removedIndex < 0 ? texts : [texts[removedIndex]];
+            var remaining = texts.Except(removed).ToArray();
+            int expectedRegularCallCount = (runInitialFullPass ? texts.Length : 0)
+                + (!runInitialFullPass || runFilteredPass || combineCompilation ? remaining.Length : 0);
+            driver = driver.RemoveAdditionalTexts([.. removed]);
+            for (int pass = 0; pass < 3; pass++)
+            {
+                driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out var diagnostics);
+                Assert.Empty(diagnostics);
+                output.VerifyEmitDiagnostics();
+                var expectedHints = remaining.SelectMany(text => new[] { "shared_" + text.Path + ".cs", "regular_" + text.Path + ".cs" });
+                AssertEx.SetEqual(expectedHints, driver.GetRunResult().Results[0].GeneratedSources.Select(source => source.HintName));
+                Assert.Equal(remaining.Length * 2, driver.GetRunResult().GeneratedTrees.Length);
+                foreach (var text in texts)
+                    Assert.Equal(remaining.Contains(text), output.GetTypeByMetadataName("Regular" + text.Path) is not null);
+                Assert.Equal(expectedRegularCallCount, regularCallCount);
+            }
+
+            driver = driver.AddAdditionalTexts([.. removed]);
+            for (int pass = 0; pass < 2; pass++)
+            {
+                driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out var diagnostics);
+                Assert.Empty(diagnostics);
+                output.VerifyEmitDiagnostics();
+                foreach (var text in texts)
+                    Assert.NotNull(output.GetTypeByMetadataName("Regular" + text.Path));
+                Assert.Equal(texts.Length * 2, driver.GetRunResult().GeneratedTrees.Length);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void PreCompilation_Filtered_Syntax_Resumes_After_Tree_Change(
+            bool trackSteps, [CombinatorialValues("add", "remove", "replace")] string change)
+        {
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation("class C { }", parseOptions: parseOptions);
+            var originalTree = compilation.SyntaxTrees.Single();
+            var additionalTree = CSharpSyntaxTree.ParseText("class D { }", parseOptions);
+            if (change == "remove")
+                compilation = compilation.AddSyntaxTrees(additionalTree);
+            int regularCallCount = 0;
+            var producer = new PipelineCallbackGenerator(ic =>
+            {
+                ic.RegisterPreCompilationSourceOutput(ic.ParseOptionsProvider,
+                    (ctx, _) => ctx.AddSource("shared", "public class SharedMarker { }"));
+                var syntax = ic.SyntaxProvider.CreateSyntaxProvider(
+                    static (node, _) => node is Syntax.ClassDeclarationSyntax,
+                    static (ctx, _) => ((Syntax.ClassDeclarationSyntax)ctx.Node).Identifier.ValueText);
+                ic.RegisterSourceOutput(syntax, (ctx, name) =>
+                {
+                    regularCallCount++;
+                    ctx.AddSource("regular_" + name, $"public class GeneratedFor{name} {{ }}");
+                });
+            }).AsSourceGenerator();
+            var consumer = new PipelineCallbackGenerator2(ic =>
+            {
+                var syntax = ic.SyntaxProvider.CreateSyntaxProvider(
+                    static (node, _) => node is Syntax.ClassDeclarationSyntax, static (ctx, _) => ctx.Node);
+                ic.RegisterSourceOutput(syntax, static (_, _) => { });
+            }).AsSourceGenerator();
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(
+                [producer, consumer], parseOptions: parseOptions,
+                driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackSteps));
+            driver = driver.RunGenerators(compilation);
+            int initialCallCount = regularCallCount;
+            compilation = change switch
+            {
+                "add" => compilation.AddSyntaxTrees(additionalTree),
+                "remove" => compilation.RemoveSyntaxTrees(additionalTree),
+                "replace" => compilation.ReplaceSyntaxTree(originalTree, CSharpSyntaxTree.ParseText("class E { }", parseOptions)),
+                _ => throw new InvalidOperationException()
+            };
+            for (int pass = 0; pass < 2; pass++)
+                driver = driver.RunGenerators(compilation, ctx => ctx.Generator == consumer);
+            Assert.Equal(initialCallCount, regularCallCount);
+
+            var expectedNames = change == "add" ? new[] { "C", "D", "SharedMarker" }
+                : change == "remove" ? ["C", "SharedMarker"] : ["E", "SharedMarker"];
+            for (int pass = 0; pass < 3; pass++)
+            {
+                driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var output, out var diagnostics);
+                Assert.Empty(diagnostics);
+                output.VerifyEmitDiagnostics();
+                foreach (var name in expectedNames)
+                    Assert.NotNull(output.GetTypeByMetadataName("GeneratedFor" + name));
+                Assert.Equal(expectedNames.Length + 1, driver.GetRunResult().Results[0].GeneratedSources.Length);
+                Assert.Equal(initialCallCount + expectedNames.Length, regularCallCount);
+            }
+        }
+
         [Theory]
         [InlineData(false)]
         [InlineData(true)]
