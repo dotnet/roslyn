@@ -9,9 +9,11 @@ using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -20,6 +22,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -1311,6 +1314,16 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        // Restore before loading so a delayed assets-file notification cannot reload the edited Util.cs.
+        // Intentionally narrows this test to projects that don't need to be restored before loading.
+        Assert.True(await RestoreHandler.RestoreAsync(
+            [appCsFile.Path],
+            testLspServer.GetRequiredLspService<WorkDoneProgressManager>(),
+            testLspServer.GetRequiredLspService<DotnetCliHelper>(),
+            testLspServer.GetRequiredLspService<LspLoggerFactory>().CreateLogger<RestoreHandler>(),
+            enableProgressReporting: false,
+            CancellationToken.None));
 
         // Open App.cs.
         var appCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
