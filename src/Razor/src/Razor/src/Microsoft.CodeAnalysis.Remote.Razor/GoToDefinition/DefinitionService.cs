@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
@@ -126,7 +127,8 @@ internal sealed class DefinitionService(
             TryResolveFilePath(documentSnapshot, attributeValue, out var attributePath))
         {
             _logger.LogDebug($"Resolved attribute file path: {attributePath}");
-            return [LspFactory.CreateLocation(attributePath, LspFactory.DefaultRange)];
+            // Convert from a file path so percent sequences in the filename are escaped in the URI.
+            return [LspFactory.CreateLocation(ProtocolConversions.CreateAbsoluteDocumentUri(attributePath), LspFactory.DefaultRange)];
         }
 
         // Anything else Html or Razor we don't know how to handle (or don't expect literals)
@@ -158,7 +160,7 @@ internal sealed class DefinitionService(
             if (TryResolveFilePath(documentSnapshot, literalText, out var resolvedPath))
             {
                 _logger.LogDebug($"Resolved file path: {resolvedPath}");
-                return [LspFactory.CreateLocation(resolvedPath, LspFactory.DefaultRange)];
+                return [LspFactory.CreateLocation(ProtocolConversions.CreateAbsoluteDocumentUri(resolvedPath), LspFactory.DefaultRange)];
             }
         }
 
@@ -209,7 +211,9 @@ internal sealed class DefinitionService(
         }
 
         var project = documentSnapshot.ProjectSnapshot;
-        var normalizedPath = FilePathNormalizer.Normalize(filePath);
+
+        // These are literal file paths, so percent sequences are part of the filename.
+        var normalizedPath = FilePathNormalizer.Normalize(filePath, urlDecode: false);
 
         // Tilde paths (~/ or ~\) may point to web content or project files.
         if (filePath is ['~', '/' or '\\', ..])

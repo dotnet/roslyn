@@ -287,6 +287,16 @@ public class FilePathNormalizerTest(ITestOutputHelper testOutput) : ToolingTestB
         Assert.Equal("C:/path to/document.cshtml", normalized);
     }
 
+    [Theory]
+    [InlineData("C:/path%20to/document%25.cshtml", "C:/path%20to/document%25.cshtml")]
+    [InlineData(@"C:\path%20to\document%25.cshtml", "C:/path%20to/document%25.cshtml")]
+    public void Normalize_WithoutUrlDecoding(string filePath, string expected)
+    {
+        var normalized = FilePathNormalizer.Normalize(filePath, urlDecode: false);
+
+        Assert.Equal(expected, normalized);
+    }
+
     [Fact]
     public void Normalize_UrlDecodesOnlyOnce()
     {

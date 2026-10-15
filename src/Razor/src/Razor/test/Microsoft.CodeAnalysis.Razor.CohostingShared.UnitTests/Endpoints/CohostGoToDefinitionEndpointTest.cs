@@ -1112,6 +1112,27 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.EndsWith("String.cs", location.DocumentUri.UriString);
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/86072")]
+    [InlineData(RazorFileKind.Legacy, """@{ var path = "~/css/Rate%20Ca$$rd%25.css"; }""")]
+    [InlineData(RazorFileKind.Component, """@{ var path = "~/css/Rate%20Ca$$rd%25.css"; }""")]
+    [InlineData(RazorFileKind.Legacy, """<link href="~/css/Rate%20Ca$$rd%25.css" />""")]
+    [InlineData(RazorFileKind.Component, """<link href="~/css/Rate%20Ca$$rd%25.css" />""")]
+    public async Task FilePath_PercentEscapes_AreLiteral(RazorFileKind fileKind, string input)
+    {
+        TestCode testCode = input;
+        var document = CreateProjectAndRazorDocument(testCode.Text, fileKind);
+        var expectedPath = FilePath("wwwroot/css/Rate%20Card%25.css");
+        var fileSystem = SetFileSystem([(expectedPath, ""), (FilePath("wwwroot/css/Rate Card%.css"), "")]);
+
+        var result = await GetGoToDefinitionResultCoreAsync(document, testCode, htmlResponse: null);
+
+        // The fake URL-decodes paths when comparing them, so also check the exact path it received.
+        Assert.Equal(expectedPath, Assert.Single(fileSystem.FileExistsCalls));
+        Assumes.NotNull(result);
+        var location = Assert.Single(result.Value.Second);
+        Assert.Equal(FileUri("wwwroot/css/Rate%20Card%25.css"), location.DocumentUri);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
     [InlineData(RazorFileKind.Legacy, """<img src="~/images/lo$$go.png" />""")]
     [InlineData(RazorFileKind.Component, """<img src="~/images/lo$$go.png" />""")]
