@@ -5,6 +5,8 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.BuildTasks</RootNamespace>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
+    <!-- Graph scheduling also visits net472; its toolset payload uses build outputs, not publish outputs. -->
+    <IsPublishable Condition="'$(IsGraphBuild)' == 'true' and '$(TargetFramework)' == 'net472'">false</IsPublishable>
     <DefineConstants>$(DefineConstants);MICROSOFT_CODEANALYSIS_CONTRACTS_NO_VALUE_TASK</DefineConstants>
     <!--
       A .NET copy of this task assembly is included in the .NET SDK's Native AOT CLI, so it must be

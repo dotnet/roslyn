@@ -3,7 +3,22 @@
 <Project>
   <PropertyGroup>
     <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <!-- Source-only builds use a stub to resolve assemblies from the available runtime subset. -->
+    <GenerateDocumentationAndConfigFilesProjectSuffix Condition="'$(DotNetBuildSourceOnly)' == 'true'">ForBrokenRuntime</GenerateDocumentationAndConfigFilesProjectSuffix>
+    <_GenerateDocumentationAndConfigFilesTarget>Build</_GenerateDocumentationAndConfigFilesTarget>
+    <_GenerateDocumentationAndConfigFilesTarget Condition="'$(IsGraphBuild)' == 'true'">GetTargetPath</_GenerateDocumentationAndConfigFilesTarget>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
+    <ProjectReference Include="$(RepoRoot)src\RoslynAnalyzers\Tools\GenerateDocumentationAndConfigFiles\GenerateDocumentationAndConfigFiles.csproj;
+                               $(RepoRoot)src\RoslynAnalyzers\Tools\GenerateAnalyzerNuspec\GenerateAnalyzerNuspec.csproj"
+                      ReferenceOutputAssembly="false"
+                      Private="false"
+                      PrivateAssets="all"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(NetRoslyn)"
+                      GlobalPropertiesToRemove="RuntimeIdentifier;PlatformTarget;SelfContained;PublishReadyToRun" />
+  </ItemGroup>
 
   <PropertyGroup>
     <NuspecFile>$(IntermediateOutputPath)$(NuspecPackageId).nuspec</NuspecFile>
@@ -93,15 +108,10 @@
       <AnalyzerConfigurationFileName>Analyzer Configuration.md</AnalyzerConfigurationFileName>
     </PropertyGroup>
 
-    <PropertyGroup>
-      <!--
-        Source build's runtime environment is incomplete, so we call through a stub project to force assembly resolution
-        to choose versions from the available subset.
-      -->
-      <GenerateDocumentationAndConfigFilesProjectSuffix Condition="'$(DotNetBuildSourceOnly)' == 'true'">ForBrokenRuntime</GenerateDocumentationAndConfigFilesProjectSuffix>
-    </PropertyGroup>
-
-    <MSBuild Projects="$(RepoRoot)src\RoslynAnalyzers\Tools\GenerateDocumentationAndConfigFiles$(GenerateDocumentationAndConfigFilesProjectSuffix)\GenerateDocumentationAndConfigFiles$(GenerateDocumentationAndConfigFilesProjectSuffix).csproj" Targets="Build">
+    <MSBuild Projects="$(RepoRoot)src\RoslynAnalyzers\Tools\GenerateDocumentationAndConfigFiles$(GenerateDocumentationAndConfigFilesProjectSuffix)\GenerateDocumentationAndConfigFiles$(GenerateDocumentationAndConfigFilesProjectSuffix).csproj"
+             Targets="$(_GenerateDocumentationAndConfigFilesTarget)"
+             Properties="TargetFramework=$(NetRoslyn)"
+             RemoveProperties="RuntimeIdentifier;PlatformTarget;SelfContained;PublishReadyToRun">
       <Output TaskParameter="TargetOutputs" PropertyName="_GenerateDocumentationAndConfigFilesPath"/>
     </MSBuild>
 
@@ -129,6 +139,7 @@
   </PropertyGroup>
 
   <Target Name="BuildGenerateAnalyzerNuspecFile"
+          Condition="'$(IsGraphBuild)' != 'true'"
           Inputs="$(RepoRoot)src\RoslynAnalyzers\Tools\GenerateAnalyzerNuspec\Program.cs"
           Outputs="$(_GenerateAnalyzerNuspecPath)">
 

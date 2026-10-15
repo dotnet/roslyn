@@ -4,6 +4,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
+    <!-- Graph scheduling also visits net472; its toolset payload uses build outputs, not publish outputs. -->
+    <IsPublishable Condition="'$(IsGraphBuild)' == 'true' and '$(TargetFramework)' == 'net472'">false</IsPublishable>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
   <Import Project="..\VBCSCompilerCommandLine.projitems" Label="Shared" />

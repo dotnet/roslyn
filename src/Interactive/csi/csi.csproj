@@ -6,6 +6,8 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>CSharpInteractive</RootNamespace>
     <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
+    <!-- Graph scheduling also visits net472; its toolset payload uses build outputs, not publish outputs. -->
+    <IsPublishable Condition="'$(IsGraphBuild)' == 'true' and '$(TargetFramework)' == 'net472'">false</IsPublishable>
     <UseAppHost Condition="'$(DotNetBuildSourceOnly)' == 'true'">false</UseAppHost>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>

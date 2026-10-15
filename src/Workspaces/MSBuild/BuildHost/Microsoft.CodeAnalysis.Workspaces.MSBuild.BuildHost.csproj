@@ -111,5 +111,22 @@
       </ProjectDepsJsonFile>
     </ItemGroup>
   </Target>
+  <!-- No-build output requests may not retain Build's generated AppConfig property. -->
+  <Target Name="GetProjectAppConfigFile"
+          DependsOnTargets="BuiltProjectOutputGroup"
+          Returns="@(ProjectAppConfigFile)"
+          Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and '$(AutoGenerateBindingRedirects)' == 'true'">
+    <ItemGroup>
+      <_BuiltProjectAppConfig Include="@(BuiltProjectOutputGroupOutput)"
+                             Condition="'%(BuiltProjectOutputGroupOutput.TargetPath)' == '$(TargetFileName).config'" />
+    </ItemGroup>
+    <Error Text="The BuildHost application configuration $(TargetPath).config must be built before collecting its outputs."
+           Condition="'@(_BuiltProjectAppConfig)' == '' and !Exists('$(TargetPath).config')" />
+    <ItemGroup>
+      <ProjectAppConfigFile Include="$(TargetPath).config" Condition="'@(_BuiltProjectAppConfig)' == ''">
+        <TargetPath>$(TargetFileName).config</TargetPath>
+      </ProjectAppConfigFile>
+    </ItemGroup>
+  </Target>
   <Import Project="$(RepositoryEngineeringDir)targets\PackageDownloadAndReference.targets" />
 </Project>

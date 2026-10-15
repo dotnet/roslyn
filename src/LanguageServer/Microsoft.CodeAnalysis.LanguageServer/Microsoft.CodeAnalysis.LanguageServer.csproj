@@ -86,6 +86,12 @@
     <ProjectReference Include="..\ExternalAccess\CompilerDeveloperSDK\Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(IsGraphBuild)' == 'true'">
+    <!-- Crossgen compiles runtime-neutral libraries; only the server itself needs a runtime-specific build. -->
+    <ProjectReference Update="@(ProjectReference)"
+                      GlobalPropertiesToRemove="%(ProjectReference.GlobalPropertiesToRemove);RuntimeIdentifier;PlatformTarget;SelfContained;PublishReadyToRun" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.FileSystemGlobbing" />
     <PackageReference Include="Microsoft.Extensions.Logging" />

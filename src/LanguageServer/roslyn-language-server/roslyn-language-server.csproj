@@ -25,6 +25,33 @@
 
   <Import Project="..\LanguageServerPublish.props" />
 
+  <!-- The SDK packs one tool implementation per RID; declare those builds before no-build packing. -->
+  <ItemGroup Condition="'$(IsGraphBuild)' == 'true' and '$(RoslynGraphBuildPack)' == 'true' and '$(RuntimeIdentifier)' == ''">
+    <_GraphToolRuntime Include="$(RuntimeIdentifiers)">
+      <ProjectPath>$(MSBuildProjectFullPath)</ProjectPath>
+      <RuntimeIdentifier>%(Identity)</RuntimeIdentifier>
+    </_GraphToolRuntime>
+    <ProjectReference Include="@(_GraphToolRuntime->'%(ProjectPath)')"
+                      AdditionalProperties="RuntimeIdentifier=%(RuntimeIdentifier);_IsPacking=true"
+                      Targets="Build"
+                      ReferenceOutputAssembly="false"
+                      Private="false"
+                      PrivateAssets="all"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(TargetFramework)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsGraphBuild)' == 'true' and '$(RoslynGraphBuildPack)' == 'true' and '$(RuntimeIdentifier)' != ''">
+    <ProjectReference Include="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj"
+                      Targets="Publish"
+                      ReferenceOutputAssembly="false"
+                      Private="false"
+                      PrivateAssets="all"
+                      SkipGetTargetFrameworkProperties="true"
+                      GlobalPropertiesToRemove="_IsPacking"
+                      SetTargetFramework="TargetFramework=$(TargetFramework)" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="" />
   </ItemGroup>
@@ -55,9 +82,11 @@
     native SQLite, RoslynVersion.txt, etc.) into this thin client's publish directory so the thin client can
     launch it side-by-side. Each app keeps its own uniquely-named deps.json/runtimeconfig.json, so merging the
     two publishes into one directory is safe. We deliberately avoid a compile-time ProjectReference to keep the
-    thin client free of Roslyn/MEF dependencies and AOT-ready; the server is built and published on demand here.
+    thin client free of Roslyn/MEF dependencies and AOT-ready. Ordinary builds publish the server here;
+    graph packaging schedules it through the non-assembly references above.
   -->
-  <Target Name="PublishBundledLanguageServer" AfterTargets="Publish">
+  <Target Name="PublishBundledLanguageServer" AfterTargets="Publish"
+          Condition="'$(IsGraphBuild)' != 'true' or '$(RoslynGraphBuildPack)' != 'true'">
     <MSBuild Projects="..\Microsoft.CodeAnalysis.LanguageServer\Microsoft.CodeAnalysis.LanguageServer.csproj"
              Targets="Publish"
              Properties="Configuration=$(Configuration);TargetFramework=$(TargetFramework);RuntimeIdentifier=$(RuntimeIdentifier);SelfContained=$(SelfContained)" />
