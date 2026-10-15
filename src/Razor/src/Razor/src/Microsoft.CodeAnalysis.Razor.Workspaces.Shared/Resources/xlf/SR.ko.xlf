@@ -4,12 +4,12 @@
     <body>
       <trans-unit id="Invalid_Offset">
         <source>Invalid offset.</source>
-        <target state="new">Invalid offset.</target>
+        <target state="translated">오프셋이 유효하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Language_Services_Missing_Service">
         <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="new">Razor language services not configured properly, missing language service '{0}'.</target>
+        <target state="translated">Razor 언어 서비스가 제대로 구성되지 않았습니다. 언어 서비스 '{0}'이(가) 없습니다.</target>
         <note />
       </trans-unit>
     </body>
