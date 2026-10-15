@@ -42,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeParameterNames = new HashSet<string>(StringComparer.Ordinal);
             var publicSymbol = symbol.GetPublicSymbol();
             var visitedSymbols = new HashSet<ISymbol>(SymbolEqualityComparer.Default) { publicSymbol };
-            ExpandInheritedDocumentation(publicSymbol, document, visitedSymbols);
+            var expandedDocumentation = new Dictionary<ISymbol, XDocument>(SymbolEqualityComparer.Default);
+            ExpandInheritedDocumentation(publicSymbol, document, visitedSymbols, expandedDocumentation, out _);
             CollectDocumentationNames(document, parameterNames, typeParameterNames);
 
             if (documentedParameters != null)
@@ -68,8 +69,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ExpandInheritedDocumentation(ISymbol member, XContainer container, HashSet<ISymbol> visitedSymbols)
+        private void ExpandInheritedDocumentation(
+            ISymbol member,
+            XContainer container,
+            HashSet<ISymbol> visitedSymbols,
+            Dictionary<ISymbol, XDocument> expandedDocumentation,
+            out bool hasCycle)
         {
+            hasCycle = false;
             foreach (var element in container.Descendants().ToArray())
             {
                 if (!ElementNameIs(element, DocumentationCommentXmlNames.InheritdocElementName))
@@ -91,16 +98,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var xpath = string.IsNullOrEmpty(path)
                     ? BuildXPathForElement(element.Parent)
                     : path.StartsWith("/", StringComparison.Ordinal) ? "/*" + path : path;
-                var inheritedDocument = GetExpandedDocumentation(inheritedSymbol, visitedSymbols);
+                var inheritedDocument = GetExpandedDocumentation(inheritedSymbol, visitedSymbols, expandedDocumentation, out var inheritedHasCycle);
+                hasCycle |= inheritedHasCycle;
                 var inheritedNodes = TrySelectNodes(inheritedDocument, xpath).ToArray();
                 element.ReplaceWith(inheritedNodes.Select(static node => CopyNode(node)).ToArray());
             }
         }
 
-        private XDocument GetExpandedDocumentation(ISymbol member, HashSet<ISymbol> visitedSymbols)
+        private XDocument GetExpandedDocumentation(
+            ISymbol member,
+            HashSet<ISymbol> visitedSymbols,
+            Dictionary<ISymbol, XDocument> expandedDocumentation,
+            out bool hasCycle)
         {
+            if (expandedDocumentation.TryGetValue(member, out var cachedDocument))
+            {
+                hasCycle = false;
+                return cachedDocument;
+            }
+
             if (!visitedSymbols.Add(member))
             {
+                hasCycle = true;
                 return new XDocument(new XElement("doc"));
             }
 
@@ -111,10 +130,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (IsEligibleForAutomaticInheritdoc(member) && GetInheritdocCandidate(member) is { } candidate)
                     {
-                        return GetExpandedDocumentation(candidate, visitedSymbols);
+                        var inheritedDocument = GetExpandedDocumentation(candidate, visitedSymbols, expandedDocumentation, out hasCycle);
+                        if (!hasCycle)
+                        {
+                            expandedDocumentation[member] = inheritedDocument;
+                        }
+
+                        return inheritedDocument;
                     }
 
-                    return new XDocument(new XElement("doc"));
+                    hasCycle = false;
+                    var emptyDocument = new XDocument(new XElement("doc"));
+                    expandedDocumentation[member] = emptyDocument;
+                    return emptyDocument;
                 }
 
                 XDocument document;
@@ -124,10 +152,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 catch (XmlException)
                 {
-                    return new XDocument(new XElement("doc"));
+                    hasCycle = false;
+                    var emptyDocument = new XDocument(new XElement("doc"));
+                    expandedDocumentation[member] = emptyDocument;
+                    return emptyDocument;
                 }
 
-                ExpandInheritedDocumentation(member, document, visitedSymbols);
+                ExpandInheritedDocumentation(member, document, visitedSymbols, expandedDocumentation, out hasCycle);
+                if (!hasCycle)
+                {
+                    expandedDocumentation[member] = document;
+                }
+
                 return document;
             }
             finally
@@ -297,7 +333,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var result = System.Xml.XPath.Extensions.XPathEvaluate(node, xpath);
-                return result is IEnumerable nodes ? nodes.OfType<XNode>().ToArray() : Array.Empty<XNode>();
+                return result is IEnumerable nodes
+                    ? nodes.OfType<XNode>().Where(static selectedNode => selectedNode is not XDocument).ToArray()
+                    : Array.Empty<XNode>();
             }
             catch (InvalidOperationException)
             {

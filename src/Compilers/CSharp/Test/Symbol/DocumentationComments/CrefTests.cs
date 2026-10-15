@@ -3947,6 +3947,56 @@ partial class P
         }
 
         [Fact]
+        public void InheritdocXPathDocumentNodeDoesNotStopProcessingMembers()
+        {
+            var source = """
+                class C
+                {
+                    /// <param name="x">x</param>
+                    /// <param name="y">y</param>
+                    void Source(int x, int y) { }
+
+                    /// <inheritdoc cref="Source(int, int)" path="."/>
+                    /// <param name="x">x</param>
+                    void Target(int x, int y) { }
+
+                    /// <param name="a">a</param>
+                    void Later(int a, int b) { }
+                }
+                """;
+
+            CreateCompilationWithMscorlib40AndDocumentationComments(source).VerifyDiagnostics(
+                // (9,24): warning CS1573: Parameter 'y' has no matching param tag in the XML comment for 'C.Target(int, int)' (but other parameters do)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "y").WithArguments("y", "C.Target(int, int)"),
+                // (12,26): warning CS1573: Parameter 'b' has no matching param tag in the XML comment for 'C.Later(int, int)' (but other parameters do)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "b").WithArguments("b", "C.Later(int, int)"));
+        }
+
+        [Fact]
+        public void InheritdocReusesExpandedTargets()
+        {
+            var source = new System.Text.StringBuilder("class C\n{\n");
+            for (var i = 0; i <= 17; i++)
+            {
+                if (i == 0)
+                {
+                    source.AppendLine("    /// <summary>summary</summary>");
+                }
+                else
+                {
+                    source.AppendLine($"    /// <inheritdoc cref=\"M{i - 1}(int)\" path=\"/summary\"/>");
+                    source.AppendLine($"    /// <inheritdoc cref=\"M{i - 1}(int)\" path=\"/param\"/>");
+                }
+
+                source.AppendLine("    /// <param name=\"x\">x</param>");
+                source.AppendLine($"    void M{i}(int x) {{ }}");
+            }
+
+            source.AppendLine("}");
+            CreateCompilationWithMscorlib40AndDocumentationComments(source.ToString()).VerifyDiagnostics();
+        }
+
+        [Fact]
         public void InheritdocDoesNotSuppressMissingTagsAbsentFromInheritedDocumentation()
         {
             var source = """
