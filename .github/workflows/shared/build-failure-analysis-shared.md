@@ -6,7 +6,7 @@
 
 description: "Shared body for build-failure-analysis workflows"
 
-model: gpt-5.6-sol
+model: gpt-6.1-sol
 
 network:
   allowed:
