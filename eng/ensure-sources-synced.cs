@@ -182,10 +182,14 @@ static (SyncMode Mode, string? SdkBranch) ParseArgs(string[] args)
         switch (args[i])
         {
             case "--update":
+                if (mode == SyncMode.Verify)
+                    throw new InvalidOperationException("Cannot pass both '--verify' and '--update'.");
                 mode = SyncMode.Update;
                 break;
 
             case "--verify":
+                if (mode == SyncMode.Update)
+                    throw new InvalidOperationException("Cannot pass both '--update' and '--verify'.");
                 mode = SyncMode.Verify;
                 break;
 
