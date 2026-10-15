@@ -277,6 +277,16 @@
         <target state="translated">Commentaires</target>
         <note />
       </trans-unit>
+      <trans-unit id="Complete_legacy_naming_configuration_was_not_published">
+        <source>The complete legacy naming configuration was not published.</source>
+        <target state="new">The complete legacy naming configuration was not published.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Complete_naming_configuration_was_not_published">
+        <source>The complete naming configuration was not published. Legacy naming preferences were not changed.</source>
+        <target state="new">The complete naming configuration was not published. Legacy naming preferences were not changed.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
         <source>Completion behavior for items from unimported namespaces</source>
         <target state="translated">Comportement de saisie semi-automatique pour les éléments issus des espaces de noms non importés</target>
@@ -1302,6 +1312,11 @@
         <target state="translated">Réinitialiser la configuration du clavier par défaut de Visual Studio</target>
         <note />
       </trans-unit>
+      <trans-unit id="Reset_naming_preferences_were_not_published">
+        <source>The naming preference defaults were not published.</source>
+        <target state="new">The naming preference defaults were not published.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">Passer en revue les changements</target>
@@ -1676,6 +1691,26 @@
         <source>Type name is recognized</source>
         <target state="translated">Le nom de type est reconnu</target>
         <note>"Type" is the programming language concept</note>
+      </trans-unit>
+      <trans-unit id="Unable_to_enqueue_naming_setting_0_1_2">
+        <source>Unable to enqueue validated naming setting '{0}': {1}. {2}</source>
+        <target state="new">Unable to enqueue validated naming setting '{0}': {1}. {2}</target>
+        <note>{0} is a setting moniker, {1} is a change outcome, and {2} is a diagnostic detail.</note>
+      </trans-unit>
+      <trans-unit id="Unable_to_normalize_naming_settings_0_1">
+        <source>Unable to normalize naming settings: {0}. {1}</source>
+        <target state="new">Unable to normalize naming settings: {0}. {1}</target>
+        <note>{0} is a setting commit outcome and {1} is a diagnostic detail.</note>
+      </trans-unit>
+      <trans-unit id="Unable_to_read_naming_setting_0_1_2">
+        <source>Unable to read naming setting '{0}': {1}. {2}</source>
+        <target state="new">Unable to read naming setting '{0}': {1}. {2}</target>
+        <note>{0} is a setting moniker, {1} is a retrieval outcome, and {2} is a diagnostic detail.</note>
+      </trans-unit>
+      <trans-unit id="Unable_to_synchronize_legacy_naming_settings_0_1">
+        <source>Unable to synchronize legacy naming settings: {0}. {1}</source>
+        <target state="new">Unable to synchronize legacy naming settings: {0}. {1}</target>
+        <note>{0} is a setting commit outcome and {1} is a diagnostic detail.</note>
       </trans-unit>
       <trans-unit id="Underline_reassigned_variables">
         <source>Underline reassigned variables</source>

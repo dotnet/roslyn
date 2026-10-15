@@ -72,7 +72,7 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
             if (native is null)
                 throw new InvalidOperationException("Unified settings service is unavailable.");
             var manager = await _legacyManager.GetValueAsync(cancellationToken).ConfigureAwait(false);
-            var legacy = new VisualStudioSettingsOptionPersister(Refresh,
+            using var legacy = new VisualStudioSettingsOptionPersister(Refresh,
                 ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty, manager);
             using var synchronizer = new NativeCodeStyleSettingsSynchronizer(native, legacy, CreateBindings(), Refresh,
                 task => task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken), _threadingContext.JoinableTaskContext, cancellationToken);

@@ -72,6 +72,9 @@ internal sealed class NamingSettingsStore(ISettingsManager settingsManager, stri
         return writer.RequestCommit(changeDescription);
     }
 
+    public SettingCommitResult Reset(Guid eventSource)
+        => WriteGraph(NamingSettingsGraph.Default, ServicesVSResources.Reset_naming_preferences, eventSource);
+
     public IDisposable SubscribeToChanges(Action<SettingsUpdate> handler)
         => settingsManager.GetReader().SubscribeToChanges(
             handler, _prefix + SettingNames.SymbolSpecifications, _prefix + SettingNames.NamingStyles, _prefix + SettingNames.Rules);
@@ -82,7 +85,11 @@ internal sealed class NamingSettingsStore(ISettingsManager settingsManager, stri
         var retrieval = reader.GetArray<IReadOnlyDictionary<string, object>>(
             moniker, SettingReadOptions.RequireValidation | SettingReadOptions.NoFallbackToDefault);
         if (retrieval is not { Outcome: SettingRetrievalOutcome.Success, Value: { } items })
-            throw new InvalidDataException($"Unable to read naming setting '{moniker}': {retrieval.Outcome}. {retrieval.Message}");
+        {
+            throw new InvalidDataException(string.Format(
+                ServicesVSResources.Unable_to_read_naming_setting_0_1_2,
+                moniker, retrieval.Outcome, retrieval.Message));
+        }
 
         return items.ToImmutableArray();
     }
@@ -93,6 +100,10 @@ internal sealed class NamingSettingsStore(ISettingsManager settingsManager, stri
         // The native array writer removes values equal to registered defaults unless CustomizeUnconditionally is used.
         var change = writer.EnqueueArrayChange(moniker, items);
         if (change.Outcome is not (SettingChangeOutcome.PendingCommit or SettingChangeOutcome.NoOp))
-            throw new InvalidDataException($"Unable to enqueue validated naming setting '{moniker}': {change.Outcome}. {change.Message}");
+        {
+            throw new InvalidDataException(string.Format(
+                ServicesVSResources.Unable_to_enqueue_naming_setting_0_1_2,
+                moniker, change.Outcome, change.Message));
+        }
     }
 }

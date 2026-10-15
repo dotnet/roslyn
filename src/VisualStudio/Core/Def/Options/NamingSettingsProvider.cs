@@ -144,8 +144,31 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
 
     public async Task<ExternalSettingOperationResult> ResetAsync(CancellationToken cancellationToken)
     {
-        var expected = await _coordinator.ReadAsync(cancellationToken).ConfigureAwait(false);
-        return await ApplyGraphAsync(NamingSettingsGraph.Default, expected, cancellationToken).ConfigureAwait(false);
+        NamingSettingsGraph? pending;
+        lock (_gate)
+            pending = _pending;
+
+        try
+        {
+            var result = await _coordinator.ResetAsync(cancellationToken).ConfigureAwait(false);
+            if (result.Outcome is not (SettingCommitOutcome.Success or SettingCommitOutcome.NoChangesQueued))
+                return Failure($"{result.Outcome}. {result.Message}");
+
+            lock (_gate)
+            {
+                _snapshot = NamingSettingsGraph.Default;
+                if (ReferenceEquals(_pending, pending))
+                    _pending = null;
+            }
+
+            RaiseRefresh();
+            NotifyErrorConditionResolved();
+            return ExternalSettingOperationResult.Success.Instance;
+        }
+        catch (InvalidDataException e)
+        {
+            return Failure(e.Message);
+        }
     }
 
     public async Task<ExternalSettingOperationResult> ApplyGraphAsync(NamingSettingsGraph graph, NamingSettingsGraph expected, CancellationToken cancellationToken)

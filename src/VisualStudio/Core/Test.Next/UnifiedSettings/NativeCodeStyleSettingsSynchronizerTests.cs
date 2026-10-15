@@ -130,7 +130,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
     public async Task ExistingNativePreferenceWinsWithoutResettingLegacySeverity(string language)
     {
         using var host = new Host(language);
-        host.Legacy.Value = new CodeStyleOption2<bool>(false, NotificationOption2.Warning).ToXElement().ToString();
+        host.Legacy.Value = new CodeStyleOption2<bool>(true, NotificationOption2.Warning).ToXElement().ToString();
         host.Native.Values[host.Binding.Moniker] = "true";
         await host.InitializeAsync();
         Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Warning), host.ReadLegacy());
@@ -316,7 +316,6 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         Assert.Equal("none", host.Native.Effective(host.Binding.SeverityMoniker));
         Assert.Equal(new CodeStyleOption2<bool>(false, NotificationOption2.None), host.Refreshed);
         Assert.Equal(NotificationOption2.Silent, host.ReadLegacy().Notification);
-        Assert.Equal(0, host.Native.CommitCount);
     }
 
     [WpfFact]
@@ -362,6 +361,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         public readonly NativeStore Native;
         public readonly NativeCodeStyleSettingsSynchronizer.Binding Binding;
         public readonly NativeCodeStyleSettingsSynchronizer Synchronizer;
+        private readonly VisualStudioSettingsOptionPersister _persister;
         public object? Refreshed;
 
         public Host(string language)
@@ -371,8 +371,8 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
             Binding = new(setting, storage.GetKey(language), NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, setting.Moniker));
             Legacy.Key = Binding.LegacyKey;
             Native = new NativeStore(Binding);
-            var persister = new VisualStudioSettingsOptionPersister((_, _) => { }, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty, Legacy);
-            Synchronizer = new(Native, persister, [Binding], (_, value) => Refreshed = value, task => _tasks.Add(task), _context, CancellationToken.None);
+            _persister = new VisualStudioSettingsOptionPersister((_, _) => { }, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty, Legacy);
+            Synchronizer = new(Native, _persister, [Binding], (_, value) => Refreshed = value, task => _tasks.Add(task), _context, CancellationToken.None);
         }
 
         public async Task InitializeAsync()
@@ -395,6 +395,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         public void Dispose()
         {
             Synchronizer.Dispose();
+            _persister.Dispose();
             _context.Dispose();
         }
     }

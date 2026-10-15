@@ -1884,6 +1884,31 @@ Additional information: {1}</value>
   <data name="Unable_to_update_naming_settings_0" xml:space="preserve">
     <value>Unable to update Naming settings: {0}</value>
   </data>
+  <data name="Unable_to_read_naming_setting_0_1_2" xml:space="preserve">
+    <value>Unable to read naming setting '{0}': {1}. {2}</value>
+    <comment>{0} is a setting moniker, {1} is a retrieval outcome, and {2} is a diagnostic detail.</comment>
+  </data>
+  <data name="Unable_to_enqueue_naming_setting_0_1_2" xml:space="preserve">
+    <value>Unable to enqueue validated naming setting '{0}': {1}. {2}</value>
+    <comment>{0} is a setting moniker, {1} is a change outcome, and {2} is a diagnostic detail.</comment>
+  </data>
+  <data name="Complete_naming_configuration_was_not_published" xml:space="preserve">
+    <value>The complete naming configuration was not published. Legacy naming preferences were not changed.</value>
+  </data>
+  <data name="Complete_legacy_naming_configuration_was_not_published" xml:space="preserve">
+    <value>The complete legacy naming configuration was not published.</value>
+  </data>
+  <data name="Reset_naming_preferences_were_not_published" xml:space="preserve">
+    <value>The naming preference defaults were not published.</value>
+  </data>
+  <data name="Unable_to_normalize_naming_settings_0_1" xml:space="preserve">
+    <value>Unable to normalize naming settings: {0}. {1}</value>
+    <comment>{0} is a setting commit outcome and {1} is a diagnostic detail.</comment>
+  </data>
+  <data name="Unable_to_synchronize_legacy_naming_settings_0_1" xml:space="preserve">
+    <value>Unable to synchronize legacy naming settings: {0}. {1}</value>
+    <comment>{0} is a setting commit outcome and {1} is a diagnostic detail.</comment>
+  </data>
   <data name="Enter_a_name" xml:space="preserve">
     <value>Enter a name.</value>
   </data>

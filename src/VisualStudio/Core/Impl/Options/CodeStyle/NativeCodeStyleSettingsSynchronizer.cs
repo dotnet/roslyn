@@ -80,7 +80,8 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
             foreach (var binding in _bindings.Values)
             {
                 var current = ReadLegacy(binding, out var hasLegacyValue);
-                _legacyValues[binding.Moniker] = current;
+                if (hasLegacyValue)
+                    _legacyValues[binding.Moniker] = current;
                 var merged = current;
                 var hasNativeValue = false;
                 foreach (var severity in new[] { false, true })
@@ -180,7 +181,9 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
             var pending = new List<(Binding binding, ICodeStyleOption2 value)>(snapshots.Length);
             foreach (var (binding, value) in snapshots)
             {
-                if (_legacyValues.TryGetValue(binding.Moniker, out var previousLegacyValue) && value.Equals(previousLegacyValue))
+                if (_legacyValues.TryGetValue(binding.Moniker, out var previousLegacyValue) &&
+                    value.Equals(previousLegacyValue) &&
+                    NativeValueMatches(binding, value))
                     continue;
                 pending.Add((binding, value));
                 foreach (var severity in new[] { false, true })
@@ -232,16 +235,20 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
                     if (!results.TryGetValue(moniker, out var result))
                         continue;
                     var scalar = await GetUpdatedScalarAsync(result).ConfigureAwait(false);
-                    if (_values.TryGetValue(moniker, out var previous) && previous == scalar)
-                        continue;
+                    var changed = !_values.TryGetValue(moniker, out var previous) || previous != scalar;
                     if (result.IsSuccess && result.MetaData.ChangeSource == s_source.Id)
                     {
                         _values[moniker] = scalar;
                         continue;
                     }
-                    merged ??= ReadLegacy(binding, out _);
+
+                    if (!changed && merged is null)
+                        continue;
+
+                    merged ??= ReadCurrentNativeValue(binding);
                     merged = (ICodeStyleOption2)binding.Setting.Update(merged, scalar, severity);
-                    pendingScalars.Add((moniker, scalar));
+                    if (changed)
+                        pendingScalars.Add((moniker, scalar));
                 }
                 if (merged is not null)
                 {
@@ -251,6 +258,22 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
                 }
             }
         }, _cancellationToken);
+
+    private ICodeStyleOption2 ReadCurrentNativeValue(Binding binding)
+    {
+        var current = ReadLegacy(binding, out _);
+        if (_values.TryGetValue(binding.Moniker, out var preference))
+            current = (ICodeStyleOption2)binding.Setting.Update(current, preference, severity: false);
+        if (_values.TryGetValue(binding.SeverityMoniker, out var severity))
+            current = (ICodeStyleOption2)binding.Setting.Update(current, severity, severity: true);
+        return current;
+    }
+
+    private bool NativeValueMatches(Binding binding, ICodeStyleOption2 value)
+        => _values.TryGetValue(binding.Moniker, out var preference) &&
+           _values.TryGetValue(binding.SeverityMoniker, out var severity) &&
+           preference == binding.Setting.SerializePreference(value) &&
+           severity == CodeStyleSetting.SerializeSeverity(value.Notification);
 
     private async Task<string> GetUpdatedScalarAsync(ReadResult result)
     {

@@ -123,6 +123,22 @@ public sealed class NamingSettingsProviderTests
     }
 
     [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task ResetRecoversFromInvalidPersistedGraphAsync(string language)
+    {
+        var manager = new NamingSettingsStoreTests.SettingsManagerMock();
+        var invalidRules = manager.Reader.Graph.Rules.Select(item => item.ToDictionary(pair => pair.Key, pair => pair.Value)).ToArray();
+        invalidRules[0]["namingStyleId"] = "missing-style";
+        manager.Reader.Graph = new(manager.Reader.Graph.SymbolSpecifications, manager.Reader.Graph.NamingStyles, invalidRules.Cast<IReadOnlyDictionary<string, object>>().ToImmutableArray());
+        using var provider = new NamingSettingsProvider(CreateCoordinator(manager, language), language);
+
+        Assert.IsType<ExternalSettingOperationResult.Success>(await provider.ResetAsync(CancellationToken.None));
+
+        Assert.True(NamingSettingsGraph.Default.ConfigurationEquals(manager.Reader.Graph));
+    }
+
+    [Theory]
     [InlineData(LanguageNames.CSharp, false)]
     [InlineData(LanguageNames.CSharp, true)]
     [InlineData(LanguageNames.VisualBasic, false)]

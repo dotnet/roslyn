@@ -62,7 +62,9 @@ internal sealed class NamingSettingsCoordinator(
             {
                 var published = store.ReadGraph();
                 if (!published.ConfigurationEquals(graph))
-                    throw new InvalidDataException("The complete naming configuration was not published. Legacy naming preferences were not changed.");
+                {
+                    throw new InvalidDataException(ServicesVSResources.Complete_naming_configuration_was_not_published);
+                }
 
                 PublishLegacy(published);
             }
@@ -71,17 +73,42 @@ internal sealed class NamingSettingsCoordinator(
         }, cancellationToken).AsTask();
     }
 
+    public Task<SettingCommitResult> ResetAsync(CancellationToken cancellationToken)
+        => _gate.ExecuteAsync(() =>
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var result = store.Reset(_eventSource);
+            if (result.Outcome is SettingCommitOutcome.Success or SettingCommitOutcome.NoChangesQueued)
+            {
+                var published = store.ReadGraph();
+                if (!published.ConfigurationEquals(NamingSettingsGraph.Default))
+                {
+                    throw new InvalidDataException(ServicesVSResources.Reset_naming_preferences_were_not_published);
+                }
+
+                PublishLegacy(published);
+            }
+
+            return new ValueTask<SettingCommitResult>(result);
+        }, cancellationToken).AsTask();
+
     public Task SynchronizeFromUnifiedSettingsAsync(CancellationToken cancellationToken)
         => _gate.ExecuteAsync(() =>
         {
             var graph = store.ReadGraph().NormalizeDefaultNames();
             var result = store.WriteGraph(graph, nameof(NamingSettingsCoordinator), _eventSource);
             if (result.Outcome is not (SettingCommitOutcome.Success or SettingCommitOutcome.NoChangesQueued))
-                throw new InvalidDataException($"Unable to normalize naming settings: {result.Outcome}. {result.Message}");
+            {
+                throw new InvalidDataException(string.Format(
+                    ServicesVSResources.Unable_to_normalize_naming_settings_0_1,
+                    result.Outcome, result.Message));
+            }
 
             var published = store.ReadGraph();
             if (!published.ConfigurationEquals(graph))
-                throw new InvalidDataException("The complete naming configuration was not published. Legacy naming preferences were not changed.");
+            {
+                throw new InvalidDataException(ServicesVSResources.Complete_naming_configuration_was_not_published);
+            }
 
             PublishLegacy(published);
             return Task.CompletedTask;
@@ -99,11 +126,17 @@ internal sealed class NamingSettingsCoordinator(
                 : NamingSettingsGraph.FromPreferences(preferences, previous).NormalizeDefaultNames();
             var result = store.WriteGraph(graph, nameof(NamingSettingsCoordinator), _eventSource);
             if (result.Outcome is not (SettingCommitOutcome.Success or SettingCommitOutcome.NoChangesQueued))
-                throw new InvalidDataException($"Unable to synchronize legacy naming settings: {result.Outcome}. {result.Message}");
+            {
+                throw new InvalidDataException(string.Format(
+                    ServicesVSResources.Unable_to_synchronize_legacy_naming_settings_0_1,
+                    result.Outcome, result.Message));
+            }
 
             var published = store.ReadGraph();
             if (!published.ConfigurationEquals(graph))
-                throw new InvalidDataException("The complete legacy naming configuration was not published.");
+            {
+                throw new InvalidDataException(ServicesVSResources.Complete_legacy_naming_configuration_was_not_published);
+            }
 
             PublishLegacy(published);
             return Task.CompletedTask;
