@@ -11896,6 +11896,55 @@ public struct Vec4
 
         [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ElseIfCondition_ExpressionVariables(
+            [CombinatorialValues("Capture(out var result, ref s.Self)", "Capture(ref s.Self) is var result")] string condition,
+            bool useBlock)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                }
+
+                ref struct R
+                {
+                    public ref S Value;
+                }
+
+                class C
+                {
+                    static void M(in S s, bool condition)
+                    {
+                        ref var c = ref s.Self;
+                        if (condition) { }
+                        else {{(useBlock ? "{" : "")}}
+                            if ({{condition}} && (result.Value = ref s.Self).Equals(default(S)))
+                            {
+                                result.Value = ref s.Self;
+                            }
+                        {{(useBlock ? "}" : "")}}
+                        c = ref s.Self;
+                    }
+
+                    static bool Capture(out R result, ref S value)
+                    {
+                        result = Capture(ref value);
+                        return true;
+                    }
+
+                    static R Capture(ref S value) => new R { Value = ref value };
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (22,17): error CS8374: Cannot ref-assign 's.Self' to 'Value' because 's.Self' has a narrower escape scope than 'Value'.
+                //                 result.Value = ref s.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "result.Value = ref s.Self").WithArguments("Value", "s.Self").WithLocation(22, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
         public void LocalReceiver_EmbeddedStatement_ExpressionVariables(bool useBlock)
         {
             var body = "Capture(out var result, ref s.GetValue(GetInt(out var value)));";
