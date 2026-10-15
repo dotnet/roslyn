@@ -68,7 +68,6 @@ namespace RunTests
             foreach (var (process, name) in candidates.OrderByDescending(p => p.Name.StartsWith("testhost", StringComparison.Ordinal)))
             {
                 ConsoleUtil.Write($"Dumping process {name} ({process.Id}) ... ");
-                Console.Out.Flush();
                 string? path = null;
                 try
                 {

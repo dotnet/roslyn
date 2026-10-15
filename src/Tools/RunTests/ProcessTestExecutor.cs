@@ -249,7 +249,6 @@ namespace RunTests
                         try
                         {
                             ConsoleUtil.Write($"Getting child process tree for process {root.ProcessName} ({root.Id}) ... ");
-                            Console.Out.Flush();
                             var children = await ProcessUtil.GetChildProcessesAsync(root).ConfigureAwait(false);
                             ConsoleUtil.WriteLine("completed");
                             return children;
