@@ -1,15 +1,15 @@
 ---
 name: large-memory-dump-analysis
-description: Analyze existing memory dumps of Visual Studio (devenv.exe) or its background process DevHub for Roslyn memory retention. Use when investigating memory leaks, excessive memory usage, counting Solution or compilation objects, tracing GC roots, or investigating uncollected dead objects.
+description: Analyze existing memory dumps of Visual Studio (devenv.exe), its background process DevHub, or Roslyn language server processes for Roslyn memory retention. Use when investigating memory leaks, excessive memory usage, counting Solution or compilation objects, tracing GC roots, or investigating uncollected dead objects.
 ---
 
-# Visual Studio and DevHub Memory Dump Analysis
+# Visual Studio, DevHub, and Language Server Memory Dump Analysis
 
 Analyze an existing dump using the shared procedure, then the investigations below. Dump collection and product changes are out of scope.
 
 ## General instructions
 
-Obtain the local dump path and identify Visual Studio (`devenv.exe`) or DevHub; ask if unclear. Record the runtime, architecture, Roslyn version, and whether the process was active or idle. Use matching managed dump tooling and confirm heap data is readable. Report missing memory, runtime support, or symbols as limitations, not zero counts. Do not upload dumps to external services.
+Obtain the local dump path and identify Visual Studio (`devenv.exe`), DevHub, or a Roslyn language server process; ask if unclear. Record the runtime, architecture, Roslyn version, and whether the process was active or idle. For language server processes, identify the active server instances, since daemon mode can host multiple servers in one process. Use matching managed dump tooling and confirm heap data is readable. Report missing memory, runtime support, or symbols as limitations, not zero counts. Do not upload dumps to external services.
 
 Reuse the [modern .NET SOS reference](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/sos-debugging-extension), [.NET Framework SOS reference](https://learn.microsoft.com/en-us/dotnet/framework/tools/sos-dll-sos-debugging-extension), or [dotnet-dump analysis guide](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/dotnet-dump#dotnet-dump-analyze), according to runtime support. Commands below use WinDbg's `!` prefix; omit it in dotnet-dump. Consult installed command help for version-specific options.
 
@@ -45,6 +45,7 @@ Count `Microsoft.CodeAnalysis.Solution`.
 |---------|--------------------|
 | Visual Studio | One current Solution per workspace. Workspace upper bounds: at most one `VisualStudioWorkspace` implementation, one `MiscellaneousFilesWorkspace`, and two `InteractiveWorkspace` instances; fewer may be present. |
 | DevHub | Solutions accounted for by `RemoteWorkspace` and its actual cache contents; inspect cache objects as described below. |
+| Language server | One current Solution per workspace: one host and one miscellaneous-files `LanguageServerWorkspace` per server instance, plus the shared metadata-as-source workspace when present. Also account for each server's `LspWorkspaceManager` cache as described below; do not assume a single server per process. |
 
 Trace every Solution's roots, grouping by workspace and retaining owner. Additional solutions held by other owners are suspicious even below the baseline. Explain excess retention rather than raising the baseline.
 
@@ -52,13 +53,16 @@ Trace every Solution's roots, grouping by workspace and retaining owner. Additio
 |-------|------------------------------------|
 | Workspace current solution | `Workspace._latestSolution` |
 | RemoteWorkspace caches | `_lastRequestedPrimaryBranchSolution`, `_lastRequestedAnyBranchSolutions` |
-| In-flight requests | `_solutionChecksumToSolution`, `InFlightSolution` tasks; verify the request is active |
+| LSP solution cache | `LspWorkspaceManager._cachedLspSolutions` |
+| RemoteWorkspace in-flight requests | `_solutionChecksumToSolution`, `InFlightSolution` tasks; verify the request is active |
 
 For each RemoteWorkspace, inspect `_lastRequestedAnyBranchSolutions` with `!dumpobj`: read the cache's `_maxCapacity` and traverse `_cacheNodes` for additional solutions. Check that this count does not exceed capacity; `_totalHistory` includes checksum-only entries and is not a Solution limit. Combine the actual cached Solution addresses with `_latestSolution` and `_lastRequestedPrimaryBranchSolution.solution`, deduplicating shared instances.
 
 Account separately for `_solutionChecksumToSolution` entries backed by active requests. Report current/cache-owned, in-flight, and unexpected retention; do not infer a process-wide limit from one cache's capacity.
 
-Source: `src\Workspaces\Core\Portable\Workspace\Workspace.cs` for current ownership; `src\Workspaces\Remote\ServiceHub\Host` for RemoteWorkspace caching and request lifetime.
+For each LspWorkspaceManager, inspect `_cachedLspSolutions`: each workspace entry holds the last Solution returned for LSP, which may share the workspace's current Solution or be a fork with LSP text applied. Deduplicate shared Solution addresses and account for these cached snapshots separately from active requests. Apply this cache check to language servers hosted in Visual Studio as well as standalone language server processes.
+
+Source: `src\Workspaces\Core\Portable\Workspace\Workspace.cs` for current ownership; `src\Workspaces\Remote\ServiceHub\Host` for RemoteWorkspace caching and request lifetime; `src\LanguageServer\Microsoft.CodeAnalysis.LanguageServer\HostWorkspace` for language server workspace ownership; `src\LanguageServer\Protocol\Workspaces\LspWorkspaceManager.cs` for LSP solution caching.
 
 ## Investigation 2: Compilation objects
 
