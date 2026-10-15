@@ -54,14 +54,22 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [ConditionalFact(typeof(NotOnAnyMono))]
-        public void CrossUserMutexUsesLegacyNamespace()
+        public void CrossUserMutexCreationAndDiscovery()
         {
             var mutexName = BuildServerConnection.GetServerMutexName(ServerUtil.GetPipeName());
             using var mutex = new ServerNamedMutex(mutexName, out var createdNew, currentUserOnly: false);
             Assert.True(createdNew);
             Assert.True(ServerNamedMutex.WasOpen(mutexName, currentUserOnly: false));
 
+#if NET
+            Assert.True(Mutex.TryOpenExisting(mutexName, new NamedWaitHandleOptions
+            {
+                CurrentUserOnly = false,
+                CurrentSessionOnly = false,
+            }, out var peer));
+#else
             Assert.True(Mutex.TryOpenExisting(mutexName, out var peer));
+#endif
             peer.Dispose();
         }
 
