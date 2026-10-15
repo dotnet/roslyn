@@ -13,8 +13,13 @@ using System.Text.Json;
 //   dotnet run --file eng/ensure-sources-synced.cs
 //   dotnet run --file eng/ensure-sources-synced.cs -- --verify
 //   dotnet run --file eng/ensure-sources-synced.cs -- --update
+//   dotnet run --file eng/ensure-sources-synced.cs -- --update --sdk-branch <branch>
 //
 // Default mode when no args are passed: update
+//
+// When `--sdk-branch` is passed, the `commitid.txt` file is updated from a dotnet/sdk branch on GitHub, before updating the source files.
+// This is the preferred way to pick up new upstream changes, e.g.:
+//   dotnet run --file eng/ensure-sources-synced.cs -- --sdk-branch release/11.0.1xx
 
 try
 {
@@ -32,17 +37,24 @@ static async Task MainAsync(string[] args)
     var root = Path.Join(AppContext.GetData("EntryPointFileDirectoryPath") as string, "..");
     if (!Directory.Exists(root)) throw new InvalidOperationException($"Could not locate repo root: {root}");
 
-    var mode = ParseMode(args);
+    var (mode, sdkBranch) = ParseArgs(args);
 
     var commitIdPath = Path.Combine(root, "src", "Workspaces", "CSharp", "Portable", "SyncedSource", "commitid.txt");
     if (!File.Exists(commitIdPath)) throw new InvalidOperationException($"'{commitIdPath}' not found.");
 
-    var sdkCommit = File.ReadAllText(commitIdPath).Trim();
-    if (string.IsNullOrWhiteSpace(sdkCommit)) throw new InvalidOperationException($"'{commitIdPath}' is empty.");
-
     var localSourceDir = Path.Combine(root, "src", "Workspaces", "CSharp", "Portable", "SyncedSource", "FileBasedPrograms");
 
     var httpClient = CreateHttpClient();
+
+    if (sdkBranch is not null)
+    {
+        var branchCommit = await GetBranchHeadCommitAsync(httpClient, sdkBranch).ConfigureAwait(false);
+        File.WriteAllText(commitIdPath, branchCommit);
+        Console.WriteLine($"Updated '{commitIdPath}' to dotnet/sdk '{sdkBranch}' head commit '{branchCommit}'.");
+    }
+
+    var sdkCommit = File.ReadAllText(commitIdPath).Trim();
+    if (string.IsNullOrWhiteSpace(sdkCommit)) throw new InvalidOperationException($"'{commitIdPath}' is empty.");
 
     var extensions = new[] { ".cs", ".resx", ".editorconfig" };
     var sourceFiles = await GetDirectoryFilesAsync(
@@ -160,15 +172,42 @@ static async Task MainAsync(string[] args)
     Console.WriteLine("OK");
 }
 
-static SyncMode ParseMode(string[] args)
+static (SyncMode Mode, string? SdkBranch) ParseArgs(string[] args)
 {
-    if (args is [] or ["--update"])
-        return SyncMode.Update;
+    SyncMode? mode = null;
+    string? sdkBranch = null;
 
-    if (args is ["--verify"])
-        return SyncMode.Verify;
+    for (var i = 0; i < args.Length; i++)
+    {
+        switch (args[i])
+        {
+            case "--update":
+                mode = SyncMode.Update;
+                break;
 
-    throw new InvalidOperationException("Expected zero arguments (for default mode) or exactly one argument: --update or --verify.");
+            case "--verify":
+                mode = SyncMode.Verify;
+                break;
+
+            case "--sdk-branch":
+                i++;
+                if (i == args.Length)
+                    throw new InvalidOperationException("'--sdk-branch' requires a branch name argument.");
+
+                sdkBranch = args[i];
+                break;
+
+            default:
+                throw new InvalidOperationException($"Unrecognized argument: '{args[i]}'. Expected '--update', '--verify', and/or '--sdk-branch <branch>'.");
+        }
+    }
+
+    mode ??= SyncMode.Update;
+
+    if (sdkBranch is not null && mode != SyncMode.Update)
+        throw new InvalidOperationException("'--sdk-branch' is only valid together with '--update' (or the default update mode).");
+
+    return (mode.Value, sdkBranch);
 }
 
 static HttpClient CreateHttpClient()
@@ -194,6 +233,21 @@ static async Task<string> GetGitHubStringAsync(HttpClient client, string url)
     }
 
     return payload;
+}
+
+static async Task<string> GetBranchHeadCommitAsync(HttpClient client, string branch)
+{
+    var url = $"https://api.github.com/repos/dotnet/sdk/branches/{branch}";
+    var payload = await GetGitHubStringAsync(client, url).ConfigureAwait(false);
+
+    using var document = JsonDocument.Parse(payload);
+    if (!document.RootElement.TryGetProperty("commit", out var commitElement) ||
+        !commitElement.TryGetProperty("sha", out var shaElement))
+    {
+        throw new InvalidOperationException($"Unexpected GitHub API response at '{url}'.");
+    }
+
+    return shaElement.GetString() ?? throw new InvalidOperationException($"Branch '{branch}' has no commit sha in '{url}'.");
 }
 
 static async Task<List<SyncedFile>> GetDirectoryFilesAsync(
