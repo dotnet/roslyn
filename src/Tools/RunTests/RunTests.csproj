@@ -12,7 +12,6 @@
   <ItemGroup>
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Reflection.Metadata" />
-    <PackageReference Include="System.Management" />
     <PackageReference Include="Mono.Options" />
     <PackageReference Include="Newtonsoft.Json" />
     <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
