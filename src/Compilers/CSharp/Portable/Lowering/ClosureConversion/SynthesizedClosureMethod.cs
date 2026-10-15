@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var mods = DeclarationModifiers.None;
 
-            if (Equals(containingType, originalMethod.ContainingType))
+            if (ReferenceEquals(containingType, originalMethod.ContainingType))
             {
                 mods |= DeclarationModifiers.Private;
             }
