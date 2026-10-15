@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor;
+using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -1087,6 +1088,107 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             RazorFileKind.Legacy,
             expectedFileName: "wwwroot/images/logo.png",
             additionalFiles: [(FilePath("wwwroot/images/logo.png"), "")]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData(RazorFileKind.Legacy, """<img src="~/images/lo$$go.png" />""")]
+    [InlineData(RazorFileKind.Component, """<img src="~/images/lo$$go.png" />""")]
+    [InlineData(RazorFileKind.Legacy, """<img src='~/images/lo$$go.png' />""")]
+    [InlineData(RazorFileKind.Component, """<img src='~/images/lo$$go.png' />""")]
+    [InlineData(RazorFileKind.Legacy, """<img src="~/$$images/logo.png" />""")]
+    [InlineData(RazorFileKind.Component, """<img src="~/images/logo.png$$" />""")]
+    public async Task LiteralAttribute_TildePath(RazorFileKind fileKind, string input)
+    {
+        await VerifyFilePathDefinitionAsync(
+            input,
+            fileKind,
+            expectedFileName: "wwwroot/images/logo.png",
+            additionalFiles: [(FilePath("wwwroot/images/logo.png"), "")]);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData("site.css")]
+    [InlineData("site styles.css")]
+    public async Task LiteralAttribute_RelativePath_Legacy(string fileName)
+    {
+        TestCode input = $$"""<link href="css/$${{fileName}}" />""";
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            RazorFileKind.Legacy,
+            expectedFileName: $"Views/css/{fileName}",
+            additionalFiles: [(FilePath($"Views/css/{fileName}"), "")],
+            documentFilePath: FilePath("Views/Index.cshtml"));
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData("site.css")]
+    [InlineData("site styles.css")]
+    public async Task LiteralAttribute_RelativePath_Component(string fileName)
+    {
+        TestCode input = $$"""<link href="css/$${{fileName}}" />""";
+
+        await VerifyFilePathDefinitionAsync(
+            input,
+            RazorFileKind.Component,
+            expectedFileName: $"Views/css/{fileName}",
+            additionalFiles: [(FilePath($"Views/css/{fileName}"), "")],
+            documentFilePath: FilePath("Views/Index.razor"));
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData("logo.png")]
+    [InlineData("site logo.png")]
+    public async Task LiteralAttribute_UnmappedComponentParameter(string fileName)
+    {
+        TestCode input = $$"""<Image Source="~/images/$${{fileName}}" />""";
+
+        var document = CreateProjectAndRazorDocument(input.Text, additionalFiles:
+            [(FilePath("Image.cs"), """
+                namespace Microsoft.AspNetCore.Components
+                {
+                    [System.AttributeUsage(System.AttributeTargets.Property)]
+                    public sealed class AssetPathAttribute : System.Attribute { }
+                }
+
+                namespace SomeProject
+                {
+                    public class Image : Microsoft.AspNetCore.Components.ComponentBase
+                    {
+                        [Microsoft.AspNetCore.Components.Parameter]
+                        [Microsoft.AspNetCore.Components.AssetPath]
+                        public string Source { get; set; }
+                    }
+                }
+                """)]);
+        SetFileSystem([(FilePath($"wwwroot/images/{fileName}"), "")]);
+
+        // Verify the ~/ rewrite is active so navigation must work without a C# source mapping.
+        var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
+        var codeDocument = await snapshotManager.GetSnapshot(document).GetGeneratedOutputAsync(DisposalToken);
+        Assert.Contains($$"""Assets[@"images/{{fileName}}"]""", codeDocument.GetRequiredImplCSharpDocument().Text.ToString());
+
+        var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
+
+        Assumes.NotNull(result);
+        var location = Assert.Single(result.Value.Second);
+        Assert.Equal(FileUri($"wwwroot/images/{fileName}"), location.DocumentUri);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
+    [InlineData("""<img src="~/images/mi$$ssing.png" />""")]
+    [InlineData("""<img src="~/images/@name/lo$$go.png" />""")]
+    [InlineData("""<img sr$$c="~/images/logo.png" />""")]
+    [InlineData("""<img src="https://example.com/lo$$go.png" />""")]
+    public async Task LiteralAttribute_NotFileReference_CallsHtml(string input)
+    {
+        TestCode testCode = input;
+        var document = CreateProjectAndRazorDocument(testCode.Text, RazorFileKind.Legacy);
+        SetFileSystem([(FilePath("wwwroot/images/logo.png"), ""), (FilePath("wwwroot/images/@name/logo.png"), "")]);
+
+        var response = await GetRemoteGoToDefinitionResponseAsync(document, testCode);
+
+        Assert.Equal(RemoteResponse<GoToDefinitionResponse?>.CallHtml, response);
     }
 
     [Theory, WorkItem("https://github.com/dotnet/razor/issues/4325")]

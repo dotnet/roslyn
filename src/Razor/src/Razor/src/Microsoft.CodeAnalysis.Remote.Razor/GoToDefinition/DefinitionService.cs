@@ -8,15 +8,18 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Utilities;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using CSharpSyntaxKind = Microsoft.CodeAnalysis.CSharp.SyntaxKind;
+using RazorSyntaxNode = Microsoft.AspNetCore.Razor.Language.Syntax.SyntaxNode;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.GoToDefinition;
 
@@ -117,9 +120,24 @@ internal sealed class DefinitionService(
         DocumentPositionInfo positionInfo,
         CancellationToken cancellationToken)
     {
+        // First let's see if the location is a simple attribute value.
+        var codeDocument = await documentSnapshot.GetGeneratedOutputAsync(cancellationToken).ConfigureAwait(false);
+        if (GetLiteralAttributeValue(codeDocument, positionInfo.HostDocumentIndex) is { } attributeValue &&
+            TryResolveFilePath(documentSnapshot, attributeValue, out var attributePath))
+        {
+            _logger.LogDebug($"Resolved attribute file path: {attributePath}");
+            return [LspFactory.CreateLocation(attributePath, LspFactory.DefaultRange)];
+        }
+
+        // Anything else Html or Razor we don't know how to handle (or don't expect literals)
+        if (positionInfo.LanguageKind != RazorLanguageKind.CSharp)
+        {
+            return null;
+        }
+
         _logger.LogDebug($"Attempting to get definition from string literal at position {positionInfo.Position}.");
 
-        // Get the C# syntax tree to analyze the string literal
+        // Now let's check the C# syntax tree and see if we're in a C# string literal.
         var syntaxTree = await documentSnapshot.GetCSharpSyntaxTreeAsync(positionInfo.InDeclDocument, cancellationToken).ConfigureAwait(false);
         var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
         var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
@@ -145,6 +163,37 @@ internal sealed class DefinitionService(
         }
 
         return null;
+    }
+
+    private static string? GetLiteralAttributeValue(RazorCodeDocument codeDocument, int absoluteIndex)
+    {
+        // The path can be in an ordinary HTML attribute or a bound tag helper attribute.
+        var owner = codeDocument.GetRequiredSyntaxRoot().FindInnermostNode(absoluteIndex, includeWhitespace: true, walkMarkersBack: true);
+        var attribute = owner?.FirstAncestorOrSelf<RazorSyntaxNode>(static node => node is MarkupAttributeBlockSyntax or MarkupTagHelperAttributeSyntax);
+        var value = attribute switch
+        {
+            MarkupAttributeBlockSyntax attributeBlock => attributeBlock.Value,
+            MarkupTagHelperAttributeSyntax tagHelperAttribute => tagHelperAttribute.Value,
+            _ => null,
+        };
+
+        // Only navigate from the value; attribute names should retain their normal definition behaviour.
+        if (value is null || !value.Span.IntersectsWith(absoluteIndex))
+        {
+            return null;
+        }
+
+        // Whitespace can split a literal value into several children. Require each to be a literal
+        // so expressions and nested dynamic blocks fall back to normal definition handling.
+        foreach (var child in value.Children)
+        {
+            if (child is not (MarkupLiteralAttributeValueSyntax or MarkupTextLiteralSyntax))
+            {
+                return null;
+            }
+        }
+
+        return value.GetContent();
     }
 
     private bool TryResolveFilePath(RemoteDocumentSnapshot documentSnapshot, string filePath, out string resolvedPath)
