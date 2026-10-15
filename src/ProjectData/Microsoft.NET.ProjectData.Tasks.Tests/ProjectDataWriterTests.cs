@@ -301,15 +301,16 @@ public class ProjectDataWriterTests
 		string[] args = [
 			"/nologo",
 			"/langversion:preview",
-			"/reference:C:\\ref\\System.dll",   // excluded
-            "/analyzer:C:\\Analyzers\\Foo.dll",  // excluded
-            "C:\\project\\Program.cs",           // bare path, excluded
-            "/Users/dev/project/Generated.cs",   // Unix absolute source path, excluded
-            "<PATH>GeneratedFromRsp.cs",          // already-portable source path, excluded
-            "/doc:obj/Debug/App.xml",             // output path, preserved
-            "/out:obj/Debug/App.dll",             // output path, preserved
-            "/refout:obj/Debug/refint/App.dll",   // output path, preserved
-            "/pdb:obj/Debug/App.pdb",             // output path, preserved
+			"/reference:C:\\ref\\System.dll",             // excluded
+            "/analyzer:C:\\Analyzers\\Foo.dll",           // excluded
+            "C:\\project\\Program.cs",                    // bare path, excluded
+            "/Users/dev/project/Generated.cs",            // Unix absolute source path, excluded
+            "<PATH>GeneratedFromRsp.cs",                  // already-portable source path, excluded
+            "/doc:obj/Debug/App.xml",                     // output path, preserved
+            "/out:obj/Debug/App.dll",                     // output path, preserved
+            "/refout:obj/Debug/refint/App.dll",           // output path, preserved
+            "/pdb:obj/Debug/App.pdb",                     // output path, preserved
+            "/features:\"|TextContainInvalidPathChar|\"", // test that file path detection can handle arguments with invalid path characters, preserved
         ];
 		string content = Build(commandLineArguments: args);
 
@@ -326,6 +327,7 @@ public class ProjectDataWriterTests
 		Assert.Contains("/out:obj/Debug/App.dll", normalized);
 		Assert.Contains("/refout:obj/Debug/refint/App.dll", normalized);
 		Assert.Contains("/pdb:obj/Debug/App.pdb", normalized);
+		Assert.Contains("/features:\"|TextContainInvalidPathChar|\"", normalized);
 	}
 
 	[Fact]

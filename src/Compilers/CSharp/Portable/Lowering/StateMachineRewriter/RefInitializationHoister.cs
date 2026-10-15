@@ -82,6 +82,7 @@ internal class RefInitializationHoister<THoistedSymbol, THoistedAccess>(Syntheti
                          _ => false
                      });
 #pragma warning restore format
+        Debug.Assert(local.RefKind != RefKind.None);
 
         var sideEffects = ArrayBuilder<BoundExpression>.GetInstance();
         bool needsSacrificialEvaluation = false;
@@ -94,7 +95,7 @@ internal class RefInitializationHoister<THoistedSymbol, THoistedAccess>(Syntheti
         if (needsSacrificialEvaluation)
         {
             var type = _typeMap.SubstituteType(local.Type).Type;
-            var sacrificialTemp = _factory.SynthesizedLocal(type, refKind: RefKind.Ref);
+            var sacrificialTemp = _factory.SynthesizedLocal(type, refKind: local.RefKind);
             Debug.Assert(TypeSymbol.Equals(type, replacement.Type, TypeCompareKind.ConsiderEverything2));
             return _factory.Sequence(ImmutableArray.Create(sacrificialTemp), sideEffects.ToImmutableAndFree(), _factory.AssignmentExpression(_factory.Local(sacrificialTemp), replacement, isRef: true));
         }

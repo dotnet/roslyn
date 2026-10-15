@@ -228,7 +228,12 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 
 	private void ReportDuplicateItem(ProjectDataDuplicateItemDiagnostic diagnostic)
 	{
-		this.Log.LogWarning(
+		// The writer deterministically keeps one equivalent item and still produces a valid
+		// cache. Keep the normalization in the binlog for product diagnosis, but do not emit
+		// an MSBuild warning: customers cannot act on it and retrying ProjectDataBuild cannot
+		// change the evaluated duplicate.
+		this.Log.LogMessage(
+			MessageImportance.Low,
 			"ProjectData: duplicate {0} item in {1}: {2}. The duplicate entry was omitted from {3}.",
 			diagnostic.Section,
 			diagnostic.ProjectFilePath,

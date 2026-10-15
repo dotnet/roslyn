@@ -180,7 +180,7 @@ internal partial class RawStringLiteralCommandHandler : ICommandHandler<ReturnKe
 
             using var transaction = CaretPreservingEditTransaction.TryCreate(
                 CSharpEditorResources.Split_raw_string, textView, _undoHistoryRegistry, _editorOperationsFactoryService);
-            var edit = subjectBuffer.CreateEdit();
+            using var edit = subjectBuffer.CreateEdit();
 
             if (isEmpty)
             {

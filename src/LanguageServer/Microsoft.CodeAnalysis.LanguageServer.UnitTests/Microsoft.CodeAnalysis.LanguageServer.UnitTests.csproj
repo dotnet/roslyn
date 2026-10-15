@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies.Net100" />
+    <PackageReference Include="Microsoft.VisualStudio.HotReload.RemoteContracts" />
   </ItemGroup>
 
   <ItemGroup>

@@ -62,7 +62,7 @@ internal sealed class CohostDocumentFormattingEndpoint(
 
     protected override Task<TextEdit[]?> HandleRequestAsync(DocumentFormattingParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
+        var csharpSyntaxFormattingOptions = razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken);
         return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 
@@ -81,10 +81,12 @@ internal sealed class CohostDocumentFormattingEndpoint(
         var sourceText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var htmlChanges = htmlEdits.SelectAsArray(sourceText.GetTextChange);
 
+        var settings = _clientSettingsManager.GetClientSettings().AdvancedSettings;
         var options = RazorFormattingOptions.From(
             request.Options,
-            _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine,
-            _clientSettingsManager.GetClientSettings().AdvancedSettings.AttributeIndentStyle,
+            settings.CodeBlockBraceOnNextLine,
+            settings.AttributeIndentStyle,
+            settings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
             csharpSyntaxFormattingOptions);
 
         _logger.LogDebug($"Calling OOP with the {htmlChanges.Length} html edits, so it can fill in the rest");

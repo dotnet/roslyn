@@ -10172,7 +10172,7 @@ class C
     unsafe static D M1() => new D(F);
     static D M2() => new D(F);
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (7,35): warning CS0612: 'C.F()' is obsolete
                 //     unsafe static D M1() => new D(F);
@@ -10228,7 +10228,7 @@ namespace System.Runtime.InteropServices
         public string EntryPoint;
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (8,35): error CS8902: 'C.F()' is attributed with 'UnmanagedCallersOnly' and cannot be converted to a delegate type. Obtain a function pointer to this method.
                 //     unsafe static D M1() => new D(F);
@@ -10869,7 +10869,7 @@ class C2 { }
 [Attr<TypedReference>] // 3
 class C3 { }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15);
             comp.VerifyDiagnostics(
                 // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [Attr<int*>] // 1
@@ -10946,7 +10946,7 @@ class Attr<T> : Attribute { }
 [Attr<int*[]>] // 1
 class C1 { }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (5,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [Attr<int*[]>] // 1
@@ -11632,7 +11632,7 @@ class A<T> : System.Attribute
 {
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (2,4): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // [A<int*[]>] // 1

@@ -367,7 +367,7 @@ class Program
 }
 ";
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (14,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         System.Console.WriteLine(s.x[3]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x").WithLocation(14, 34),

@@ -299,6 +299,14 @@ function TestUsingRunTests() {
   try {
     Write-Host "$runTests $args"
     Exec-Command $dotnetExe "$runTests $args"
+  } catch {
+    try {
+      New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
+      Capture-Screenshot (Join-Path $LogDir "TestFailure.png")
+    } catch {
+      Write-LogIssue -Type "warning" -Message "Unable to capture test failure screenshot: $_"
+    }
+    throw
   } finally {
     Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process
     if ($ci) {

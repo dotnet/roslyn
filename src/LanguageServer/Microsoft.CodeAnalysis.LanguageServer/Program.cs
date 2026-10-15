@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
@@ -52,11 +51,6 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     {
         Contract.ThrowIfNull(serverConfiguration.ServerPipeName, "Server must be started with either --stdio or --pipe option.");
     }
-
-    serverConfiguration = serverConfiguration with
-    {
-        TelemetryLevel = TelemetryLevelResolver.Resolve(serverConfiguration.TelemetryLevel),
-    };
 
     if (serverConfiguration.UseStdIo)
     {

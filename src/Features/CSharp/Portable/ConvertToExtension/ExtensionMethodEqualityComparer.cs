@@ -31,7 +31,8 @@ internal sealed partial class ConvertToExtensionCodeRefactoringProvider
             // `void Goo(this object x)` doesn't matches `void Goo(this dynamic x)`
             objectAndDynamicCompareEqually: false,
             // `void Goo(this string[] x)` doesn't matches `void Goo(this Span<string> x)`
-            arrayAndReadOnlySpanCompareEqually: false);
+            arrayAndReadOnlySpanCompareEqually: false,
+            distinguishPartialParts: true);
 
         #region IEqualityComparer<AttributeData>
 

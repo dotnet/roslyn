@@ -84,9 +84,9 @@ class Program
                 // (4,15): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref class S1{}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S1").WithArguments("ref").WithLocation(4, 15),
-                // (6,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (6,16): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(6, 16),
                 // (6,12): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     public ref unsafe struct S2{}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(6, 12),

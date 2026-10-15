@@ -127,17 +127,11 @@
     <value>Insert a directive code snippet
 [Tab] to navigate between elements, [Enter] to complete</value>
   </data>
-  <data name="Invalid_Offset" xml:space="preserve">
-    <value>Invalid offset.</value>
-  </data>
   <data name="PositionCharacter_Outside_Range" xml:space="preserve">
     <value>Character '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</value>
   </data>
   <data name="PositionLine_Outside_Range" xml:space="preserve">
     <value>Line '{0}' outside of the {1} range of '{2}' was queried. The document may not be up to date.</value>
-  </data>
-  <data name="Language_Services_Missing_Service" xml:space="preserve">
-    <value>Razor language services not configured properly, missing language service '{0}'.</value>
   </data>
   <data name="Not_Available_In" xml:space="preserve">
     <value>Not available in</value>

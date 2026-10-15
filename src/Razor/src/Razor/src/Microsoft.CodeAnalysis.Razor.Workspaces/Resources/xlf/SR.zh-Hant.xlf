@@ -54,19 +54,9 @@
         <target state="translated">Razor 編輯器使用 Razor 原始碼產生器，其要求專案中的 *.razor 和 *.cshtml 檔案必須設為 AdditionalFiles。{0} 似乎來自 '{1}'，其雖包含 Razor 文件，但此檔案不是 AdditionalFile，因此編輯體驗將會受到限制。系統將不會再記錄此專案的任何訊息。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">位移無效。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">{0} 關鍵字</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">未正確設定 Razor 語言服務，遺漏語言服務 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">

@@ -2184,7 +2184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private static bool IsLastAccess(LocalDefUseInfo locInfo, int counter)
         {
-            return locInfo.LocalDefs.Any((d) => counter == d.Start && counter == d.End);
+            return locInfo.LocalDefs.Any(static (d, counter) => counter == d.Start && counter == d.End, counter);
         }
 
         public override BoundNode VisitLocal(BoundLocal node)
@@ -2198,7 +2198,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // not the last access, emit Dup.
             if (!IsLastAccess(locInfo, _nodeCounter))
             {
-                return new BoundDup(node.Syntax, node.LocalSymbol.RefKind, node.Type);
+                bool isAlive = locInfo.LocalDefs.Any(static (d, c) => c == d.Start, _nodeCounter);
+                return new BoundDup(node.Syntax, node.LocalSymbol.RefKind, isAlive, node.Type);
             }
 
             // last access - leave the node as is. Emit will do nothing expecting the node on the stack
@@ -2253,14 +2254,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (isLast)
             {
-                if (node.IsRef &&
-                    !node.WasCompilerGenerated &&
-                    left.LocalSymbol.RefKind == RefKind.Ref &&
-                    right is BoundArrayAccess arrayAccess &&
-                    // Value types do not need runtime element type checks.
-                    !arrayAccess.Type.IsValueType)
+                if (node.IsRef)
                 {
-                    return new BoundRefAccess(arrayAccess.Syntax, RefKind.Ref, arrayAccess, right.Type);
+                    return new BoundRefAccess(node.Syntax, left.LocalSymbol.RefKind, right, right.Type);
                 }
 
                 // assigned local is not used later => just emit the Right
