@@ -65,7 +65,7 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         TextDocument razorDocument,
         CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
+        var csharpSyntaxFormattingOptions = razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken);
         return HandleRequestAsync(completionItem, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 

@@ -54,19 +54,9 @@
         <target state="translated">Editor Razor využívá Generátor zdroje Razor, který vyžaduje, aby soubory *.razor a *.cshtml v projektu byly AdditionalFiles. {0} nejspíše pochází z: {1} a obsahuje dokumenty Razor, ale tento soubor není AdditionalFile, takže možnosti úprav budou omezené. Pro tento projekt se nebudou protokolovat žádné další zprávy.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">Neplatný posun</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">Klíčové slovo {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Služby jazyka Razor nejsou správně nakonfigurované, chybí služba jazyka {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">
