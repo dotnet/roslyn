@@ -21,6 +21,8 @@ namespace AnalyzerRunner
 
         public readonly bool RunConcurrent;
         public readonly bool ReportSuppressedDiagnostics;
+        public readonly bool FixAll;
+        public readonly string EquivalenceKey;
         public readonly bool ApplyChanges;
         public readonly bool UseAll;
         public readonly int Iterations;
@@ -48,6 +50,8 @@ namespace AnalyzerRunner
             ImmutableHashSet<string> refactoringNodes,
             bool runConcurrent,
             bool reportSuppressedDiagnostics,
+            bool fixAll,
+            string equivalenceKey,
             bool applyChanges,
             bool useAll,
             int iterations,
@@ -59,6 +63,8 @@ namespace AnalyzerRunner
                   refactoringNodes,
                   runConcurrent,
                   reportSuppressedDiagnostics,
+                  fixAll,
+                  equivalenceKey,
                   applyChanges,
                   showStats: false,
                   showCompilerDiagnostics: false,
@@ -80,6 +86,8 @@ namespace AnalyzerRunner
             ImmutableHashSet<string> refactoringNodes,
             bool runConcurrent,
             bool reportSuppressedDiagnostics,
+            bool fixAll,
+            string equivalenceKey,
             bool applyChanges,
             bool showStats,
             bool showCompilerDiagnostics,
@@ -99,6 +107,8 @@ namespace AnalyzerRunner
             RefactoringNodes = refactoringNodes;
             RunConcurrent = runConcurrent;
             ReportSuppressedDiagnostics = reportSuppressedDiagnostics;
+            FixAll = fixAll;
+            EquivalenceKey = equivalenceKey;
             ApplyChanges = applyChanges;
             ShowStats = showStats;
             ShowCompilerDiagnostics = showCompilerDiagnostics;
@@ -121,6 +131,8 @@ namespace AnalyzerRunner
             var refactoringBuilder = ImmutableHashSet.CreateBuilder<string>();
             bool runConcurrent = false;
             bool reportSuppressedDiagnostics = false;
+            bool fixAll = false;
+            string equivalenceKey = null;
             bool applyChanges = false;
             bool showStats = false;
             bool showCompilerDiagnostics = false;
@@ -177,6 +189,13 @@ namespace AnalyzerRunner
                     case "/a":
                         builder.Add(ReadValue());
                         break;
+                    case "/fixall":
+                        fixAll = true;
+                        break;
+                    case var _ when arg.StartsWith("/fixall:"):
+                        fixAll = true;
+                        equivalenceKey = arg.Substring("/fixall:".Length);
+                        break;
                     case "/refactor":
                         refactoringBuilder.Add(ReadValue());
                         break;
@@ -229,6 +248,8 @@ namespace AnalyzerRunner
                 refactoringNodes: refactoringBuilder.ToImmutableHashSet(),
                 runConcurrent: runConcurrent,
                 reportSuppressedDiagnostics: reportSuppressedDiagnostics,
+                fixAll: fixAll,
+                equivalenceKey: equivalenceKey,
                 applyChanges: applyChanges,
                 showStats: showStats,
                 showCompilerDiagnostics: showCompilerDiagnostics,
