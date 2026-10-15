@@ -13,7 +13,7 @@ Repo-wide entry points and the formal public-API tracking rules. Layer-specific 
 | Command | Purpose |
 |---------|---------|
 | `build.sh` / `Build.cmd` | Full solution build (Arcade). |
-| `Build.cmd -restore -build -pack -graph` / `build.sh --restore --build --pack --graph` | Opt-in graph compilation and packaging; see [graph build usage and supported boundaries](../../docs/infrastructure/msbuild.md#opt-in-graph-builds). |
+| `Build.cmd -restore -pack -graph` / `build.sh --restore --build --pack --graph` | Opt-in graph compilation and packaging; see [graph build usage and supported boundaries](../../docs/infrastructure/msbuild.md#opt-in-graph-builds). |
 | `dotnet restore <project-or-solution>` | Restores dependencies and, on the first restore in a clone, validates checkout line endings and Windows long-path support. A successful validation is cached at `artifacts/developer-settings-validated.txt`. |
 | `dotnet build Compilers.slnf` | Compiler-only build. |
 | `dotnet build Ide.slnf` | IDE-only build. |

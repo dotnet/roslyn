@@ -21,7 +21,7 @@ Given our repo supports multiple MSBuild versions, it must pick one to use when 
 
 ## Opt-in graph builds
 
-Use `Build.cmd -restore -build -pack -graph -binaryLog` on Windows, or
+Use `Build.cmd -restore -pack -graph -binaryLog` on Windows, or
 `./build.sh --restore --build --pack --graph --binaryLog` on Linux and macOS.
 Graph mode is opt-in; the default build behavior is unchanged. Solution filters
 can be used for compilation, for example
