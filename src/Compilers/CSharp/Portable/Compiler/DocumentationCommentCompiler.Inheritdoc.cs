@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private const int MaxInheritedDocumentationNodeCount = 10_000;
         private const int MaxInheritedDocumentationExpansionCount = 10_000;
+        private const int MaxInheritedDocumentationDepth = 128;
 
         // Keep candidate selection and XPath handling aligned with Workspaces' ISymbolExtensions.GetDocumentationComment.
         // The compiler layer cannot reference Workspaces.
@@ -139,6 +140,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 isComplete = true;
                 return cachedDocument;
+            }
+
+            if (visitedSymbols.Count >= MaxInheritedDocumentationDepth)
+            {
+                isComplete = false;
+                return new XDocument(new XElement("doc"));
             }
 
             if (remainingExpansionBudget == 0)

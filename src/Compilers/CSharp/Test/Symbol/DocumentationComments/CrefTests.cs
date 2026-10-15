@@ -4024,6 +4024,28 @@ partial class P
         }
 
         [Fact]
+        public void InheritdocBoundsDeepLinearInheritance()
+        {
+            var source = new System.Text.StringBuilder("class C\n{\n");
+            source.AppendLine("    /// <param name=\"x\">x</param>");
+            source.AppendLine("    /// <param name=\"y\">y</param>");
+            source.AppendLine("    void M0(int x, int y) { }");
+            for (var i = 1; i <= 300; i++)
+            {
+                source.AppendLine($"    /// <inheritdoc cref=\"M{i - 1}(int, int)\" path=\"/param\"/>");
+                source.AppendLine("    /// <param name=\"y\">y</param>");
+                source.AppendLine($"    void M{i}(int x, int y) {{ }}");
+            }
+
+            source.AppendLine("}");
+            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source.ToString());
+            var diagnostics = compilation.GetDiagnostics();
+
+            Assert.Contains(diagnostics, static diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning && diagnostic.Id == "CS1573");
+            Assert.DoesNotContain(diagnostics, static diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        }
+
+        [Fact]
         public void InheritdocInNestedContainerUsesMemberRootedXPath()
         {
             var source = """
