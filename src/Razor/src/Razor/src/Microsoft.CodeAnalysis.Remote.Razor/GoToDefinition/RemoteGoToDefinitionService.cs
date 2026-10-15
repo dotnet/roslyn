@@ -104,8 +104,7 @@ internal sealed class RemoteGoToDefinitionService(in ServiceArgs args) : RazorDo
         {
             var stringLiteralLocations = await _definitionService.TryGetDefinitionFromStringLiteralAsync(
                 snapshot,
-                positionInfo.Position,
-                positionInfo.InDeclDocument,
+                positionInfo,
                 cancellationToken)
                 .ConfigureAwait(false);
 
