@@ -3973,7 +3973,7 @@ partial class P
         }
 
         [Fact]
-        public void InheritdocReusesExpandedTargets()
+        public void InheritdocBoundsRepeatedUnfilteredExpansion()
         {
             var source = new System.Text.StringBuilder("class C\n{\n");
             for (var i = 0; i <= 17; i++)
@@ -3984,16 +3984,21 @@ partial class P
                 }
                 else
                 {
-                    source.AppendLine($"    /// <inheritdoc cref=\"M{i - 1}(int)\" path=\"/summary\"/>");
-                    source.AppendLine($"    /// <inheritdoc cref=\"M{i - 1}(int)\" path=\"/param\"/>");
+                    source.AppendLine($"    /// <inheritdoc cref=\"M{i - 1}(int)\"/>");
+                    source.AppendLine($"    /// <inheritdoc cref=\"M{i - 1}(int)\"/>");
+                    source.AppendLine("    /// <summary>summary</summary>");
                 }
 
-                source.AppendLine("    /// <param name=\"x\">x</param>");
                 source.AppendLine($"    void M{i}(int x) {{ }}");
             }
 
+            source.AppendLine("    /// <inheritdoc cref=\"M17(int)\"/>");
+            source.AppendLine("    /// <param name=\"y\">y</param>");
+            source.AppendLine("    void Target(int x, int y) { }");
             source.AppendLine("}");
-            CreateCompilationWithMscorlib40AndDocumentationComments(source.ToString()).VerifyDiagnostics();
+            CreateCompilationWithMscorlib40AndDocumentationComments(source.ToString()).VerifyDiagnostics(
+                // warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.Target(int, int)' (but other parameters do)
+                Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.Target(int, int)"));
         }
 
         [Fact]

@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class DocumentationCommentCompiler
     {
+        private const int MaxInheritedDocumentationNodeCount = 10_000;
+
         // Keep candidate selection and XPath handling aligned with Workspaces' ISymbolExtensions.GetDocumentationComment.
         // The compiler layer cannot reference Workspaces.
         private void AddInheritedDocumentationTags(
@@ -43,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var publicSymbol = symbol.GetPublicSymbol();
             var visitedSymbols = new HashSet<ISymbol>(SymbolEqualityComparer.Default) { publicSymbol };
             var expandedDocumentation = new Dictionary<ISymbol, XDocument>(SymbolEqualityComparer.Default);
-            ExpandInheritedDocumentation(publicSymbol, document, visitedSymbols, expandedDocumentation, out _);
+            var remainingNodeBudget = MaxInheritedDocumentationNodeCount;
+            ExpandInheritedDocumentation(publicSymbol, document, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, out _);
             CollectDocumentationNames(document, parameterNames, typeParameterNames);
 
             if (documentedParameters != null)
@@ -74,9 +77,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             XContainer container,
             HashSet<ISymbol> visitedSymbols,
             Dictionary<ISymbol, XDocument> expandedDocumentation,
-            out bool hasCycle)
+            ref int remainingNodeBudget,
+            out bool isComplete)
         {
-            hasCycle = false;
+            isComplete = true;
             foreach (var element in container.Descendants().ToArray())
             {
                 if (!ElementNameIs(element, DocumentationCommentXmlNames.InheritdocElementName))
@@ -98,9 +102,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var xpath = string.IsNullOrEmpty(path)
                     ? BuildXPathForElement(element.Parent)
                     : path.StartsWith("/", StringComparison.Ordinal) ? "/*" + path : path;
-                var inheritedDocument = GetExpandedDocumentation(inheritedSymbol, visitedSymbols, expandedDocumentation, out var inheritedHasCycle);
-                hasCycle |= inheritedHasCycle;
+                var inheritedDocument = GetExpandedDocumentation(inheritedSymbol, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, out var inheritedIsComplete);
+                isComplete &= inheritedIsComplete;
                 var inheritedNodes = TrySelectNodes(inheritedDocument, xpath).ToArray();
+                var nodeCount = 0;
+                foreach (var node in inheritedNodes)
+                {
+                    nodeCount += CountNodes(node);
+                }
+
+                if (nodeCount > remainingNodeBudget)
+                {
+                    // Repeated inheritdoc references can multiply XML exponentially; stop conservatively before diagnostics exhaust memory.
+                    element.Remove();
+                    isComplete = false;
+                    continue;
+                }
+
+                remainingNodeBudget -= nodeCount;
                 element.ReplaceWith(inheritedNodes.Select(static node => CopyNode(node)).ToArray());
             }
         }
@@ -109,17 +128,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             ISymbol member,
             HashSet<ISymbol> visitedSymbols,
             Dictionary<ISymbol, XDocument> expandedDocumentation,
-            out bool hasCycle)
+            ref int remainingNodeBudget,
+            out bool isComplete)
         {
             if (expandedDocumentation.TryGetValue(member, out var cachedDocument))
             {
-                hasCycle = false;
+                isComplete = true;
                 return cachedDocument;
             }
 
             if (!visitedSymbols.Add(member))
             {
-                hasCycle = true;
+                isComplete = false;
                 return new XDocument(new XElement("doc"));
             }
 
@@ -130,8 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (IsEligibleForAutomaticInheritdoc(member) && GetInheritdocCandidate(member) is { } candidate)
                     {
-                        var inheritedDocument = GetExpandedDocumentation(candidate, visitedSymbols, expandedDocumentation, out hasCycle);
-                        if (!hasCycle)
+                        var inheritedDocument = GetExpandedDocumentation(candidate, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, out isComplete);
+                        if (isComplete)
                         {
                             expandedDocumentation[member] = inheritedDocument;
                         }
@@ -139,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return inheritedDocument;
                     }
 
-                    hasCycle = false;
+                    isComplete = true;
                     var emptyDocument = new XDocument(new XElement("doc"));
                     expandedDocumentation[member] = emptyDocument;
                     return emptyDocument;
@@ -152,14 +172,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 catch (XmlException)
                 {
-                    hasCycle = false;
+                    isComplete = true;
                     var emptyDocument = new XDocument(new XElement("doc"));
                     expandedDocumentation[member] = emptyDocument;
                     return emptyDocument;
                 }
 
-                ExpandInheritedDocumentation(member, document, visitedSymbols, expandedDocumentation, out hasCycle);
-                if (!hasCycle)
+                ExpandInheritedDocumentation(member, document, visitedSymbols, expandedDocumentation, ref remainingNodeBudget, out isComplete);
+                if (isComplete)
                 {
                     expandedDocumentation[member] = document;
                 }
@@ -170,6 +190,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 visitedSymbols.Remove(member);
             }
+        }
+
+        private static int CountNodes(XNode node)
+        {
+            var count = 1;
+            if (node is XContainer container)
+            {
+                foreach (var child in container.Nodes())
+                {
+                    count += CountNodes(child);
+                }
+            }
+
+            return count;
         }
 
         private static void CollectDocumentationNames(
