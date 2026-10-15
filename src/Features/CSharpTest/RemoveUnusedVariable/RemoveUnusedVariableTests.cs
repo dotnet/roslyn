@@ -808,4 +808,31 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
             """
 
             """, new(CSharpParseOptions.Default));
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78528")]
+    public Task RemoveUnusedVariableAssignedInIfStatementWithoutBraces()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    bool [|recreateIssue|];
+                    if (true)
+                        recreateIssue = true;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (true)
+                    {
+                    }
+                }
+            }
+            """);
 }
