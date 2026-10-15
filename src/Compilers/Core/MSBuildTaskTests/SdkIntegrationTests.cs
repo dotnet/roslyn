@@ -9,7 +9,9 @@ using System.Linq;
 using System.Text;
 using Basic.CompilerLog.Util;
 using Microsoft.Build.Logging.StructuredLogger;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -95,6 +97,76 @@ public sealed class SdkIntegrationTests : IDisposable
         }
 
         return list;
+    }
+
+    [ConditionalTheory(typeof(DotNetSdkAvailable)), CombinatorialData]
+    public void RoslynCompilerCache(
+        bool visualBasic,
+        bool? useCache,
+        [CombinatorialValues(null, "explicit-cache")] string? cachePath)
+    {
+        var extension = visualBasic ? "vb" : "cs";
+        var worktreeCount = useCache == true ? 2 : 1;
+        for (var i = 0; i < worktreeCount; i++)
+        {
+            var worktree = ProjectDir.CreateDirectory($"worktree{i}=a, b");
+            var projectFile = worktree.CreateFile($"test.{extension}proj").WriteAllText($"""
+                <Project Sdk="Microsoft.NET.Sdk">
+                  <PropertyGroup>
+                    <TargetFramework>{NetCoreTfm}</TargetFramework>
+                    <UseRoslynCompilerCache>{useCache}</UseRoslynCompilerCache>
+                    <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
+                    <SkipCompilerExecution>true</SkipCompilerExecution>
+                    <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
+                  </PropertyGroup>
+                  <ItemGroup>
+                    <SourceRoot Include="$(MSBuildProjectDirectory){Path.DirectorySeparatorChar}" SourceControl="git" SourceLinkUrl="https://example.invalid/sources/*" />
+                  </ItemGroup>
+                  <Target Name="TestCompilerCache" DependsOnTargets="CoreCompile">
+                    <WriteLinesToFile File="args.txt" Lines="@(CscCommandLineArgs);@(VbcCommandLineArgs)" Overwrite="true" />
+                  </Target>
+                </Project>
+                """);
+            worktree.CreateFile($"test.{extension}").WriteAllText(visualBasic ? "Public Class C\nEnd Class" : "public class C { }");
+
+            var features = cachePath is null ? "existing-feature" : $"existing-feature%3Buse-global-cache={cachePath}";
+            RunBuild(
+                projectFile.Path,
+                additionalArguments: $"/t:TestCompilerCache /p:Features={features}",
+                additionalEnvironmentVars: new Dictionary<string, string>
+                {
+                    ["ROSLYN_CACHE_PATH"] = "",
+                });
+
+            var args = File.ReadAllLines(Path.Combine(worktree.Path, "args.txt"));
+            CommandLineArguments arguments = visualBasic
+                ? VisualBasicCommandLineParser.Default.Parse(args, worktree.Path, sdkDirectory: null, additionalReferenceDirectories: null)
+                : CSharpCommandLineParser.Default.Parse(args, worktree.Path, sdkDirectory: null, additionalReferenceDirectories: null);
+
+            Assert.Equal("true", arguments.ParseOptions.Features["existing-feature"]);
+            if (useCache == true || cachePath is not null)
+            {
+                Assert.Equal(cachePath ?? "true", arguments.ParseOptions.Features["use-global-cache"]);
+            }
+            else
+            {
+                Assert.DoesNotContain("use-global-cache", arguments.ParseOptions.Features.Keys);
+            }
+
+            if (useCache == true)
+            {
+                Assert.Contains(arguments.PathMap, mapping => mapping.Key == worktree.Path + Path.DirectorySeparatorChar && mapping.Value == "/_/");
+                Assert.Null(arguments.SourceLink);
+            }
+            else
+            {
+                Assert.Empty(arguments.PathMap);
+                Assert.NotNull(arguments.SourceLink);
+                Assert.True(File.Exists(arguments.SourceLink));
+            }
+        }
+
+        ArtifactUploadUtil.SetSucceeded();
     }
 
     [ConditionalFact(typeof(DotNetSdkAvailable))]
