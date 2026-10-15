@@ -687,7 +687,32 @@ public sealed class FormattingTests_Patterns : CSharpFormattingTestBase
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73251")]
     public Task FormatMultilineListPatternWithPropertyPattern()
-        => AssertFormatAsync("""
+        => AssertNoFormattingChangesAsync("""
+            class C
+            {
+                void M(MyClass[] arr)
+                {
+                    if (arr is
+                        [
+                        {
+                            Prop: 1,
+                            AnotherProp: 2
+                        }
+                        ])
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73251")]
+    public Task FormatMultilineListPatternWithPropertyPattern_IndentListPatternContents()
+    {
+        var changingOptions = new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpFormattingOptions2.IndentListPatternContents, true },
+        };
+        return AssertFormatAsync("""
             class C
             {
                 void M(MyClass[] arr)
@@ -719,5 +744,6 @@ public sealed class FormattingTests_Patterns : CSharpFormattingTestBase
                     }
                 }
             }
-            """);
+            """, changedOptionSet: changingOptions);
+    }
 }
