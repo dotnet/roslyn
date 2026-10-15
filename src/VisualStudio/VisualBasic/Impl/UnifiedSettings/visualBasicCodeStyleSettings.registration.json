@@ -37,6 +37,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForField.preference} != ''",
       "order": 1,
       "default": "silent",
@@ -79,6 +80,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForProperty.preference} != ''",
       "order": 3,
       "default": "silent",
@@ -121,6 +123,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForMethod.preference} != ''",
       "order": 5,
       "default": "silent",
@@ -163,6 +166,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.memberQualification.dotnetStyleQualificationForEvent.preference} != ''",
       "order": 7,
       "default": "silent",
@@ -205,6 +209,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForLocalsParametersMembers.preference} != ''",
       "order": 9,
       "default": "silent",
@@ -247,6 +252,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForMemberAccess.preference} != ''",
       "order": 11,
       "default": "silent",
@@ -289,6 +295,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInArithmeticBinaryOperators.preference} != ''",
       "order": 13,
       "default": "silent",
@@ -331,6 +338,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherBinaryOperators.preference} != ''",
       "order": 15,
       "default": "silent",
@@ -373,6 +381,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInRelationalBinaryOperators.preference} != ''",
       "order": 17,
       "default": "silent",
@@ -415,6 +424,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.parentheses.dotnetStyleParenthesesInOtherOperators.preference} != ''",
       "order": 19,
       "default": "silent",
@@ -457,6 +467,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.codeBlocks.dotnetStylePreferAutoProperties.preference} != ''",
       "order": 21,
       "default": "silent",
@@ -499,6 +510,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.codeBlocks.dotnetPreferSystemHashCode.preference} != ''",
       "order": 23,
       "default": "suggestion",
@@ -541,6 +553,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStyleObjectInitializer.preference} != ''",
       "order": 25,
       "default": "suggestion",
@@ -583,6 +596,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStyleCollectionInitializer.preference} != ''",
       "order": 27,
       "default": "suggestion",
@@ -625,6 +639,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferSimplifiedBooleanExpressions.preference} != ''",
       "order": 29,
       "default": "suggestion",
@@ -667,6 +682,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStyleExplicitTupleNames.preference} != ''",
       "order": 31,
       "default": "suggestion",
@@ -709,6 +725,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredTupleNames.preference} != ''",
       "order": 33,
       "default": "suggestion",
@@ -751,6 +768,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferInferredAnonymousTypeMemberNames.preference} != ''",
       "order": 35,
       "default": "suggestion",
@@ -793,6 +811,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverAssignment.preference} != ''",
       "order": 37,
       "default": "silent",
@@ -835,6 +854,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverReturn.preference} != ''",
       "order": 39,
       "default": "silent",
@@ -877,6 +897,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.dotnetStylePreferCompoundAssignment.preference} != ''",
       "order": 41,
       "default": "suggestion",
@@ -919,6 +940,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.visualBasicStylePreferIsnotExpression.preference} != ''",
       "order": 43,
       "default": "suggestion",
@@ -961,6 +983,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.visualBasicStylePreferSimplifiedObjectCreation.preference} != ''",
       "order": 45,
       "default": "suggestion",
@@ -1001,6 +1024,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueAssignmentPreference.preference} != ''",
       "order": 47,
       "default": "suggestion",
@@ -1041,6 +1065,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.expressions.visualBasicStyleUnusedValueExpressionStatementPreference.preference} != ''",
       "order": 49,
       "default": "silent",
@@ -1083,6 +1108,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.nothingChecking.dotnetStyleCoalesceExpression.preference} != ''",
       "order": 51,
       "default": "suggestion",
@@ -1125,6 +1151,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.nothingChecking.dotnetStyleNullPropagation.preference} != ''",
       "order": 53,
       "default": "suggestion",
@@ -1167,6 +1194,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.nothingChecking.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod.preference} != ''",
       "order": 55,
       "default": "suggestion",
@@ -1209,6 +1237,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.modifiers.dotnetStyleReadonlyField.preference} != ''",
       "order": 57,
       "default": "suggestion",
@@ -1251,6 +1280,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.parameters.dotnetCodeQualityUnusedParameters.preference} != ''",
       "order": 59,
       "default": "suggestion",
@@ -1293,6 +1323,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.newLines.dotnetStyleAllowMultipleBlankLinesExperimental.preference} != ''",
       "order": 61,
       "default": "silent",
@@ -1335,6 +1366,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.basic.codeStyle.general.newLines.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental.preference} != ''",
       "order": 63,
       "default": "silent",

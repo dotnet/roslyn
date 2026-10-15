@@ -37,6 +37,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.memberQualification.dotnetStyleQualificationForField.preference} != ''",
       "order": 1,
       "default": "silent",
@@ -79,6 +80,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.memberQualification.dotnetStyleQualificationForProperty.preference} != ''",
       "order": 3,
       "default": "silent",
@@ -121,6 +123,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.memberQualification.dotnetStyleQualificationForMethod.preference} != ''",
       "order": 5,
       "default": "silent",
@@ -163,6 +166,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.memberQualification.dotnetStyleQualificationForEvent.preference} != ''",
       "order": 7,
       "default": "silent",
@@ -205,6 +209,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForLocalsParametersMembers.preference} != ''",
       "order": 9,
       "default": "silent",
@@ -247,6 +252,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.predefinedTypes.dotnetStylePredefinedTypeForMemberAccess.preference} != ''",
       "order": 11,
       "default": "silent",
@@ -289,6 +295,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.varPreferences.csharpStyleVarForBuiltInTypes.preference} != ''",
       "order": 13,
       "default": "silent",
@@ -331,6 +338,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.varPreferences.csharpStyleVarWhenTypeIsApparent.preference} != ''",
       "order": 15,
       "default": "silent",
@@ -373,6 +381,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.varPreferences.csharpStyleVarElsewhere.preference} != ''",
       "order": 17,
       "default": "silent",
@@ -415,6 +424,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.codeBlocks.dotnetStylePreferAutoProperties.preference} != ''",
       "order": 19,
       "default": "silent",
@@ -457,6 +467,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.codeBlocks.csharpPreferSimpleUsingStatement.preference} != ''",
       "order": 21,
       "default": "suggestion",
@@ -499,6 +510,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.codeBlocks.dotnetPreferSystemHashCode.preference} != ''",
       "order": 23,
       "default": "suggestion",
@@ -541,6 +553,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.codeBlocks.csharpStylePreferMethodGroupConversion.preference} != ''",
       "order": 25,
       "default": "silent",
@@ -583,6 +596,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.codeBlocks.csharpStylePreferTopLevelStatements.preference} != ''",
       "order": 27,
       "default": "silent",
@@ -625,6 +639,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.dotnetStyleObjectInitializer.preference} != ''",
       "order": 29,
       "default": "suggestion",
@@ -667,6 +682,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.dotnetStyleCollectionInitializer.preference} != ''",
       "order": 31,
       "default": "suggestion",
@@ -709,6 +725,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.dotnetStylePreferSimplifiedBooleanExpressions.preference} != ''",
       "order": 33,
       "default": "suggestion",
@@ -751,6 +768,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStylePreferSwitchExpression.preference} != ''",
       "order": 35,
       "default": "suggestion",
@@ -793,6 +811,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverAssignment.preference} != ''",
       "order": 37,
       "default": "silent",
@@ -835,6 +854,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.dotnetStylePreferConditionalExpressionOverReturn.preference} != ''",
       "order": 39,
       "default": "silent",
@@ -877,6 +897,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.dotnetStyleExplicitTupleNames.preference} != ''",
       "order": 41,
       "default": "suggestion",
@@ -919,6 +940,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpPreferSimpleDefaultExpression.preference} != ''",
       "order": 43,
       "default": "suggestion",
@@ -961,6 +983,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.dotnetStylePreferInferredTupleNames.preference} != ''",
       "order": 45,
       "default": "suggestion",
@@ -1003,6 +1026,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.dotnetStylePreferInferredAnonymousTypeMemberNames.preference} != ''",
       "order": 47,
       "default": "suggestion",
@@ -1045,6 +1069,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStylePreferLocalOverAnonymousFunction.preference} != ''",
       "order": 49,
       "default": "suggestion",
@@ -1087,6 +1112,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.dotnetStylePreferCompoundAssignment.preference} != ''",
       "order": 51,
       "default": "suggestion",
@@ -1129,6 +1155,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleImplicitObjectCreationWhenTypeIsApparent.preference} != ''",
       "order": 53,
       "default": "suggestion",
@@ -1171,6 +1198,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStylePreferIndexOperator.preference} != ''",
       "order": 55,
       "default": "suggestion",
@@ -1213,6 +1241,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStylePreferRangeOperator.preference} != ''",
       "order": 57,
       "default": "suggestion",
@@ -1255,6 +1284,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStylePreferTupleSwap.preference} != ''",
       "order": 59,
       "default": "suggestion",
@@ -1297,6 +1327,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.patternMatching.csharpStylePreferPatternMatching.preference} != ''",
       "order": 61,
       "default": "silent",
@@ -1339,6 +1370,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.patternMatching.csharpStylePatternMatchingOverIsWithCastCheck.preference} != ''",
       "order": 63,
       "default": "suggestion",
@@ -1381,6 +1413,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.patternMatching.csharpStylePatternMatchingOverAsWithNullCheck.preference} != ''",
       "order": 65,
       "default": "suggestion",
@@ -1423,6 +1456,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.patternMatching.csharpStylePreferNotPattern.preference} != ''",
       "order": 67,
       "default": "suggestion",
@@ -1465,6 +1499,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.variables.csharpStyleInlinedVariableDeclaration.preference} != ''",
       "order": 69,
       "default": "suggestion",
@@ -1507,6 +1542,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.variables.csharpStyleDeconstructedVariableDeclaration.preference} != ''",
       "order": 71,
       "default": "suggestion",
@@ -1549,6 +1585,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.nullChecking.csharpStyleThrowExpression.preference} != ''",
       "order": 73,
       "default": "suggestion",
@@ -1591,6 +1628,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.nullChecking.csharpStyleConditionalDelegateCall.preference} != ''",
       "order": 75,
       "default": "suggestion",
@@ -1633,6 +1671,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.nullChecking.dotnetStyleCoalesceExpression.preference} != ''",
       "order": 77,
       "default": "suggestion",
@@ -1675,6 +1714,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.nullChecking.dotnetStyleNullPropagation.preference} != ''",
       "order": 79,
       "default": "suggestion",
@@ -1717,6 +1757,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.nullChecking.dotnetStylePreferIsNullCheckOverReferenceEqualityMethod.preference} != ''",
       "order": 81,
       "default": "suggestion",
@@ -1759,6 +1800,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.nullChecking.csharpStylePreferNullCheckOverTypeCheck.preference} != ''",
       "order": 83,
       "default": "suggestion",
@@ -1803,6 +1845,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.usings.csharpUsingDirectivePlacement.preference} != ''",
       "order": 85,
       "default": "silent",
@@ -1845,6 +1888,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.modifiers.dotnetStyleReadonlyField.preference} != ''",
       "order": 87,
       "default": "suggestion",
@@ -1887,6 +1931,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.modifiers.csharpStylePreferReadonlyStruct.preference} != ''",
       "order": 89,
       "default": "suggestion",
@@ -1929,6 +1974,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.modifiers.csharpPreferStaticLocalFunction.preference} != ''",
       "order": 91,
       "default": "suggestion",
@@ -1971,6 +2017,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.modifiers.csharpPreferStaticAnonymousFunction.preference} != ''",
       "order": 93,
       "default": "suggestion",
@@ -2013,6 +2060,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.newLines.dotnetStyleAllowMultipleBlankLinesExperimental.preference} != ''",
       "order": 95,
       "default": "silent",
@@ -2055,6 +2103,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.newLines.csharpStyleAllowEmbeddedStatementsOnSameLineExperimental.preference} != ''",
       "order": 97,
       "default": "silent",
@@ -2097,6 +2146,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.newLines.csharpStyleAllowBlankLinesBetweenConsecutiveBracesExperimental.preference} != ''",
       "order": 99,
       "default": "silent",
@@ -2139,6 +2189,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.newLines.dotnetStyleAllowStatementImmediatelyAfterBlockExperimental.preference} != ''",
       "order": 101,
       "default": "silent",
@@ -2181,6 +2232,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.newLines.csharpStyleAllowBlankLineAfterColonInConstructorInitializerExperimental.preference} != ''",
       "order": 103,
       "default": "silent",
@@ -2223,6 +2275,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.newLines.csharpStyleAllowBlankLineAfterTokenInConditionalExpressionExperimental.preference} != ''",
       "order": 105,
       "default": "silent",
@@ -2265,6 +2318,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.newLines.csharpStyleAllowBlankLineAfterTokenInArrowExpressionClauseExperimental.preference} != ''",
       "order": 107,
       "default": "silent",
@@ -2309,6 +2363,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.codeBlocks.csharpPreferBraces.preference} != ''",
       "order": 109,
       "default": "silent",
@@ -2351,6 +2406,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.codeBlocks.csharpStyleNamespaceDeclarations.preference} != ''",
       "order": 111,
       "default": "silent",
@@ -2395,6 +2451,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleExpressionBodiedMethods.preference} != ''",
       "order": 113,
       "default": "silent",
@@ -2439,6 +2496,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleExpressionBodiedConstructors.preference} != ''",
       "order": 115,
       "default": "silent",
@@ -2483,6 +2541,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleExpressionBodiedOperators.preference} != ''",
       "order": 117,
       "default": "silent",
@@ -2527,6 +2586,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleExpressionBodiedProperties.preference} != ''",
       "order": 119,
       "default": "silent",
@@ -2571,6 +2631,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleExpressionBodiedIndexers.preference} != ''",
       "order": 121,
       "default": "silent",
@@ -2615,6 +2676,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleExpressionBodiedAccessors.preference} != ''",
       "order": 123,
       "default": "silent",
@@ -2659,6 +2721,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleExpressionBodiedLambdas.preference} != ''",
       "order": 125,
       "default": "silent",
@@ -2703,6 +2766,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleExpressionBodiedLocalFunctions.preference} != ''",
       "order": 127,
       "default": "silent",
@@ -2745,6 +2809,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleUnusedValueAssignmentPreference.preference} != ''",
       "order": 129,
       "default": "suggestion",
@@ -2787,6 +2852,7 @@
         "@Microsoft.CodeAnalysis.WorkspacesResources:Error;..\\Microsoft.CodeAnalysis.Workspaces.dll"
       ],
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+      "hideFromSearch": true,
       "enableWhen": "${config:languages.csharp.codeStyle.general.expressions.csharpStyleUnusedValueExpressionStatementPreference.preference} != ''",
       "order": 131,
       "default": "silent",

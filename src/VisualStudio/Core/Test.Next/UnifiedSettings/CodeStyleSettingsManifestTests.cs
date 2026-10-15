@@ -263,6 +263,7 @@ public sealed class CodeStyleSettingsManifestTests
             Assert.Equal(new[] { "none", "silent", "suggestion", "warning", "error" }, severity.GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
             Assert.Equal(5, severity.GetProperty("enumItemLabels").GetArrayLength());
             Assert.Equal("@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Severity;{6cf2e545-6109-4730-8883-cf43d7aec3e1}", severity.GetProperty("title").GetString());
+            Assert.True(severity.GetProperty("hideFromSearch").GetBoolean());
             Assert.Equal(preference.Value.GetProperty("order").GetInt32() + 1, severity.GetProperty("order").GetInt32());
             var rowMoniker = NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, preference.Name);
             var parentMoniker = rowMoniker + ".preference";
