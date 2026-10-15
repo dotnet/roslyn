@@ -201,7 +201,9 @@ internal sealed class DefinitionService(
         resolvedPath = string.Empty;
 
         // Leave empty values and external URLs to the normal definition handlers.
-        if (string.IsNullOrWhiteSpace(filePath) || filePath.IndexOf("://", StringComparison.Ordinal) >= 0)
+        if (string.IsNullOrWhiteSpace(filePath) ||
+            filePath.StartsWith("//", StringComparison.Ordinal) ||
+            filePath.IndexOf("://", StringComparison.Ordinal) >= 0)
         {
             return false;
         }

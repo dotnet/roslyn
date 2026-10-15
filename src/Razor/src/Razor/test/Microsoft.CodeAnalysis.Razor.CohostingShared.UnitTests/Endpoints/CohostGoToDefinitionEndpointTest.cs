@@ -1090,6 +1090,28 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
             additionalFiles: [(FilePath("wwwroot/images/logo.png"), "")]);
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/86072")]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public async Task StringLiteral_ProtocolRelativeUrl(RazorFileKind fileKind)
+    {
+        TestCode input = """
+            @{
+                var path = "//cdn.example.com/css/si$$te.css";
+            }
+            """;
+
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind);
+        var fileSystem = SetFileSystem([]);
+
+        var result = await GetGoToDefinitionResultCoreAsync(document, input, htmlResponse: null);
+
+        Assert.Empty(fileSystem.FileExistsCalls);
+        Assumes.NotNull(result);
+        var location = Assert.Single(result.Value.Second);
+        Assert.EndsWith("String.cs", location.DocumentUri.UriString);
+    }
+
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/84945")]
     [InlineData(RazorFileKind.Legacy, """<img src="~/images/lo$$go.png" />""")]
     [InlineData(RazorFileKind.Component, """<img src="~/images/lo$$go.png" />""")]
@@ -1188,6 +1210,21 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
 
         var response = await GetRemoteGoToDefinitionResponseAsync(document, testCode);
 
+        Assert.Equal(RemoteResponse<GoToDefinitionResponse?>.CallHtml, response);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/pull/86072")]
+    [InlineData(RazorFileKind.Legacy)]
+    [InlineData(RazorFileKind.Component)]
+    public async Task LiteralAttribute_ProtocolRelativeUrl_CallsHtml(RazorFileKind fileKind)
+    {
+        TestCode input = """<script src="//cdn.example.com/js/si$$te.js"></script>""";
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind);
+        var fileSystem = SetFileSystem([]);
+
+        var response = await GetRemoteGoToDefinitionResponseAsync(document, input);
+
+        Assert.Empty(fileSystem.FileExistsCalls);
         Assert.Equal(RemoteResponse<GoToDefinitionResponse?>.CallHtml, response);
     }
 
@@ -1293,10 +1330,12 @@ public class CohostGoToDefinitionEndpointTest(ITestOutputHelper testOutputHelper
         Assert.Equal(LspFactory.DefaultRange, location.Range);
     }
 
-    private void SetFileSystem((string filePath, string contents)[] files)
+    private TestFileSystem SetFileSystem((string filePath, string contents)[] files)
     {
+        var testFileSystem = new TestFileSystem(files);
         var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
-        fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(files));
+        fileSystem.GetTestAccessor().SetFileSystem(testFileSystem);
+        return testFileSystem;
     }
 
     private async Task VerifyGoToDefinitionAsync(
