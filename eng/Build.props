@@ -6,4 +6,17 @@
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(RoslynGraphBuild)' == 'true' and '$(MSBuildProjectName)' == 'Build'">
+    <CustomAfterMicrosoftCommonTargets>$(MSBuildThisFileDirectory)targets\GraphBuild.targets</CustomAfterMicrosoftCommonTargets>
+  </PropertyGroup>
+
+  <Target Name="CheckRoslynGraphBuildIntegration"
+          BeforeTargets="ExecuteBuildTargets"
+          Condition="'$(RoslynGraphBuild)' == 'true'">
+    <Error Text="Graph mode is not supported for official, product, VMR, or source-only builds."
+           Condition="'$(OfficialBuildId)' != '' or '$(DotNetBuild)' == 'true' or '$(DotNetBuildFromVMR)' == 'true' or '$(DotNetBuildSourceOnly)' == 'true'" />
+    <Error Text="Graph mode requires the Roslyn graph targets to be imported. Check CustomAfterMicrosoftCommonTargets."
+           Condition="'$(RoslynGraphBuildTargetsImported)' != 'true'" />
+  </Target>
+
 </Project>

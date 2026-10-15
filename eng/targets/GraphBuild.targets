@@ -1,0 +1,128 @@
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. -->
+<Project>
+  <PropertyGroup>
+    <RoslynGraphBuildTargetsImported>true</RoslynGraphBuildTargetsImported>
+  </PropertyGroup>
+
+  <UsingTask TaskName="WriteRoslynGraphBuildResponseFile"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <ResponseFile ParameterType="System.String" Required="true" />
+      <Properties ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <RemoveProperties ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <Targets ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+      <BinaryLog ParameterType="System.String" />
+      <WarningsAsErrors ParameterType="System.Boolean" />
+      <WarningsNotAsErrors ParameterType="System.String" />
+      <Verbosity ParameterType="System.String" Required="true" />
+      <NodeCount ParameterType="System.Int32" Required="true" />
+      <NoBuild ParameterType="System.Boolean" />
+      <MultiThreaded ParameterType="System.Boolean" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.Collections.Generic" />
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Linq" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        if (!(BuildEngine is Microsoft.Build.Framework.IBuildEngine6 engine))
+        {
+            Log.LogError("Graph builds require an MSBuild engine implementing IBuildEngine6.");
+            return false;
+        }
+
+        var properties = engine.GetGlobalProperties().ToDictionary(property => property.Key, property => property.Value, StringComparer.OrdinalIgnoreCase);
+        foreach (var property in RemoveProperties)
+            properties.Remove(property.ItemSpec);
+
+        foreach (var property in Properties)
+        {
+            var separator = property.ItemSpec.IndexOf('=');
+            if (separator < 1)
+            {
+                Log.LogError("Invalid graph build property: {0}", property.ItemSpec);
+                return false;
+            }
+
+            properties[property.ItemSpec.Substring(0, separator)] = property.ItemSpec.Substring(separator + 1);
+        }
+        if (NoBuild)
+            properties["NoBuild"] = "true";
+
+        var arguments = new List<string>
+        {
+            "-graph",
+            "-nologo",
+            "-nodeReuse:false",
+            "-maxCpuCount:" + NodeCount,
+            "-verbosity:" + Verbosity,
+            "\"-target:" + string.Join(";", Targets.Select(target => target.ItemSpec)) + "\""
+        };
+        if (MultiThreaded)
+            arguments.Add("-mt");
+        if (WarningsAsErrors)
+            arguments.Add("-warnAsError");
+        if (!string.IsNullOrEmpty(WarningsNotAsErrors) && WarningsAsErrors)
+            arguments.Add("\"-warnNotAsError:" + WarningsNotAsErrors + "\"");
+        if (!string.IsNullOrEmpty(BinaryLog))
+            arguments.Add("\"-binaryLogger:" + BinaryLog + "\"");
+
+        foreach (var property in properties.OrderBy(property => property.Key, StringComparer.OrdinalIgnoreCase))
+        {
+            var item = (Microsoft.Build.Framework.ITaskItem2)new Microsoft.Build.Utilities.TaskItem(property.Value);
+            var value = item.EvaluatedIncludeEscaped.Replace("\"", "%22").Replace(",", "%2C").Replace("\r", "%0D").Replace("\n", "%0A");
+            if (value.EndsWith("\\", StringComparison.Ordinal))
+                value += "\\";
+            arguments.Add("\"-property:" + property.Key + "=" + value + "\"");
+        }
+
+        Directory.CreateDirectory(Path.GetDirectoryName(ResponseFile));
+        File.WriteAllLines(ResponseFile, arguments);
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <!-- Override only Arcade's solution execution; its restore and post-build phases remain intact. -->
+  <Target Name="ExecuteBuildTargets" DependsOnTargets="InitializeSolutionBuildInputs">
+    <Error Text="Graph mode requires exactly one solution or project."
+           Condition="'@(ProjectToBuild->Count())' != '1'" />
+    <PropertyGroup>
+      <_GraphBuildResponseFile>$([MSBuild]::NormalizePath('$(ArtifactsObjDir)', 'GraphBuild', '$(Configuration)', 'Build.rsp'))</_GraphBuildResponseFile>
+      <_GraphPackResponseFile>$([MSBuild]::NormalizePath('$(ArtifactsObjDir)', 'GraphBuild', '$(Configuration)', 'Pack.rsp'))</_GraphPackResponseFile>
+      <_GraphPackBinaryLog Condition="'$(RoslynGraphBuildBinaryLog)' != ''">$([System.IO.Path]::Combine('$([System.IO.Path]::GetDirectoryName('$(RoslynGraphBuildBinaryLog)'))', 'Pack-$([System.IO.Path]::GetFileName('$(RoslynGraphBuildBinaryLog)'))'))</_GraphPackBinaryLog>
+      <_GraphBuildCommand Condition="'$(MSBuildRuntimeType)' == 'Core'">&quot;$(DotNetTool)&quot; exec &quot;$([MSBuild]::NormalizePath('$(MSBuildToolsPath)', 'MSBuild.dll'))&quot;</_GraphBuildCommand>
+      <_GraphBuildCommand Condition="'$(MSBuildRuntimeType)' != 'Core'">&quot;$([MSBuild]::NormalizePath('$(MSBuildToolsPath)', 'MSBuild.exe'))&quot;</_GraphBuildCommand>
+    </PropertyGroup>
+    <ItemGroup>
+      <_GraphCompileTargets Include="@(_SolutionBuildTargets)" Condition="'%(_SolutionBuildTargets.Identity)' != 'Pack'" />
+      <_GraphCompileTargets Include="Build" Condition="'@(_GraphCompileTargets)' == '' and '$(Pack)' == 'true'" />
+    </ItemGroup>
+    <Error Text="Graph mode cannot overwrite binary log $(_GraphPackBinaryLog)."
+           Condition="'$(ContinuousIntegrationBuild)' == 'true' and '$(Pack)' == 'true' and '$(_GraphPackBinaryLog)' != '' and Exists('$(_GraphPackBinaryLog)')" />
+    <WriteRoslynGraphBuildResponseFile ResponseFile="$(_GraphBuildResponseFile)"
+                                      Properties="@(_SolutionBuildProps);__BuildPhase=SolutionBuild;RoslynGraphBuildPack=$(Pack)"
+                                      RemoveProperties="$(_RemoveProps)"
+                                      Targets="@(_GraphCompileTargets)"
+                                      BinaryLog="$(RoslynGraphBuildBinaryLog)"
+                                      WarningsAsErrors="$(RoslynGraphBuildWarningsAsErrors)"
+                                      WarningsNotAsErrors="$(RoslynGraphBuildWarningsNotAsErrors)"
+                                      Verbosity="$(RoslynGraphBuildVerbosity)"
+                                      NodeCount="$(MSBuildNodeCount)"
+                                      MultiThreaded="$(RoslynGraphBuildMultiThreaded)" />
+    <Exec Command="$(_GraphBuildCommand) &quot;%(ProjectToBuild.FullPath)&quot; &quot;@$(_GraphBuildResponseFile)&quot;" />
+    <WriteRoslynGraphBuildResponseFile Condition="'$(Pack)' == 'true'"
+                                      ResponseFile="$(_GraphPackResponseFile)"
+                                      Properties="@(_SolutionBuildProps);__BuildPhase=SolutionBuild;RoslynGraphBuildPack=$(Pack)"
+                                      RemoveProperties="$(_RemoveProps)"
+                                      Targets="Pack"
+                                      NoBuild="true"
+                                      BinaryLog="$(_GraphPackBinaryLog)"
+                                      WarningsAsErrors="$(RoslynGraphBuildWarningsAsErrors)"
+                                      WarningsNotAsErrors="$(RoslynGraphBuildWarningsNotAsErrors)"
+                                      Verbosity="$(RoslynGraphBuildVerbosity)"
+                                      NodeCount="$(MSBuildNodeCount)"
+                                      MultiThreaded="$(RoslynGraphBuildMultiThreaded)" />
+    <Exec Condition="'$(Pack)' == 'true'"
+          Command="$(_GraphBuildCommand) &quot;%(ProjectToBuild.FullPath)&quot; &quot;@$(_GraphPackResponseFile)&quot;" />
+  </Target>
+</Project>

@@ -51,6 +51,7 @@ param (
   [string]$warnNotAsError = "",
   [switch][Alias('pb')]$productBuild = $false,
   [switch]$fromVMR = $false,
+  [switch]$graph,
   [string]$solution = "Roslyn.slnx",
 
   # official build settings
@@ -110,6 +111,7 @@ function Print-Usage() {
   Write-Host "  -warnNotAsError <codes>   Suppress specific warnings from being treated as errors (semi-colon delimited)"
   Write-Host "  -productBuild             Build the repository in product-build mode"
   Write-Host "  -fromVMR                  Set when building from within the VMR"
+  Write-Host "  -graph                    Use graph scheduling for solution compilation and packaging"
   Write-Host "  -solution                 Solution to build (default is Roslyn.slnx)"
   Write-Host ""
   Write-Host "Official build settings:"
@@ -190,6 +192,10 @@ function Process-Arguments() {
     $script:msbuildEngine = "dotnet"
   }
 
+  if ($graph -and ($productBuild -or $fromVMR -or $officialBuildId)) {
+    throw "-graph is not supported for product, VMR, or official builds."
+  }
+
   foreach ($property in $properties) {
     if (!$property.StartsWith("/p:", "InvariantCultureIgnoreCase") -and !$property.StartsWith("/clp:", "InvariantCultureIgnoreCase")) {
       Write-Host "Invalid argument: $property"
@@ -240,6 +246,21 @@ function BuildSolution() {
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
   $rootSuffixArg = if ($rootSuffix -ne "") { "/p:VSSDKTargetPlatformRegRootSuffix=$rootSuffix" } else { "" }
+  $graphProperties = @()
+  if ($graph) {
+    $graphProperties += "/p:RoslynGraphBuild=true"
+    $graphProperties += "/p:RoslynGraphBuildVerbosity=$verbosity"
+    $graphProperties += "/p:RoslynGraphBuildMultiThreaded=$msbuildMultiThreaded"
+    $graphProperties += "/p:RoslynGraphBuildWarningsAsErrors=$warnAsError"
+    $graphProperties += "/p:RoslynGraphBuildWarningsNotAsErrors=$($warnNotAsError -replace ';', '%3B')"
+    if ($binaryLog) {
+      $graphBinaryLogPath = Join-Path $LogDir ("Graph-" + $binaryLogName)
+      if ($ci -and (Test-Path $graphBinaryLogPath)) {
+        throw "Overwriting graph binary log file $graphBinaryLogPath"
+      }
+      $graphProperties += "/p:RoslynGraphBuildBinaryLog=$graphBinaryLogPath"
+    }
+  }
 
   try {
     MSBuild $toolsetBuildProj `
@@ -270,6 +291,7 @@ function BuildSolution() {
       $generateDocumentationFile `
       $roslynUseHardLinks `
       $rootSuffixArg `
+      @graphProperties `
       @properties
   }
   finally {

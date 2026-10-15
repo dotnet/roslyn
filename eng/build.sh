@@ -41,6 +41,7 @@ usage()
   echo "  --sourceBuild              Build the repository in source-only mode"
   echo "  --productBuild             Build the repository in product-build mode."
   echo "  --fromVMR                  Build the repository in product-build mode."
+  echo "  --graph                    Use graph scheduling for solution compilation and packaging"
   echo "  --solution                 Solution to build (default is Roslyn.slnx)"
   echo ""
   echo "Command line arguments starting with '/p:' are passed through to MSBuild."
@@ -86,6 +87,7 @@ properties=()
 source_build=false
 product_build=false
 from_vmr=false
+graph=false
 solution_to_build="Roslyn.slnx"
 
 args=""
@@ -201,6 +203,9 @@ while [[ $# > 0 ]]; do
     --fromvmr|--from-vmr)
       from_vmr=true
       ;;
+    --graph|-graph)
+      graph=true
+      ;;
     --solution)
       solution_to_build=$2
       args="$args $1"
@@ -221,6 +226,11 @@ while [[ $# > 0 ]]; do
   args="$args $1"
   shift
 done
+
+if [[ "$graph" == true && ( "$product_build" == true || "$from_vmr" == true ) ]]; then
+  echo "--graph is not supported for product, source, or VMR builds."
+  exit 1
+fi
 
 # Import Arcade functions
 . "$scriptroot/common/tools.sh"
@@ -296,6 +306,18 @@ function BuildSolution {
     roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
   fi
 
+  local graph_properties=()
+  if [[ "$graph" == true ]]; then
+    graph_properties+=("/p:RoslynGraphBuild=true"
+                      "/p:RoslynGraphBuildVerbosity=$verbosity"
+                      "/p:RoslynGraphBuildMultiThreaded=${msbuild_multi_threaded:-false}"
+                      "/p:RoslynGraphBuildWarningsAsErrors=$warn_as_error"
+                      "/p:RoslynGraphBuildWarningsNotAsErrors=${warn_not_as_error//;/%3B}")
+    if [[ "$binary_log" == true ]]; then
+      graph_properties+=("/p:RoslynGraphBuildBinaryLog=$log_dir/Graph-Build.binlog")
+    fi
+  fi
+
   MSBuild $toolset_build_proj \
     $bl \
     /p:Configuration=$configuration \
@@ -318,6 +340,7 @@ function BuildSolution {
     $msbuild_warn_not_as_error \
     $generate_documentation_file \
     $roslyn_use_hard_links \
+    ${graph_properties[@]+"${graph_properties[@]}"} \
     ${properties[@]+"${properties[@]}"}
 }
 

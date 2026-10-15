@@ -37,6 +37,7 @@ namespace BuildBoss
             string configuration = "Debug";
             string primarySolution = null;
             bool checkPackageInstall = false;
+            bool checkGraphBuildLogs = false;
             List<string> solutionFiles;
 
             var options = new OptionSet
@@ -48,6 +49,7 @@ namespace BuildBoss
                 // check on. Without it Mono.Options silently discards an explicit value and
                 // --check-package-install=false would still run the check.
                 { "check-package-install:", "Verify our NuGet packages can be installed", value => checkPackageInstall = value is null || bool.Parse(value) },
+                { "check-graph-build-logs:", "Verify graph compilation and packaging binary logs", value => checkGraphBuildLogs = value is null || bool.Parse(value) },
             };
 
             if (configuration is not "Debug" and not "Release")
@@ -84,7 +86,7 @@ namespace BuildBoss
                 solutionFiles = Directory.EnumerateFiles(repositoryDirectory, "*.sln").ToList();
             }
 
-            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles, checkPackageInstall);
+            return Go(repositoryDirectory, configuration, primarySolution, solutionFiles, checkPackageInstall, checkGraphBuildLogs);
         }
 
         private static string FindRepositoryRoot(string startDirectory)
@@ -98,7 +100,7 @@ namespace BuildBoss
             return dir;
         }
 
-        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames, bool checkPackageInstall)
+        private static bool Go(string repositoryDirectory, string configuration, string primarySolution, List<string> solutionFileNames, bool checkPackageInstall, bool checkGraphBuildLogs)
         {
             var allGood = true;
             var artifactsDirectory = Path.Combine(repositoryDirectory, "artifacts");
@@ -121,7 +123,7 @@ namespace BuildBoss
             allGood &= ProcessGeneratedFiles(repositoryDirectory, Path.Combine(logDirectory, "GeneratedFiles.log"));
             allGood &= ProcessTargets(repositoryDirectory, Path.Combine(logDirectory, "Targets.log"));
             allGood &= ProcessPackages(repositoryDirectory, artifactsDirectory, configuration, Path.Combine(logDirectory, "PackageContents.log"));
-            allGood &= ProcessStructuredLog(artifactsDirectory, configuration, Path.Combine(logDirectory, "StructuredLog.log"));
+            allGood &= ProcessStructuredLog(artifactsDirectory, configuration, Path.Combine(logDirectory, "StructuredLog.log"), checkGraphBuildLogs);
             allGood &= ProcessOptProf(repositoryDirectory, artifactsDirectory, configuration, Path.Combine(logDirectory, "OptProf.log"));
 
             if (checkPackageInstall)
@@ -183,11 +185,23 @@ namespace BuildBoss
             return CheckCore(checker, $"Targets {targetsDirectory}", logFilePath);
         }
 
-        private static bool ProcessStructuredLog(string artifactsDirectory, string configuration, string checkLogFilePath)
+        private static bool ProcessStructuredLog(string artifactsDirectory, string configuration, string checkLogFilePath, bool checkGraphBuildLogs)
         {
-            var binaryLogFilePath = Path.Combine(artifactsDirectory, $@"log\{configuration}\Build.binlog");
-            var util = new StructuredLoggerCheckerUtil(binaryLogFilePath);
-            return CheckCore(util, $"Structured log {binaryLogFilePath}", checkLogFilePath);
+            var binaryLogNames = checkGraphBuildLogs
+                ? new[] { "Build.binlog", "Graph-Build.binlog", "Pack-Graph-Build.binlog" }
+                : new[] { "Build.binlog" };
+            var allGood = true;
+            foreach (var binaryLogName in binaryLogNames)
+            {
+                var binaryLogFilePath = Path.Combine(artifactsDirectory, "log", configuration, binaryLogName);
+                var util = new StructuredLoggerCheckerUtil(binaryLogFilePath);
+                var logFilePath = binaryLogName == "Build.binlog"
+                    ? checkLogFilePath
+                    : Path.Combine(Path.GetDirectoryName(checkLogFilePath), $"StructuredLog-{binaryLogName}.log");
+                allGood &= CheckCore(util, $"Structured log {binaryLogFilePath}", logFilePath);
+            }
+
+            return allGood;
         }
 
         private static bool ProcessPackages(string repositoryDirectory, string artifactsDirectory, string configuration, string logFilePath)
