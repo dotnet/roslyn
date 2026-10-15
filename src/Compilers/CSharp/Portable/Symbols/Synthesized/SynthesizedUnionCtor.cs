@@ -82,7 +82,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
-            this.Parameters[0].Type.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics);
+            TypeSymbol parameterType = this.Parameters[0].Type;
+            parameterType.CheckAllConstraints(DeclaringCompilation, conversions, GetFirstLocation(), diagnostics);
+
+            if (!parameterType.IsErrorType())
+            {
+                // Check that conversion to object is possible
+                CSharpCompilation compilation = DeclaringCompilation;
+                var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, compilation.Assembly);
+                Conversion c = compilation.Conversions.ClassifyImplicitConversionFromType(parameterType, compilation.GetSpecialType(SpecialType.System_Object), ref useSiteInfo);
+                diagnostics.Add(_typeSyntax.GetLocation(), useSiteInfo);
+
+                if (!IsValidParameterTypeConversion(c))
+                {
+                    diagnostics.Add(ErrorCode.ERR_NoImplicitConversionToObject, _typeSyntax.GetLocation(), parameterType);
+                }
+            }
         }
     }
 }
