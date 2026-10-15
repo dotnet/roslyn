@@ -237,7 +237,7 @@ static async Task<string> GetGitHubStringAsync(HttpClient client, string url)
 
 static async Task<string> GetBranchHeadCommitAsync(HttpClient client, string branch)
 {
-    var url = $"https://api.github.com/repos/dotnet/sdk/branches/{branch}";
+    var url = $"https://api.github.com/repos/dotnet/sdk/branches/{Uri.EscapeDataString(branch)}";
     var payload = await GetGitHubStringAsync(client, url).ConfigureAwait(false);
 
     using var document = JsonDocument.Parse(payload);
