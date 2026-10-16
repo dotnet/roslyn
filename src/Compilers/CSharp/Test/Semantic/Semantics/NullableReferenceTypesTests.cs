@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -54472,6 +54472,228 @@ static class C<T> where T : class?, I
                 //             : M2(t) + x.ToString(); // 3, 4
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(20, 23)
                 );
+        }
+
+        [Fact, WorkItem(78432, "https://github.com/dotnet/roslyn/issues/78432")]
+        public void NullCoalescing_LiftedNot_ConditionalAccess_01()
+        {
+            var source = """
+                class AnotherTestClass
+                {
+                    public bool IsTrue { get; set; }
+                    public AnotherTestClass? Nested { get; set; }
+                }
+
+                class Program
+                {
+                    void M1(AnotherTestClass? anotherTestClass)
+                    {
+                        if (anotherTestClass?.IsTrue ?? false)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                    }
+
+                    void M2(AnotherTestClass? anotherTestClass)
+                    {
+                        if (!anotherTestClass?.IsTrue ?? false)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                    }
+
+                    void M3(AnotherTestClass? anotherTestClass)
+                    {
+                        if (!!anotherTestClass?.IsTrue ?? false)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                    }
+
+                    void M4(AnotherTestClass? anotherTestClass)
+                    {
+                        if (!anotherTestClass?.Nested?.IsTrue ?? false)
+                        {
+                            _ = anotherTestClass.Nested.IsTrue;
+                        }
+                    }
+
+                    void M5(AnotherTestClass? anotherTestClass)
+                    {
+                        if ((bool?)!anotherTestClass?.IsTrue ?? false)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                    }
+
+                    void M6(AnotherTestClass? anotherTestClass)
+                    {
+                        if (!(bool?)anotherTestClass?.IsTrue ?? false)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                    }
+
+                    void M7(AnotherTestClass? anotherTestClass)
+                    {
+                        if (!anotherTestClass?.IsTrue == true)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                    }
+
+                    void M8(AnotherTestClass? anotherTestClass)
+                    {
+                        if (true == !anotherTestClass?.IsTrue)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                    }
+
+                    void M9(AnotherTestClass? anotherTestClass)
+                    {
+                        if (!anotherTestClass?.IsTrue is true)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                    }
+
+                    void M10(AnotherTestClass? anotherTestClass)
+                    {
+                        while (!anotherTestClass?.IsTrue ?? false)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                            break;
+                        }
+                    }
+                }
+                """;
+            CreateNullableCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(78432, "https://github.com/dotnet/roslyn/issues/78432")]
+        public void NullCoalescing_LiftedNot_ConditionalAccess_02()
+        {
+            var source = """
+                #nullable enable
+                class AnotherTestClass
+                {
+                    public bool IsTrue { get; set; }
+                }
+
+                class Program
+                {
+                    void M1(AnotherTestClass? anotherTestClass)
+                    {
+                        if (!anotherTestClass?.IsTrue ?? true)
+                        {
+                            _ = anotherTestClass.IsTrue; // 1
+                        }
+                        else
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                    }
+
+                    void M2(AnotherTestClass? anotherTestClass)
+                    {
+                        if (!anotherTestClass?.IsTrue == false)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                        else
+                        {
+                            _ = anotherTestClass.IsTrue; // 2
+                        }
+                    }
+
+                    void M3(AnotherTestClass? anotherTestClass)
+                    {
+                        if (!anotherTestClass?.IsTrue is false)
+                        {
+                            _ = anotherTestClass.IsTrue;
+                        }
+                        else
+                        {
+                            _ = anotherTestClass.IsTrue; // 3
+                        }
+                    }
+
+                    void M4(AnotherTestClass? anotherTestClass)
+                    {
+                        _ = (!anotherTestClass?.IsTrue ?? false)
+                            ? anotherTestClass.IsTrue
+                            : anotherTestClass.IsTrue; // 4
+                    }
+                }
+                """;
+            CreateNullableCompilation(source).VerifyDiagnostics(
+                // (13,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = anotherTestClass.IsTrue; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "anotherTestClass").WithLocation(13, 17),
+                // (29,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = anotherTestClass.IsTrue; // 2
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "anotherTestClass").WithLocation(29, 17),
+                // (41,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = anotherTestClass.IsTrue; // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "anotherTestClass").WithLocation(41, 17),
+                // (49,15): warning CS8602: Dereference of a possibly null reference.
+                //             : anotherTestClass.IsTrue; // 4
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "anotherTestClass").WithLocation(49, 15));
+        }
+
+        [Fact, WorkItem(78432, "https://github.com/dotnet/roslyn/issues/78432")]
+        public void NullCoalescing_LiftedNot_ConditionalAccess_03()
+        {
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    public bool M1([NotNullWhen(false)] string? x) => true;
+                    public bool M2([NotNullWhen(true)] string? y) => true;
+                }
+
+                class Program
+                {
+                    void Test1(C? c, string? x)
+                    {
+                        if (!c?.M1(x) ?? false)
+                        {
+                            _ = x.Length; // Not null when !c.M1 is true (meaning c.M1 was false)
+                            _ = c.ToString();
+                        }
+                        else
+                        {
+                            _ = x.Length; // 1: Maybe null
+                        }
+                    }
+
+                    void Test2(C? c, string? y)
+                    {
+                        if (!c?.M2(y) ?? false)
+                        {
+                            _ = y.Length; // 2: Maybe null when !c.M2 is true (meaning c.M2 was false)
+                            _ = c.ToString();
+                        }
+                        else
+                        {
+                            _ = y.Length; // 3: Maybe null (since c could be null)
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(new[] { source, NotNullWhenAttributeDefinition }, options: WithNullableEnable()).VerifyDiagnostics(
+                // (21,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = x.Length; // 1: Maybe null
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(21, 17),
+                // (29,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = y.Length; // 2: Maybe null when !c.M2 is true (meaning c.M2 was false)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(29, 17),
+                // (34,17): warning CS8602: Dereference of a possibly null reference.
+                //             _ = y.Length; // 3: Maybe null (since c could be null)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "y").WithLocation(34, 17));
         }
 
         [Fact]
