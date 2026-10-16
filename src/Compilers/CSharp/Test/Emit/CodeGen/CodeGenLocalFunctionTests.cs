@@ -103,7 +103,7 @@ class C
             var expectedOutput = "Hello";
             var expectedIL = """
                 .class public auto ansi abstract sealed beforefieldinit App
-                    extends [netstandard]System.Object
+                    extends [mscorlib]System.Object
                 {
                     // Methods
                     .method private hidebysig static 
@@ -119,18 +119,22 @@ class C
                     .method private hidebysig static 
                         void '<Main>g__local|0_0' () cil managed 
                     {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
                         )
                         // Method begins at RVA 0x206e
                         // Code size 11 (0xb)
                         .maxstack 8
                         IL_0000: ldstr "Hello"
-                        IL_0005: call void [netstandard]System.Console::WriteLine(string)
+                        IL_0005: call void [mscorlib]System.Console::WriteLine(string)
                         IL_000a: ret
                     } // end of method App::'<Main>g__local|0_0'
                 } // end of class App
                 """;
+            if (ExecutionConditionUtil.IsMonoOrCoreClr)
+            {
+                expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
+            }
 
             var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
             verifier.VerifyTypeIL("App", expectedIL);
@@ -156,7 +160,7 @@ class C
             var expectedOutput = "App";
             var expectedIL = """
                 .class public auto ansi beforefieldinit App
-                    extends [netstandard]System.Object
+                    extends [mscorlib]System.Object
                 {
                     // Methods
                     .method private hidebysig static 
@@ -187,26 +191,29 @@ class C
                         // Code size 7 (0x7)
                         .maxstack 8
                         IL_0000: ldarg.0
-                        IL_0001: call instance void [netstandard]System.Object::.ctor()
+                        IL_0001: call instance void [mscorlib]System.Object::.ctor()
                         IL_0006: ret
                     } // end of method App::.ctor
                     .method private hidebysig 
                         instance void '<Do>g__local|1_0' () cil managed 
                     {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
                         )
                         // Method begins at RVA 0x2083
                         // Code size 12 (0xc)
                         .maxstack 8
                         IL_0000: ldarg.0
-                        IL_0001: callvirt instance string [netstandard]System.Object::ToString()
-                        IL_0006: call void [netstandard]System.Console::WriteLine(string)
+                        IL_0001: callvirt instance string [mscorlib]System.Object::ToString()
+                        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
                         IL_000b: ret
                     } // end of method App::'<Do>g__local|1_0'
                 } // end of class App
                 """;
-
+            if (ExecutionConditionUtil.IsMonoOrCoreClr)
+            {
+                expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
+            }
             var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
             verifier.VerifyTypeIL("App", expectedIL);
         }
@@ -233,13 +240,13 @@ class C
             var expectedOutput = "Hello";
             var expectedIL = """
                 .class public auto ansi beforefieldinit App
-                    extends [netstandard]System.Object
+                    extends [mscorlib]System.Object
                 {
                     // Nested Types
                     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
-                        extends [netstandard]System.ValueType
+                        extends [mscorlib]System.ValueType
                     {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
                         )
                         // Fields
@@ -280,7 +287,7 @@ class C
                         // Code size 7 (0x7)
                         .maxstack 8
                         IL_0000: ldarg.0
-                        IL_0001: call instance void [netstandard]System.Object::.ctor()
+                        IL_0001: call instance void [mscorlib]System.Object::.ctor()
                         IL_0006: ret
                     } // end of method App::.ctor
                     .method private hidebysig static 
@@ -288,7 +295,7 @@ class C
                             valuetype App/'<>c__DisplayClass1_0'& ''
                         ) cil managed 
                     {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
                         )
                         // Method begins at RVA 0x209c
@@ -296,12 +303,15 @@ class C
                         .maxstack 8
                         IL_0000: ldarg.0
                         IL_0001: ldfld string App/'<>c__DisplayClass1_0'::text
-                        IL_0006: call void [netstandard]System.Console::WriteLine(string)
+                        IL_0006: call void [mscorlib]System.Console::WriteLine(string)
                         IL_000b: ret
                     } // end of method App::'<Do>g__local|1_0'
                 } // end of class App
                 """;
-
+            if (ExecutionConditionUtil.IsMonoOrCoreClr)
+            {
+                expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
+            }
             var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
             verifier.VerifyTypeIL("App", expectedIL);
         }
@@ -335,13 +345,13 @@ class C
             var expectedOutput = "Hello World";
             var expectedIL = """
                 .class public auto ansi beforefieldinit App
-                    extends [netstandard]System.Object
+                    extends [mscorlib]System.Object
                 {
                     // Nested Types
                     .class nested private auto ansi sealed beforefieldinit '<>c__DisplayClass1_0'
-                        extends [netstandard]System.Object
+                        extends [mscorlib]System.Object
                     {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
                         )
                         // Fields
@@ -354,7 +364,7 @@ class C
                             // Code size 7 (0x7)
                             .maxstack 8
                             IL_0000: ldarg.0
-                            IL_0001: call instance void [netstandard]System.Object::.ctor()
+                            IL_0001: call instance void [mscorlib]System.Object::.ctor()
                             IL_0006: ret
                         } // end of method '<>c__DisplayClass1_0'::.ctor
                         .method assembly hidebysig 
@@ -365,7 +375,7 @@ class C
                             .maxstack 8
                             IL_0000: ldarg.0
                             IL_0001: ldfld string App/'<>c__DisplayClass1_0'::text
-                            IL_0006: call void [netstandard]System.Console::Write(string)
+                            IL_0006: call void [mscorlib]System.Console::Write(string)
                             IL_000b: ldarg.0
                             IL_000c: ldstr " World"
                             IL_0011: stfld string App/'<>c__DisplayClass1_0'::text
@@ -379,7 +389,7 @@ class C
                             .maxstack 8
                             IL_0000: ldarg.0
                             IL_0001: ldfld string App/'<>c__DisplayClass1_0'::text
-                            IL_0006: call void [netstandard]System.Console::WriteLine(string)
+                            IL_0006: call void [mscorlib]System.Console::WriteLine(string)
                             IL_000b: ret
                         } // end of method '<>c__DisplayClass1_0'::'<Do>g__local|1'
                     } // end of class <>c__DisplayClass1_0
@@ -407,8 +417,8 @@ class C
                         IL_000b: stfld string App/'<>c__DisplayClass1_0'::text
                         IL_0010: dup
                         IL_0011: ldftn instance void App/'<>c__DisplayClass1_0'::'<Do>b__0'()
-                        IL_0017: newobj instance void [netstandard]System.Action::.ctor(object, native int)
-                        IL_001c: callvirt instance void [netstandard]System.Action::Invoke()
+                        IL_0017: newobj instance void [mscorlib]System.Action::.ctor(object, native int)
+                        IL_001c: callvirt instance void [mscorlib]System.Action::Invoke()
                         IL_0021: callvirt instance void App/'<>c__DisplayClass1_0'::'<Do>g__local|1'()
                         IL_0026: ret
                     } // end of method App::Do
@@ -419,12 +429,15 @@ class C
                         // Code size 7 (0x7)
                         .maxstack 8
                         IL_0000: ldarg.0
-                        IL_0001: call instance void [netstandard]System.Object::.ctor()
+                        IL_0001: call instance void [mscorlib]System.Object::.ctor()
                         IL_0006: ret
                     } // end of method App::.ctor
                 } // end of class App
                 """;
-
+            if (ExecutionConditionUtil.IsMonoOrCoreClr)
+            {
+                expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
+            }
             var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
             verifier.VerifyTypeIL("App", expectedIL);
         }
@@ -450,7 +463,7 @@ class C
             var expectedOutput = "Hello World!";
             var expectedIL = """
                 .class public sequential ansi sealed beforefieldinit App
-                    extends [netstandard]System.ValueType
+                    extends [mscorlib]System.ValueType
                 {
                     .pack 0
                     .size 1
@@ -468,19 +481,22 @@ class C
                     .method private hidebysig static 
                         void '<Main>g__Do|0_0' () cil managed 
                     {
-                        .custom instance void [netstandard]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
                             01 00 00 00
                         )
                         // Method begins at RVA 0x206e
                         // Code size 11 (0xb)
                         .maxstack 8
                         IL_0000: ldstr "Hello World!"
-                        IL_0005: call void [netstandard]System.Console::WriteLine(string)
+                        IL_0005: call void [mscorlib]System.Console::WriteLine(string)
                         IL_000a: ret
                     } // end of method App::'<Main>g__Do|0_0'
                 } // end of class App
                 """;
-
+            if (ExecutionConditionUtil.IsMonoOrCoreClr)
+            {
+                expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
+            }
             var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
             verifier.VerifyTypeIL("App", expectedIL);
         }
