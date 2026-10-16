@@ -2,6 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using Microsoft.VisualStudio.Shell.TableControl;
+
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 
 /// <summary>
@@ -10,6 +13,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 /// <remarks>TODO: Move to the core platform layer.</remarks>
 internal interface IVisualStudioDiagnosticListSuppressionStateService
 {
+    void ProcessSelectionChanged(TableSelectionChangedEventArgs e);
+
+    void RefreshSelection(IEnumerable<ITableEntryHandle> selectedEntries);
+
     /// <summary>
     /// Indicates if the top level "Suppress" menu should be visible for the current error list selection.
     /// </summary>
