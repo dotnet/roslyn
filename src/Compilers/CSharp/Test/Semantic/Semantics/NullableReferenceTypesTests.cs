@@ -66771,8 +66771,8 @@ class C
                     static Dictionary<K, V> ToDictionary<T, K, V>(T[] items, Func<T, K> key, Func<T, V> value) where K : notnull => throw null!;
                 }
                 """;
-            // A literal without a natural type gets one from its elements' flow analysis results, (string, object?),
-            // which has no names, so the names are lost as before.
+            // A literal without a natural type keeps contributing its converted type, (string, object?), which has no
+            // names, so the names are lost as before.
             CreateCompilation(source).VerifyDiagnostics(
                 // (8,59): warning CS8621: Nullability of reference types in return type of 'lambda expression' doesn't match the target delegate 'Func<(string, object?), ?>' (possibly because of nullability attributes).
                 //         _ = ToDictionary(Append(parameters, ("A", null)), t => t.Name, t => t.Value);
