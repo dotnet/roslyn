@@ -15,7 +15,6 @@ $PackagesDir = Join-Path $ArtifactsDir "packages\$configuration"
 $binaryLog = if (Test-Path variable:binaryLog) { $binaryLog } else { $false }
 $nodeReuse = if (Test-Path variable:nodeReuse) { $nodeReuse } else { $false }
 $properties = if (Test-Path variable:properties) { $properties } else { @() }
-$originalTemp = $env:TEMP;
 
 function GetProjectOutputBinary([string]$fileName, [string]$projectName = "", [string]$configuration = $script:configuration, [string]$tfm = "net472", [string]$rid = "", [bool]$published = $false) {
   $projectName = if ($projectName -ne "") { $projectName } else { [System.IO.Path]::GetFileNameWithoutExtension($fileName) }
@@ -252,25 +251,6 @@ function Get-PackageDir([string]$name, [string]$version = "") {
   $p = Join-Path $p $name.ToLowerInvariant()
   $p = Join-Path $p $version
   return $p
-}
-
-function Subst-TempDir() {
-  if ($ci) {
-    Exec-Command "subst" "T: $TempDir"
-
-    $env:TEMP='T:\'
-    $env:TMP='T:\'
-  }
-}
-
-function Unsubst-TempDir() {
-  if ($ci) {
-    Exec-Command "subst" "T: /d"
-
-    # Restore the original temp directory
-    $env:TEMP=$originalTemp
-    $env:TMP=$originalTemp
-  }
 }
 
 function EnablePreviewSdks() {
