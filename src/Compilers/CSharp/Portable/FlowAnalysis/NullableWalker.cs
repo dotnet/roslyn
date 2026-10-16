@@ -4428,7 +4428,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int>? completion) inferInitialObjectState(
-                BoundExpression node, TypeSymbol type, MethodSymbol? constructor,
+                BoundObjectCreationExpressionBase node, TypeSymbol type, MethodSymbol? constructor,
                 ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitResult> argumentResults, ImmutableArray<VisitResult> argumentConversionResultsOpt,
                 bool isTargetTyped,
                 bool hasObjectInitializer)
@@ -4493,10 +4493,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         SetState(ref this.State, slot, resultState);
 
-                        if (isSuitableUnionConstruction(type, constructor, out PropertySymbol? valueProperty) && !argumentConversionResultsOpt.IsDefaultOrEmpty)
+                        if (isSuitableUnionConstruction(type, constructor, out PropertySymbol? valueProperty))
                         {
-                            // When a union constructor is called, the new union's Value gets the null state of the incoming value.
-                            SetUnionValueStateFromConstructorArgument(arguments[0], argumentConversionResultsOpt[0].RValueType, slot, valueProperty);
+                            if (node.Expanded)
+                            {
+                                // For now, assume that an expanded collection is never null.
+                                // This might not be the case with collection builders, tracked by https://github.com/dotnet/roslyn/issues/86064.
+                                // Still better than potentially inferring from an argument that maps to an element or using default state.
+                                // Especially that nullable builders are unlikely to exist outside of compiler tests.
+                                SetUnionValueState(slot, valueProperty, NullableFlowState.NotNull);
+                            }
+                            else if (!argumentConversionResultsOpt.IsDefaultOrEmpty)
+                            {
+                                // When a union constructor is called, the new union's Value gets the null state of the incoming value.
+                                SetUnionValueStateFromConstructorArgument(arguments[0], argumentConversionResultsOpt[0].RValueType, slot, valueProperty);
+                            }
                         }
                     }
                 }
@@ -4521,7 +4532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int> inferInitialObjectStateAsContinuation(
-                BoundExpression node,
+                BoundObjectCreationExpressionBase node,
                 ImmutableArray<BoundExpression> arguments,
                 ImmutableArray<VisitResult> argumentResults,
                 bool hasObjectInitializer)
@@ -4551,11 +4562,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandState = argumentTypeWithState.State;
             }
 
+            SetUnionValueState(containingSlot, valueProperty, operandState);
+        }
+
+        private void SetUnionValueState(int containingSlot, PropertySymbol valueProperty, NullableFlowState state)
+        {
             int iUnionValuePropertySlot = GetOrCreateSlot(valueProperty, containingSlot);
             Debug.Assert(iUnionValuePropertySlot > 0);
             if (iUnionValuePropertySlot > 0)
             {
-                SetState(ref this.State, iUnionValuePropertySlot, operandState);
+                SetState(ref this.State, iUnionValuePropertySlot, state);
             }
         }
 
