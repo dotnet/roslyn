@@ -11745,6 +11745,266 @@ public struct Vec4
 
         [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_EmbeddedStatement_RefAssignment(
+            [CombinatorialValues(
+                "if (condition) BODY",
+                "if (condition) { } else BODY",
+                "if (condition) { } else if (condition) BODY",
+                "while (condition) BODY",
+                "do BODY while (condition);",
+                "for (; condition;) BODY",
+                "foreach (var item in new int[1]) BODY",
+                "using (s) BODY",
+                "lock (new object()) BODY",
+                "fixed (int* p = new int[1]) BODY")] string statement,
+            bool readOnly,
+            bool useBlock)
+        {
+            var body = useBlock ? "{ c = ref s.Self; }" : "c = ref s.Self;";
+            var unsafeRegion = statement.StartsWith("fixed", StringComparison.Ordinal);
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+
+                class C
+                {
+                    static {{(unsafeRegion ? "unsafe " : "")}}void M(bool condition)
+                    {
+                        foreach (ref {{(readOnly ? "readonly " : "")}}var s in new Span<S>(new S[1]))
+                        {
+                            ref var c = ref s.Self;
+                            {{statement.Replace("BODY", body)}}
+                            c = ref s.Self;
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70);
+            if (readOnly)
+            {
+                comp.VerifyDiagnostics(
+                    // error CS8374: Cannot ref-assign 's.Self' to 'c' because 's.Self' has a narrower escape scope than 'c'.
+                    // c = ref s.Self;
+                    Diagnostic(unsafeRegion ? ErrorCode.WRN_RefAssignNarrower : ErrorCode.ERR_RefAssignNarrower, "c = ref s.Self")
+                        .WithArguments("c", "s.Self")
+                        .WithLocation(17, 13 + statement.IndexOf("BODY", StringComparison.Ordinal) + (useBlock ? 2 : 0)));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_EmbeddedStatement_HeaderScope(
+            [CombinatorialValues(
+                "while (Capture(ref s.Self, out var r)) BODY",
+                "for (; Capture(ref s.Self, out var r);) BODY",
+                "using (GetDisposable(ref s.Self, out var r)) BODY",
+                "fixed (int* p = GetArray(ref s.Self, out var r)) BODY")] string statement,
+            bool useBlock)
+        {
+            var body = useBlock ? "{ r.Value = ref s.Self; }" : "r.Value = ref s.Self;";
+            var unsafeRegion = statement.StartsWith("fixed", StringComparison.Ordinal);
+            var source = $$"""
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S : IDisposable
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                    public void Dispose() { }
+                }
+
+                ref struct R
+                {
+                    public ref S Value;
+                }
+
+                class C
+                {
+                    static {{(unsafeRegion ? "unsafe " : "")}}void M(in S s)
+                    {
+                        {{statement.Replace("BODY", body)}}
+                    }
+
+                    static bool Capture(ref S value, out R result)
+                    {
+                        result = new R { Value = ref value };
+                        return true;
+                    }
+
+                    static S GetDisposable(ref S value, out R result)
+                    {
+                        Capture(ref value, out result);
+                        return default;
+                    }
+
+                    static int[] GetArray(ref S value, out R result)
+                    {
+                        Capture(ref value, out result);
+                        return new int[1];
+                    }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.UnsafeDebugDll, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // error CS8374: Cannot ref-assign 's.Self' to 'Value' because 's.Self' has a narrower escape scope than 'Value'.
+                // r.Value = ref s.Self;
+                Diagnostic(unsafeRegion ? ErrorCode.WRN_RefAssignNarrower : ErrorCode.ERR_RefAssignNarrower, "r.Value = ref s.Self")
+                    .WithArguments("Value", "s.Self")
+                    .WithLocation(19, 9 + statement.IndexOf("BODY", StringComparison.Ordinal) + (useBlock ? 2 : 0)));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ElseIfCondition_RefAssignment(bool useBlock)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                }
+
+                class C
+                {
+                    static void M(in S s, bool condition)
+                    {
+                        ref var c = ref s.Self;
+                        if ((c = ref s.Self).Equals(default(S))) { }
+                        if (condition) { }
+                        else {{(useBlock ? "{" : "")}}
+                            if ((c = ref s.Self).Equals(default(S))) { }
+                        {{(useBlock ? "}" : "")}}
+                        c = ref s.Self;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (16,18): error CS8374: Cannot ref-assign 's.Self' to 'c' because 's.Self' has a narrower escape scope than 'c'.
+                //             if ((c = ref s.Self).Equals(default(S))) { }
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "c = ref s.Self").WithArguments("c", "s.Self").WithLocation(16, 18));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_ElseIfCondition_ExpressionVariables(
+            [CombinatorialValues("Capture(out var result, ref s.Self)", "Capture(ref s.Self) is var result")] string condition,
+            bool useBlock)
+        {
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                }
+
+                ref struct R
+                {
+                    public ref S Value;
+                }
+
+                class C
+                {
+                    static void M(in S s, bool condition)
+                    {
+                        ref var c = ref s.Self;
+                        if (condition) { }
+                        else {{(useBlock ? "{" : "")}}
+                            if ({{condition}} && (result.Value = ref s.Self).Equals(default(S)))
+                            {
+                                result.Value = ref s.Self;
+                            }
+                        {{(useBlock ? "}" : "")}}
+                        c = ref s.Self;
+                    }
+
+                    static bool Capture(out R result, ref S value)
+                    {
+                        result = Capture(ref value);
+                        return true;
+                    }
+
+                    static R Capture(ref S value) => new R { Value = ref value };
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (22,17): error CS8374: Cannot ref-assign 's.Self' to 'Value' because 's.Self' has a narrower escape scope than 'Value'.
+                //                 result.Value = ref s.Self;
+                Diagnostic(ErrorCode.ERR_RefAssignNarrower, "result.Value = ref s.Self").WithArguments("Value", "s.Self").WithLocation(22, 17));
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_EmbeddedStatement_ExpressionVariables(bool useBlock)
+        {
+            var body = "Capture(out var result, ref s.GetValue(GetInt(out var value)));";
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    int _value;
+                    [UnscopedRef] public ref int GetValue(int value) => ref _value;
+                }
+
+                ref struct R
+                {
+                    public ref int Value;
+                }
+
+                class C
+                {
+                    static void M(in S s, bool condition)
+                    {
+                        if (condition)
+                            {{(useBlock ? $"{{ {body} }}" : body)}}
+                    }
+
+                    static void Capture(out R result, ref int value) => result = new R { Value = ref value };
+                    static int GetInt(out int value) => value = 0;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+        }
+
+        [ConditionalFact(typeof(NoIOperationValidation), Reason = "IOperation validation has a timeout that can fail for this stress test")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
+        public void LocalReceiver_EmbeddedStatement_LongElseIfChain()
+        {
+            var statements = string.Concat(Enumerable.Repeat("if (condition) c = ref s.Self; else ", 2000)) + "{ }";
+            var source = $$"""
+                using System.Diagnostics.CodeAnalysis;
+
+                struct S
+                {
+                    [UnscopedRef] public ref S Self => ref this;
+                }
+
+                class C
+                {
+                    static void M(ref S s, bool condition)
+                    {
+                        ref var c = ref s.Self;
+                        {{statements}}
+                        c = ref s.Self;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics();
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/85694")]
         public void LocalReceiver_Using_RefAssignment(
             [CombinatorialValues(".Self", ".GetSelf()", "[0]")] string access,
             bool throughField,
@@ -11800,6 +12060,9 @@ public struct Vec4
             if (throughField)
             {
                 comp.VerifyDiagnostics(
+                    // (26,28): error CS8374: Cannot ref-assign 'b.Field.Self' to 'c' because 'b.Field.Self' has a narrower escape scope than 'c'.
+                    //             if (condition) c = ref b.Field.Self;
+                    Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref b.Field{access}").WithArguments("c", $"b.Field{access}").WithLocation(26, 28),
                     // (29,17): error CS8374: Cannot ref-assign 'b.Field.Self' to 'c' because 'b.Field.Self' has a narrower escape scope than 'c'.
                     //                 c = ref b.Field.Self;
                     Diagnostic(ErrorCode.ERR_RefAssignNarrower, $"c = ref b.Field{access}").WithArguments("c", $"b.Field{access}").WithLocation(29, 17),
