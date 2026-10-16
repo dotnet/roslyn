@@ -24,6 +24,8 @@ internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProv
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly Lazy<ILegacyGlobalOptionService> _legacyGlobalOptions;
+    private readonly Lazy<INativeCodeStyleSettingsService> _nativeCodeStyleSettings;
+    private readonly Lazy<INamingSettingsService> _namingSettings;
 
     // maps config name to a read fallback:
     private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
@@ -37,16 +39,25 @@ internal sealed class VisualStudioOptionPersisterProvider : IOptionPersisterProv
     public VisualStudioOptionPersisterProvider(
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         [ImportMany] IEnumerable<Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> readFallbacks,
-        Lazy<ILegacyGlobalOptionService> legacyGlobalOptions)
+        Lazy<ILegacyGlobalOptionService> legacyGlobalOptions,
+        Lazy<INativeCodeStyleSettingsService> nativeCodeStyleSettings,
+        Lazy<INamingSettingsService> namingSettings)
     {
         _serviceProvider = serviceProvider;
         _legacyGlobalOptions = legacyGlobalOptions;
+        _nativeCodeStyleSettings = nativeCodeStyleSettings;
+        _namingSettings = namingSettings;
         _readFallbacks = readFallbacks.ToImmutableDictionary(item => item.Metadata.ConfigName, item => item);
         _lazyPersister = new Lazy<IOptionPersister>(() => CreatePersister());
     }
 
     public IOptionPersister GetOrCreatePersister()
-        => _lazyPersister.Value;
+    {
+        var persister = _lazyPersister.Value;
+        _nativeCodeStyleSettings.Value.Start();
+        _namingSettings.Value.Start();
+        return persister;
+    }
 
     private VisualStudioOptionPersister CreatePersister()
     {

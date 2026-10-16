@@ -1,0 +1,1669 @@
+{
+  "properties": {
+    "languages.csharp.codeStyle.formatting.general.formatOnTyping": {
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_when_typing;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Auto Formatting On Typing"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.general.formatOnSemicolon": {
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_statement_on_semicolon_USX;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "enableWhen": "${config:languages.csharp.codeStyle.formatting.general.formatOnTyping} == 'true'",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Auto Formatting On Semicolon"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.general.formatOnCloseBrace": {
+      "type": "boolean",
+      "default": true,
+      "order": 20,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_block_on_close_brace_USX;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "enableWhen": "${config:languages.csharp.codeStyle.formatting.general.formatOnTyping} == 'true'",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Auto Formatting On Close Brace"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.general.formatOnReturn": {
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_on_return;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Auto Formatting On Return"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.general.formatOnPaste": {
+      "type": "boolean",
+      "default": true,
+      "order": 40,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_on_paste_USX;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.FormatOnPaste"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.indentation.csharpIndentBlockContents": {
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Indent_block_contents;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.IndentBlock"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.indentation.csharpIndentBraces": {
+      "type": "boolean",
+      "default": false,
+      "order": 10,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Indent_open_and_close_braces;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.OpenCloseBracesIndent"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.indentation.csharpIndentCaseContents": {
+      "type": "boolean",
+      "default": true,
+      "order": 20,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Indent_case_contents;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.IndentSwitchCaseSection"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.indentation.csharpIndentCaseContentsWhenBlock": {
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Indent_case_contents_when_block;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.IndentSwitchCaseSectionWhenBlock"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.indentation.csharpIndentSwitchLabels": {
+      "type": "boolean",
+      "default": true,
+      "order": 40,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Indent_case_labels;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.IndentSwitchSection"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.indentation.labelPositioning": {
+      "type": "string",
+      "default": "OneLess",
+      "order": 50,
+      "transientScopesSupported": false,
+      "enum": [
+        "LeftMost",
+        "NoIndent",
+        "OneLess"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Label_Indentation;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_goto_labels_in_leftmost_column;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Indent_labels_normally;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_goto_labels_one_indent_less_than_current;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.LabelPositioning"
+            }
+          ],
+          "map": [
+            {
+              "result": "@default",
+              "matches": [
+                1
+              ]
+            },
+            {
+              "result": "OneLess",
+              "matches": [
+                1
+              ]
+            },
+            {
+              "result": "LeftMost",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "NoIndent",
+              "matches": [
+                2
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@any"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeOpenBraceTypes": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.braces" } ],
+      "order": 0,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_types;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": true,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 1
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInTypes"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeOpenBraceMethods": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.braces" } ],
+      "order": 10,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_methods_local_functions;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": true,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 2
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInMethods"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeOpenBraceProperties": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.braces" } ],
+      "order": 20,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_properties_indexers_and_events;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": true,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 4
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInProperties"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeOpenBraceAccessors": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.braces" } ],
+      "order": 30,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_property_indexer_and_event_accessors;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": true,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 256
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInAccessors"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeOpenBraceAnonymousMethods": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.braces" } ],
+      "order": 40,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_anonymous_methods;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": true,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 8
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousMethods"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeOpenBraceControlBlocks": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.braces" } ],
+      "order": 50,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_control_blocks;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": true,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 16
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInControlBlocks"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeOpenBraceAnonymousTypes": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.braces" } ],
+      "order": 60,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_anonymous_types;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": true,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 32
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousTypes"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeOpenBraceObjectCollectionArrayInitializers": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.braces" } ],
+      "order": 70,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": true,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 64
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInObjectCollectionArrayInitializers"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeOpenBraceLambdaExpressionBody": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.braces" } ],
+      "order": 80,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_lambda_expression;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": true,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 128
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInLambdaExpressionBody"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeElse": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.keywords" } ],
+      "default": true,
+      "order": 90,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_else_on_new_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.NewLineForElse"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeCatch": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.keywords" } ],
+      "default": true,
+      "order": 100,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_catch_on_new_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.NewLineForCatch"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeFinally": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.keywords" } ],
+      "default": true,
+      "order": 110,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_finally_on_new_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.NewLineForFinally"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeMembersInObjectInitializers": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.expressions" } ],
+      "default": true,
+      "order": 120,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_members_in_object_initializers_on_new_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.NewLineForMembersInObjectInit"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeMembersInAnonymousTypes": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.expressions" } ],
+      "default": true,
+      "order": 130,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_members_in_anonymous_types_on_new_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.NewLineForMembersInAnonymousTypes"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.csharpNewLineBetweenQueryExpressionClauses": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.newLines.expressions" } ],
+      "default": true,
+      "order": 140,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_query_expression_clauses_on_new_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.NewLineForClausesInQuery"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenMethodDeclarationNameAndOpenParenthesis": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.methodDeclarations" } ],
+      "default": false,
+      "order": 0,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_between_method_name_and_its_opening_parenthesis;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpacingAfterMethodDeclarationName"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenMethodDeclarationParameterListParentheses": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.methodDeclarations" } ],
+      "default": false,
+      "order": 10,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_parameter_list_parentheses;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceWithinMethodDeclarationParenthesis"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenMethodDeclarationEmptyParameterListParentheses": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.methodDeclarations" } ],
+      "default": false,
+      "order": 20,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_empty_parameter_list_parentheses;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceBetweenEmptyMethodDeclarationParentheses"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenMethodCallNameAndOpeningParenthesis": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.methodCalls" } ],
+      "default": false,
+      "order": 30,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_between_called_method_name_and_its_opening_parenthesis;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceAfterMethodCallName"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenMethodCallParameterListParentheses": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.methodCalls" } ],
+      "default": false,
+      "order": 40,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_argument_list_parentheses;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceWithinMethodCallParentheses"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenMethodCallEmptyParameterListParentheses": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.methodCalls" } ],
+      "default": false,
+      "order": 50,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_empty_argument_list_parentheses;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceBetweenEmptyMethodCallParentheses"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceAfterKeywordsInControlFlowStatements": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.other" } ],
+      "default": true,
+      "order": 60,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_after_keywords_in_control_flow_statements;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceAfterControlFlowStatementKeyword"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenParenthesesExpressions": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.other" } ],
+      "order": 70,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_parentheses_of_expressions;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": false,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_space_between_parentheses",
+              "bitmask": 1
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenParenthesesTypeCasts": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.other" } ],
+      "order": 80,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_parentheses_of_type_casts;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": false,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_space_between_parentheses",
+              "bitmask": 2
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.SpaceWithinCastParentheses"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenParenthesesControlFlowStatements": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.other" } ],
+      "order": 90,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_spaces_within_parentheses_of_control_flow_statements;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "default": false,
+      "transientScopesSupported": false,
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_space_between_parentheses",
+              "bitmask": 4
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.SpaceWithinOtherParentheses"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceAfterCast": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.other" } ],
+      "default": false,
+      "order": 100,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_after_cast;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceAfterCast"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceAroundDeclarationStatements": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.other" } ],
+      "default": false,
+      "order": 110,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Ignore_spaces_in_declaration_statements;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpacesIgnoreAroundVariableDeclaration"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBeforeOpenSquareBrackets": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.brackets" } ],
+      "default": false,
+      "order": 120,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_before_open_square_bracket;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceBeforeOpenSquareBracket"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenEmptySquareBrackets": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.brackets" } ],
+      "default": false,
+      "order": 130,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_empty_square_brackets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceBetweenEmptySquareBrackets"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenSquareBrackets": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.brackets" } ],
+      "default": false,
+      "order": 140,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_spaces_within_square_brackets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceWithinSquareBrackets"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceAfterColonInInheritanceClause": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.delimiters" } ],
+      "default": true,
+      "order": 150,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_after_colon_for_base_or_interface_in_type_declaration;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceAfterColonInBaseTypeDeclaration"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceAfterComma": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.delimiters" } ],
+      "default": true,
+      "order": 160,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_after_comma;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceAfterComma"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceAfterDot": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.delimiters" } ],
+      "default": false,
+      "order": 170,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_after_dot;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceAfterDot"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceAfterSemicolonInForStatement": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.delimiters" } ],
+      "default": true,
+      "order": 180,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_after_semicolon_in_for_statement;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceAfterSemicolonsInForStatement"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBeforeColonInInheritanceClause": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.delimiters" } ],
+      "default": true,
+      "order": 190,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_before_colon_for_base_or_interface_in_type_declaration;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceBeforeColonInBaseTypeDeclaration"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBeforeComma": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.delimiters" } ],
+      "default": false,
+      "order": 200,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_before_comma;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceBeforeComma"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBeforeDot": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.delimiters" } ],
+      "default": false,
+      "order": 210,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_before_dot;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceBeforeDot"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.csharpSpaceBeforeSemicolonInForStatement": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.delimiters" } ],
+      "default": false,
+      "order": 220,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_before_semicolon_in_for_statement;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.SpaceBeforeSemicolonsInForStatement"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing.binaryOperatorSpacing": {
+      "type": "string",
+      "placements": [ { "category": "languages.csharp.codeStyle.formatting.spacing.operators" } ],
+      "default": "Single",
+      "order": 230,
+      "transientScopesSupported": false,
+      "enum": [
+        "Ignore",
+        "Remove",
+        "Single"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Set_spacing_for_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Ignore_spaces_around_binary_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Remove_spaces_before_and_after_binary_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_before_and_after_binary_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "migration": {
+        "custom": {
+          "mode": "oneTimeFromLegacy",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.SpacingAroundBinaryOperator"
+            }
+          ],
+          "map": [
+            {
+              "result": "@default",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "Single",
+              "matches": [
+                0
+              ]
+            },
+            {
+              "result": "Ignore",
+              "matches": [
+                1
+              ]
+            },
+            {
+              "result": "Remove",
+              "matches": [
+                2
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@any"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.wrapping.csharpPreserveSingleLineBlocks": {
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Leave_block_on_single_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.WrappingPreserveSingleLine"
+          }
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.wrapping.csharpPreserveSingleLineStatements": {
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Leave_statements_and_member_declarations_on_the_same_line;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "oneTimeFromLegacy",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.WrappingKeepStatementsOnSingleLine"
+          }
+        }
+      }
+    }
+  },
+  "categories": {
+    "languages.csharp.codeStyle.formatting": {
+      "title": "#107;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 10
+    },
+    "languages.csharp.codeStyle.formatting.general": {
+      "title": "#108;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 0,
+      "legacyOptionPageId": "DA0446DD-55BA-401F-A364-7D3238412AE4",
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
+      "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541"
+    },
+    "languages.csharp.codeStyle.formatting.indentation": {
+      "title": "#109;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 1,
+      "legacyOptionPageId": "5E21D017-6D2A-4114-A1F1-C923F001CBBB",
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
+      "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541",
+      "commands": [
+        {
+          "vsct": {
+            "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Generate_dot_editorconfig_file_from_settings;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+            "set": "47b0d77e-35c4-4b41-9fc4-9309ef73f93b",
+            "id": 256
+          }
+        },
+        {
+          "vsct": {
+            "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Learn_more;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+            "set": "47b0d77e-35c4-4b41-9fc4-9309ef73f93b",
+            "id": 257
+          }
+        }
+      ],
+      "previewUIFactory": {
+        "gel": {
+          "factoryGuid": "b147d67e-5ddf-4106-bd6e-c6cc49b88141",
+          "elementId": 1
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines": {
+      "title": "#111;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 2,
+      "keepHeaderVisible": true,
+      "legacyOptionPageId": "EADC6AD3-91D4-3CC8-BE96-3CDE7D3080F0",
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
+      "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541",
+      "commands": [
+        {
+          "vsct": {
+            "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Generate_dot_editorconfig_file_from_settings;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+            "set": "47b0d77e-35c4-4b41-9fc4-9309ef73f93b",
+            "id": 256
+          }
+        },
+        {
+          "vsct": {
+            "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Learn_more;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+            "set": "47b0d77e-35c4-4b41-9fc4-9309ef73f93b",
+            "id": 257
+          }
+        }
+      ],
+      "previewUIFactory": {
+        "gel": {
+          "factoryGuid": "b147d67e-5ddf-4106-bd6e-c6cc49b88141",
+          "elementId": 2
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.spacing": {
+      "title": "#112;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 3,
+      "keepHeaderVisible": true,
+      "legacyOptionPageId": "234FB566-73DD-4612-8DE4-29031FF27052",
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
+      "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541",
+      "commands": [
+        {
+          "vsct": {
+            "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Generate_dot_editorconfig_file_from_settings;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+            "set": "47b0d77e-35c4-4b41-9fc4-9309ef73f93b",
+            "id": 256
+          }
+        },
+        {
+          "vsct": {
+            "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Learn_more;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+            "set": "47b0d77e-35c4-4b41-9fc4-9309ef73f93b",
+            "id": 257
+          }
+        }
+      ],
+      "previewUIFactory": {
+        "gel": {
+          "factoryGuid": "b147d67e-5ddf-4106-bd6e-c6cc49b88141",
+          "elementId": 3
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.wrapping": {
+      "title": "#110;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 4,
+      "legacyOptionPageId": "8E334D9C-B7DC-4CF3-B7B7-014B831FE76B",
+      "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
+      "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541",
+      "commands": [
+        {
+          "vsct": {
+            "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Generate_dot_editorconfig_file_from_settings;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+            "set": "47b0d77e-35c4-4b41-9fc4-9309ef73f93b",
+            "id": 256
+          }
+        },
+        {
+          "vsct": {
+            "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Learn_more;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
+            "set": "47b0d77e-35c4-4b41-9fc4-9309ef73f93b",
+            "id": 257
+          }
+        }
+      ],
+      "previewUIFactory": {
+        "gel": {
+          "factoryGuid": "b147d67e-5ddf-4106-bd6e-c6cc49b88141",
+          "elementId": 4
+        }
+      }
+    },
+    "languages.csharp.codeStyle.formatting.newLines.braces": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:New_line_options_for_braces;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 0,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.formatting.newLines.keywords": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:New_line_options_for_keywords;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 1,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.formatting.newLines.expressions": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:New_line_options_for_expressions;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 2,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.formatting.spacing.methodDeclarations": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Set_spacing_for_method_declarations;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 0,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.formatting.spacing.methodCalls": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Set_spacing_for_method_calls;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 1,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.formatting.spacing.other": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Set_other_spacing_options;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 2,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.formatting.spacing.brackets": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Set_spacing_for_brackets;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 3,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.formatting.spacing.delimiters": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Set_spacing_for_delimiters;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 4,
+      "hideFromNavigation": true
+    },
+    "languages.csharp.codeStyle.formatting.spacing.operators": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Set_spacing_for_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 5,
+      "hideFromNavigation": true
+    }
+  }
+}
