@@ -513,6 +513,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 int firstSiblingToMoveInclusive,
                 int lastSiblingToMoveExclusive)
             {
+                Debug.Assert(typeDeclaration.SemicolonToken is null);
+
                 var finalTypeDeclarationMembers = _pool.Allocate<MemberDeclarationSyntax>();
                 finalTypeDeclarationMembers.AddRange(typeDeclaration.Members);
 
@@ -547,12 +549,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ? EatToken(SyntaxKind.CloseBraceToken, reportError: false)
                     : SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken);
 
-                var finalSemicolonToken = typeDeclaration.SemicolonToken;
-
-                // A semicolon may legally follow a type's close-brace.  Preserve any semicolon the type already owns,
-                // and otherwise keep a semicolon with the real close-brace recovered here.
-                if (finalSemicolonToken is null && followingCloseBraceCanCloseType)
-                    finalSemicolonToken = TryEatToken(SyntaxKind.SemicolonToken);
+                // A semicolon may legally follow a type's close-brace, so keep it with a real close-brace recovered here.
+                var finalSemicolonToken = followingCloseBraceCanCloseType
+                    ? TryEatToken(SyntaxKind.SemicolonToken)
+                    : null;
 
                 var newMembers = _pool.ToListAndFree(finalTypeDeclarationMembers);
 
