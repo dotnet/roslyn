@@ -57,11 +57,6 @@
         <target state="translated">È previsto un valore letterale stringa semplice nel valore della direttiva. I valori letterali stringa non elaborati e verbatim non sono supportati nei valori di direttiva. Trovato: {0}</target>
         <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
-      <trans-unit id="ExperimentalFeatureDisabled">
-        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="translated">Questa è una funzionalità sperimentale, impostare la proprietà MSBuild "{0}" su "true" per abilitarla.</target>
-        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
-      </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
         <target state="translated">Estensione file non riconosciuta nella direttiva "{0}". Sono riconosciute solo queste estensioni: {1}</target>
