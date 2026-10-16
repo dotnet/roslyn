@@ -402,17 +402,17 @@
         <target state="translated">沒有明確傳回型別的匿名方法上不允許 AsyncMethodBuilder 屬性。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+      <trans-unit id="ERR_RequiresUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
         <target state="translated">不安全的成員 '{0}' 無法實作安全成員 '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+      <trans-unit id="ERR_RequiresUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
         <target state="translated">不安全的成員 '{0}' 無法隱含地實作安全成員 '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+      <trans-unit id="ERR_RequiresUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
         <target state="translated">不安全的成員 '{0}' 無法覆寫安全成員 '{1}'</target>
         <note />

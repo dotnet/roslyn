@@ -47290,7 +47290,7 @@ partial class Program
                             }
                             """;
 
-            var comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugExe);
 
             comp3.VerifyDiagnostics(
                 // (5,24): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
@@ -47382,7 +47382,7 @@ partial class Program
                             }
                             """;
 
-            var comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
+            var comp3 = CreateCompilation(source3, references: [comp1Ref], parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugExe);
 
             comp3.VerifyDiagnostics(
                 // (5,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context

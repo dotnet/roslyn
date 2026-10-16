@@ -2574,9 +2574,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_UnsafeUninitializedStackAlloc
                 or ErrorCode.ERR_UnsafeMemberOperation
                 or ErrorCode.ERR_UnsafeMemberOperationCompat
-                or ErrorCode.ERR_CallerUnsafeOverridingSafe
-                or ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe
-                or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
+                or ErrorCode.ERR_RequiresUnsafeOverridingSafe
+                or ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe
+                or ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe
                 or ErrorCode.ERR_ExpressionTreeContainsUnionConversion
                 or ErrorCode.ERR_UnionDeclarationNeedsCaseTypes
                 or ErrorCode.ERR_NoImplicitConversionToObject

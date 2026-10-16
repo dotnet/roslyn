@@ -402,17 +402,17 @@
         <target state="translated">AsyncMethodBuilder 특성은 명시적 반환 형식이 없는 익명 메서드에서 허용되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+      <trans-unit id="ERR_RequiresUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
         <target state="translated">안전하지 않은 멤버 '{0}'은(는) 안전한 멤버 '{1}'을(를) 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+      <trans-unit id="ERR_RequiresUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
         <target state="translated">안전하지 않은 멤버 '{0}'은(는) 안전한 멤버 '{1}'을(를) 암시적으로 구현할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+      <trans-unit id="ERR_RequiresUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
         <target state="translated">안전하지 않은 멤버 '{0}'은(는) 안전한 멤버 '{1}'을(를) 재정의할 수 없습니다.</target>
         <note />

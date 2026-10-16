@@ -4,6 +4,11 @@
     <SelfContained>false</SelfContained>
     <PublishDir Condition="'$(RuntimeIdentifier)' != ''">$(ArtifactsDir)/LanguageServer/$(Configuration)/$(TargetFramework)/$(RuntimeIdentifier)</PublishDir>
 
+    <!-- Keep the tool package small by excluding symbols and XML documentation that aren't needed to run the server. -->
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
+    <PublishReferencesSymbols>false</PublishReferencesSymbols>
+    <PublishDocumentationFiles>false</PublishDocumentationFiles>
+
     <!-- List of runtime identifiers that we want to publish executables for. -->
     <RuntimeIdentifiers>win-x64;win-arm64;linux-x64;linux-arm64;linux-musl-x64;linux-musl-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
 

@@ -7671,7 +7671,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    boundLeft = new BoundPointerIndirectionOperator(exprSyntax, boundLeft, refersToLocation: false, pointedAtType, hasErrors)
+                    boundLeft = new BoundPointerIndirectionOperator(exprSyntax, boundLeft, pointedAtType, hasErrors)
                     {
                         WasCompilerGenerated = true, // don't interfere with the type info for exprSyntax.
                     };
@@ -9988,9 +9988,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             ReportDiagnosticsIfObsolete(diagnostics, propertySymbol, node, hasBaseReceiver: receiver?.Kind == BoundKind.BaseReference);
 
             // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
-            Debug.Assert(propertySymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.None ||
-                (propertySymbol.GetMethod is null || propertySymbol.GetMethod.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == propertySymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty)) ||
-                (propertySymbol.SetMethod is null || propertySymbol.SetMethod.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == propertySymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty)));
+            Debug.Assert(propertySymbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.None ||
+                (propertySymbol.GetMethod is null || propertySymbol.GetMethod.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == propertySymbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty)) ||
+                (propertySymbol.SetMethod is null || propertySymbol.SetMethod.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == propertySymbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty)));
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 
@@ -10076,9 +10076,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteInfo);
 
             // Unsafe member access is checked on the accessor only to avoid duplicate diagnostics.
-            Debug.Assert(eventSymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.None ||
-                (eventSymbol.AddMethod is null || eventSymbol.AddMethod.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == eventSymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty)) ||
-                (eventSymbol.RemoveMethod is null || eventSymbol.RemoveMethod.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == eventSymbol.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty)));
+            Debug.Assert(eventSymbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.None ||
+                (eventSymbol.AddMethod is null || eventSymbol.AddMethod.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == eventSymbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty)) ||
+                (eventSymbol.RemoveMethod is null || eventSymbol.RemoveMethod.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == eventSymbol.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty)));
 
             bool hasError = this.CheckInstanceOrStatic(node, receiver, eventSymbol, ref lookupResult, diagnostics);
 
@@ -10878,7 +10878,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_PtrIndexSingle, node);
                 }
                 return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments)).MakeCompilerGenerated(),
-                    CheckOverflowAtRuntime, refersToLocation: false, pointedAtType, hasErrors: true);
+                    CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
             }
 
             if (pointedAtType.IsVoidType())
@@ -10890,7 +10890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression index = arguments[0];
 
             index = ConvertToArrayIndex(index, diagnostics, allowIndexAndRange: false, indexOrRangeWellknownType: out _);
-            return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, refersToLocation: false, pointedAtType, hasErrors);
+            return new BoundPointerElementAccess(node, expr, index, CheckOverflowAtRuntime, pointedAtType, hasErrors);
         }
 
         private static bool ReportRefOrOutArgument(AnalyzedArguments analyzedArguments, BindingDiagnosticBag diagnostics)

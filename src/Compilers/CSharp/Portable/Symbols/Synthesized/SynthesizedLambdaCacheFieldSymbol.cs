@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool SuppressDynamicAttribute => true;
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         IMethodSymbolInternal ISynthesizedMethodBodyImplementationSymbol.Method => _topLevelMethod;
 

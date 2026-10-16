@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
+  <file datatype="xml" source-language="en" target-language="ja" original="../SR.resx">
+    <body>
+      <trans-unit id="Invalid_Offset">
+        <source>Invalid offset.</source>
+        <target state="translated">無効なオフセットです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Language_Services_Missing_Service">
+        <source>Razor language services not configured properly, missing language service '{0}'.</source>
+        <target state="translated">Razor 言語サービスが正しく構成されていません。言語サービス '{0}' がありません。</target>
+        <note />
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

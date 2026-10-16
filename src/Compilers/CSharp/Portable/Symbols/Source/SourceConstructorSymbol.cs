@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
         internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
-        internal sealed override bool CanBeCallerUnsafe => MethodKind != MethodKind.StaticConstructor;
+        internal sealed override bool CanRequireUnsafe => MethodKind != MethodKind.StaticConstructor;
 
         protected override bool AllowRefOrOut
         {

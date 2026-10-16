@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             public override ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray<CustomModifier>.Empty;
 
-            internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
+            internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
         }
     }
 }

@@ -730,7 +730,7 @@ unsafe class Test
     {
         var p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
     }
-}", TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14);
+}", TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular15);
             comp.VerifyDiagnostics(
                 // (7,32): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var p = stackalloc int[await Task.FromResult(1)] { await Task.FromResult(2) };
@@ -1505,7 +1505,7 @@ class Test
         var x3 = stackalloc     [ ] { 1, 2, 3 };
     }
 }";
-            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (6,18): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var x1 = stackalloc int [3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "stackalloc int [3] { 1, 2, 3 }").WithLocation(6, 18),
@@ -1833,7 +1833,7 @@ class Program
         var d3 = stackalloc         [ ] { d };
     }
 }";
-            CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
                 // (7,29): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('dynamic')
                 //         var d1 = stackalloc dynamic [3] { d };
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "dynamic").WithArguments("dynamic").WithLocation(7, 29),

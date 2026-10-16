@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnsafeModifier => (DeclarationModifiers & DeclarationModifiers.Unsafe) != 0;
         internal sealed override bool HasSafeModifier => (DeclarationModifiers & DeclarationModifiers.Safe) != 0;
-        internal sealed override bool CanBeCallerUnsafe => true;
+        internal sealed override bool CanRequireUnsafe => true;
 
         /// <summary>
         /// Indicates whether this accessor is readonly due to reasons scoped to itself and its containing property.

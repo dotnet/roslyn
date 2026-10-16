@@ -23,6 +23,8 @@ internal sealed class XamlDiagnosticSourceProvider([Import(AllowDefault = true)]
 
     string IDiagnosticSourceProvider.Name => Constants.DiagnosticSourceProviderName;
 
+    bool IDiagnosticSourceProvider.HasInterFileDependencies => true;
+
     bool IDiagnosticSourceProvider.IsEnabled(ClientCapabilities clientCapabilities) => true;
 
     async ValueTask<ImmutableArray<IDiagnosticSource>> IDiagnosticSourceProvider.CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)

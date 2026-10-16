@@ -24,6 +24,11 @@ internal interface IDiagnosticSourceProvider
     /// </summary>
     string Name { get; }
 
+    /// <summary>
+    /// Whether editing one file can change diagnostics reported for another file.
+    /// </summary>
+    bool HasInterFileDependencies { get; }
+
     bool IsEnabled(ClientCapabilities clientCapabilities);
 
     /// <summary>
@@ -33,4 +38,3 @@ internal interface IDiagnosticSourceProvider
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the request processing.</param>
     ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken);
 }
-

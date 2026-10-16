@@ -20,6 +20,7 @@ internal sealed class DocumentTaskDiagnosticSourceProvider([Import] IGlobalOptio
 {
     public bool IsDocument => true;
     public string Name => PullDiagnosticCategories.Task;
+    public bool HasInterFileDependencies => false;
 
     public bool IsEnabled(ClientCapabilities capabilities) => capabilities.HasVisualStudioLspCapability();
 
@@ -29,4 +30,3 @@ internal sealed class DocumentTaskDiagnosticSourceProvider([Import] IGlobalOptio
         return [new TaskListDiagnosticSource(document, globalOptions)];
     }
 }
-

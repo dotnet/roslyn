@@ -402,17 +402,17 @@
         <target state="translated">El atributo AsyncMethodBuilder no se permite en métodos anónimos sin un tipo de valor devuelto explícito.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+      <trans-unit id="ERR_RequiresUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
         <target state="translated">El miembro no seguro ''{0}'' no puede implementar el miembro seguro '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+      <trans-unit id="ERR_RequiresUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
         <target state="translated">El miembro no seguro ''{0}'' no puede implementar implícitamente el miembro seguro ''{1}''</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+      <trans-unit id="ERR_RequiresUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
         <target state="translated">El miembro no seguro ''{0}'' no puede invalidar el miembro seguro ''{1}''</target>
         <note />

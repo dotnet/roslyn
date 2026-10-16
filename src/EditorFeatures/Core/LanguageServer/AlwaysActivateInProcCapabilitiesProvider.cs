@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -21,7 +20,6 @@ using Roslyn.LanguageServer.Protocol;
 internal sealed class AlwaysActivateInProcCapabilitiesProvider(
     DefaultCapabilitiesProvider defaultCapabilitiesProvider,
     IGlobalOptionService globalOptions,
-    IDiagnosticSourceManager diagnosticSourceManager,
 #pragma warning disable VSMEF016 // Referenced metadata view interface should be source-generated; TODO: https://github.com/dotnet/roslyn/issues/84292
     [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : ICapabilitiesProvider
 #pragma warning restore VSMEF016 // Referenced metadata view interface should be source-generated
@@ -49,14 +47,9 @@ internal sealed class AlwaysActivateInProcCapabilitiesProvider(
 
         serverCapabilities.DiagnosticProvider ??= new();
 
-        // VS does not distinguish between document and workspace diagnostics, so we need to merge them.
-        var diagnosticSourceNames = diagnosticSourceManager.GetDocumentSourceProviderNames(clientCapabilities)
-            .Concat(diagnosticSourceManager.GetWorkspaceSourceProviderNames(clientCapabilities))
-            .Distinct();
         serverCapabilities.DiagnosticProvider = serverCapabilities.DiagnosticProvider with
         {
             SupportsMultipleContextsDiagnostics = true,
-            DiagnosticKinds = [.. diagnosticSourceNames.Select(n => new VSInternalDiagnosticKind(n))],
             BuildOnlyDiagnosticIds = [.. buildOnlyDiagnostics
                 .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
                 .Distinct()],

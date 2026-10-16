@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return null; }
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
         public override Accessibility DeclaredAccessibility
         {

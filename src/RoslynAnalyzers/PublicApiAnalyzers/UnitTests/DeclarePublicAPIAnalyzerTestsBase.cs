@@ -3156,7 +3156,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         }
 
         [Fact]
-        public async Task UnsafeEvolution_Method_CallerUnsafe()
+        public async Task UnsafeEvolution_Method_RequiresUnsafe()
         {
             var source = $$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
@@ -3276,7 +3276,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                 updatedMemorySafetyRules: updatedRules);
 
         [Fact]
-        public async Task UnsafeEvolution_Method_Interface_CallerUnsafe()
+        public async Task UnsafeEvolution_Method_Interface_RequiresUnsafe()
         {
             var source = $$"""
                 {{EnabledModifierCSharp}} interface {|{{AddNewApiId}}:I|}
@@ -3307,7 +3307,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         }
 
         [Fact]
-        public async Task UnsafeEvolution_Property_CallerUnsafe()
+        public async Task UnsafeEvolution_Property_RequiresUnsafe()
         {
             var source = $$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
@@ -3342,7 +3342,7 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
         }
 
         [Fact]
-        public async Task UnsafeEvolution_PropertyAccessor_CallerUnsafe()
+        public async Task UnsafeEvolution_PropertyAccessor_RequiresUnsafe()
         {
             var source = $$"""
                 {{EnabledModifierCSharp}} class {|{{AddNewApiId}}:{|{{AddNewApiId}}:C|}|}
@@ -3391,16 +3391,17 @@ namespace Microsoft.CodeAnalysis.PublicApiAnalyzers.UnitTests
                     (solution, projectId) =>
                     {
                         var parseOptions = (CSharpParseOptions)solution.GetProject(projectId)!.ParseOptions!;
+                        parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.Preview);
+
+                        var compilationOptions = (CSharpCompilationOptions)solution.GetProject(projectId)!.CompilationOptions!;
 
                         if (updatedMemorySafetyRules)
                         {
-                            // https://github.com/dotnet/roslyn/issues/82546: use public API instead when available
-                            parseOptions = parseOptions.WithFeatures([new KeyValuePair<string, string>("updated-memory-safety-rules", "")]);
+                            compilationOptions = compilationOptions.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2);
                         }
 
-                        parseOptions = parseOptions.WithLanguageVersion(LanguageVersion.Preview);
-
-                        solution = solution.WithProjectParseOptions(projectId, parseOptions);
+                        solution = solution.WithProjectParseOptions(projectId, parseOptions)
+                            .WithProjectCompilationOptions(projectId, compilationOptions);
                         return solution;
                     },
                 },

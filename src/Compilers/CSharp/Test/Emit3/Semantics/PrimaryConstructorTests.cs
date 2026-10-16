@@ -22114,7 +22114,7 @@ class C1(int* x)
     public int X => *x;
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 // struct S1(int* x)

@@ -20,6 +20,7 @@ internal sealed class WorkspaceEditAndContinueDiagnosticSourceProvider(IEditAndC
 {
     public bool IsDocument => false;
     public string Name => PullDiagnosticCategories.EditAndContinue;
+    public bool HasInterFileDependencies => true;
 
     public bool IsEnabled(ClientCapabilities capabilities) => true;
 
