@@ -368,7 +368,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
 
     private static async Task<Project> LoadCachedProjectAsync(TestLspServer server, string projectPath, string contents)
     {
-        await File.WriteAllTextAsync(CacheFileReader.GetProjectFolderCacheFilePath(projectPath), contents);
+        await File.WriteAllTextAsync(projectPath + ".lscache", contents);
         var projectSystem = server.GetRequiredLspService<LanguageServerProjectSystem>();
         var cachedProject = await projectSystem.GetTestAccessor().TryLoadProjectFromCacheAsync(projectPath, CancellationToken.None);
         Assert.NotNull(cachedProject);
