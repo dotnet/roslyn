@@ -571,10 +571,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 #pragma warning restore format
                 };
 
-                // We don't know any other way this can happen, but if it does we recover gracefully in production.
-                Debug.Assert(newCode != oldCode || oldCode == ErrorCode.ERR_InsufficientStack, oldCode.ToString());
-
                 var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
+
+                // Unsafe diagnostics can occur only in strict analysis for imported structs that compatibility analysis treats as empty.
+                Debug.Assert(newCode != oldCode ||
+                    oldCode is ErrorCode.ERR_InsufficientStack or ErrorCode.ERR_UnsafeOperation ||
+                    (oldCode == ErrorCode.ERR_FeatureInPreview &&
+                     args is [LocalizableErrorArgument feature] &&
+                     feature.Equals(MessageID.IDS_FeatureUnsafeEvolution.Localize())),
+                    oldCode.ToString());
+
                 diagnostics.Add(newCode, diagnostic.Location, args);
             }
 
@@ -2508,10 +2514,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitFixedLocalCollectionInitializer(BoundFixedLocalCollectionInitializer node)
         {
             var initializer = node.Expression;
+            var addressOf = initializer as BoundAddressOfOperator;
 
-            if (initializer.Kind == BoundKind.AddressOfOperator)
+            if (addressOf is not null)
             {
-                initializer = ((BoundAddressOfOperator)initializer).Operand;
+                initializer = addressOf.Operand;
             }
 
             // If the node is a fixed statement address-of operator (e.g. fixed(int *p = &...)),
@@ -2519,7 +2526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // because it is either not a local/parameter/range variable (if the variable is
             // non-moveable) or it is and it has a RefKind other than None, in which case it can't
             // be referred to in a lambda (i.e. can't be captured).
-            VisitAddressOfOperand(initializer, shouldReadOperand: false);
+            VisitAddressOfOperand(initializer, shouldReadOperand: false, addressOf);
             return null;
         }
 
@@ -2547,9 +2554,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            VisitAddressOfOperand(node.Operand, shouldReadOperand);
+            VisitAddressOfOperand(node.Operand, shouldReadOperand, node);
 
             return null;
+        }
+
+        protected override void CheckAddressOfOperand(BoundAddressOfOperator node)
+        {
+            if (node.UnsafeDiagnosticInfo is { } diagnosticInfo &&
+                this.State.Reachable &&
+                !IsAssigned(node.Operand, out _))
+            {
+                Diagnostics.Add(new CSDiagnostic(diagnosticInfo, ((PrefixUnaryExpressionSyntax)node.Syntax).OperatorToken.GetLocation()));
+            }
         }
 
 #nullable enable

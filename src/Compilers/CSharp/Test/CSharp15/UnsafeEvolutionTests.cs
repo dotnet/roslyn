@@ -1433,6 +1433,451 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
+    public void Pointer_AddressOf_UnassignedLocal(bool updatedRules, bool allowUnsafe)
+    {
+        var source = """
+            int x;
+            _ = &x; // 1
+            x++;
+            _ = &x;
+            """;
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,5): error CS9360: This operation may only be used in an unsafe context
+            // _ = &x; // 1
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(2, 5),
+        };
+
+        var options = TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules);
+
+        CreateCompilation(source, options: options).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: options).VerifyDiagnostics(expectedDiagnostics);
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: options)
+            .VerifyDiagnostics(updatedRules ?
+            [
+                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+                // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = &x; // 1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = &x").WithArguments("updated memory safety rules").WithLocation(2, 1),
+                // (2,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = &x; // 1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(2, 5),
+                // (2,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = &x; // 1
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&").WithArguments("updated memory safety rules").WithLocation(2, 5),
+                // (4,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = &x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = &x").WithArguments("updated memory safety rules").WithLocation(4, 1),
+                // (4,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // _ = &x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(4, 5),
+            ] : [
+                // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // _ = &x; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = &x").WithLocation(2, 1),
+                // (2,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // _ = &x; // 1
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(2, 5),
+                // (4,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // _ = &x;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = &x").WithLocation(4, 1),
+                // (4,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                // _ = &x;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(4, 5),
+            ]);
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_AssignedLocal(bool updatedRules, bool allowUnsafe)
+    {
+        var source = """
+            int x = 1;
+            _ = &x;
+            x++;
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_UnassignedStruct(bool updatedRules)
+    {
+        var source = """
+            S s;
+            s.X = 1;
+            _ = &s.X;
+            _ = &s.Y;
+            _ = &s;
+            S t;
+            _ = &t;
+            Empty empty;
+            _ = &empty;
+
+            struct S
+            {
+                public int X;
+                public int Y;
+            }
+            struct Empty;
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (4,5): error CS9360: This operation may only be used in an unsafe context
+            // _ = &s.Y;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(4, 5),
+            // (7,5): error CS9360: This operation may only be used in an unsafe context
+            // _ = &t;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(7, 5));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_UnassignedImportedStruct(bool updatedRules, bool useCompilationReference)
+    {
+        var libSource = """
+            #pragma warning disable CS0169 // unreferenced field
+            public struct S
+            {
+                private string _field;
+            }
+            """;
+
+        var lib = CreateCompilation(libSource);
+        var libReference = useCompilationReference ? lib.ToMetadataReference() : lib.EmitToImageReference();
+
+        var source = """
+            #pragma warning disable CS8500 // address of managed type
+            S x;
+            _ = &x;
+            _ = &x;
+            S y = default;
+            _ = &y;
+            S z;
+            unsafe { _ = &z; }
+            _ = &z;
+            """;
+
+        CreateCompilation(source, references: [libReference],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (3,5): error CS9360: This operation may only be used in an unsafe context
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(3, 5));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_UnassignedImportedStruct_OldLanguageVersion(bool useCompilationReference)
+    {
+        var libSource = """
+            #pragma warning disable CS0169 // unreferenced field
+            public struct S
+            {
+                private string _field;
+            }
+            """;
+
+        var lib = CreateCompilation(libSource);
+        var libReference = useCompilationReference ? lib.ToMetadataReference() : lib.EmitToImageReference();
+
+        var source = """
+            #pragma warning disable CS8500 // address of managed type
+            S x;
+            _ = &x;
+            """;
+
+        CreateCompilation(source, references: [libReference],
+            parseOptions: TestOptions.Regular15,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+            // (3,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = &x").WithArguments("updated memory safety rules").WithLocation(3, 1),
+            // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(3, 5),
+            // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&").WithArguments("updated memory safety rules").WithLocation(3, 5));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_UnassignedOutParameter(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M(out int value)
+                {
+                    fixed (int* p = &value) { }
+                    value++;
+                    fixed (int* p = &value) { }
+                }
+                static void SkipInit<T>(out T value) where T : unmanaged
+                {
+                    fixed (void* p = &value) { }
+                }
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (5,25): error CS9360: This operation may only be used in an unsafe context
+            //         fixed (int* p = &value) { }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(5, 25),
+            // (11,26): error CS9360: This operation may only be used in an unsafe context
+            //         fixed (void* p = &value) { }
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(11, 26));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_ControlFlow(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M(bool b)
+                {
+                    int x;
+                    if (b)
+                        x = 1;
+                    else
+                        x = 2;
+                    _ = &x;
+                    int y;
+                    if (b)
+                        y = 1;
+                    _ = &y;
+                    y++;
+                    return;
+            #pragma warning disable CS0162 // unreachable code
+                    int z;
+                    _ = &z;
+                }
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (14,13): error CS9360: This operation may only be used in an unsafe context
+            //         _ = &y;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(14, 13));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_InlineArrayOperandEvaluation(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    Buffer b;
+                    _ = &b[0];
+                    Buffer c;
+                    _ = &c[Initialize(out c)];
+                    _ = &c[0];
+                }
+                static int Initialize(out Buffer b)
+                {
+                    b = default;
+                    return 0;
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (6,13): error CS9360: This operation may only be used in an unsafe context
+            //         _ = &b[0];
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(6, 13));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_UnassignedManagedLocal(bool updatedRules)
+    {
+        var source = """
+            string s;
+            _ = &s;
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (2,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
+            // _ = &s;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("string").WithLocation(2, 5),
+            // (2,5): error CS9360: This operation may only be used in an unsafe context
+            // _ = &s;
+            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(2, 5));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_UnsafeModifier(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                unsafe static void M()
+                {
+                    int x;
+                    _ = &x;
+                    x++;
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+
+        if (updatedRules)
+        {
+            comp.VerifyDiagnostics(
+                // (6,13): error CS9360: This operation may only be used in an unsafe context
+                //         _ = &x;
+                Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(6, 13));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_Unassigned_UnsafeContext(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M(out int value)
+                {
+                    int x;
+                    unsafe
+                    {
+                        _ = &x;
+                        fixed (int* p = &value) { }
+                    }
+                    x++;
+                    value++;
+                    _ = &x;
+                    fixed (int* p = &value) { }
+                }
+            }
+            """;
+
+        var options = TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules);
+
+        CreateCompilation(source, options: options).VerifyEmitDiagnostics();
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: options).VerifyEmitDiagnostics();
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: options)
+            .VerifyDiagnostics(updatedRules ?
+            [
+                // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+                // (13,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = &x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = &x").WithArguments("updated memory safety rules").WithLocation(13, 9),
+                // (13,13): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         _ = &x;
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(13, 13),
+                // (14,9): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         fixed (int* p = &value) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "fixed (int* p = &value) { }").WithArguments("updated memory safety rules").WithLocation(14, 9),
+                // (14,16): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         fixed (int* p = &value) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("updated memory safety rules").WithLocation(14, 16),
+                // (14,25): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //         fixed (int* p = &value) { }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&value").WithArguments("updated memory safety rules").WithLocation(14, 25),
+            ] : [
+                // (13,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = &x;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = &x").WithLocation(13, 9),
+                // (13,13): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         _ = &x;
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(13, 13),
+                // (14,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         fixed (int* p = &value) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "fixed (int* p = &value) { }").WithLocation(14, 9),
+                // (14,16): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         fixed (int* p = &value) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(14, 16),
+                // (14,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         fixed (int* p = &value) { }
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&value").WithLocation(14, 25),
+            ]);
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_UnsafeExpression(bool updatedRules)
+    {
+        var source = """
+            int x;
+            _ = unsafe(&x);
+            x++;
+            _ = &x;
+            S s;
+            _ = unsafe(&s.X);
+            _ = &s.X;
+
+            struct S
+            {
+                public int X;
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void Pointer_AddressOf_LegacyUnsafeContext()
+    {
+        var source = """
+            unsafe class C
+            {
+                static void M(out int value)
+                {
+                    int x;
+                    _ = &x;
+                    x++;
+                    fixed (int* p = &value) { }
+                    value++;
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll)
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
     public void Pointer_Dereference_SafeContext(bool allowUnsafe)
     {
         var source = """
@@ -2509,7 +2954,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void Pointer_AddressOf_SafeContext()
     {
         var source = """
-            int x;
+            int x = 0;
             int* p = &x;
             """;
 
@@ -2648,7 +3093,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     public void Pointer_AddressOfManaged_SafeContext()
     {
         var source = """
-            string s;
+            string s = null;
             string* p = &s;
             """;
 
