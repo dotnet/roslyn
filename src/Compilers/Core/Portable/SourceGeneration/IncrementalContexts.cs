@@ -362,7 +362,8 @@ namespace Microsoft.CodeAnalysis
     }
 
     /// <summary>
-    /// Context passed to a filter to determine if a generator should be executed or not.
+    /// Context passed to a filter to determine if a generator's regular outputs should be executed.
+    /// Initialization, post-initialization outputs, and pre-compilation outputs are not filtered.
     /// </summary>
     public readonly struct GeneratorFilterContext
     {
