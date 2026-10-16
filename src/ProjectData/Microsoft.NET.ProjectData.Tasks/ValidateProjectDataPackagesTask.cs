@@ -33,6 +33,13 @@ public sealed class ValidateProjectDataPackagesTask : Microsoft.Build.Utilities.
 
 	public ITaskItem[] ResolvedPackages { get; set; } = [];
 
+	/// <summary>
+	/// Gets whether central transitive pinning is effective for this project. NuGet ignores
+	/// <see cref="CentralPackageTransitivePinningEnabled"/> when Central Package Management is disabled.
+	/// </summary>
+	private bool IsCentralTransitivePinningEnabled =>
+		this.ManagePackageVersionsCentrally && this.CentralPackageTransitivePinningEnabled;
+
 	public override bool Execute()
 	{
 		Dictionary<string, ITaskItem> resolvedPackagesById = this.GetResolvedPackagesById();
@@ -115,7 +122,7 @@ public sealed class ValidateProjectDataPackagesTask : Microsoft.Build.Utilities.
 			}
 		}
 
-		if (this.CentralPackageTransitivePinningEnabled && restoredRequests is not null)
+		if (this.IsCentralTransitivePinningEnabled && restoredRequests is not null)
 		{
 			var activeCentralTransitiveVersionsById = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 			foreach (KeyValuePair<string, string> centralVersion in centralVersionsById)
@@ -335,15 +342,14 @@ public sealed class ValidateProjectDataPackagesTask : Microsoft.Build.Utilities.
 				return null;
 			}
 
-			bool hasCentralPackageEvidence = this.ManagePackageVersionsCentrally ||
-				this.CentralPackageTransitivePinningEnabled ||
-				this.PackageVersions.Length > 0 ||
-				TryGetProperty(framework, "centralPackageVersions", out _) ||
-				TryGetProperty(assetsFile.RootElement, "centralTransitiveDependencyGroups", out _);
-			bool? restoredPinningEnabled = this.GetRestoredCentralPackageTransitivePinningMode(project, hasCentralPackageEvidence);
-			if (hasCentralPackageEvidence && restoredPinningEnabled is null)
+			bool? restoredPinningEnabled = null;
+			if (this.ManagePackageVersionsCentrally)
 			{
-				return null;
+				restoredPinningEnabled = this.GetRestoredCentralPackageTransitivePinningMode(project);
+				if (restoredPinningEnabled is null)
+				{
+					return null;
+				}
 			}
 
 			if (!TryGetProperty(framework, "dependencies", out JsonElement dependencies))
@@ -461,15 +467,11 @@ public sealed class ValidateProjectDataPackagesTask : Microsoft.Build.Utilities.
 		return true;
 	}
 
-	private bool? GetRestoredCentralPackageTransitivePinningMode(JsonElement project, bool required)
+	private bool? GetRestoredCentralPackageTransitivePinningMode(JsonElement project)
 	{
 		if (!TryGetProperty(project, "restore", out JsonElement restore))
 		{
-			if (required)
-			{
-				this.LogAssetsFileError("restore settings do not contain central transitive package pinning mode");
-			}
-
+			this.LogAssetsFileError("restore settings do not contain central transitive package pinning mode");
 			return null;
 		}
 
@@ -482,7 +484,7 @@ public sealed class ValidateProjectDataPackagesTask : Microsoft.Build.Utilities.
 		if (!TryGetProperty(restore, "CentralPackageTransitivePinningEnabled", out JsonElement pinningEnabled))
 		{
 			// NuGet 6.13 writes the property only when enabled; omission records false.
-			return required ? false : null;
+			return false;
 		}
 
 		if (pinningEnabled.ValueKind != JsonValueKind.True &&
@@ -498,7 +500,7 @@ public sealed class ValidateProjectDataPackagesTask : Microsoft.Build.Utilities.
 	private Dictionary<string, string>? GetRestoredCentralVersions(JsonElement framework)
 	{
 		var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		if (!this.CentralPackageTransitivePinningEnabled ||
+		if (!this.IsCentralTransitivePinningEnabled ||
 			!TryGetProperty(framework, "centralPackageVersions", out JsonElement centralVersions))
 		{
 			return result;
@@ -530,7 +532,7 @@ public sealed class ValidateProjectDataPackagesTask : Microsoft.Build.Utilities.
 		IReadOnlyDictionary<string, string> directRequests)
 	{
 		var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		if (!this.CentralPackageTransitivePinningEnabled ||
+		if (!this.IsCentralTransitivePinningEnabled ||
 			!TryGetProperty(assetsFile, "centralTransitiveDependencyGroups", out JsonElement groups))
 		{
 			return result;
@@ -576,7 +578,7 @@ public sealed class ValidateProjectDataPackagesTask : Microsoft.Build.Utilities.
 	private Dictionary<string, string>? GetRestoredResolvedVersions(JsonElement assetsFile)
 	{
 		var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-		if (!this.CentralPackageTransitivePinningEnabled)
+		if (!this.IsCentralTransitivePinningEnabled)
 		{
 			return result;
 		}

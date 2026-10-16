@@ -565,6 +565,9 @@ public partial class AbstractLanguageServerClientTests
         processStartInfo.ArgumentList.Add("--logLevel");
         processStartInfo.ArgumentList.Add("Trace");
 
+        processStartInfo.ArgumentList.Add("--telemetryLevel");
+        processStartInfo.ArgumentList.Add("off");
+
         processStartInfo.ArgumentList.Add("--extensionLogDirectory");
         processStartInfo.ArgumentList.Add(extensionLogsPath);
 

@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
-                If _lazyType Is Nothing Then
+                If Volatile.Read(_lazyType) Is Nothing Then
                     Dim diagnostics = BindingDiagnosticBag.GetInstance()
                     Dim isTypeInferred = False
                     Dim isDelegateFromImplements = False

@@ -67,6 +67,7 @@ namespace TestRunner.RunTests
             // Prioritize test hosts over the launcher and other owned .NET processes.
             foreach (var (process, name) in candidates.OrderByDescending(p => p.Name.StartsWith("testhost", StringComparison.Ordinal)))
             {
+                ConsoleUtil.Write($"Dumping process {name} ({process.Id}) ... ");
                 string? path = null;
                 try
                 {
@@ -95,10 +96,13 @@ namespace TestRunner.RunTests
                         throw new Exception($"Dump helper exited with code {result.ExitCode}");
 
                     File.Move(path, dumpPath);
-                    ConsoleUtil.WriteLine($"Dump collected: {dumpPath} ({new FileInfo(dumpPath).Length} bytes)");
+                    var dumpSize = new FileInfo(dumpPath).Length;
+                    ConsoleUtil.WriteLine("completed");
+                    ConsoleUtil.WriteLine($"Dump collected: {dumpPath} ({dumpSize} bytes)");
                 }
                 catch (Exception ex)
                 {
+                    ConsoleUtil.WriteLine("failed");
                     ConsoleUtil.Warning($"Dump collection failed: {ex.Message}");
                     if (path is not null)
                     {

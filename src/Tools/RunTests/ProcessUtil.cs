@@ -8,10 +8,10 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Management;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 
 namespace TestRunner.RunTests
 {
@@ -120,16 +120,25 @@ namespace TestRunner.RunTests
             [SupportedOSPlatform("windows")]
             static Dictionary<int, int> GetParentProcessIdsWindows()
             {
+                const uint TH32CS_SNAPPROCESS = 0x00000002;
+                const int ERROR_NO_MORE_FILES = 18;
+
+                using var snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+                if (snapshot.IsInvalid)
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+
                 var result = new Dictionary<int, int>();
-                using var searcher = new ManagementObjectSearcher("SELECT ProcessId, ParentProcessId FROM Win32_Process");
-                using var processes = searcher.Get();
-                foreach (ManagementObject process in processes)
+                var entry = new ProcessEntry32 { Size = (uint)Marshal.SizeOf<ProcessEntry32>() };
+                var hasEntry = Process32FirstW(snapshot, ref entry);
+                while (hasEntry)
                 {
-                    using (process)
-                    {
-                        result[checked((int)(uint)process["ProcessId"])] = checked((int)(uint)process["ParentProcessId"]);
-                    }
+                    result[checked((int)entry.ProcessId)] = checked((int)entry.ParentProcessId);
+                    hasEntry = Process32NextW(snapshot, ref entry);
                 }
+
+                var error = Marshal.GetLastWin32Error();
+                if (error != ERROR_NO_MORE_FILES)
+                    throw new Win32Exception(error);
 
                 return result;
             }
@@ -174,5 +183,32 @@ namespace TestRunner.RunTests
                 return result;
             }
         }
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct ProcessEntry32
+        {
+            public uint Size;
+            public uint Usage;
+            public uint ProcessId;
+            public UIntPtr DefaultHeapId;
+            public uint ModuleId;
+            public uint ThreadCount;
+            public uint ParentProcessId;
+            public int BasePriority;
+            public uint Flags;
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+            public string ExeFile;
+        }
+
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        private static extern SafeFileHandle CreateToolhelp32Snapshot(uint flags, uint processId);
+
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool Process32FirstW(SafeFileHandle snapshot, ref ProcessEntry32 entry);
+
+        [DllImport("kernel32.dll", ExactSpelling = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool Process32NextW(SafeFileHandle snapshot, ref ProcessEntry32 entry);
     }
 }

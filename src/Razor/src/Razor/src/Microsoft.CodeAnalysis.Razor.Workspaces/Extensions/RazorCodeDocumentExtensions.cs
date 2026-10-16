@@ -26,9 +26,6 @@ internal static partial class RazorCodeDocumentExtensions
         return false;
     }
 
-    public static Syntax.SyntaxNode GetRequiredSyntaxRoot(this RazorCodeDocument codeDocument)
-        => codeDocument.GetRequiredTagHelperRewrittenSyntaxTree().Root;
-
     /// <summary>
     /// Returns the generated <see cref="RazorCSharpDocument"/> that corresponds to the given
     /// generated-source hint name. For Razor components the generator can emit two halves:
