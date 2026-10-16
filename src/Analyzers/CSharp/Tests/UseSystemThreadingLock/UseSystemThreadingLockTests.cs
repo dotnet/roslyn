@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseSystemThreadingLock;
@@ -1524,7 +1525,7 @@ public sealed class UseSystemThreadingLockTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86076")]
     public Task TestWithMultipleVariableDeclaratorFieldPresent()
         => new VerifyCS.Test
         {
@@ -1562,7 +1563,7 @@ public sealed class UseSystemThreadingLockTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86076")]
     public Task TestWithMultipleVariableDeclaratorFieldAfterLockField()
         => new VerifyCS.Test
         {
@@ -1600,7 +1601,7 @@ public sealed class UseSystemThreadingLockTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86076")]
     public Task TestNotWithMultipleDeclaratorsPrivate()
         => new VerifyCS.Test
         {
