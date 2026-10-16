@@ -51,7 +51,7 @@ The feature flag can be used in either of these forms:
 When the feature flag is present without an explicit path, the current implementation uses:
 
 ```text
-<temp>/roslyn-cache
+<LocalApplicationData>/roslyn-cache
 ```
 
 There are currently two ways to get the feature onto the request:
@@ -155,6 +155,8 @@ Any failure while reading from or writing to the cache is treated as a cache mis
 Cache entries are written using a staging directory and then published with a directory move. This is intended to ensure readers only observe fully populated entries.
 
 Per-entry synchronization is used so that multiple writers racing on the same key do not all try to publish the same result concurrently. If another process is already populating an entry, the current request simply continues with normal compilation behavior.
+
+Cache-entry mutexes use cross-session, cross-user scope so processes sharing a cache directory use the same locks, subject to operating-system access controls. This differs from compiler-server startup and lifetime mutexes, which are restricted to the current user. Mutex scope does not replace access controls on the cache directory.
 
 ## Diagnostics
 

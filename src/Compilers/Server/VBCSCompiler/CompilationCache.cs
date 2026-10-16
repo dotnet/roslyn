@@ -376,12 +376,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private IDisposable? TryAcquireEntryMutex(string dllName, string hashKey, bool createIfMissing = true)
         {
             var mutexName = GetCacheEntryMutexName(dllName, hashKey);
-            if (!createIfMissing && !ServerNamedMutex.WasOpen(mutexName))
+            if (!createIfMissing && !ServerNamedMutex.WasOpen(mutexName, currentUserOnly: false))
             {
                 return null;
             }
 
-            var mutex = new ServerNamedMutex(mutexName, out var createdNew);
+            var mutex = new ServerNamedMutex(mutexName, out var createdNew, currentUserOnly: false);
             if (createdNew)
             {
                 if (!createIfMissing)
