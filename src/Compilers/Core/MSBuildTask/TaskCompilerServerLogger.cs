@@ -8,7 +8,8 @@ using Microsoft.CodeAnalysis.CommandLine;
 namespace Microsoft.CodeAnalysis.BuildTasks;
 
 /// <summary>
-/// Logs to both the MSBuild task's output and the inner compiler server logger.
+/// Routes operational diagnostics to both the MSBuild task's output and the inner compiler server logger.
+/// Detailed tracing is routed only to the inner logger.
 /// </summary>
 internal sealed class TaskCompilerServerLogger(
     TaskLoggingHelper taskLogger,
@@ -18,11 +19,19 @@ internal sealed class TaskCompilerServerLogger(
     private readonly TaskLoggingHelper _taskLogger = taskLogger;
     private readonly ICompilerServerLogger _inner = inner;
 
-    public bool IsLogging => true;
+    public bool IsEnabled(CompilerServerLogKind kind)
+        => kind == CompilerServerLogKind.Operational || _inner.IsEnabled(kind);
 
-    public void Log(string message)
+    public void Log(CompilerServerLogKind kind, string message)
     {
-        _inner.Log(message);
-        _taskLogger.LogMessage(message);
+        if (_inner.IsEnabled(kind))
+        {
+            _inner.Log(kind, message);
+        }
+
+        if (kind == CompilerServerLogKind.Operational)
+        {
+            _taskLogger.LogMessage(message);
+        }
     }
 }
