@@ -7,9 +7,10 @@ using Microsoft.CodeAnalysis.CSharp.UseSystemThreadingLock;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
+using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UsePrimaryConstructor;
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.UseSystemThreadingLock;
 
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpUseSystemThreadingLockDiagnosticAnalyzer,
@@ -1522,5 +1523,102 @@ public sealed class UseSystemThreadingLockTests
                 """,
             LanguageVersion = LanguageVersion.CSharp13,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86076")]
+    public Task TestWithMultipleVariableDeclaratorFieldPresent()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _other1 = new object(), _other2 = new object();
+                    private object [|_gate|] = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockTypePolyFill,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private object _other1 = new object(), _other2 = new object();
+                    private Lock _gate = new Lock();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockTypePolyFill,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86076")]
+    public Task TestWithMultipleVariableDeclaratorFieldAfterLockField()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object [|_gate|] = new object();
+                    private object _other1 = new object(), _other2 = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockTypePolyFill,
+            FixedCode = """
+                using System.Threading;
+
+                class C
+                {
+                    private Lock _gate = new Lock();
+                    private object _other1 = new object(), _other2 = new object();
+
+                    void M()
+                    {
+                        lock (_gate)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockTypePolyFill,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86076")]
+    public Task TestNotWithMultipleDeclaratorsPrivate()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    private object _gate1 = new object(), _gate2 = new object();
+
+                    void M()
+                    {
+                        lock (_gate1)
+                        {
+                        }
+                    }
+                }
+                """ + SystemThreadingLockTypePolyFill,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
 }
