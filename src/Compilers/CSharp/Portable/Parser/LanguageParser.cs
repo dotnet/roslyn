@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var body = new NamespaceBodyBuilder(_pool);
             try
             {
-                this.ParseNamespaceBody(ref tmp, ref body, ref initialBadNodes, SyntaxKind.CompilationUnit);
+                this.ParseNamespaceBody(ref tmp, ref body, ref initialBadNodes, SyntaxKind.CompilationUnit, out _);
 
                 var eof = this.EatToken(SyntaxKind.EndOfFileToken);
                 var result = _syntaxFactory.CompilationUnit(body.Externs, body.Usings, body.Attributes, body.Members, eof);
@@ -289,8 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Debug.Assert(semicolon != null);
 
                     SyntaxListBuilder? initialBadNodes = null;
-                    this.ParseNamespaceBody(
-                        ref semicolon, ref body, ref initialBadNodes, SyntaxKind.FileScopedNamespaceDeclaration);
+                    this.ParseNamespaceBody(ref semicolon, ref body, ref initialBadNodes, SyntaxKind.FileScopedNamespaceDeclaration, out _);
                     Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to semicolon...
 
                     return _syntaxFactory.FileScopedNamespaceDeclaration(
@@ -306,8 +305,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else
                 {
                     SyntaxListBuilder? initialBadNodes = null;
-                    var suppressCloseBraceError = this.ParseNamespaceBody(
-                        ref openBrace, ref body, ref initialBadNodes, SyntaxKind.NamespaceDeclaration);
+                    this.ParseNamespaceBody(
+                        ref openBrace, ref body, ref initialBadNodes, SyntaxKind.NamespaceDeclaration, out bool suppressCloseBraceError);
                     Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to open brace...
 
                     return _syntaxFactory.NamespaceDeclaration(
@@ -319,6 +318,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         body.Externs,
                         body.Usings,
                         body.Members,
+                        // If ParseNamespaceBody consumed the namespace's close-brace to close a recovered type, the
+                        // diagnostic on the type's original close-brace already explains the recovery.  Do not also
+                        // report the synthesized namespace close-brace as missing.
                         this.EatToken(SyntaxKind.CloseBraceToken, reportError: !suppressCloseBraceError),
                         this.TryEatToken(SyntaxKind.SemicolonToken));
                 }
@@ -409,12 +411,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             TopLevelStatementsAfterTypesAndNamespaces = 6,
         }
 
-        private bool ParseNamespaceBody(
+        // `suppressCloseBraceError` is true only for a braced namespace when recovery moves the final run of type-only
+        // siblings into the preceding type and consumes the namespace's '}' as that type's close-brace.  For example,
+        // in `namespace N { class C { } void M() { } }`, the '}' after C is attached as skipped syntax to M with the
+        // recovery diagnostic, M moves into C, and the final '}' closes C.  The caller then synthesizes the namespace's
+        // close-brace without reporting a duplicate error.
+        private void ParseNamespaceBody(
             [NotNullIfNotNull(nameof(openBraceOrSemicolon))] ref SyntaxToken? openBraceOrSemicolon,
             ref NamespaceBodyBuilder body,
             ref SyntaxListBuilder? initialBadNodes,
-            SyntaxKind parentKind)
+            SyntaxKind parentKind,
+            out bool suppressCloseBraceError)
         {
+            suppressCloseBraceError = false;
             var shouldSuppressCloseBraceError = false;
 
             ParseNamespaceBodyWorker(
@@ -427,12 +436,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // some normal type declaration.  If so, assume the close-brace ended the type before all its members and
             // move those members into the type.
             if (!sawMemberDeclarationOnlyValidWithinTypeDeclaration)
-                return false;
+                return;
 
             // In a script file, it can be ok to have these members at the top level.  For example, a field is actually
             // ok to parse out at the top level as it will become a field on the script global object.
             if (IsScript && parentKind == SyntaxKind.CompilationUnit)
-                return false;
+                return;
 
             var finalMembers = _pool.Allocate<MemberDeclarationSyntax>();
 
@@ -472,8 +481,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             _pool.Free(body.Members);
             body.Members = finalMembers;
+            suppressCloseBraceError = shouldSuppressCloseBraceError;
 
-            return shouldSuppressCloseBraceError;
+            return;
 
             (int firstSiblingToMoveInclusive, int lastSiblingToMoveExclusive)? determineSiblingsToMoveIntoType(
                 int typeDeclarationIndex,
@@ -503,7 +513,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 int firstSiblingToMoveInclusive,
                 int lastSiblingToMoveExclusive)
             {
-                var isLast = lastSiblingToMoveExclusive == body.Members.Count;
                 var finalTypeDeclarationMembers = _pool.Allocate<MemberDeclarationSyntax>();
                 finalTypeDeclarationMembers.AddRange(typeDeclaration.Members);
 
@@ -523,11 +532,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     finalTypeDeclarationMembers.Add(currentSibling);
                 }
 
-                // The diagnostic on the earlier close-brace already explains why these members were recovered into
-                // the type, so do not also report "} expected" on a synthesized close-brace.  If a following
-                // close-brace is available, use it for the type.  This can leave a braced namespace with a synthesized
-                // close-brace, but that is part of the same recovery and should not produce another diagnostic.
-                var followingCloseBraceCanCloseType = canUseFollowingCloseBraceForType();
+                // The diagnostic on the original type close-brace already explains the recovery.  If no following '}'
+                // can close the recovered type, synthesize the type's close-brace without another diagnostic.  Otherwise
+                // consume the following '}' for the type.  For a braced namespace, the caller then synthesizes the
+                // namespace's close-brace and suppresses that duplicate diagnostic.
+                var followingCloseBraceCanCloseType = canUseFollowingCloseBraceForType(
+                    lastSiblingToMoveExclusive, body.Members.Count);
 
                 shouldSuppressCloseBraceError |=
                     followingCloseBraceCanCloseType &&
@@ -552,18 +562,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     finalCloseBraceToken,
                     typeDeclaration.SemicolonToken);
 
-                bool canUseFollowingCloseBraceForType()
+                bool canUseFollowingCloseBraceForType(int lastRecoveredSiblingExclusive, int bodyMemberCount)
                 {
-                    // A following namespace member must remain outside the recovered type, so the type needs to end
-                    // before that member rather than at a token after the entire namespace body.
-                    if (!isLast)
+                    // A following body member must remain outside the recovered type, so the type needs to end before it.
+                    if (lastRecoveredSiblingExclusive != bodyMemberCount)
                         return false;
 
-                    // At end-of-file there is no real close-brace to use.  The diagnostic on the earlier close-brace
-                    // already explains why the type receives a silent missing token.
-                    if (CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+                    // ParseNamespaceBodyWorker returns only at end-of-file or, for a non-global body, at '}'.  At
+                    // end-of-file, there is no following close-brace to use for the recovered type.
+                    if (CurrentToken.Kind == SyntaxKind.EndOfFileToken)
                         return false;
 
+                    Debug.Assert(CurrentToken.Kind == SyntaxKind.CloseBraceToken);
                     return true;
                 }
             }
