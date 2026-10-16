@@ -11,6 +11,7 @@ HAA0202 | Performance | Warning | ConcatenationAllocationAnalyzer, [Documentatio
 HAA0301 | Performance | Warning | DisplayClassAllocationAnalyzer
 HAA0302 | Performance | Warning | DisplayClassAllocationAnalyzer
 HAA0303 | Performance | Warning | DisplayClassAllocationAnalyzer
+HAA0304 | Performance | Warning | DisplayClassAllocationAnalyzer
 HAA0401 | Performance | Warning | EnumeratorAllocationAnalyzer
 HAA0601 | Performance | Warning | TypeConversionAllocationAnalyzer
 HAA0602 | Performance | Warning | TypeConversionAllocationAnalyzer
