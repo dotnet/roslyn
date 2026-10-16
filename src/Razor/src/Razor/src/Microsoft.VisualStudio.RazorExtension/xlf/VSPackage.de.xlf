@@ -139,12 +139,12 @@
       </trans-unit>
       <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDescription">
         <source>If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</source>
-        <target state="new">If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</target>
+        <target state="translated">Bei „true“ wird der Quelleinzug innerhalb von Skript- und Stilblöcken beibehalten, die Razor-Anweisungen, -Blöcke, -Direktiven, -Kommentare, -Vorlagen oder eigenständige Ausdrücke enthalten</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDisplayName">
         <source>Ignore indentation in script or style blocks with complex Razor</source>
-        <target state="new">Ignore indentation in script or style blocks with complex Razor</target>
+        <target state="translated">Einzug in Skript- oder Stilblöcken mit komplexem Razor ignorieren</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelCritical">

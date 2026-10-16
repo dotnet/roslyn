@@ -139,12 +139,12 @@
       </trans-unit>
       <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDescription">
         <source>If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</source>
-        <target state="new">If true, preserves source indentation inside script and style blocks that contain Razor statements, blocks, directives, comments, templates, or standalone expressions</target>
+        <target state="translated">true이면 Razor 문, 블록, 지시문, 주석, 템플릿 또는 독립 실행형 식이 포함된 스크립트 및 스타일 블록 내부에서 원본 들여쓰기를 유지함</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDisplayName">
         <source>Ignore indentation in script or style blocks with complex Razor</source>
-        <target state="new">Ignore indentation in script or style blocks with complex Razor</target>
+        <target state="translated">복잡한 Razor가 포함된 스크립트 또는 스타일 블록의 들여쓰기 무시</target>
         <note />
       </trans-unit>
       <trans-unit id="Setting_LogLevelCritical">
