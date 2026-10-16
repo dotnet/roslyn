@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private LocalDefinition EmitPassByCopyAddress(BoundPassByCopy passByCopyExpr, AddressKind addressKind, bool used)
         {
-            Debug.Assert(used);
+            //Debug.Assert(used);
             // Normally we can just defer PassByCopy to the `default`,
             // but in some cases the value inside is already a temp that is local to that node.
             // In such case we can skip extra store/reload
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private LocalDefinition EmitAddressOfTempClone(BoundExpression expression, bool used)
         {
-            Debug.Assert(used);
+            //Debug.Assert(used);
             EmitExpression(expression, used);
 
             if (used)

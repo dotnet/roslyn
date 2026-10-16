@@ -17316,6 +17316,6205 @@ struct S
             CompileAndVerify(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true), expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "Pass1Pass2" : null, verify: Verification.Skipped);
         }
 
+        [Fact]
+        public void UnusedThis_001()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        var x = this;
+    }
+}
+
+class C
+{
+    public void M()
+    {
+        var x = this;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  .locals init (C V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (S V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_002()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        var x = this;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_003()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        var x = (S)this;
+    }
+}
+
+class C
+{
+    public void M()
+    {
+        var x = (C)this;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  .locals init (C V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (S V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_004()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        var x = (S)this;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_005()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        _ = this;
+    }
+}
+
+class C
+{
+    public void M()
+    {
+        _ = this;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_006()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        _ = this;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_007()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        _ = (S)this;
+    }
+}
+
+class C
+{
+    public void M()
+    {
+        _ = (C)this;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_008()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        _ = (S)this;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_009()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var x = ref this;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        4 (0x4)
+  .maxstack  1
+  .locals init (S& V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_010()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        GetRef().M();
+        System.Console.WriteLine("Pass");
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var x = ref this;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_011()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        _ = ref this;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_012()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        GetRef().M();
+        System.Console.WriteLine("Pass");
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        _ = ref this;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_013()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var x = this.F;
+    }
+}
+
+class C
+{
+    public byte F;
+
+    public void M()
+    {
+        var x = this.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (byte V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "byte C.F"
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (byte V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "byte S.F"
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "byte C.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_014()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var x = this.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_015()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var x = ((S)this).F;
+    }
+}
+
+class C
+{
+    public byte F;
+
+    public void M()
+    {
+        var x = ((C)this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (byte V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "byte C.F"
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  .locals init (byte V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  ldfld      "byte S.F"
+  IL_000c:  stloc.0
+  IL_000d:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "byte C.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_016()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var x = ((S)this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_017()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        _ = this.F;
+    }
+}
+
+class C
+{
+    public byte F;
+
+    public void M()
+    {
+        _ = this.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "byte C.F"
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "byte C.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_018()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        _ = this.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_019()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        _ = ((S)this).F;
+    }
+}
+
+class C
+{
+    public byte F;
+
+    public void M()
+    {
+        _ = ((C)this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "byte C.F"
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "byte C.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_020()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        _ = ((S)this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_021()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var x = ref this.F;
+    }
+}
+
+class C
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var x = ref this.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (byte& V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     "byte C.F"
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (byte& V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     "byte S.F"
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "byte C.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_022()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var x = ref this.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_023()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        _ = ref this.F;
+    }
+}
+
+class C
+{
+    public byte F;
+
+    public void M()
+    {
+        _ = ref this.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     "byte C.F"
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "byte C.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_024()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        _ = ref this.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_025()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var x = this.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (byte V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "ref byte S.F"
+  IL_0007:  ldind.u1
+  IL_0008:  stloc.0
+  IL_0009:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  ldind.u1
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_026()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var x = this.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_027()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var x = ((S)this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (byte V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  ldfld      "ref byte S.F"
+  IL_000c:  ldind.u1
+  IL_000d:  stloc.0
+  IL_000e:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  ldind.u1
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_028()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var x = ((S)this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_029()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        _ = this.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "ref byte S.F"
+  IL_0007:  ldind.u1
+  IL_0008:  pop
+  IL_0009:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  ldind.u1
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_030()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        _ = this.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_031()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        _ = ((S)this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  ldfld      "ref byte S.F"
+  IL_000c:  ldind.u1
+  IL_000d:  pop
+  IL_000e:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  ldind.u1
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_032()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        _ = ((S)this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_033()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var x = ref this.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  .locals init (byte& V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "ref byte S.F"
+  IL_0007:  stloc.0
+  IL_0008:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_034()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var x = ref this.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_035()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        _ = ref this.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_036()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        _ = ref this.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_037()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var x = ref ((S)this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (byte& V_0, //x
+                S V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.1
+  IL_0008:  ldloca.s   V_1
+  IL_000a:  ldfld      "ref byte S.F"
+  IL_000f:  stloc.0
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_038()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var x = ref ((S)this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_039()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        _ = ref ((S)this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  0
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_040()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        _ = ref ((S)this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_041()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        var x = t.F;
+    }
+}
+
+class C
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        var x = t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (C V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldfld      "byte C.F"
+  IL_0009:  stloc.1
+  IL_000a:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (S V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      "byte S.F"
+  IL_000e:  stloc.1
+  IL_000f:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "byte C.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_042()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        var x = t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_043()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        _ = t.F;
+    }
+}
+
+class C
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        _ = t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (C V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldfld      "byte C.F"
+  IL_0009:  pop
+  IL_000a:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  nop
+  IL_0009:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "byte C.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_044()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        _ = t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_045()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        ref var x = ref t.F;
+    }
+}
+
+class C
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        ref var x = ref t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (C V_0, //t
+                byte& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldflda     "byte C.F"
+  IL_0009:  stloc.1
+  IL_000a:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (S V_0, //t
+                byte& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldflda     "byte S.F"
+  IL_000f:  stloc.1
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "byte C.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_046()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        ref var x = ref t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_047()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        _ = ref t.F;
+    }
+}
+
+class C
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        _ = ref t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (C V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldflda     "byte C.F"
+  IL_0009:  pop
+  IL_000a:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  nop
+  IL_0009:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "byte C.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_048()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        var t = this;
+        _ = ref t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_049()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var t = this;
+        var x = t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (S V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      "ref byte S.F"
+  IL_000e:  ldind.u1
+  IL_000f:  stloc.1
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  ldind.u1
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_050()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var t = this;
+        var x = t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_051()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var t = this;
+        _ = t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      "ref byte S.F"
+  IL_000e:  ldind.u1
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  ldind.u1
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_052()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var t = this;
+        _ = t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_053()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var t = this;
+        ref var x = ref t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (S V_0, //t
+                byte& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldfld      "ref byte S.F"
+  IL_000f:  stloc.1
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_054()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var t = this;
+        ref var x = ref t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_055()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var t = this;
+        _ = ref t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  nop
+  IL_0009:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_056()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        var t = this;
+        _ = ref t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_057()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        var t = this;
+        var x = t;
+    }
+}
+
+class C
+{
+    public void M()
+    {
+        var t = this;
+        var x = t;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (C V_0, //t
+                C V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  stloc.1
+  IL_0005:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S V_0, //t
+                S V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  stloc.1
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  pop
+  IL_0002:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_058()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        var t = this;
+        var x = t;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_059()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        var t = this;
+        _ = t;
+    }
+}
+
+class C
+{
+    public void M()
+    {
+        var t = this;
+        _ = t;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        5 (0x5)
+  .maxstack  1
+  .locals init (C V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  nop
+  IL_0004:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  nop
+  IL_0009:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("C.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_060()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        var t = this;
+        _ = t;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_061()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        var t = this;
+        ref var x = ref t;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (S V_0, //t
+                S& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  stloc.1
+  IL_000b:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_062()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        var t = this;
+        ref var x = ref t;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_063()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        var t = this;
+        _ = ref t;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  stloc.0
+  IL_0008:  nop
+  IL_0009:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (S V_0) //t
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  stloc.0
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_064()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        var t = this;
+        _ = ref t;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_065()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        var x = t;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0, //t
+                S V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  stloc.1
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_066()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        var x = t;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_067()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        var x = (S)t;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0, //t
+                S V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  stloc.1
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_068()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        var x = (S)t;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_069()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = t;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  pop
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_070()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = t;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_071()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = (S)t;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  pop
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_072()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = (S)t;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_073()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref t;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (S& V_0, //t
+                S& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  stloc.1
+  IL_0005:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  pop
+  IL_0002:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_074()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        GetRef().M();
+        System.Console.WriteLine("Pass");
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref t;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_075()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref t;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        5 (0x5)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  nop
+  IL_0004:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        3 (0x3)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  pop
+  IL_0002:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_076()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        GetRef().M();
+        System.Console.WriteLine("Pass");
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref t;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_077()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldfld      "byte S.F"
+  IL_0009:  stloc.1
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_078()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_079()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = ((S)t).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  .locals init (S& V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  ldfld      "byte S.F"
+  IL_000e:  stloc.1
+  IL_000f:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_080()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = ((S)t).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_081()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  pop
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_082()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_083()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ((S)t).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  pop
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_084()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ((S)t).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_085()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0, //t
+                byte& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldflda     "byte S.F"
+  IL_0009:  stloc.1
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_086()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_087()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldflda     "byte S.F"
+  IL_0009:  pop
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_088()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_089()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (S& V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldfld      "ref byte S.F"
+  IL_0009:  ldind.u1
+  IL_000a:  stloc.1
+  IL_000b:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  ldind.u1
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_090()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_091()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = ((S)t).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (S& V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  ldfld      "ref byte S.F"
+  IL_000e:  ldind.u1
+  IL_000f:  stloc.1
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  ldind.u1
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_092()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = ((S)t).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_093()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldfld      "ref byte S.F"
+  IL_0009:  ldind.u1
+  IL_000a:  pop
+  IL_000b:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  ldind.u1
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_094()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_095()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ((S)t).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  ldfld      "ref byte S.F"
+  IL_000e:  ldind.u1
+  IL_000f:  pop
+  IL_0010:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  ldind.u1
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_096()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ((S)t).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_097()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0, //t
+                byte& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldfld      "ref byte S.F"
+  IL_0009:  stloc.1
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_098()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_099()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref t.F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldfld      "ref byte S.F"
+  IL_0009:  pop
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_100()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref t.F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_101()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref ((S)t).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (S& V_0, //t
+                byte& V_1, //x
+                S V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  stloc.2
+  IL_000a:  ldloca.s   V_2
+  IL_000c:  ldfld      "ref byte S.F"
+  IL_0011:  stloc.1
+  IL_0012:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_102()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref ((S)t).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_103()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref ((S)t).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloc.0
+  IL_0004:  ldobj      "S"
+  IL_0009:  pop
+  IL_000a:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_104()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref ((S)t).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_105()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        var x = (t = ref this);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0, //t
+            S V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  stloc.1
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_106()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        var x = (t = ref this);
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_107()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        var x = (S)(t = ref this);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0, //t
+                S V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  stloc.1
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_108()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        var x = (S)(t = ref this);
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_109()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = (t = ref this);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.0
+  IL_0005:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_110()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = (t = ref this);
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+        }
+
+        [Fact]
+        public void UnusedThis_111()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = (S)(t = ref this);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_112()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = (S)(t = ref this);
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_113()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref (t = ref this);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  .locals init (S& V_0, //t
+                S& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  stloc.1
+  IL_0007:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_114()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        GetRef().M();
+        System.Console.WriteLine("Pass");
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref (t = ref this);
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_115()
+        {
+            var source = """
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref (t = ref this);
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        6 (0x6)
+  .maxstack  1
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  stloc.0
+  IL_0005:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        1 (0x1)
+  .maxstack  0
+  IL_0000:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_116()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        GetRef().M();
+        System.Console.WriteLine("Pass");
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref (t = ref this);
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_117()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = (t = ref this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldfld      "byte S.F"
+  IL_000b:  stloc.1
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_118()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = (t = ref this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_119()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = ((S)(t = ref this)).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  .locals init (S& V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  ldfld      "byte S.F"
+  IL_0010:  stloc.1
+  IL_0011:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_120()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = ((S)(t = ref this)).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_121()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = (t = ref this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldfld      "byte S.F"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_122()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = (t = ref this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_123()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ((S)(t = ref this)).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_124()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ((S)(t = ref this)).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_125()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref (t = ref this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0, //t
+                byte& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldflda     "byte S.F"
+  IL_000b:  stloc.1
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_126()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref (t = ref this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_127()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref (t = ref this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldflda     "byte S.F"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_128()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref (t = ref this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_129()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = (t = ref this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (S& V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  ldind.u1
+  IL_000c:  stloc.1
+  IL_000d:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  ldind.u1
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_130()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = (t = ref this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_131()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = ((S)(t = ref this)).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (S& V_0, //t
+                byte V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  ldfld      "ref byte S.F"
+  IL_0010:  ldind.u1
+  IL_0011:  stloc.1
+  IL_0012:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  ldind.u1
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_132()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        var x = ((S)(t = ref this)).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_133()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = (t = ref this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  ldind.u1
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  ldind.u1
+  IL_0007:  pop
+  IL_0008:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_134()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = (t = ref this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_135()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ((S)(t = ref this)).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  ldfld      "ref byte S.F"
+  IL_0010:  ldind.u1
+  IL_0011:  pop
+  IL_0012:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  ldind.u1
+  IL_000c:  pop
+  IL_000d:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_136()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ((S)(t = ref this)).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_137()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref (t = ref this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0, //t
+                byte& V_1) //x
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  stloc.1
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_138()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref (t = ref this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_139()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref (t = ref this).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldfld      "ref byte S.F"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_140()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref (t = ref this).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_141()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref ((S)(t = ref this)).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (S& V_0, //t
+                byte& V_1, //x
+                S V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  stloc.2
+  IL_000c:  ldloca.s   V_2
+  IL_000e:  ldfld      "ref byte S.F"
+  IL_0013:  stloc.1
+  IL_0014:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_142()
+        {
+            var source = """
+#pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
+
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        ref var x = ref ((S)(t = ref this)).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
+        [Fact]
+        public void UnusedThis_143()
+        {
+            var source = """
+#pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref ((S)(t = ref this)).F;
+    }
+}
+""";
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (S& V_0) //t
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldarg.0
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  pop
+  IL_000c:  ret
+}
+""");
+            verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            verifier.VerifyIL("S.M", """
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
+}
+""");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void UnusedThis_144()
+        {
+            var source = """
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+ref struct S
+{
+    public ref byte F;
+
+    public void M()
+    {
+        ref var t = ref this;
+        _ = ref ((S)(t = ref this)).F;
+    }
+}
+
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+        }
+
         [WorkItem(665317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665317")]
         [Fact]
         public void InitGenericElement()
