@@ -546,6 +546,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var finalCloseBraceToken = followingCloseBraceCanCloseType
                     ? EatToken(SyntaxKind.CloseBraceToken, reportError: false)
                     : SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken);
+
+                // A semicolon may legally follow a type's close-brace, so keep it with a real close-brace recovered here.
+                var finalSemicolonToken = followingCloseBraceCanCloseType
+                    ? TryEatToken(SyntaxKind.SemicolonToken)
+                    : typeDeclaration.SemicolonToken;
                 var newMembers = _pool.ToListAndFree(finalTypeDeclarationMembers);
 
                 return typeDeclaration.UpdateCore(
@@ -560,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     typeDeclaration.OpenBraceToken,
                     newMembers,
                     finalCloseBraceToken,
-                    typeDeclaration.SemicolonToken);
+                    finalSemicolonToken);
 
                 bool canUseFollowingCloseBraceForType(int lastRecoveredSiblingExclusive, int bodyMemberCount)
                 {

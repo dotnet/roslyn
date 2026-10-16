@@ -12775,16 +12775,22 @@ public class Class
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86033")]
-        public void ExtraTypeOnlyMembers_AfterSemicolonTerminatedType()
+        public void UnexpectedCloseBrace_BracedNamespaceWithLaterCloseAndSemicolon()
         {
             var text = """
                 namespace N
                 {
-                    record C;
+                    class C
+                    {
+                    }
                     private int x;
+                    };
                 }
                 """;
-            UsingTree(text);
+            UsingTree(text,
+                // (5,5): error CS9402: '}' closes the type, but more type members follow.
+                //     }
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 5));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -12796,29 +12802,89 @@ public class Class
                         N(SyntaxKind.IdentifierToken, "N");
                     }
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.RecordDeclaration);
+                    N(SyntaxKind.ClassDeclaration);
                     {
-                        N(SyntaxKind.RecordKeyword);
+                        N(SyntaxKind.ClassKeyword);
                         N(SyntaxKind.IdentifierToken, "C");
-                        N(SyntaxKind.SemicolonToken);
-                    }
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.PrivateKeyword);
-                        N(SyntaxKind.VariableDeclaration);
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.FieldDeclaration);
                         {
-                            N(SyntaxKind.PredefinedType);
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
                             {
-                                N(SyntaxKind.IntKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
                             }
-                            N(SyntaxKind.VariableDeclarator);
-                            {
-                                N(SyntaxKind.IdentifierToken, "x");
-                            }
+                            N(SyntaxKind.SemicolonToken);
                         }
+                        N(SyntaxKind.CloseBraceToken);
                         N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86033")]
+        public void UnexpectedCloseBrace_FileScopedNamespaceWithLaterCloseAndSemicolon()
+        {
+            var text = """
+                namespace N;
+
+                class C
+                {
+                }
+
+                private int x;
+                };
+                """;
+            UsingTree(text,
+                // (5,1): error CS9402: '}' closes the type, but more type members follow.
+                // }
+                Diagnostic(ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember, "}").WithLocation(5, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.SemicolonToken);
+                    }
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
