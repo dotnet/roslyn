@@ -14,23 +14,19 @@
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <GeneratePkgDefProductVersion>true</GeneratePkgDefProductVersion>
     <DeployExtension>false</DeployExtension>
-    <VsSettingsManifestDefault_IncludeInVSIX>false</VsSettingsManifestDefault_IncludeInVSIX>
   </PropertyGroup>
   <ItemGroup>
     <Content Include="UnifiedSettings\visualBasicSettings.registration.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <VsSettingsManifest Include="UnifiedSettings\visualBasicSettings.registration.json" Validate="true" Validate_Strict="true" IncludeInVSIX="false" />
     <Content Include="UnifiedSettings\visualBasicCodeStyleSettings.registration.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <VsSettingsManifest Include="UnifiedSettings\visualBasicCodeStyleSettings.registration.json" Validate="true" Validate_Strict="true" IncludeInVSIX="false" />
   </ItemGroup>
   <ItemGroup Label="PkgDef">
     <Content Include="UnifiedSettings\visualBasicNamingSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-    <VsSettingsManifest Include="UnifiedSettings\visualBasicNamingSettings.registration.json" Validate="true" Validate_Strict="true" IncludeInVSIX="false" />
     <Content Include="UnifiedSettings\VisualBasicCodeStyleSettingsPreview.pkgdef" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
     <!-- Cannot load in background until the VisualBasicPackage constructor has no more UI dependencies -->
     <Content Include="Microsoft.VisualStudio.LanguageServices.VisualBasic.Extra.pkgdef" IncludeInVSIX="true" />
@@ -54,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Windows.Forms" />
-    <PackageReference Include="Microsoft.VisualStudio.Settings.Manifest.Build" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />

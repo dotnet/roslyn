@@ -15,7 +15,6 @@
     <CreateVsixContainer>false</CreateVsixContainer>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <DeployExtension>false</DeployExtension>
-    <VsSettingsManifestDefault_IncludeInVSIX>false</VsSettingsManifestDefault_IncludeInVSIX>
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -44,7 +43,6 @@
       <Link>Shared\ConcurrentLruCache.cs</Link>
     </Compile>
     <Content Include="UnifiedSettings\roslynSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-    <VsSettingsManifest Include="UnifiedSettings\roslynSettings.registration.json" Validate="true" Validate_Strict="true" IncludeInVSIX="false" />
     <Compile Update="VSPackage.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -113,7 +111,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
     <PackageReference Include="Microsoft.VisualStudio.Sdk" />
     <PackageReference Include="Microsoft.VisualStudio.Search" />
-    <PackageReference Include="Microsoft.VisualStudio.Settings.Manifest.Build" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.CallHierarchy.Package.Definitions" />
     <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" />
     <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" />

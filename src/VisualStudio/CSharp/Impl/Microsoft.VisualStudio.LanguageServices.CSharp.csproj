@@ -16,20 +16,15 @@
     <GeneratePkgDefProductVersion>true</GeneratePkgDefProductVersion>
     <DeployExtension>false</DeployExtension>
     <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
-    <VsSettingsManifestDefault_IncludeInVSIX>false</VsSettingsManifestDefault_IncludeInVSIX>
   </PropertyGroup>
   <ItemGroup>
     <Content Update=".vsextension/string-resources.json" XlfPreserveFileName="true" />
     <Content Include="UnifiedSettings/csharpSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-    <VsSettingsManifest Include="UnifiedSettings\csharpSettings.registration.json" Validate="true" Validate_Strict="true" IncludeInVSIX="false" />
     <Content Include="UnifiedSettings/csharpCodeStyleSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-    <VsSettingsManifest Include="UnifiedSettings\csharpCodeStyleSettings.registration.json" Validate="true" Validate_Strict="true" IncludeInVSIX="false" />
     <Content Include="UnifiedSettings/csharpFormattingSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-    <VsSettingsManifest Include="UnifiedSettings\csharpFormattingSettings.registration.json" Validate="true" Validate_Strict="true" IncludeInVSIX="false" />
   </ItemGroup>
   <ItemGroup Label="PkgDef">
     <Content Include="UnifiedSettings\csharpNamingSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-    <VsSettingsManifest Include="UnifiedSettings\csharpNamingSettings.registration.json" Validate="true" Validate_Strict="true" IncludeInVSIX="false" />
     <Content Include="Microsoft.VisualStudio.LanguageServices.CSharp.Extra.pkgdef" IncludeInVSIX="true" />
     <Content Include="UnifiedSettings\CSharpCodeStyleSettingsPreview.pkgdef" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
@@ -55,7 +50,6 @@
     <Reference Include="System.Windows.Forms" />
     <PackageReference Include="Microsoft.VisualStudio.Extensibility" />
     <PackageReference Include="Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Settings.Manifest.Build" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.CSharp" WorkItem="https://github.com/dotnet/roslyn/issues/35070" />

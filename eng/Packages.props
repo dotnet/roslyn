@@ -92,7 +92,6 @@
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.3.195-pre" />
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.14.39337" />
-    <PackageVersion Include="Microsoft.VisualStudio.Settings.Manifest.Build" Version="18.12.1217" />
     <PackageVersion Include="Microsoft.VisualStudio.TemplateWizardInterface" Version="17.2.32414.248" />
     <PackageVersion Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.WinForms.Interfaces" Version="17.0.0-previews-4-31709-430" />
