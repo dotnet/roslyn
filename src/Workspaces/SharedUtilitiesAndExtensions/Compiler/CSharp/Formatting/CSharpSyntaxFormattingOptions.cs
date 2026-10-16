@@ -107,7 +107,8 @@ internal sealed record class CSharpSyntaxFormattingOptions : SyntaxFormattingOpt
             (options.GetOption(CSharpFormattingOptions2.IndentBlock) ? IndentationPlacement.BlockContents : 0) |
             (options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSection) ? IndentationPlacement.SwitchCaseContents : 0) |
             (options.GetOption(CSharpFormattingOptions2.IndentSwitchCaseSectionWhenBlock) ? IndentationPlacement.SwitchCaseContentsWhenBlock : 0) |
-            (options.GetOption(CSharpFormattingOptions2.IndentSwitchSection) ? IndentationPlacement.SwitchSection : 0);
+            (options.GetOption(CSharpFormattingOptions2.IndentSwitchSection) ? IndentationPlacement.SwitchSection : 0) |
+            (options.GetOption(CSharpFormattingOptions2.IndentListPatternContents) ? IndentationPlacement.ListPatternContents : 0);
         WrappingKeepStatementsOnSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingKeepStatementsOnSingleLine);
         WrappingPreserveSingleLine = options.GetOption(CSharpFormattingOptions2.WrappingPreserveSingleLine);
         NamespaceDeclarations = options.GetOption(CSharpCodeStyleOptions.NamespaceDeclarations);
