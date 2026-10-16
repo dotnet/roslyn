@@ -289,7 +289,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Debug.Assert(semicolon != null);
 
                     SyntaxListBuilder? initialBadNodes = null;
-                    this.ParseNamespaceBody(ref semicolon, ref body, ref initialBadNodes, SyntaxKind.FileScopedNamespaceDeclaration);
+                    this.ParseNamespaceBody(
+                        ref semicolon, ref body, ref initialBadNodes, SyntaxKind.FileScopedNamespaceDeclaration);
                     Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to semicolon...
 
                     return _syntaxFactory.FileScopedNamespaceDeclaration(
@@ -305,7 +306,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 else
                 {
                     SyntaxListBuilder? initialBadNodes = null;
-                    this.ParseNamespaceBody(ref openBrace, ref body, ref initialBadNodes, SyntaxKind.NamespaceDeclaration);
+                    var suppressCloseBraceError = this.ParseNamespaceBody(
+                        ref openBrace, ref body, ref initialBadNodes, SyntaxKind.NamespaceDeclaration);
                     Debug.Assert(initialBadNodes == null); // init bad nodes should have been attached to open brace...
 
                     return _syntaxFactory.NamespaceDeclaration(
@@ -317,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         body.Externs,
                         body.Usings,
                         body.Members,
-                        this.EatToken(SyntaxKind.CloseBraceToken),
+                        this.EatToken(SyntaxKind.CloseBraceToken, reportError: !suppressCloseBraceError),
                         this.TryEatToken(SyntaxKind.SemicolonToken));
                 }
             }
@@ -407,12 +409,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             TopLevelStatementsAfterTypesAndNamespaces = 6,
         }
 
-        private void ParseNamespaceBody(
+        private bool ParseNamespaceBody(
             [NotNullIfNotNull(nameof(openBraceOrSemicolon))] ref SyntaxToken? openBraceOrSemicolon,
             ref NamespaceBodyBuilder body,
             ref SyntaxListBuilder? initialBadNodes,
             SyntaxKind parentKind)
         {
+            var shouldSuppressCloseBraceError = false;
+
             ParseNamespaceBodyWorker(
                 ref openBraceOrSemicolon, ref body, ref initialBadNodes, parentKind, out var sawMemberDeclarationOnlyValidWithinTypeDeclaration);
 
@@ -420,15 +424,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // that case, we have no extra work to do and can return immediately.
             //
             // If we do see errant type-only members (like a method/property/constructor/etc.), then see if they follow
-            // some normal type declaration.  If so, treat the type's '}' as the real close-brace, just too early, and move
-            // those members into the type.
+            // some normal type declaration.  If so, assume the close-brace ended the type before all its members and
+            // move those members into the type.
             if (!sawMemberDeclarationOnlyValidWithinTypeDeclaration)
-                return;
+                return false;
 
             // In a script file, it can be ok to have these members at the top level.  For example, a field is actually
             // ok to parse out at the top level as it will become a field on the script global object.
             if (IsScript && parentKind == SyntaxKind.CompilationUnit)
-                return;
+                return false;
 
             var finalMembers = _pool.Allocate<MemberDeclarationSyntax>();
 
@@ -469,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _pool.Free(body.Members);
             body.Members = finalMembers;
 
-            return;
+            return shouldSuppressCloseBraceError;
 
             (int firstSiblingToMoveInclusive, int lastSiblingToMoveExclusive)? determineSiblingsToMoveIntoType(
                 int typeDeclarationIndex,
@@ -499,6 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 int firstSiblingToMoveInclusive,
                 int lastSiblingToMoveExclusive)
             {
+                var isLast = lastSiblingToMoveExclusive == body.Members.Count;
                 var finalTypeDeclarationMembers = _pool.Allocate<MemberDeclarationSyntax>();
                 finalTypeDeclarationMembers.AddRange(typeDeclaration.Members);
 
@@ -507,9 +512,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var currentSibling = body.Members[memberToMoveIndex];
                     if (memberToMoveIndex == firstSiblingToMoveInclusive)
                     {
-                        // This '}' is the type's close-brace.  It is just too early: the following members belong
-                        // in the type, so attach the brace to the first of them as skipped syntax and tell
-                        // the user to move '}' after all of those members.
+                        // Attach the close-brace to the first recovered member as skipped syntax.  Report that it
+                        // closed the type while more type members followed, without prescribing whether the brace
+                        // or the members should move.
                         currentSibling = AddLeadingSkippedSyntax(
                             currentSibling,
                             AddError(typeDeclaration.CloseBraceToken, ErrorCode.ERR_UnexpectedCloseBraceBeforeTypeMember));
@@ -518,14 +523,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     finalTypeDeclarationMembers.Add(currentSibling);
                 }
 
-                var isLast = lastSiblingToMoveExclusive == body.Members.Count;
+                // The diagnostic on the earlier close-brace already explains why these members were recovered into
+                // the type, so do not also report "} expected" on a synthesized close-brace.  If a following
+                // close-brace is available, use it for the type.  This can leave a braced namespace with a synthesized
+                // close-brace, but that is part of the same recovery and should not produce another diagnostic.
+                var followingCloseBraceCanCloseType = canUseFollowingCloseBraceForType();
 
-                // We already have the type's close-brace; it was just in the wrong place.  Do not also report
-                // "} expected" on a synthesized close-brace.  That would look like we never found a close-brace, when
-                // the real instruction is to move this one.  If these were the last remaining namespace
-                // members, still take a following close-brace when one is present so a later real '}' can
-                // sit on the type.  Otherwise insert a silent missing token.
-                var finalCloseBraceToken = isLast
+                shouldSuppressCloseBraceError |=
+                    followingCloseBraceCanCloseType &&
+                    parentKind == SyntaxKind.NamespaceDeclaration;
+
+                var finalCloseBraceToken = followingCloseBraceCanCloseType
                     ? EatToken(SyntaxKind.CloseBraceToken, reportError: false)
                     : SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken);
                 var newMembers = _pool.ToListAndFree(finalTypeDeclarationMembers);
@@ -543,6 +551,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     newMembers,
                     finalCloseBraceToken,
                     typeDeclaration.SemicolonToken);
+
+                bool canUseFollowingCloseBraceForType()
+                {
+                    // A following namespace member must remain outside the recovered type, so the type needs to end
+                    // before that member rather than at a token after the entire namespace body.
+                    if (!isLast)
+                        return false;
+
+                    // At end-of-file there is no real close-brace to use.  The diagnostic on the earlier close-brace
+                    // already explains why the type receives a silent missing token.
+                    if (CurrentToken.Kind != SyntaxKind.CloseBraceToken)
+                        return false;
+
+                    return true;
+                }
             }
         }
 
