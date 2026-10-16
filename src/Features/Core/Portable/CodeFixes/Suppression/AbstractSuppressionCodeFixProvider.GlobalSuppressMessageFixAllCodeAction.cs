@@ -25,13 +25,13 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
     internal sealed class GlobalSuppressMessageFixAllCodeAction : AbstractGlobalSuppressMessageCodeAction
     {
         private readonly INamedTypeSymbol _suppressMessageAttribute;
-        private readonly INamedTypeSymbol? _unconditionalSuppressMessageAttribute;
+        private readonly INamedTypeSymbol _unconditionalSuppressMessageAttribute;
         private readonly IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> _diagnosticsBySymbol;
 
         private GlobalSuppressMessageFixAllCodeAction(
             AbstractSuppressionCodeFixProvider fixer,
             INamedTypeSymbol suppressMessageAttribute,
-            INamedTypeSymbol? unconditionalSuppressMessageAttribute,
+            INamedTypeSymbol unconditionalSuppressMessageAttribute,
             IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> diagnosticsBySymbol,
             Project project)
             : base(fixer, project)
