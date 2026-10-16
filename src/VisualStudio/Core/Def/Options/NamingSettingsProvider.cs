@@ -205,7 +205,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
         {
             var graph = await GetGraphAsync(cancellationToken).ConfigureAwait(false);
             var preferences = graph.ToPreferences();
-            IReadOnlyList<EnumChoice> choices = enumSettingMoniker switch
+            var choices = enumSettingMoniker switch
             {
                 Monikers.RuleSymbolSpecificationId => graph.SymbolSpecifications.Select((item, index) => new EnumChoice(
                     NamingSettingsGraph.ReadString(item, Properties.Id), preferences.SymbolSpecifications[index].Name ?? "")).ToArray(),
