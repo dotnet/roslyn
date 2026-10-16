@@ -272,7 +272,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         private CsFileKind GetKind(ref FileSystemEntry entry)
         {
             if (entry.IsDirectory)
-                return CsFileKind.Directory;
+                return IsDirectoryLink(ref entry) ? CsFileKind.None : CsFileKind.Directory;
 
             var extension = Path.GetExtension(entry.FileName);
             if (extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
@@ -282,6 +282,26 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 return CsFileKind.Csproj;
 
             return CsFileKind.None;
+        }
+
+        /// <summary>
+        /// Directory symlinks and junctions are not followed: a link to an ancestor directory (or two links into each other)
+        /// would otherwise make the walk unbounded. Reparse points which are not links (e.g. cloud-file placeholders) are still visited.
+        /// </summary>
+        private static bool IsDirectoryLink(ref FileSystemEntry entry)
+        {
+            if ((entry.Attributes & FileAttributes.ReparsePoint) == 0)
+                return false;
+
+            try
+            {
+                return new DirectoryInfo(entry.ToFullPath()).LinkTarget is not null;
+            }
+            catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
+            {
+                // If we can't tell, err on the side of not following it.
+                return true;
+            }
         }
 
         protected override CsFileInfo TransformEntry(ref FileSystemEntry entry)

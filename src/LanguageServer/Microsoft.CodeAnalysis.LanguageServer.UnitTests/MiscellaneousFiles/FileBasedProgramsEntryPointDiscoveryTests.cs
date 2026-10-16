@@ -154,6 +154,37 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         AssertSequenceEqualAndStable([app2File.Path], () => discovery.FindEntryPoints(tempDir.Path));
     }
 
+    [ConditionalFact(typeof(UnixLikeOnly))]
+    public async Task TestDiscovery_DirectorySymlinksNotFollowed()
+    {
+        // Two links back to an ancestor make the number of reachable paths grow exponentially with depth.
+        // tempDir/
+        //   sub/
+        //     App.cs
+        //     loop1 -> tempDir
+        //     loop2 -> tempDir
+        //   linkToOther -> otherDir
+
+        var tempDir = _tempRoot.CreateDirectory();
+        var subDir = tempDir.CreateDirectory("sub");
+        var appText = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World");
+            """;
+        var appFile = subDir.CreateFile("App.cs").WriteAllText(appText);
+        Directory.CreateSymbolicLink(Path.Combine(subDir.Path, "loop1"), tempDir.Path);
+        Directory.CreateSymbolicLink(Path.Combine(subDir.Path, "loop2"), tempDir.Path);
+
+        var otherDir = _tempRoot.CreateDirectory();
+        otherDir.CreateFile("Other.cs").WriteAllText(appText);
+        Directory.CreateSymbolicLink(Path.Combine(tempDir.Path, "linkToOther"), otherDir.Path);
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertSequenceEqualAndStable([appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
+    }
+
     [Fact]
     public async Task TestDiscovery_DotPrefixedFolders()
     {
