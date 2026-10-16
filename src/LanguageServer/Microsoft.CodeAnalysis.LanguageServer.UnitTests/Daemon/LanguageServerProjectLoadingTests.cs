@@ -1,16 +1,145 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.Test.Utilities;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerMefHost(testOutputHelper)
 {
+    [Fact]
+    public async Task DefinitionRequestLoadsProjectOnDemandAsync()
+    {
+        const string source = "Target value = new();";
+        var workspace = MaterializedLspWorkspace.Create(
+            TempRoot,
+            LspTestWorkspaces.CreateConsoleApplication("ConsoleApplication")
+                .WithFile("Program.cs", source)
+                .WithFile("Target.cs", "class Target { }"),
+            CancellationToken.None);
+        var sourceUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.GetFullPath("Program.cs"));
+        var targetUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.GetFullPath("Target.cs"));
+
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        await server.ExecuteNotificationAsync(Methods.WorkspaceDidChangeWorkspaceFoldersName, new DidChangeWorkspaceFoldersParams
+        {
+            Event = new WorkspaceFoldersChangeEvent
+            {
+                Added = [new WorkspaceFolder { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.RootPath), Name = "workspace" }],
+                Removed = []
+            }
+        });
+        await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, new DidOpenTextDocumentParams
+        {
+            TextDocument = new TextDocumentItem
+            {
+                DocumentUri = sourceUri,
+                LanguageId = "csharp",
+                Version = 1,
+                Text = source
+            }
+        }, CancellationToken.None);
+
+        var hostWorkspace = server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        Assert.Empty(hostWorkspace.CurrentSolution.Projects);
+
+        var definitions = await server.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(
+            Methods.TextDocumentDefinitionName,
+            new TextDocumentPositionParams
+            {
+                TextDocument = new TextDocumentIdentifier { DocumentUri = sourceUri },
+                Position = new Position(0, 1)
+            },
+            CancellationToken.None);
+
+        Assert.NotNull(definitions);
+        var definition = Assert.Single(definitions);
+        Assert.Equal(targetUri, definition.DocumentUri);
+        Assert.Equal(0, definition.Range.Start.Line);
+        Assert.Equal(6, definition.Range.Start.Character);
+        Assert.Equal("ConsoleApplication", Assert.Single(hostWorkspace.CurrentSolution.Projects).AssemblyName);
+        Assert.Single(hostWorkspace.CurrentSolution.GetDocumentIds(sourceUri));
+    }
+
+    [Fact]
+    public async Task DefinitionRequestLoadsReferencedProjectOnDemandAsync()
+    {
+        const string source = "Target value = new();";
+        var workspace = MaterializedLspWorkspace.Create(
+            TempRoot,
+            LspWorkspaceContent.Empty
+                .WithFile("Application/Application.csproj", """
+                    <Project Sdk="Microsoft.NET.Sdk">
+                      <PropertyGroup>
+                        <TargetFramework>net10.0</TargetFramework>
+                      </PropertyGroup>
+                      <ItemGroup>
+                        <ProjectReference Include="../Library/Library.csproj" />
+                      </ItemGroup>
+                    </Project>
+                    """)
+                .WithFile("Application/Program.cs", source)
+                .WithFile("Library/Library.csproj", """
+                    <Project Sdk="Microsoft.NET.Sdk">
+                      <PropertyGroup>
+                        <TargetFramework>net10.0</TargetFramework>
+                      </PropertyGroup>
+                    </Project>
+                    """)
+                .WithFile("Library/Target.cs", "public class Target { }")
+                .WithRestore(),
+            CancellationToken.None);
+        var sourceUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.GetFullPath("Application/Program.cs"));
+        var targetUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.GetFullPath("Library/Target.cs"));
+
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        await server.ExecuteNotificationAsync(Methods.WorkspaceDidChangeWorkspaceFoldersName, new DidChangeWorkspaceFoldersParams
+        {
+            Event = new WorkspaceFoldersChangeEvent
+            {
+                Added = [new WorkspaceFolder { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.RootPath), Name = "workspace" }],
+                Removed = []
+            }
+        });
+        await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, new DidOpenTextDocumentParams
+        {
+            TextDocument = new TextDocumentItem
+            {
+                DocumentUri = sourceUri,
+                LanguageId = "csharp",
+                Version = 1,
+                Text = source
+            }
+        }, CancellationToken.None);
+
+        var hostWorkspace = server.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        Assert.Empty(hostWorkspace.CurrentSolution.Projects);
+
+        var definitions = await server.ExecuteRequestAsync<TextDocumentPositionParams, LSP.Location[]>(
+            Methods.TextDocumentDefinitionName,
+            new TextDocumentPositionParams
+            {
+                TextDocument = new TextDocumentIdentifier { DocumentUri = sourceUri },
+                Position = new Position(0, 1)
+            },
+            CancellationToken.None);
+
+        var definition = Assert.Single(Assert.IsType<LSP.Location[]>(definitions));
+        Assert.Equal(targetUri, definition.DocumentUri);
+        Assert.Equal(0, definition.Range.Start.Line);
+        Assert.Equal(13, definition.Range.Start.Character);
+        Assert.Equal(2, hostWorkspace.CurrentSolution.Projects.Count());
+        Assert.Single(hostWorkspace.CurrentSolution.GetDocumentIds(sourceUri));
+        Assert.Single(hostWorkspace.CurrentSolution.GetDocumentIds(targetUri));
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
