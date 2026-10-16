@@ -14,7 +14,7 @@ using System.Reflection.PortableExecutable;
 using System.Text.Json;
 using Microsoft.CodeAnalysis.Test.Utilities;
 
-namespace RunTests
+namespace TestRunner.Helix
 {
     internal sealed class AssemblyScheduler
     {

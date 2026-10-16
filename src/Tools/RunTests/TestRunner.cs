@@ -12,7 +12,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RunTests
+namespace TestRunner.RunTests
 {
     internal record struct WorkItemInfo(ImmutableSortedDictionary<AssemblyInfo, ImmutableArray<TestMethodInfo>> Filters, int PartitionIndex)
     {
@@ -48,9 +48,9 @@ namespace RunTests
     internal sealed class TestRunner
     {
         private readonly ProcessTestExecutor _testExecutor;
-        private readonly Options _options;
+        private readonly RunTestOptions _options;
 
-        internal TestRunner(Options options, ProcessTestExecutor testExecutor)
+        internal TestRunner(RunTestOptions options, ProcessTestExecutor testExecutor)
         {
             _testExecutor = testExecutor;
             _options = options;
@@ -210,6 +210,7 @@ namespace RunTests
             ConsoleUtil.WriteLine($"Command: {testResult.CommandLine}");
             ConsoleUtil.WriteLine($"xUnit output log: {outputLogPath}");
 
+            Directory.CreateDirectory(_options.LogFilesDirectory);
             File.WriteAllText(outputLogPath, testResult.StandardOutput ?? "");
 
             if (!string.IsNullOrEmpty(testResult.ErrorOutput))
