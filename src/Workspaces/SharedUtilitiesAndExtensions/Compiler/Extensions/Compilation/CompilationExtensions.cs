@@ -204,6 +204,9 @@ internal static class CompilationExtensions
     public static INamedTypeSymbol? SuppressMessageAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(SuppressMessageAttribute).FullName!);
 
+    public static INamedTypeSymbol? UnconditionalSuppressMessageAttributeType(this Compilation compilation)
+        => compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessageAttribute");
+
     public static INamedTypeSymbol? TupleElementNamesAttributeType(this Compilation compilation)
         => compilation.GetTypeByMetadataName(typeof(TupleElementNamesAttribute).FullName!);
 
