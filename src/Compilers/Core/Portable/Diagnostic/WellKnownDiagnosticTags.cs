@@ -72,5 +72,11 @@ namespace Microsoft.CodeAnalysis
         /// from a compilation end action.
         /// </summary>
         public const string CompilationEnd = nameof(CompilationEnd);
+
+        /// <summary>
+        /// Indicates that the diagnostic must be suppressed with <c>UnconditionalSuppressMessageAttribute</c>,
+        /// because it is also reported by tools that do not see other kinds of suppression.
+        /// </summary>
+        public const string RequiresUnconditionalSuppressMessageAttribute = nameof(RequiresUnconditionalSuppressMessageAttribute);
     }
 }
