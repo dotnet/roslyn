@@ -41,6 +41,33 @@ The current design does **not** attempt to provide:
 
 The experiment is only compiled into the relevant server-side code on `.NET 8+`.
 
+### MSBuild opt-in
+
+Set `UseRoslynCompilerCache=true` in the project or in a `Directory.Build.props` file:
+
+```xml
+<Project>
+  <PropertyGroup>
+    <UseRoslynCompilerCache>true</UseRoslynCompilerCache>
+  </PropertyGroup>
+</Project>
+```
+
+It can also be enabled for an invocation with `dotnet build -p:UseRoslynCompilerCache=true` or as an environment variable.
+The C# and Visual Basic compiler targets then:
+
+- enable the `use-global-cache` feature, preserving other `Features` and explicit cache-location feature flags
+- set `DeterministicSourcePaths=true`, using the existing `SourceRoot` mapping to produce stable `PathMap` values across worktrees
+- set `EnableSourceLink=false`, preventing revision-specific Source Link data from affecting cache reuse
+
+Source-control discovery remains enabled so the SDK can discover the checkout root.
+Projects without SDK source-control discovery must supply appropriate `SourceRoot` items.
+
+The default cache location can still be overridden with `ROSLYN_CACHE_PATH`
+or an explicit `use-global-cache=<path>` feature flag. Explicit feature flags take precedence.
+
+### Low-level enablement
+
 At runtime, the cache is enabled when the compiler request carries the `use-global-cache` feature flag. If that feature flag is absent, the server behaves exactly as it did before and no compilation outputs are cached.
 
 The feature flag can be used in either of these forms:
@@ -51,10 +78,12 @@ The feature flag can be used in either of these forms:
 When the feature flag is present without an explicit path, the current implementation uses:
 
 ```text
-<temp>/roslyn-cache
+<LocalApplicationData>/roslyn-cache
 ```
 
-There are currently two ways to get the feature onto the request:
+Here `LocalApplicationData` is `Environment.SpecialFolder.LocalApplicationData` (`%LOCALAPPDATA%` on Windows).
+
+Without the MSBuild opt-in, there are two ways to get the feature onto the request:
 
 1. Pass the feature explicitly, for example via `/features:use-global-cache` or MSBuild's `Features` property.
 2. Set `ROSLYN_CACHE_PATH` in the client environment before invoking the compiler or build. Roslyn normalizes that value into the same feature flag when constructing the compiler-server request.
@@ -65,8 +94,9 @@ If both are supplied, the explicit feature flag wins over `ROSLYN_CACHE_PATH`.
 
 Useful cache reuse across worktrees generally requires the build to normalize machine-specific source paths.
 Use `PathMap` to map the local checkout root to a stable path that will be identical in every worktree that should share cache entries.
+`UseRoslynCompilerCache` sets this up through deterministic source-root mapping.
 
-The simplest setup is to put this in a `Directory.Build.props` file at the source root:
+For manual configuration without the MSBuild opt-in, put this in a `Directory.Build.props` file at the source root:
 
 ```xml
 <Project>

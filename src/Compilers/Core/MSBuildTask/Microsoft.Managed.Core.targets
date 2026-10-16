@@ -204,11 +204,23 @@
   </Target>
 
   <!--
+    ======================
+    UseRoslynCompilerCache
+    ======================
+  -->
+  <PropertyGroup Condition="'$(UseRoslynCompilerCache)' == 'true'">
+    <DeterministicSourcePaths>true</DeterministicSourcePaths>
+    <EnableSourceLink>false</EnableSourceLink>
+    <!-- Leave environment-based cache location selection to the compiler client. -->
+    <_RoslynCompilerCacheFeature Condition="'$(ROSLYN_CACHE_PATH)' == ''">use-global-cache</_RoslynCompilerCacheFeature>
+  </PropertyGroup>
+
+  <!--
     ========================
     DeterministicSourcePaths
     ========================
     
-    Unless specified otherwise enable deterministic source root (PathMap) when building deterministically on CI server, but not for local builds.
+    Unless specified otherwise enable deterministic source root (PathMap) when building deterministically on CI server, or when opting into the compiler cache.
     In order for the debugger to find source files when debugging a locally built binary the PDB must contain original, unmapped local paths.
   -->
   <PropertyGroup>
