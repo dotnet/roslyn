@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    originalMethod is { MethodKind: MethodKind.LocalFunction }
                     ? MakeName(topLevelMethod.Name, originalMethod.Name, topLevelMethodId, closureKind, lambdaId)
                     : MakeName(topLevelMethod.Name, topLevelMethodId, closureKind, lambdaId),
-                   MakeDeclarationModifiers(closureKind, originalMethod),
+                   MakeDeclarationModifiers(closureKind, originalMethod, containingType),
                    isIterator: originalMethod.IsIterator)
         {
             Debug.Assert(containingType.DeclaringCompilation is not null);
@@ -153,9 +153,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterHelpers.EnsureNullableAttributeExists(moduleBuilder, this, Parameters);
         }
 
-        private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)
+        private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind,
+            MethodSymbol originalMethod, NamedTypeSymbol containingType)
         {
-            var mods = closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal;
+            var mods = DeclarationModifiers.None;
+
+            if (ReferenceEquals(containingType, originalMethod.ContainingType))
+            {
+                mods |= DeclarationModifiers.Private;
+            }
+            else
+            {
+                mods |= DeclarationModifiers.Internal;
+            }
 
             if (closureKind == ClosureKind.Static)
             {
