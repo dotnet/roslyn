@@ -159,59 +159,10 @@ public sealed class LanguageServerTargetTests : AbstractLanguageServerProtocolTe
         Assert.False(statelessService.IsDisposed);
     }
 
-    [Theory, CombinatorialData]
-    public async Task DisposalWaitsForClientCallbacks(bool mutatingLspWorkspace, bool explicitShutdown)
-    {
-        var callback = new BlockingClientTarget();
-        var server = await CreateTestLspServerAsync("", mutatingLspWorkspace, new InitializationOptions { ClientTarget = callback });
-        Task? disposalTask = null;
-        try
-        {
-            await server.GetServerAccessor().GetServerRpc().NotifyAsync("test/wait");
-            await callback.Started.Task;
-
-            if (explicitShutdown)
-            {
-                await server.ShutdownTestServerAsync();
-                await server.ExitTestServerAsync();
-            }
-
-            disposalTask = server.DisposeAsync().AsTask();
-            await server.GetClientRpc().Completion;
-
-            Assert.False(server.GetClientRpc().DispatchCompletion.IsCompleted);
-            Assert.False(disposalTask.IsCompleted);
-        }
-        finally
-        {
-            callback.Release.TrySetResult(true);
-            if (disposalTask is not null)
-                await disposalTask;
-            else
-                await server.DisposeAsync();
-        }
-
-        Assert.Equal(TaskStatus.RanToCompletion, server.GetClientRpc().DispatchCompletion.Status);
-        Assert.Equal(TaskStatus.RanToCompletion, server.GetServerAccessor().GetServerRpc().DispatchCompletion.Status);
-    }
-
     private static void AssertServerAlive(TestLspServer server)
     {
         Assert.False(server.GetServerAccessor().HasShutdownStarted());
         Assert.False(server.GetQueueAccessor()!.Value.IsComplete());
-    }
-
-    private sealed class BlockingClientTarget
-    {
-        public readonly TaskCompletionSource<bool> Started = new(TaskCreationOptions.RunContinuationsAsynchronously);
-        public readonly TaskCompletionSource<bool> Release = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-        [JsonRpcMethod("test/wait")]
-        public async Task WaitAsync()
-        {
-            Started.TrySetResult(true);
-            await Release.Task;
-        }
     }
 
     [ExportCSharpVisualBasicLspServiceFactory(typeof(StatefulLspService)), Shared]

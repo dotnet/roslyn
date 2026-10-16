@@ -42,9 +42,3 @@ public class MyTests
   `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
   `PartNotDiscoverable` project loader can provide deterministic design-time
   build timing and results without invoking MSBuild.
-- LSP protocol tests use `AbstractLanguageServerProtocolTests.TestLspServer`
-  with `await using`. Its disposal closes both RPC connections and awaits
-  `JsonRpc.DispatchCompletion` before disposing the workspace; connection
-  completion alone does not mean RPC callbacks have finished. Callbacks added
-  through `InitializationOptions.ClientTarget` must be allowed to finish
-  before awaiting server disposal.
