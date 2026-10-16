@@ -1,4 +1,4 @@
-Imports System
+﻿Imports System
 
 Module Program
     Sub Main(args As String())
