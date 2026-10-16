@@ -18,6 +18,9 @@ internal static class Extensions
     public static IEnumerable<MSB.Framework.ITaskItem> GetAnalyzers(this MSB.Execution.ProjectInstance executedProject)
         => executedProject.GetItems(ItemNames.Analyzer);
 
+    public static IEnumerable<string> GetAnalyzerReferences(this MSB.Execution.ProjectInstance project)
+        => project.GetAnalyzers().Select(analyzer => project.GetAbsolutePath(analyzer.ItemSpec));
+
     public static IEnumerable<MSB.Framework.ITaskItem> GetDocuments(this MSB.Execution.ProjectInstance executedProject)
         => executedProject.GetItems(ItemNames.Compile);
 
@@ -30,7 +33,10 @@ internal static class Extensions
         {
             if (item.ReferenceOutputAssemblyIsTrue())
             {
-                yield return new(project.GetAbsolutePath(item.EvaluatedInclude), item.GetAliases());
+                var embedInteropTypes = bool.TryParse(item.GetMetadataValue(MetadataNames.EmbedInteropTypes), out var value) && value;
+                var path = project.GetAbsolutePath(item.EvaluatedInclude);
+                var aliases = item.GetAliases();
+                yield return new(path, aliases, embedInteropTypes);
             }
         }
     }

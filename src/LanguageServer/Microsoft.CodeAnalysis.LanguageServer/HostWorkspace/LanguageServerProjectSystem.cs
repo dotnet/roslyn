@@ -259,14 +259,14 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
                 TargetFrameworkIdentifier = snapshot.Properties["TargetFrameworkIdentifier"],
                 TargetFrameworkVersion = snapshot.Properties["TargetFrameworkVersion"],
                 ProjectAssetsFilePath = snapshot.Properties["ProjectAssetsFile"],
-                CommandLineArgs = RehydrateCommandLineArguments(),
+                CommandLineArgs = GetItems("CommandLineArgument").Select(static item => item.ItemSpec).ToArray(),
                 Documents = GetItems("Compile").Select(CreateDocumentFileInfo).ToArray(),
                 AdditionalDocuments = GetItems("AdditionalFile").Select(CreateDocumentFileInfo).ToArray(),
                 AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(CreateDocumentFileInfo).ToArray(),
                 ProjectReferences = GetItems("ProjectReference").Select(item =>
                     new ProjectFileReference(item.ItemSpec, GetAliases(item), GetReferenceOutputAssembly(item))).ToArray(),
-                MetadataReferences = GetItems("MetadataReference").Select(item =>
-                    new MetadataReferenceItem(item.ItemSpec, GetAliases(item))).ToArray(),
+                MetadataReferences = GetItems("MetadataReference").SelectMany(CreateMetadataReferenceItems).ToArray(),
+                AnalyzerReferences = GetItems("AnalyzerReference").Select(item => GetAbsolutePath(item.ItemSpec)).ToArray(),
                 ProjectCapabilities = [.. snapshot.Capabilities],
                 ContentFilePaths = [],
                 PackageReferences = [],
@@ -276,40 +276,33 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ImmutableArray<ProjectDataItem> GetItems(string itemType)
                 => snapshot.ItemsByType.TryGetValue(itemType, out var items) ? items : [];
 
-            string[] RehydrateCommandLineArguments()
+            string GetAbsolutePath(string path)
             {
-                var arguments = GetItems("CommandLineArgument").Select(static item => item.ItemSpec).ToList();
+                var absolutePath = FileUtilities.ResolveRelativePath(path, Path.GetDirectoryName(snapshot.ProjectPath)) ?? path;
+                return FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
+            }
 
-                // The standalone language server's project system reads metadata and analyzer references
-                // from compiler command-line arguments, but the cache stores them as separate items.
-                // Restore those arguments before adding the cached project to the workspace.
-                foreach (var reference in GetItems("MetadataReference"))
+            IEnumerable<MetadataReferenceItem> CreateMetadataReferenceItems(ProjectDataItem item)
+            {
+                var path = GetAbsolutePath(item.ItemSpec);
+                var aliases = GetAliases(item);
+                var embedInteropTypes = item.Metadata["embedInteropTypes"] is { } embedInteropTypesValue &&
+                    (embedInteropTypesValue.Length == 0 || bool.TryParse(embedInteropTypesValue, out var value) && value);
+
+                if (aliases.Length == 0)
                 {
-                    var option = reference.Metadata["embedInteropTypes"] is null ? "reference" : "link";
-                    var aliases = GetAliases(reference);
-                    var path = $"\"{reference.ItemSpec}\"";
-                    if (aliases.Length == 0)
-                    {
-                        arguments.Add($"/{option}:{path}");
-                    }
-                    else
-                    {
-                        // The compiler accepts one alias per argument; an unaliased reference preserves "global".
-                        foreach (var alias in aliases)
-                        {
-                            arguments.Add(string.Equals(alias, "global", StringComparison.OrdinalIgnoreCase)
-                                ? $"/{option}:{path}"
-                                : $"/{option}:{alias}={path}");
-                        }
-                    }
+                    yield return new(path, [], embedInteropTypes);
+                    yield break;
                 }
 
-                foreach (var analyzer in GetItems("AnalyzerReference"))
+                foreach (var alias in aliases)
                 {
-                    arguments.Add($"/analyzer:\"{analyzer.ItemSpec}\"");
+                    // Each alias is represented by a separate reference; "global" is the unaliased reference.
+                    yield return new(
+                        path,
+                        string.Equals(alias, "global", StringComparison.OrdinalIgnoreCase) ? [] : [alias],
+                        embedInteropTypes);
                 }
-
-                return [.. arguments];
             }
 
             static DocumentFileInfo CreateDocumentFileInfo(ProjectDataItem item)

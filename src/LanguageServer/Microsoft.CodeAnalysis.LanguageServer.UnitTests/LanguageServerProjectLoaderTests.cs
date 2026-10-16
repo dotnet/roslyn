@@ -372,6 +372,11 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         var projectSystem = server.GetRequiredLspService<LanguageServerProjectSystem>();
         var cachedProject = await projectSystem.GetTestAccessor().TryLoadProjectFromCacheAsync(projectPath, CancellationToken.None);
         Assert.NotNull(cachedProject);
+        Assert.All(cachedProject.Value.Item1, projectInfo =>
+            Assert.DoesNotContain(projectInfo.CommandLineArgs, static argument =>
+                argument.StartsWith("/reference:", StringComparison.OrdinalIgnoreCase) ||
+                argument.StartsWith("/link:", StringComparison.OrdinalIgnoreCase) ||
+                argument.StartsWith("/analyzer:", StringComparison.OrdinalIgnoreCase)));
 
         var loader = server.GetRequiredLspService<TestProjectLoader>();
         loader.CachedProjects.Add(projectPath, cachedProject.Value.Item1);

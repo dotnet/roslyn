@@ -434,7 +434,8 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
                     _workspaceFactory,
                     _logger,
                     CancellationToken.None,
-                    onlyIfNoTargets: true);
+                    onlyIfNoTargets: true,
+                    useCachedReferences: true);
 
                 if (applied)
                 {

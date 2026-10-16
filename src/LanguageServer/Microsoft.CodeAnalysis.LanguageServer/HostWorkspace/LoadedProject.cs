@@ -213,7 +213,8 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         LanguageServerWorkspaceFactory workspaceFactory,
         ILogger logger,
         CancellationToken cancellationToken,
-        bool onlyIfNoTargets = false)
+        bool onlyIfNoTargets = false,
+        bool useCachedReferences = false)
     {
         using (await _gate.DisposableWaitAsync(cancellationToken))
         {
@@ -231,7 +232,13 @@ internal sealed partial class LoadedProject : IAsyncDisposable
                 var target = await GetOrCreateProjectTargetAsync(
                     loadedProjectInfo, projectFactory, projectCapabilityManager, workspaceFactory, cancellationToken);
                 staleTargets.Remove(target);
-                await target.UpdateWithNewProjectInfoAsync(loadedProjectInfo, isMiscellaneousFile, hasAllInformation, targetFrameworkManager, logger);
+                await target.UpdateWithNewProjectInfoAsync(
+                    loadedProjectInfo,
+                    isMiscellaneousFile,
+                    hasAllInformation,
+                    useCachedReferences,
+                    targetFrameworkManager,
+                    logger);
             }
 
             // Now that we've created or updated projects, we can now remove any old projects that went away
