@@ -18,7 +18,9 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
+using Microsoft.NET.ProjectData;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -297,6 +299,94 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.False(designTimeBuild.Result.Task.IsCompleted);
 
         designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CachedProjectRestoresMetadataAndAnalyzerReferences(bool embedInteropTypes)
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var directory = TempRoot.CreateDirectory().CreateDirectory("Cached project, with; delimiters");
+        var projectPath = Path.Combine(directory.Path, "Cached.csproj");
+        var referencePath = Path.Combine(directory.Path, "Reference=1.dll");
+        var analyzerPath = Path.Combine(directory.Path, "Analyzer=1.dll");
+
+        var interopMetadata = embedInteropTypes ? " @embedInteropTypes" : "";
+        var project = await LoadCachedProjectAsync(server, projectPath, $$"""
+            version=2
+            [project]
+            language=C#
+            [commandLineArguments]
+            /target:library
+            [metadataReferences]
+            Reference=1.dll
+            {{interopMetadata}}
+            [analyzerReferences]
+            Analyzer=1.dll
+            """);
+
+        Assert.Equal(OutputKind.DynamicallyLinkedLibrary, project.CompilationOptions!.OutputKind);
+        var reference = Assert.Single(project.MetadataReferences);
+        Assert.Equal(referencePath, reference.Display);
+        Assert.Empty(reference.Properties.Aliases);
+        Assert.Equal(embedInteropTypes, reference.Properties.EmbedInteropTypes);
+        Assert.Equal(analyzerPath, Assert.Single(project.AnalyzerReferences).FullPath);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CachedProjectPreservesReferenceAliases(bool embedInteropTypes)
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var directory = TempRoot.CreateDirectory().CreateDirectory("Cached project");
+        var projectPath = Path.Combine(directory.Path, "Cached.csproj");
+        var referencePath = Path.Combine(directory.Path, "Reference.dll");
+
+        var interopMetadata = embedInteropTypes ? " @embedInteropTypes" : "";
+        var project = await LoadCachedProjectAsync(server, projectPath, $$"""
+            version=2
+            [project]
+            language=C#
+            [commandLineArguments]
+            /target:library
+            [metadataReferences]
+            Reference.dll
+             @aliases=global, AliasOne, AliasTwo
+            {{interopMetadata}}
+            """);
+
+        AssertEx.SetEqual(["global", "AliasOne", "AliasTwo"],
+            project.MetadataReferences.SelectMany(reference => reference.Properties.Aliases.DefaultIfEmpty("global")));
+        Assert.All(project.MetadataReferences, reference =>
+        {
+            Assert.Equal(referencePath, reference.Display);
+            Assert.Equal(embedInteropTypes, reference.Properties.EmbedInteropTypes);
+        });
+    }
+
+    private static async Task<Project> LoadCachedProjectAsync(TestLspServer server, string projectPath, string contents)
+    {
+        await File.WriteAllTextAsync(projectPath + ".lscache", contents);
+        var projectSystem = server.GetRequiredLspService<LanguageServerProjectSystem>();
+        var cachedProject = await projectSystem.GetTestAccessor().TryLoadProjectFromCacheAsync(projectPath, CancellationToken.None);
+        Assert.NotNull(cachedProject);
+        Assert.All(cachedProject.Value.Item1, projectInfo =>
+            Assert.DoesNotContain(projectInfo.CommandLineArgs, static argument =>
+                argument.StartsWith("/reference:", StringComparison.OrdinalIgnoreCase) ||
+                argument.StartsWith("/link:", StringComparison.OrdinalIgnoreCase) ||
+                argument.StartsWith("/analyzer:", StringComparison.OrdinalIgnoreCase)));
+
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        loader.CachedProjects.Add(projectPath, cachedProject.Value.Item1);
+
+        // Leave the design-time build pending until server disposal so it cannot repair missing cache inputs.
+        var (_, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await designTimeBuild.Started.Task;
+        Assert.False(designTimeBuild.Result.Task.IsCompleted);
+
+        return Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
     }
 
     [Fact]

@@ -111,6 +111,7 @@ internal sealed partial class LoadedProject
             ProjectFileInfo newProjectInfo,
             bool isMiscellaneousFile,
             bool hasAllInformation,
+            bool useCachedReferences,
             ProjectTargetFrameworkManager targetFrameworkManager,
             ILogger logger)
         {
@@ -173,18 +174,33 @@ internal sealed partial class LoadedProject
                 },
                 "Project {0} now has {1} source file(s). ({2} added, {3} removed.)");
 
-            var relativePathResolver = new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
-            var metadataReferences = commandLineArguments.MetadataReferences.Select(cr =>
+            // Cache snapshots store references separately from command-line arguments. Keep using compiler reference
+            // resolution for design-time results so we don't duplicate its behavior, such as VB implicit references.
+            ImmutableArray<CommandLineReference> metadataReferences;
+            if (useCachedReferences)
             {
-                // The relative path resolver calls File.Exists() to see if the path doesn't exist; it guarantees that generally the path returned
-                // is to an actual file on disk. And it needs to call File.Exists() in some cases if there are reference paths to have to search. But as a fallback
-                // we'll accept the resolved path since in the common case it's a file that just might not exist on disk yet.
-                var absolutePath =
-                    relativePathResolver.ResolvePath(cr.Reference, baseFilePath: null) ??
-                    FileUtilities.ResolveRelativePath(cr.Reference, commandLineArguments.BaseDirectory);
+                metadataReferences = newProjectInfo.MetadataReferences.SelectAsArray(reference =>
+                    new CommandLineReference(
+                        reference.Path,
+                        new MetadataReferenceProperties(
+                            aliases: [.. reference.Aliases],
+                            embedInteropTypes: reference.EmbedInteropTypes)));
+            }
+            else
+            {
+                var relativePathResolver = new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
+                metadataReferences = commandLineArguments.MetadataReferences.Select(cr =>
+                {
+                    // The relative path resolver calls File.Exists() to see if the path doesn't exist; it guarantees that generally the path returned
+                    // is to an actual file on disk. And it needs to call File.Exists() in some cases if there are reference paths to have to search. But as a fallback
+                    // we'll accept the resolved path since in the common case it's a file that just might not exist on disk yet.
+                    var absolutePath =
+                        relativePathResolver.ResolvePath(cr.Reference, baseFilePath: null) ??
+                        FileUtilities.ResolveRelativePath(cr.Reference, commandLineArguments.BaseDirectory);
 
-                return absolutePath is not null ? new CommandLineReference(absolutePath, cr.Properties) : default;
-            }).WhereAsArray(static cr => cr.Reference is not null);
+                    return absolutePath is not null ? new CommandLineReference(absolutePath, cr.Properties) : default;
+                }).WhereAsArray(static cr => cr.Reference is not null);
+            }
 
             UpdateProjectSystemProjectCollection(
                 metadataReferences,
@@ -197,12 +213,21 @@ internal sealed partial class LoadedProject
             // Now that we've updated it hold onto the old list of references so we can remove them if there's a later update
             _mostRecentMetadataReferences = metadataReferences;
 
-            var analyzerReferences = commandLineArguments.AnalyzerReferences.Select(cr =>
+            ImmutableArray<CommandLineAnalyzerReference> analyzerReferences;
+            if (useCachedReferences)
             {
-                // Note that unlike regular references, we do not resolve these with the relative path resolver that searches reference paths
-                var absolutePath = FileUtilities.ResolveRelativePath(cr.FilePath, commandLineArguments.BaseDirectory);
-                return absolutePath is not null ? new CommandLineAnalyzerReference(absolutePath) : default;
-            }).WhereAsArray(static cr => cr.FilePath is not null);
+                analyzerReferences = newProjectInfo.AnalyzerReferences.SelectAsArray(
+                    static path => new CommandLineAnalyzerReference(path));
+            }
+            else
+            {
+                analyzerReferences = commandLineArguments.AnalyzerReferences.Select(cr =>
+                {
+                    // Note that unlike regular references, we do not resolve these with the relative path resolver that searches reference paths
+                    var absolutePath = FileUtilities.ResolveRelativePath(cr.FilePath, commandLineArguments.BaseDirectory);
+                    return absolutePath is not null ? new CommandLineAnalyzerReference(absolutePath) : default;
+                }).WhereAsArray(static cr => cr.FilePath is not null);
+            }
 
             UpdateProjectSystemProjectCollection(
                 analyzerReferences,

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Roslyn.Utilities;
@@ -142,6 +141,8 @@ internal readonly struct ProjectInstanceReader
             ProjectReferences = [.. _projectInstance.GetProjectReferences()],
             PackageReferences = packageReferences,
             MetadataReferences = metadataReferences,
+            // Preserve the structured list because cached project data stores analyzers separately from command-line arguments.
+            AnalyzerReferences = [.. _projectInstance.GetAnalyzerReferences()],
             CodePage = codePage,
             ChecksumAlgorithm = checksumAlgorithm,
             ProjectCapabilities = projectCapabilities,

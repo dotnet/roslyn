@@ -225,8 +225,10 @@ internal abstract class CommandLineArgumentReader
 
     protected void ReadReferences()
     {
-        foreach (var (filePath, aliases) in Project.GetMetadataReferences())
+        foreach (var reference in Project.GetMetadataReferences())
         {
+            var filePath = reference.Path;
+            var aliases = reference.Aliases;
             if (aliases.Length == 0)
             {
                 Add("reference", filePath);

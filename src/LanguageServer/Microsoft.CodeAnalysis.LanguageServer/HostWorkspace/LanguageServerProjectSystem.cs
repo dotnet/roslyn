@@ -265,8 +265,8 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
                 AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(CreateDocumentFileInfo).ToArray(),
                 ProjectReferences = GetItems("ProjectReference").Select(item =>
                     new ProjectFileReference(item.ItemSpec, GetAliases(item), GetReferenceOutputAssembly(item))).ToArray(),
-                MetadataReferences = GetItems("MetadataReference").Select(item =>
-                    new MetadataReferenceItem(item.ItemSpec, GetAliases(item))).ToArray(),
+                MetadataReferences = GetItems("MetadataReference").SelectMany(CreateMetadataReferenceItems).ToArray(),
+                AnalyzerReferences = GetItems("AnalyzerReference").Select(item => GetAbsolutePath(item.ItemSpec)).ToArray(),
                 ProjectCapabilities = [.. snapshot.Capabilities],
                 ContentFilePaths = [],
                 PackageReferences = [],
@@ -275,6 +275,35 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
             ImmutableArray<ProjectDataItem> GetItems(string itemType)
                 => snapshot.ItemsByType.TryGetValue(itemType, out var items) ? items : [];
+
+            string GetAbsolutePath(string path)
+            {
+                var absolutePath = FileUtilities.ResolveRelativePath(path, Path.GetDirectoryName(snapshot.ProjectPath)) ?? path;
+                return FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
+            }
+
+            IEnumerable<MetadataReferenceItem> CreateMetadataReferenceItems(ProjectDataItem item)
+            {
+                var path = GetAbsolutePath(item.ItemSpec);
+                var aliases = GetAliases(item);
+                var embedInteropTypes = item.Metadata["embedInteropTypes"] is { } embedInteropTypesValue &&
+                    (embedInteropTypesValue.Length == 0 || bool.TryParse(embedInteropTypesValue, out var value) && value);
+
+                if (aliases.Length == 0)
+                {
+                    yield return new(path, [], embedInteropTypes);
+                    yield break;
+                }
+
+                foreach (var alias in aliases)
+                {
+                    // Each alias is represented by a separate reference; "global" is the unaliased reference.
+                    yield return new(
+                        path,
+                        string.Equals(alias, "global", StringComparison.OrdinalIgnoreCase) ? [] : [alias],
+                        embedInteropTypes);
+                }
+            }
 
             static DocumentFileInfo CreateDocumentFileInfo(ProjectDataItem item)
             {
@@ -289,4 +318,12 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
     internal static bool GetReferenceOutputAssembly(ProjectDataItem item)
         => !string.Equals(item.Metadata["ReferenceOutputAssembly"], bool.FalseString, StringComparison.OrdinalIgnoreCase);
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(LanguageServerProjectSystem projectSystem)
+    {
+        public Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+            => projectSystem.TryLoadProjectFromCacheAsync(projectPath, cancellationToken);
+    }
 }

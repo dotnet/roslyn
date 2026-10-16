@@ -136,10 +136,16 @@ internal sealed record ProjectFileInfo
     public required PackageReferenceItem[] PackageReferences { get; init; }
 
     /// <summary>
-    /// Metadata references referenced by the project if not specified in <see cref="CommandLineArgs"/>.
+    /// Metadata references referenced by the project, with absolute paths.
     /// </summary>
     [DataMember]
     public required MetadataReferenceItem[] MetadataReferences { get; init; }
+
+    /// <summary>
+    /// Analyzer references referenced by the project, with absolute paths.
+    /// </summary>
+    [DataMember]
+    public required string[] AnalyzerReferences { get; init; }
 
     /// <summary>
     /// The value of `CodePage` property. Zero if not specified.
@@ -180,6 +186,7 @@ internal sealed record ProjectFileInfo
             ProjectReferences = [],
             PackageReferences = [],
             MetadataReferences = [],
+            AnalyzerReferences = [],
             CodePage = 0,
             ChecksumAlgorithm = null,
             ProjectCapabilities = [],
