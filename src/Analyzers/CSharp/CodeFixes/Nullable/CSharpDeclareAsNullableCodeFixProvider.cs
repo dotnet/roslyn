@@ -37,8 +37,8 @@ internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBas
     // warning CS8600: Converting null literal or possible null value to non-nullable type.
     // warning CS8625: Cannot convert null literal to non-nullable reference type.
     // warning CS8618: Non-nullable property is uninitialized
-    // warning CS9400: Non-nullable event is uninitialized
-    public sealed override ImmutableArray<string> FixableDiagnosticIds => ["CS8603", "CS8600", "CS8625", "CS8618", "CS9400"];
+    // warning CS9402: Non-nullable event is uninitialized
+    public sealed override ImmutableArray<string> FixableDiagnosticIds => ["CS8603", "CS8600", "CS8625", "CS8618", "CS9402"];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
