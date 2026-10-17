@@ -12,11 +12,11 @@
 [RSEXPERIMENTAL004]Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterHostOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.HostOutputProductionContext, TSource>! action) -> void
 ~Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader.AddDependencyLocation(string fullPath) -> void
 ~Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader.LoadFromPath(string fullPath) -> System.Reflection.Assembly
-~Microsoft.CodeAnalysis.ISymbol.ContainingAssembly.get -> Microsoft.CodeAnalysis.IAssemblySymbol
-~Microsoft.CodeAnalysis.ISymbol.ContainingModule.get -> Microsoft.CodeAnalysis.IModuleSymbol
-~Microsoft.CodeAnalysis.ISymbol.ContainingNamespace.get -> Microsoft.CodeAnalysis.INamespaceSymbol
-~Microsoft.CodeAnalysis.ISymbol.ContainingSymbol.get -> Microsoft.CodeAnalysis.ISymbol
-~Microsoft.CodeAnalysis.ISymbol.ContainingType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol
+Microsoft.CodeAnalysis.ISymbol.ContainingAssembly.get -> Microsoft.CodeAnalysis.IAssemblySymbol?
+Microsoft.CodeAnalysis.ISymbol.ContainingModule.get -> Microsoft.CodeAnalysis.IModuleSymbol?
+Microsoft.CodeAnalysis.ISymbol.ContainingNamespace.get -> Microsoft.CodeAnalysis.INamespaceSymbol?
+Microsoft.CodeAnalysis.ISymbol.ContainingSymbol.get -> Microsoft.CodeAnalysis.ISymbol?
+Microsoft.CodeAnalysis.ISymbol.ContainingType.get -> Microsoft.CodeAnalysis.INamedTypeSymbol?
 ~Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.GetEnumerator() -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.Enumerator
 ~Microsoft.CodeAnalysis.SyntaxList<TNode>.GetEnumerator() -> Microsoft.CodeAnalysis.SyntaxList<TNode>.Enumerator
 abstract Microsoft.CodeAnalysis.AdditionalText.GetText(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Text.SourceText?
