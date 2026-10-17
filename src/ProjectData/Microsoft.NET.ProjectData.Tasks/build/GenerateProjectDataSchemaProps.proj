@@ -1,0 +1,13 @@
+<Project>
+  <UsingTask
+      TaskName="Microsoft.NET.ProjectData.Generators.GenerateProjectDataProps"
+      AssemblyFile="$(GeneratorAssembly)" />
+
+  <Target Name="Generate"
+          Inputs="$(SchemaFile);$(GeneratorAssembly)"
+          Outputs="$(OutputFile)">
+    <Microsoft.NET.ProjectData.Generators.GenerateProjectDataProps
+        SchemaFile="$(SchemaFile)"
+        OutputFile="$(OutputFile)" />
+  </Target>
+</Project>

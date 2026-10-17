@@ -11,6 +11,11 @@
     <NoWarn>$(NoWarn);IDE0051;IDE0060</NoWarn>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <_ProjectDataSchema>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\Microsoft.NET.ProjectData.Generators\project-data-schema.json'))</_ProjectDataSchema>
+    <_GeneratedProjectDataProps>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)Microsoft.NET.ProjectData.Schema.props'))</_GeneratedProjectDataProps>
+  </PropertyGroup>
+
   <ItemGroup>
     <!-- MSBuild task base class and IBuildEngine. ExcludeAssets=runtime so the MSBuild
          assemblies are not copied to the output; MSBuild loads them from its own install. -->
@@ -36,7 +41,7 @@
          $(MSBuildThisFileDirectory). Copying it to the build output keeps both files together. -->
     <None Include="build\Microsoft.NET.ProjectData.targets" Link="Microsoft.NET.ProjectData.targets" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\" />
     <!-- Generated property allow-list imported by the .targets; must travel with it. -->
-    <None Include="build\Microsoft.NET.ProjectData.Schema.props" Link="Microsoft.NET.ProjectData.Schema.props" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\" />
+    <None Include="$(_GeneratedProjectDataProps)" Link="Microsoft.NET.ProjectData.Schema.props" CopyToOutputDirectory="PreserveNewest" Pack="true" PackagePath="lib\$(TargetFramework)\" />
   </ItemGroup>
 
   <ItemGroup>
@@ -55,4 +60,19 @@
     <Compile Include="..\Microsoft.NET.ProjectData\HexEncoder.cs" Link="Shared\HexEncoder.cs" />
   </ItemGroup>
 
+  <Target Name="_GenerateProjectDataSchemaProps"
+        BeforeTargets="CoreCompile"
+        DependsOnTargets="ResolveProjectReferences">
+    <ItemGroup>
+      <_ProjectDataGeneratorsAssembly Include="@(Analyzer)" Condition="'%(Analyzer.Filename)%(Analyzer.Extension)' == 'Microsoft.NET.ProjectData.Generators.dll'" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_ProjectDataGeneratorsAssemblyPath>@(_ProjectDataGeneratorsAssembly->'%(FullPath)')</_ProjectDataGeneratorsAssemblyPath>
+    </PropertyGroup>
+
+    <MSBuild
+      Projects="build\GenerateProjectDataSchemaProps.proj"
+      Targets="Generate"
+      Properties="GeneratorAssembly=$(_ProjectDataGeneratorsAssemblyPath);SchemaFile=$(_ProjectDataSchema);OutputFile=$(_GeneratedProjectDataProps)" />
+  </Target>
 </Project>
