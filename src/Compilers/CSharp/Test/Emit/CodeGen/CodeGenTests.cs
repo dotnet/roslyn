@@ -17317,7 +17317,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_001()
+        public void Unused_And_This_001()
         {
             var source = """
 struct S
@@ -17378,7 +17378,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_002()
+        public void Unused_And_This_002()
         {
             var source = """
 class C
@@ -17412,7 +17412,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_003()
+        public void Unused_And_This_003()
         {
             var source = """
 struct S
@@ -17473,7 +17473,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_004()
+        public void Unused_And_This_004()
         {
             var source = """
 class C
@@ -17507,7 +17507,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_005()
+        public void Unused_And_This_005()
         {
             var source = """
 struct S
@@ -17563,7 +17563,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_006()
+        public void Unused_And_This_006()
         {
             var source = """
 class C
@@ -17597,7 +17597,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_007()
+        public void Unused_And_This_007()
         {
             var source = """
 struct S
@@ -17653,7 +17653,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_008()
+        public void Unused_And_This_008()
         {
             var source = """
 class C
@@ -17687,7 +17687,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_009()
+        public void Unused_And_This_009()
         {
             var source = """
 struct S
@@ -17721,7 +17721,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_010()
+        public void Unused_And_This_010()
         {
             var source = """
 class C
@@ -17749,7 +17749,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_011()
+        public void Unused_And_This_011()
         {
             var source = """
 struct S
@@ -17781,7 +17781,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_012()
+        public void Unused_And_This_012()
         {
             var source = """
 class C
@@ -17809,7 +17809,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_013()
+        public void Unused_And_This_013()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -17879,7 +17879,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_014()
+        public void Unused_And_This_014()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -17917,7 +17917,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_015()
+        public void Unused_And_This_015()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -17988,7 +17988,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_016()
+        public void Unused_And_This_016()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -18026,7 +18026,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_017()
+        public void Unused_And_This_017()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -18093,7 +18093,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_018()
+        public void Unused_And_This_018()
         {
             var source = """
 class C
@@ -18129,7 +18129,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_019()
+        public void Unused_And_This_019()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -18196,7 +18196,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_020()
+        public void Unused_And_This_020()
         {
             var source = """
 class C
@@ -18232,7 +18232,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_021()
+        public void Unused_And_This_021()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -18302,7 +18302,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_022()
+        public void Unused_And_This_022()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -18340,7 +18340,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_023()
+        public void Unused_And_This_023()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -18407,7 +18407,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_024()
+        public void Unused_And_This_024()
         {
             var source = """
 class C
@@ -18443,7 +18443,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_025()
+        public void Unused_And_This_025()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -18486,7 +18486,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_026()
+        public void Unused_And_This_026()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -18524,7 +18524,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_027()
+        public void Unused_And_This_027()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -18569,7 +18569,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_028()
+        public void Unused_And_This_028()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -18607,7 +18607,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_029()
+        public void Unused_And_This_029()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -18650,7 +18650,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_030()
+        public void Unused_And_This_030()
         {
             var source = """
 class C
@@ -18686,7 +18686,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_031()
+        public void Unused_And_This_031()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -18731,7 +18731,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_032()
+        public void Unused_And_This_032()
         {
             var source = """
 class C
@@ -18767,7 +18767,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_033()
+        public void Unused_And_This_033()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -18805,7 +18805,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_034()
+        public void Unused_And_This_034()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -18843,7 +18843,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_035()
+        public void Unused_And_This_035()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -18879,7 +18879,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_036()
+        public void Unused_And_This_036()
         {
             var source = """
 class C
@@ -18915,7 +18915,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_037()
+        public void Unused_And_This_037()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -18957,7 +18957,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_038()
+        public void Unused_And_This_038()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -18995,7 +18995,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_039()
+        public void Unused_And_This_039()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -19031,7 +19031,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_040()
+        public void Unused_And_This_040()
         {
             var source = """
 class C
@@ -19067,7 +19067,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_041()
+        public void Unused_And_This_041()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -19149,7 +19149,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_042()
+        public void Unused_And_This_042()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -19188,7 +19188,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_043()
+        public void Unused_And_This_043()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -19267,7 +19267,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_044()
+        public void Unused_And_This_044()
         {
             var source = """
 class C
@@ -19304,7 +19304,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_045()
+        public void Unused_And_This_045()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -19387,7 +19387,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_046()
+        public void Unused_And_This_046()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -19426,7 +19426,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_047()
+        public void Unused_And_This_047()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -19506,7 +19506,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_048()
+        public void Unused_And_This_048()
         {
             var source = """
 class C
@@ -19543,7 +19543,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_049()
+        public void Unused_And_This_049()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -19592,7 +19592,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_050()
+        public void Unused_And_This_050()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -19631,7 +19631,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_051()
+        public void Unused_And_This_051()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -19680,7 +19680,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_052()
+        public void Unused_And_This_052()
         {
             var source = """
 class C
@@ -19717,7 +19717,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_053()
+        public void Unused_And_This_053()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -19764,7 +19764,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_054()
+        public void Unused_And_This_054()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -19803,7 +19803,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_055()
+        public void Unused_And_This_055()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -19848,7 +19848,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_056()
+        public void Unused_And_This_056()
         {
             var source = """
 class C
@@ -19885,7 +19885,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_057()
+        public void Unused_And_This_057()
         {
             var source = """
 struct S
@@ -19959,7 +19959,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_058()
+        public void Unused_And_This_058()
         {
             var source = """
 class C
@@ -19994,7 +19994,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_059()
+        public void Unused_And_This_059()
         {
             var source = """
 struct S
@@ -20059,7 +20059,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_060()
+        public void Unused_And_This_060()
         {
             var source = """
 class C
@@ -20094,7 +20094,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_061()
+        public void Unused_And_This_061()
         {
             var source = """
 struct S
@@ -20137,7 +20137,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_062()
+        public void Unused_And_This_062()
         {
             var source = """
 class C
@@ -20172,7 +20172,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_063()
+        public void Unused_And_This_063()
         {
             var source = """
 struct S
@@ -20213,7 +20213,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_064()
+        public void Unused_And_This_064()
         {
             var source = """
 class C
@@ -20248,7 +20248,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_065()
+        public void Unused_And_This_065()
         {
             var source = """
 struct S
@@ -20290,7 +20290,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_066()
+        public void Unused_And_This_066()
         {
             var source = """
 class C
@@ -20325,7 +20325,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_067()
+        public void Unused_And_This_067()
         {
             var source = """
 struct S
@@ -20367,7 +20367,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_068()
+        public void Unused_And_This_068()
         {
             var source = """
 class C
@@ -20402,7 +20402,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_069()
+        public void Unused_And_This_069()
         {
             var source = """
 struct S
@@ -20443,7 +20443,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_070()
+        public void Unused_And_This_070()
         {
             var source = """
 class C
@@ -20478,7 +20478,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_071()
+        public void Unused_And_This_071()
         {
             var source = """
 struct S
@@ -20519,7 +20519,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_072()
+        public void Unused_And_This_072()
         {
             var source = """
 class C
@@ -20554,7 +20554,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_073()
+        public void Unused_And_This_073()
         {
             var source = """
 struct S
@@ -20594,7 +20594,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_074()
+        public void Unused_And_This_074()
         {
             var source = """
 class C
@@ -20623,7 +20623,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_075()
+        public void Unused_And_This_075()
         {
             var source = """
 struct S
@@ -20661,7 +20661,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_076()
+        public void Unused_And_This_076()
         {
             var source = """
 class C
@@ -20690,7 +20690,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_077()
+        public void Unused_And_This_077()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -20735,7 +20735,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_078()
+        public void Unused_And_This_078()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -20774,7 +20774,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_079()
+        public void Unused_And_This_079()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -20820,7 +20820,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_080()
+        public void Unused_And_This_080()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -20859,7 +20859,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_081()
+        public void Unused_And_This_081()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -20904,7 +20904,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_082()
+        public void Unused_And_This_082()
         {
             var source = """
 class C
@@ -20941,7 +20941,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_083()
+        public void Unused_And_This_083()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -20986,7 +20986,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_084()
+        public void Unused_And_This_084()
         {
             var source = """
 class C
@@ -21023,7 +21023,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_085()
+        public void Unused_And_This_085()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -21068,7 +21068,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_086()
+        public void Unused_And_This_086()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -21107,7 +21107,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_087()
+        public void Unused_And_This_087()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -21152,7 +21152,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_088()
+        public void Unused_And_This_088()
         {
             var source = """
 class C
@@ -21189,7 +21189,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_089()
+        public void Unused_And_This_089()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -21236,7 +21236,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_090()
+        public void Unused_And_This_090()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -21275,7 +21275,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_091()
+        public void Unused_And_This_091()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -21324,7 +21324,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_092()
+        public void Unused_And_This_092()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -21363,7 +21363,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_093()
+        public void Unused_And_This_093()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -21410,7 +21410,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_094()
+        public void Unused_And_This_094()
         {
             var source = """
 class C
@@ -21447,7 +21447,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_095()
+        public void Unused_And_This_095()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -21496,7 +21496,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_096()
+        public void Unused_And_This_096()
         {
             var source = """
 class C
@@ -21533,7 +21533,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_097()
+        public void Unused_And_This_097()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -21578,7 +21578,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_098()
+        public void Unused_And_This_098()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -21617,7 +21617,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_099()
+        public void Unused_And_This_099()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -21662,7 +21662,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_100()
+        public void Unused_And_This_100()
         {
             var source = """
 class C
@@ -21699,7 +21699,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_101()
+        public void Unused_And_This_101()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -21748,7 +21748,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_102()
+        public void Unused_And_This_102()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -21787,7 +21787,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_103()
+        public void Unused_And_This_103()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -21832,7 +21832,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_104()
+        public void Unused_And_This_104()
         {
             var source = """
 class C
@@ -21869,7 +21869,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_105()
+        public void Unused_And_This_105()
         {
             var source = """
 struct S
@@ -21910,7 +21910,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_106()
+        public void Unused_And_This_106()
         {
             var source = """
 class C
@@ -21945,7 +21945,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_107()
+        public void Unused_And_This_107()
         {
             var source = """
 struct S
@@ -21989,7 +21989,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_108()
+        public void Unused_And_This_108()
         {
             var source = """
 class C
@@ -22024,7 +22024,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_109()
+        public void Unused_And_This_109()
         {
             var source = """
 struct S
@@ -22061,7 +22061,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_110()
+        public void Unused_And_This_110()
         {
             var source = """
 class C
@@ -22096,7 +22096,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_111()
+        public void Unused_And_This_111()
         {
             var source = """
 struct S
@@ -22139,7 +22139,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_112()
+        public void Unused_And_This_112()
         {
             var source = """
 class C
@@ -22174,7 +22174,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_113()
+        public void Unused_And_This_113()
         {
             var source = """
 struct S
@@ -22214,7 +22214,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_114()
+        public void Unused_And_This_114()
         {
             var source = """
 class C
@@ -22243,7 +22243,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_115()
+        public void Unused_And_This_115()
         {
             var source = """
 struct S
@@ -22280,7 +22280,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_116()
+        public void Unused_And_This_116()
         {
             var source = """
 class C
@@ -22309,7 +22309,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_117()
+        public void Unused_And_This_117()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22356,7 +22356,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_118()
+        public void Unused_And_This_118()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22395,7 +22395,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_119()
+        public void Unused_And_This_119()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22443,7 +22443,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_120()
+        public void Unused_And_This_120()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22482,7 +22482,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_121()
+        public void Unused_And_This_121()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22529,7 +22529,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_122()
+        public void Unused_And_This_122()
         {
             var source = """
 class C
@@ -22566,7 +22566,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_123()
+        public void Unused_And_This_123()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22613,7 +22613,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_124()
+        public void Unused_And_This_124()
         {
             var source = """
 class C
@@ -22650,7 +22650,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_125()
+        public void Unused_And_This_125()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22697,7 +22697,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_126()
+        public void Unused_And_This_126()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22736,7 +22736,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_127()
+        public void Unused_And_This_127()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22783,7 +22783,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_128()
+        public void Unused_And_This_128()
         {
             var source = """
 class C
@@ -22820,7 +22820,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_129()
+        public void Unused_And_This_129()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -22869,7 +22869,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_130()
+        public void Unused_And_This_130()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22908,7 +22908,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_131()
+        public void Unused_And_This_131()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -22959,7 +22959,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_132()
+        public void Unused_And_This_132()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -22998,7 +22998,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_133()
+        public void Unused_And_This_133()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -23047,7 +23047,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_134()
+        public void Unused_And_This_134()
         {
             var source = """
 class C
@@ -23084,7 +23084,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_135()
+        public void Unused_And_This_135()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -23135,7 +23135,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_136()
+        public void Unused_And_This_136()
         {
             var source = """
 class C
@@ -23172,7 +23172,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_137()
+        public void Unused_And_This_137()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -23219,7 +23219,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_138()
+        public void Unused_And_This_138()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -23258,7 +23258,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_139()
+        public void Unused_And_This_139()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -23305,7 +23305,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_140()
+        public void Unused_And_This_140()
         {
             var source = """
 class C
@@ -23342,7 +23342,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_141()
+        public void Unused_And_This_141()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -23393,7 +23393,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_142()
+        public void Unused_And_This_142()
         {
             var source = """
 #pragma warning disable CS0649 // Field 'S.F' is never assigned to, and will always have its default value 0
@@ -23432,7 +23432,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_143()
+        public void Unused_And_This_143()
         {
             var source = """
 #pragma warning disable CS9265 // Field 'S.F' is never ref-assigned to, and will always have its default value (null reference)
@@ -23479,7 +23479,7 @@ ref struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_144()
+        public void Unused_And_This_144()
         {
             var source = """
 class C
@@ -23516,7 +23516,7 @@ ref struct S
         }
 
         [Fact]
-        public void UnusedThis_145()
+        public void Unused_And_This_145()
         {
             var source = """
 struct S
@@ -23585,7 +23585,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_146()
+        public void Unused_And_This_146()
         {
             var source = """
 class C
@@ -23620,7 +23620,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_147()
+        public void Unused_And_This_147()
         {
             var source = """
 struct S
@@ -23683,7 +23683,7 @@ class C
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_148()
+        public void Unused_And_This_148()
         {
             var source = """
 class C
@@ -23718,7 +23718,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_149()
+        public void Unused_And_This_149()
         {
             var source = """
 struct S
@@ -23768,7 +23768,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_150()
+        public void Unused_And_This_150()
         {
             var source = """
 class C
@@ -23806,7 +23806,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_151()
+        public void Unused_And_This_151()
         {
             var source = """
 struct S
@@ -23855,7 +23855,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_152()
+        public void Unused_And_This_152()
         {
             var source = """
 class C
@@ -23893,7 +23893,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_153()
+        public void Unused_And_This_153()
         {
             var source = """
 struct S
@@ -23939,7 +23939,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_154()
+        public void Unused_And_This_154()
         {
             var source = """
 class C
@@ -23971,7 +23971,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_155()
+        public void Unused_And_This_155()
         {
             var source = """
 struct S
@@ -24015,7 +24015,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_156()
+        public void Unused_And_This_156()
         {
             var source = """
 class C
@@ -24047,7 +24047,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_157()
+        public void Unused_And_This_157()
         {
             var source = """
 struct S
@@ -24096,7 +24096,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_158()
+        public void Unused_And_This_158()
         {
             var source = """
 class C
@@ -24134,7 +24134,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_159()
+        public void Unused_And_This_159()
         {
             var source = """
 struct S
@@ -24186,7 +24186,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_160()
+        public void Unused_And_This_160()
         {
             var source = """
 class C
@@ -24224,7 +24224,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_161()
+        public void Unused_And_This_161()
         {
             var source = """
 struct S
@@ -24269,7 +24269,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_162()
+        public void Unused_And_This_162()
         {
             var source = """
 class C
@@ -24307,7 +24307,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_163()
+        public void Unused_And_This_163()
         {
             var source = """
 struct S
@@ -24358,7 +24358,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_164()
+        public void Unused_And_This_164()
         {
             var source = """
 class C
@@ -24396,7 +24396,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_165()
+        public void Unused_And_This_165()
         {
             var source = """
 struct S
@@ -24444,7 +24444,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_166()
+        public void Unused_And_This_166()
         {
             var source = """
 class C
@@ -24476,7 +24476,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_167()
+        public void Unused_And_This_167()
         {
             var source = """
 struct S
@@ -24540,7 +24540,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_168()
+        public void Unused_And_This_168()
         {
             var source = """
 class C
@@ -24579,7 +24579,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_169()
+        public void Unused_And_This_169()
         {
             var source = """
 struct S
@@ -24642,7 +24642,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_170()
+        public void Unused_And_This_170()
         {
             var source = """
 class C
@@ -24683,7 +24683,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_171()
+        public void Unused_And_This_171()
         {
             var source = """
 struct S
@@ -24743,7 +24743,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_172()
+        public void Unused_And_This_172()
         {
             var source = """
 class C
@@ -24776,7 +24776,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_173()
+        public void Unused_And_This_173()
         {
             var source = """
 struct S
@@ -24834,7 +24834,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_174()
+        public void Unused_And_This_174()
         {
             var source = """
 class C
@@ -24867,7 +24867,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_175()
+        public void Unused_And_This_175()
         {
             var source = """
 struct S
@@ -24932,7 +24932,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_176()
+        public void Unused_And_This_176()
         {
             var source = """
 class C
@@ -24971,7 +24971,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_177()
+        public void Unused_And_This_177()
         {
             var source = """
 struct S
@@ -25039,7 +25039,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_178()
+        public void Unused_And_This_178()
         {
             var source = """
 class C
@@ -25078,7 +25078,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_179()
+        public void Unused_And_This_179()
         {
             var source = """
 struct S
@@ -25139,7 +25139,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_180()
+        public void Unused_And_This_180()
         {
             var source = """
 class C
@@ -25178,7 +25178,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_181()
+        public void Unused_And_This_181()
         {
             var source = """
 struct S
@@ -25245,7 +25245,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_182()
+        public void Unused_And_This_182()
         {
             var source = """
 class C
@@ -25284,7 +25284,7 @@ struct S
         }
 
         [Fact]
-        public void UnusedThis_183()
+        public void Unused_And_This_183()
         {
             var source = """
 struct S
@@ -25348,7 +25348,7 @@ struct S
         }
 
         [ConditionalFact(typeof(CoreClrOnly))]
-        public void UnusedThis_184()
+        public void Unused_And_This_184()
         {
             var source = """
 class C
