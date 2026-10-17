@@ -556,6 +556,17 @@ internal sealed class CSharpGenerateTypeService() :
             }
         }
 
+        // Check if there's a file-scoped namespace declaration in the file.
+        // File-scoped namespaces can't coexist with block namespaces, so we must add
+        // the type to the existing file-scoped namespace instead of creating a nested one.
+        var fileScopedNamespace = compilationUnit.Members.OfType<FileScopedNamespaceDeclarationSyntax>().FirstOrDefault();
+        if (fileScopedNamespace != null)
+        {
+            var fileScopedNamespaceSymbol = semanticModel.GetSymbolInfo(fileScopedNamespace.Name, cancellationToken);
+            if (fileScopedNamespaceSymbol.Symbol is INamespaceSymbol namespaceSymbol)
+                return (namespaceSymbol, namedTypeSymbol, fileScopedNamespace.GetLastToken().GetLocation());
+        }
+
         var globalNamespace = semanticModel.GetEnclosingNamespace(0, cancellationToken);
         var rootNamespaceOrType = namedTypeSymbol.GenerateRootNamespaceOrType(containers);
         var lastMember = compilationUnit.Members.LastOrDefault();
@@ -744,6 +755,25 @@ internal sealed class CSharpGenerateTypeService() :
             if (await IsWithinTheImportingNamespaceAsync(document, simpleName.SpanStart, includeUsingsOrImports, cancellationToken).ConfigureAwait(false))
             {
                 return updatedSolution;
+            }
+
+            // If the document has a file-scoped namespace and the invocation is within it,
+            // don't add a using for a different namespace — the generated type was placed
+            // in the file-scoped namespace, not in the requested container namespace.
+            var originalRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var fileScopedNamespace = (originalRoot as CompilationUnitSyntax)?.Members.OfType<FileScopedNamespaceDeclarationSyntax>().FirstOrDefault();
+            if (fileScopedNamespace != null)
+            {
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                if (semanticModel?.GetSymbolInfo(fileScopedNamespace.Name, cancellationToken).Symbol is INamespaceSymbol fileScopedNamespaceSymbol)
+                {
+                    var fileScopedNamespaceName = fileScopedNamespaceSymbol.ToDisplayString();
+                    if (fileScopedNamespaceName != includeUsingsOrImports &&
+                        await IsWithinTheImportingNamespaceAsync(document, simpleName.SpanStart, fileScopedNamespaceName, cancellationToken).ConfigureAwait(false))
+                    {
+                        return updatedSolution;
+                    }
+                }
             }
 
             var addImportOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
