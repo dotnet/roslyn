@@ -18,7 +18,12 @@ namespace Roslyn.Utilities
             // https://developercommunity.visualstudio.com/t/Visual-Studio-2022-frequently-freezes-at/10053736 for various examples.
             using (SpecializedSyncContext.Apply(NoMessagePumpSyncContext.Default))
             {
-                semaphore.Wait(cancellationToken);
+                // WaitAsync supports an uncontended synchronous acquisition on single-threaded runtimes. Fall back
+                // to Wait under contention to preserve synchronous waiter priority and blocking behavior.
+                if (!semaphore.WaitAsync(0, cancellationToken).GetAwaiter().GetResult())
+                {
+                    semaphore.Wait(cancellationToken);
+                }
             }
 
             return new SemaphoreDisposer(semaphore);
