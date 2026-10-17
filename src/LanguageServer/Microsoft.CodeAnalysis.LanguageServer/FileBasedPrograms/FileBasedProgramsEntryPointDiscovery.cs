@@ -256,6 +256,8 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
     {
         None, // Denotes a file that is irrelevant for discovery. Shouldn't appear on a valid 'CsFileInfo' instance.
         Directory,
+        /// <summary>A directory which is a reparse point, e.g. a symbolic link or junction.</summary>
+        ReparsePointDirectory,
         Cs,
         Csproj,
     }
@@ -269,10 +271,10 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
     private class DirectoryEnumerator(string directory) : FileSystemEnumerator<CsFileInfo>(directory, new EnumerationOptions { RecurseSubdirectories = false, IgnoreInaccessible = true })
     {
-        private CsFileKind GetKind(ref FileSystemEntry entry)
+        private static CsFileKind GetKind(ref FileSystemEntry entry)
         {
             if (entry.IsDirectory)
-                return CsFileKind.Directory;
+                return (entry.Attributes & FileAttributes.ReparsePoint) != 0 ? CsFileKind.ReparsePointDirectory : CsFileKind.Directory;
 
             var extension = Path.GetExtension(entry.FileName);
             if (extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
@@ -304,14 +306,33 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
     private class WorkspaceFolderVisitor(Cache cache, ArrayBuilder<string> entryPointsBuilder, ArrayBuilder<string> directoriesContainingCsprojBuilder, ILogger logger)
     {
-        internal void Visit()
-            // Note: passing `DateTimeOffset.MinValue` here will force `VisitDirectory` to stat the directory again to get its created/modified times out.
-            => VisitDirectory(cache.WorkspacePath, DateTimeOffset.MinValue);
+        /// <summary>
+        /// The resolved paths of the directories visited so far, i.e. with any directory links in them replaced by their targets.
+        /// A directory link to an ancestor (or two links into each other) would otherwise make the walk unbounded.
+        /// </summary>
+        private readonly HashSet<string> _visitedResolvedDirectories = new(s_pathComparer);
 
-        private void VisitDirectory(string directory, DateTimeOffset createdOrModifiedTimeUtc)
+        /// <summary>Directory links are visited after the rest of the tree, so that a directory which is reachable both directly and through a link, is visited by its direct path.</summary>
+        private readonly Queue<(string Directory, string ResolvedDirectory, DateTimeOffset CreatedOrModifiedTimeUtc)> _pendingDirectoryLinks = new();
+
+        internal void Visit()
+        {
+            // Note: passing `DateTimeOffset.MinValue` here will force `VisitDirectory` to stat the directory again to get its created/modified times out.
+            VisitDirectory(cache.WorkspacePath, Path.TrimEndingDirectorySeparator(cache.WorkspacePath), DateTimeOffset.MinValue);
+
+            while (_pendingDirectoryLinks.TryDequeue(out var link))
+                VisitDirectory(link.Directory, link.ResolvedDirectory, link.CreatedOrModifiedTimeUtc);
+        }
+
+        /// <param name="directory">The path of the directory as reached by the walk. Discovered entry points are reported under this path.</param>
+        /// <param name="resolvedDirectory">The path of the directory with any directory links in it replaced by their targets.</param>
+        private void VisitDirectory(string directory, string resolvedDirectory, DateTimeOffset createdOrModifiedTimeUtc)
         {
             var directoryName = Path.GetFileName(directory.AsSpan());
             if (directoryName.StartsWith('.') || directoryName.ContainsAny(s_ignoredDirectories))
+                return;
+
+            if (!_visitedResolvedDirectories.Add(resolvedDirectory))
                 return;
 
             if (createdOrModifiedTimeUtc < cache.LastWalkTimeUtc)
@@ -365,12 +386,40 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 // Only the "modified" timestamp of the parent directory, and the "created" timestamp of the subdirectory, are updated.
                 // This means: even if a .cs file we encounter within a "new" subdirectory has old timestamps, we don't know whether we've seen it before or not, so we need to crack it.
                 if (fileInfo.Kind == CsFileKind.Directory)
-                    VisitDirectory(fileInfo.Path, Max(createdOrModifiedTimeUtc, fileInfo.CreatedOrModifiedTimeUtc));
+                    VisitDirectory(fileInfo.Path, GetResolvedChildPath(resolvedDirectory, fileInfo.Path), Max(createdOrModifiedTimeUtc, fileInfo.CreatedOrModifiedTimeUtc));
+                else if (fileInfo.Kind == CsFileKind.ReparsePointDirectory)
+                    VisitReparsePointDirectory(fileInfo.Path, GetResolvedChildPath(resolvedDirectory, fileInfo.Path), Max(createdOrModifiedTimeUtc, fileInfo.CreatedOrModifiedTimeUtc));
                 else if (fileInfo.Kind == CsFileKind.Cs)
                     VisitCsFile(fileInfo.Path, Max(createdOrModifiedTimeUtc, fileInfo.CreatedOrModifiedTimeUtc));
                 else
                     throw ExceptionUtilities.Unreachable();
             }
+        }
+
+        private static string GetResolvedChildPath(string resolvedDirectory, string childPath)
+            => Path.Join(resolvedDirectory, Path.GetFileName(childPath));
+
+        private void VisitReparsePointDirectory(string directory, string resolvedDirectory, DateTimeOffset createdOrModifiedTimeUtc)
+        {
+            FileSystemInfo? linkTarget;
+            try
+            {
+                linkTarget = new DirectoryInfo(resolvedDirectory).ResolveLinkTarget(returnFinalTarget: true);
+            }
+            catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
+            {
+                logger.LogWarning("Skipping directory '{Directory}' during file-based app discovery due to I/O exception: {ExceptionMessage}", directory, ex.Message);
+                return;
+            }
+
+            if (linkTarget is null)
+            {
+                // Not a link (e.g. a cloud-file placeholder), so it is visited like any other directory.
+                VisitDirectory(directory, resolvedDirectory, createdOrModifiedTimeUtc);
+                return;
+            }
+
+            _pendingDirectoryLinks.Enqueue((directory, Path.TrimEndingDirectorySeparator(linkTarget.FullName), createdOrModifiedTimeUtc));
         }
 
         private void VisitCsFile(string file, DateTimeOffset createdOrModifiedTimeUtc)
