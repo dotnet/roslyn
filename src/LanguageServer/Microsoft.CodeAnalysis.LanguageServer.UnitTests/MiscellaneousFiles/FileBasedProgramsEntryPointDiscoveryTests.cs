@@ -155,25 +155,36 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     }
 
     [ConditionalFact(typeof(UnixLikeOnly))]
-    public async Task TestDiscovery_DirectorySymlinksNotFollowed()
+    public async Task TestDiscovery_DirectorySymlinks()
     {
-        // Two links back to an ancestor make the number of reachable paths grow exponentially with depth.
+        // Two links back to an ancestor would make the number of reachable paths grow exponentially with depth.
+        // Each directory is visited once, by its direct path if it has one.
         // tempDir/
+        //   a/
+        //     linkToShared -> tempDir/shared
+        //   shared/
+        //     Shared.cs
         //   sub/
         //     App.cs
         //     loop1 -> tempDir
         //     loop2 -> tempDir
         //   linkToOther -> otherDir
+        // otherDir/
+        //   Other.cs
 
         var tempDir = _tempRoot.CreateDirectory();
-        var subDir = tempDir.CreateDirectory("sub");
         var appText = """
             #!/usr/bin/env dotnet
             Console.WriteLine("Hello World");
             """;
+        var subDir = tempDir.CreateDirectory("sub");
         var appFile = subDir.CreateFile("App.cs").WriteAllText(appText);
         Directory.CreateSymbolicLink(Path.Combine(subDir.Path, "loop1"), tempDir.Path);
         Directory.CreateSymbolicLink(Path.Combine(subDir.Path, "loop2"), tempDir.Path);
+
+        var sharedDir = tempDir.CreateDirectory("shared");
+        var sharedFile = sharedDir.CreateFile("Shared.cs").WriteAllText(appText);
+        Directory.CreateSymbolicLink(Path.Combine(tempDir.CreateDirectory("a").Path, "linkToShared"), sharedDir.Path);
 
         var otherDir = _tempRoot.CreateDirectory();
         otherDir.CreateFile("Other.cs").WriteAllText(appText);
@@ -182,7 +193,9 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        AssertSequenceEqualAndStable([appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
+        AssertSequenceEqualAndStable(
+            [Path.Combine(tempDir.Path, "linkToOther", "Other.cs"), sharedFile.Path, appFile.Path],
+            () => discovery.FindEntryPoints(tempDir.Path));
     }
 
     [Fact]
