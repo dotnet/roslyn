@@ -626,6 +626,40 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
             """);
 
     [Fact]
+    public Task TestInForEachDeconstructionOverNullCoalescing()
+        => TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var dict = new Dictionary<string, List<int>>();
+                    foreach (var (x, y) in dict ?? [|new|] Dictionary<string, List<int>>())
+                    {
+                        //
+                    }
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    var dict = new Dictionary<string, List<int>>();
+                    foreach (var (x, y) in dict ?? [])
+                    {
+                        //
+                    }
+                }
+            }
+            """);
+
+    [Fact]
     public Task TestOnVariableDeclarator_If8()
         => TestInRegularAndScriptAsync(
             """
@@ -6819,4 +6853,3 @@ public sealed partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
 #endif
 }
-
