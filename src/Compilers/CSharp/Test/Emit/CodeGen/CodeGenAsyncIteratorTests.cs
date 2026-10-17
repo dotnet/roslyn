@@ -3241,14 +3241,14 @@ class C
   IL_007f:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
   IL_0084:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
   IL_0089:  br.s       IL_00ae
-  IL_008b:  ldarg.0
+  IL_008b:  ldloc.0
   IL_008c:  ldarg.0
   IL_008d:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
   IL_0092:  ldarg.1
   IL_0093:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
   IL_0098:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
   IL_009d:  ldloc.0
-  IL_009e:  ldarg.0
+  IL_009e:  ldloc.0
   IL_009f:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
   IL_00a4:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
   IL_00a9:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
@@ -3509,14 +3509,14 @@ partial class C
   IL_007f:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
   IL_0084:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
   IL_0089:  br.s       IL_00ae
-  IL_008b:  ldarg.0
+  IL_008b:  ldloc.0
   IL_008c:  ldarg.0
   IL_008d:  ldfld      ""System.Threading.CancellationToken C.<M>d__0.<>3__token""
   IL_0092:  ldarg.1
   IL_0093:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
   IL_0098:  stfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
   IL_009d:  ldloc.0
-  IL_009e:  ldarg.0
+  IL_009e:  ldloc.0
   IL_009f:  ldfld      ""System.Threading.CancellationTokenSource C.<M>d__0.<>x__combinedTokens""
   IL_00a4:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
   IL_00a9:  stfld      ""System.Threading.CancellationToken C.<M>d__0.token""
@@ -3778,14 +3778,14 @@ class C
   IL_007f:  ldfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.<>3__token""
   IL_0084:  stfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.token""
   IL_0089:  br.s       IL_00ae
-  IL_008b:  ldarg.0
+  IL_008b:  ldloc.0
   IL_008c:  ldarg.0
   IL_008d:  ldfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.<>3__token""
   IL_0092:  ldarg.1
   IL_0093:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
   IL_0098:  stfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
   IL_009d:  ldloc.0
-  IL_009e:  ldarg.0
+  IL_009e:  ldloc.0
   IL_009f:  ldfld      ""System.Threading.CancellationTokenSource C.<<M>g__local|0_0>d.<>x__combinedTokens""
   IL_00a4:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
   IL_00a9:  stfld      ""System.Threading.CancellationToken C.<<M>g__local|0_0>d.token""
@@ -7681,14 +7681,14 @@ class C
   IL_008b:  ldfld      ""System.Threading.CancellationToken C.<Iter>d__1.<>3__token1""
   IL_0090:  stfld      ""System.Threading.CancellationToken C.<Iter>d__1.token1""
   IL_0095:  br.s       IL_00ba
-  IL_0097:  ldarg.0
+  IL_0097:  ldloc.0
   IL_0098:  ldarg.0
   IL_0099:  ldfld      ""System.Threading.CancellationToken C.<Iter>d__1.<>3__token1""
   IL_009e:  ldarg.1
   IL_009f:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
   IL_00a4:  stfld      ""System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens""
   IL_00a9:  ldloc.0
-  IL_00aa:  ldarg.0
+  IL_00aa:  ldloc.0
   IL_00ab:  ldfld      ""System.Threading.CancellationTokenSource C.<Iter>d__1.<>x__combinedTokens""
   IL_00b0:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
   IL_00b5:  stfld      ""System.Threading.CancellationToken C.<Iter>d__1.token1""
@@ -7814,14 +7814,14 @@ class C
   IL_008b:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
   IL_0090:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
   IL_0095:  br.s       IL_00ba
-  IL_0097:  ldarg.0
+  IL_0097:  ldloc.0
   IL_0098:  ldarg.0
   IL_0099:  ldfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.<>3__token1""
   IL_009e:  ldarg.1
   IL_009f:  call       ""System.Threading.CancellationTokenSource System.Threading.CancellationTokenSource.CreateLinkedTokenSource(System.Threading.CancellationToken, System.Threading.CancellationToken)""
   IL_00a4:  stfld      ""System.Threading.CancellationTokenSource C.<<Main>g__Iter|0_0>d.<>x__combinedTokens""
   IL_00a9:  ldloc.0
-  IL_00aa:  ldarg.0
+  IL_00aa:  ldloc.0
   IL_00ab:  ldfld      ""System.Threading.CancellationTokenSource C.<<Main>g__Iter|0_0>d.<>x__combinedTokens""
   IL_00b0:  callvirt   ""System.Threading.CancellationToken System.Threading.CancellationTokenSource.Token.get""
   IL_00b5:  stfld      ""System.Threading.CancellationToken C.<<Main>g__Iter|0_0>d.token1""
@@ -11932,6 +11932,82 @@ static class Test1
                   IL_0207:  ret
                 }
                 """);
+        }
+
+        [Fact]
+        [WorkItem(81467, "https://github.com/dotnet/roslyn/issues/81467")]
+        public void Multiple_GetAsyncEnumerator_Calls_Should_Dispose_Linked_Tokens()
+        {
+            string testUtilsSource = """
+#pragma warning disable CS0436 // Type conflicts with imported type
+
+public static class TestUtils
+{
+    public static System.Threading.CancellationTokenSource CreateOriginalCancellationTokenSource()
+    {
+        return new System.Threading.CancellationTokenSource();
+    }
+}
+""";
+            var testUtilsComp = CreateCompilation(testUtilsSource, options: TestOptions.ReleaseDll);
+            var testUtilsRef = testUtilsComp.EmitToImageReference(aliases: ["TestUtils"]);
+
+            string source = """
+#pragma warning disable CS0436 // Type conflicts with imported type
+
+extern alias TestUtils;
+
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    static async IAsyncEnumerable<int> Create([EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        yield return default!;
+        yield return default!;
+    }
+
+    static async Task Main()
+    {
+        var cts = new CancellationTokenSource();
+
+        var iterator = Create(cts.Token);
+
+        var cts1 = new CancellationTokenSource();
+        var cts2 = new CancellationTokenSource();
+        var cts3 = new CancellationTokenSource();
+
+        var it1 = iterator.GetAsyncEnumerator(cts1.Token);
+        var it2 = iterator.GetAsyncEnumerator(cts2.Token);
+        var it3 = iterator.GetAsyncEnumerator(cts3.Token);
+
+        await it1.DisposeAsync();
+        await it2.DisposeAsync();
+        await it3.DisposeAsync();
+    }
+}
+
+namespace System.Threading
+{
+    public class CancellationTokenSource
+    {
+        // This ensures that the tokens are always different (CancellationToken.Equals(CancellationToken) == false) to force the tokens to be linked
+        public CancellationToken Token => TestUtils::TestUtils.CreateOriginalCancellationTokenSource().Token;
+        public void Dispose() { System.Console.Write('d'); }
+        public void Cancel() { }
+        public static CancellationTokenSource CreateLinkedTokenSource(CancellationToken token1, CancellationToken token2) => new();
+    }
+}
+""";
+
+            var comp = CreateCompilationWithTasksExtensions(new[] { source, EnumeratorCancellationAttributeType, AsyncStreamsTypes }, options: TestOptions.DebugExe, references: [testUtilsRef]);
+
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "ddd");
         }
     }
 }
