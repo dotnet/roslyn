@@ -5,12 +5,16 @@
 #nullable disable
 
 using System;
+using System.Runtime.Versioning;
 using Microsoft.DiaSymReader;
 
 namespace Roslyn.Test.PdbUtilities
 {
     internal class SymUnmanagedWriterWithoutSourceLinkSupport : DelegatingSymUnmanagedWriter
     {
+#if NET
+        [SupportedOSPlatform("windows")]
+#endif
         public SymUnmanagedWriterWithoutSourceLinkSupport(ISymWriterMetadataProvider metadataProvider)
             : base(SymUnmanagedWriterFactory.CreateWriter(metadataProvider))
         {
