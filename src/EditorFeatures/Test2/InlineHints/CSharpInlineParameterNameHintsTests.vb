@@ -2,10 +2,73 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Threading
+Imports Microsoft.CodeAnalysis.InlineHints
+Imports Microsoft.CodeAnalysis.LanguageService
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Text
+
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InlineHints
     <Trait(Traits.Feature, Traits.Features.InlineHints)>
     Public Class CSharpInlineParameterNameHintsTests
         Inherits AbstractInlineHintsTests
+
+        Private Async Function VerifyParamHintsWithOptions(test As XElement, output As XElement, options As InlineParameterHintsOptions) As Task
+            Using workspace = EditorTestWorkspace.Create(test)
+                WpfTestRunner.RequireWpfFact($"{NameOf(CSharpInlineParameterNameHintsTests)}.{NameOf(Me.VerifyParamHintsWithOptions)} creates asynchronous taggers")
+
+                Dim displayOptions = New SymbolDescriptionOptions()
+
+                Dim hostDocument = workspace.Documents.Single()
+                Dim snapshot = hostDocument.GetTextBuffer().CurrentSnapshot
+                Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
+                Dim tagService = document.GetRequiredLanguageService(Of IInlineParameterNameHintsService)
+
+                Dim span = If(hostDocument.SelectedSpans.Any(), hostDocument.SelectedSpans.Single(), New TextSpan(0, snapshot.Length))
+                Dim inlineHints = ArrayBuilder(Of InlineHint).GetInstance()
+
+                Await tagService.AddInlineHintsAsync(
+                    document, span, options, displayOptions, displayAllOverride:=False, inlineHints, CancellationToken.None)
+
+                Dim producedTags = From hint In inlineHints
+                                   Select hint.DisplayParts.GetFullText().TrimEnd() + hint.Span.ToString
+
+                ValidateSpans(hostDocument, producedTags)
+
+                Dim outWorkspace = EditorTestWorkspace.Create(output)
+                Dim expectedDocument = outWorkspace.CurrentSolution.GetDocument(outWorkspace.Documents.Single().Id)
+                Await ValidateDoubleClick(document, expectedDocument, inlineHints)
+            End Using
+        End Function
+
+        Private Shared Sub ValidateSpans(hostDocument As TestHostDocument, producedTags As IEnumerable(Of String))
+            Dim expectedTags As New List(Of String)
+
+            Dim nameAndSpansList = hostDocument.AnnotatedSpans.SelectMany(
+                Function(name) name.Value,
+                Function(name, span) New With {.Name = name.Key, span})
+
+            For Each nameAndSpan In nameAndSpansList.OrderBy(Function(x) x.span.Start)
+                expectedTags.Add(nameAndSpan.Name + ":" + nameAndSpan.span.ToString())
+            Next
+
+            AssertEx.Equal(expectedTags, producedTags)
+        End Sub
+
+        Private Shared Async Function ValidateDoubleClick(document As Document, expectedDocument As Document, inlineHints As ArrayBuilder(Of InlineHint)) As Task
+            Dim textChanges = New List(Of TextChange)
+            For Each inlineHint In inlineHints
+                If inlineHint.ReplacementTextChange IsNot Nothing Then
+                    textChanges.Add(inlineHint.ReplacementTextChange.Value)
+                End If
+            Next
+
+            Dim value = Await document.GetTextAsync().ConfigureAwait(False)
+            Dim newText = value.WithChanges(textChanges).ToString()
+            Dim expectedText = Await expectedDocument.GetTextAsync().ConfigureAwait(False)
+
+            AssertEx.Equal(expectedText.ToString(), newText)
+        End Function
 
         <WpfFact>
         Public Async Function TestNoParameterSimpleCase() As Task
@@ -1387,6 +1450,217 @@ class C
             </Workspace>
 
             Await VerifyParamHints(input, output)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForCaseInsensitiveMatch() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void fn(int fooBar)
+    {
+    }
+
+    void Main()
+    {
+        int FooBar = 5;
+        fn(FooBar);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForUnderscorePrefixMatch() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void fn(int fooBar)
+    {
+    }
+
+    void Main()
+    {
+        int _fooBar = 5;
+        fn(_fooBar);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForUnderscoreInNameMatch() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void fn(int fooBar)
+    {
+    }
+
+    void Main()
+    {
+        int FOO_BAR = 5;
+        fn(FOO_BAR);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Await VerifyParamHints(input, input)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForParameterDifferingByTrailingUnderscore() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void fn(int fooBar)
+    {
+    }
+
+    void Main()
+    {
+        int fooBar_ = 5;
+        fn(fooBar_);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineParameterHintsOptions() With
+            {
+                .EnabledForParameters = True,
+                .SuppressForParametersThatDifferOnlyBySuffix = True
+            }
+
+            Await VerifyParamHintsWithOptions(input, input, options)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForArgumentDifferingByTrailingUnderscore() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class A
+{
+    void fn(int fooBar_)
+    {
+    }
+
+    void Main()
+    {
+        int fooBar = 5;
+        fn(fooBar);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineParameterHintsOptions() With
+            {
+                .EnabledForParameters = True,
+                .SuppressForParametersThatDifferOnlyBySuffix = True
+            }
+
+            Await VerifyParamHintsWithOptions(input, input, options)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForMemberAccessMatch() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Vector2
+{
+    public int X;
+    public int Y;
+}
+
+class A
+{
+    void Create(int x, int y)
+    {
+    }
+
+    void Main()
+    {
+        var foo = new Vector2();
+        Create(foo.X, foo.Y);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineParameterHintsOptions() With
+            {
+                .EnabledForParameters = True,
+                .SuppressForParametersThatMatchMemberName = True
+            }
+
+            Await VerifyParamHintsWithOptions(input, input, options)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestSuppressForMemberAccessMatchCaseInsensitive() As Task
+            Dim input =
+            <Workspace>
+                <Project Language="C#" CommonReferences="true">
+                    <Document>
+class Vector2
+{
+    public int x;
+    public int y;
+}
+
+class A
+{
+    void Create(int X, int Y)
+    {
+    }
+
+    void Main()
+    {
+        var foo = new Vector2();
+        Create(foo.x, foo.y);
+    }
+}
+                    </Document>
+                </Project>
+            </Workspace>
+
+            Dim options = New InlineParameterHintsOptions() With
+            {
+                .EnabledForParameters = True,
+                .SuppressForParametersThatMatchMemberName = True
+            }
+
+            Await VerifyParamHintsWithOptions(input, input, options)
         End Function
     End Class
 End Namespace
