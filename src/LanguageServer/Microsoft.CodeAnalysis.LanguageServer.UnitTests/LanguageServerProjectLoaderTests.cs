@@ -388,6 +388,30 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         });
     }
 
+    [Fact]
+    public async Task CachedProjectPreservesCaseSensitiveGlobalAlias()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var directory = TempRoot.CreateDirectory().CreateDirectory("Cached project");
+        var projectPath = Path.Combine(directory.Path, "Cached.csproj");
+        var referencePath = Path.Combine(directory.Path, "Reference.dll");
+
+        var project = await LoadCachedProjectAsync(server, projectPath, """
+            version=2
+            [project]
+            language=C#
+            [commandLineArguments]
+            /target:library
+            [metadataReferences]
+            Reference.dll
+             @aliases=Global
+            """);
+
+        var reference = Assert.Single(project.MetadataReferences);
+        Assert.Equal(referencePath, reference.Display);
+        Assert.Equal("Global", Assert.Single(reference.Properties.Aliases));
+    }
+
     private static async Task<Project> LoadCachedProjectAsync(
         TestLspServer server,
         string projectPath,

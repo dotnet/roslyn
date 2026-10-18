@@ -300,7 +300,7 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
                     // Each alias is represented by a separate reference; "global" is the unaliased reference.
                     yield return new(
                         path,
-                        string.Equals(alias, "global", StringComparison.OrdinalIgnoreCase) ? [] : [alias],
+                        string.Equals(alias, "global", StringComparison.Ordinal) ? [] : [alias],
                         embedInteropTypes);
                 }
             }
