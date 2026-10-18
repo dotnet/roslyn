@@ -179,12 +179,31 @@ internal sealed partial class LoadedProject
             ImmutableArray<CommandLineReference> metadataReferences;
             if (useCachedReferences)
             {
-                metadataReferences = newProjectInfo.MetadataReferences.SelectAsArray(reference =>
+                var cachedMetadataReferences = newProjectInfo.MetadataReferences.SelectAsArray(reference =>
                     new CommandLineReference(
                         reference.Path,
                         new MetadataReferenceProperties(
                             aliases: [.. reference.Aliases],
                             embedInteropTypes: reference.EmbedInteropTypes)));
+
+                // The cache stores assembly references separately, but leaves /addmodule references in the command line.
+                // Since cached loads use the structured references instead of all parsed command-line references, restore
+                // modules here so they are not missing until the design-time build completes.
+                var baseDirectory = commandLineArguments.BaseDirectory ?? Path.GetDirectoryName(newProjectInfo.FilePath);
+                var relativePathResolver = new RelativePathResolver(commandLineArguments.ReferencePaths, baseDirectory);
+                var moduleReferences = commandLineArguments.MetadataReferences
+                    .Where(static reference => reference.Properties.Kind == MetadataImageKind.Module)
+                    .Select(reference =>
+                    {
+                        var absolutePath =
+                            relativePathResolver.ResolvePath(reference.Reference, baseFilePath: null) ??
+                            FileUtilities.ResolveRelativePath(reference.Reference, baseDirectory);
+
+                        return absolutePath is not null ? new CommandLineReference(absolutePath, reference.Properties) : default;
+                    })
+                    .WhereAsArray(static reference => reference.Reference is not null);
+
+                metadataReferences = cachedMetadataReferences.AddRange(moduleReferences);
             }
             else
             {

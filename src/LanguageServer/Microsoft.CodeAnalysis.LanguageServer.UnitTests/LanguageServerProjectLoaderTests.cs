@@ -334,6 +334,28 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.Equal(analyzerPath, Assert.Single(project.AnalyzerReferences).FullPath);
     }
 
+    [Fact]
+    public async Task CachedProjectRestoresModuleReferenceWhileDesignTimeBuildIsPending()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var directory = TempRoot.CreateDirectory().CreateDirectory("Cached project");
+        var projectPath = Path.Combine(directory.Path, "Cached.csproj");
+        var modulePath = Path.Combine(directory.Path, "Module.netmodule");
+
+        var project = await LoadCachedProjectAsync(server, projectPath, """
+            version=2
+            [project]
+            language=C#
+            [commandLineArguments]
+            /target:library
+            /addmodule:Module.netmodule
+            """, expectedCommandLineArgument: "/addmodule:");
+
+        var reference = Assert.Single(project.MetadataReferences);
+        Assert.Equal(modulePath, reference.Display);
+        Assert.Equal(MetadataImageKind.Module, reference.Properties.Kind);
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -366,7 +388,11 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         });
     }
 
-    private static async Task<Project> LoadCachedProjectAsync(TestLspServer server, string projectPath, string contents)
+    private static async Task<Project> LoadCachedProjectAsync(
+        TestLspServer server,
+        string projectPath,
+        string contents,
+        string? expectedCommandLineArgument = null)
     {
         await File.WriteAllTextAsync(projectPath + ".lscache", contents);
         var projectSystem = server.GetRequiredLspService<LanguageServerProjectSystem>();
@@ -377,6 +403,11 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
                 argument.StartsWith("/reference:", StringComparison.OrdinalIgnoreCase) ||
                 argument.StartsWith("/link:", StringComparison.OrdinalIgnoreCase) ||
                 argument.StartsWith("/analyzer:", StringComparison.OrdinalIgnoreCase)));
+        if (expectedCommandLineArgument is not null)
+        {
+            Assert.Contains(cachedProject.Value.Item1.SelectMany(static projectInfo => projectInfo.CommandLineArgs),
+                argument => argument.StartsWith(expectedCommandLineArgument, StringComparison.OrdinalIgnoreCase));
+        }
 
         var loader = server.GetRequiredLspService<TestProjectLoader>();
         loader.CachedProjects.Add(projectPath, cachedProject.Value.Item1);
