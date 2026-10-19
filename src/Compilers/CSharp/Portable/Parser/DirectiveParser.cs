@@ -110,8 +110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 default:
                     if (contextualKind == SyntaxKind.ExclamationToken)
                     {
-                        // Always parse as a shebang directive, but report an error if not at position 0
-                        if (hashPosition != 0 || hash.HasTrailingTrivia)
+                        // Always parse as a shebang directive, but only report placement errors in active regions.
+                        if (isActive && (hashPosition != 0 || hash.HasTrailingTrivia))
                         {
                             hash = this.AddError(hash, ErrorCode.ERR_PPShebangNotOnFirstLine);
                         }
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private DirectiveTriviaSyntax ParseShebangDirective(SyntaxToken hash, SyntaxToken exclamation, bool isActive)
         {
-            if (lexer.Options.Kind != SourceCodeKind.Script && !lexer.Options.FileBasedProgram)
+            if (isActive && lexer.Options.Kind != SourceCodeKind.Script && !lexer.Options.FileBasedProgram)
             {
                 exclamation = this.AddError(exclamation, ErrorCode.ERR_PPShebangInProjectBasedProgram);
             }
