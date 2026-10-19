@@ -6,10 +6,10 @@ This file should be imported by eng/Versions.props
 <Project>
   <PropertyGroup>
     <!-- dotnet-arcade dependencies -->
-    <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26509.2</MicrosoftDotNetArcadeSdkPackageVersion>
-    <MicrosoftDotNetHelixJobMonitorPackageVersion>10.0.0-beta.26509.2</MicrosoftDotNetHelixJobMonitorPackageVersion>
-    <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26509.2</MicrosoftDotNetHelixSdkPackageVersion>
-    <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26509.2</MicrosoftDotNetXliffTasksPackageVersion>
+    <MicrosoftDotNetArcadeSdkPackageVersion>10.0.0-beta.26515.1</MicrosoftDotNetArcadeSdkPackageVersion>
+    <MicrosoftDotNetHelixJobMonitorPackageVersion>10.0.0-beta.26515.1</MicrosoftDotNetHelixJobMonitorPackageVersion>
+    <MicrosoftDotNetHelixSdkPackageVersion>10.0.0-beta.26515.1</MicrosoftDotNetHelixSdkPackageVersion>
+    <MicrosoftDotNetXliffTasksPackageVersion>10.0.0-beta.26515.1</MicrosoftDotNetXliffTasksPackageVersion>
     <!-- dotnet-dotnet dependencies -->
     <SystemCommandLinePackageVersion>2.0.14</SystemCommandLinePackageVersion>
     <!-- dotnet-roslyn dependencies -->
