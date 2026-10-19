@@ -362,6 +362,11 @@
         <target state="translated">_Modifier</target>
         <note />
       </trans-unit>
+      <trans-unit id="EditorConfig">
+        <source>EditorConfig</source>
+        <target state="new">EditorConfig</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">Aide de l'éditeur</target>

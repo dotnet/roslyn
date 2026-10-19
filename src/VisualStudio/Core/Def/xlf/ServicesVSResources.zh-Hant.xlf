@@ -362,6 +362,11 @@
         <target state="translated">編輯(_E)</target>
         <note />
       </trans-unit>
+      <trans-unit id="EditorConfig">
+        <source>EditorConfig</source>
+        <target state="new">EditorConfig</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">編輯器說明</target>

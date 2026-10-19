@@ -22,10 +22,14 @@ public sealed class FormattingPageOnboardingTests
     [InlineData("FormattingSpacingPage", "spacing")]
     public void NativeFormattingPagesAreOnboardedWithoutRemovingLegacyRegistration(string pageName, string categoryName)
         => VerifyPage(typeof(CSharpPackage), pageName, "CSharp", @"Code Style\Formatting",
-            "csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting." + categoryName);
+            "csharpFormattingSettings.registration.json", categoryName switch
+            {
+                "general" => "languages.csharp.advanced.onTypeFormatting",
+                _ => "languages.csharp.editorConfig." + categoryName,
+            });
 
     [Theory]
-    [InlineData("CSharp", "csharpCodeStyleSettings.registration.json", "languages.csharp.codeStyle.general")]
+    [InlineData("CSharp", "csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle")]
     [InlineData("Basic", "visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general")]
     public void NativeCodeStylePagesAreOnboardedWithoutRemovingLegacyRegistration(string language, string manifestName, string category)
         => VerifyPage(language == "CSharp" ? typeof(CSharpPackage) : typeof(VisualBasicPackage), "CodeStylePage",

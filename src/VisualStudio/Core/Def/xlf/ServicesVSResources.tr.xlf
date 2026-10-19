@@ -362,6 +362,11 @@
         <target state="translated">_Düzenle</target>
         <note />
       </trans-unit>
+      <trans-unit id="EditorConfig">
+        <source>EditorConfig</source>
+        <target state="new">EditorConfig</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">Düzenleyici Yardımı</target>

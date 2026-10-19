@@ -6,5 +6,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Options;
 
 internal interface INativeCodeStyleSettingsService
 {
-    void Start();
+    void Start(string language);
 }

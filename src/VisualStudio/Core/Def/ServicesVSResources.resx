@@ -1445,6 +1445,9 @@ Additional information: {1}</value>
   <data name="Code_Style" xml:space="preserve">
     <value>Code Style</value>
   </data>
+  <data name="EditorConfig" xml:space="preserve">
+    <value>EditorConfig</value>
+  </data>
   <data name="Disabled" xml:space="preserve">
     <value>Disabled</value>
   </data>

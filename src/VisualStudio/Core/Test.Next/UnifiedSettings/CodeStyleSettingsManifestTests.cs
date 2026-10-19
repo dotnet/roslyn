@@ -36,7 +36,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 public sealed class CodeStyleSettingsManifestTests
 {
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.codeStyle.general.predefinedTypes")]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle.predefinedTypes")]
     [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general.predefinedTypes")]
     public void PredefinedTypeHeadingUsesSentenceCase(string file, string categoryMoniker)
     {
@@ -46,7 +46,7 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [WpfTheory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.codeStyle.general", LanguageNames.CSharp, 11)]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", LanguageNames.CSharp, 11)]
     [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", LanguageNames.VisualBasic, 9)]
     [UseExportProvider]
     public void EveryConvertedPreferencePreservesItsLegacyHeadingAndGroupOrder(string file, string categoryMoniker, string language, int groupCount)
@@ -117,7 +117,7 @@ public sealed class CodeStyleSettingsManifestTests
         }
 
         using var document = Load("csharpFormattingSettings.registration.json");
-        var categoryMoniker = "languages.csharp.codeStyle.formatting." + page;
+        var categoryMoniker = page == "general" ? "languages.csharp.advanced.onTypeFormatting" : "languages.csharp.editorConfig." + page;
         var categories = document.RootElement.GetProperty("categories");
         var groups = categories.EnumerateObject().Where(category => category.Name.StartsWith(categoryMoniker + ".", StringComparison.Ordinal))
             .OrderBy(category => category.Value.GetProperty("order").GetInt32()).ToArray();
@@ -153,13 +153,13 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.codeStyle.general")]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle")]
     [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general")]
-    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting.general")]
-    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting.indentation")]
-    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting.newLines")]
-    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting.spacing")]
-    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.codeStyle.formatting.wrapping")]
+    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.advanced.onTypeFormatting")]
+    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.editorConfig.indentation")]
+    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.editorConfig.newLines")]
+    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.editorConfig.spacing")]
+    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.editorConfig.wrapping")]
     public void NativePagesExplainEditorConfigOverridesAndProvideTheLearnMoreLink(string file, string categoryMoniker)
     {
         using var document = Load(file);
@@ -178,7 +178,7 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.codeStyle.general", 11)]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", 11)]
     [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", 9)]
     public void GeneralGroupsAreInlineOnlyAndTheParentRetainsItsPreview(string file, string general, int count)
     {
@@ -242,7 +242,7 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.codeStyle.general", 66, "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F")]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", 66, "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F")]
     [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", 32, "10C168E1-3470-448A-A1AC-73D6BC070750")]
     public void EveryPreferenceHasDependentSeverityControlAndNativePreview(string file, string categoryMoniker, int count, string legacyPageId)
     {
@@ -313,7 +313,7 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.codeStyle.general", LanguageNames.CSharp, "CSharp", 66)]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", LanguageNames.CSharp, "CSharp", 66)]
     [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", LanguageNames.VisualBasic, "VisualBasic", 32)]
     public async Task EveryGeneralPreferenceHasCompoundLegacyRoamingStorage(string file, string regionMoniker, string language, string legacyLanguage, int count)
     {
@@ -372,10 +372,11 @@ public sealed class CodeStyleSettingsManifestTests
         for (var index = 0; index < pages.Length; index++)
         {
             var (page, count) = pages[index];
-            var moniker = "languages.csharp.codeStyle.formatting." + page;
-            var normalCount = properties.EnumerateObject().Count(property => property.Name.StartsWith(moniker + ".", StringComparison.Ordinal) && property.Value.GetProperty("type").GetString() != "external");
+            var propertyMoniker = page == "general" ? "languages.csharp.advanced.onTypeFormatting" : "languages.csharp.editorConfig." + page;
+            var categoryMoniker = page == "general" ? "languages.csharp.advanced.onTypeFormatting" : "languages.csharp.editorConfig." + page;
+            var normalCount = properties.EnumerateObject().Count(property => property.Name.StartsWith(propertyMoniker + ".", StringComparison.Ordinal) && property.Value.GetProperty("type").GetString() != "external");
             Assert.Equal(count, normalCount);
-            var category = document.RootElement.GetProperty("categories").GetProperty(moniker);
+            var category = document.RootElement.GetProperty("categories").GetProperty(categoryMoniker);
             Assert.True(Guid.TryParse(category.GetProperty("legacyOptionPageId").GetString(), out _));
             if (index == 0)
             {
@@ -396,12 +397,12 @@ public sealed class CodeStyleSettingsManifestTests
         using var document = Load("csharpFormattingSettings.registration.json");
         var regions = document.RootElement.GetProperty("properties");
         foreach (var field in new[] { "formatOnSemicolon", "formatOnCloseBrace" })
-            Assert.Equal("${config:languages.csharp.codeStyle.formatting.general.formatOnTyping} == 'true'", regions.GetProperty("languages.csharp.codeStyle.formatting.general." + field).GetProperty("enableWhen").GetString());
-        var newLines = regions.EnumerateObject().Where(property => property.Name.StartsWith("languages.csharp.codeStyle.formatting.newLines.csharpNewLineBeforeOpenBrace", StringComparison.Ordinal)).ToArray();
+            Assert.Equal("${config:languages.csharp.advanced.onTypeFormatting.formatOnTyping} == 'true'", regions.GetProperty("languages.csharp.advanced.onTypeFormatting." + field).GetProperty("enableWhen").GetString());
+        var newLines = regions.EnumerateObject().Where(property => property.Name.StartsWith("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBrace", StringComparison.Ordinal)).ToArray();
         Assert.Equal(9, newLines.Length);
-        var spacing = regions.EnumerateObject().Where(property => property.Name.StartsWith("languages.csharp.codeStyle.formatting.spacing.csharpSpaceBetweenParentheses", StringComparison.Ordinal)).ToArray();
+        var spacing = regions.EnumerateObject().Where(property => property.Name.StartsWith("languages.csharp.editorConfig.spacing.csharpSpaceBetweenParentheses", StringComparison.Ordinal)).ToArray();
         Assert.Equal(3, spacing.Length);
-        Assert.Equal(new[] { "Ignore", "Remove", "Single" }, regions.GetProperty("languages.csharp.codeStyle.formatting.spacing.binaryOperatorSpacing").GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
+        Assert.Equal(new[] { "Ignore", "Remove", "Single" }, regions.GetProperty("languages.csharp.editorConfig.spacing.binaryOperatorSpacing").GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
         foreach (var flag in newLines.Concat(spacing))
         {
             Assert.Equal("boolean", flag.Value.GetProperty("type").GetString());

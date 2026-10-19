@@ -131,7 +131,7 @@ internal static class NativeCodeStyleSettingsDefinitions
     internal static string GetRowMoniker(string language, string configName)
     {
         var definition = GetDefinitions(language).Single(definition => definition.ConfigName == configName);
-        return "languages." + (language == LanguageNames.CSharp ? "csharp" : "basic") + ".codeStyle.general." +
+        return "languages." + (language == LanguageNames.CSharp ? "csharp.editorConfig.codeStyle" : "basic.codeStyle.general") + "." +
             definition.Group + "." + CodeStyleSetting.ToUnifiedScalarMoniker(configName);
     }
 }

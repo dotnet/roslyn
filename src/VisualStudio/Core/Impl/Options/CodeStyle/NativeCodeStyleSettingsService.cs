@@ -33,7 +33,8 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
     private readonly IVsService<ISettingsManager> _legacyManager;
     private readonly Lazy<EditorConfigOptionsEnumerator> _enumerator;
     private readonly Lazy<ILegacyGlobalOptionService> _globalOptions;
-    private int _started;
+    private readonly object _startGate = new();
+    private readonly HashSet<string> _startedLanguages = [];
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -51,10 +52,14 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
         _globalOptions = globalOptions;
     }
 
-    public void Start()
+    public void Start(string language)
     {
-        if (Interlocked.Exchange(ref _started, 1) != 0)
-            return;
+        lock (_startGate)
+        {
+            if (!_startedLanguages.Add(language))
+                return;
+        }
+
         var cancellationToken = _threadingContext.DisposalToken;
         _threadingContext.JoinableTaskFactory.RunAsync(() => RunAsync(SynchronizeAsync,
             task => task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken), cancellationToken))
@@ -74,7 +79,7 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
             var manager = await _legacyManager.GetValueAsync(cancellationToken).ConfigureAwait(false);
             using var legacy = new VisualStudioSettingsOptionPersister(Refresh,
                 ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty, manager);
-            using var synchronizer = new NativeCodeStyleSettingsSynchronizer(native, legacy, CreateBindings(), Refresh,
+            using var synchronizer = new NativeCodeStyleSettingsSynchronizer(native, legacy, CreateBindings(language), Refresh,
                 task => task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken), _threadingContext.JoinableTaskContext, cancellationToken);
             await synchronizer.InitializeAsync().ConfigureAwait(false);
             await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
@@ -100,19 +105,16 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
         }
     }
 
-    private IEnumerable<NativeCodeStyleSettingsSynchronizer.Binding> CreateBindings()
+    private IEnumerable<NativeCodeStyleSettingsSynchronizer.Binding> CreateBindings(string language)
     {
-        foreach (var language in new[] { LanguageNames.CSharp, LanguageNames.VisualBasic })
+        var names = NativeCodeStyleSettingsDefinitions.GetConfigNames(language).ToImmutableHashSet();
+        var options = _enumerator.Value.GetOptions(language).SelectMany(group => group.options);
+        foreach (var option in options.Where(option => names.Contains(option.Definition.ConfigName)))
         {
-            var names = NativeCodeStyleSettingsDefinitions.GetConfigNames(language).ToImmutableHashSet();
-            var options = _enumerator.Value.GetOptions(language).SelectMany(group => group.options);
-            foreach (var option in options.Where(option => names.Contains(option.Definition.ConfigName)))
-            {
-                var key = new OptionKey2(option, option.IsPerLanguage ? language : null);
-                var storage = (VisualStudioOptionStorage.RoamingProfileStorage)VisualStudioOptionStorage.Storages[option.Definition.ConfigName];
-                var moniker = NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, option.Definition.ConfigName);
-                yield return new(new CodeStyleSetting(option.Definition.ConfigName, option, language, string.Empty), storage.GetKey(key.Language), moniker);
-            }
+            var key = new OptionKey2(option, option.IsPerLanguage ? language : null);
+            var storage = (VisualStudioOptionStorage.RoamingProfileStorage)VisualStudioOptionStorage.Storages[option.Definition.ConfigName];
+            var moniker = NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, option.Definition.ConfigName);
+            yield return new(new CodeStyleSetting(option.Definition.ConfigName, option, language, string.Empty), storage.GetKey(key.Language), moniker);
         }
     }
 

@@ -703,7 +703,7 @@ public sealed class CodeStyleSettingsProviderTests
         var setting = StyleSetting(LanguageNames.CSharp);
         options.Incoming(setting.Key, new CodeStyleOption2<bool>(false, NotificationOption2.Silent));
         using var provider = new CodeStyleSettingsProvider(options, LanguageNames.CSharp, [setting]);
-        var prefix = "languages.csharp.codeStyle.general.options.";
+        var prefix = "languages.csharp.editorConfig.codeStyle.options.";
         await provider.SetValueAsync(setting.Moniker, "false", s_token);
         await provider.SetValueAsync(prefix + setting.Moniker, "true", s_token);
         await provider.SetValueAsync(prefix + setting.Moniker + "_severity", "warning", s_token);
@@ -724,7 +724,7 @@ public sealed class CodeStyleSettingsProviderTests
         var binary = new CodeStyleSetting("binaryOperatorSpacing", CSharpFormattingOptions2.SpacingAroundBinaryOperator, LanguageNames.CSharp, "Operators");
         using var provider = new CodeStyleSettingsProvider(options, LanguageNames.CSharp, [spacing, binary]);
         var preview = provider.CreatePreviewStore();
-        var prefix = "languages.csharp.codeStyle.formatting.spacing.";
+        var prefix = "languages.csharp.editorConfig.spacing.";
         provider.ApplyPreviewValue(preview, prefix + spacing.Moniker, false);
         provider.ApplyPreviewValue(preview, prefix + binary.Moniker, "Remove");
         Assert.False(preview.GetOption(CSharpFormattingOptions2.SpaceAfterComma));

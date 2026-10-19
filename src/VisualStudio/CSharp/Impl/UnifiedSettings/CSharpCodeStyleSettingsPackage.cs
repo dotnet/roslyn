@@ -39,7 +39,7 @@ internal sealed class CSharpCodeStyleSettingsPackage : AsyncPackage
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         _globalOptions = this.GetMefService<IGlobalOptionService>();
-        this.GetMefService<INativeCodeStyleSettingsService>().Start();
+        this.GetMefService<INativeCodeStyleSettingsService>().Start(LanguageNames.CSharp);
         var settings = CreateSettings(_globalOptions).ToArray();
         var categories = new[] { "", "indentation", "newLines", "spacing", "wrapping", "general" };
         for (var index = 0; index < categories.Length; index++)
@@ -88,11 +88,11 @@ internal sealed class CSharpCodeStyleSettingsPackage : AsyncPackage
         {
             Choices = [new("Ignore", CSharpVSResources.Ignore_spaces_around_binary_operators), new("Remove", CSharpVSResources.Remove_spaces_before_and_after_binary_operators), new("Single", CSharpVSResources.Insert_space_before_and_after_binary_operators)],
         });
-        result.Add(new("general.formatOnTyping", AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp, CSharpVSResources.Automatically_format_when_typing));
-        result.Add(new("general.formatOnSemicolon", AutoFormattingOptionsStorage.FormatOnSemicolon, LanguageNames.CSharp, CSharpVSResources.Automatically_format_statement_on_semicolon));
-        result.Add(new("general.formatOnCloseBrace", AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp, CSharpVSResources.Automatically_format_block_on_close_brace));
-        result.Add(new("general.formatOnReturn", AutoFormattingOptionsStorage.FormatOnReturn, LanguageNames.CSharp, CSharpVSResources.Automatically_format_on_return));
-        result.Add(new("general.formatOnPaste", FormattingOptionsStorage.FormatOnPaste, LanguageNames.CSharp, CSharpVSResources.Automatically_format_on_paste));
+        result.Add(new("onTypeFormatting.formatOnTyping", AutoFormattingOptionsStorage.FormatOnTyping, LanguageNames.CSharp, CSharpVSResources.Automatically_format_when_typing));
+        result.Add(new("onTypeFormatting.formatOnSemicolon", AutoFormattingOptionsStorage.FormatOnSemicolon, LanguageNames.CSharp, CSharpVSResources.Automatically_format_statement_on_semicolon));
+        result.Add(new("onTypeFormatting.formatOnCloseBrace", AutoFormattingOptionsStorage.FormatOnCloseBrace, LanguageNames.CSharp, CSharpVSResources.Automatically_format_block_on_close_brace));
+        result.Add(new("onTypeFormatting.formatOnReturn", AutoFormattingOptionsStorage.FormatOnReturn, LanguageNames.CSharp, CSharpVSResources.Automatically_format_on_return));
+        result.Add(new("onTypeFormatting.formatOnPaste", FormattingOptionsStorage.FormatOnPaste, LanguageNames.CSharp, CSharpVSResources.Automatically_format_on_paste));
         return result;
     }
 
