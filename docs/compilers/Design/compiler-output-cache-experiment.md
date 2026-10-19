@@ -57,6 +57,7 @@ It can also be enabled for an invocation with `dotnet build -p:UseRoslynCompiler
 The C# and Visual Basic compiler targets then:
 
 - enable the `use-global-cache` feature, preserving other `Features` and explicit cache-location feature flags
+- set `Deterministic=true`, enabling `/deterministic+` so equivalent compilations can produce matching cache keys
 - set `DeterministicSourcePaths=true`, using the existing `SourceRoot` mapping to produce stable `PathMap` values across worktrees
 - set `EnableSourceLink=false`, preventing revision-specific Source Link data from affecting cache reuse
 - set `IncludeSourceRevisionInInformationalVersion=false`, preventing the SDK from appending the commit ID to the generated `AssemblyInformationalVersion` attribute

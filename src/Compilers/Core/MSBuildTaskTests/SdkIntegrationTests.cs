@@ -117,6 +117,7 @@ public sealed class SdkIntegrationTests : IDisposable
                   <PropertyGroup>
                     <TargetFramework>{NetCoreTfm}</TargetFramework>
                     <UseRoslynCompilerCache>{useCache}</UseRoslynCompilerCache>
+                    <Deterministic>false</Deterministic>
                     <InformationalVersion>{informationalVersion}</InformationalVersion>
                     <SourceRevisionId>{sourceRevisionId}</SourceRevisionId>
                     <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
@@ -143,6 +144,7 @@ public sealed class SdkIntegrationTests : IDisposable
                 });
 
             var args = File.ReadAllLines(Path.Combine(worktree.Path, "args.txt"));
+            Assert.Contains(useCache == true ? "/deterministic+" : "/deterministic-", args);
             CommandLineArguments arguments = visualBasic
                 ? VisualBasicCommandLineParser.Default.Parse(args, worktree.Path, sdkDirectory: null, additionalReferenceDirectories: null)
                 : CSharpCommandLineParser.Default.Parse(args, worktree.Path, sdkDirectory: null, additionalReferenceDirectories: null);

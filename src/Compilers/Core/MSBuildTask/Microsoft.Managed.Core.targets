@@ -209,6 +209,7 @@
     ======================
   -->
   <PropertyGroup Condition="'$(UseRoslynCompilerCache)' == 'true'">
+    <Deterministic>true</Deterministic>
     <DeterministicSourcePaths>true</DeterministicSourcePaths>
     <EnableSourceLink>false</EnableSourceLink>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>

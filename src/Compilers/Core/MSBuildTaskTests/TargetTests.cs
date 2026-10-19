@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                         <UseRoslynCompilerCache>{useCache}</UseRoslynCompilerCache>
                         <ROSLYN_CACHE_PATH>{environmentCachePath}</ROSLYN_CACHE_PATH>
                         <Features>existing-feature</Features>
+                        <Deterministic>false</Deterministic>
                         <DeterministicSourcePaths>false</DeterministicSourcePaths>
                         <EnableSourceLink>true</EnableSourceLink>
                         <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             var instance = CreateProjectInstance(reader);
 
+            Assert.Equal(useCache == true ? "true" : "false", instance.GetPropertyValue("Deterministic"));
             Assert.Equal(useCache == true ? "true" : "false", instance.GetPropertyValue("DeterministicSourcePaths"));
             Assert.Equal(useCache == true ? "false" : "true", instance.GetPropertyValue("EnableSourceLink"));
             Assert.Equal(useCache == true ? "false" : "true", instance.GetPropertyValue("IncludeSourceRevisionInInformationalVersion"));
