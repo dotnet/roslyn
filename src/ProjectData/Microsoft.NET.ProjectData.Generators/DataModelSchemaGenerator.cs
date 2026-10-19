@@ -16,8 +16,15 @@ namespace Microsoft.NET.ProjectData.Generators;
 /// and accessors for the Data Model schema.
 /// </summary>
 [Generator(LanguageNames.CSharp)]
-public sealed class DataModelSchemaGenerator : IIncrementalGenerator
+internal sealed class DataModelSchemaGenerator : IIncrementalGenerator
 {
+	// In order to put the implemenentation of the msbuild task in the same assembly,
+	// this generator is intentionally declared as internal with a public parameter-less
+	// constructor to keep it out of MSBuild's task-type discovery.
+	public DataModelSchemaGenerator()
+	{
+	}
+
 	private const string SchemaFileName = "project-data-schema.json";
 
 	private static readonly DiagnosticDescriptor InvalidSchema = new(

@@ -6,7 +6,9 @@ using System.Text.Json;
 using System.Xml.Linq;
 using Microsoft.Build.Framework;
 
-public sealed class GenerateProjectDataProps : Microsoft.Build.Utilities.Task
+namespace Microsoft.NET.ProjectData.Generators;
+
+public sealed class GenerateProjectDataPropsTask : Microsoft.Build.Utilities.Task
 {
 	[Required]
 	public string SchemaFile { get; set; } = "";

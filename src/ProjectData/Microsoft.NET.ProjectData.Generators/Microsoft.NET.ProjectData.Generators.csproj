@@ -24,4 +24,7 @@
     <PackageReference Include="Microsoft.Build.Utilities.Core" PrivateAssets="All" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.NET.ProjectData.Generators.UnitTests" />
+  </ItemGroup>
 </Project>
