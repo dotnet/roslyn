@@ -59,9 +59,11 @@ The C# and Visual Basic compiler targets then:
 - enable the `use-global-cache` feature, preserving other `Features` and explicit cache-location feature flags
 - set `DeterministicSourcePaths=true`, using the existing `SourceRoot` mapping to produce stable `PathMap` values across worktrees
 - set `EnableSourceLink=false`, preventing revision-specific Source Link data from affecting cache reuse
+- set `IncludeSourceRevisionInInformationalVersion=false`, preventing the SDK from appending the commit ID to the generated `AssemblyInformationalVersion` attribute
 
 Source-control discovery remains enabled so the SDK can discover the checkout root.
 Projects without SDK source-control discovery must supply appropriate `SourceRoot` items.
+The opt-in does not remove revision information supplied by custom repository versioning.
 
 The default cache location can still be overridden with `ROSLYN_CACHE_PATH`
 or an explicit `use-global-cache=<path>` feature flag. Explicit feature flags take precedence.

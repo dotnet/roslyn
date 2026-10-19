@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
                         <Features>existing-feature</Features>
                         <DeterministicSourcePaths>false</DeterministicSourcePaths>
                         <EnableSourceLink>true</EnableSourceLink>
+                        <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
                     </PropertyGroup>
                     <Import Project="Microsoft.Managed.Core.targets" />
                 </Project>
@@ -44,6 +45,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
             Assert.Equal(useCache == true ? "true" : "false", instance.GetPropertyValue("DeterministicSourcePaths"));
             Assert.Equal(useCache == true ? "false" : "true", instance.GetPropertyValue("EnableSourceLink"));
+            Assert.Equal(useCache == true ? "false" : "true", instance.GetPropertyValue("IncludeSourceRevisionInInformationalVersion"));
             Assert.Equal("existing-feature", instance.GetPropertyValue("Features"));
             Assert.Equal(
                 useCache == true && environmentCachePath.Length == 0 ? "use-global-cache" : "",

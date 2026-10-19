@@ -211,6 +211,7 @@
   <PropertyGroup Condition="'$(UseRoslynCompilerCache)' == 'true'">
     <DeterministicSourcePaths>true</DeterministicSourcePaths>
     <EnableSourceLink>false</EnableSourceLink>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <!-- Leave environment-based cache location selection to the compiler client. -->
     <_RoslynCompilerCacheFeature Condition="'$(ROSLYN_CACHE_PATH)' == ''">use-global-cache</_RoslynCompilerCacheFeature>
   </PropertyGroup>

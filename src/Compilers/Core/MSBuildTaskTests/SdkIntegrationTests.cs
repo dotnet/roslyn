@@ -105,16 +105,20 @@ public sealed class SdkIntegrationTests : IDisposable
         bool? useCache,
         [CombinatorialValues(null, "explicit-cache")] string? cachePath)
     {
+        const string informationalVersion = "1.2.3+custom";
         var extension = visualBasic ? "vb" : "cs";
         var worktreeCount = useCache == true ? 2 : 1;
         for (var i = 0; i < worktreeCount; i++)
         {
+            var sourceRevisionId = $"revision{i}";
             var worktree = ProjectDir.CreateDirectory($"worktree{i}=a, b");
             var projectFile = worktree.CreateFile($"test.{extension}proj").WriteAllText($"""
                 <Project Sdk="Microsoft.NET.Sdk">
                   <PropertyGroup>
                     <TargetFramework>{NetCoreTfm}</TargetFramework>
                     <UseRoslynCompilerCache>{useCache}</UseRoslynCompilerCache>
+                    <InformationalVersion>{informationalVersion}</InformationalVersion>
+                    <SourceRevisionId>{sourceRevisionId}</SourceRevisionId>
                     <EnableSourceControlManagerQueries>false</EnableSourceControlManagerQueries>
                     <SkipCompilerExecution>true</SkipCompilerExecution>
                     <ProvideCommandLineArgs>true</ProvideCommandLineArgs>
@@ -142,6 +146,12 @@ public sealed class SdkIntegrationTests : IDisposable
             CommandLineArguments arguments = visualBasic
                 ? VisualBasicCommandLineParser.Default.Parse(args, worktree.Path, sdkDirectory: null, additionalReferenceDirectories: null)
                 : CSharpCommandLineParser.Default.Parse(args, worktree.Path, sdkDirectory: null, additionalReferenceDirectories: null);
+
+            var assemblyInfoPath = arguments.SourceFiles.Single(source => Path.GetFileName(source.Path) == $"test.AssemblyInfo.{extension}").Path;
+            var expectedInformationalVersion = useCache == true ? informationalVersion : $"{informationalVersion}.{sourceRevisionId}";
+            Assert.Contains(
+                $"AssemblyInformationalVersionAttribute(\"{expectedInformationalVersion}\")",
+                File.ReadAllText(assemblyInfoPath));
 
             Assert.Equal("true", arguments.ParseOptions.Features["existing-feature"]);
             if (useCache == true || cachePath is not null)
