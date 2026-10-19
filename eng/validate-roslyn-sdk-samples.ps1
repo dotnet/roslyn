@@ -6,7 +6,9 @@
 [CmdletBinding(PositionalBinding=$false)]
 param(
   [string]$configuration = "Release",
-  [switch]$ci = $false)
+  [switch]$ci = $false,
+  # Consumed implicitly by the MSBuild helper.
+  [switch]$warnAsError = $false)
 
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
@@ -57,24 +59,22 @@ if ($duplicateProjects.Count -gt 0 -or $missingFromSolution.Count -gt 0 -or $mis
 }
 
 $buildArgs = @(
-  "build"
   $solutionPath
-  "-c", $configuration
-  "--no-incremental"
-  "--warnaserror"
+  "/restore"
+  "/t:Rebuild"
+  "/p:Configuration=$configuration"
   "/p:RunAnalyzersDuringBuild=true"
 )
 
-if ($ci) {
-  $logDir = Join-Path $repoDir "artifacts\log\$configuration"
-  New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+$msbuildEngine = "dotnet"
+$disablePipelineSetResult = $true
+. (Join-Path $PSScriptRoot "build-utils.ps1")
 
-  $buildArgs += "--disable-build-servers"
+if ($ci) {
+  $buildArgs += "/p:UseRazorBuildServer=false"
+  $buildArgs += "/p:UseSharedCompilation=false"
   $buildArgs += "-bl:$(Join-Path $logDir "RoslynSdkSamples.binlog")"
 }
 
-Write-Host "dotnet $($buildArgs -join ' ')"
-& dotnet @buildArgs
-if ($LASTEXITCODE -ne 0) {
-  exit $LASTEXITCODE
-}
+# Use Arcade's MSBuild helper for correct warnAsError/warnNotAsError behavior.
+MSBuild @buildArgs

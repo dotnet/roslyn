@@ -143,6 +143,7 @@ stages:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
       jobName: Build_Windows_Debug
+      warnAsError: true
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       poolParameters: ${{ parameters.vs2026PreviewPool }}
@@ -155,6 +156,7 @@ stages:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
       jobName: Build_Windows_Release
+      warnAsError: true
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       poolParameters: ${{ parameters.vs2026PreviewPool }}
@@ -203,6 +205,7 @@ stages:
         platform:
           name: 'Managed'
           container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9'
+          buildArguments: --warnAsError
 
 - stage: Windows_Debug_Tests
   dependsOn: Windows_Debug_Build
@@ -394,18 +397,18 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -warnAsError -restore -binaryLogName Restore.binlog
         displayName: Restore
 
       # We additionally restore during the build because the Microsoft.DotNet.Build.Tasks.Feed package only restores when we pass `-publish`. See https://github.com/dotnet/arcade/blob/37ccfd66358af6a37a0ec385ec31d1d71bdd8723/src/Microsoft.DotNet.Arcade.Sdk/tools/Tools.proj#L61-L66
       # Passing `-publish` during the restore step above fails due to no items needing published.
-      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -warnAsError -restore -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
         displayName: Build
 
       - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.slnx --check-package-install
         displayName: Validate Build Artifacts
 
-      - powershell: eng/validate-rules-missing-documentation.ps1 -ci
+      - powershell: eng/validate-rules-missing-documentation.ps1 -ci -warnAsError
         displayName: Validate rules missing documentation
 
       - task: DotNetCoreCLI@2
@@ -429,7 +432,7 @@ stages:
       - powershell: eng/validate-benchmarks.ps1 -configuration Release -ci
         displayName: Validate Benchmarks
 
-      - powershell: eng/validate-roslyn-sdk-samples.ps1 -configuration Release -ci
+      - powershell: eng/validate-roslyn-sdk-samples.ps1 -configuration Release -ci -warnAsError
         displayName: Validate Roslyn SDK Samples
 
       - script: dotnet build-server shutdown
@@ -456,10 +459,10 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - powershell: eng/make-bootstrap.ps1 -output $(bootstrapDir) -ci
+      - powershell: eng/make-bootstrap.ps1 -output $(bootstrapDir) -ci -warnAsError
         displayName: Build Bootstrap Compiler
 
-      - powershell: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir) -ci
+      - powershell: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir) -ci -warnAsError
         displayName: Build - Validate determinism
 
       - template: eng/pipelines/publish-logs.yml
@@ -516,7 +519,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - script: .\eng\test-rebuild.cmd -ci -configuration Release -bootstrap
+      - script: .\eng\test-rebuild.cmd -ci -warnAsError -configuration Release -bootstrap
         displayName: Run BuildValidator
 
       - task: PublishBuildArtifacts@1
@@ -549,7 +552,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
-      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror
+      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --warnAsError --binaryLog --runanalyzers
         displayName: Build with analyzers
 
       - template: eng/pipelines/publish-logs.yml
