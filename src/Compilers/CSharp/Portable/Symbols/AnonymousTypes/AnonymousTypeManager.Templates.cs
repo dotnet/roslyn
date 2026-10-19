@@ -246,6 +246,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         static (key, @this) => new AnonymousDelegateTemplateSymbol(@this, key.TypeDescriptor),
                         this);
 
+                    if (ReferenceEquals(namedTemplate.Manager, this))
+                    {
+                        // Different lambdas or method groups can share this template. Use its earliest
+                        // source location to number it, so the name does not depend on which thread
+                        // gets here first. AdjustLocation updates that location safely across threads.
+                        namedTemplate.AdjustLocation(typeDescr.Location);
+                    }
+
                     return namedTemplate.Construct(typeArguments);
                 }
 

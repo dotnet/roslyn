@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Security.Cryptography;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -117,6 +118,74 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             // adding the debug option should change the MVID
             Assert.NotEqual(mvid1, mvid5);
             Assert.NotEqual(mvid3, mvid7);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86096")]
+        public void AnonymousDelegateNames(
+            [CombinatorialValues("int", "int*")] string parameterType,
+            [CombinatorialValues("string o = null", "params int[] rest")] string lastParameter,
+            bool useMethodGroups)
+        {
+            var small = useMethodGroups ? "M1" : $"({parameterType} a, {lastParameter}) => 0";
+            var large = useMethodGroups ? "M2" : $"({parameterType} a, {parameterType} b, {lastParameter}) => 0";
+            var source = $$"""
+                public unsafe class Outer
+                {
+                    public static partial class P { }
+                    public static class Q
+                    {
+                        public static System.Delegate B() => {{small}};
+                    }
+                    public static partial class P
+                    {
+                        public static System.Delegate A() => {{large}};
+                        public static System.Delegate C() => {{small}};
+                    }
+                    private static int M1({{parameterType}} a, {{lastParameter}}) => 0;
+                    private static int M2({{parameterType}} a, {{parameterType}} b, {{lastParameter}}) => 0;
+                }
+                """;
+
+            ImmutableArray<byte> expectedImage = default;
+            foreach (bool concurrentBuild in new[] { false, true })
+            {
+                // Nested types are visited in source order on one thread, so P.A and P.C
+                // are compiled before Q.B, even though Q.B uses the smaller delegate first.
+                var compilation = CreateCompilation(source, assemblyName: "AnonymousDelegates",
+                    options: TestOptions.UnsafeReleaseDll.WithDeterministic(true).WithConcurrentBuild(concurrentBuild));
+                var image = compilation.EmitToArray();
+
+                using var peReader = new PEReader(image);
+                var reader = peReader.GetMetadataReader();
+                var delegates = reader.TypeDefinitions.Select(reader.GetTypeDefinition)
+                    .Where(type => reader.GetString(type.Name).StartsWith("<>f__AnonymousDelegate", StringComparison.Ordinal))
+                    .ToArray();
+
+                AssertEx.Equal(
+                    parameterType == "int"
+                        ? new[] { "<>f__AnonymousDelegate0`3", "<>f__AnonymousDelegate1`4" }
+                        : new[] { "<>f__AnonymousDelegate0", "<>f__AnonymousDelegate1" },
+                    delegates.Select(type => reader.GetString(type.Name)));
+                AssertEx.Equal(new[] { 2, 3 }, delegates.Select(type =>
+                {
+                    var invoke = type.GetMethods().Select(reader.GetMethodDefinition)
+                        .Single(method => reader.StringComparer.Equals(method.Name, "Invoke"));
+                    var signature = reader.GetBlobReader(invoke.Signature);
+                    signature.ReadSignatureHeader();
+                    return signature.ReadCompressedInteger();
+                }));
+
+                if (expectedImage.IsDefault)
+                {
+                    expectedImage = image;
+                }
+                else
+                {
+                    AssertEx.Equal(expectedImage, image);
+                }
+            }
         }
 
         [Fact]
