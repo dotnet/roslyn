@@ -42,3 +42,17 @@ public class MyTests
   `LanguageServerTestComposition.GetSharedExportProvider`. A controllable
   `PartNotDiscoverable` project loader can provide deterministic design-time
   build timing and results without invoking MSBuild.
+
+## Visual Studio package tests
+
+- Package tests that use the VS SDK `GlobalServiceProvider` fixture run in an
+  isolated AppDomain using `AppDomainUtils`; see `VisualBasicPackageTests`.
+  SDK statics can retain the mocked UI context after the fixture is disposed,
+  so a fixture in one xUnit collection can affect other collections.
+- Create Roslyn MEF test environments on a WPF dispatcher with a
+  `UseExportProviderAttribute` scope, then await a separate helper for SDK-main-thread
+  work. The SDK mock synchronization context is not the WPF dispatcher context
+  expected by Roslyn's MEF threading exports.
+- Use the existing native `MockComWrapperFactory` for aggregation tests. Cast COM
+  interfaces directly to exercise QI; reflection-based type-assignability checks
+  do not model RCW interface support.

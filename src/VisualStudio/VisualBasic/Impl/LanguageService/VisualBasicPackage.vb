@@ -31,7 +31,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '       General
     '       Naming
 #Disable Warning BC40000 ' Preserve the installed-product registration.
-    <PackageRegistration(UseManagedResourcesOnly:=True, AllowsBackgroundLoading:=False)>
+    <PackageRegistration(UseManagedResourcesOnly:=True, AllowsBackgroundLoading:=True)>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".bas")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".cls")>
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".ctl")>
@@ -93,25 +93,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Implements IVbCompilerService
         Implements IVsUserSettingsQuery
 
-        ' The property page for WinForms project has a special interface that it uses to get
-        ' entry points that are Forms: IVbEntryPointProvider. The semantics for this
-        ' interface are the same as VisualBasicProject::GetFormEntryPoints, but callers get
-        ' the VB Package and cast it to IVbEntryPointProvider. The property page is managed
-        ' and we've redefined the interface, so we have to register a COM aggregate of the
-        ' VB package. This is the same pattern we use for the LanguageService and Razor.
-        Private ReadOnly _comAggregate As Object
-
         Private _libraryManager As ObjectBrowserLibraryManager
         Private _libraryManagerCookie As UInteger
-
-        Public Sub New()
-            MyBase.New()
-
-            ' This is a UI-affinitized operation. Currently this operation prevents setting AllowsBackgroundLoad for
-            ' VisualBasicPackage. The call should be removed from the constructor, and the package set back to allowing
-            ' background loads.
-            _comAggregate = Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
-        End Sub
 
         Protected Overrides Sub RegisterInitializeAsyncWork(packageInitializationTasks As PackageLoadTasks)
 
@@ -121,9 +104,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 isMainThreadTask:=False,
                 task:=Function() As Task
                           Try
-                              AddService(GetType(IVbCompilerService), Function(_1, cancellationToken, _2)
+                              AddService(GetType(IVbCompilerService), Async Function(_1, cancellationToken, _2)
                                                                           PreloadProjectSystemComponents()
-                                                                          Return Task.FromResult(_comAggregate)
+
+                                                                          Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
+
+                                                                          ' The property page for WinForms project has a special interface that it uses to get
+                                                                          ' entry points that are Forms: IVbEntryPointProvider. The semantics for this
+                                                                          ' interface are the same as VisualBasicProject::GetFormEntryPoints, but callers get
+                                                                          ' the VB Package and cast it to IVbEntryPointProvider. The property page is managed
+                                                                          ' and we've redefined the interface, so we have to register a COM aggregate of the
+                                                                          ' VB package. This is the same pattern we use for the LanguageService and Razor.
+                                                                          ' The service container caches the aggregate.
+                                                                          Return Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
                                                                       End Function, promote:=True)
 
                               DirectCast(Me, IServiceContainer).AddService(

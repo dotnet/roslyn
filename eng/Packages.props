@@ -307,6 +307,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Cache" Version="17.3.26-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="17.8.36726" />
+    <PackageVersion Include="Microsoft.VisualStudio.Sdk.TestFramework" Version="17.11.66" />
     <PackageVersion Include="System.Management" Version="10.0.10" />
     <PackageVersion Include="System.Drawing.Common" Version="10.0.10" />
     <PackageVersion Include="Moq" Version="4.10.1" />
