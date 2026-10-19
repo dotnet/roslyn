@@ -5044,18 +5044,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var typeSyntax in typesBuilder)
                     {
                         var parameterType = signatureBinder.BindType(typeSyntax, diagnostics, suppressUseSiteDiagnostics: false);
-
-                        // Check that conversion to object is possible
-
-                        var useSiteInfo = signatureBinder.GetNewCompoundUseSiteInfo(diagnostics);
-                        Conversion c = compilation.Conversions.ClassifyImplicitConversionFromType(parameterType.Type, compilation.GetSpecialType(SpecialType.System_Object), ref useSiteInfo);
-                        diagnostics.Add(typeSyntax, useSiteInfo);
-
-                        if (!SynthesizedUnionCtor.IsValidParameterTypeConversion(c) && !parameterType.Type.IsErrorType())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_NoImplicitConversionToObject, typeSyntax, parameterType.Type);
-                        }
-
                         var ctor = new SynthesizedUnionCtor(this, typeSyntax, parameterType, memberOffset: --memberOffset);
                         members.Add(ctor);
                     }
