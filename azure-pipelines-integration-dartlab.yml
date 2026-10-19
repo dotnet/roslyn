@@ -15,8 +15,8 @@ resources:
     ref: refs/tags/Production
   - repository: DartLabTemplates
     type: git
-    name: DevDiv/DartLab.Templates
-    ref: refs/heads/main
+    name: DevDiv/DartLab
+    ref: refs/tags/Production
   - repository: VSTemplates
     type: git
     name: DevDiv/VS.Templates
@@ -52,19 +52,20 @@ parameters:
   - name: testsCommitFromVisualStudioBuild
     type: boolean
     default: false
-  # Set to 'stop' if you want to keep the test machines around for investigation after test completion.
-  - name: testMachineCleanUpStrategy
-    displayName: Test Machine Clean Up Strategy
+  - name: testMachineLab
+    displayName: CloudTest Lab (required for migration validation)
     type: string
-    default: delete
+    default: Roslyn
+  - name: testMachineHoldStrategy
+    displayName: Test Machine Hold Strategy
+    type: string
+    default: None
     values:
-    - delete
-    - stop
-  # The retention period for the test machine (expressed as <Days>:<Hours>:<Minutes>:<Seconds>)
-  - name: testMachineRetention
-    displayName: Test Machine Retention (format "D:H:M:S")
-    type: string
-    default: 1:0:0:0 # 1 day default
+    - None
+    - Completion
+    - Execution
+    - Failure
+    - Timeout
 
 extends:
   template: /DartLab/1ES/pipelines/ci/build.yml@VSTemplates
@@ -81,5 +82,5 @@ extends:
         skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}
         testsCommitHash: ${{ parameters.testsCommitHash }}
         testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
-        testMachineCleanUpStrategy: ${{ parameters.testMachineCleanUpStrategy }}
-        testMachineRetention: ${{ parameters.testMachineRetention }}
+        testMachineLab: ${{ parameters.testMachineLab }}
+        testMachineHoldStrategy: ${{ parameters.testMachineHoldStrategy }}

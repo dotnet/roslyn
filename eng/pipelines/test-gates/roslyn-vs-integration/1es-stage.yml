@@ -1,0 +1,122 @@
+# Roslyn VS integration test stages.
+
+parameters:
+- name: prNumber
+  type: string
+  default: 'None'
+- name: sha
+  type: string
+  default: 'None'
+- name: EnforceLatestCommit
+  type: boolean
+  default: true
+- name: visualStudioBootstrapperURI
+  type: string
+  default: '(default)'
+- name: testCaseFilter
+  type: string
+  default: ''
+- name: skipCustomRoslynDeploy
+  type: boolean
+  default: true
+- name: testsCommitHash
+  type: string
+  default: '(default)'
+- name: testsCommitFromVisualStudioBuild
+  type: boolean
+  default: false
+- name: testMachineLab
+  type: string
+  default: Roslyn
+- name: testMachineHoldStrategy
+  type: string
+  default: None
+  values:
+  - None
+  - Completion
+  - Execution
+  - Failure
+  - Timeout
+- name: dartLabTemplatesRepositoryAlias
+  type: string
+  default: DartLabTemplates
+- name: roslynRepositoryAlias
+  type: string
+  default: self
+- name: testStageFilter
+  type: object
+  default: ''
+
+stages:
+- template: /eng/pipelines/1es-test-integration-job.yml@${{ parameters.roslynRepositoryAlias }}
+  parameters:
+    name: RoslynVSIntegration_Debug_OOP32
+    roslynRepositoryAlias: ${{ parameters.roslynRepositoryAlias }}
+    configuration: Debug
+    oop64bit: 'false'
+    prNumber: ${{ parameters.prNumber }}
+    sha: ${{ parameters.sha }}
+    EnforceLatestCommit: ${{ parameters.EnforceLatestCommit }}
+    visualStudioBootstrapperURI: ${{ parameters.visualStudioBootstrapperURI }}
+    testCaseFilter: ${{ parameters.testCaseFilter }}
+    skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}
+    testsCommitHash: ${{ parameters.testsCommitHash }}
+    testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
+    testMachineLab: ${{ parameters.testMachineLab }}
+    testMachineHoldStrategy: ${{ parameters.testMachineHoldStrategy }}
+    dartLabTemplatesRepositoryAlias: ${{ parameters.dartLabTemplatesRepositoryAlias }}
+    testStageFilter: ${{ parameters.testStageFilter }}
+- template: /eng/pipelines/1es-test-integration-job.yml@${{ parameters.roslynRepositoryAlias }}
+  parameters:
+    name: RoslynVSIntegration_Debug_OOP64
+    roslynRepositoryAlias: ${{ parameters.roslynRepositoryAlias }}
+    configuration: Debug
+    oop64bit: 'true'
+    prNumber: ${{ parameters.prNumber }}
+    sha: ${{ parameters.sha }}
+    EnforceLatestCommit: ${{ parameters.EnforceLatestCommit }}
+    visualStudioBootstrapperURI: ${{ parameters.visualStudioBootstrapperURI }}
+    testCaseFilter: ${{ parameters.testCaseFilter }}
+    skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}
+    testsCommitHash: ${{ parameters.testsCommitHash }}
+    testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
+    testMachineLab: ${{ parameters.testMachineLab }}
+    testMachineHoldStrategy: ${{ parameters.testMachineHoldStrategy }}
+    dartLabTemplatesRepositoryAlias: ${{ parameters.dartLabTemplatesRepositoryAlias }}
+    testStageFilter: ${{ parameters.testStageFilter }}
+- template: /eng/pipelines/1es-test-integration-job.yml@${{ parameters.roslynRepositoryAlias }}
+  parameters:
+    name: RoslynVSIntegration_Release_OOP32
+    roslynRepositoryAlias: ${{ parameters.roslynRepositoryAlias }}
+    configuration: Release
+    oop64bit: 'false'
+    prNumber: ${{ parameters.prNumber }}
+    sha: ${{ parameters.sha }}
+    EnforceLatestCommit: ${{ parameters.EnforceLatestCommit }}
+    visualStudioBootstrapperURI: ${{ parameters.visualStudioBootstrapperURI }}
+    testCaseFilter: ${{ parameters.testCaseFilter }}
+    skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}
+    testsCommitHash: ${{ parameters.testsCommitHash }}
+    testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
+    testMachineLab: ${{ parameters.testMachineLab }}
+    testMachineHoldStrategy: ${{ parameters.testMachineHoldStrategy }}
+    dartLabTemplatesRepositoryAlias: ${{ parameters.dartLabTemplatesRepositoryAlias }}
+    testStageFilter: ${{ parameters.testStageFilter }}
+- template: /eng/pipelines/1es-test-integration-job.yml@${{ parameters.roslynRepositoryAlias }}
+  parameters:
+    name: RoslynVSIntegration_Release_OOP64
+    roslynRepositoryAlias: ${{ parameters.roslynRepositoryAlias }}
+    configuration: Release
+    oop64bit: 'true'
+    prNumber: ${{ parameters.prNumber }}
+    sha: ${{ parameters.sha }}
+    EnforceLatestCommit: ${{ parameters.EnforceLatestCommit }}
+    visualStudioBootstrapperURI: ${{ parameters.visualStudioBootstrapperURI }}
+    testCaseFilter: ${{ parameters.testCaseFilter }}
+    skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}
+    testsCommitHash: ${{ parameters.testsCommitHash }}
+    testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
+    testMachineLab: ${{ parameters.testMachineLab }}
+    testMachineHoldStrategy: ${{ parameters.testMachineHoldStrategy }}
+    dartLabTemplatesRepositoryAlias: ${{ parameters.dartLabTemplatesRepositoryAlias }}
+    testStageFilter: ${{ parameters.testStageFilter }}
