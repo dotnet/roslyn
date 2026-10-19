@@ -356,7 +356,7 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
             [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
             {
-                CommandLineArgs = ["/target:library", "/analyzer:..\\Analyzer.dll"],
+                CommandLineArgs = ["/target:library", "/analyzer:" + Path.Combine("..", "Analyzer.dll")],
             }],
             isMiscellaneousFile: false,
             hasAllInformation: true,
