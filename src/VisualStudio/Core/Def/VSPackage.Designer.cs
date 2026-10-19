@@ -59,14 +59,5 @@ namespace Microsoft.VisualStudio.LanguageServices {
                 resourceCulture = value;
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to .editorconfig Designer.
-        /// </summary>
-        internal static string _101 {
-            get {
-                return ResourceManager.GetString("101", resourceCulture);
-            }
-        }
     }
 }

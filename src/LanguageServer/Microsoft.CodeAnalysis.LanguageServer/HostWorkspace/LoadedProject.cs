@@ -388,12 +388,17 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
         public bool Equals(DocumentFileInfo? x, DocumentFileInfo? y)
         {
-            return StringComparer.Ordinal.Equals(x?.FilePath, y?.FilePath);
+            return ReferenceEquals(x, y)
+                || (x is not null && y is not null
+                    && StringComparer.Ordinal.Equals(x.FilePath, y.FilePath)
+                    && x.Folders.SequenceEqual(y.Folders, StringComparer.Ordinal));
         }
 
         public int GetHashCode(DocumentFileInfo obj)
         {
-            return StringComparer.Ordinal.GetHashCode(obj.FilePath);
+            return Hash.Combine(
+                StringComparer.Ordinal.GetHashCode(obj.FilePath),
+                Hash.CombineValues(obj.Folders, StringComparer.Ordinal));
         }
     }
 }
