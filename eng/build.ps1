@@ -808,7 +808,13 @@ try {
 
   Push-Location $RepoRoot
 
-  Subst-TempDir
+  # Substituting T: as the temp directory is process-wide state that outlives this build.
+  # In the VMR, MSBuild nodes are reused across concurrently building repos, so a node that
+  # picks up T: here keeps using it after this build removes the substitution, which then
+  # fails with MSB6003 for whichever repo reuses that node.
+  if (-not $fromVMR) {
+    Subst-TempDir
+  }
 
   if ($ci) {
     List-Processes
@@ -867,7 +873,7 @@ catch {
   ExitWithExitCode 1
 }
 finally {
-  if (Test-Path Function:\Unsubst-TempDir) {
+  if (-not $fromVMR -and (Test-Path Function:\Unsubst-TempDir)) {
     Unsubst-TempDir
   }
   Pop-Location
