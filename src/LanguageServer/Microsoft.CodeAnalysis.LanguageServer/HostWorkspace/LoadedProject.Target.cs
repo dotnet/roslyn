@@ -244,6 +244,12 @@ internal sealed partial class LoadedProject
                 {
                     // Note that unlike regular references, we do not resolve these with the relative path resolver that searches reference paths
                     var absolutePath = FileUtilities.ResolveRelativePath(cr.FilePath, commandLineArguments.BaseDirectory);
+                    if (absolutePath is not null)
+                    {
+                        // Keep live and cached analyzer paths comparable so equivalent paths do not get added twice.
+                        absolutePath = FileUtilities.TryNormalizeAbsolutePath(absolutePath) ?? absolutePath;
+                    }
+
                     return absolutePath is not null ? new CommandLineAnalyzerReference(absolutePath) : default;
                 }).WhereAsArray(static cr => cr.FilePath is not null);
             }

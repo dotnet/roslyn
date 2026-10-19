@@ -335,6 +335,43 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     }
 
     [Fact]
+    public async Task CachedAnalyzerReferenceMatchesDesignTimeAnalyzerPath()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var directory = TempRoot.CreateDirectory().CreateDirectory("Project");
+        var projectPath = Path.Combine(directory.Path, "Cached.csproj");
+        var analyzerPath = Path.GetFullPath(Path.Combine(directory.Path, "..", "Analyzer.dll"));
+        await File.WriteAllTextAsync(projectPath, "<Project />");
+
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        loader.CachedProjects.Add(projectPath, [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+        {
+            CommandLineArgs = ["/target:library"],
+            AnalyzerReferences = [analyzerPath],
+        }]);
+
+        var (loadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await designTimeBuild.Started.Task;
+
+        Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
+            [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+            {
+                CommandLineArgs = ["/target:library", "/analyzer:..\\Analyzer.dll"],
+            }],
+            isMiscellaneousFile: false,
+            hasAllInformation: true,
+            loader.WorkspaceFactory.HostProjectFactory,
+            server.GetRequiredLspService<ProjectTargetFrameworkManager>(),
+            server.GetRequiredLspService<Microsoft.CodeAnalysis.LanguageServer.Handler.Testing.ProjectCapabilityManager>(),
+            loader.WorkspaceFactory,
+            server.GetRequiredLspService<ILoggerFactory>().CreateLogger("CachedAnalyzerReferenceMatchesDesignTimeAnalyzerPath"),
+            CancellationToken.None));
+
+        var project = Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
+        Assert.Equal(analyzerPath, Assert.Single(project.AnalyzerReferences).FullPath);
+    }
+
+    [Fact]
     public async Task CachedProjectRestoresModuleReferenceWhileDesignTimeBuildIsPending()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
