@@ -34,6 +34,8 @@ model: gpt-5.6-sol
 tools:
   github:
     toolsets: [issues]
+    allowed-repos: "${{ github.repository }}"
+    min-integrity: none
   edit:
   bash: [":*"]
 
