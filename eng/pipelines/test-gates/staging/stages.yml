@@ -11,6 +11,9 @@ parameters:
 - name: EnforceLatestCommit
   type: boolean
   default: true
+- name: ValidateExactCommit
+  type: boolean
+  default: false
 - name: visualStudioBootstrapperURI
   type: string
   default: '(default)'
@@ -49,6 +52,7 @@ stages:
     prNumber: ${{ parameters.prNumber }}
     sha: ${{ parameters.sha }}
     EnforceLatestCommit: ${{ parameters.EnforceLatestCommit }}
+    ValidateExactCommit: ${{ parameters.ValidateExactCommit }}
     visualStudioBootstrapperURI: ${{ parameters.visualStudioBootstrapperURI }}
     testCaseFilter: ${{ iif(eq(parameters.testCaseFilter, '(default)'), 'TestGate=RoslynVSIntegration', iif(eq(parameters.testCaseFilter, '(all)'), '', parameters.testCaseFilter)) }}
     skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}

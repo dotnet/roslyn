@@ -127,15 +127,20 @@ jobs:
           script: |
             const commentBody = context.payload.comment.body;
             // Extract commit hash after /dart or /pr-val
-            const match = commentBody.match(/\/(dart|pr-val)\s+([a-f0-9]{7,40})/i);
+            const match = commentBody.match(/\/(?:dart|pr-val)(?=\s|$)(?:\s+(\S+))?/i);
 
-            if (!match || !match[2]) {
+            if (!match || !match[1]) {
               console.log('No commit hash found in comment');
               core.setOutput('has-commit', 'false');
               return false;
             }
 
-            const commitHash = match[2];
+            if (!/^[a-f0-9]{40}$/i.test(match[1])) {
+              core.setFailed('The commit hash must contain exactly 40 hexadecimal characters. Use `/dart <full-commit-sha>` or `/pr-val <full-commit-sha>`.');
+              return;
+            }
+
+            const commitHash = match[1].toLowerCase();
             console.log(`Extracted commit hash: ${commitHash}`);
             core.setOutput('has-commit', 'true');
             core.setOutput('commit-hash', commitHash);
@@ -152,7 +157,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number,
-              body: 'This PR is from an external author. You must specify a commit hash to trigger this workflow. Please use the format `/dart <commit-hash>` or `/pr-val <commit-hash>`.'
+              body: 'This PR is from an external author. You must specify a full 40-character commit SHA to trigger this workflow. Please use the format `/dart <full-commit-sha>` or `/pr-val <full-commit-sha>`.'
             });
             core.setFailed('Commit hash required for external PR author');
 
@@ -219,7 +224,7 @@ jobs:
               pull_number: context.issue.number
             });
 
-            const commitExists = commits.some(commit => commit.sha.startsWith(commitSha));
+            const commitExists = commits.some(commit => commit.sha === commitSha);
 
             if (!commitExists) {
               await github.rest.issues.createComment({
@@ -314,7 +319,8 @@ jobs:
             "templateParameters": {
               "prNumber": "$PR_NUMBER",
               "sha": "$COMMIT_SHA",
-              "EnforceLatestCommit": "$ENFORCE_LATEST"
+              "EnforceLatestCommit": "$ENFORCE_LATEST",
+              "ValidateExactCommit": true
             }
           }
           EOF
@@ -333,7 +339,8 @@ jobs:
             "templateParameters": {
               "PRNumber": $PR_NUMBER,
               "CommitSHA": "$COMMIT_SHA",
-              "EnforceLatestCommit": "$ENFORCE_LATEST"
+              "EnforceLatestCommit": "$ENFORCE_LATEST",
+              "ValidateExactCommit": true
             }
           }
           EOF

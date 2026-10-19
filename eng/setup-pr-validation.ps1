@@ -2,7 +2,8 @@
 param (
   [string]$prNumber,
   [string]$commitSHA,
-  [boolean]$enforceLatestCommit)
+  [boolean]$enforceLatestCommit,
+  [boolean]$validateExactCommit = $false)
 
 try {
     # name and email are only used for merge commit, it doesn't really matter what we put in there.
@@ -24,8 +25,9 @@ try {
 
     if ($enforceLatestCommit) {
       Write-Host "Validating the PR head matches the specified commit SHA ($commitSHA)..."
-      if (!$prHeadSHA.StartsWith($commitSHA)) {
-        Write-Host "##vso[task.LogIssue type=error;]The PR's Head SHA ($prHeadSHA) does not begin with the specified commit SHA ($commitSHA). Unreviewed changes may have been pushed to the PR."
+      $commitMatches = if ($validateExactCommit) { $prHeadSHA -eq $commitSHA } else { $prHeadSHA.StartsWith($commitSHA) }
+      if (!$commitMatches) {
+        Write-Host "##vso[task.LogIssue type=error;]The PR's Head SHA ($prHeadSHA) does not match the specified commit SHA ($commitSHA). Unreviewed changes may have been pushed to the PR."
         exit 1
       }
     }
@@ -43,7 +45,28 @@ try {
       exit 1
     }
 
-    if (!$enforceLatestCommit) {
+    if ($validateExactCommit) {
+      $builtPrHead = git rev-parse 'HEAD^2'
+      if ($builtPrHead -ne $commitSHA) {
+        if ($enforceLatestCommit) {
+          Write-Host "##vso[task.LogIssue type=error;]The fetched merge's PR head SHA ($builtPrHead) does not match the specified commit SHA ($commitSHA). Unreviewed changes may have been pushed to the PR."
+          exit 1
+        }
+
+        Write-Host "Checking out the specified commit SHA ($commitSHA)..."
+        git fetch gh $commitSHA
+        if (!$?) {
+          Write-Host "##vso[task.LogIssue type=error;]Fetching commit SHA $commitSHA failed."
+          exit 1
+        }
+        git checkout $commitSHA
+        if (!$?) {
+          Write-Host "##vso[task.LogIssue type=error;]Checking out commit SHA $commitSHA failed."
+          exit 1
+        }
+      }
+    }
+    elseif (!$enforceLatestCommit) {
       if ($prHeadSHA.StartsWith($commitSHA)) {
         Write-Host "PR head SHA ($prHeadSHA) already matches the specified commit SHA ($commitSHA), skipping checkout."
       }
