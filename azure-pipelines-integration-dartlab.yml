@@ -37,9 +37,6 @@ parameters:
   - name: EnforceLatestCommit
     type: boolean
     default: true
-  - name: ValidateExactCommit
-    type: boolean
-    default: false
   - name: visualStudioBootstrapperURI
     type: string
     default: '(default)'
@@ -79,7 +76,6 @@ extends:
         prNumber: ${{ parameters.prNumber }}
         sha: ${{ parameters.sha }}
         EnforceLatestCommit: ${{ parameters.EnforceLatestCommit }}
-        ValidateExactCommit: ${{ parameters.ValidateExactCommit }}
         visualStudioBootstrapperURI: ${{ parameters.visualStudioBootstrapperURI }}
         testCaseFilter: ${{ parameters.testCaseFilter }}
         skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}

@@ -319,8 +319,7 @@ jobs:
             "templateParameters": {
               "prNumber": "$PR_NUMBER",
               "sha": "$COMMIT_SHA",
-              "EnforceLatestCommit": "$ENFORCE_LATEST",
-              "ValidateExactCommit": true
+              "EnforceLatestCommit": "$ENFORCE_LATEST"
             }
           }
           EOF
@@ -339,8 +338,7 @@ jobs:
             "templateParameters": {
               "PRNumber": $PR_NUMBER,
               "CommitSHA": "$COMMIT_SHA",
-              "EnforceLatestCommit": "$ENFORCE_LATEST",
-              "ValidateExactCommit": true
+              "EnforceLatestCommit": "$ENFORCE_LATEST"
             }
           }
           EOF
