@@ -209,10 +209,10 @@ internal sealed partial class FindReferencesSearchEngine
                     return null;
 
                 symbol = mapped;
-                foreach (var linked in await SymbolFinder.FindLinkedSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false))
+                foreach (var sameSymbol in await FindSameSymbolsAsync(symbol, solution, cancellationToken).ConfigureAwait(false))
                 {
-                    if (seenSymbols.Add(linked))
-                        workQueue.Push(linked);
+                    if (!IsFoundThroughPartialDefinitionPart(sameSymbol) && seenSymbols.Add(sameSymbol))
+                        workQueue.Push(sameSymbol);
                 }
 
                 return symbol;

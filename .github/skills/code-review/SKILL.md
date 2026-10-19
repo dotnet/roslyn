@@ -294,6 +294,7 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Always add regression tests for bug fixes and behavior changes.** Prefer adding test cases to existing test files rather than creating new files.
 
+- **Require evidence that regression tests detect the bug.** For bug fixes, check the fail-before/pass-after evidence required by the [Definition of Done](../../copilot-instructions.md#definition-of-done). A test that already passes without the fix does not establish regression coverage for that bug. If the check was not performed, flag regression-test efficacy as unverified.
 
 - **Test all relevant `LangVersion` boundaries.** When testing language-version-specific behavior, include: the version *before* the feature (a specific version string that disallows it), the version *after* (using `TestOptions.RegularNext` or a specific version that allows it), and the *preview* version (which always rolls forward with nightly builds). Similarily for IDE features, completions and refactorings may be gated on language version, so test the same boundaries.
 
