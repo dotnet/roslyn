@@ -120,8 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Assert.NotEqual(mvid3, mvid7);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         [WorkItem("https://github.com/dotnet/roslyn/issues/86096")]
         public void AnonymousDelegateNames(
             [CombinatorialValues("int", "int*")] string parameterType,
