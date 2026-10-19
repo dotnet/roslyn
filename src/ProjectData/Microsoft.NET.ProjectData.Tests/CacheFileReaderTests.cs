@@ -630,6 +630,30 @@ public class CacheFileReaderTests : IDisposable
 
 	#endregion
 
+	#region Analyzer References
+
+	[Fact]
+	public async Task AnalyzerReferences_UnboundResolver_SkipsCompressedNetSdkPaths()
+	{
+		string content = """
+			version=2
+
+			[project]
+			language=C#
+
+			[analyzerReferences]
+			<NETSDK>/Sdks/Microsoft.NET.Sdk/analyzers/
+			 Microsoft.CodeAnalysis.CSharp.NetAnalyzers.dll
+			 Microsoft.CodeAnalysis.NetAnalyzers.dll
+			""";
+
+		ImmutableArray<CachedSliceData> slices = await ParseAsync(content);
+
+		Assert.Empty(Assert.Single(slices).AnalyzerReferences);
+	}
+
+	#endregion
+
 	#region DeriveFolderNames
 
 	[Fact]

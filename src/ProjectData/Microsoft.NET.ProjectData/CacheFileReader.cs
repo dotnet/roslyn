@@ -973,15 +973,16 @@ public static class CacheFileReader
 		private ImmutableArray<string> BuildAnalyzerReferences(ImmutableArray<string> packAnalyzerRefs)
 		{
 			List<string> analyzerLines = this.AnalyzerReferenceLines;
-			if (!this.resolver.IsNetSdkBound)
-			{
-				analyzerLines = this.FilterUnresolvableNetSdkLines(analyzerLines);
-			}
-
 			ImmutableArray<string> explicitRefs = [];
 			if (analyzerLines.Count > 0)
 			{
 				List<(string Path, Dictionary<string, string>? Metadata)> expanded = ExpandCompressedPaths(analyzerLines, this.cancellationToken);
+				if (!this.resolver.IsNetSdkBound)
+				{
+					// Expand first so children of a <NETSDK> prefix still carry the sentinel when filtered.
+					expanded = this.FilterUnresolvableNetSdkPaths(expanded);
+				}
+
 				ImmutableArray<string>.Builder explicitBuilder = ImmutableArray.CreateBuilder<string>(expanded.Count);
 				foreach ((string path, Dictionary<string, string>? _) in expanded)
 				{
@@ -1008,38 +1009,6 @@ public static class CacheFileReader
 				result.Add(this.Pool(packRef));
 			}
 			return result.ToImmutable();
-		}
-
-		/// <summary>
-		/// Filters out lines whose compressed-path prefix starts with the <c>&lt;NETSDK&gt;</c>
-		/// sentinel, logging a single warning when any are dropped. Used when the resolver
-		/// is unbound (no SDK info supplied by the caller) so we skip rather than fabricate
-		/// a phantom path.
-		/// </summary>
-		private List<string> FilterUnresolvableNetSdkLines(List<string> lines)
-		{
-			List<string> filtered = [];
-			bool warned = false;
-			foreach (string line in lines)
-			{
-				string trimmed = line.TrimStart();
-				if (trimmed.StartsWith(PathSentinels.NetSdk, StringComparison.Ordinal))
-				{
-					if (!warned)
-					{
-						System.Diagnostics.Trace.TraceWarning(
-							"[lscache] Skipping <NETSDK> path(s) in {0} — no SDK binding supplied. " +
-							"SDK-shipped analyzers and configs will be missing until SDK info is available.",
-							this.projectDirectory);
-						warned = true;
-					}
-				}
-				else
-				{
-					filtered.Add(line);
-				}
-			}
-			return filtered;
 		}
 
 		private List<(string Path, Dictionary<string, string>? Metadata)> FilterUnresolvableNetSdkPaths(
