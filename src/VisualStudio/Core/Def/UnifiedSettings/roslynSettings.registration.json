@@ -21,7 +21,7 @@
       "placements": [ { "category": "languages.csharp.advanced.stackTrace", "order": 0 } ],
       "migration": { "pass": { "mode": "full", "input": { "store": "SettingsManager", "path": "StackTraceExplorer.Options.OpenOnFocus" } } }
     },
-    "languages.dotnet.advanced.sourceGeneratorExecution": {"title":"@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Source_generator_execution_USX;..\\Microsoft.VisualStudio.LanguageServices.dll","type":"string","default":"balanced","transientScopesSupported":false,"requiresRestart":true,"enum":["automatic","balanced"],"enumItemLabels":["@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Automatic_Run_generators_after_any_change;..\\Microsoft.VisualStudio.LanguageServices.dll","@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Balanced_Run_generators_after_saving_or_building;..\\Microsoft.VisualStudio.LanguageServices.dll"],"messages":[{"text":"@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:This_setting_is_shared_by_CSharp_and_Visual_Basic;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"}],"placements":[{"category":"languages.csharp.advanced.sourceGenerators","order":0},{"category":"languages.basic.advanced.sourceGenerators","order":0}],"migration":{"custom":{"mode":"oneTimeFromLegacy","inputs":[{"store":"SettingsManager","path":"TextEditor.Roslyn.Specific.SourceGeneratorExecution"}],"map":[{"result":"@default","matches":[1]},{"result":"automatic","matches":[0]},{"result":"balanced","matches":[1]},{"result":"@default","matches":["@any"]}]}}},
+    "languages.dotnet.advanced.sourceGeneratorExecution": {"title":"@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Source_generator_execution_USX;..\\Microsoft.VisualStudio.LanguageServices.dll","type":"string","default":"balanced","transientScopesSupported":false,"requiresRestart":true,"enum":["automatic","balanced"],"enumItemLabels":["@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Automatic_Run_generators_after_any_change;..\\Microsoft.VisualStudio.LanguageServices.dll","@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Balanced_Run_generators_after_saving_or_building;..\\Microsoft.VisualStudio.LanguageServices.dll"],"messages":[{"text":"@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:This_setting_is_shared_by_CSharp_and_Visual_Basic;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"}],"placements":[{"category":"languages.csharp.advanced.sourceGenerators","order":0},{"category":"languages.basic.advanced.sourceGenerators","order":0}],"migration":{"custom":{"mode":"full","inputs":[{"store":"SettingsManager","path":"TextEditor.Roslyn.Specific.SourceGeneratorExecution"}],"map":[{"result":"@default","matches":[1]},{"result":"automatic","matches":[0]},{"result":"balanced","matches":[1]},{"result":"@default","matches":["@any"]}]}}},
     "test.includeSourceGeneratedFilesInRealTimeDiscovery": {
       "title": "@Include_Roslyn_source_generated_files;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
@@ -33,39 +33,43 @@
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Skip_analyzers_for_implicitly_triggered_builds;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": true, "transientScopesSupported": false,
       "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:This_setting_is_shared_by_CSharp_and_Visual_Basic;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "placements": [ { "category": "languages.csharp.advanced.analysis", "order": 60 }, { "category": "languages.basic.advanced.analysis", "order": 60 } ],
-      "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds" } } }
+      "migration": { "pass": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.SkipAnalyzersForImplicitlyTriggeredBuilds" } } }
     },
     "languages.dotnet.advanced.navigateToSourceLinkAndEmbeddedSources": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Enable_navigation_to_sourcelink_and_embedded_sources;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": true, "transientScopesSupported": false,
       "placements": [ { "category": "languages.csharp.advanced.navigation", "order": 0 } ],
-      "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.NavigateToSourceLinkAndEmbeddedSources" } } }
+      "migration": { "pass": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.NavigateToSourceLinkAndEmbeddedSources" } } }
     },
     "languages.dotnet.advanced.navigateToDecompiledSources": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Enable_navigation_to_decompiled_sources;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": true, "transientScopesSupported": false,
       "placements": [ { "category": "languages.csharp.advanced.navigation", "order": 10 } ],
-      "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.NavigateToDecompiledSources" } } }
+      "migration": { "pass": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.NavigateToDecompiledSources" } } }
     },
     "languages.dotnet.advanced.alwaysUseDefaultSymbolServers": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Always_use_default_symbol_servers_for_navigation;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": true, "transientScopesSupported": false,
       "placements": [ { "category": "languages.csharp.advanced.navigation", "order": 20 } ],
-      "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.AlwaysUseDefaultSymbolServers" } } }
+      "migration": { "pass": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.AlwaysUseDefaultSymbolServers" } } }
     },
     "languages.dotnet.advanced.displayAllHintsWhilePressingAltF1": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Display_all_hints_while_pressing_Alt_F1;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": true, "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Display_all_hints_while_pressing_Alt_F1;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": true,
+      "transientScopesSupported": false,
       "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:This_setting_is_shared_by_CSharp_and_Visual_Basic;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "placements": [ { "category": "languages.csharp.advanced.inlineHints", "order": 0 }, { "category": "languages.basic.advanced.inlineHints", "order": 0 } ],
-      "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.Specific.DisplayAllHintsWhilePressingAltF1" } } }
+      "migration": { "pass": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.Specific.DisplayAllHintsWhilePressingAltF1" } } }
     },
     "languages.dotnet.advanced.inheritanceMarginCombinedWithIndicatorMargin": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Combine_inheritance_margin_with_indicator_margin;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": false, "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Combine_inheritance_margin_with_indicator_margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean", "default": false, "transientScopesSupported": false,
       "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:This_setting_is_shared_by_CSharp_and_Visual_Basic;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "placements": [ { "category": "languages.csharp.advanced.inheritanceMargin", "order": 10 }, { "category": "languages.basic.advanced.inheritanceMargin", "order": 10 } ],
-      "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.InheritanceMarginCombinedWithIndicatorMargin" } } }
+      "migration": { "pass": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.InheritanceMarginCombinedWithIndicatorMargin" } } }
     },
     "languages.dotnet.advanced.splitStringLiterals": {
       "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Split_string_literals_on_enter_USX;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll", "type": "boolean", "default": true, "transientScopesSupported": false,
       "placements": [ { "category": "languages.csharp.advanced.editorHelp", "order": 20 } ],
-      "migration": { "pass": { "mode": "oneTimeFromLegacy", "input": { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.SplitStringLiterals" } } }
+      "migration": { "pass": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.SplitStringLiterals" } } }
     }
   }
 }

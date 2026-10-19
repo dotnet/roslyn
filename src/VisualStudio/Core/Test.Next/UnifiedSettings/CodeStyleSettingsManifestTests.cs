@@ -136,9 +136,15 @@ public sealed class CodeStyleSettingsManifestTests
             var checkboxes = legacyGroups[index].Items.OfType<AbstractCheckBoxViewModel>().ToArray();
             var radios = legacyGroups[index].Items.OfType<AbstractRadioButtonViewModel>().ToArray();
             Assert.Equal(checkboxes.Length + radios.Length, legacyGroups[index].Items.Count);
-            Assert.Equal(checkboxes.Length + (radios.Length > 0 ? 1 : 0), placed.Length);
-            Assert.Equal(checkboxes.Select(item => item.Description), placed.Where(property => property.Value.GetProperty("type").GetString() == "boolean")
+            var arrays = placed.Where(property => property.Value.GetProperty("type").GetString() == "array").ToArray();
+            var arrayLabels = arrays.SelectMany(array => array.Value.GetProperty("items").GetProperty("enumItemLabels").EnumerateArray()
+                .Select(label => TestModel.Utilities.EvalResource(label.GetString()!))).ToHashSet(StringComparer.Ordinal);
+            var expectedCheckboxes = checkboxes.Where(item => !arrayLabels.Contains(item.Description)).ToArray();
+            Assert.Equal(expectedCheckboxes.Length + (radios.Length > 0 ? 1 : 0) + arrays.Length, placed.Length);
+            Assert.Equal(expectedCheckboxes.Select(item => item.Description), placed.Where(property => property.Value.GetProperty("type").GetString() == "boolean")
                 .Select(property => TestModel.Utilities.EvalResource(property.Value.GetProperty("title").GetString()!)));
+            Assert.Equal(checkboxes.Where(item => arrayLabels.Contains(item.Description)).Select(item => item.Description), arrays.SelectMany(array => array.Value.GetProperty("items").GetProperty("enumItemLabels").EnumerateArray()
+                .Select(label => TestModel.Utilities.EvalResource(label.GetString()!))));
             if (radios.Length > 0)
             {
                 var preference = Assert.Single(placed, property => property.Value.GetProperty("type").GetString() == "string");
@@ -363,9 +369,9 @@ public sealed class CodeStyleSettingsManifestTests
     public void AllFiveFormattingPagesHaveTheirCompleteNativeInventoryAndTheFourNativePreviews()
     {
         using var document = Load("csharpFormattingSettings.registration.json");
-        var pages = new[] { ("general", 5), ("indentation", 6), ("newLines", 15), ("spacing", 24), ("wrapping", 2) };
+        var pages = new[] { ("general", 5), ("indentation", 6), ("newLines", 7), ("spacing", 22), ("wrapping", 2) };
         var properties = document.RootElement.GetProperty("properties");
-        Assert.Equal(52, properties.EnumerateObject().Count());
+        Assert.Equal(42, properties.EnumerateObject().Count());
         Assert.DoesNotContain(properties.EnumerateObject(), property => property.Value.GetProperty("type").GetString() == "external");
         for (var index = 0; index < pages.Length; index++)
         {
@@ -396,41 +402,23 @@ public sealed class CodeStyleSettingsManifestTests
         var regions = document.RootElement.GetProperty("properties");
         foreach (var field in new[] { "formatOnSemicolon", "formatOnCloseBrace" })
             Assert.Equal("${config:languages.csharp.advanced.onTypeFormatting.formatOnTyping} == 'true'", regions.GetProperty("languages.csharp.advanced.onTypeFormatting." + field).GetProperty("enableWhen").GetString());
-        var newLines = regions.EnumerateObject().Where(property => property.Name.StartsWith("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBrace", StringComparison.Ordinal)).ToArray();
-        Assert.Equal(9, newLines.Length);
-        var spacing = regions.EnumerateObject().Where(property => property.Name.StartsWith("languages.csharp.editorConfig.spacing.csharpSpaceBetweenParentheses", StringComparison.Ordinal)).ToArray();
-        Assert.Equal(3, spacing.Length);
+        var newLines = regions.GetProperty("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBrace");
+        Assert.Equal("array", newLines.GetProperty("type").GetString());
+        Assert.Equal(new[] { "Types", "Methods", "Properties", "Accessors", "AnonymousMethods", "ControlBlocks", "AnonymousTypes", "ObjectCollectionArrayInitializers", "LambdaExpressionBody" }, newLines.GetProperty("items").GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
+        Assert.Equal(new[] { "Types", "Methods", "Properties", "Accessors", "AnonymousMethods", "ControlBlocks", "AnonymousTypes", "ObjectCollectionArrayInitializers", "LambdaExpressionBody" }, newLines.GetProperty("default").EnumerateArray().Select(value => value.GetString()));
+        Assert.Equal("bitfield", newLines.GetProperty("migration").EnumerateObject().Single().Name);
+        Assert.Equal("full", newLines.GetProperty("migration").GetProperty("bitfield").GetProperty("mode").GetString());
+        Assert.Equal("TextEditor.CSharp.Specific.csharp_new_line_before_open_brace", newLines.GetProperty("migration").GetProperty("bitfield").GetProperty("input").GetProperty("path").GetString());
+        var spacing = regions.GetProperty("languages.csharp.editorConfig.spacing.csharpSpaceBetweenParentheses");
+        Assert.Equal("array", spacing.GetProperty("type").GetString());
+        Assert.Equal(new[] { "Expressions", "TypeCasts", "ControlFlowStatements" }, spacing.GetProperty("items").GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
+        Assert.Empty(spacing.GetProperty("default").EnumerateArray());
+        Assert.Equal("bitfield", spacing.GetProperty("migration").EnumerateObject().Single().Name);
+        Assert.Equal("full", spacing.GetProperty("migration").GetProperty("bitfield").GetProperty("mode").GetString());
+        Assert.Equal("TextEditor.CSharp.Specific.csharp_space_between_parentheses", spacing.GetProperty("migration").GetProperty("bitfield").GetProperty("input").GetProperty("path").GetString());
         Assert.Equal(new[] { "Ignore", "Remove", "Single" }, regions.GetProperty("languages.csharp.editorConfig.spacing.binaryOperatorSpacing").GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
-        foreach (var flag in newLines.Concat(spacing))
-        {
-            Assert.Equal("boolean", flag.Value.GetProperty("type").GetString());
-            var migration = flag.Value.GetProperty("migration").GetProperty("custom");
-            var inputs = migration.GetProperty("inputs").EnumerateArray().ToArray();
-            Assert.Equal(2, inputs.Length);
-            Assert.True(inputs[0].GetProperty("bitmask").GetInt32() > 0);
-            Assert.False(inputs[1].TryGetProperty("bitmask", out _));
-            var braces = flag.Name.Contains("csharpNewLineBeforeOpenBrace");
-            var suffix = flag.Name.Substring(flag.Name.LastIndexOf(braces ? "csharpNewLineBeforeOpenBrace" : "csharpSpaceBetweenParentheses", StringComparison.Ordinal)
-                + (braces ? "csharpNewLineBeforeOpenBrace" : "csharpSpaceBetweenParentheses").Length);
-            var expectedMask = braces
-                ? (int)(NewLineBeforeOpenBracePlacement)Enum.Parse(typeof(NewLineBeforeOpenBracePlacement), suffix)
-                : (int)(SpacePlacementWithinParentheses)Enum.Parse(typeof(SpacePlacementWithinParentheses), suffix);
-            Assert.Equal(expectedMask, inputs[0].GetProperty("bitmask").GetInt32());
-            Assert.Equal(braces, flag.Value.GetProperty("default").GetBoolean());
-            Assert.Equal("SettingsManager", inputs[0].GetProperty("store").GetString());
-            Assert.Equal("SettingsManager", inputs[1].GetProperty("store").GetString());
-            Assert.Equal("TextEditor.CSharp.Specific." + (braces ? "csharp_new_line_before_open_brace" : "csharp_space_between_parentheses"), inputs[0].GetProperty("path").GetString());
-            var fallback = braces ? "NewLinesForBracesIn" + suffix : suffix switch
-            {
-                "Expressions" => "SpaceWithinExpressionParentheses",
-                "TypeCasts" => "SpaceWithinCastParentheses",
-                "ControlFlowStatements" => "SpaceWithinOtherParentheses",
-                _ => throw new InvalidOperationException(suffix),
-            };
-            Assert.Equal("TextEditor.CSharp.Specific." + fallback, inputs[1].GetProperty("path").GetString());
-            Assert.Equal(new[] { 1, 0 }, migration.GetProperty("map").EnumerateArray().Take(2).Select(mapping => mapping.GetProperty("matches")[0].GetInt32()));
-            Assert.Equal(new[] { "@missing", "@missing", "@missing" }, migration.GetProperty("map").EnumerateArray().Skip(2).Select(mapping => mapping.GetProperty("matches")[0].GetString()));
-        }
+        Assert.Equal(new[] { 1, 2, 4, 256, 8, 16, 32, 64, 128 }, newLines.GetProperty("migration").GetProperty("bitfield").GetProperty("map").EnumerateArray().Select(mapping => mapping.GetProperty("matches").GetInt32()));
+        Assert.Equal(new[] { 1, 2, 4 }, spacing.GetProperty("migration").GetProperty("bitfield").GetProperty("map").EnumerateArray().Select(mapping => mapping.GetProperty("matches").GetInt32()));
     }
 
     [Fact]
@@ -445,6 +433,9 @@ public sealed class CodeStyleSettingsManifestTests
         var enumCount = 0;
         foreach (var property in document.RootElement.GetProperty("properties").EnumerateObject())
         {
+            if (property.Value.GetProperty("type").GetString() == "array")
+                continue;
+
             if (property.Value.GetProperty("migration").GetProperty(property.Value.GetProperty("migration").EnumerateObject().First().Name).TryGetProperty("inputs", out var inputs) &&
                 inputs.EnumerateArray().Any(input => input.TryGetProperty("bitmask", out _)))
             {
@@ -467,7 +458,7 @@ public sealed class CodeStyleSettingsManifestTests
             var storage = Assert.IsType<VisualStudioOptionStorage.RoamingProfileStorage>(VisualStudioOptionStorage.Storages[option.Definition.ConfigName]);
             Assert.False(property.Value.GetProperty("transientScopesSupported").GetBoolean());
             var migration = Assert.Single(property.Value.GetProperty("migration").EnumerateObject());
-            Assert.Equal("oneTimeFromLegacy", migration.Value.GetProperty("mode").GetString());
+            Assert.Equal("full", migration.Value.GetProperty("mode").GetString());
             var input = migration.Name == "pass" ? migration.Value.GetProperty("input") : Assert.Single(migration.Value.GetProperty("inputs").EnumerateArray());
             Assert.Equal("SettingsManager", input.GetProperty("store").GetString());
             Assert.Equal(storage.Key.Replace("%LANGUAGE%", "CSharp"), input.GetProperty("path").GetString());

@@ -469,7 +469,7 @@ public sealed class AdvancedUnifiedSettingsTests
                     : roaming.Key.Replace("%LANGUAGE%", language == LanguageNames.CSharp ? "CSharp" : "VisualBasic");
                 Assert.Equal("SettingsManager", input.GetProperty("store").GetString());
                 Assert.Equal(path, input.GetProperty("path").GetString());
-                Assert.Equal(option.Definition.Type == typeof(bool?) || option == StackTraceExplorerOptionsStorage.OpenOnFocus ? "full" : "oneTimeFromLegacy", migration.Value.GetProperty("mode").GetString());
+                Assert.Equal("full", migration.Value.GetProperty("mode").GetString());
                 break;
             case UnifiedSettingsManagerStorage unified:
                 Assert.Equal("languages.dotnet.advanced.enableFileLoggingForDiagnostics", unified.Key);
@@ -609,9 +609,7 @@ public sealed class AdvancedUnifiedSettingsTests
                 else
                 {
                     Assert.StartsWith("TextEditor.", GetInput(rule).GetProperty("path").GetString());
-                    var nullableBoolean = property.Name is "languages.dotnet.advanced.offerRemoveUnusedReferences"
-                        or "languages.csharp.advanced.inheritanceMargin.showInheritanceMargin" or "languages.basic.advanced.inheritanceMargin.showInheritanceMargin";
-                    Assert.Equal(nullableBoolean ? "full" : "oneTimeFromLegacy", rule.GetProperty("mode").GetString());
+                    Assert.Equal("full", rule.GetProperty("mode").GetString());
                 }
                 Assert.Contains(property.Value.GetProperty("type").GetString(), new[] { "boolean", "string" });
                 Assert.Equal(JsonSerializer.Serialize(draft.RootElement.GetProperty("properties").GetProperty(property.Name)), JsonSerializer.Serialize(property.Value));
