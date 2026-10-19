@@ -22,6 +22,10 @@ internal static class NativeCodeStyleSettingsDefinitions
         ("csharp_style_var_for_built_in_types", "varPreferences"),
         ("csharp_style_var_when_type_is_apparent", "varPreferences"),
         ("csharp_style_var_elsewhere", "varPreferences"),
+        ("dotnet_style_parentheses_in_arithmetic_binary_operators", "parentheses"),
+        ("dotnet_style_parentheses_in_other_binary_operators", "parentheses"),
+        ("dotnet_style_parentheses_in_relational_binary_operators", "parentheses"),
+        ("dotnet_style_parentheses_in_other_operators", "parentheses"),
         ("dotnet_style_prefer_auto_properties", "codeBlocks"),
         ("csharp_prefer_simple_using_statement", "codeBlocks"),
         ("dotnet_prefer_system_hash_code", "codeBlocks"),
@@ -79,6 +83,7 @@ internal static class NativeCodeStyleSettingsDefinitions
         ("csharp_style_expression_bodied_local_functions", "expressions"),
         ("csharp_style_unused_value_assignment_preference", "expressions"),
         ("csharp_style_unused_value_expression_statement_preference", "expressions"),
+        ("dotnet_code_quality_unused_parameters", "parameters"),
     ];
 
     private static readonly (string ConfigName, string Group)[] s_visualBasic =

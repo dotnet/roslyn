@@ -35,6 +35,11 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
     private readonly Lazy<ILegacyGlobalOptionService> _globalOptions;
     private readonly object _startGate = new();
     private readonly HashSet<string> _startedLanguages = [];
+    private static readonly (string ConfigName, string Category, string[] Suffixes, int[] Flags)[] s_cSharpFormattingFlags =
+    [
+        ("csharp_new_line_before_open_brace", "newLines", ["Types", "Methods", "Properties", "Accessors", "AnonymousMethods", "ControlBlocks", "AnonymousTypes", "ObjectCollectionArrayInitializers", "LambdaExpressionBody"], [1, 2, 4, 256, 8, 16, 32, 64, 128]),
+        ("csharp_space_between_parentheses", "spacing", ["Expressions", "TypeCasts", "ControlFlowStatements"], [1, 2, 4]),
+    ];
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -92,13 +97,32 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
     private IEnumerable<NativeCodeStyleSettingsSynchronizer.Binding> CreateBindings(string language)
     {
         var names = NativeCodeStyleSettingsDefinitions.GetConfigNames(language).ToImmutableHashSet();
-        var options = _enumerator.Value.GetOptions(language).SelectMany(group => group.options);
+        var options = _enumerator.Value.GetOptions(language).SelectMany(group => group.options).ToArray();
         foreach (var option in options.Where(option => names.Contains(option.Definition.ConfigName)))
         {
             var key = new OptionKey2(option, option.IsPerLanguage ? language : null);
             var storage = (VisualStudioOptionStorage.RoamingProfileStorage)VisualStudioOptionStorage.Storages[option.Definition.ConfigName];
             var moniker = NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, option.Definition.ConfigName);
             yield return new(new CodeStyleSetting(option.Definition.ConfigName, option, language, string.Empty), storage.GetKey(key.Language), moniker);
+        }
+
+        if (language == LanguageNames.CSharp)
+        {
+            var optionsByName = options.ToDictionary(option => option.Definition.ConfigName, StringComparer.Ordinal);
+            foreach (var (configName, category, suffixes, flags) in s_cSharpFormattingFlags)
+            {
+                if (!optionsByName.TryGetValue(configName, out var option))
+                    continue;
+
+                var key = new OptionKey2(option, option.IsPerLanguage ? language : null);
+                var storage = (VisualStudioOptionStorage.RoamingProfileStorage)VisualStudioOptionStorage.Storages[configName];
+                var scalarName = CodeStyleSetting.ToUnifiedScalarMoniker(configName);
+                for (var index = 0; index < suffixes.Length; index++)
+                {
+                    var setting = new CodeStyleSetting(scalarName + suffixes[index], option, language, string.Empty, flags[index]);
+                    yield return new(setting, storage.GetKey(key.Language), "languages.csharp.editorConfig." + category + "." + scalarName + suffixes[index]);
+                }
+            }
         }
     }
 

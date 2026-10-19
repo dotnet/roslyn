@@ -46,7 +46,7 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [WpfTheory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", LanguageNames.CSharp, 11)]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", LanguageNames.CSharp, 13)]
     [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", LanguageNames.VisualBasic, 9)]
     [UseExportProvider]
     public void EveryConvertedPreferencePreservesItsLegacyHeadingAndGroupOrder(string file, string categoryMoniker, string language, int groupCount)
@@ -62,9 +62,7 @@ public sealed class CodeStyleSettingsManifestTests
             .Where(category => category.Name[..category.Name.LastIndexOf('.')] == categoryMoniker)
             .OrderBy(category => category.Value.GetProperty("order").GetInt32()).ToArray();
         var properties = document.RootElement.GetProperty("properties");
-        var configNames = NativeCodeStyleSettingsDefinitions.GetConfigNames(language).ToHashSet();
-        var legacyGroups = legacy.CodeStyleItems.Where(item => configNames.Contains(item.Option.Definition.ConfigName))
-            .GroupBy(item => item.GroupName).ToArray();
+        var legacyGroups = legacy.CodeStyleItems.GroupBy(item => item.GroupName).ToArray();
         Assert.Equal(groupCount, categories.Length);
         Assert.Equal(legacyGroups.Select(group => group.Key), categories.Select(category => TestModel.Utilities.EvalResource(category.Value.GetProperty("title").GetString()!)));
         for (var index = 0; index < categories.Length; index++)
@@ -79,13 +77,13 @@ public sealed class CodeStyleSettingsManifestTests
             Assert.False(category.Value.TryGetProperty("previewUIFactory", out _));
         }
 
-        foreach (var item in legacy.CodeStyleItems.Where(item => configNames.Contains(item.Option.Definition.ConfigName)))
+        foreach (var item in legacy.CodeStyleItems)
         {
             var row = document.RootElement.GetProperty("categories").GetProperty(NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, item.Option.Definition.ConfigName));
             Assert.Equal(item.Description, TestModel.Utilities.EvalResource(row.GetProperty("title").GetString()!));
         }
 
-        foreach (var item in legacy.CodeStyleItems.OfType<BooleanCodeStyleOptionViewModel>().Where(item => configNames.Contains(item.Option.Definition.ConfigName)))
+        foreach (var item in legacy.CodeStyleItems.OfType<BooleanCodeStyleOptionViewModel>())
         {
             var preference = properties.GetProperty(NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, item.Option.Definition.ConfigName) + ".preference");
             var expectedLabels = preference.GetProperty("enum").EnumerateArray()
@@ -178,7 +176,7 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", 11)]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", 13)]
     [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", 9)]
     public void GeneralGroupsAreInlineOnlyAndTheParentRetainsItsPreview(string file, string general, int count)
     {
@@ -242,7 +240,7 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", 66, "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F")]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", 71, "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F")]
     [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", 32, "10C168E1-3470-448A-A1AC-73D6BC070750")]
     public void EveryPreferenceHasDependentSeverityControlAndNativePreview(string file, string categoryMoniker, int count, string legacyPageId)
     {
@@ -313,7 +311,7 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", LanguageNames.CSharp, "CSharp", 66)]
+    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", LanguageNames.CSharp, "CSharp", 71)]
     [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", LanguageNames.VisualBasic, "VisualBasic", 32)]
     public async Task EveryGeneralPreferenceHasCompoundLegacyRoamingStorage(string file, string regionMoniker, string language, string legacyLanguage, int count)
     {

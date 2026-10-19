@@ -60,8 +60,9 @@ internal sealed class CodeStyleSetting(string moniker, IOption2 option, string l
             return style.WithValue(preference.Value!).WithNotification(style.Notification);
         }
 
-        if (Flag is int flag && value is bool enabled)
+        if (Flag is int flag && (value is bool or string))
         {
+            var enabled = value is bool boolean ? boolean : bool.Parse((string)value);
             var bits = Convert.ToInt32(current, CultureInfo.InvariantCulture);
             return Enum.ToObject(current.GetType(), enabled ? bits | flag : bits & ~flag);
         }
