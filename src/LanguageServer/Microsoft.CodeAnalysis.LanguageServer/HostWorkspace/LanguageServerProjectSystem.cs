@@ -288,13 +288,14 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
     {
         var link = item.Metadata["Link"];
         var isLinked = !string.IsNullOrEmpty(link);
-        var relativePath = isLinked ? link : PathUtilities.GetRelativePath(projectDirectory, item.ItemSpec);
+        var logicalPath = isLinked ? link! : item.ItemSpec;
+        var relativePath = isLinked ? logicalPath : PathUtilities.GetRelativePath(projectDirectory, item.ItemSpec);
         var folderPath = PathUtilities.GetDirectoryName(relativePath);
         var folders = folderPath is null
             ? []
             : folderPath.Split([PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
 
-        return new DocumentFileInfo(item.ItemSpec, isLinked ? link : item.ItemSpec, isLinked, isGenerated: false, folders);
+        return new DocumentFileInfo(item.ItemSpec, logicalPath, isLinked, isGenerated: false, folders);
     }
 
     internal static bool GetReferenceOutputAssembly(ProjectDataItem item)

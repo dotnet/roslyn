@@ -116,6 +116,15 @@ internal sealed partial class LoadedProject
         {
             Contract.ThrowIfFalse(_project._gate.CurrentCount == 0, $"We should be holding {nameof(LoadedProject)}.{nameof(LoadedProject._gate)} for all methods in this class.");
 
+            // FilePath defines project-system document identity, while other properties such as Folders describe
+            // the state applied to that document. Normalize by identity before comparing or retaining the snapshot.
+            newProjectInfo = newProjectInfo with
+            {
+                Documents = [.. newProjectInfo.Documents.DistinctBy(static document => document.FilePath)],
+                AdditionalDocuments = [.. newProjectInfo.AdditionalDocuments.DistinctBy(static document => document.FilePath)],
+                AnalyzerConfigDocuments = [.. newProjectInfo.AnalyzerConfigDocuments.DistinctBy(static document => document.FilePath)],
+            };
+
             if (_mostRecentFileInfo != null)
             {
                 // We should never be changing the fundamental identity of this project; if this happens we really should have done a full unload/reload.
@@ -152,7 +161,7 @@ internal sealed partial class LoadedProject
             var commandLineArguments = _optionsProcessor.GetParsedCommandLineArguments();
 
             UpdateProjectSystemProjectCollection(
-                newProjectInfo.Documents.DistinctBy(d => d.FilePath),
+                newProjectInfo.Documents,
                 _mostRecentFileInfo?.Documents,
                 DocumentFileInfoComparer.Instance,
                 document =>
@@ -215,7 +224,7 @@ internal sealed partial class LoadedProject
             _mostRecentAnalyzerReferences = analyzerReferences;
 
             UpdateProjectSystemProjectCollection(
-                newProjectInfo.AdditionalDocuments.DistinctBy(d => d.FilePath),
+                newProjectInfo.AdditionalDocuments,
                 _mostRecentFileInfo?.AdditionalDocuments,
                 DocumentFileInfoComparer.Instance,
                 document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: [.. document.Folders]),
@@ -223,7 +232,7 @@ internal sealed partial class LoadedProject
                 "Project {0} now has {1} additional file(s). ({2} added, {3} removed.)");
 
             UpdateProjectSystemProjectCollection(
-                newProjectInfo.AnalyzerConfigDocuments.DistinctBy(d => d.FilePath),
+                newProjectInfo.AnalyzerConfigDocuments,
                 _mostRecentFileInfo?.AnalyzerConfigDocuments,
                 DocumentFileInfoComparer.Instance,
                 document => _projectSystemProject.AddAnalyzerConfigFile(document.FilePath),

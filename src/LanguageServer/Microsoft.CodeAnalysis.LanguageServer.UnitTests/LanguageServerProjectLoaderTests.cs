@@ -343,6 +343,41 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     }
 
     [Fact]
+    public async Task FullLoadPreservesDocumentWhenSnapshotsContainDuplicatePaths()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var projectPath = Path.Combine(TempRoot.Root, "Cached.csproj");
+        var documentPath = Path.Combine(TempRoot.Root, "File.cs");
+        var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+        {
+            CommandLineArgs = ["/target:library"],
+            Documents =
+            [
+                new DocumentFileInfo(documentPath, documentPath, isLinked: false, isGenerated: false, folders: ["A"]),
+                new DocumentFileInfo(documentPath, documentPath, isLinked: false, isGenerated: false, folders: ["B"]),
+            ],
+        };
+
+        loader.CachedProjects.Add(projectPath, [projectInfo]);
+
+        var (loadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await designTimeBuild.Started.Task;
+
+        Assert.True(await loadedProject.WaitForLoadAsync(CancellationToken.None));
+        var cachedProject = Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
+        Assert.Equal(["A"], Assert.Single(cachedProject.Documents).Folders);
+
+        designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectInfo);
+
+        var workspaceListener = server.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace);
+        await workspaceListener.ExpeditedWaitAsync();
+
+        var fullyLoadedProject = Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
+        Assert.Equal(["A"], Assert.Single(fullyLoadedProject.Documents).Folders);
+    }
+
+    [Fact]
     public async Task WaitForAllProjectLoadsAsyncUsesCanonicalSnapshot()
     {
         await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
