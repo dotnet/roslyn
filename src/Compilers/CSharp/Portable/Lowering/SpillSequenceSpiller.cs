@@ -822,7 +822,7 @@ doesNotMatch:
         {
             BoundSpillSequenceBuilder builder = null;
             var expr = VisitExpression(ref builder, node.Operand);
-            return UpdateExpression(builder, node.Update(expr, node.IsManaged, node.UnsafeDiagnosticInfo, node.Type));
+            return UpdateExpression(builder, node.Update(expr, node.IsManaged, node.RequiresAssignedOperand, node.Type));
         }
 
         public override BoundNode VisitRefAccess(BoundRefAccess node)

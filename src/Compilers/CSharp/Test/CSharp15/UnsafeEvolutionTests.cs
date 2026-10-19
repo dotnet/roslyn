@@ -1444,9 +1444,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (2,5): error CS9360: This operation may only be used in an unsafe context
+            // (2,5): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
             // _ = &x; // 1
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(2, 5),
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(2, 5),
         };
 
         var options = TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules);
@@ -1466,9 +1466,6 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // _ = &x; // 1
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(2, 5),
-                // (2,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // _ = &x; // 1
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&").WithArguments("updated memory safety rules").WithLocation(2, 5),
                 // (4,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // _ = &x;
                 Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = &x").WithArguments("updated memory safety rules").WithLocation(4, 1),
@@ -1491,6 +1488,37 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    public void Pointer_AddressOf_UnassignedLocal_UnsafeContext(bool updatedRules, bool allowUnsafe)
+    {
+        var source = """
+            unsafe
+            {
+                int x;
+                _ = &x;
+                x++;
+                _ = &x;
+            }
+            """;
+
+        var options = TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules);
+        DiagnosticDescription[] expectedDiagnostics = allowUnsafe ? [] :
+        [
+            // (1,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 1),
+        ];
+
+        CreateCompilation(source, options: options).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: options).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: options).VerifyEmitDiagnostics(updatedRules ?
+        [
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+            .. expectedDiagnostics,
+        ] : expectedDiagnostics);
+    }
+
     [Theory, CombinatorialData]
     public void Pointer_AddressOf_AssignedLocal(bool updatedRules, bool allowUnsafe)
     {
@@ -1500,9 +1528,58 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             x++;
             """;
 
-        CreateCompilation(source,
-            options: TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules))
-            .VerifyEmitDiagnostics();
+        var options = TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules);
+        CreateCompilation(source, options: options).VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: options).VerifyEmitDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: options).VerifyDiagnostics(updatedRules ?
+        [
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+            // (2,1): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = &x").WithArguments("updated memory safety rules").WithLocation(2, 1),
+            // (2,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(2, 5),
+        ] :
+        [
+            // (2,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = &x").WithLocation(2, 1),
+            // (2,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(2, 5),
+        ]);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    public void Pointer_AddressOf_AssignedLocal_UnsafeContext(bool updatedRules, bool allowUnsafe)
+    {
+        var source = """
+            unsafe
+            {
+                int x = 1;
+                _ = &x;
+                x++;
+            }
+            """;
+
+        var options = TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules);
+        DiagnosticDescription[] expectedDiagnostics = allowUnsafe ? [] :
+        [
+            // (1,1): error CS0227: Unsafe code may only appear if compiling with /unsafe
+            // unsafe
+            Diagnostic(ErrorCode.ERR_IllegalUnsafe, "unsafe").WithLocation(1, 1),
+        ];
+
+        CreateCompilation(source, options: options).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: options).VerifyEmitDiagnostics(expectedDiagnostics);
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: options).VerifyEmitDiagnostics(updatedRules ?
+        [
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+            .. expectedDiagnostics,
+        ] : expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -1518,6 +1595,16 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             _ = &t;
             Empty empty;
             _ = &empty;
+            Empty copy = empty;
+            _ = &copy;
+            S u;
+            unsafe
+            {
+                _ = &u.X;
+                _ = &u.Y;
+                _ = &u;
+            }
+            _ = &u;
 
             struct S
             {
@@ -1528,14 +1615,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (4,5): error CS9360: This operation may only be used in an unsafe context
+            // (4,5): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
             // _ = &s.Y;
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(4, 5),
-            // (7,5): error CS9360: This operation may only be used in an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(4, 5),
+            // (7,5): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
             // _ = &t;
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(7, 5));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(7, 5));
     }
 
     [Theory, CombinatorialData]
@@ -1567,9 +1654,64 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, references: [libReference],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (3,5): error CS9360: This operation may only be used in an unsafe context
+            // (3,5): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
             // _ = &x;
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(3, 5));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(3, 5));
+
+        CreateCompilation(source, references: [libReference],
+            parseOptions: TestOptions.Regular15,
+            options: TestOptions.UnsafeReleaseExe)
+            .VerifyDiagnostics(
+            // (3,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = &x").WithLocation(3, 1),
+            // (3,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(3, 5),
+            // (4,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = &x").WithLocation(4, 1),
+            // (4,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(4, 5),
+            // (6,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = &y;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = &y").WithLocation(6, 1),
+            // (6,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = &y;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&y").WithLocation(6, 5),
+            // (9,1): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = &z;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "_ = &z").WithLocation(9, 1),
+            // (9,5): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+            // _ = &z;
+            Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&z").WithLocation(9, 5));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    public void Pointer_AddressOf_ImportedEmptyStruct(bool updatedRules, bool useCompilationReference)
+    {
+        var lib = CreateCompilation("public struct S;");
+        var libReference = useCompilationReference ? lib.ToMetadataReference() : lib.EmitToImageReference();
+        var source = """
+            S x;
+            S copy = x;
+            _ = &copy;
+            S y;
+            unsafe { _ = &y; }
+            _ = &y;
+            class C
+            {
+                static void M(out S value)
+                {
+                    fixed (S* p = &value) { }
+                }
+            }
+            """;
+
+        CreateCompilation(source, references: [libReference],
+            options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -1603,10 +1745,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "_ = &x").WithArguments("updated memory safety rules").WithLocation(3, 1),
             // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // _ = &x;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(3, 5),
-            // (3,5): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // _ = &x;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&").WithArguments("updated memory safety rules").WithLocation(3, 5));
+            Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("updated memory safety rules").WithLocation(3, 5));
     }
 
     [Theory, CombinatorialData]
@@ -1631,12 +1770,42 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (5,25): error CS9360: This operation may only be used in an unsafe context
+            // (5,25): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
             //         fixed (int* p = &value) { }
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(5, 25),
-            // (11,26): error CS9360: This operation may only be used in an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(5, 25),
+            // (11,26): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
             //         fixed (void* p = &value) { }
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(11, 26));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(11, 26));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    public void Pointer_AddressOf_UnassignedOutParameter_UnsafeContext(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M(out int value)
+                {
+                    unsafe
+                    {
+                        fixed (int* p = &value) { }
+                    }
+                    value++;
+                    fixed (int* p = &value) { }
+                }
+                static void SkipInit<T>(out T value) where T : unmanaged
+                {
+                    unsafe
+                    {
+                        fixed (void* p = &value) { }
+                    }
+                }
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -1658,6 +1827,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                         y = 1;
                     _ = &y;
                     y++;
+                    int w;
+                    if (b)
+                        w = 1;
+                    unsafe { _ = &w; }
+                    w++;
                     return;
             #pragma warning disable CS0162 // unreachable code
                     int z;
@@ -1667,11 +1841,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             """;
 
         CreateCompilation(source,
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (14,13): error CS9360: This operation may only be used in an unsafe context
+            // (14,13): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
             //         _ = &y;
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(14, 13));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(14, 13));
     }
 
     [Theory, CombinatorialData]
@@ -1687,6 +1861,14 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                     Buffer c;
                     _ = &c[Initialize(out c)];
                     _ = &c[0];
+                    unsafe
+                    {
+                        Buffer d;
+                        _ = &d[0];
+                        Buffer e;
+                        _ = &e[Initialize(out e)];
+                        _ = &e[0];
+                    }
                 }
                 static int Initialize(out Buffer b)
                 {
@@ -1703,11 +1885,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source,
             targetFramework: TargetFramework.Net100,
-            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (6,13): error CS9360: This operation may only be used in an unsafe context
+            // (6,13): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
             //         _ = &b[0];
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(6, 13));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(6, 13));
     }
 
     [Theory, CombinatorialData]
@@ -1724,9 +1906,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
             // _ = &s;
             Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("string").WithLocation(2, 5),
-            // (2,5): error CS9360: This operation may only be used in an unsafe context
+            // (2,5): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
             // _ = &s;
-            Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(2, 5));
     }
 
     [Theory, CombinatorialData]
@@ -1750,9 +1932,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         if (updatedRules)
         {
             comp.VerifyDiagnostics(
-                // (6,13): error CS9360: This operation may only be used in an unsafe context
+                // (6,13): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
                 //         _ = &x;
-                Diagnostic(ErrorCode.ERR_UnsafeOperation, "&").WithLocation(6, 13));
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(6, 13));
         }
         else
         {
@@ -1825,6 +2007,48 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 //         fixed (int* p = &value) { }
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&value").WithLocation(14, 25),
             ]);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    public void Pointer_AddressOf_DataFlow(bool updatedRules, bool assigned, bool unsafeContext)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M()
+                {
+                    int x{{(assigned ? " = 1" : "")}};
+                    {{(unsafeContext ? "unsafe { _ = &x; }" : "_ = &x;")}}
+                    x++;
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+        if (assigned || unsafeContext)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (6,13): error CS9402: Taking the address of a variable that is not definitely assigned requires an unsafe context
+                //         _ = &x;
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(6, 13));
+        }
+
+        var tree = comp.SyntaxTrees.Single();
+        var addressOf = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+        var flow = comp.GetSemanticModel(tree).AnalyzeDataFlow(addressOf)!;
+        Assert.True(flow.Succeeded);
+        AssertEx.Equal(assigned ? ["x"] : [], flow.DataFlowsIn.Select(s => s.Name));
+        AssertEx.Equal(assigned ? ["x"] : [], flow.ReadInside.Select(s => s.Name));
+        AssertEx.Equal(assigned ? ["x"] : [], flow.DefinitelyAssignedOnEntry.Select(s => s.Name));
+        AssertEx.Equal(["x"], flow.DefinitelyAssignedOnExit.Select(s => s.Name));
+        AssertEx.Equal(["x"], flow.AlwaysAssigned.Select(s => s.Name));
+        AssertEx.Equal(["x"], flow.WrittenInside.Select(s => s.Name));
+        AssertEx.Equal(["x"], flow.UnsafeAddressTaken.Select(s => s.Name));
     }
 
     [Theory, CombinatorialData]

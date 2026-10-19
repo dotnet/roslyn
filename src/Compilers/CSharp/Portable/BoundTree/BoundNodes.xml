@@ -393,8 +393,8 @@
          at IL level and could be used in lowering of certain kinds
          of unsafe code - such as fixed field indexing. -->
     <Field Name="IsManaged" Type="bool"/>
-    <!-- Reported during definite assignment analysis only if the operand is unassigned. -->
-    <Field Name="UnsafeDiagnosticInfo" Type="CSDiagnosticInfo?"/>
+    <!-- True when an unassigned operand requires an unsafe context at this location. -->
+    <Field Name="RequiresAssignedOperand" Type="bool"/>
   </Node>
   <!-- Represents an AddressOf operator that has not yet been assigned to a
        target-type. It has no natural type. -->

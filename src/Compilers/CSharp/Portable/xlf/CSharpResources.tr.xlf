@@ -2862,6 +2862,11 @@
         <target state="translated">Bu işlem yalnızca güvenli olmayan bir bağlamda kullanılabilir</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsafeUnassignedAddressOf">
+        <source>Taking the address of a variable that is not definitely assigned requires an unsafe context</source>
+        <target state="new">Taking the address of a variable that is not definitely assigned requires an unsafe context</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
         <target state="translated">Başlatıcısı olmayan stackalloc ifadesi SkipLocalsInit içinde yalnızca güvenli olmayan bir bağlamda kullanılabilir</target>

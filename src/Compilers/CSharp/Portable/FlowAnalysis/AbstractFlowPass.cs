@@ -3508,11 +3508,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
-            VisitAddressOfOperand(node.Operand, shouldReadOperand: false, node);
+            VisitAddressOfOperand(node.Operand, shouldReadOperand: false);
             return null;
         }
 
-        protected void VisitAddressOfOperand(BoundExpression operand, bool shouldReadOperand, BoundAddressOfOperator addressOfOpt = null)
+        private void VisitAddressOfOperand(BoundExpression operand, bool shouldReadOperand)
         {
             if (shouldReadOperand)
             {
@@ -3523,16 +3523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.VisitLvalue(operand);
             }
 
-            if (addressOfOpt is not null)
-            {
-                CheckAddressOfOperand(addressOfOpt);
-            }
-
             this.WriteArgument(operand, RefKind.Out, null); //Out because for the purpose of definite assignment we assume that it is definitely assigned after the address is taken.
-        }
-
-        protected virtual void CheckAddressOfOperand(BoundAddressOfOperator node)
-        {
         }
 
         public override BoundNode VisitRefAccess(BoundRefAccess node)

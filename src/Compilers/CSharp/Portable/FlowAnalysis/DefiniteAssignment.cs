@@ -575,10 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Unsafe diagnostics can occur only in strict analysis for imported structs that compatibility analysis treats as empty.
                 Debug.Assert(newCode != oldCode ||
-                    oldCode is ErrorCode.ERR_InsufficientStack or ErrorCode.ERR_UnsafeOperation ||
-                    (oldCode == ErrorCode.ERR_FeatureInPreview &&
-                     args is [LocalizableErrorArgument feature] &&
-                     feature.Equals(MessageID.IDS_FeatureUnsafeEvolution.Localize())),
+                    oldCode is ErrorCode.ERR_InsufficientStack or ErrorCode.ERR_UnsafeUnassignedAddressOf,
                     oldCode.ToString());
 
                 diagnostics.Add(newCode, diagnostic.Location, args);
@@ -2526,7 +2523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // because it is either not a local/parameter/range variable (if the variable is
             // non-moveable) or it is and it has a RefKind other than None, in which case it can't
             // be referred to in a lambda (i.e. can't be captured).
-            VisitAddressOfOperand(initializer, shouldReadOperand: false, addressOf);
+            VisitAddressOfOperandAndReportSafetyDiagnostics(initializer, shouldReadOperand: false, addressOf);
             return null;
         }
 
@@ -2554,19 +2551,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            VisitAddressOfOperand(node.Operand, shouldReadOperand, node);
+            VisitAddressOfOperandAndReportSafetyDiagnostics(node.Operand, shouldReadOperand, node);
 
             return null;
         }
 
-        protected override void CheckAddressOfOperand(BoundAddressOfOperator node)
+        private void VisitAddressOfOperandAndReportSafetyDiagnostics(BoundExpression operand, bool shouldReadOperand, BoundAddressOfOperator addressOfOpt)
         {
-            if (node.UnsafeDiagnosticInfo is { } diagnosticInfo &&
-                this.State.Reachable &&
-                !IsAssigned(node.Operand, out _))
+            if (shouldReadOperand)
             {
-                Diagnostics.Add(new CSDiagnostic(diagnosticInfo, ((PrefixUnaryExpressionSyntax)node.Syntax).OperatorToken.GetLocation()));
+                VisitRvalue(operand);
             }
+            else
+            {
+                VisitLvalue(operand);
+            }
+
+            // Operand evaluation can assign the variable, for example in an inline array index.
+            if (addressOfOpt is { RequiresAssignedOperand: true } &&
+                this.State.Reachable &&
+                !IsAssigned(operand, out _))
+            {
+                Diagnostics.Add(ErrorCode.ERR_UnsafeUnassignedAddressOf, ((PrefixUnaryExpressionSyntax)addressOfOpt.Syntax).OperatorToken.GetLocation());
+            }
+
+            WriteArgument(operand, RefKind.Out, null);
         }
 
 #nullable enable

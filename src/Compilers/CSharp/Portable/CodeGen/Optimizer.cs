@@ -1802,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
             BoundExpression visitedOperand = this.VisitExpression(node.Operand, ExprContext.Address);
-            return node.Update(visitedOperand, node.IsManaged, node.UnsafeDiagnosticInfo, node.Type);
+            return node.Update(visitedOperand, node.IsManaged, node.RequiresAssignedOperand, node.Type);
         }
 
         public override BoundNode VisitRefAccess(BoundRefAccess node)

@@ -4175,10 +4175,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol pointerType = new PointerTypeSymbol(TypeWithAnnotations.Create(operandType));
             return new BoundAddressOfOperator(node, operand, pointerType, hasErrors,
-                unsafeDiagnosticInfo: hasErrors ? null : GetUnsafeDiagnosticInfo(
-                    disallowedUnder: MemorySafetyRulesVersion.Version2,
-                    ignoreUnsafeDiagnosticsSuppression: false,
-                    sizeOfTypeOpt: null));
+                requiresAssignedOperand: !hasErrors &&
+                    Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution) &&
+                    !InUnsafeRegion &&
+                    !Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics));
         }
 
         /// <summary>
