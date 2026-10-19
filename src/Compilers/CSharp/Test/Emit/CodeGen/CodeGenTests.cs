@@ -17370,9 +17370,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -17408,7 +17411,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -17465,9 +17468,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -17503,7 +17509,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -17538,11 +17544,13 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        3 (0x3)
-  .maxstack  0
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ret
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  pop
+  IL_0008:  ret
 }
 """);
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
@@ -17555,9 +17563,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -17592,8 +17603,8 @@ struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -17628,11 +17639,13 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        3 (0x3)
-  .maxstack  0
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ret
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  pop
+  IL_0008:  ret
 }
 """);
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
@@ -17645,9 +17658,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -17682,8 +17698,8 @@ struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -17871,9 +17887,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -17913,7 +17932,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -17980,9 +17999,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -18022,7 +18044,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -18065,11 +18087,13 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        3 (0x3)
-  .maxstack  0
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ret
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  pop
+  IL_0008:  ret
 }
 """);
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
@@ -18085,9 +18109,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -18124,8 +18151,8 @@ struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -18168,11 +18195,13 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        3 (0x3)
-  .maxstack  0
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ret
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  pop
+  IL_0008:  ret
 }
 """);
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
@@ -18188,9 +18217,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -18227,8 +18259,8 @@ struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -18294,9 +18326,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -18336,7 +18371,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -18379,11 +18414,13 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        3 (0x3)
-  .maxstack  0
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ret
+  IL_0001:  ldarg.0
+  IL_0002:  ldflda     "byte S.F"
+  IL_0007:  pop
+  IL_0008:  ret
 }
 """);
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
@@ -18399,9 +18436,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldflda     "byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -18438,8 +18478,8 @@ struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -18797,9 +18837,12 @@ ref struct S
             verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -18839,7 +18882,7 @@ ref struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -18861,19 +18904,24 @@ ref struct S
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        3 (0x3)
-  .maxstack  0
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ret
+  IL_0001:  ldarg.0
+  IL_0002:  ldfld      "ref byte S.F"
+  IL_0007:  pop
+  IL_0008:  ret
 }
 """);
             verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      "ref byte S.F"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -18910,8 +18958,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -18949,9 +18997,12 @@ ref struct S
             verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -18991,7 +19042,7 @@ ref struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -19013,19 +19064,24 @@ ref struct S
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        3 (0x3)
-  .maxstack  0
+  // Code size        9 (0x9)
+  .maxstack  1
   IL_0000:  nop
-  IL_0001:  nop
-  IL_0002:  ret
+  IL_0001:  ldarg.0
+  IL_0002:  ldobj      "S"
+  IL_0007:  pop
+  IL_0008:  ret
 }
 """);
             verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseDll, verify: Verification.FailsPEVerify).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -19062,8 +19118,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -20051,9 +20107,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -20090,7 +20149,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -21902,9 +21961,12 @@ struct S
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -21941,7 +22003,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -22039,23 +22101,29 @@ struct S
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        6 (0x6)
-  .maxstack  1
+  // Code size       13 (0xd)
+  .maxstack  2
   .locals init (S& V_0) //t
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
   IL_0003:  ldarg.0
-  IL_0004:  stloc.0
-  IL_0005:  ret
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  pop
+  IL_000c:  ret
 }
 """);
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -22091,8 +22159,8 @@ struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -23577,9 +23645,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -23616,7 +23687,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -23675,9 +23746,12 @@ class C
 """);
             verifier.VerifyIL("S.M", """
 {
-  // Code size        1 (0x1)
-  .maxstack  0
-  IL_0000:  ret
+  // Code size        8 (0x8)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      "S"
+  IL_0006:  pop
+  IL_0007:  ret
 }
 """);
         }
@@ -23714,7 +23788,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -24086,11 +24160,14 @@ struct S
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        7 (0x7)
-  .maxstack  1
+  // Code size       14 (0xe)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       "void S.M2(ref S)"
-  IL_0006:  ret
+  IL_0001:  dup
+  IL_0002:  ldobj      "S"
+  IL_0007:  pop
+  IL_0008:  call       "void S.M2(ref S)"
+  IL_000d:  ret
 }
 """);
         }
@@ -24130,7 +24207,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -24242,28 +24319,34 @@ struct S
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size       13 (0xd)
-  .maxstack  1
+  // Code size       20 (0x14)
+  .maxstack  2
   .locals init (S& V_0) //t
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
   IL_0003:  ldarg.0
-  IL_0004:  stloc.0
-  IL_0005:  ldloc.0
-  IL_0006:  call       "void S.M2(ref S)"
-  IL_000b:  nop
-  IL_000c:  ret
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  pop
+  IL_000c:  ldloc.0
+  IL_000d:  call       "void S.M2(ref S)"
+  IL_0012:  nop
+  IL_0013:  ret
 }
 """);
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size        7 (0x7)
-  .maxstack  1
+  // Code size       14 (0xe)
+  .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  call       "void S.M2(ref S)"
-  IL_0006:  ret
+  IL_0001:  dup
+  IL_0002:  ldobj      "S"
+  IL_0007:  pop
+  IL_0008:  call       "void S.M2(ref S)"
+  IL_000d:  ret
 }
 """);
         }
@@ -24302,8 +24385,8 @@ struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -24912,21 +24995,24 @@ struct S
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size       15 (0xf)
+  // Code size       22 (0x16)
   .maxstack  3
   .locals init (S& V_0, //t
                 int V_1) //y
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldarg.0
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.0
-  IL_0005:  stloc.1
-  IL_0006:  ldloc.1
-  IL_0007:  ldloc.0
-  IL_0008:  ldloc.1
-  IL_0009:  call       "void S.M2(int, ref S, int)"
-  IL_000e:  ret
+  IL_0003:  dup
+  IL_0004:  stloc.0
+  IL_0005:  ldobj      "S"
+  IL_000a:  pop
+  IL_000b:  ldc.i4.0
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
+  IL_000e:  ldloc.0
+  IL_000f:  ldloc.1
+  IL_0010:  call       "void S.M2(int, ref S, int)"
+  IL_0015:  ret
 }
 """);
         }
@@ -24967,7 +25053,7 @@ struct S
 
 """;
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]
@@ -25097,7 +25183,7 @@ struct S
             var verifier = CompileAndVerify(source, options: TestOptions.DebugDll).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size       17 (0x11)
+  // Code size       24 (0x18)
   .maxstack  3
   .locals init (S& V_0, //t
                 int V_1) //y
@@ -25105,35 +25191,41 @@ struct S
   IL_0001:  ldarg.0
   IL_0002:  stloc.0
   IL_0003:  ldarg.0
-  IL_0004:  stloc.0
-  IL_0005:  ldc.i4.0
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  ldloc.0
-  IL_0009:  ldloc.1
-  IL_000a:  call       "void S.M2(int, ref S, int)"
-  IL_000f:  nop
-  IL_0010:  ret
+  IL_0004:  dup
+  IL_0005:  stloc.0
+  IL_0006:  ldobj      "S"
+  IL_000b:  pop
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.1
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.0
+  IL_0010:  ldloc.1
+  IL_0011:  call       "void S.M2(int, ref S, int)"
+  IL_0016:  nop
+  IL_0017:  ret
 }
 """);
             verifier = CompileAndVerify(source, options: TestOptions.ReleaseDll).VerifyDiagnostics();
             verifier.VerifyIL("S.M", """
 {
-  // Code size       15 (0xf)
+  // Code size       22 (0x16)
   .maxstack  3
   .locals init (S& V_0, //t
                 int V_1) //y
   IL_0000:  ldarg.0
   IL_0001:  stloc.0
   IL_0002:  ldarg.0
-  IL_0003:  stloc.0
-  IL_0004:  ldc.i4.0
-  IL_0005:  stloc.1
-  IL_0006:  ldloc.1
-  IL_0007:  ldloc.0
-  IL_0008:  ldloc.1
-  IL_0009:  call       "void S.M2(int, ref S, int)"
-  IL_000e:  ret
+  IL_0003:  dup
+  IL_0004:  stloc.0
+  IL_0005:  ldobj      "S"
+  IL_000a:  pop
+  IL_000b:  ldc.i4.0
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.1
+  IL_000e:  ldloc.0
+  IL_000f:  ldloc.1
+  IL_0010:  call       "void S.M2(int, ref S, int)"
+  IL_0015:  ret
 }
 """);
         }
@@ -25173,8 +25265,8 @@ struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
         [Fact]

@@ -252,6 +252,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return new BoundRefAccess(syntax, RefKindExtensions.StrictIn, rewrittenRight, rewrittenRight.Type);
                         }
 
+                        if (CodeGen.CodeGenerator.IsRef(rewrittenRight))
+                        {
+                            // Preserve the fact that it was a value
+                            return new BoundPassByCopy(syntax, rewrittenRight, rewrittenRight.Type);
+                        }
+
                         return rewrittenRight;
                     }
 

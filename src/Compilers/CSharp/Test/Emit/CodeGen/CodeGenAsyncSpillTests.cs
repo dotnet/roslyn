@@ -7341,6 +7341,19 @@ class Driver
             });
 
             verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("TestCase.GetVal<T>", """
+                {
+                  // Code size       13 (0xd)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_000b:  ldarg.1
+                  IL_000c:  ret
+                }
+                """);
+
             verifier.VerifyIL("TestCase.Run()", """
                 {
                   // Code size      184 (0xb8)

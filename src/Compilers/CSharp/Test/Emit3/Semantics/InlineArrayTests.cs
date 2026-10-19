@@ -13813,7 +13813,7 @@ public ref struct Buffer2Ref
             verifier.VerifyIL("Buffer2..ctor",
 @"
 {
-  // Code size       22 (0x16)
+  // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  initobj    ""Buffer2""
@@ -13822,15 +13822,16 @@ public ref struct Buffer2Ref
   IL_0009:  stfld      ""int Buffer2._element0""
   IL_000e:  ldarg.0
   IL_000f:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer2, int>(ref Buffer2)""
-  IL_0014:  pop
-  IL_0015:  ret
+  IL_0014:  ldind.i4
+  IL_0015:  pop
+  IL_0016:  ret
 }
 ");
 
             verifier.VerifyIL("Buffer2Ref..ctor",
 @"
 {
-  // Code size       30 (0x1e)
+  // Code size       37 (0x25)
   .maxstack  5
   IL_0000:  ldarg.0
   IL_0001:  initobj    ""Buffer2Ref""
@@ -13844,7 +13845,10 @@ public ref struct Buffer2Ref
   IL_0012:  ldc.i4.0
   IL_0013:  ldelema    ""int""
   IL_0018:  stfld      ""ref int Buffer2Ref._element2""
-  IL_001d:  ret
+  IL_001d:  ldarg.0
+  IL_001e:  ldobj      ""Buffer2Ref""
+  IL_0023:  pop
+  IL_0024:  ret
 }
 ");
 
@@ -13905,15 +13909,16 @@ public struct Buffer1
             verifier.VerifyIL("Buffer1..ctor",
 @"
 {
-  // Code size       15 (0xf)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.1
   IL_0002:  stfld      ""int Buffer1._element0""
   IL_0007:  ldarg.0
   IL_0008:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
-  IL_000d:  pop
-  IL_000e:  ret
+  IL_000d:  ldind.i4
+  IL_000e:  pop
+  IL_000f:  ret
 }
 ");
 
@@ -13966,15 +13971,16 @@ public struct Buffer1
             verifier.VerifyIL("Buffer1..ctor",
 @"
 {
-  // Code size       15 (0xf)
+  // Code size       16 (0x10)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
   IL_0002:  stfld      ""int Buffer1._element0""
   IL_0007:  ldarg.0
   IL_0008:  call       ""ref int <PrivateImplementationDetails>.InlineArrayFirstElementRef<Buffer1, int>(ref Buffer1)""
-  IL_000d:  pop
-  IL_000e:  ret
+  IL_000d:  ldind.i4
+  IL_000e:  pop
+  IL_000f:  ret
 }
 ");
 

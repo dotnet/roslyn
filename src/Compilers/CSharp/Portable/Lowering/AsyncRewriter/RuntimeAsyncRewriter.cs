@@ -69,11 +69,14 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             var thisParameter = rewriter._factory.CurrentFunction.ThisParameter;
             if (thisParameter is { Type.IsValueType: true, RefKind: not RefKind.None })
             {
-                // This is a struct or a type parameter. We need to replace it with a hoisted local to preserve behavior from
+                Debug.Assert(!thisParameter.Type.IsTypeParameter());
+                // This is a struct. We need to replace it with a hoisted local to preserve behavior from
                 // compiler-generated state machines; `this` is a ref, but results are not observable outside of the method.
                 // We do this regardless of whether `this` is captured to a ref local, because any usage of `ldarg.0` in these
                 // scenarios is illegal after the first await. We could be more precise and only do this if `this` is actually
                 // used after the first await, but at the moment we don't feel that is worth the complexity.
+                // However, we do rely on StackOptimizerPass2.VisitExpressionStatement to eliminate unnecessary read of the struct
+                // value if the hoisting local is never used past the initialization.
                 var hoistedThis = rewriter._factory.StoreToTemp(rewriter._factory.This(), out BoundAssignmentOperator store, kind: SynthesizedLocalKind.AwaitByRefSpill);
                 rewriter._hoistedLocals.Add(hoistedThis.LocalSymbol);
                 rewriter._proxies.Add(thisParameter, new CapturedToExpressionSymbolReplacement<ParameterSymbol>(hoistedThis, hoistedSymbols: [], isReusable: true));
