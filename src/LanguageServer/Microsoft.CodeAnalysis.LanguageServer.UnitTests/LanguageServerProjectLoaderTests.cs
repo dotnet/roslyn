@@ -19,9 +19,11 @@ using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
+using DocumentFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo;
 using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -299,6 +301,47 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9885")]
+    public async Task FullLoadUpdatesCachedDocumentFolders()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var projectPath = Path.Combine(TempRoot.Root, "Cached.csproj");
+        var documentPath = Path.Combine(TempRoot.Root, "B", "C", "File.cs");
+        var cachedDocumentInfo = new DocumentFileInfo(documentPath, documentPath, isLinked: false, isGenerated: false, folders: []);
+        var cachedProjectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+        {
+            CommandLineArgs = ["/target:library"],
+            Documents = [cachedDocumentInfo],
+        };
+
+        loader.CachedProjects.Add(projectPath, [cachedProjectInfo]);
+
+        var (loadedProject, designTimeBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        await designTimeBuild.Started.Task;
+
+        Assert.True(await loadedProject.WaitForLoadAsync(CancellationToken.None));
+        var cachedProject = Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
+        var cachedDocument = Assert.Single(cachedProject.Documents);
+        Assert.Empty(cachedDocument.Folders);
+
+        var fullyLoadedDocumentInfo = new DocumentFileInfo(documentPath, documentPath, isLinked: false, isGenerated: false, folders: ["B", "C"]);
+        var fullyLoadedProjectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+        {
+            CommandLineArgs = ["/target:library"],
+            Documents = [fullyLoadedDocumentInfo],
+        };
+
+        designTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, fullyLoadedProjectInfo);
+
+        var workspaceListener = server.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace);
+        await workspaceListener.ExpeditedWaitAsync();
+
+        var fullyLoadedProject = Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
+        var fullyLoadedDocument = Assert.Single(fullyLoadedProject.Documents);
+        Assert.Equal(["B", "C"], fullyLoadedDocument.Folders);
+    }
+
     [Fact]
     public async Task WaitForAllProjectLoadsAsyncUsesCanonicalSnapshot()
     {
@@ -507,11 +550,16 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         public TaskCompletionSource<LanguageServerProjectLoader.RemoteProjectLoadResult?> Result { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         public void CompleteSuccessfully(ProjectSystemProjectFactory projectFactory, string projectPath, string? targetFramework = null)
+            => CompleteSuccessfully(
+                projectFactory,
+                ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with { CommandLineArgs = ["/target:library"], TargetFramework = targetFramework });
+
+        public void CompleteSuccessfully(ProjectSystemProjectFactory projectFactory, ProjectFileInfo projectFileInfo)
             => Result.SetResult(new()
             {
-                ProjectFileInfos = [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with { CommandLineArgs = ["/target:library"], TargetFramework = targetFramework }],
+                ProjectFileInfos = [projectFileInfo],
                 DiagnosticLogItems = [],
-                ProjectRestorePath = projectPath,
+                ProjectRestorePath = projectFileInfo.FilePath,
                 ProjectFactory = projectFactory,
                 IsFileBasedProgram = false,
                 IsMiscellaneousFile = false,

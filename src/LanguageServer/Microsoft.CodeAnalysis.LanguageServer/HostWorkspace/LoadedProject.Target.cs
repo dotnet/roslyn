@@ -171,7 +171,10 @@ internal sealed partial class LoadedProject
                     Contract.ThrowIfFalse(PathUtilities.IsAbsolute(document.FilePath), "We do not expect to remove a file which is not on disk from the project.");
                     _projectSystemProject.RemoveSourceFile(document.FilePath);
                 },
-                "Project {0} now has {1} source file(s). ({2} added, {3} removed.)");
+                "Project {0} now has {1} source file(s). ({2} added, {3} removed.)",
+                // FilePath defines document identity for collection reconciliation. Other properties, such as Folders,
+                // describe state applied to that document and must be compared separately after matching by identity.
+                areItemsEquivalent: HaveSameFolders);
 
             var relativePathResolver = new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
             var metadataReferences = commandLineArguments.MetadataReferences.Select(cr =>
@@ -220,7 +223,8 @@ internal sealed partial class LoadedProject
                 DocumentFileInfoComparer.Instance,
                 document => _projectSystemProject.AddAdditionalFile(document.FilePath, folders: [.. document.Folders]),
                 document => _projectSystemProject.RemoveAdditionalFile(document.FilePath),
-                "Project {0} now has {1} additional file(s). ({2} added, {3} removed.)");
+                "Project {0} now has {1} additional file(s). ({2} added, {3} removed.)",
+                areItemsEquivalent: HaveSameFolders);
 
             UpdateProjectSystemProjectCollection(
                 newProjectInfo.AnalyzerConfigDocuments,
@@ -250,32 +254,50 @@ internal sealed partial class LoadedProject
             Contract.ThrowIfNull(_projectSystemProject.CompilationOptions, "Compilation options cannot be null for C#/VB project");
             return;
 
+            static bool HaveSameFolders(DocumentFileInfo first, DocumentFileInfo second)
+                => first.Folders.SequenceEqual(second.Folders, StringComparer.Ordinal);
+
             // logMessage must have 4 placeholders: project name, number of items, added items count, and removed items count.
-            void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem, string logMessage)
+            void UpdateProjectSystemProjectCollection<T>(
+                IEnumerable<T> loadedCollection,
+                IEnumerable<T>? oldLoadedCollection,
+                IEqualityComparer<T> comparer,
+                Action<T> addItem,
+                Action<T> removeItem,
+                string logMessage,
+                Func<T, T, bool>? areItemsEquivalent = null)
             {
                 var newItems = new HashSet<T>(loadedCollection, comparer);
                 var oldItems = new HashSet<T>(oldLoadedCollection ?? [], comparer);
+                var removedCount = 0;
+
+                // Remove changed items first because project-system document collections reject duplicate file paths.
+                foreach (var oldItem in oldItems)
+                {
+                    if (!ContainsEquivalentItem(newItems, oldItem))
+                    {
+                        removeItem(oldItem);
+                        removedCount++;
+                    }
+                }
 
                 var addedCount = 0;
 
                 foreach (var newItem in newItems)
                 {
-                    // If oldItems already has this, we don't need to add it again. We'll remove it, and what is left in oldItems is stuff to remove
-                    if (!oldItems.Remove(newItem))
+                    if (!ContainsEquivalentItem(oldItems, newItem))
                     {
                         addItem(newItem);
                         addedCount++;
                     }
                 }
 
-                var removedCount = oldItems.Count;
-                foreach (var oldItem in oldItems)
-                {
-                    removeItem(oldItem);
-                }
-
                 if (addedCount != 0 || removedCount != 0)
                     logger.LogTrace(logMessage, projectFullPathWithTargetFramework, newItems.Count, addedCount, removedCount);
+
+                bool ContainsEquivalentItem(HashSet<T> items, T item)
+                    => items.TryGetValue(item, out var matchingItem)
+                        && (areItemsEquivalent is null || areItemsEquivalent(item, matchingItem));
             }
 
             void WatchProjectAssetsFile(ProjectFileInfo currentProjectInfo)
