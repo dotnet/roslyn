@@ -21,6 +21,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
     private readonly NamingSettingsCoordinator _coordinator;
     private readonly string _language;
     private readonly object _gate = new();
+    private readonly SemaphoreSlim _operationGate = new(1, 1);
     private NamingSettingsGraph? _snapshot;
     private NamingSettingsGraph? _pending;
 
@@ -56,7 +57,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
             if (items is T value)
                 return new ExternalSettingOperationResult<T>.Success(value);
 
-            throw new InvalidDataException("Naming settings must be requested as an array of objects.");
+            throw new InvalidDataException(ServicesVSResources.Naming_settings_must_be_requested_as_an_array_of_objects);
         }
         catch (InvalidDataException e)
         {
@@ -67,6 +68,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
     public async Task<ExternalSettingOperationResult> SetValueAsync<T>(string moniker, T value, CancellationToken cancellationToken) where T : notnull
     {
         CheckMoniker(moniker);
+        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             var graph = await GetGraphAsync(cancellationToken).ConfigureAwait(false);
@@ -84,10 +86,15 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
         {
             return Failure(e.Message);
         }
+        finally
+        {
+            _operationGate.Release();
+        }
     }
 
     public async Task<ExternalSettingOperationResult> RefreshCacheAsync(CancellationToken cancellationToken)
     {
+        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
             var graph = await _coordinator.ReadAsync(cancellationToken).ConfigureAwait(false);
@@ -105,25 +112,37 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
         {
             return Failure(e.Message);
         }
+        finally
+        {
+            _operationGate.Release();
+        }
     }
 
     public async Task<ExternalSettingOperationResult> CommitPendingChangesAsync(CancellationToken cancellationToken)
     {
-        NamingSettingsGraph? pending;
-        NamingSettingsGraph? snapshot;
-        lock (_gate)
+        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
         {
-            pending = _pending;
-            snapshot = _snapshot;
+            NamingSettingsGraph? pending;
+            NamingSettingsGraph? snapshot;
+            lock (_gate)
+            {
+                pending = _pending;
+                snapshot = _snapshot;
+            }
+
+            if (pending is null)
+                return ExternalSettingOperationResult.Success.Instance;
+
+            if (snapshot is null)
+                return Failure(ServicesVSResources.Refresh_naming_settings_before_applying_changes);
+
+            return await ApplyGraphCoreAsync(pending, snapshot, cancellationToken).ConfigureAwait(false);
         }
-
-        if (pending is null)
-            return ExternalSettingOperationResult.Success.Instance;
-
-        if (snapshot is null)
-            return Failure("Naming settings must be refreshed before committing changes.");
-
-        return await ApplyGraphAsync(pending, snapshot, cancellationToken).ConfigureAwait(false);
+        finally
+        {
+            _operationGate.Release();
+        }
     }
 
     public async Task<NamingSettingsGraph> GetGraphAsync(CancellationToken cancellationToken)
@@ -144,15 +163,16 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
 
     public async Task<ExternalSettingOperationResult> ResetAsync(CancellationToken cancellationToken)
     {
-        NamingSettingsGraph? pending;
-        lock (_gate)
-            pending = _pending;
-
+        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            NamingSettingsGraph? pending;
+            lock (_gate)
+                pending = _pending;
+
             var result = await _coordinator.ResetAsync(cancellationToken).ConfigureAwait(false);
             if (result.Outcome is not (SettingCommitOutcome.Success or SettingCommitOutcome.NoChangesQueued))
-                return Failure($"{result.Outcome}. {result.Message}");
+                return Failure(ServicesVSResources.Naming_preferences_could_not_be_reset_Try_again);
 
             lock (_gate)
             {
@@ -169,9 +189,26 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
         {
             return Failure(e.Message);
         }
+        finally
+        {
+            _operationGate.Release();
+        }
     }
 
     public async Task<ExternalSettingOperationResult> ApplyGraphAsync(NamingSettingsGraph graph, NamingSettingsGraph expected, CancellationToken cancellationToken)
+    {
+        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            return await ApplyGraphCoreAsync(graph, expected, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            _operationGate.Release();
+        }
+    }
+
+    private async Task<ExternalSettingOperationResult> ApplyGraphCoreAsync(NamingSettingsGraph graph, NamingSettingsGraph expected, CancellationToken cancellationToken)
     {
         NamingSettingsGraph? pending;
         lock (_gate)
@@ -181,7 +218,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
             graph = graph.NormalizeDefaultNames();
             var result = await _coordinator.ApplyAsync(graph, expected, ServicesVSResources.Naming_rules, cancellationToken).ConfigureAwait(false);
             if (result.Outcome is not (SettingCommitOutcome.Success or SettingCommitOutcome.NoChangesQueued))
-                return Failure($"{result.Outcome}. {result.Message}");
+                return Failure(ServicesVSResources.Naming_settings_could_not_be_saved_Refresh_and_try_again);
 
             lock (_gate)
             {
@@ -421,7 +458,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
                 (IReadOnlyDictionary<string, object>)item.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal)).ToImmutableArray(),
             IReadOnlyList<IDictionary<string, object>> rules => rules.Select(item =>
                 (IReadOnlyDictionary<string, object>)new Dictionary<string, object>(item, StringComparer.Ordinal)).ToImmutableArray(),
-            _ => throw new InvalidDataException("Naming settings must be an array of objects."),
+            _ => throw new InvalidDataException(ServicesVSResources.Naming_settings_must_be_an_array_of_objects),
         };
 
     private static void CheckMoniker(string moniker)

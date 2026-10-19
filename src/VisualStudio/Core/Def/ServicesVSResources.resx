@@ -1887,6 +1887,21 @@ Additional information: {1}</value>
   <data name="Unable_to_update_naming_settings_0" xml:space="preserve">
     <value>Unable to update Naming settings: {0}</value>
   </data>
+  <data name="Refresh_naming_settings_before_applying_changes" xml:space="preserve">
+    <value>Refresh Naming settings before applying changes.</value>
+  </data>
+  <data name="Naming_preferences_could_not_be_reset_Try_again" xml:space="preserve">
+    <value>Naming preferences could not be reset. Try again.</value>
+  </data>
+  <data name="Naming_settings_could_not_be_saved_Refresh_and_try_again" xml:space="preserve">
+    <value>Naming settings could not be saved. Refresh the settings and try again.</value>
+  </data>
+  <data name="Naming_settings_must_be_requested_as_an_array_of_objects" xml:space="preserve">
+    <value>Naming settings must be requested as an array of objects.</value>
+  </data>
+  <data name="Naming_settings_must_be_an_array_of_objects" xml:space="preserve">
+    <value>Naming settings must be an array of objects.</value>
+  </data>
   <data name="Unable_to_read_naming_setting_0_1_2" xml:space="preserve">
     <value>Unable to read naming setting '{0}': {1}. {2}</value>
     <comment>{0} is a setting moniker, {1} is a retrieval outcome, and {2} is a diagnostic detail.</comment>

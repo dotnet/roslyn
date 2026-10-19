@@ -86,24 +86,8 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
         }
     }
 
-    internal static async Task RunAsync(Func<Task> synchronizeAsync, Action<Task> observe, CancellationToken cancellationToken)
-    {
-        while (true)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            try
-            {
-                await synchronizeAsync().ConfigureAwait(false);
-                return;
-            }
-            catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
-            {
-                observe(Task.FromException(e));
-            }
-
-            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
-        }
-    }
+    internal static Task RunAsync(Func<Task> synchronizeAsync, Action<Task> observe, CancellationToken cancellationToken)
+        => SettingsSynchronizationRetry.RunAsync(synchronizeAsync, observe, cancellationToken);
 
     private IEnumerable<NativeCodeStyleSettingsSynchronizer.Binding> CreateBindings(string language)
     {

@@ -1,6 +1,6 @@
 {
   "properties": {
-    "languages.csharp.codeStyle.naming.symbolSpecifications": {
+    "languages.csharp.editorConfig.naming.symbolSpecifications": {
       "type": "array",
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Manage_specifications;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "visibleWhen": "false",
@@ -40,7 +40,7 @@
         { "id": "non_field_members", "name": "", "defaultName": true, "symbolKinds": "property,event,method", "accessibilities": "public,internal,private,protected,protectedInternal,privateProtected", "requiredModifiers": "" }
       ]
     },
-    "languages.csharp.codeStyle.naming.namingStyles": {
+    "languages.csharp.editorConfig.naming.namingStyles": {
       "type": "array",
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Manage_naming_styles;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "visibleWhen": "false",
@@ -63,7 +63,7 @@
         { "id": "i_prefix_pascal_case", "name": "", "defaultName": true, "prefix": "I", "suffix": "", "wordSeparator": "", "capitalization": "pascalCase" }
       ]
     },
-    "languages.csharp.codeStyle.naming.rules": {
+    "languages.csharp.editorConfig.naming.rules": {
       "type": "array",
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Naming_rules;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
       "visibleWhen": "false",
@@ -83,7 +83,7 @@
         { "symbolSpecificationId": "non_field_members", "namingStyleId": "pascal_case", "severity": "suggestion" }
       ]
     },
-    "languages.csharp.codeStyle.naming.editor": {
+    "languages.csharp.editorConfig.naming.editor": {
       "type": "external",
       "title": "#115;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "backingStoreDescription": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Naming_settings_are_stored_in_settings_json;{6cf2e545-6109-4730-8883-cf43d7aec3e1}",
@@ -138,6 +138,6 @@
     }
   },
   "categories": {
-    "languages.csharp.codeStyle.naming": { "title": "#115;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "order": 1, "legacyOptionPageId": "294FBC9C-EF70-4AA0-BD4F-EB0C6A5908D7" }
+    "languages.csharp.editorConfig.naming": { "title": "#115;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "order": 1, "legacyOptionPageId": "294FBC9C-EF70-4AA0-BD4F-EB0C6A5908D7" }
   }
 }

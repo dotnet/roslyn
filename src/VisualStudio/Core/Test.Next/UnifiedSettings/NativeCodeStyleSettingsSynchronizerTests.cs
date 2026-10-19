@@ -181,7 +181,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
     }
 
     [WpfFact]
-    public async Task FailedLegacyImportCommitCanBeRetriedWithTheSameValue()
+    public async Task FailedLegacyImportCommitRetriesAutomatically()
     {
         using var host = new Host(LanguageNames.CSharp);
         await host.InitializeAsync();
@@ -189,13 +189,11 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         host.Native.FailNextCommit = true;
 
         await host.Legacy.ImportAsync(imported);
-        await Assert.ThrowsAsync<InvalidOperationException>(host.DrainAsync);
-
-        await host.Legacy.ImportAsync(imported);
         await host.DrainAsync();
         Assert.Equal("true", host.Native.Effective(host.Binding.Moniker));
         Assert.Equal("error", host.Native.Effective(host.Binding.SeverityMoniker));
         Assert.Equal(2, host.Native.CommitCount);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => Assert.Single(host.Failures));
     }
 
     [WpfTheory]
@@ -357,6 +355,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
     {
         private readonly JoinableTaskContext _context = new();
         private readonly List<Task> _tasks = [];
+        public readonly List<Task> Failures = [];
         public readonly LegacyStore Legacy = new();
         public readonly NativeStore Native;
         public readonly NativeCodeStyleSettingsSynchronizer.Binding Binding;
@@ -372,7 +371,8 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
             Legacy.Key = Binding.LegacyKey;
             Native = new NativeStore(Binding);
             _persister = new VisualStudioSettingsOptionPersister((_, _) => { }, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty, Legacy);
-            Synchronizer = new(Native, _persister, [Binding], (_, value) => Refreshed = value, task => _tasks.Add(task), _context, CancellationToken.None);
+            Synchronizer = new(Native, _persister, [Binding], (_, value) => Refreshed = value, _tasks.Add,
+                _context, CancellationToken.None, TimeSpan.Zero, Failures.Add);
         }
 
         public async Task InitializeAsync()

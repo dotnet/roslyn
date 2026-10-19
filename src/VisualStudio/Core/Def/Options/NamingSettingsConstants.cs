@@ -11,7 +11,7 @@ internal static class NamingSettingsConstants
         public const string Rules = "rules";
         public const string SymbolSpecifications = "symbolSpecifications";
         public const string NamingStyles = "namingStyles";
-        public const string CSharpPrefix = "languages.csharp.codeStyle.naming.";
+        public const string CSharpPrefix = "languages.csharp.editorConfig.naming.";
         public const string VisualBasicPrefix = "languages.basic.codeStyle.naming.";
     }
 

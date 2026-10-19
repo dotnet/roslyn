@@ -19,7 +19,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 public sealed class NamingSettingsStoreTests
 {
     [Theory]
-    [InlineData(LanguageNames.CSharp, "languages.csharp.codeStyle.naming.")]
+    [InlineData(LanguageNames.CSharp, "languages.csharp.editorConfig.naming.")]
     [InlineData(LanguageNames.VisualBasic, "languages.basic.codeStyle.naming.")]
     public void WritesAllValidatedCollectionsUsingOnePrivateWriter(string language, string prefix)
     {
@@ -129,7 +129,7 @@ public sealed class NamingSettingsStoreTests
     }
 
     [Theory]
-    [InlineData(LanguageNames.CSharp, "languages.csharp.codeStyle.naming.rules")]
+    [InlineData(LanguageNames.CSharp, "languages.csharp.editorConfig.naming.rules")]
     [InlineData(LanguageNames.VisualBasic, "languages.basic.codeStyle.naming.rules")]
     public void DefaultCollectionsAreNotCustomizedAndRevertingDeletesTheOverride(string language, string rulesMoniker)
     {

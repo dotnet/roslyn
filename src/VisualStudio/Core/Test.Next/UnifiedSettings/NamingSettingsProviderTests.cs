@@ -43,6 +43,23 @@ public sealed class NamingSettingsProviderTests
     }
 
     [Fact]
+    public async Task InvalidArrayShapesUseLocalizedErrorsAsync()
+    {
+        var manager = new NamingSettingsStoreTests.SettingsManagerMock();
+        using var provider = CreateProvider(manager);
+
+        var readFailure = Assert.IsType<ExternalSettingOperationResult<string>.Failure>(
+            await provider.GetValueAsync<string>("rules", CancellationToken.None));
+        Assert.Equal(string.Format(ServicesVSResources.Unable_to_update_naming_settings_0,
+            ServicesVSResources.Naming_settings_must_be_requested_as_an_array_of_objects), readFailure.ErrorMessage);
+
+        var writeFailure = Assert.IsType<ExternalSettingOperationResult.Failure>(
+            await provider.SetValueAsync("rules", "not an array", CancellationToken.None));
+        Assert.Equal(string.Format(ServicesVSResources.Unable_to_update_naming_settings_0,
+            ServicesVSResources.Naming_settings_must_be_an_array_of_objects), writeFailure.ErrorMessage);
+    }
+
+    [Fact]
     public async Task RemovingAReferencedStyleUsesALocalizedValidationDetailAsync()
     {
         var manager = new NamingSettingsStoreTests.SettingsManagerMock();
@@ -106,6 +123,43 @@ public sealed class NamingSettingsProviderTests
     [Theory]
     [InlineData(LanguageNames.CSharp)]
     [InlineData(LanguageNames.VisualBasic)]
+    public async Task EditConcurrentWithResetDoesNotRestorePreResetDefinitionsAsync(string language)
+    {
+        var manager = new NamingSettingsStoreTests.SettingsManagerMock();
+        var graph = NamingSettingsGraph.Default;
+        var unusedStyle = graph.NamingStyles[0].ToDictionary(pair => pair.Key, pair => pair.Value);
+        unusedStyle["id"] = "unused_style";
+        unusedStyle["name"] = "Unused style";
+        unusedStyle.Remove("defaultName");
+        manager.Reader.Graph = new(graph.SymbolSpecifications, graph.NamingStyles.Add(unusedStyle), graph.Rules);
+        using var provider = new NamingSettingsProvider(CreateCoordinator(manager, language), language);
+        await provider.RefreshCacheAsync(CancellationToken.None);
+        var rules = graph.Rules.Select(item => item.ToDictionary(pair => pair.Key, pair => pair.Value)).ToArray();
+        rules[0]["severity"] = "warning";
+        var committing = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var resume = new ManualResetEventSlim();
+        manager.BeforeCommit = () =>
+        {
+            manager.BeforeCommit = null;
+            committing.SetResult(true);
+            resume.Wait();
+        };
+
+        var reset = Task.Run(() => provider.ResetAsync(CancellationToken.None));
+        await committing.Task;
+        var edit = provider.SetValueAsync("rules", rules, CancellationToken.None);
+        resume.Set();
+
+        Assert.IsType<ExternalSettingOperationResult.Success>(await reset);
+        Assert.IsType<ExternalSettingOperationResult.Success>(await edit);
+        Assert.IsType<ExternalSettingOperationResult.Success>(await provider.CommitPendingChangesAsync(CancellationToken.None));
+        Assert.DoesNotContain(manager.Reader.Graph.NamingStyles, style => Equals(style["id"], "unused_style"));
+        Assert.Equal("warning", manager.Reader.Graph.Rules[0]["severity"]);
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
     public async Task FailedResetPreservesBufferedEditsAsync(string language)
     {
         var manager = new NamingSettingsStoreTests.SettingsManagerMock { CommitOutcome = SettingCommitOutcome.InternalError };
@@ -114,9 +168,11 @@ public sealed class NamingSettingsProviderTests
         rules[0]["severity"] = "warning";
         Assert.IsType<ExternalSettingOperationResult.Success>(await provider.SetValueAsync("rules", rules, CancellationToken.None));
 
-        Assert.IsType<ExternalSettingOperationResult.Failure>(await provider.ResetAsync(CancellationToken.None));
+        var failure = Assert.IsType<ExternalSettingOperationResult.Failure>(await provider.ResetAsync(CancellationToken.None));
 
         Assert.Equal("warning", (await provider.GetGraphAsync(CancellationToken.None)).Rules[0]["severity"]);
+        Assert.Equal(string.Format(ServicesVSResources.Unable_to_update_naming_settings_0,
+            ServicesVSResources.Naming_preferences_could_not_be_reset_Try_again), failure.ErrorMessage);
         manager.CommitOutcome = SettingCommitOutcome.Success;
         Assert.IsType<ExternalSettingOperationResult.Success>(await provider.CommitPendingChangesAsync(CancellationToken.None));
         Assert.Equal("warning", manager.Reader.Graph.Rules[0]["severity"]);
@@ -342,7 +398,8 @@ public sealed class NamingSettingsProviderTests
 
         var failure = Assert.IsType<ExternalSettingOperationResult.Failure>(await provider.CommitPendingChangesAsync(CancellationToken.None));
 
-        Assert.Contains(nameof(SettingCommitOutcome.PendingApproval), failure.ErrorMessage);
+        Assert.Equal(string.Format(ServicesVSResources.Unable_to_update_naming_settings_0,
+            ServicesVSResources.Naming_settings_could_not_be_saved_Refresh_and_try_again), failure.ErrorMessage);
         Assert.Equal(NamingStylePreferences.Default, manager.Reader.Graph.ToPreferences());
     }
 

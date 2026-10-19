@@ -34,7 +34,9 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
     private readonly ReentrantSemaphore _gate;
     private readonly Action<OptionKey2, object?> _refresh;
     private readonly Action<Task> _observe;
+    private readonly Action<Task> _reportRetryFailure;
     private readonly CancellationToken _cancellationToken;
+    private readonly TimeSpan? _retryDelay;
     private IDisposable? _subscription;
     private LegacyChange? _publishingLegacy;
     private int _initialSnapshot;
@@ -54,15 +56,19 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
         Action<OptionKey2, object?> refresh,
         Action<Task> observe,
         JoinableTaskContext joinableTaskContext,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        TimeSpan? retryDelay = null,
+        Action<Task>? reportRetryFailure = null)
     {
         _native = native;
         _legacy = legacy;
         _bindings = bindings.ToDictionary(binding => binding.Moniker, StringComparer.Ordinal);
         _refresh = refresh;
         _observe = observe;
+        _reportRetryFailure = reportRetryFailure ?? observe;
         _gate = ReentrantSemaphore.Create(1, joinableTaskContext, ReentrantSemaphore.ReentrancyMode.NotRecognized);
         _cancellationToken = cancellationToken;
+        _retryDelay = retryDelay;
         _legacySubset = legacy.SettingsManager.GetSubset("*");
     }
 
@@ -162,20 +168,18 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
     private Task OnLegacyChangedAsync(object sender, PropertyChangedEventArgs args)
     {
         // SettingsManager may await its handlers during SetValueAsync. Never wait for our own write gate here.
-        _observe(ApplyLegacyChangeAsync(args.PropertyName));
-        return Task.CompletedTask;
-    }
-
-    private async Task ApplyLegacyChangeAsync(string? propertyName)
-    {
         var publishing = Volatile.Read(ref _publishingLegacy);
-        var snapshots = _bindings.Values.Where(binding => binding.LegacyKey == propertyName)
+        var snapshots = _bindings.Values.Where(binding => binding.LegacyKey == args.PropertyName)
             .Select(binding => new LegacyChange(binding, ReadLegacy(binding, out _)))
             .Where(change => publishing is null || change.Binding.LegacyKey != publishing.Binding.LegacyKey || !change.Value.Equals(publishing.Value))
             .ToArray();
-        if (snapshots.Length == 0)
-            return;
-        await _gate.ExecuteAsync(async () =>
+        if (snapshots.Length > 0)
+            _observe(ApplyLegacyChangeAsync(snapshots));
+        return Task.CompletedTask;
+    }
+
+    private Task ApplyLegacyChangeAsync(LegacyChange[] snapshots)
+        => _gate.ExecuteAsync(() => SettingsSynchronizationRetry.RunAsync(async () =>
         {
             var changes = new Dictionary<string, string>(StringComparer.Ordinal);
             var pending = new List<(Binding binding, ICodeStyleOption2 value)>(snapshots.Length);
@@ -209,8 +213,7 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
                 _values[binding.Moniker] = GetScalar(binding, value, severity: false);
                 _values[binding.SeverityMoniker] = GetScalar(binding, value, severity: true);
             }
-        }, _cancellationToken).ConfigureAwait(false);
-    }
+        }, _reportRetryFailure, _cancellationToken, _retryDelay), _cancellationToken);
 
     public void OnNext(SettingsUpdate update)
     {

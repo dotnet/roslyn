@@ -43,7 +43,7 @@ public sealed class NamingSettingsManifestTests
     public void NativeDefaultsAndExternalCallbacksMatchTheCompleteLegacyGraph(string file, string language, Type package, string provider, string migrator, string legacyPage)
     {
         using var document = Load(file);
-        var prefix = "languages." + language + ".codeStyle.naming.";
+        var prefix = language == "csharp" ? "languages.csharp.editorConfig.naming." : "languages.basic.codeStyle.naming.";
         var settings = document.RootElement.GetProperty("properties");
         Assert.Equal(4, settings.EnumerateObject().Count());
         var arrays = new[] { "symbolSpecifications", "namingStyles", "rules" }.Select(name => settings.GetProperty(prefix + name)).ToArray();

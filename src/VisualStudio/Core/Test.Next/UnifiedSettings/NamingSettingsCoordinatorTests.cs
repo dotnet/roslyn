@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 
 public sealed class NamingSettingsCoordinatorTests
 {
-    private const string Prefix = "languages.csharp.codeStyle.naming.";
+    private const string Prefix = "languages.csharp.editorConfig.naming.";
     private static readonly JoinableTaskContext s_context = new();
 
     [Fact]

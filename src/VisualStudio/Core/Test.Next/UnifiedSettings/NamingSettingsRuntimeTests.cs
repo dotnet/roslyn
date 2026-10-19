@@ -53,21 +53,19 @@ public sealed class NamingSettingsRuntimeTests
     }
 
     [Fact]
-    public async Task FailedLegacyImportDoesNotPreventLaterRecovery()
+    public async Task FailedLegacyImportRetriesAutomatically()
     {
         using var fixture = new Fixture();
         await fixture.Runtime.InitializeAsync();
         fixture.Manager.CommitOutcome = SettingCommitOutcome.InternalError;
+        fixture.Manager.BeforeCommit = () => fixture.Manager.CommitOutcome = SettingCommitOutcome.Success;
         fixture.Legacy = new([], [], System.Collections.Immutable.ImmutableArray<NamingRule>.Empty);
-        fixture.NotifyLegacy();
-        await Assert.ThrowsAsync<InvalidDataException>(() => fixture.Observed[^1]);
-
-        fixture.Manager.CommitOutcome = SettingCommitOutcome.Success;
         fixture.NotifyLegacy();
         await fixture.Observed[^1];
 
         Assert.Empty(fixture.Manager.Reader.Graph.Rules);
         Assert.Equal(fixture.Legacy, fixture.Refreshes[^1]);
+        await Assert.ThrowsAsync<InvalidDataException>(() => Assert.Single(fixture.Failures));
     }
 
     [Theory]
@@ -249,6 +247,7 @@ public sealed class NamingSettingsRuntimeTests
         public readonly NamingSettingsStoreTests.SettingsManagerMock Manager = new();
         public readonly Mock<ISettingsSubset> Subset = new(MockBehavior.Strict);
         public readonly List<Task> Observed = [];
+        public readonly List<Task> Failures = [];
         public readonly List<NamingStylePreferences> Refreshes = [];
         public NamingStylePreferences Legacy = NamingStylePreferences.Default;
         public int LegacyWrites;
@@ -266,11 +265,12 @@ public sealed class NamingSettingsRuntimeTests
                 LegacyWrites++;
                 NotifyLegacy();
             }, _context, Refreshes.Add);
-            Runtime = new(store, coordinator, Subset.Object, _legacyKey, () => Legacy, Observed.Add, CancellationToken.None);
+            Runtime = new(store, coordinator, Subset.Object, _legacyKey, () => Legacy, Observed.Add,
+                CancellationToken.None, TimeSpan.Zero, Failures.Add);
         }
 
         public void NotifyLegacy() => Subset.Raise(subset => subset.SettingChangedAsync += null, Subset.Object, new PropertyChangedEventArgs(_legacyKey));
-        public void NotifyNative(Guid source) => Manager.Reader.ChangeHandler?.Invoke(new(source, ["languages.csharp.codeStyle.naming.rules"]));
+        public void NotifyNative(Guid source) => Manager.Reader.ChangeHandler?.Invoke(new(source, ["languages.csharp.editorConfig.naming.rules"]));
         public void Dispose()
         {
             Runtime.Dispose();

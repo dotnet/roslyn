@@ -57,6 +57,19 @@ public sealed class NamingStylePreferencesTests
     }
 
     [Theory]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    public void RulesRequireBothDefinitionCollections(bool includeSpecifications, bool includeStyles)
+    {
+        var defaults = NamingStylePreferences.Default;
+
+        Assert.Throws<InvalidOperationException>(() => new NamingStylePreferences(
+            includeSpecifications ? defaults.SymbolSpecifications : [],
+            includeStyles ? defaults.NamingStyles : [],
+            defaults.Rules.NamingRules));
+    }
+
+    [Theory]
     [InlineData("SymbolSpecifications")]
     [InlineData("NamingStyles")]
     public void UndefinedRuleReferencesAreRejectedDuringDeserialization(string collection)

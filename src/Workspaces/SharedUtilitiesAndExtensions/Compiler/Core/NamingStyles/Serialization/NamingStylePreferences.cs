@@ -58,6 +58,9 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
         ImmutableArray<NamingStyle> namingStyles,
         ImmutableArray<SerializableNamingRule> serializableRules)
     {
+        Contract.ThrowIfFalse(serializableRules.IsEmpty || !namingStyles.IsEmpty);
+        Contract.ThrowIfFalse(serializableRules.IsEmpty || !symbolSpecifications.IsEmpty);
+
         SymbolSpecifications = symbolSpecifications;
         NamingStyles = namingStyles;
         SerializableNamingRules = serializableRules;
@@ -74,6 +77,9 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
         ImmutableArray<NamingStyle> namingStyles,
         ImmutableArray<NamingRule> namingRules)
     {
+        Contract.ThrowIfFalse(namingRules.IsEmpty || !namingStyles.IsEmpty);
+        Contract.ThrowIfFalse(namingRules.IsEmpty || !symbolSpecifications.IsEmpty);
+
         SymbolSpecifications = symbolSpecifications;
         NamingStyles = namingStyles;
         Rules = new NamingStyleRules(namingRules);

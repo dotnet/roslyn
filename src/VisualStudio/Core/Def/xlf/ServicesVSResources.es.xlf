@@ -947,6 +947,11 @@
         <target state="new">Naming definition rows changed while the editor was open. Reload the settings before editing.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Naming_preferences_could_not_be_reset_Try_again">
+        <source>Naming preferences could not be reset. Try again.</source>
+        <target state="new">Naming preferences could not be reset. Try again.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Naming_property_0_must_be_a_string">
         <source>Naming property '{0}' must be a string.</source>
         <target state="new">Naming property '{0}' must be a string.</target>
@@ -970,6 +975,21 @@
       <trans-unit id="Naming_settings_changed_while_the_editor_was_open">
         <source>Naming settings changed while the editor was open. Reload the settings before applying this edit.</source>
         <target state="new">Naming settings changed while the editor was open. Reload the settings before applying this edit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_settings_could_not_be_saved_Refresh_and_try_again">
+        <source>Naming settings could not be saved. Refresh the settings and try again.</source>
+        <target state="new">Naming settings could not be saved. Refresh the settings and try again.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_settings_must_be_an_array_of_objects">
+        <source>Naming settings must be an array of objects.</source>
+        <target state="new">Naming settings must be an array of objects.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_settings_must_be_requested_as_an_array_of_objects">
+        <source>Naming settings must be requested as an array of objects.</source>
+        <target state="new">Naming settings must be requested as an array of objects.</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_style_identities_must_be_unique">
@@ -1250,6 +1270,11 @@
       <trans-unit id="Reference">
         <source>Reference</source>
         <target state="translated">Referencia</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Refresh_naming_settings_before_applying_changes">
+        <source>Refresh Naming settings before applying changes.</source>
+        <target state="new">Refresh Naming settings before applying changes.</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular">
