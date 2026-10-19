@@ -248,10 +248,14 @@ namespace RunTests
                     {
                         try
                         {
-                            return await ProcessUtil.GetChildProcessesAsync(root).ConfigureAwait(false);
+                            ConsoleUtil.Write($"Getting child process tree for process {root.ProcessName} ({root.Id}) ... ");
+                            var children = await ProcessUtil.GetChildProcessesAsync(root).ConfigureAwait(false);
+                            ConsoleUtil.WriteLine("completed");
+                            return children;
                         }
                         catch (Exception ex)
                         {
+                            ConsoleUtil.WriteLine("failed");
                             // The root process is already known and can still be dumped even if
                             // descendant discovery fails.
                             ConsoleUtil.Warning($"Unable to enumerate descendant processes: {ex.Message}");
