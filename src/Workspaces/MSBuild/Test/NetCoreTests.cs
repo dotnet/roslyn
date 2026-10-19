@@ -823,7 +823,6 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     {
         CreateFiles(new FileSet(
             ("Program.cs", """
-                #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref Util.cs
                 Console.WriteLine($"Hello {Util.M()}!");
                 """),
@@ -864,7 +863,6 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     {
         CreateFiles(new FileSet(
             ("Program.cs", """
-                #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref Util.cs
                 #:ref Util.cs
                 Console.WriteLine($"Hello {Util.M()}!");
@@ -906,7 +904,6 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     {
         CreateFiles(new FileSet(
             ("Program.cs", """
-                #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref Program.cs
                 Console.WriteLine("Hello");
                 """)));
@@ -941,7 +938,6 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     {
         CreateFiles(new FileSet(
             ("Program.cs", """
-                #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref $(MyReferencedFileName).cs
                 Console.WriteLine($"Hello {Util.M()}!");
                 """),
@@ -969,6 +965,46 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
         Assert.Same(projRef, Assert.Single(project.AllProjectReferences));
         Assert.NotEmpty(project.AnalyzerReferences);
         Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_RefDirective_Inactive()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:ref Util.cs
+                #if false
+                #:ref Missing.cs
+                #endif
+                Console.WriteLine($"Hello {Util.M()}!");
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                public static class Util
+                {
+                    public static string M() => "Util";
+                }
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        // The #:ref inside '#if false' must not create a project reference or a missing-file diagnostic,
+        // while the #:ref before the conditional still applies.
+        Assert.Empty(workspace.Diagnostics);
+
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        var projRef = Assert.Single(project.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
 
         // Assert that there are no compilation errors.
         var compilation = await project.GetCompilationAsync();
