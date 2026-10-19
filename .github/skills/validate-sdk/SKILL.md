@@ -9,11 +9,11 @@ Follow these steps to install and validate a .NET SDK from an internal Azure Dev
 
 This skill can be run from **any directory**, including inside a repo like dotnet/roslyn. The SDK is installed to a temp folder and validation runs in a separate temp folder, so nothing in the user's working directory is created, modified, or depended upon.
 
-This skill requires the **ADO MCP server** configured for the `dnceng` organization to be available in your session.
+This skill requires the Azure CLI to be installed and authenticated to Azure DevOps. The `azure-devops` extension is needed for the `az pipelines` commands.
 
 ## How to Invoke This Skill
 
-In a copilot session with an ADO MCP server configured for the `dnceng` organization, ask something like:
+Ask something like:
 - "Install the .NET SDK from this build: https://dev.azure.com/dnceng/internal/_build/results?buildId=2919304"
 - "Install .NET SDK from ADO build 2919304"
 - "Use /validate-sdk to set up the SDK from build 2919304"
@@ -42,7 +42,13 @@ The build ID is `2919304`.
 
 ## Step 2: Get the SDK Version from the Build
 
-Use the ADO MCP tool `ado-pipelines_get_build_status` with `project: "internal"` and the `buildId` to retrieve the build report. The build number in the report contains the SDK version. Parse out the version portion (e.g., `11.0.100-preview.2.26154.117` from build number `20260305.1-11.0.100-preview.2.26154.117-304630`).
+Use Azure CLI to retrieve the build report:
+
+```bash
+az pipelines build show --id <BUILD_ID> --org https://dev.azure.com/dnceng --project internal
+```
+
+The build number in the report contains the SDK version. Parse out the version portion (e.g., `11.0.100-preview.2.26154.117` from build number `20260305.1-11.0.100-preview.2.26154.117-304630`).
 
 The SDK version follows the pattern `X.Y.Z-preview.N.NNNNN.NNN` and appears between the date prefix and the trailing BAR build ID.
 
@@ -145,10 +151,10 @@ Use a **file-based app** (a .NET 10+ feature) to extract compiler details. This 
 
 The compiler commit SHA from Step 6 is a commit in the **dotnet/dotnet** VMR (Virtual Mono Repo), not dotnet/roslyn directly.
 
-1. Look up the compiler SHA in dotnet/dotnet using `github-mcp-server-get_commit` (owner: `dotnet`, repo: `dotnet`).
-2. Fetch `src/source-manifest.json` at that commit using `github-mcp-server-get_file_contents` (owner: `dotnet`, repo: `dotnet`, path: `src/source-manifest.json`, sha: `<COMPILER_SHA>`).
+1. Look up the compiler SHA in dotnet/dotnet using `github-get_commit` (owner: `dotnet`, repo: `dotnet`).
+2. Fetch `src/source-manifest.json` at that commit using `github-get_file_contents` (owner: `dotnet`, repo: `dotnet`, path: `src/source-manifest.json`, sha: `<COMPILER_SHA>`).
 3. In the JSON, find the entry with `"path": "roslyn"` and extract its `commitSha` — this is the actual dotnet/roslyn commit.
-4. Look up that Roslyn SHA using `github-mcp-server-get_commit` (owner: `dotnet`, repo: `roslyn`) to get the commit summary and date.
+4. Look up that Roslyn SHA using `github-get_commit` (owner: `dotnet`, repo: `roslyn`) to get the commit summary and date.
 
 ## Step 8: Output Validation Report
 
@@ -169,6 +175,5 @@ Use full SHAs (not shortened) and plain URLs (not markdown link syntax).
 
 ## Notes
 
-- Build artifacts can also be explored via `ado-pipelines_get_build_log` and `ado-pipelines_get_build_log_by_id` if you need to inspect specific asset names.
+- To inspect build logs or artifact names, use the Azure DevOps REST API with `az rest`, for example `GET https://dev.azure.com/dnceng/internal/_apis/build/builds/<BUILD_ID>/logs?api-version=7.1` or `GET https://dev.azure.com/dnceng/internal/_apis/build/builds/<BUILD_ID>/artifacts?api-version=7.1`.
 - The dotnet-install script approach is preferred over downloading artifacts directly, as the SDK zip is typically published to the CI feeds even for preview builds.
-

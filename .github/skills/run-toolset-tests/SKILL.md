@@ -65,24 +65,7 @@ to `dotnet/roslyn`.
 
 ### 4. Trigger the pipeline
 
-Use the `ado-pipelines_run_pipeline` MCP tool:
-
-- `project`: `"internal"`
-- `pipelineId`: `1270`
-- `resources`:
-  ```json
-  {
-    "pipelines": {},
-    "repositories": {
-      "RazorGitHubRepo": {
-        "refName": "refs/heads/toolset-test/<branch-name>",
-        "version": "<commit-sha>"
-      }
-    }
-  }
-  ```
-
-If the MCP tool fails, fall back to the REST API via PowerShell:
+Trigger the pipeline through the Azure DevOps REST API using the Azure CLI:
 
 ```powershell
 $body = @{
