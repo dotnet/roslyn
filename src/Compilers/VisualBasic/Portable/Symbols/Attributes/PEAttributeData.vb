@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Sub
 
         Private Sub EnsureClassAndConstructorSymbols()
-            If _attributeClass Is Nothing Then
+            If Volatile.Read(_attributeClass) Is Nothing Then
 
                 Dim attributeClass As TypeSymbol = Nothing
                 Dim attributeCtor As MethodSymbol = Nothing
@@ -221,4 +221,3 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
     End Class
 End Namespace
-

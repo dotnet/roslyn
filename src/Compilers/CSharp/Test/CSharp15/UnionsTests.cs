@@ -22196,7 +22196,7 @@ class C1
 [System.Runtime.CompilerServices.Union]
 class S1
 {
-    public S1(params C1?[] x) => Value = x;
+    public S1(params C1?[]? x) => Value = x;
 
     public object? Value { get; set; }
 }
@@ -22212,12 +22212,7 @@ class Program
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
-            // No diagnostict expected - https://github.com/dotnet/roslyn/issues/86055
-            comp.VerifyDiagnostics(
-                // (100,13): warning CS8602: Dereference of a possibly null reference.
-                //         _ = s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(100, 13)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -22230,7 +22225,7 @@ class Program
 [System.Runtime.CompilerServices.Union]
 class S1
 {
-    public S1(params string?[] x) => Value = x;
+    public S1(params string?[]? x) => Value = x;
 
     public object? Value { get; set; }
 }
@@ -22250,14 +22245,220 @@ class Program
 #line 200
         _ = s.Value.ToString();
     }
+
+    static void Test3()
+    {
+        var s = new S1();
+#line 300
+        _ = s.Value.ToString();
+    }
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
-            // No diagnostict expected - https://github.com/dotnet/roslyn/issues/86055
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86064")]
+        public void NullableAnalysis_81_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params MyCollection x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        var s = new S1("""");
+#line 150
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+#line 200
+        var s = new S1((string?)null);
+#line 250
+        _ = s.Value.ToString();
+    }
+
+    static void Test3()
+    {
+#line 300
+        var s = new S1();
+#line 350
+        _ = s.Value.ToString();
+    }
+
+    static void Test4()
+    {
+#line 400
+        _ = new S1([""""]);
+#line 500
+        _ = new S1([null]);
+#line 600
+        _ = new S1([]);
+    }
+}
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+    private readonly List<object?> _list;
+    public MyCollection(List<object?> list) { _list = list; }
+    public IEnumerator<object?> GetEnumerator() => _list.GetEnumerator();
+}
+class MyCollectionBuilder
+{
+    public static MyCollection? Create(ReadOnlySpan<object?> items)
+    {
+        return new MyCollection(new List<object?>(items.ToArray()));
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net100);
+
+            // Note, expecting warnings for lines 100, 150, 200, 250, 300, 350. Tracked by https://github.com/dotnet/roslyn/issues/86064
             comp.VerifyDiagnostics(
-                // (200,13): warning CS8602: Dereference of a possibly null reference.
+                // (400,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([""]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, @"[""""]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(400, 20),
+                // (500,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([null]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[null]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(500, 20),
+                // (600,20): warning CS8604: Possible null reference argument for parameter 'x' in 'S1.S1(params MyCollection x)'.
+                //         _ = new S1([]);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "[]").WithArguments("x", "S1.S1(params MyCollection x)").WithLocation(600, 20)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86055")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86064")]
+        public void NullableAnalysis_82_State_From_Constructor_Params()
+        {
+            var src = @"
+#nullable enable
+
+using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params MyCollection? x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+        var s = new S1("""");
+#line 100
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+        var s = new S1((string?)null);
+#line 200
+        _ = s.Value.ToString();
+    }
+
+    static void Test3()
+    {
+        var s = new S1();
+#line 300
+        _ = s.Value.ToString();
+    }
+}
+
+[CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+class MyCollection
+{
+    private readonly List<object?> _list;
+    public MyCollection(List<object?> list) { _list = list; }
+    public IEnumerator<object?> GetEnumerator() => _list.GetEnumerator();
+}
+class MyCollectionBuilder
+{
+    public static MyCollection? Create(ReadOnlySpan<object?> items)
+    {
+        return new MyCollection(new List<object?>(items.ToArray()));
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource], targetFramework: TargetFramework.Net100);
+
+            // Note, expecting warnings for lines 100, 200, 300. Tracked by https://github.com/dotnet/roslyn/issues/86064
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NullableAnalysis_83_State_From_Conversion_Params()
+        {
+            var src = @"
+#nullable enable
+
+[System.Runtime.CompilerServices.Union]
+class S1
+{
+    public S1(params string?[] x) => Value = x;
+
+    public object? Value { get; set; }
+}
+
+class Program
+{
+    static void Test1()
+    {
+#line 100
+        S1 s = """";
+#line 150
+        _ = s.Value.ToString();
+    }
+
+    static void Test2()
+    {
+#line 200
+        S1 s = (string?)null;
+#line 250
+        _ = s.Value.ToString();
+    }
+}
+";
+            var comp = CreateCompilation([src, UnionAttributeSource]);
+
+            comp.VerifyDiagnostics(
+                // (100,16): error CS0029: Cannot implicitly convert type 'string' to 'S1'
+                //         S1 s = "";
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""""").WithArguments("string", "S1").WithLocation(100, 16),
+                // (200,16): error CS0029: Cannot implicitly convert type 'string' to 'S1'
+                //         S1 s = (string?)null;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(string?)null").WithArguments("string", "S1").WithLocation(200, 16),
+                // (200,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         S1 s = (string?)null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string?)null").WithLocation(200, 16),
+                // (250,13): warning CS8602: Dereference of a possibly null reference.
                 //         _ = s.Value.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s.Value").WithLocation(200, 13)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(250, 13)
                 );
         }
 
