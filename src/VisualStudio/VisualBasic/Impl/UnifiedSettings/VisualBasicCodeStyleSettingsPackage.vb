@@ -31,7 +31,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnifiedSettings
         Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
             Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
             Dim globalOptions = Me.GetMefService(Of IGlobalOptionService)()
-            Me.GetMefService(Of INativeCodeStyleSettingsService)().Start(LanguageNames.VisualBasic)
             Dim store = CodeStyleSettingsProvider.CreateMetadataStore(Me, globalOptions, LanguageNames.VisualBasic)
             Dim settings As New List(Of CodeStyleSetting)
             Using model As New StyleViewModel(store, Me)

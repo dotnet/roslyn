@@ -39,7 +39,6 @@ internal sealed class CSharpCodeStyleSettingsPackage : AsyncPackage
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         _globalOptions = this.GetMefService<IGlobalOptionService>();
-        this.GetMefService<INativeCodeStyleSettingsService>().Start(LanguageNames.CSharp);
         var settings = CreateSettings(_globalOptions).ToArray();
         var categories = new[] { "", "indentation", "newLines", "spacing", "wrapping", "general" };
         for (var index = 0; index < categories.Length; index++)

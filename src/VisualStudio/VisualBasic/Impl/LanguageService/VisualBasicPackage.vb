@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+Imports Microsoft.VisualStudio.LanguageServices.Options
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ObjectBrowser
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.Formatting
@@ -121,6 +122,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 isMainThreadTask:=False,
                 task:=Function() As Task
                           Try
+                              Me.ComponentModel.GetService(Of INativeCodeStyleSettingsService)().Start(LanguageNames.VisualBasic)
+
                               AddService(GetType(IVbCompilerService), Function(_1, cancellationToken, _2)
                                                                           PreloadProjectSystemComponents()
                                                                           Return Task.FromResult(_comAggregate)

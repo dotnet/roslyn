@@ -16,6 +16,7 @@ using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim;
 using Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
@@ -99,6 +100,8 @@ internal sealed class CSharpPackage : AbstractPackage<CSharpPackage, CSharpLangu
     {
         try
         {
+            this.ComponentModel.GetService<INativeCodeStyleSettingsService>().Start(LanguageNames.CSharp);
+
             ((IServiceContainer)this).AddService(typeof(ICSharpTempPECompilerService), (_, _) =>
             {
                 var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
