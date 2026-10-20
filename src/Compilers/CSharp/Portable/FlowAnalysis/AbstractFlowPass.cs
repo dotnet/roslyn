@@ -1360,16 +1360,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 VisitReceiverBeforeCall(node.ReceiverOpt, node.Method);
 
-                do
+                while (true)
                 {
                     visitArgumentsAndCompleteAnalysis(node);
 
-                    if (calls.Count != 0)
+                    if (!calls.Any())
                     {
-                        LeaveRegionIfNeeded(node);
+                        break;
                     }
+
+                    LeaveRegionIfNeeded(node);
+                    node = calls.Pop();
                 }
-                while (calls.TryPop(out node));
 
                 calls.Free();
             }
