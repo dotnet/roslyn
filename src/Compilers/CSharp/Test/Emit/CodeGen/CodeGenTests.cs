@@ -25700,7 +25700,7 @@ class C
         {
             System.Console.WriteLine("Pass");
         }
-    }    
+    }
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
 }
@@ -25714,8 +25714,145 @@ struct S
     }
 }
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass").VerifyDiagnostics();
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass").VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass").VerifyDiagnostics().
+                VerifyIL("S.M", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (S.<M>d__0 V_0)
+  IL_0000:  newobj     ""S.<M>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
+  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_0011:  ldloc.0
+  IL_0012:  ldarg.0
+  IL_0013:  ldobj      ""S""
+  IL_0018:  stfld      ""S S.<M>d__0.<>4__this""
+  IL_001d:  ldloc.0
+  IL_001e:  ldc.i4.m1
+  IL_001f:  stfld      ""int S.<M>d__0.<>1__state""
+  IL_0024:  ldloc.0
+  IL_0025:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_002a:  ldloca.s   V_0
+  IL_002c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<S.<M>d__0>(ref S.<M>d__0)""
+  IL_0031:  ldloc.0
+  IL_0032:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_0037:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+  IL_003c:  ret
+}
+");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass").VerifyDiagnostics().
+                VerifyIL("S.M", @"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (S.<M>d__0 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
+  IL_0007:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldarg.0
+  IL_000f:  ldobj      ""S""
+  IL_0014:  stfld      ""S S.<M>d__0.<>4__this""
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldc.i4.m1
+  IL_001c:  stfld      ""int S.<M>d__0.<>1__state""
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<S.<M>d__0>(ref S.<M>d__0)""
+  IL_002f:  ldloca.s   V_0
+  IL_0031:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_0036:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+  IL_003b:  ret
+}
+");
+        }
+
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Unused_And_This_186()
+        {
+            var source = """
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        try
+        {
+            await GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public async System.Threading.Tasks.Task M()
+    {
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass").VerifyDiagnostics().
+                VerifyIL("S.M", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  2
+  .locals init (S.<M>d__0 V_0)
+  IL_0000:  newobj     ""S.<M>d__0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
+  IL_000c:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_0011:  ldloc.0
+  IL_0012:  ldarg.0
+  IL_0013:  ldobj      ""S""
+  IL_0018:  stfld      ""S S.<M>d__0.<>4__this""
+  IL_001d:  ldloc.0
+  IL_001e:  ldc.i4.m1
+  IL_001f:  stfld      ""int S.<M>d__0.<>1__state""
+  IL_0024:  ldloc.0
+  IL_0025:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_002a:  ldloca.s   V_0
+  IL_002c:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<S.<M>d__0>(ref S.<M>d__0)""
+  IL_0031:  ldloc.0
+  IL_0032:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_0037:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+  IL_003c:  ret
+}
+");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass").VerifyDiagnostics().
+                VerifyIL("S.M", @"
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (S.<M>d__0 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()""
+  IL_0007:  stfld      ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldarg.0
+  IL_000f:  ldobj      ""S""
+  IL_0014:  stfld      ""S S.<M>d__0.<>4__this""
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldc.i4.m1
+  IL_001c:  stfld      ""int S.<M>d__0.<>1__state""
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<S.<M>d__0>(ref S.<M>d__0)""
+  IL_002f:  ldloca.s   V_0
+  IL_0031:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder S.<M>d__0.<>t__builder""
+  IL_0036:  call       ""System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get""
+  IL_003b:  ret
+}
+");
         }
 
         [WorkItem(665317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665317")]

@@ -2256,7 +2256,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 if (node.IsRef)
                 {
-                    Debug.Assert(node is not { Left: BoundLocal { LocalSymbol.SynthesizedKind: SynthesizedLocalKind.AwaitByRefSpill }, Right: BoundThisReference, IsRef: false }); // See special handling in VisitExpressionStatement
                     return new BoundRefAccess(node.Syntax, left.LocalSymbol.RefKind, right, right.Type);
                 }
 
@@ -2266,7 +2265,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return new BoundPassByCopy(node.Syntax, right, right.Type);
                 }
 
-                Debug.Assert(node is not { Left: BoundLocal { LocalSymbol.SynthesizedKind: SynthesizedLocalKind.AwaitByRefSpill }, Right: BoundThisReference, IsRef: false }); // See special handling in VisitExpressionStatement
                 return right;
             }
             else
@@ -2275,22 +2273,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // codegen will keep value on stack when sees assignment "stackLocal = expr"
                 return node.Update(left, right, node.IsRef, node.Type);
             }
-        }
-
-        public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)
-        {
-            var result = base.VisitExpressionStatement(node);
-
-            if (result is BoundExpressionStatement { Expression: BoundPassByCopy { Expression: BoundThisReference thisReference } } &&
-                node.Expression is BoundAssignmentOperator { Left: BoundLocal { LocalSymbol.SynthesizedKind: SynthesizedLocalKind.AwaitByRefSpill }, Right: BoundThisReference, IsRef: false })
-            {
-                Debug.Assert(thisReference.Type.IsValueType);
-                // RuntimeAsyncRewriter preemptively captured 'this', but optimizer realized that the capture isn't used
-                // Avoid reading the structure, since this isn't user code.
-                return null;
-            }
-
-            return result;
         }
 
 #nullable enable
