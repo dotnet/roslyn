@@ -74,7 +74,6 @@ stages:
     testMachineLab: ${{ parameters.testMachineLab }}
     testMachineHoldStrategy: ${{ parameters.testMachineHoldStrategy }}
     templateContext:
-      owner: mlinfraswat
       areaPath: DevDiv\NET Developer Experience\CSharp and VB IDE
       ${{ if ne(parameters.testStageFilter, '') }}:
         filter: ${{ parameters.testStageFilter }}
