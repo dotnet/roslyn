@@ -180,6 +180,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             }
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86096")]
+        public void SynthesizedDelegateNames(bool useDynamic, bool returnsVoid)
+        {
+            var returnType = useDynamic ? (returnsVoid ? "void" : "object") : "System.Delegate";
+            var parameters = useDynamic ? "dynamic receiver, int value, int other" : "";
+            var body = returnsVoid ? "{ }" : "0";
+            var small = useDynamic ? "receiver.M(ref value)" : $"(ref int value) => {body}";
+            var large = useDynamic ? "receiver.M(ref value, other)" : $"(ref int value, int other) => {body}";
+            var source = $$"""
+                public class Outer
+                {
+                    public static partial class P { }
+                    public static class Q
+                    {
+                        public static {{returnType}} B({{parameters}}) => {{small}};
+                    }
+                    public static partial class P
+                    {
+                        public static {{returnType}} A({{parameters}}) => {{large}};
+                        public static {{returnType}} C({{parameters}}) => {{small}};
+                    }
+                }
+                """;
+
+            ImmutableArray<byte> expectedImage = default;
+            foreach (bool concurrentBuild in new[] { false, true })
+            {
+                // A single-threaded build visits P before Q because of P's first declaration.
+                // Its larger delegate is created first, but emitted names must follow signatures.
+                var compilation = CreateCompilation(source, assemblyName: "SynthesizedDelegates",
+                    targetFramework: TargetFramework.StandardAndCSharp,
+                    options: TestOptions.ReleaseDll.WithDeterministic(true).WithConcurrentBuild(concurrentBuild));
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var delegates = module.GlobalNamespace.GetTypeMembers()
+                        .Where(type => type.TypeKind == TypeKind.Delegate)
+                        .ToArray();
+                    var name = (returnsVoid ? "<>A" : "<>F") + (useDynamic ? "{00000040}" : "{00000001}");
+                    var parameterCount = useDynamic ? 3 : 1;
+                    var arity = parameterCount + (returnsVoid ? 0 : 1);
+
+                    AssertEx.Equal(new[] { $"{name}`{arity}", $"{name}`{arity + 1}" },
+                        delegates.Select(type => type.MetadataName));
+                    AssertEx.Equal(new[] { parameterCount, parameterCount + 1 },
+                        delegates.Select(type => type.DelegateInvokeMethod.ParameterCount));
+                });
+                verifier.VerifyDiagnostics();
+                var image = verifier.EmittedAssemblyData;
+
+                if (expectedImage.IsDefault)
+                {
+                    expectedImage = image;
+                }
+                else
+                {
+                    AssertEx.Equal(expectedImage, image);
+                }
+            }
+        }
+
         [Fact]
         public void PlatformChangeGuid()
         {
