@@ -27,6 +27,8 @@ internal sealed class NamingSettingsCoordinator(
     private NamingSettingsGraph? _graph;
     private NamingStylePreferences? _publishingLegacy;
 
+    internal JoinableTaskContext JoinableTaskContext { get; } = joinableTaskContext;
+
     public event EventHandler? Changed;
 
     public void NotifyChanged() => Changed?.Invoke(this, EventArgs.Empty);

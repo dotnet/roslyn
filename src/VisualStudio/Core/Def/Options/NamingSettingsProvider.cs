@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 using static Microsoft.VisualStudio.LanguageServices.Options.NamingSettingsConstants;
@@ -21,7 +22,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
     private readonly NamingSettingsCoordinator _coordinator;
     private readonly string _language;
     private readonly object _gate = new();
-    private readonly SemaphoreSlim _operationGate = new(1, 1);
+    private readonly ReentrantSemaphore _operationGate;
     private NamingSettingsGraph? _snapshot;
     private NamingSettingsGraph? _pending;
 
@@ -31,6 +32,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
             throw new ArgumentException("Unsupported Naming settings language.", nameof(language));
         _coordinator = coordinator;
         _language = language;
+        _operationGate = ReentrantSemaphore.Create(1, coordinator.JoinableTaskContext, ReentrantSemaphore.ReentrancyMode.Stack);
         _coordinator.Changed += OnChanged;
     }
 
@@ -68,60 +70,55 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
     public async Task<ExternalSettingOperationResult> SetValueAsync<T>(string moniker, T value, CancellationToken cancellationToken) where T : notnull
     {
         CheckMoniker(moniker);
-        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
+        return await _operationGate.ExecuteAsync(async () =>
         {
-            var graph = await GetGraphAsync(cancellationToken).ConfigureAwait(false);
-            lock (_gate)
+            try
             {
-                var pending = UpdateGraph(_pending ?? _snapshot ?? graph, moniker, value);
-                _ = pending.ToPreferences();
-                _pending = pending;
-            }
+                var graph = await GetGraphAsync(cancellationToken).ConfigureAwait(false);
+                lock (_gate)
+                {
+                    var pending = UpdateGraph(_pending ?? _snapshot ?? graph, moniker, value);
+                    _ = pending.ToPreferences();
+                    _pending = pending;
+                }
 
-            RaiseRefresh();
-            return ExternalSettingOperationResult.Success.Instance;
-        }
-        catch (InvalidDataException e)
-        {
-            return Failure(e.Message);
-        }
-        finally
-        {
-            _operationGate.Release();
-        }
+                RaiseRefresh();
+                return ExternalSettingOperationResult.Success.Instance;
+            }
+            catch (InvalidDataException e)
+            {
+                return Failure(e.Message);
+            }
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ExternalSettingOperationResult> RefreshCacheAsync(CancellationToken cancellationToken)
     {
-        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
+        return await _operationGate.ExecuteAsync(async () =>
         {
-            var graph = await _coordinator.ReadAsync(cancellationToken).ConfigureAwait(false);
-            lock (_gate)
+            try
             {
-                _snapshot = graph;
-                _pending = null;
-            }
+                var graph = await _coordinator.ReadAsync(cancellationToken).ConfigureAwait(false);
+                lock (_gate)
+                {
+                    _snapshot = graph;
+                    _pending = null;
+                }
 
-            RaiseRefresh();
-            ErrorConditionResolved?.Invoke(this, EventArgs.Empty);
-            return ExternalSettingOperationResult.Success.Instance;
-        }
-        catch (InvalidDataException e)
-        {
-            return Failure(e.Message);
-        }
-        finally
-        {
-            _operationGate.Release();
-        }
+                RaiseRefresh();
+                ErrorConditionResolved?.Invoke(this, EventArgs.Empty);
+                return ExternalSettingOperationResult.Success.Instance;
+            }
+            catch (InvalidDataException e)
+            {
+                return Failure(e.Message);
+            }
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ExternalSettingOperationResult> CommitPendingChangesAsync(CancellationToken cancellationToken)
     {
-        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
+        return await _operationGate.ExecuteAsync(async () =>
         {
             NamingSettingsGraph? pending;
             NamingSettingsGraph? snapshot;
@@ -138,11 +135,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
                 return Failure(ServicesVSResources.Refresh_naming_settings_before_applying_changes);
 
             return await ApplyGraphCoreAsync(pending, snapshot, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            _operationGate.Release();
-        }
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<NamingSettingsGraph> GetGraphAsync(CancellationToken cancellationToken)
@@ -163,8 +156,7 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
 
     public async Task<ExternalSettingOperationResult> ResetAsync(CancellationToken cancellationToken)
     {
-        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
+        return await _operationGate.ExecuteAsync(async () =>
         {
             NamingSettingsGraph? pending;
             lock (_gate)
@@ -184,28 +176,13 @@ internal sealed class NamingSettingsProvider : ICachingExternalSettingsProvider,
             RaiseRefresh();
             NotifyErrorConditionResolved();
             return ExternalSettingOperationResult.Success.Instance;
-        }
-        catch (InvalidDataException e)
-        {
-            return Failure(e.Message);
-        }
-        finally
-        {
-            _operationGate.Release();
-        }
+        }, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ExternalSettingOperationResult> ApplyGraphAsync(NamingSettingsGraph graph, NamingSettingsGraph expected, CancellationToken cancellationToken)
     {
-        await _operationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            return await ApplyGraphCoreAsync(graph, expected, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            _operationGate.Release();
-        }
+        return await _operationGate.ExecuteAsync(async () =>
+            await ApplyGraphCoreAsync(graph, expected, cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ExternalSettingOperationResult> ApplyGraphCoreAsync(NamingSettingsGraph graph, NamingSettingsGraph expected, CancellationToken cancellationToken)
