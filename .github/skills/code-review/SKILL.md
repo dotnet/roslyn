@@ -87,7 +87,7 @@ If the PR is a pure or targeted revert of an earlier commit, adjust the review s
 9. **Ensure code suggestions are valid.** Any code you suggest must be syntactically correct and complete. Ensure any suggestion would result in working code.
 10. **Label in-scope vs. follow-up.** Distinguish between issues the PR should fix and out-of-scope improvements. Be explicit when a suggestion is a follow-up rather than a blocker.
 11. **Enforce reviewable scope.** Verify that the PR addresses one coherent concern. Flag unrelated cleanup, behavior changes mixed with broad refactoring, or independently mergeable/revertible work combined into one diff. Judge size by reviewer cognitive load and validation boundaries, not an arbitrary line count; generated files and mechanical updates may legitimately be large.
-12. **Require validation evidence.** Check that the PR reports the applicable formatting, lint/analyzer, affected build, targeted tests, generated/resource/API updates, and documentation freshness work. Treat missing targeted tests for a behavior change or required validation that was skipped without explanation as merge-blocking. Do not demand product builds or tests for documentation-only changes.
+12. **Check test coverage and validation outcomes.** Verify appropriate regression tests for behavior changes and use CI results for routine validation. Treat missing regression coverage or known, unexplained validation gaps beyond CI as merge-blocking. Do not require a routine validation checklist in the PR description. Do not demand product builds or tests for documentation-only changes.
 
 ### Step 4: Documentation Freshness Check (sub-agent)
 
