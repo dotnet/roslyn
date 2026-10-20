@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -228,7 +227,7 @@ namespace RunTests
 
                 async Task handleCancellationAsync(string resultsFilePath, string timeoutMessage)
                 {
-                    var processes = new List<Process>();
+                    var processes = new List<OwnedProcess.Target>();
                     try
                     {
                         writeSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
@@ -236,8 +235,8 @@ namespace RunTests
                             return;
 
                         var budget = _diagnosticBudget.Value.Token;
-                        processes.AddRange(await ownedProcess.GetProcessesAsync().WaitAsync(budget).ConfigureAwait(false));
-                        await DumpCollector.CollectAsync(processes, options, workItemDirectory, workItemInfo.DisplayName, budget).ConfigureAwait(false);
+                        processes.AddRange(await ownedProcess.GetProcessesAsync(budget).ConfigureAwait(false));
+                        await DumpCollector.CollectAsync(processes, options.DotnetFilePath, workItemDirectory, workItemInfo.DisplayName, budget).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
@@ -245,9 +244,15 @@ namespace RunTests
                     }
                     finally
                     {
-                        await ownedProcess.CleanupAsync().ConfigureAwait(false);
-                        foreach (var process in processes)
-                            process.Dispose();
+                        try
+                        {
+                            await ownedProcess.CleanupAsync().ConfigureAwait(false);
+                        }
+                        finally
+                        {
+                            foreach (var process in processes)
+                                process.Process.Dispose();
+                        }
                     }
                 }
 

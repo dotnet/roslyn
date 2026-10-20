@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -105,13 +107,13 @@ public sealed class TimeoutTests
             var processes = await owned.GetProcessesAsync();
             try
             {
-                Assert.Contains(processes, process => process.Id == child.Id);
-                Assert.DoesNotContain(processes, process => process.Id == unrelated.Id);
+                Assert.Contains(processes, process => process.Process.Id == child.Id);
+                Assert.DoesNotContain(processes, process => process.Process.Id == unrelated.Id);
             }
             finally
             {
                 foreach (var process in processes)
-                    process.Dispose();
+                    process.Process.Dispose();
             }
             await owned.CleanupAsync();
             Assert.True(child.HasExited);
@@ -181,12 +183,12 @@ public sealed class TimeoutTests
             var processes = await owned.GetProcessesAsync();
             try
             {
-                Assert.Contains(processes, process => process.Id == child.Id);
+                Assert.Contains(processes, process => process.Process.Id == child.Id);
             }
             finally
             {
                 foreach (var process in processes)
-                    process.Dispose();
+                    process.Process.Dispose();
             }
             await owned.CleanupAsync();
             Assert.True(child.HasExited);
@@ -269,6 +271,47 @@ public sealed class TimeoutTests
     }
 
     [Fact]
+    public async Task DumpUsesCapturedIdentityAndPersistsMismatchFailure()
+    {
+        using var temp = new TempRoot();
+        var directory = temp.CreateDirectory().Path;
+        var path = Path.Combine(directory, "child.pid");
+        using var owned = await OwnedProcess.StartAsync(FixtureStartInfo("leaf", path), DotnetPath, "identity regression");
+        List<OwnedProcess.Target> processes = [];
+        var logPath = Path.Combine(directory, "runtests.log");
+        try
+        {
+            var childId = await WaitForChildAsync(path);
+            processes = await owned.GetProcessesAsync();
+            var target = Assert.Single(processes, process => process.Process.Id == childId);
+            Logger.Initialize(logPath);
+            await DumpCollector.CollectAsync([target with { StartIdentity = target.StartIdentity + 1 }],
+                DotnetPath, directory, "identity regression", CancellationToken.None);
+            Assert.Empty(Directory.EnumerateFiles(directory, "*.dmp", SearchOption.AllDirectories));
+            using var stream = new FileStream(logPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+            using var reader = new StreamReader(stream);
+            var log = reader.ReadToEnd();
+            Assert.Contains($"Process {childId} no longer matches the requested dump target.", log);
+            Assert.Contains($"dump failed: PID={childId}", log);
+            Assert.DoesNotContain($"Dump backend discovery started for PID={childId}", log);
+        }
+        finally
+        {
+            try
+            {
+                await owned.CleanupAsync();
+            }
+            finally
+            {
+                foreach (var process in processes)
+                    process.Process.Dispose();
+                owned.Info.Process.Dispose();
+                Logger.Close();
+            }
+        }
+    }
+
+    [Fact]
     public async Task StoppedOutputReadersDoNotWaitForSurvivingChild()
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".pid");
@@ -299,6 +342,18 @@ public sealed class TimeoutTests
             launcher.Process.Dispose();
             File.Delete(path);
         }
+    }
+
+    [Fact]
+    public void StoppingReadersToleratesCompletionDisposalRace()
+    {
+        using var process = new Process();
+        using var cancellation = new CancellationTokenSource();
+        var completion = new TaskCompletionSource<ProcessResult>();
+        var info = new ProcessInfo(process, new ProcessStartInfo(), completion.Task, cancellation);
+        cancellation.Dispose();
+        info.StopReadingOutput();
+        completion.SetResult(default);
     }
 
     [Fact]

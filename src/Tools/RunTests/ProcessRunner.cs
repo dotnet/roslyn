@@ -51,8 +51,9 @@ namespace RunTests
             {
                 _outputCancellation.Cancel();
             }
-            catch (ObjectDisposedException) when (Result.IsCompleted)
+            catch (ObjectDisposedException)
             {
+                // Completion disposes the source just before publishing its task result.
             }
         }
     }

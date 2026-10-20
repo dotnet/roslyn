@@ -55,26 +55,13 @@ namespace RunTests
         internal static readonly TimeSpan HelperTimeout = TimeSpan.FromMinutes(2);
         internal static readonly TimeSpan TotalTimeout = TimeSpan.FromMinutes(10);
 
-        internal static async Task CollectAsync(IReadOnlyList<Process> processes, Options options, string directory, string label, CancellationToken budget)
+        internal static async Task CollectAsync(IReadOnlyList<OwnedProcess.Target> processes, string dotnetPath, string directory, string label, CancellationToken budget)
         {
             Directory.CreateDirectory(directory);
-            var candidates = new List<(Process Process, string Name)>();
-            foreach (var process in processes)
-            {
-                try
-                {
-                    candidates.Add((process, process.ProcessName));
-                }
-                catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
-                {
-                    ConsoleUtil.Warning($"[{label}] dump target inspection failed: PID={process.Id}: {ex}");
-                }
-            }
-
-            ConsoleUtil.WriteLine($"[{label}] dump collection started: {candidates.Count} candidates, helper limit={HelperTimeout}, aggregate limit={TotalTimeout}.");
+            ConsoleUtil.WriteLine($"[{label}] dump collection started: {processes.Count} candidates, helper limit={HelperTimeout}, aggregate limit={TotalTimeout}.");
             var collected = 0;
             // Prioritize test hosts over the launcher and other owned .NET processes.
-            foreach (var (process, name) in candidates.OrderByDescending(p => p.Name.StartsWith("testhost", StringComparison.Ordinal)))
+            foreach (var (process, name, startIdentity) in processes.OrderByDescending(p => p.Name.StartsWith("testhost", StringComparison.Ordinal)))
             {
                 if (budget.IsCancellationRequested)
                 {
@@ -88,7 +75,7 @@ namespace RunTests
                     var dumpPath = Path.GetFullPath(Path.Combine(directory, $"{name}-{process.Id}-hangdump.dmp"));
                     // Never publish an interrupted dump as a complete .dmp.
                     path = dumpPath + ".partial";
-                    var startInfo = new ProcessStartInfo(options.DotnetFilePath)
+                    var startInfo = new ProcessStartInfo(dotnetPath)
                     {
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
@@ -98,10 +85,10 @@ namespace RunTests
                     startInfo.ArgumentList.Add(typeof(Program).Assembly.Location);
                     startInfo.ArgumentList.Add("--dump-process");
                     startInfo.ArgumentList.Add(process.Id.ToString(CultureInfo.InvariantCulture));
-                    startInfo.ArgumentList.Add(ProcessUtil.GetProcessStartIdentity(process).ToString(CultureInfo.InvariantCulture));
+                    startInfo.ArgumentList.Add(startIdentity.ToString(CultureInfo.InvariantCulture));
                     startInfo.ArgumentList.Add(path);
-                    ConsoleUtil.WriteLine($"[{label}] dump helper start: target={name}, PID={process.Id}, start={ProcessUtil.GetProcessStartIdentity(process)}, path={dumpPath}.");
-                    await CollectWithHelperAsync(startInfo, options.DotnetFilePath, path, dumpPath, label, HelperTimeout, budget).ConfigureAwait(false);
+                    ConsoleUtil.WriteLine($"[{label}] dump helper start: target={name}, PID={process.Id}, start={startIdentity}, path={dumpPath}.");
+                    await CollectWithHelperAsync(startInfo, dotnetPath, path, dumpPath, label, HelperTimeout, budget).ConfigureAwait(false);
                     var dumpSize = new FileInfo(dumpPath).Length;
                     collected++;
                     ConsoleUtil.WriteLine($"[{label}] dump completed: PID={process.Id}, path={dumpPath}, bytes={dumpSize}, elapsed={watch.Elapsed}.");
@@ -122,7 +109,7 @@ namespace RunTests
                     }
                 }
             }
-            ConsoleUtil.WriteLine($"[{label}] dump collection finished: collected={collected}, candidates={candidates.Count}.");
+            ConsoleUtil.WriteLine($"[{label}] dump collection finished: collected={collected}, candidates={processes.Count}.");
             if (collected == 0)
                 ConsoleUtil.Warning($"[{label}] no timeout dumps collected.");
         }
@@ -149,8 +136,14 @@ namespace RunTests
             }
             finally
             {
-                await helper.CleanupAsync().ConfigureAwait(false);
-                helper.Info.Process.Dispose();
+                try
+                {
+                    await helper.CleanupAsync().ConfigureAwait(false);
+                }
+                finally
+                {
+                    helper.Info.Process.Dispose();
+                }
             }
 
             async Task<OwnedProcess> startHelperAsync()

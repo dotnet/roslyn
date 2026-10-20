@@ -29,6 +29,8 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
     private readonly object _cleanupGate = new();
     private Task? _cleanupTask;
 
+    internal readonly record struct Target(Process Process, string Name, long StartIdentity);
+
     internal ProcessInfo Info { get; }
 
     private OwnedProcess(ProcessInfo info, SafeFileHandle? job, string label)
@@ -96,8 +98,14 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
             catch (Exception ex)
             {
                 ConsoleUtil.Warning($"[{label}] ownership startup failed: PID={process.Id}: {ex}");
-                await owned.DisposeAsync().ConfigureAwait(false);
-                process.Process.Dispose();
+                try
+                {
+                    await owned.DisposeAsync().ConfigureAwait(false);
+                }
+                finally
+                {
+                    process.Process.Dispose();
+                }
                 throw;
             }
             Logger.Log($"[{label}] ownership launcher started: PID={process.Id}, start={startIdentity}, scope={scopeName}.");
@@ -161,20 +169,23 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
         }
     }
 
-    internal async Task<List<Process>> GetProcessesAsync()
+    internal async Task<List<Target>> GetProcessesAsync(CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ConsoleUtil.WriteLine($"[{_label}] discovery started: scope launcher PID={Info.Id}, exited={Info.Process.HasExited}.");
-        var pids = _job is not null ? GetWindowsProcessIds(_job) : await GetUnixProcessIdsAsync(Info.Id).ConfigureAwait(false);
-        var processes = new List<Process>();
+        var pids = _job is not null ? GetWindowsProcessIds(_job) : await GetUnixProcessIdsAsync(Info.Id, cancellationToken).ConfigureAwait(false);
+        var processes = new List<Target>();
         foreach (var pid in pids)
         {
             Process? process = null;
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 process = Process.GetProcessById(pid);
                 // Cache metadata while available, including for cleanup after later exit.
                 _ = process.SafeHandle;
                 _ = process.StartTime;
+                var target = new Target(process, process.ProcessName, ProcessUtil.GetProcessStartIdentity(process));
                 if (_job is not null)
                 {
                     if (!IsProcessInJob(process.Handle, _job, out var isOwned))
@@ -186,11 +197,17 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
                 {
                     throw new InvalidOperationException($"PID={pid} no longer belongs to process group {Info.Id}.");
                 }
-                ConsoleUtil.WriteLine($"[{_label}] owned target: PID={pid}, start={ProcessUtil.GetProcessStartIdentity(process)}, name={process.ProcessName}.");
-                processes.Add(process);
+                ConsoleUtil.WriteLine($"[{_label}] owned target: PID={pid}, start={target.StartIdentity}, name={target.Name}.");
+                processes.Add(target);
                 process = null;
             }
-            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or Win32Exception or IOException)
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                foreach (var target in processes)
+                    target.Process.Dispose();
+                throw;
+            }
+            catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or Win32Exception or IOException or UnauthorizedAccessException)
             {
                 ConsoleUtil.Warning($"[{_label}] target inspection failed: PID={pid}: {ex}");
             }
@@ -212,7 +229,7 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
     private async Task CleanupCoreAsync()
     {
         ConsoleUtil.WriteLine($"[{_label}] cleanup started: scope launcher PID={Info.Id}.");
-        var processes = new List<Process>();
+        var processes = new List<Target>();
         Exception? terminationFailure = null;
         try
         {
@@ -229,7 +246,7 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
             ProcessUtil.KillTree(Info.Process);
             if (_job is null)
                 KillGroup();
-            await Task.WhenAll(processes.Select(process => process.WaitForExitAsync())).WaitAsync(CleanupTimeout).ConfigureAwait(false);
+            await Task.WhenAll(processes.Select(target => target.Process.WaitForExitAsync())).WaitAsync(CleanupTimeout).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -254,10 +271,11 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
         finally
         {
             foreach (var process in processes)
-                process.Dispose();
+                process.Process.Dispose();
         }
 
         ConsoleUtil.WriteLine($"[{_label}] output drain started: launcher PID={Info.Id}, limit={CleanupTimeout}.");
+        var outputCanceled = false;
         try
         {
             await Info.Result.WaitAsync(CleanupTimeout).ConfigureAwait(false);
@@ -265,12 +283,15 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
         catch (TimeoutException ex)
         {
             ConsoleUtil.Warning($"[{_label}] output drain deadline exceeded: {ex}");
+            outputCanceled = true;
             Info.StopReadingOutput();
             await Info.Result.WaitAsync(CleanupTimeout).ConfigureAwait(false);
         }
         if (terminationFailure is not null)
             throw new InvalidOperationException($"[{_label}] cleanup did not complete successfully.", terminationFailure);
-        ConsoleUtil.WriteLine($"[{_label}] cleanup and output drain completed.");
+        ConsoleUtil.WriteLine(outputCanceled
+            ? $"[{_label}] cleanup completed; redirected output capture was canceled after its deadline."
+            : $"[{_label}] cleanup and output drain completed.");
 
         void KillGroup()
         {
@@ -312,13 +333,14 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
         }
     }
 
-    private static async Task<List<int>> GetUnixProcessIdsAsync(int groupId)
+    private static async Task<List<int>> GetUnixProcessIdsAsync(int groupId, CancellationToken cancellationToken)
     {
         var pids = new List<int>();
         if (OperatingSystem.IsLinux())
         {
             foreach (var directory in Directory.EnumerateDirectories("/proc"))
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (!int.TryParse(Path.GetFileName(directory), out var pid))
                     continue;
                 try
@@ -328,9 +350,9 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
                     if (int.Parse(fields[2], CultureInfo.InvariantCulture) == groupId)
                         pids.Add(pid);
                 }
-                catch (IOException ex)
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
-                    Logger.Log($"Process group inspection raced process exit: PID={pid}: {ex.Message}");
+                    Logger.Log($"Process group inspection failed: PID={pid}: {ex}");
                 }
             }
             return pids;
@@ -339,7 +361,7 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
         var ps = ProcessRunner.CreateProcess("/bin/ps", "-A -o pid= -o pgid=", captureOutput: true, displayWindow: false);
         try
         {
-            var result = await ps.Result.WaitAsync(CleanupTimeout).ConfigureAwait(false);
+            var result = await ps.Result.WaitAsync(CleanupTimeout, cancellationToken).ConfigureAwait(false);
             if (result.ExitCode != 0)
                 throw new InvalidOperationException($"ps failed: {string.Join(Environment.NewLine, result.ErrorLines)}");
             foreach (var line in result.OutputLines)
@@ -352,9 +374,16 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
         }
         finally
         {
-            ProcessUtil.KillTree(ps.Process);
-            ps.StopReadingOutput();
-            ps.Process.Dispose();
+            try
+            {
+                ProcessUtil.KillTree(ps.Process);
+                ps.StopReadingOutput();
+                await ps.Result.WaitAsync(CleanupTimeout).ConfigureAwait(false);
+            }
+            finally
+            {
+                ps.Process.Dispose();
+            }
         }
     }
 

@@ -114,9 +114,10 @@ owned processes without starting dump collection.
 
 At the global deadline, RunTests attempts dumps before terminating owned processes.
 Each collector has a two-minute deadline, and concurrent work items share a
-ten-minute diagnostic budget. Cleanup and redirected-output draining have a
-thirty-second deadline. An exited launcher cannot keep cleanup waiting indefinitely
-for output pipes inherited by a child.
+ten-minute diagnostic budget. Termination and redirected-output drain waits are
+each capped at thirty seconds. If draining expires, the readers are canceled and
+completion has one final thirty-second bound. An exited launcher cannot keep
+cleanup waiting indefinitely for output pipes inherited by a child.
 
 `runtests.log` is written and flushed throughout execution. Timeout messages identify
 the work item, owned target and collector PIDs, dump path, collection stage, failures,
