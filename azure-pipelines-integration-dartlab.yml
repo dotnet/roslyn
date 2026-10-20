@@ -25,7 +25,8 @@ resources:
     endpoint: dnceng-internal-code-access
     type: git
     name: internal/dotnet-roslyn
-    ref: $(Build.SourceBranch)
+    ref: refs/heads/main
+    #ref: $(Build.SourceBranch) # revert
 
 parameters:
   - name: prNumber
