@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             ImmutableArray<byte> expectedImage = default;
             foreach (bool concurrentBuild in new[] { false, true })
             {
-                // Nested types are visited in source order on one thread, so P.A and P.C
-                // are compiled before Q.B, even though Q.B uses the smaller delegate first.
+                // P's first partial declaration precedes Q, so a single-threaded build compiles
+                // P.A and P.C before Q.B, even though Q.B's delegate use comes first in source.
                 var compilation = CreateCompilation(source, assemblyName: "AnonymousDelegates",
                     options: TestOptions.UnsafeReleaseDll.WithDeterministic(true).WithConcurrentBuild(concurrentBuild));
                 var image = compilation.EmitToArray();
