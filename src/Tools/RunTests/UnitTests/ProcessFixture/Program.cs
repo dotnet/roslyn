@@ -27,7 +27,8 @@ public static class Program
 
         if (mode == "leaf")
         {
-            File.WriteAllText(readyPath, Environment.ProcessId.ToString());
+            File.WriteAllText(readyPath + ".writing", Environment.ProcessId.ToString());
+            File.Move(readyPath + ".writing", readyPath);
             HungChild();
             return 0;
         }

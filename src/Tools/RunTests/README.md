@@ -91,6 +91,20 @@ include pattern are selected; `--exclude` still removes matches from that select
 `Test.cmd` and `test.sh` pass the repository's artifacts directory explicitly.
 Pass `--artifactspath <path>` to override it when testing a different payload.
 
+Runtime-async validation requires an explicit Core-only selection, for example
+`./test.sh --testKind:runtimeasync --testFramework:core`. Omitting the framework
+selects both Core and desktop by default and is rejected for runtime-async
+validation; RunTests does not automatically change the selected frameworks.
+
+Helix submission returns after the jobs are submitted; the pipeline's **Monitor
+Helix Jobs** job monitors completion and retries. Test-run names distinguish
+configuration, runtime, architecture, and the test kinds selected through
+`--testKind` or `--env`.
+
+Historical timing data for Helix partitioning can be selected with `--accessToken`,
+`--projectUri`, `--pipelineDefinitionId`, and `--targetBranchName`. When omitted,
+these use the corresponding Azure Pipelines environment variables.
+
 ## Timeout diagnostics
 
 Single-machine execution starts each work item inside a Windows job or Unix process
@@ -110,20 +124,6 @@ and cleanup outcome. Helper output includes the selected dump backend and whethe
 its dump request returned. Only successful, nonempty collector outputs become `.dmp`
 files; failed or interrupted attempts are reported explicitly. Existing aggregate
 dump-size pruning can remove completed dumps and logs each removal.
-
-Runtime-async validation requires an explicit Core-only selection, for example
-`./test.sh --testKind:runtimeasync --testFramework:core`. Omitting the framework
-selects both Core and desktop by default and is rejected for runtime-async
-validation; RunTests does not automatically change the selected frameworks.
-
-Helix submission returns after the jobs are submitted; the pipeline's **Monitor
-Helix Jobs** job monitors completion and retries. Test-run names distinguish
-configuration, runtime, architecture, and the test kinds selected through
-`--testKind` or `--env`.
-
-Historical timing data for Helix partitioning can be selected with `--accessToken`,
-`--projectUri`, `--pipelineDefinitionId`, and `--targetBranchName`. When omitted,
-these use the corresponding Azure Pipelines environment variables.
 
 ## Exit Codes
 

@@ -133,6 +133,36 @@ public sealed class TimeoutTests
         }
     }
 
+    [ConditionalFact(typeof(WindowsOnly))]
+    public async Task ClosingOwnershipJobTerminatesSurvivingChild()
+    {
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".pid");
+        using var owned = OwnedProcess.Start(FixtureStartInfo("orphan", path), DotnetPath, "job closure regression");
+        Process? child = null;
+        try
+        {
+            child = Process.GetProcessById(await WaitForChildAsync(path));
+            await owned.Info.Process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.False(child.HasExited);
+            owned.Dispose();
+            await child.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.True(child.HasExited);
+        }
+        finally
+        {
+            if (child is not null)
+            {
+                ProcessUtil.KillTree(child);
+                child.Dispose();
+            }
+            ProcessUtil.KillTree(owned.Info.Process);
+            owned.Info.StopReadingOutput();
+            await owned.Info.Result.WaitAsync(TimeSpan.FromSeconds(30));
+            owned.Info.Process.Dispose();
+            File.Delete(path);
+        }
+    }
+
     [Theory]
     [InlineData("dump")]
     [InlineData("exit")]

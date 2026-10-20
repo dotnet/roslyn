@@ -24,6 +24,8 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
     internal static readonly TimeSpan CleanupTimeout = TimeSpan.FromSeconds(30);
     private readonly SafeFileHandle? _job;
     private readonly string _label;
+    private readonly object _cleanupGate = new();
+    private Task? _cleanupTask;
 
     internal ProcessInfo Info { get; }
 
@@ -45,6 +47,9 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
                 scopeName = @"Local\Roslyn.RunTests." + Guid.NewGuid().ToString("N");
                 job = CreateJobObjectW(IntPtr.Zero, scopeName);
                 if (job.IsInvalid)
+                    throw new Win32Exception(Marshal.GetLastWin32Error());
+                var limits = new JobLimits { Basic = new BasicJobLimits { LimitFlags = 0x00002000 } };
+                if (!SetInformationJobObject(job, 9, ref limits, Marshal.SizeOf<JobLimits>()))
                     throw new Win32Exception(Marshal.GetLastWin32Error());
             }
 
@@ -169,11 +174,20 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
         return processes;
     }
 
-    internal async Task CleanupAsync()
+    internal Task CleanupAsync()
+    {
+        lock (_cleanupGate)
+            return _cleanupTask ??= CleanupCoreAsync();
+    }
+
+    private async Task CleanupCoreAsync()
     {
         ConsoleUtil.WriteLine($"[{_label}] cleanup started: scope launcher PID={Info.Id}.");
+        var processes = new List<Process>();
+        Exception? terminationFailure = null;
         try
         {
+            processes = await GetProcessesAsync().ConfigureAwait(false);
             if (_job is not null)
             {
                 if (!TerminateJobObject(_job, 1))
@@ -181,32 +195,62 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
             }
             else
             {
-                var processes = await GetProcessesAsync().ConfigureAwait(false);
-                foreach (var process in processes)
-                {
-                    using (process)
-                        ProcessUtil.KillTree(process);
-                }
+                KillGroup();
             }
             ProcessUtil.KillTree(Info.Process);
+            if (_job is null)
+                KillGroup();
+            await Task.WhenAll(processes.Select(process => process.WaitForExitAsync())).WaitAsync(CleanupTimeout).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
+            terminationFailure = ex;
             ConsoleUtil.Warning($"[{_label}] target termination failed: {ex}");
+            // Discovery failure must not prevent scope-level termination.
+            if (_job is not null && !TerminateJobObject(_job, 1))
+                ConsoleUtil.Warning($"[{_label}] job termination retry failed: error={Marshal.GetLastWin32Error()}.");
             ProcessUtil.KillTree(Info.Process);
+            if (_job is null)
+            {
+                try
+                {
+                    KillGroup();
+                }
+                catch (Win32Exception retryException)
+                {
+                    ConsoleUtil.Warning($"[{_label}] process group termination retry failed: {retryException}");
+                }
+            }
+        }
+        finally
+        {
+            foreach (var process in processes)
+                process.Dispose();
         }
 
         ConsoleUtil.WriteLine($"[{_label}] output drain started: launcher PID={Info.Id}, limit={CleanupTimeout}.");
         try
         {
             await Info.Result.WaitAsync(CleanupTimeout).ConfigureAwait(false);
-            ConsoleUtil.WriteLine($"[{_label}] cleanup and output drain completed.");
         }
         catch (TimeoutException ex)
         {
             ConsoleUtil.Warning($"[{_label}] output drain deadline exceeded: {ex}");
             Info.StopReadingOutput();
             await Info.Result.WaitAsync(CleanupTimeout).ConfigureAwait(false);
+        }
+        if (terminationFailure is not null)
+            throw new InvalidOperationException($"[{_label}] cleanup did not complete successfully.", terminationFailure);
+        ConsoleUtil.WriteLine($"[{_label}] cleanup and output drain completed.");
+
+        void KillGroup()
+        {
+            if (kill(-Info.Id, 9) != 0)
+            {
+                var error = Marshal.GetLastWin32Error();
+                if (error != 3)
+                    throw new Win32Exception(error);
+            }
         }
     }
 
@@ -318,8 +362,43 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool TerminateJobObject(SafeFileHandle job, uint exitCode);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetInformationJobObject(SafeFileHandle job, int informationClass, ref JobLimits information, int length);
     [DllImport("libc", SetLastError = true)]
     private static extern int setpgid(int pid, int pgid);
     [DllImport("libc", SetLastError = true)]
     private static extern int getpgid(int pid);
+    [DllImport("libc", SetLastError = true)]
+    private static extern int kill(int pid, int signal);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct BasicJobLimits
+    {
+        public long PerProcessUserTimeLimit;
+        public long PerJobUserTimeLimit;
+        public uint LimitFlags;
+        public UIntPtr MinimumWorkingSetSize;
+        public UIntPtr MaximumWorkingSetSize;
+        public uint ActiveProcessLimit;
+        public UIntPtr Affinity;
+        public uint PriorityClass;
+        public uint SchedulingClass;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct JobLimits
+    {
+        public BasicJobLimits Basic;
+        public ulong ReadOperationCount;
+        public ulong WriteOperationCount;
+        public ulong OtherOperationCount;
+        public ulong ReadTransferCount;
+        public ulong WriteTransferCount;
+        public ulong OtherTransferCount;
+        public UIntPtr ProcessMemoryLimit;
+        public UIntPtr JobMemoryLimit;
+        public UIntPtr PeakProcessMemoryUsed;
+        public UIntPtr PeakJobMemoryUsed;
+    }
 }
