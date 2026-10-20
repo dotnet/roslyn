@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 
@@ -51,7 +52,10 @@ namespace RunTests
             }
         }
 
-        internal static async Task CollectAsync(IReadOnlyList<Process> processes, Options options, string directory)
+        internal static readonly TimeSpan HelperTimeout = TimeSpan.FromMinutes(2);
+        internal static readonly TimeSpan TotalTimeout = TimeSpan.FromMinutes(10);
+
+        internal static async Task CollectAsync(IReadOnlyList<Process> processes, Options options, string directory, string label, CancellationToken budget)
         {
             Directory.CreateDirectory(directory);
             var candidates = new List<(Process Process, string Name)>();
@@ -61,14 +65,24 @@ namespace RunTests
                 {
                     candidates.Add((process, process.ProcessName));
                 }
-                catch (InvalidOperationException) { }
+                catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+                {
+                    ConsoleUtil.Warning($"[{label}] dump target inspection failed: PID={process.Id}: {ex}");
+                }
             }
 
+            ConsoleUtil.WriteLine($"[{label}] dump collection started: {candidates.Count} candidates, helper limit={HelperTimeout}, aggregate limit={TotalTimeout}.");
+            var collected = 0;
             // Prioritize test hosts over the launcher and other owned .NET processes.
             foreach (var (process, name) in candidates.OrderByDescending(p => p.Name.StartsWith("testhost", StringComparison.Ordinal)))
             {
-                ConsoleUtil.Write($"Dumping process {name} ({process.Id}) ... ");
+                if (budget.IsCancellationRequested)
+                {
+                    ConsoleUtil.Warning($"[{label}] aggregate diagnostic deadline exceeded; remaining targets will be terminated without another dump attempt.");
+                    break;
+                }
                 string? path = null;
+                var watch = Stopwatch.StartNew();
                 try
                 {
                     var dumpPath = Path.GetFullPath(Path.Combine(directory, $"{name}-{process.Id}-hangdump.dmp"));
@@ -86,24 +100,15 @@ namespace RunTests
                     startInfo.ArgumentList.Add(process.Id.ToString(CultureInfo.InvariantCulture));
                     startInfo.ArgumentList.Add(ProcessUtil.GetProcessStartIdentity(process).ToString(CultureInfo.InvariantCulture));
                     startInfo.ArgumentList.Add(path);
-                    ConsoleUtil.WriteLine($"Dumping owned process {process.Id} to {dumpPath}");
-                    var helper = ProcessRunner.CreateProcess(startInfo);
-                    Logger.Log($"Dump helper {helper.Id} for owned process {process.Id}");
-                    var result = await helper.Result.ConfigureAwait(false);
-                    Logger.Log(string.Join(Environment.NewLine, result.OutputLines));
-                    Logger.Log(string.Join(Environment.NewLine, result.ErrorLines));
-                    if (result.ExitCode != 0)
-                        throw new Exception($"Dump helper exited with code {result.ExitCode}");
-
-                    File.Move(path, dumpPath);
+                    ConsoleUtil.WriteLine($"[{label}] dump helper start: target={name}, PID={process.Id}, start={ProcessUtil.GetProcessStartIdentity(process)}, path={dumpPath}.");
+                    await CollectWithHelperAsync(startInfo, options.DotnetFilePath, path, dumpPath, label, HelperTimeout, budget).ConfigureAwait(false);
                     var dumpSize = new FileInfo(dumpPath).Length;
-                    ConsoleUtil.WriteLine("completed");
-                    ConsoleUtil.WriteLine($"Dump collected: {dumpPath} ({dumpSize} bytes)");
+                    collected++;
+                    ConsoleUtil.WriteLine($"[{label}] dump completed: PID={process.Id}, path={dumpPath}, bytes={dumpSize}, elapsed={watch.Elapsed}.");
                 }
                 catch (Exception ex)
                 {
-                    ConsoleUtil.WriteLine("failed");
-                    ConsoleUtil.Warning($"Dump collection failed: {ex.Message}");
+                    ConsoleUtil.Warning($"[{label}] dump failed: PID={process.Id}, partial={path}, elapsed={watch.Elapsed}: {ex}");
                     if (path is not null)
                     {
                         try
@@ -112,10 +117,34 @@ namespace RunTests
                         }
                         catch (Exception cleanupException)
                         {
-                            ConsoleUtil.Warning($"Failed to delete partial dump '{path}': {cleanupException.Message}");
+                            ConsoleUtil.Warning($"[{label}] partial dump cleanup failed: '{path}': {cleanupException}");
                         }
                     }
                 }
+            }
+            ConsoleUtil.WriteLine($"[{label}] dump collection finished: collected={collected}, candidates={candidates.Count}.");
+            if (collected == 0)
+                ConsoleUtil.Warning($"[{label}] no timeout dumps collected.");
+        }
+
+        internal static async Task CollectWithHelperAsync(ProcessStartInfo startInfo, string dotnetPath, string partialPath, string dumpPath, string label, TimeSpan timeout, CancellationToken budget)
+        {
+            using var helper = OwnedProcess.Start(startInfo, dotnetPath, label + " dump helper", diagnosticOutput: true);
+            ConsoleUtil.WriteLine($"[{label}] dump helper running: PID={helper.Info.Id}, limit={timeout}.");
+            try
+            {
+                var result = await helper.Info.Result.WaitAsync(timeout, budget).ConfigureAwait(false);
+                ConsoleUtil.WriteLine($"[{label}] dump helper exited: PID={helper.Info.Id}, code={result.ExitCode}; validating output.");
+                if (result.ExitCode != 0)
+                    throw new InvalidOperationException($"Dump helper {helper.Info.Id} exited with code {result.ExitCode}: {string.Join(Environment.NewLine, result.ErrorLines)}");
+                if (!File.Exists(partialPath) || new FileInfo(partialPath).Length == 0)
+                    throw new InvalidOperationException($"Dump helper {helper.Info.Id} succeeded without a nonempty dump at '{partialPath}'.");
+                File.Move(partialPath, dumpPath);
+            }
+            finally
+            {
+                await helper.CleanupAsync().ConfigureAwait(false);
+                helper.Info.Process.Dispose();
             }
         }
     }

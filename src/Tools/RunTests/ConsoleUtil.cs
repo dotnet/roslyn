@@ -26,6 +26,7 @@ namespace RunTests
 
         internal static void Warning(string message)
         {
+            message = $"{DateTime.UtcNow:O} {message}";
             Console.Write("##vso[task.logissue type=warning]");
             Console.WriteLine(message);
             Logger.LogWarning(message);
@@ -33,6 +34,7 @@ namespace RunTests
 
         internal static void Error(string message)
         {
+            message = $"{DateTime.UtcNow:O} {message}";
             Console.Write("##vso[task.logissue type=error]");
             Console.WriteLine(message);
             Logger.Log($"ERROR: {message}");
@@ -40,6 +42,7 @@ namespace RunTests
 
         internal static void WriteLine(string message)
         {
+            message = $"{DateTime.UtcNow:O} {message}";
             Console.WriteLine(message);
             Logger.Log(message);
         }

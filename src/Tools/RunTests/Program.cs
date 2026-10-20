@@ -25,6 +25,9 @@ namespace RunTests
 
         internal static async Task<int> Main(string[] args)
         {
+            if (args is ["--run-owned-process", ..])
+                return OwnedProcess.RunHelper(args);
+
             if (args is ["--dump-process", ..])
                 return DumpCollector.RunHelper(args);
 
@@ -35,6 +38,9 @@ namespace RunTests
             {
                 return helpShown ? ExitSuccess : ExitFailure;
             }
+
+            if (!options.UseHelix)
+                Logger.Initialize(Path.Combine(options.LogFilesDirectory, "runtests.log"));
 
             ConsoleUtil.WriteLine($"Running '{options.DotnetFilePath} --version'..");
             var dotnetResult = await ProcessRunner.CreateProcess(options.DotnetFilePath, arguments: "--version", captureOutput: true).Result;
@@ -83,11 +89,12 @@ namespace RunTests
                 }
 
                 CheckTotalDumpFilesSize();
-                return result;
+                return Logger.HasErrors ? ExitFailure : result;
             }
             finally
             {
                 DisableRegistryDumpCollection();
+                Logger.Close();
             }
 
             void DisableRegistryDumpCollection()
@@ -118,12 +125,16 @@ namespace RunTests
                     // killed before we exit.
                     await runTask;
                 }
-                catch
+                catch (OperationCanceledException) when (cts.IsCancellationRequested)
                 {
-                    // Cancellation exceptions expected here. 
+                    // The global deadline has completed the work-item diagnostic and cleanup paths.
+                }
+                catch (Exception ex)
+                {
+                    ConsoleUtil.Warning($"Global timeout cleanup failed: {ex}");
                 }
 
-                WriteLogFile(options);
+                Logger.Clear();
                 return ExitFailure;
             }
 
@@ -134,12 +145,12 @@ namespace RunTests
         {
             var assemblyFilePaths = GetAssemblyFilePaths(options);
 
-            var testExecutor = new ProcessTestExecutor(userCancellationToken);
+            using var testExecutor = new ProcessTestExecutor(userCancellationToken);
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
             if (assemblyFilePaths.Length == 0)
             {
-                WriteLogFile(options);
+                Logger.Clear();
                 ConsoleUtil.WriteLine(ConsoleColor.Red, "No assemblies to test");
                 return ExitFailure;
             }
@@ -150,7 +161,7 @@ namespace RunTests
             ConsoleUtil.WriteLine($"Test execution time: {elapsed}");
 
             LogProcessResultDetails(result.ProcessResults);
-            WriteLogFile(options);
+            Logger.Clear();
 
             if (!result.Succeeded)
             {
@@ -186,26 +197,6 @@ namespace RunTests
             }
 
             Logger.Log("End logging executed process details");
-        }
-
-        private static void WriteLogFile(Options options)
-        {
-            var logFilePath = Path.Combine(options.LogFilesDirectory, "runtests.log");
-            try
-            {
-                Directory.CreateDirectory(options.LogFilesDirectory);
-                using (var writer = new StreamWriter(logFilePath, append: false))
-                {
-                    Logger.WriteTo(writer);
-                }
-            }
-            catch (Exception ex)
-            {
-                ConsoleUtil.WriteLine($"Error writing log file {logFilePath}");
-                ConsoleUtil.WriteLine(ex.ToString());
-            }
-
-            Logger.Clear();
         }
 
         private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace RunTests
@@ -32,14 +33,27 @@ namespace RunTests
         public Process Process { get; }
         public ProcessStartInfo StartInfo { get; }
         public Task<ProcessResult> Result { get; }
+        private readonly CancellationTokenSource _outputCancellation;
 
         public int Id => Process.Id;
 
-        public ProcessInfo(Process process, ProcessStartInfo startInfo, Task<ProcessResult> result)
+        public ProcessInfo(Process process, ProcessStartInfo startInfo, Task<ProcessResult> result, CancellationTokenSource outputCancellation)
         {
             Process = process;
             StartInfo = startInfo;
             Result = result;
+            _outputCancellation = outputCancellation;
+        }
+
+        internal void StopReadingOutput()
+        {
+            try
+            {
+                _outputCancellation.Cancel();
+            }
+            catch (ObjectDisposedException) when (Result.IsCompleted)
+            {
+            }
         }
     }
 
@@ -62,42 +76,30 @@ namespace RunTests
             bool displayWindow = true,
             Dictionary<string, string>? environmentVariables = null,
             Action<Process>? onProcessStartHandler = null,
-            Action<DataReceivedEventArgs>? onOutputDataReceived = null)
+            Action<string>? onOutputDataReceived = null,
+            Action<string>? onErrorDataReceived = null)
             => CreateProcess(
                 CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables),
                 lowPriority: lowPriority,
                 onProcessStartHandler: onProcessStartHandler,
-                onOutputDataReceived: onOutputDataReceived);
+                onOutputDataReceived: onOutputDataReceived,
+                onErrorDataReceived: onErrorDataReceived);
 
         public static ProcessInfo CreateProcess(
             ProcessStartInfo processStartInfo,
             bool lowPriority = false,
             Action<Process>? onProcessStartHandler = null,
-            Action<DataReceivedEventArgs>? onOutputDataReceived = null)
+            Action<string>? onOutputDataReceived = null,
+            Action<string>? onErrorDataReceived = null)
         {
             var errorLines = new List<string>();
             var outputLines = new List<string>();
             var process = new Process();
             process.StartInfo = processStartInfo;
 
-            process.OutputDataReceived += (s, e) =>
-            {
-                if (e.Data != null)
-                {
-                    onOutputDataReceived?.Invoke(e);
-                    outputLines.Add(e.Data);
-                }
-            };
-
-            process.ErrorDataReceived += (s, e) =>
-            {
-                if (e.Data != null)
-                {
-                    errorLines.Add(e.Data);
-                }
-            };
-
             process.Start();
+            // Cache identity before a short-lived launcher can exit.
+            _ = process.StartTime;
             onProcessStartHandler?.Invoke(process);
 
             if (lowPriority)
@@ -105,23 +107,48 @@ namespace RunTests
                 process.PriorityClass = ProcessPriorityClass.BelowNormal;
             }
 
-            if (processStartInfo.RedirectStandardOutput)
-            {
-                process.BeginOutputReadLine();
-            }
+            var outputCancellation = new CancellationTokenSource();
+            var outputTask = processStartInfo.RedirectStandardOutput
+                ? ReadAsync(process.StandardOutput, outputLines, onOutputDataReceived)
+                : Task.CompletedTask;
+            var errorTask = processStartInfo.RedirectStandardError
+                ? ReadAsync(process.StandardError, errorLines, onErrorDataReceived)
+                : Task.CompletedTask;
 
-            if (processStartInfo.RedirectStandardError)
-            {
-                process.BeginErrorReadLine();
-            }
-
-            return new ProcessInfo(process, processStartInfo, CompleteAsync());
+            return new ProcessInfo(process, processStartInfo, CompleteAsync(), outputCancellation);
 
             async Task<ProcessResult> CompleteAsync()
             {
-                await process.WaitForExitAsync().ConfigureAwait(false);
-                return new ProcessResult(process, process.ExitCode,
-                    new ReadOnlyCollection<string>(outputLines), new ReadOnlyCollection<string>(errorLines));
+                try
+                {
+                    // Do not use BeginOutputReadLine: its EOF wait is folded into WaitForExitAsync,
+                    // even after the process exits, if a surviving child inherited the pipe.
+                    await process.WaitForExitAsync().ConfigureAwait(false);
+                    Logger.Log($"Process {process.Id} exited with code {process.ExitCode}; draining redirected output.");
+                    await Task.WhenAll(outputTask, errorTask).ConfigureAwait(false);
+                    return new ProcessResult(process, process.ExitCode,
+                        new ReadOnlyCollection<string>(outputLines), new ReadOnlyCollection<string>(errorLines));
+                }
+                finally
+                {
+                    outputCancellation.Dispose();
+                }
+            }
+
+            async Task ReadAsync(StreamReader reader, List<string> lines, Action<string>? onLine)
+            {
+                try
+                {
+                    while (await reader.ReadLineAsync(outputCancellation.Token).ConfigureAwait(false) is { } line)
+                    {
+                        lines.Add(line);
+                        onLine?.Invoke(line);
+                    }
+                }
+                catch (OperationCanceledException) when (outputCancellation.IsCancellationRequested)
+                {
+                    ConsoleUtil.Warning($"Process {process.Id}: redirected output drain canceled during cleanup.");
+                }
             }
         }
 

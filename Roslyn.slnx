@@ -425,6 +425,7 @@
     <Project Path="src/Tools/CompilerGeneratorTools/Source/VisualBasicErrorFactsGenerator/VisualBasicErrorFactsGenerator.vbproj" />
     <Project Path="src/Tools/CompilerGeneratorTools/Source/VisualBasicSyntaxGenerator/VisualBasicSyntaxGenerator.vbproj" />
     <Project Path="src/Tools/RunTests/RunTests.csproj" />
+    <Project Path="src/Tools/RunTests/UnitTests/RunTests.UnitTests.csproj" />
     <Project Path="src/Tools/TestDiscoveryWorker/TestDiscoveryWorker.csproj" />
   </Folder>
   <Folder Name="/Tools/ExternalAccess/">

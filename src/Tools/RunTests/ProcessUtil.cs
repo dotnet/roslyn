@@ -77,7 +77,7 @@ namespace RunTests
                     {
                         child = Process.GetProcessById(pid);
                         // A parent PID can refer to a newer process after PID reuse.
-                        if (!parent.HasExited && child.StartTime >= parent.StartTime)
+                        if (child.StartTime >= parent.StartTime)
                         {
                             children.Add(child);
                             pending.Enqueue(child);

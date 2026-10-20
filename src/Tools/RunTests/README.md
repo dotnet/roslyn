@@ -91,6 +91,26 @@ include pattern are selected; `--exclude` still removes matches from that select
 `Test.cmd` and `test.sh` pass the repository's artifacts directory explicitly.
 Pass `--artifactspath <path>` to override it when testing a different payload.
 
+## Timeout diagnostics
+
+Single-machine execution starts each work item inside a Windows job or Unix process
+group before launching VSTest. Timeout discovery and cleanup therefore include
+surviving children even after their launcher exits. User cancellation terminates
+owned processes without starting dump collection.
+
+At the global deadline, RunTests attempts dumps before terminating owned processes.
+Each collector has a two-minute deadline, and concurrent work items share a
+ten-minute diagnostic budget. Cleanup and redirected-output draining have a
+thirty-second deadline. An exited launcher cannot keep cleanup waiting indefinitely
+for output pipes inherited by a child.
+
+`runtests.log` is written and flushed throughout execution. Timeout messages identify
+the work item, owned target and collector PIDs, dump path, collection stage, failures,
+and cleanup outcome. Helper output includes the selected dump backend and whether
+its dump request returned. Only successful, nonempty collector outputs become `.dmp`
+files; failed or interrupted attempts are reported explicitly. Existing aggregate
+dump-size pruning can remove completed dumps and logs each removal.
+
 Runtime-async validation requires an explicit Core-only selection, for example
 `./test.sh --testKind:runtimeasync --testFramework:core`. Omitting the framework
 selects both Core and desktop by default and is rejected for runtime-async
