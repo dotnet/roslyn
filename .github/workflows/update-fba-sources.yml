@@ -11,7 +11,7 @@ permissions:
 jobs:
   discover:
     if: github.repository == 'dotnet/roslyn'
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     outputs:
       matrix: ${{ steps.branches.outputs.matrix }}
     steps:
@@ -19,7 +19,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Test updater
-        run: node --test .github\scripts\update-fba-sources.test.cjs
+        run: node --test .github/scripts/update-fba-sources.test.cjs
       - name: Discover target branches and matching SDKs
         id: branches
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
@@ -30,7 +30,7 @@ jobs:
 
   update:
     needs: discover
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
@@ -56,7 +56,7 @@ jobs:
       - name: Install automation SDK
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
-          global-json-file: automation\global.json
+          global-json-file: automation/global.json
       - name: Synchronize sources and check declined updates
         id: sync
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
@@ -78,11 +78,11 @@ jobs:
         if: steps.sync.outputs.changed == 'true'
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
         with:
-          global-json-file: target\global.json
+          global-json-file: target/global.json
       - name: Update localization files
         if: steps.sync.outputs.changed == 'true'
         working-directory: target
-        run: dotnet msbuild src\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj -restore -t:UpdateXlf
+        run: dotnet msbuild src/Workspaces/CSharp/Portable/Microsoft.CodeAnalysis.CSharp.Workspaces.csproj -restore -t:UpdateXlf
       - name: Create or update pull request
         if: steps.sync.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
