@@ -191,8 +191,7 @@
     <CollectUpToDateCheckInputDesignTimeDependsOn>$(CollectUpToDateCheckInputDesignTimeDependsOn);AddUpToDateCheckItemsForPublishProjectReferences</CollectUpToDateCheckInputDesignTimeDependsOn>
   </PropertyGroup>
 
-  <!-- File-manifest generation inspects published assemblies to determine NGen eligibility. -->
-  <Target Name="PublishProjectReferencesForVsixCreation" BeforeTargets="GenerateFileManifest">
+  <Target Name="PublishProjectReferencesForVsixCreation">
     <ItemGroup>
       <_ProjectsToPublish Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(ProjectReference.IncludeOutputGroupsInVSIX)', '').Contains('PublishedProjectOutputGroup'))"/>
     </ItemGroup>
