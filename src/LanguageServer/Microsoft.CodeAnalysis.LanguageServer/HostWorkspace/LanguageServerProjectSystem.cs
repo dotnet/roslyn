@@ -266,7 +266,8 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
                 ProjectReferences = GetItems("ProjectReference").Select(item =>
                     new ProjectFileReference(item.ItemSpec, GetAliases(item), GetReferenceOutputAssembly(item))).ToArray(),
                 MetadataReferences = GetItems("MetadataReference").Select(item =>
-                    new MetadataReferenceItem(item.ItemSpec, GetAliases(item))).ToArray(),
+                    new MetadataReferenceItem(item.ItemSpec, GetAliases(item), EmbedInteropTypes: item.Metadata["embedInteropTypes"] is not null)).ToArray(),
+                AnalyzerReferences = GetItems("AnalyzerReference").Select(static item => item.ItemSpec).ToArray(),
                 ProjectCapabilities = [.. snapshot.Capabilities],
                 ContentFilePaths = [],
                 PackageReferences = [],
@@ -289,4 +290,12 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
     internal static bool GetReferenceOutputAssembly(ProjectDataItem item)
         => !string.Equals(item.Metadata["ReferenceOutputAssembly"], bool.FalseString, StringComparison.OrdinalIgnoreCase);
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(LanguageServerProjectSystem projectSystem)
+    {
+        public Task<(ImmutableArray<ProjectFileInfo>, ProjectSystemProjectFactory)?> TryLoadProjectFromCacheAsync(string projectPath, CancellationToken cancellationToken)
+            => projectSystem.TryLoadProjectFromCacheAsync(projectPath, cancellationToken);
+    }
 }

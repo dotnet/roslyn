@@ -172,8 +172,14 @@ internal sealed partial class LoadedProject
                 },
                 "Project {0} now has {1} source file(s). ({2} added, {3} removed.)");
 
+            var metadataReferences = newProjectInfo.MetadataReferences is { } references
+                ? references.SelectAsArray(static reference => new CommandLineReference(
+                    reference.Path,
+                    new MetadataReferenceProperties(aliases: [.. reference.Aliases], embedInteropTypes: reference.EmbedInteropTypes)))
+                : commandLineArguments.MetadataReferences;
+
             var relativePathResolver = new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
-            var metadataReferences = commandLineArguments.MetadataReferences.Select(cr =>
+            metadataReferences = metadataReferences.Select(cr =>
             {
                 // The relative path resolver calls File.Exists() to see if the path doesn't exist; it guarantees that generally the path returned
                 // is to an actual file on disk. And it needs to call File.Exists() in some cases if there are reference paths to have to search. But as a fallback
@@ -196,7 +202,11 @@ internal sealed partial class LoadedProject
             // Now that we've updated it hold onto the old list of references so we can remove them if there's a later update
             _mostRecentMetadataReferences = metadataReferences;
 
-            var analyzerReferences = commandLineArguments.AnalyzerReferences.Select(cr =>
+            var analyzerReferences = newProjectInfo.AnalyzerReferences is { } analyzers
+                ? analyzers.SelectAsArray(static path => new CommandLineAnalyzerReference(path))
+                : commandLineArguments.AnalyzerReferences;
+
+            analyzerReferences = analyzerReferences.Select(cr =>
             {
                 // Note that unlike regular references, we do not resolve these with the relative path resolver that searches reference paths
                 var absolutePath = FileUtilities.ResolveRelativePath(cr.FilePath, commandLineArguments.BaseDirectory);

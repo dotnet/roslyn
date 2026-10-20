@@ -23,7 +23,6 @@ internal sealed class VisualBasicCommandLineArgumentReader : CommandLineArgument
     protected override void ReadCore()
     {
         ReadAdditionalFiles();
-        ReadAnalyzers();
         ReadCodePage();
         ReadDebugInfo();
         ReadDelaySign();
@@ -33,7 +32,6 @@ internal sealed class VisualBasicCommandLineArgumentReader : CommandLineArgument
         ReadImports();
         ReadOptions();
         ReadPlatform();
-        ReadReferences();
         ReadSigning();
         ReadVbRuntime();
 
