@@ -109,13 +109,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
                                                                           Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
-                                                                          ' The property page for WinForms project has a special interface that it uses to get
-                                                                          ' entry points that are Forms: IVbEntryPointProvider. The semantics for this
-                                                                          ' interface are the same as VisualBasicProject::GetFormEntryPoints, but callers get
-                                                                          ' the VB Package and cast it to IVbEntryPointProvider. The property page is managed
-                                                                          ' and we've redefined the interface, so we have to register a COM aggregate of the
-                                                                          ' VB package. This is the same pattern we use for the LanguageService and Razor.
-                                                                          ' The service container caches the aggregate.
+                                                                          ' Creating the COM aggregate is a UI-affinitized operation, so it can't happen in
+                                                                          ' the package constructor if we want to allow background loading. The service
+                                                                          ' container caches the result, so the aggregate is still created once.
                                                                           Return Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
                                                                       End Function, promote:=True)
 
