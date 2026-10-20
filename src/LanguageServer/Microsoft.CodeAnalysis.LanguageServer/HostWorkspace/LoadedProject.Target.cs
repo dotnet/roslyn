@@ -116,6 +116,15 @@ internal sealed partial class LoadedProject
         {
             Contract.ThrowIfFalse(_project._gate.CurrentCount == 0, $"We should be holding {nameof(LoadedProject)}.{nameof(LoadedProject._gate)} for all methods in this class.");
 
+            // FilePath defines project-system document identity, while other properties such as Folders describe
+            // the state applied to that document. Normalize by identity before comparing or retaining the snapshot.
+            newProjectInfo = newProjectInfo with
+            {
+                Documents = [.. newProjectInfo.Documents.DistinctBy(static document => document.FilePath)],
+                AdditionalDocuments = [.. newProjectInfo.AdditionalDocuments.DistinctBy(static document => document.FilePath)],
+                AnalyzerConfigDocuments = [.. newProjectInfo.AnalyzerConfigDocuments.DistinctBy(static document => document.FilePath)],
+            };
+
             if (_mostRecentFileInfo != null)
             {
                 // We should never be changing the fundamental identity of this project; if this happens we really should have done a full unload/reload.
@@ -260,31 +269,39 @@ internal sealed partial class LoadedProject
             return;
 
             // logMessage must have 4 placeholders: project name, number of items, added items count, and removed items count.
-            void UpdateProjectSystemProjectCollection<T>(IEnumerable<T> loadedCollection, IEnumerable<T>? oldLoadedCollection, IEqualityComparer<T> comparer, Action<T> addItem, Action<T> removeItem, string logMessage)
+            void UpdateProjectSystemProjectCollection<T>(
+                IEnumerable<T> loadedCollection,
+                IEnumerable<T>? oldLoadedCollection,
+                IEqualityComparer<T> comparer,
+                Action<T> addItem,
+                Action<T> removeItem,
+                string logMessage)
             {
                 var newItems = new HashSet<T>(loadedCollection, comparer);
                 var oldItems = new HashSet<T>(oldLoadedCollection ?? [], comparer);
+                var finalItemCount = newItems.Count;
+                var removedCount = 0;
 
-                var addedCount = 0;
-
-                foreach (var newItem in newItems)
+                // Remove changed items first because project-system document collections reject duplicate file paths.
+                foreach (var oldItem in oldItems)
                 {
-                    // If oldItems already has this, we don't need to add it again. We'll remove it, and what is left in oldItems is stuff to remove
-                    if (!oldItems.Remove(newItem))
+                    // If newItems already has this, we don't need to add it again. We'll remove it, and what is left in newItems is stuff to add.
+                    if (!newItems.Remove(oldItem))
                     {
-                        addItem(newItem);
-                        addedCount++;
+                        removeItem(oldItem);
+                        removedCount++;
                     }
                 }
 
-                var removedCount = oldItems.Count;
-                foreach (var oldItem in oldItems)
+                var addedCount = newItems.Count;
+
+                foreach (var newItem in newItems)
                 {
-                    removeItem(oldItem);
+                    addItem(newItem);
                 }
 
                 if (addedCount != 0 || removedCount != 0)
-                    logger.LogTrace(logMessage, projectFullPathWithTargetFramework, newItems.Count, addedCount, removedCount);
+                    logger.LogTrace(logMessage, projectFullPathWithTargetFramework, finalItemCount, addedCount, removedCount);
             }
 
             void WatchProjectAssetsFile(ProjectFileInfo currentProjectInfo)

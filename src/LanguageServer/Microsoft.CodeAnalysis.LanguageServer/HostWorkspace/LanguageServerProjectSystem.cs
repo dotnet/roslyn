@@ -245,6 +245,9 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
 
         return (projectSnapshots.SelectAsArray(snapshot =>
         {
+            var projectDirectory = PathUtilities.GetDirectoryName(snapshot.ProjectPath);
+            Contract.ThrowIfNull(projectDirectory);
+
             return new ProjectFileInfo
             {
                 IsEmpty = false,
@@ -260,9 +263,9 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
                 TargetFrameworkVersion = snapshot.Properties["TargetFrameworkVersion"],
                 ProjectAssetsFilePath = snapshot.Properties["ProjectAssetsFile"],
                 CommandLineArgs = GetItems("CommandLineArgument").Select(static item => item.ItemSpec).ToArray(),
-                Documents = GetItems("Compile").Select(CreateDocumentFileInfo).ToArray(),
-                AdditionalDocuments = GetItems("AdditionalFile").Select(CreateDocumentFileInfo).ToArray(),
-                AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(CreateDocumentFileInfo).ToArray(),
+                Documents = GetItems("Compile").Select(item => CreateDocumentFileInfo(item, projectDirectory)).ToArray(),
+                AdditionalDocuments = GetItems("AdditionalFile").Select(item => CreateDocumentFileInfo(item, projectDirectory)).ToArray(),
+                AnalyzerConfigDocuments = GetItems("AnalyzerConfigFile").Select(item => CreateDocumentFileInfo(item, projectDirectory)).ToArray(),
                 ProjectReferences = GetItems("ProjectReference").Select(item =>
                     new ProjectFileReference(item.ItemSpec, GetAliases(item), GetReferenceOutputAssembly(item))).ToArray(),
                 MetadataReferences = GetItems("MetadataReference").Select(item =>
@@ -277,10 +280,24 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
             ImmutableArray<ProjectDataItem> GetItems(string itemType)
                 => snapshot.ItemsByType.TryGetValue(itemType, out var items) ? items : [];
 
-            static DocumentFileInfo CreateDocumentFileInfo(ProjectDataItem item)
+            static DocumentFileInfo CreateDocumentFileInfo(ProjectDataItem item, string projectDirectory)
             {
                 var link = item.Metadata["Link"];
-                return new DocumentFileInfo(item.ItemSpec, link ?? item.ItemSpec, isLinked: link is not null, isGenerated: false, folders: []);
+                if (!string.IsNullOrEmpty(link))
+                {
+                    return new DocumentFileInfo(item.ItemSpec, link, isLinked: true, isGenerated: false, folders: GetFolders(link));
+                }
+
+                var relativePath = PathUtilities.GetRelativePath(projectDirectory, item.ItemSpec);
+                return new DocumentFileInfo(item.ItemSpec, item.ItemSpec, isLinked: false, isGenerated: false, folders: GetFolders(relativePath));
+
+                static string[] GetFolders(string relativePath)
+                {
+                    var folderPath = PathUtilities.GetDirectoryName(relativePath);
+                    return folderPath is null
+                        ? []
+                        : folderPath.Split([PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
+                }
             }
 
             static string[] GetAliases(ProjectDataItem item)

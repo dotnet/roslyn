@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.Extensions.Logging;
 using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
+using DocumentFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo;
 using MetadataReferenceItem = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.MetadataReferenceItem;
 using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
 
@@ -16,6 +17,102 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
 public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerHostTests(testOutputHelper)
 {
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/9885")]
+    public async Task ProjectFileInfoUpdatesDocumentFolders()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var directory = TempRoot.CreateDirectory();
+        var projectPath = directory.CreateFile("Project.csproj").Path;
+        var documentPath = Path.Combine(directory.Path, "File.cs");
+        var additionalPath = Path.Combine(directory.Path, "Additional.txt");
+        await using var loadedProject = new LoadedProject(projectPath, workspaceFactory.HostProjectFactory.FileChangeWatcher);
+
+        // First apply project information without folders, then verify that updating only the folders is reflected in the documents.
+        foreach (string[] folders in new string[][] { [], ["B", "C"] })
+        {
+            var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+            {
+                CommandLineArgs = ["/target:library"],
+                Documents = [new DocumentFileInfo(documentPath, documentPath, isLinked: false, isGenerated: false, folders)],
+                AdditionalDocuments = [new DocumentFileInfo(additionalPath, additionalPath, isLinked: false, isGenerated: false, folders)],
+            };
+
+            Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
+                [projectInfo],
+                isMiscellaneousFile: false,
+                hasAllInformation: true,
+                workspaceFactory.HostProjectFactory,
+                server.GetRequiredLspService<ProjectTargetFrameworkManager>(),
+                server.GetRequiredLspService<ProjectCapabilityManager>(),
+                workspaceFactory,
+                LoggerFactory.CreateLogger<LoadedProjectTests>(),
+                CancellationToken.None));
+
+            var project = Assert.Single(await loadedProject.GetExistingProjectsAsync());
+            var document = Assert.Single(project.Documents);
+            Assert.Equal(documentPath, document.FilePath);
+            AssertEx.Equal(folders, document.Folders);
+
+            var additionalDocument = Assert.Single(project.AdditionalDocuments);
+            Assert.Equal(additionalPath, additionalDocument.FilePath);
+            AssertEx.Equal(folders, additionalDocument.Folders);
+        }
+    }
+
+    [Fact]
+    public async Task ProjectFileInfoPreservesDocumentsWithDuplicatePaths()
+    {
+        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
+        var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var directory = TempRoot.CreateDirectory();
+        var projectPath = directory.CreateFile("Project.csproj").Path;
+        var documentPath = Path.Combine(directory.Path, "File.cs");
+        var additionalPath = Path.Combine(directory.Path, "Additional.txt");
+        var analyzerConfigPath = Path.Combine(directory.Path, ".editorconfig");
+        var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+        {
+            CommandLineArgs = ["/target:library"],
+            Documents = CreateDuplicateDocuments(documentPath),
+            AdditionalDocuments = CreateDuplicateDocuments(additionalPath),
+            AnalyzerConfigDocuments = CreateDuplicateDocuments(analyzerConfigPath),
+        };
+        await using var loadedProject = new LoadedProject(projectPath, workspaceFactory.HostProjectFactory.FileChangeWatcher);
+
+        // Apply the same snapshot twice to verify duplicate paths are handled on both initial load and reload.
+        for (var i = 0; i < 2; i++)
+        {
+            Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
+                [projectInfo],
+                isMiscellaneousFile: false,
+                hasAllInformation: true,
+                workspaceFactory.HostProjectFactory,
+                server.GetRequiredLspService<ProjectTargetFrameworkManager>(),
+                server.GetRequiredLspService<ProjectCapabilityManager>(),
+                workspaceFactory,
+                LoggerFactory.CreateLogger<LoadedProjectTests>(),
+                CancellationToken.None));
+
+            var project = Assert.Single(await loadedProject.GetExistingProjectsAsync());
+            var document = Assert.Single(project.Documents);
+            Assert.Equal(documentPath, document.FilePath);
+            Assert.Equal("A", Assert.Single(document.Folders));
+
+            var additionalDocument = Assert.Single(project.AdditionalDocuments);
+            Assert.Equal(additionalPath, additionalDocument.FilePath);
+            Assert.Equal("A", Assert.Single(additionalDocument.Folders));
+
+            Assert.Equal(analyzerConfigPath, Assert.Single(project.AnalyzerConfigDocuments).FilePath);
+        }
+
+        static DocumentFileInfo[] CreateDuplicateDocuments(string path)
+            =>
+            [
+                new DocumentFileInfo(path, path, isLinked: false, isGenerated: false, folders: ["A"]),
+                new DocumentFileInfo(path, path, isLinked: false, isGenerated: false, folders: ["B"]),
+            ];
+    }
+
     [Fact]
     public async Task ProjectFileInfoReferencesAreApplied()
     {
