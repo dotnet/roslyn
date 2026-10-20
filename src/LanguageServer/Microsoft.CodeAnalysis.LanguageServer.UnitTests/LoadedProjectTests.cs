@@ -38,16 +38,7 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
                 AdditionalDocuments = [new DocumentFileInfo(additionalPath, additionalPath, isLinked: false, isGenerated: false, folders)],
             };
 
-            Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
-                [projectInfo],
-                isMiscellaneousFile: false,
-                hasAllInformation: true,
-                workspaceFactory.HostProjectFactory,
-                server.GetRequiredLspService<ProjectTargetFrameworkManager>(),
-                server.GetRequiredLspService<ProjectCapabilityManager>(),
-                workspaceFactory,
-                LoggerFactory.CreateLogger<LoadedProjectTests>(),
-                CancellationToken.None));
+            await ApplyProjectInfoAsync(server, loadedProject, projectInfo);
 
             var project = Assert.Single(await loadedProject.GetExistingProjectsAsync());
             var document = Assert.Single(project.Documents);
@@ -82,16 +73,7 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
         // Apply the same snapshot twice to verify duplicate paths are handled on both initial load and reload.
         for (var i = 0; i < 2; i++)
         {
-            Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
-                [projectInfo],
-                isMiscellaneousFile: false,
-                hasAllInformation: true,
-                workspaceFactory.HostProjectFactory,
-                server.GetRequiredLspService<ProjectTargetFrameworkManager>(),
-                server.GetRequiredLspService<ProjectCapabilityManager>(),
-                workspaceFactory,
-                LoggerFactory.CreateLogger<LoadedProjectTests>(),
-                CancellationToken.None));
+            await ApplyProjectInfoAsync(server, loadedProject, projectInfo);
 
             var project = Assert.Single(await loadedProject.GetExistingProjectsAsync());
             var document = Assert.Single(project.Documents);
@@ -130,6 +112,20 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
         };
         await using var loadedProject = new LoadedProject(projectPath, workspaceFactory.HostProjectFactory.FileChangeWatcher);
 
+        await ApplyProjectInfoAsync(server, loadedProject, projectInfo);
+
+        var project = Assert.Single(await loadedProject.GetExistingProjectsAsync());
+        var reference = Assert.Single(project.MetadataReferences);
+        Assert.Equal(metadataPath, reference.Display);
+        AssertEx.Equal(["global", "Interop"], reference.Properties.Aliases);
+        Assert.True(reference.Properties.EmbedInteropTypes);
+
+        Assert.Equal(analyzerPath, Assert.Single(project.AnalyzerReferences).FullPath);
+    }
+
+    private async Task ApplyProjectInfoAsync(TestLspServer server, LoadedProject loadedProject, ProjectFileInfo projectInfo)
+    {
+        var workspaceFactory = server.GetRequiredLspService<LanguageServerWorkspaceFactory>();
         Assert.True(await loadedProject.TryApplyLoadedProjectInfosAsync(
             [projectInfo],
             isMiscellaneousFile: false,
@@ -140,13 +136,5 @@ public sealed class LoadedProjectTests(ITestOutputHelper testOutputHelper) : Abs
             workspaceFactory,
             LoggerFactory.CreateLogger<LoadedProjectTests>(),
             CancellationToken.None));
-
-        var project = Assert.Single(await loadedProject.GetExistingProjectsAsync());
-        var reference = Assert.Single(project.MetadataReferences);
-        Assert.Equal(metadataPath, reference.Display);
-        AssertEx.Equal(["global", "Interop"], reference.Properties.Aliases);
-        Assert.True(reference.Properties.EmbedInteropTypes);
-
-        Assert.Equal(analyzerPath, Assert.Single(project.AnalyzerReferences).FullPath);
     }
 }
