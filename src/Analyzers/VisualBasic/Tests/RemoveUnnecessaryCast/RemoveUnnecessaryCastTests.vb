@@ -951,6 +951,49 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77134")>
+        Public Async Function TestRemoveUnnecessaryCast_QueryHelper() As Task
+            Dim markup =
+<File>
+Namespace System.Linq.Expressions
+    Public Class Expression
+        Public Shared Function Constant(value As Object, type As System.Type) As Expression
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+
+Class QueryHelper(Of T)
+    Public ReadOnly Property Expression As System.Linq.Expressions.Expression
+        Get
+            Return System.Linq.Expressions.Expression.Constant([|DirectCast(Nothing, QueryHelper(Of T))|], GetType(QueryHelper(Of T)))
+        End Get
+    End Property
+End Class
+</File>
+
+            Dim expected =
+<File>
+Namespace System.Linq.Expressions
+    Public Class Expression
+        Public Shared Function Constant(value As Object, type As System.Type) As Expression
+            Return Nothing
+        End Function
+    End Class
+End Namespace
+
+Class QueryHelper(Of T)
+    Public ReadOnly Property Expression As System.Linq.Expressions.Expression
+        Get
+            Return System.Linq.Expressions.Expression.Constant(Nothing, GetType(QueryHelper(Of T)))
+        End Get
+    End Property
+End Class
+</File>
+
+            Await TestAsync(markup, expected)
+        End Function
+
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
         Public Async Function TestRemoveUnnecessaryCastPassedToParamArray1() As Task
             Dim markup =
