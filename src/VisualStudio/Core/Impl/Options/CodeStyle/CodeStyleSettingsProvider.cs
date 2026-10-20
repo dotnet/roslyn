@@ -18,9 +18,9 @@ using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 /// <summary>
-/// The legacy persister remains authoritative for code-style XML and formatting flags, including roaming.
-/// USX edits are staged by component and rebased onto the latest legacy value before committing.
-/// External registration supplies a UI projection, not ownership or migration into settings.json.
+/// Connects the settings UI to Roslyn's code-style and formatting options. Some controls edit different parts
+/// of the same option, such as a code-style preference and its diagnostic severity. Changes are kept pending
+/// until committed, then applied to the latest option values so parts the user did not edit are preserved.
 /// </summary>
 internal sealed class CodeStyleSettingsProvider : ICachingExternalSettingsProvider, ISuspendableExternalSettingsProvider, IDisposable
 {
