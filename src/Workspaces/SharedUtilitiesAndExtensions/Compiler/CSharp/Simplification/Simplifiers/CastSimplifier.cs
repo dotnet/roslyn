@@ -406,6 +406,7 @@ internal static class CastSimplifier
         if (originalConversion.IsInterpolatedString && !rewrittenConversion.IsInterpolatedString)
             return false;
 
+#if !OLDER_ROSLYN
         // Union conversions invoke a constructor or factory to wrap the case value.  For example, in
         // `object o = (Union)caseValue`, removing the cast stores the case value instead of the union,
         // even though the final converted type is still object.  Only remove the cast if the same
@@ -418,6 +419,7 @@ internal static class CastSimplifier
             if (!Equals(originalConversion.MethodSymbol, rewrittenConversion.MethodSymbol))
                 return false;
         }
+#endif
 
         // If we have:
         //
