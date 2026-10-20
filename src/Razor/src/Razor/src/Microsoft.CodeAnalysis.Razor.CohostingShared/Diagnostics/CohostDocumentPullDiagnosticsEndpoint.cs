@@ -60,7 +60,7 @@ internal sealed class CohostDocumentPullDiagnosticsEndpoint(
             var taskListDiagnostics = await GetTaskListDiagnosticsAsync(razorDocument, cancellationToken).ConfigureAwait(false);
             return new()
             {
-                Items = taskListDiagnostics,
+                Items = PopulateVSDiagnosticMetadata(taskListDiagnostics, razorDocument),
                 ResultId = taskListDiagnostics.Length == 0 ? null : Guid.NewGuid().ToString()
             };
         }
