@@ -2,6 +2,8 @@
   <PropertyGroup>
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <SignAssembly>false</SignAssembly>
+    <XUnitCoreSettingsFile>$(MSBuildThisFileDirectory)xunit.runner.json</XUnitCoreSettingsFile>
+    <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)xunit.runner.json</XUnitDesktopSettingsFile>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
