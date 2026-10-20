@@ -106,6 +106,8 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
             }
 
             var info = new ProcessStartInfo(args[2]) { UseShellExecute = false };
+            if (Environment.GetEnvironmentVariable("ROSLYN_TIMEOUT_PROBE_MODE") is not null)
+                info.Environment["ROSLYN_TIMEOUT_PROBE_LAUNCHER_PID"] = Environment.ProcessId.ToString(CultureInfo.InvariantCulture);
             if (args[3] == "arguments")
                 info.Arguments = args[4];
             else

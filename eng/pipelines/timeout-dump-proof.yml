@@ -1,0 +1,66 @@
+parameters:
+- name: pool
+  type: object
+- name: jobName
+  type: string
+- name: framework
+  type: string
+  default: core
+- name: modes
+  type: string
+  default: host,child,exited-launcher
+- name: timeout
+  type: number
+  default: 1
+- name: activity
+  type: string
+  default: '0'
+
+jobs:
+- job: ${{ parameters.jobName }}
+  pool: ${{ parameters.pool }}
+  timeoutInMinutes: 120
+  steps:
+  - checkout: self
+    clean: true
+  - template: install-dotnet.yml
+  - pwsh: |
+      dotnet build src/Tools/RunTests/UnitTests/RunTests.UnitTests.csproj -p:RunAnalyzersDuringBuild=true -bl:artifacts/log/Debug/proof-build.binlog --verbosity minimal
+      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      dotnet build src/Tools/RunTests/UnitTests/TimeoutProbe/RunTests.TimeoutProbe.UnitTests.csproj -bl:artifacts/log/Debug/probe-build.binlog --verbosity minimal
+      exit $LASTEXITCODE
+    displayName: Build timeout proof
+  - pwsh: |
+      dotnet test src/Tools/RunTests/UnitTests/RunTests.UnitTests.csproj --no-build -bl:artifacts/log/Debug/regressions.binlog --verbosity minimal
+      exit $LASTEXITCODE
+    displayName: Run collector and ownership controls
+  - ${{ each mode in split(parameters.modes, ',') }}:
+    - pwsh: |
+        $root = "$(Build.SourcesDirectory)"
+        $logs = Join-Path $root "artifacts/log/Debug/${{ mode }}"
+        $fixture = Join-Path $root "artifacts/bin/RunTests.ProcessFixture/Debug/net10.0/RunTests.ProcessFixture.dll"
+        $dotnet = (Get-Command dotnet).Source
+        $runner = Join-Path $root "artifacts/bin/RunTests/Debug/net10.0/RunTests.dll"
+        $arguments = @($runner, '--ci', '--testFramework', '${{ parameters.framework }}', '--include', '^RunTests.TimeoutProbe.UnitTests$', '--timeout', '${{ parameters.timeout }}', '--logs', $logs,
+          "--env:ROSLYN_TIMEOUT_PROBE_MODE=${{ mode }}", "--env:ROSLYN_TIMEOUT_PROBE_OUTPUT=$logs", "--env:ROSLYN_TIMEOUT_PROBE_FIXTURE=$fixture", "--env:ROSLYN_TIMEOUT_PROBE_DOTNET=$dotnet", "--env:ROSLYN_TIMEOUT_PROBE_ACTIVITY=${{ parameters.activity }}")
+        & dotnet @arguments
+        $result = $LASTEXITCODE
+        Write-Host "Intentional timeout result: $result"
+        if ($result -eq 0) { throw 'Expected timeout failure.' }
+        $dumps = @(Get-ChildItem (Join-Path $root 'artifacts/TestResults') -Filter *.dmp -Recurse)
+        if ($dumps.Count -eq 0) { throw 'Timeout did not produce any dump files.' }
+        foreach ($target in @('testhost', 'child')) {
+          $pidFile = Join-Path $logs "$target.pid"
+          if (Test-Path $pidFile) {
+            $targetPid = (Get-Content $pidFile -Raw).Trim()
+            if (-not ($dumps | Where-Object Name -match "[-_]$targetPid[-_]")) { throw "Missing dump for $target PID=$targetPid" }
+            if (Get-Process -Id $targetPid -ErrorAction SilentlyContinue | Where-Object { -not $_.HasExited }) { throw "Owned $target PID=$targetPid is still alive." }
+          } elseif ($target -eq 'testhost' -or '${{ mode }}' -ne 'host') { throw "Missing identity for $target" }
+        }
+        exit 0
+      displayName: Prove ${{ mode }} timeout dumps
+      continueOnError: true
+  - template: publish-logs.yml
+    parameters:
+      jobName: ${{ parameters.jobName }}
+      configuration: Debug

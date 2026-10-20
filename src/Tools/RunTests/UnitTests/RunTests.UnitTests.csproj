@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="ProcessFixture\**\*.cs" />
+    <Compile Remove="TimeoutProbe\**\*.cs" />
     <ProjectReference Include="..\RunTests.csproj" />
     <ProjectReference Include="ProcessFixture\RunTests.ProcessFixture.csproj" />
     <ProjectReference Include="..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
