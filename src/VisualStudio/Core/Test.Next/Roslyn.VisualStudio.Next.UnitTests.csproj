@@ -80,8 +80,5 @@
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\UnifiedSettings\csharpFormattingSettings.registration.json" />
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\VisualBasic\Impl\UnifiedSettings\visualBasicCodeStyleSettings.registration.json" />
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\Core\Def\UnifiedSettings\roslynSettings.registration.json" />
-    <EmbeddedResource Include="UnifiedSettings\Drafts\csharpAdvancedSettings.registration.draft.json" LogicalName="Roslyn.VisualStudio.Next.UnitTests.csharpAdvancedSettings.registration.draft.json" />
-    <EmbeddedResource Include="UnifiedSettings\Drafts\visualBasicAdvancedSettings.registration.draft.json" LogicalName="Roslyn.VisualStudio.Next.UnitTests.visualBasicAdvancedSettings.registration.draft.json" />
-    <EmbeddedResource Include="UnifiedSettings\Drafts\roslynAdvancedSettings.registration.draft.json" LogicalName="Roslyn.VisualStudio.Next.UnitTests.roslynAdvancedSettings.registration.draft.json" />
   </ItemGroup>
 </Project>

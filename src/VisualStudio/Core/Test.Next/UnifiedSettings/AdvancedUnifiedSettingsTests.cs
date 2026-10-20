@@ -56,7 +56,7 @@ using static Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionS
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 
 /// <summary>
-/// Validates TextEditor-backed Advanced registrations and the unshipped non-TextEditor drafts.
+/// Validates shipping Advanced registrations and their legacy migrations.
 /// </summary>
 public sealed class AdvancedUnifiedSettingsTests
 {
@@ -222,10 +222,9 @@ public sealed class AdvancedUnifiedSettingsTests
 
     [Theory]
     [InlineData("roslynSettings.registration.json", 6)]
-    [InlineData("roslynAdvancedSettings.registration.draft.json", 6)]
     public void SharedLanguageSettingsDisplayAnAlwaysVisibleLocalizedMessage(string manifest, int count)
     {
-        using var document = LoadLive(manifest);
+        using var document = Load(manifest);
         var sharedSettings = document.RootElement.GetProperty("properties").EnumerateObject()
             .Where(property => property.Value.TryGetProperty("placements", out var placements) && placements.GetArrayLength() == 2).ToArray();
         Assert.Equal(count, sharedSettings.Length);
@@ -270,12 +269,10 @@ public sealed class AdvancedUnifiedSettingsTests
 
     [Theory]
     [InlineData("csharpSettings.registration.json", "csharp")]
-    [InlineData("csharpAdvancedSettings.registration.draft.json", "csharp")]
     [InlineData("visualBasicSettings.registration.json", "basic")]
-    [InlineData("visualBasicAdvancedSettings.registration.draft.json", "basic")]
     public void InlineDiagnosticsLocationHasItsOwnLabelAndDependsOnItsCheckbox(string manifest, string languageId)
     {
-        using var document = LoadLive(manifest);
+        using var document = Load(manifest);
         var properties = document.RootElement.GetProperty("properties");
         var prefix = $"languages.{languageId}.advanced.analysis.";
         var checkbox = properties.GetProperty(prefix + "enableInlineDiagnostics");
@@ -288,10 +285,9 @@ public sealed class AdvancedUnifiedSettingsTests
 
     [Theory]
     [InlineData("roslynSettings.registration.json")]
-    [InlineData("roslynAdvancedSettings.registration.draft.json")]
     public void SourceGeneratorExecutionDeclaresRestartWithoutIncludingItInTheTitle(string manifest)
     {
-        using var document = LoadLive(manifest);
+        using var document = Load(manifest);
         var setting = document.RootElement.GetProperty("properties").GetProperty("languages.dotnet.advanced.sourceGeneratorExecution");
         Assert.Equal("Source generator execution:", TestModel.Utilities.EvalResource(setting.GetProperty("title").GetString()!));
         Assert.True(setting.GetProperty("requiresRestart").GetBoolean());
@@ -350,7 +346,6 @@ public sealed class AdvancedUnifiedSettingsTests
         foreach (var manifest in new[] { "csharpSettings.registration.json", "visualBasicSettings.registration.json", "roslynSettings.registration.json" })
         {
             using var document = Load(manifest);
-            using var live = LoadLive(manifest);
             foreach (var property in document.RootElement.GetProperty("properties").EnumerateObject().Where(property => property.Name.Contains(".advanced.")))
             {
                 if (property.Value.GetProperty("type").GetString() != "string"
@@ -360,8 +355,6 @@ public sealed class AdvancedUnifiedSettingsTests
                     continue;
                 }
 
-                Assert.True(live.RootElement.GetProperty("properties").TryGetProperty(property.Name, out var liveSetting));
-                Assert.Equal(JsonSerializer.Serialize(property.Value), JsonSerializer.Serialize(liveSetting));
                 var maps = rule.GetProperty("map").EnumerateArray().ToArray();
                 var fallback = maps[^1];
                 Assert.Equal("@default", fallback.GetProperty("result").GetString());
@@ -414,10 +407,8 @@ public sealed class AdvancedUnifiedSettingsTests
     [InlineData("roslynSettings.registration.json", "languages.dotnet.advanced.offerRemoveUnusedReferences")]
     public void NullableLegacySettingsUseBooleanCheckboxesAndPassMigration(string manifest, string moniker)
     {
-        using var draft = Load(manifest);
-        using var live = LoadLive(manifest);
-        var setting = live.RootElement.GetProperty("properties").GetProperty(moniker);
-        Assert.Equal(JsonSerializer.Serialize(draft.RootElement.GetProperty("properties").GetProperty(moniker)), JsonSerializer.Serialize(setting));
+        using var document = Load(manifest);
+        var setting = document.RootElement.GetProperty("properties").GetProperty(moniker);
         Assert.Equal("boolean", setting.GetProperty("type").GetString());
         Assert.True(setting.GetProperty("default").GetBoolean());
         Assert.False(setting.TryGetProperty("enum", out _));
@@ -514,12 +505,9 @@ public sealed class AdvancedUnifiedSettingsTests
     [InlineData("csharpSettings.registration.json", 95)]
     [InlineData("visualBasicSettings.registration.json", 88)]
     [InlineData("roslynSettings.registration.json", 13)]
-    [InlineData("csharpAdvancedSettings.registration.draft.json", 95)]
-    [InlineData("visualBasicAdvancedSettings.registration.draft.json", 88)]
-    [InlineData("roslynAdvancedSettings.registration.draft.json", 13)]
     public void AdvancedDllResourcesUseTheirDeclaredNativeResourceTable(string manifest, int expectedReferences)
     {
-        using var document = LoadLive(manifest);
+        using var document = Load(manifest);
         var count = 0;
         foreach (var group in document.RootElement.EnumerateObject().Where(group => group.Name is "categories" or "properties"))
         {
@@ -565,8 +553,7 @@ public sealed class AdvancedUnifiedSettingsTests
         var count = 0;
         foreach (var manifest in new[] { "csharpSettings.registration.json", "visualBasicSettings.registration.json", "roslynSettings.registration.json" })
         {
-            using var document = LoadLive(manifest);
-            using var draft = Load(manifest);
+            using var document = Load(manifest);
             var properties = document.RootElement.GetProperty("properties");
             foreach (var property in properties.EnumerateObject().Where(property => property.Name.Contains(".advanced.")))
             {
@@ -587,7 +574,6 @@ public sealed class AdvancedUnifiedSettingsTests
                     Assert.Equal("full", rule.GetProperty("mode").GetString());
                 }
                 Assert.Contains(property.Value.GetProperty("type").GetString(), new[] { "boolean", "string" });
-                Assert.Equal(JsonSerializer.Serialize(draft.RootElement.GetProperty("properties").GetProperty(property.Name)), JsonSerializer.Serialize(property.Value));
                 count++;
             }
         }
@@ -599,15 +585,6 @@ public sealed class AdvancedUnifiedSettingsTests
         => rule.TryGetProperty("input", out var input) ? input : rule.GetProperty("inputs").EnumerateArray().Single();
 
     private static JsonDocument Load(string manifest)
-        => LoadLive(manifest switch
-        {
-            "csharpSettings.registration.json" => "csharpAdvancedSettings.registration.draft.json",
-            "visualBasicSettings.registration.json" => "visualBasicAdvancedSettings.registration.draft.json",
-            "roslynSettings.registration.json" => "roslynAdvancedSettings.registration.draft.json",
-            _ => throw new ArgumentException(nameof(manifest)),
-        });
-
-    private static JsonDocument LoadLive(string manifest)
     {
         using var stream = typeof(AdvancedUnifiedSettingsTests).Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests." + manifest);
         Assert.NotNull(stream);

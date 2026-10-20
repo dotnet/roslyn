@@ -60,10 +60,7 @@ public sealed class SettingsManifestAccessibilityTests
     [InlineData("csharpSettings.registration.json", 10)]
     [InlineData("visualBasicSettings.registration.json", 14)]
     [InlineData("roslynSettings.registration.json", 1)]
-    [InlineData("csharpAdvancedSettings.registration.draft.json", 10)]
-    [InlineData("visualBasicAdvancedSettings.registration.draft.json", 14)]
-    [InlineData("roslynAdvancedSettings.registration.draft.json", 1)]
-    public void ShippingAndDraftManifestsUseOnlyCleanUSXCounterparts(string file, int expectedLabelCount)
+    public void ShippingManifestsUseOnlyCleanUSXCounterparts(string file, int expectedLabelCount)
     {
         var assembly = typeof(SettingsManifestAccessibilityTests).Assembly;
         using var stream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames().Single(name => name.EndsWith(file, StringComparison.Ordinal)))!;

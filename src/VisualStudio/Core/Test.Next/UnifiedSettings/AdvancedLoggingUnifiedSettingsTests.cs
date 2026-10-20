@@ -28,9 +28,6 @@ public sealed class AdvancedLoggingUnifiedSettingsTests
         Assert.False(native.GetProperty("transientScopesSupported").GetBoolean());
         Assert.Equal(new[] { "languages.csharp.advanced.analysis", "languages.basic.advanced.analysis" },
             native.GetProperty("placements").EnumerateArray().Select(placement => placement.GetProperty("category").GetString()));
-        using var draft = Load("roslynAdvancedSettings.registration.draft.json");
-        var setting = draft.RootElement.GetProperty("properties").GetProperty(Moniker);
-        Assert.Equal(JsonSerializer.Serialize(setting), JsonSerializer.Serialize(native));
         var rule = native.GetProperty("migration").GetProperty("custom");
         Assert.Equal("full", rule.GetProperty("mode").GetString());
         var input = Assert.Single(rule.GetProperty("inputs").EnumerateArray());
