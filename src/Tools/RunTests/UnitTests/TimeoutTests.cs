@@ -96,7 +96,7 @@ public sealed class TimeoutTests
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".pid");
         using var unrelated = Process.Start(FixtureStartInfo("leaf", path + ".unrelated"))!;
-        using var owned = OwnedProcess.Start(FixtureStartInfo(mode, path), DotnetPath, "ownership regression");
+        using var owned = await OwnedProcess.StartAsync(FixtureStartInfo(mode, path), DotnetPath, "ownership regression");
         Process? child = null;
         try
         {
@@ -137,7 +137,7 @@ public sealed class TimeoutTests
     public async Task ClosingOwnershipJobTerminatesSurvivingChild()
     {
         var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".pid");
-        using var owned = OwnedProcess.Start(FixtureStartInfo("orphan", path), DotnetPath, "job closure regression");
+        using var owned = await OwnedProcess.StartAsync(FixtureStartInfo("orphan", path), DotnetPath, "job closure regression");
         Process? child = null;
         try
         {
@@ -159,6 +159,52 @@ public sealed class TimeoutTests
             owned.Info.StopReadingOutput();
             await owned.Info.Result.WaitAsync(TimeSpan.FromSeconds(30));
             owned.Info.Process.Dispose();
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task TargetStartupHookRunsInsideOwnershipScope()
+    {
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".pid");
+        var info = FixtureStartInfo("exit", path);
+        info.Environment["DOTNET_STARTUP_HOOKS"] = typeof(ProcessFixture.Program).Assembly.Location;
+        info.Environment["RUNTESTS_FIXTURE_STARTUP_PID"] = path;
+        info.Environment["RUNTESTS_FIXTURE_RUNTIME_CONFIG"] = Path.ChangeExtension(typeof(TimeoutTests).Assembly.Location, ".runtimeconfig.json");
+        OwnedProcess? owned = null;
+        Process? child = null;
+        try
+        {
+            owned = await OwnedProcess.StartAsync(info, DotnetPath, "startup hook regression");
+            child = Process.GetProcessById(await WaitForChildAsync(path));
+            await owned.Info.Process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+            var processes = await owned.GetProcessesAsync();
+            try
+            {
+                Assert.Contains(processes, process => process.Id == child.Id);
+            }
+            finally
+            {
+                foreach (var process in processes)
+                    process.Dispose();
+            }
+            await owned.CleanupAsync();
+            Assert.True(child.HasExited);
+        }
+        finally
+        {
+            if (child is null && File.Exists(path))
+                child = Process.GetProcessById(await WaitForChildAsync(path));
+            if (child is not null)
+            {
+                ProcessUtil.KillTree(child);
+                child.Dispose();
+            }
+            if (owned is not null)
+            {
+                await owned.DisposeAsync();
+                owned.Info.Process.Dispose();
+            }
             File.Delete(path);
         }
     }
@@ -219,6 +265,74 @@ public sealed class TimeoutTests
         finally
         {
             File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task StoppedOutputReadersDoNotWaitForSurvivingChild()
+    {
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".pid");
+        var info = FixtureStartInfo("orphan", path);
+        info.RedirectStandardOutput = true;
+        info.RedirectStandardError = true;
+        var launcher = ProcessRunner.CreateProcess(info);
+        Process? child = null;
+        try
+        {
+            child = Process.GetProcessById(await WaitForChildAsync(path));
+            await launcher.Process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.False(launcher.Result.IsCompleted);
+            launcher.StopReadingOutput();
+            await launcher.Result.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.False(child.HasExited);
+        }
+        finally
+        {
+            if (child is not null)
+            {
+                ProcessUtil.KillTree(child);
+                child.Dispose();
+            }
+            ProcessUtil.KillTree(launcher.Process);
+            launcher.StopReadingOutput();
+            await launcher.Result.WaitAsync(TimeSpan.FromSeconds(30));
+            launcher.Process.Dispose();
+            File.Delete(path);
+        }
+    }
+
+    [Fact]
+    public async Task ConcurrentHelpersShareAggregateCancellation()
+    {
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".pid");
+        var otherPath = path + ".other";
+        using var budget = new CancellationTokenSource();
+        var first = DumpCollector.CollectWithHelperAsync(FixtureStartInfo("leaf", path), DotnetPath,
+            path + ".partial", path + ".dmp", "first concurrent helper", TimeSpan.FromSeconds(30), budget.Token);
+        var second = DumpCollector.CollectWithHelperAsync(FixtureStartInfo("leaf", otherPath), DotnetPath,
+            otherPath + ".partial", otherPath + ".dmp", "second concurrent helper", TimeSpan.FromSeconds(30), budget.Token);
+        try
+        {
+            using var firstProcess = Process.GetProcessById(await WaitForChildAsync(path));
+            using var secondProcess = Process.GetProcessById(await WaitForChildAsync(otherPath));
+            budget.Cancel();
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => first);
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => second);
+            Assert.True(firstProcess.HasExited);
+            Assert.True(secondProcess.HasExited);
+        }
+        finally
+        {
+            budget.Cancel();
+            try
+            {
+                await Task.WhenAll(first, second);
+            }
+            catch (OperationCanceledException) when (budget.IsCancellationRequested)
+            {
+            }
+            File.Delete(path);
+            File.Delete(otherPath);
         }
     }
 

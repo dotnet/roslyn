@@ -98,8 +98,6 @@ namespace RunTests
             process.StartInfo = processStartInfo;
 
             process.Start();
-            // Cache identity before a short-lived launcher can exit.
-            _ = process.StartTime;
             onProcessStartHandler?.Invoke(process);
 
             if (lowPriority)

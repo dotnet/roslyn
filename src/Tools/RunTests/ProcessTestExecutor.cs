@@ -148,14 +148,14 @@ namespace RunTests
                 File.Create(resultsFilePath).Close();
 
                 var start = DateTime.UtcNow;
-                await using var ownedProcess = OwnedProcess.Start(
+                await using var ownedProcess = await OwnedProcess.StartAsync(
                     ProcessRunner.CreateProcessStartInfo(
                         options.DotnetFilePath,
                         commandLineArguments,
                         displayWindow: false,
                         captureOutput: true,
                         environmentVariables: options.EnvironmentVariables),
-                    options.DotnetFilePath, workItemInfo.DisplayName);
+                    options.DotnetFilePath, workItemInfo.DisplayName, cancellationToken: cancellationToken).ConfigureAwait(false);
                 var dotnetProcessInfo = ownedProcess.Info;
                 Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName}");
 

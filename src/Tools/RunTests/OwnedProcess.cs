@@ -10,6 +10,8 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
 
@@ -36,8 +38,9 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
         _label = label;
     }
 
-    internal static OwnedProcess Start(ProcessStartInfo command, string dotnetPath, string label, bool diagnosticOutput = false)
+    internal static async Task<OwnedProcess> StartAsync(ProcessStartInfo command, string dotnetPath, string label, bool diagnosticOutput = false, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         SafeFileHandle? job = null;
         var scopeName = "-";
         try
@@ -58,11 +61,12 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
+                RedirectStandardInput = true,
                 CreateNoWindow = true,
                 WorkingDirectory = command.WorkingDirectory,
             };
-            foreach (var pair in command.Environment)
-                info.Environment[pair.Key] = pair.Value;
+            // Target startup hooks must not run before the wrapper establishes ownership.
+            info.Environment.Remove("DOTNET_STARTUP_HOOKS");
             info.ArgumentList.Add(typeof(Program).Assembly.Location);
             info.ArgumentList.Add("--run-owned-process");
             info.ArgumentList.Add(scopeName);
@@ -77,8 +81,27 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
             var process = ProcessRunner.CreateProcess(info,
                 onOutputDataReceived: line => LogOutput("stdout", line),
                 onErrorDataReceived: line => LogOutput("stderr", line));
-            Logger.Log($"[{label}] ownership launcher started: PID={process.Id}, start={ProcessUtil.GetProcessStartIdentity(process.Process)}, scope={scopeName}.");
-            return new OwnedProcess(process, job, label);
+            var owned = new OwnedProcess(process, job, label);
+            Logger.Log($"[{label}] ownership startup started: launcher PID={process.Id}, limit={CleanupTimeout}.");
+            long startIdentity;
+            try
+            {
+                // The wrapper cannot exit normally until it receives the target environment.
+                _ = process.Process.StartTime;
+                startIdentity = ProcessUtil.GetProcessStartIdentity(process.Process);
+                await process.Process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(command.Environment))
+                    .WaitAsync(CleanupTimeout, cancellationToken).ConfigureAwait(false);
+                process.Process.StandardInput.Close();
+            }
+            catch (Exception ex)
+            {
+                ConsoleUtil.Warning($"[{label}] ownership startup failed: PID={process.Id}: {ex}");
+                await owned.DisposeAsync().ConfigureAwait(false);
+                process.Process.Dispose();
+                throw;
+            }
+            Logger.Log($"[{label}] ownership launcher started: PID={process.Id}, start={startIdentity}, scope={scopeName}.");
+            return owned;
 
             void LogOutput(string stream, string line)
             {
@@ -111,6 +134,12 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
             }
 
             var info = new ProcessStartInfo(args[2]) { UseShellExecute = false };
+            var environment = JsonSerializer.Deserialize<Dictionary<string, string?>>(Console.ReadLine()
+                ?? throw new InvalidOperationException("Ownership wrapper did not receive the target environment."))
+                ?? throw new InvalidOperationException("Ownership wrapper received a null target environment.");
+            info.Environment.Clear();
+            foreach (var pair in environment)
+                info.Environment[pair.Key] = pair.Value;
             if (Environment.GetEnvironmentVariable("ROSLYN_TIMEOUT_PROBE_MODE") is not null)
                 info.Environment["ROSLYN_TIMEOUT_PROBE_LAUNCHER_PID"] = Environment.ProcessId.ToString(CultureInfo.InvariantCulture);
             if (args[3] == "arguments")

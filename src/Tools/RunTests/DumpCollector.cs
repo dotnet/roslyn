@@ -129,11 +129,13 @@ namespace RunTests
 
         internal static async Task CollectWithHelperAsync(ProcessStartInfo startInfo, string dotnetPath, string partialPath, string dumpPath, string label, TimeSpan timeout, CancellationToken budget)
         {
-            using var helper = OwnedProcess.Start(startInfo, dotnetPath, label + " dump helper", diagnosticOutput: true);
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(budget);
+            deadline.CancelAfter(timeout);
+            using var helper = await startHelperAsync().ConfigureAwait(false);
             ConsoleUtil.WriteLine($"[{label}] dump helper running: PID={helper.Info.Id}, limit={timeout}.");
             try
             {
-                var result = await helper.Info.Result.WaitAsync(timeout, budget).ConfigureAwait(false);
+                var result = await helper.Info.Result.WaitAsync(deadline.Token).ConfigureAwait(false);
                 ConsoleUtil.WriteLine($"[{label}] dump helper exited: PID={helper.Info.Id}, code={result.ExitCode}; validating output.");
                 if (result.ExitCode != 0)
                     throw new InvalidOperationException($"Dump helper {helper.Info.Id} exited with code {result.ExitCode}: {string.Join(Environment.NewLine, result.ErrorLines)}");
@@ -141,10 +143,27 @@ namespace RunTests
                     throw new InvalidOperationException($"Dump helper {helper.Info.Id} succeeded without a nonempty dump at '{partialPath}'.");
                 File.Move(partialPath, dumpPath);
             }
+            catch (OperationCanceledException ex) when (!budget.IsCancellationRequested && deadline.IsCancellationRequested)
+            {
+                throw new TimeoutException($"Dump helper {helper.Info.Id} exceeded its {timeout} deadline.", ex);
+            }
             finally
             {
                 await helper.CleanupAsync().ConfigureAwait(false);
                 helper.Info.Process.Dispose();
+            }
+
+            async Task<OwnedProcess> startHelperAsync()
+            {
+                try
+                {
+                    return await OwnedProcess.StartAsync(startInfo, dotnetPath, label + " dump helper",
+                        diagnosticOutput: true, cancellationToken: deadline.Token).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException ex) when (!budget.IsCancellationRequested && deadline.IsCancellationRequested)
+                {
+                    throw new TimeoutException($"Dump helper startup exceeded its {timeout} deadline.", ex);
+                }
             }
         }
     }
