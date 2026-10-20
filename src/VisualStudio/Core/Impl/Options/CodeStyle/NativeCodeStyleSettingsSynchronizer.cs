@@ -24,23 +24,61 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 /// </summary>
 internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUpdate>, IDisposable
 {
+    // Identifies our native commits so their notifications do not echo back into legacy storage.
     private static readonly ChangeSource s_source = new(nameof(NativeCodeStyleSettingsSynchronizer), new Guid("3a6e0fd5-85fb-45f1-9ef6-7cf5d21595db"));
+
+    // Reads effective defaults and persisted scalars, commits changes, and subscribes to native updates.
     private readonly IUnifiedSettingsService _native;
+
+    // Preserves the existing XML/flag serialization and profile/roaming storage contracts.
     private readonly VisualStudioSettingsOptionPersister _legacy;
+
+    // Receives legacy changes, including profile imports made while the settings page is closed.
     private readonly ISettingsSubset _legacySubset;
+
+    // Maps preference monikers to both storage representations. Immutable after construction so callbacks can read it without a gate.
     private readonly Dictionary<string, Binding> _bindings;
+
+    // Last accepted native scalars, including defaults after a reset. Accessed only under _gate.
     private readonly Dictionary<string, string> _values = new(StringComparer.Ordinal);
+
+    // Last accepted legacy values, normalized to their stored representation to recognize duplicate notifications. Protected by _gate.
     private readonly Dictionary<string, object> _legacyValues = new(StringComparer.Ordinal);
+
+    // Serializes initialization and both update directions across awaits; no thread affinity is required.
+    // Legacy callbacks must not await this gate: a gate owner may be awaiting a legacy write that awaits its handlers.
+    // Instead, callbacks capture the changed values and enqueue work using _legacyChangeGate, returning immediately.
     private readonly ReentrantSemaphore _gate;
+
+    // Publishes accepted values to Roslyn's option cache and registered workspaces.
     private readonly Action<OptionKey2, object?> _refresh;
+
+    // Observes faults from asynchronously queued notifications and subscription errors.
     private readonly Action<Task> _observe;
+
+    // Reports individual failed attempts while synchronization remains active and retries.
     private readonly Action<Task> _reportRetryFailure;
+
+    // Cancels synchronization and retry waits when the hosting service shuts down.
     private readonly CancellationToken _cancellationToken;
+
+    // An optional override of the shared retry policy's default delay.
     private readonly TimeSpan? _retryDelay;
+
+    // Protects only the _legacyChanges queue tail so callbacks append work in lock-acquisition order.
+    // Never held across an await or while acquiring _gate; queued work acquires _gate after its predecessor completes.
     private readonly object _legacyChangeGate = new();
+
+    // Retains the native subscription until Dispose stops receiving updates.
     private IDisposable? _subscription;
+
+    // Volatile-published snapshot of our in-flight legacy write, read by callbacks outside _gate to suppress its echo.
     private LegacyChange? _publishingLegacy;
+
+    // Queue tail, replaced only under _legacyChangeGate. Each link completes even on failure so later notifications can proceed.
     private Task _legacyChanges = Task.CompletedTask;
+
+    // Interlocked flag: ignore the subscription's first snapshot because initialization explicitly reads the native values.
     private int _initialSnapshot;
 
     internal sealed record Binding(CodeStyleSetting Setting, string LegacyKey, string RowMoniker)
