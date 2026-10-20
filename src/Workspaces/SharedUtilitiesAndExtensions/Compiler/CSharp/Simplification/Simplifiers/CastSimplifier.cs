@@ -410,11 +410,13 @@ internal static class CastSimplifier
         // `object o = (Union)caseValue`, removing the cast stores the case value instead of the union,
         // even though the final converted type is still object.  Only remove the cast if the same
         // union creation member will still be invoked by the implicit conversion.
-        // https://github.com/dotnet/roslyn/issues/86140
-        if (originalConversion.IsUnion &&
-            (!rewrittenConversion.IsUnion || !Equals(originalConversion.MethodSymbol, rewrittenConversion.MethodSymbol)))
+        if (originalConversion.IsUnion)
         {
-            return false;
+            if (!rewrittenConversion.IsUnion)
+                return false;
+
+            if (!Equals(originalConversion.MethodSymbol, rewrittenConversion.MethodSymbol))
+                return false;
         }
 
         // If we have:
