@@ -406,6 +406,17 @@ internal static class CastSimplifier
         if (originalConversion.IsInterpolatedString && !rewrittenConversion.IsInterpolatedString)
             return false;
 
+        // Union conversions invoke a constructor or factory to wrap the case value.  For example, in
+        // `object o = (Union)caseValue`, removing the cast stores the case value instead of the union,
+        // even though the final converted type is still object.  Only remove the cast if the same
+        // union creation member will still be invoked by the implicit conversion.
+        // https://github.com/dotnet/roslyn/issues/86140
+        if (originalConversion.IsUnion &&
+            (!rewrittenConversion.IsUnion || !Equals(originalConversion.MethodSymbol, rewrittenConversion.MethodSymbol)))
+        {
+            return false;
+        }
+
         // If we have:
         //
         //      public static implicit operator A(string x)
