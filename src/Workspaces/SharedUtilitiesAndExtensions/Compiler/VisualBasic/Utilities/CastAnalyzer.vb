@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Dim argument = TryCast(_castNode.WalkUpParentheses().Parent, ArgumentSyntax)
                 If argument IsNot Nothing Then
                     Dim parameter = argument.DetermineParameter(_semanticModel, cancellationToken:=_cancellationToken)
-                    If parameter?.IsParams = True AndAlso TypeOf parameter.Type Is IArrayTypeSymbol Then
+                    If parameter IsNot Nothing AndAlso parameter.IsParams AndAlso TypeOf parameter.Type Is IArrayTypeSymbol Then
                         Dim parameterType = DirectCast(parameter.Type, IArrayTypeSymbol)
 
                         Dim conversion = _semanticModel.Compilation.ClassifyConversion(castType, parameterType)
