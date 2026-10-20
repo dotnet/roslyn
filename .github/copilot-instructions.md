@@ -147,6 +147,16 @@ Trivial changes don't need a written plan — go straight to the Definition of D
 - Do not optimize for an arbitrary line-count limit: generated files and mechanical updates can be large. Optimize for reviewer cognitive load, clear intent, and independent validation.
 - If a change cannot be split without making it less correct or harder to validate, explain that constraint in the plan and keep the commits logically separated.
 
+## Pull Request Descriptions
+
+Keep PR descriptions focused on what changed and why. Omit routine validation details
+that CI covers, such as builds, unit tests, formatting, and analyzers. Do not add a
+validation section just to list commands or passing results, or to say that
+documentation-only changes did not need tests.
+
+Include validation information only when it adds useful evidence beyond CI, such as
+manual scenario checks, benchmark results, or known validation limitations.
+
 ## Definition of Done
 
 Work is done only when every applicable step below is complete:
@@ -158,4 +168,4 @@ Work is done only when every applicable step below is complete:
 5. **Generated/resource/API updates:** Regenerate Syntax/BoundNodes outputs when their XML changes, run `/t:UpdateXlf` after `.resx` edits, and update `PublicAPI.Unshipped.txt` for public API changes.
 6. **Diff review:** Review the final diff and confirm it matches the approved plan, contains no unrelated edits, and follows nearby patterns.
 7. **Docs:** Run the `update-agent-docs` skill and apply the Doc Update Obligation above.
-8. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed. Do not claim completion while required validation is failing or was silently skipped.
+8. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed in the session. Follow **Pull Request Descriptions** above when writing the PR body. Do not claim completion while required validation is failing or was silently skipped.
