@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,7 +15,6 @@ using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.RpcContracts.UnifiedSettings;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
@@ -137,16 +137,16 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
                     if (persisted.TryGetValue(moniker, out var result) && result.IsSuccess)
                     {
                         hasNativeValue = true;
-                        var scalar = JsonConvert.DeserializeObject<string>(result.Value!.Data)!;
+                        var scalar = JsonSerializer.Deserialize<string>(result.Value!.Data)!;
                         merged = binding.Setting.Update(merged, scalar, severity);
                     }
                     else if (hasLegacyValue)
                     {
-                        seed[moniker] = JsonConvert.SerializeObject(GetScalar(binding, current, severity));
+                        seed[moniker] = JsonSerializer.Serialize(GetScalar(binding, current, severity));
                     }
                     else if (effective.TryGetValue(moniker, out var defaultResult) && defaultResult.IsSuccess)
                     {
-                        var scalar = JsonConvert.DeserializeObject<string>(defaultResult.Value!.Data)!;
+                        var scalar = JsonSerializer.Deserialize<string>(defaultResult.Value!.Data)!;
                         merged = binding.Setting.Update(merged, scalar, severity);
                     }
                 }
@@ -263,7 +263,7 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
                     var moniker = severity ? binding.SeverityMoniker : binding.Moniker;
                     var scalar = GetScalar(binding, value, severity);
                     if (!_values.TryGetValue(moniker, out var previous) || scalar != previous)
-                        changes[moniker] = JsonConvert.SerializeObject(scalar);
+                        changes[moniker] = JsonSerializer.Serialize(scalar);
                 }
             }
             await CommitAsync(changes).ConfigureAwait(false);
@@ -349,14 +349,14 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
     private async Task<string> GetUpdatedScalarAsync(ReadResult result)
     {
         if (result.IsSuccess)
-            return JsonConvert.DeserializeObject<string>(result.Value!.Data)!;
+            return JsonSerializer.Deserialize<string>(result.Value!.Data)!;
         if (result.ResultCode != ReadResultCode.NotPersisted)
             throw new InvalidOperationException("Cannot read code style setting " + result.Moniker + ": " + result.ResultCode);
 
         var effective = await _native.GetValueAsync(result.Moniker, ReadOptions.NoRequirements, _cancellationToken).ConfigureAwait(false);
         if (!effective.IsSuccess)
             throw new InvalidOperationException("Cannot read effective code style setting " + result.Moniker + ": " + effective.ResultCode);
-        return JsonConvert.DeserializeObject<string>(effective.Value!.Data)!;
+        return JsonSerializer.Deserialize<string>(effective.Value!.Data)!;
     }
 
     public void OnError(Exception error) => _observe(Task.FromException(error));

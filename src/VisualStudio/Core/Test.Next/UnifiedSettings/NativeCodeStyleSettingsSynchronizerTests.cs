@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -18,7 +19,6 @@ using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.RpcContracts.UnifiedSettings;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -423,7 +423,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         private ReadResult Read(string moniker, ReadOptions options)
             => !Values.ContainsKey(moniker) && options.HasFlag(ReadOptions.NoFallbackToDefault)
                 ? ReadResult.NotPersisted(moniker)
-                : ReadResult.Success(moniker, new SettingValue(SettingValueType.String, JsonConvert.SerializeObject(Effective(moniker))));
+                : ReadResult.Success(moniker, new SettingValue(SettingValueType.String, JsonSerializer.Serialize(Effective(moniker))));
 
         public ValueTask<ReadResult> GetValueAsync(string moniker, ReadOptions options, CancellationToken cancellationToken)
             => new(Read(moniker, options));
@@ -451,7 +451,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
             }
             foreach (var (moniker, json) in commit.Values)
             {
-                var value = JsonConvert.DeserializeObject<string>(json)!;
+                var value = JsonSerializer.Deserialize<string>(json)!;
                 if (value == Defaults[moniker])
                 {
                     Values.Remove(moniker);
@@ -478,7 +478,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         }
         public void Notify(Guid source = default)
             => _observer?.OnNext(new SettingsUpdate(Defaults.Keys.Select(moniker => Values.TryGetValue(moniker, out var value)
-                ? ReadResult.Success(moniker, new SettingValue(SettingValueType.String, JsonConvert.SerializeObject(value)), new SettingValueMetaData(source))
+                ? ReadResult.Success(moniker, new SettingValue(SettingValueType.String, JsonSerializer.Serialize(value)), new SettingValueMetaData(source))
                 : ReadResult.NotPersisted(moniker)).ToArray(), ReadOptions.NoFallbackToDefault));
         public void Dispose() => _observer = null;
     }
