@@ -56,7 +56,7 @@ public sealed class SettingsManifestAccessibilityTests
     }
 
     [Theory]
-    [InlineData("csharpFormattingSettings.registration.json", 3)]
+    [InlineData("csharpUnifiedSettings.registration.json", 3)]
     [InlineData("csharpSettings.registration.json", 10)]
     [InlineData("visualBasicSettings.registration.json", 14)]
     [InlineData("roslynSettings.registration.json", 1)]

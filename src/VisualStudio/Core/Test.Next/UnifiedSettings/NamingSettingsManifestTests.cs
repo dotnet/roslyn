@@ -33,19 +33,19 @@ public sealed class NamingSettingsManifestTests
             ServicesVSResources.Reset_naming_preferences,
             NotificationSeverity.Warning)).Returns(false);
 
-        Assert.False(NamingSettingsPackage.ConfirmReset(notificationService.Object));
+        Assert.False(UnifiedSettingsPackage.ConfirmReset(notificationService.Object));
         notificationService.VerifyAll();
     }
 
     [Theory]
-    [InlineData("csharpNamingSettings.registration.json", "csharp", typeof(CSharpNamingSettingsPackage), CSharpNamingSettingsPackage.ProviderServiceId, CSharpNamingSettingsPackage.MigratorServiceId, "294FBC9C-EF70-4AA0-BD4F-EB0C6A5908D7")]
-    [InlineData("visualBasicNamingSettings.registration.json", "basic", typeof(VisualBasicNamingSettingsPackage), VisualBasicNamingSettingsPackage.ProviderServiceId, VisualBasicNamingSettingsPackage.MigratorServiceId, "BCA454E0-95E4-4877-B4CB-B1D642B7BAFA")]
+    [InlineData("csharpUnifiedSettings.registration.json", "csharp", typeof(CSharpUnifiedSettingsPackage), CSharpUnifiedSettingsPackage.ProviderServiceId, CSharpUnifiedSettingsPackage.MigratorServiceId, "294FBC9C-EF70-4AA0-BD4F-EB0C6A5908D7")]
+    [InlineData("visualBasicUnifiedSettings.registration.json", "basic", typeof(VisualBasicUnifiedSettingsPackage), VisualBasicUnifiedSettingsPackage.ProviderServiceId, VisualBasicUnifiedSettingsPackage.MigratorServiceId, "BCA454E0-95E4-4877-B4CB-B1D642B7BAFA")]
     public void NativeDefaultsAndExternalCallbacksMatchTheCompleteLegacyGraph(string file, string language, Type package, string provider, string migrator, string legacyPage)
     {
         using var document = Load(file);
         var prefix = language == "csharp" ? "languages.csharp.editorConfig.naming." : "languages.basic.codeStyle.naming.";
         var settings = document.RootElement.GetProperty("properties");
-        Assert.Equal(4, settings.EnumerateObject().Count());
+        Assert.Equal(4, settings.EnumerateObject().Count(property => property.Name.StartsWith(prefix, StringComparison.Ordinal)));
         var arrays = new[] { "symbolSpecifications", "namingStyles", "rules" }.Select(name => settings.GetProperty(prefix + name)).ToArray();
         foreach (var array in arrays)
         {
@@ -92,6 +92,8 @@ public sealed class NamingSettingsManifestTests
         Assert.Equal(Guid.Parse(provider), Guid.Parse(editor.GetProperty("callback").GetProperty("serviceId").GetString()!));
         Assert.Equal(package.GUID, Guid.Parse(editor.GetProperty("callback").GetProperty("packageId").GetString()!));
         Assert.Equal(new[] { 258 }, editor.GetProperty("commands").EnumerateArray().Select(command => command.GetProperty("vsct").GetProperty("id").GetInt32()));
+        Assert.All(editor.GetProperty("commands").EnumerateArray(), command =>
+            Assert.Equal(package.GUID, Guid.Parse(command.GetProperty("vsct").GetProperty("set").GetString()!)));
         Assert.Equal(Guid.Parse(legacyPage), Guid.Parse(document.RootElement.GetProperty("categories").GetProperty(prefix.TrimEnd('.')).GetProperty("legacyOptionPageId").GetString()!));
         Assert.Equal(@"UnifiedSettings\" + file, Assert.Single(package.GetCustomAttributes<ProvideSettingsManifestAttribute>()).PackageRelativeManifestFile);
         Assert.Equal(2, package.GetCustomAttributes<ProvideServiceAttribute>().Count());
@@ -99,8 +101,8 @@ public sealed class NamingSettingsManifestTests
     }
 
     [Theory]
-    [InlineData(typeof(CSharpNamingSettingsPackage), "CSharpNamingSettingsCommands.vsct")]
-    [InlineData(typeof(VisualBasicNamingSettingsPackage), "VisualBasicNamingSettingsCommands.vsct")]
+    [InlineData(typeof(CSharpUnifiedSettingsPackage), "CSharpUnifiedSettingsCommands.vsct")]
+    [InlineData(typeof(VisualBasicUnifiedSettingsPackage), "VisualBasicUnifiedSettingsCommands.vsct")]
     public void CommandsRouteToColdCallbackPackage(Type package, string resource)
     {
         Assert.Single(package.GetCustomAttributes<ProvideMenuResourceAttribute>());
@@ -109,9 +111,10 @@ public sealed class NamingSettingsManifestTests
         var ns = table.Root!.Name.Namespace;
         var symbol = Assert.Single(table.Descendants(ns + "GuidSymbol"));
         Assert.Equal(package.GUID, Guid.Parse((string)symbol.Attribute("value")!));
-        Assert.Equal(new[] { "0x0102" }, symbol.Elements(ns + "IDSymbol").Select(id => (string?)id.Attribute("value")));
+        Assert.Equal(new[] { "0x0100", "0x0101", "0x0102" }, symbol.Elements(ns + "IDSymbol").Select(id => (string?)id.Attribute("value")));
         Assert.Equal((string?)symbol.Attribute("name"), (string?)table.Root.Element(ns + "Commands")!.Attribute("package"));
-        Assert.Single(table.Descendants(ns + "Button"));
+        Assert.Equal(3, table.Descendants(ns + "Button").Count());
+        Assert.Single(table.Descendants(ns + "Button"), button => (string?)button.Attribute("id") == "ResetNaming");
         Assert.Empty(table.Descendants(ns + "Parent"));
     }
 
@@ -142,7 +145,9 @@ public sealed class NamingSettingsManifestTests
             foreach (var item in value.EnumerateArray())
                 CheckResources(item);
         }
-        else if (value.ValueKind == JsonValueKind.String && value.GetString() is { } text && (text.StartsWith("@", StringComparison.Ordinal) || text.StartsWith("#", StringComparison.Ordinal)))
+        else if (value.ValueKind == JsonValueKind.String && value.GetString() is { } text &&
+            (text.StartsWith("@", StringComparison.Ordinal) || text.StartsWith("#", StringComparison.Ordinal)) &&
+            text is not ("@default" or "@any" or "@missing"))
         {
             var resolved = TestModel.Utilities.EvalResource(text);
             Assert.False(string.IsNullOrEmpty(resolved), "Unresolved resource: " + text);

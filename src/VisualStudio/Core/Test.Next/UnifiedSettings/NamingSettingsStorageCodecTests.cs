@@ -15,8 +15,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 public sealed class NamingSettingsStorageCodecTests
 {
     [Theory]
-    [InlineData("csharpNamingSettings.registration.json", "languages.csharp.editorConfig.naming.")]
-    [InlineData("visualBasicNamingSettings.registration.json", "languages.basic.codeStyle.naming.")]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.naming.")]
+    [InlineData("visualBasicUnifiedSettings.registration.json", "languages.basic.codeStyle.naming.")]
     public void ReorderedDefaultObjectsSerializeExactlyLikeRegisteredDefaults(string file, string prefix)
     {
         using var manifest = NamingSettingsManifestTests.Load(file);

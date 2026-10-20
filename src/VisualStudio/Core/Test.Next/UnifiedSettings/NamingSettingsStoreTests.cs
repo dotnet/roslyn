@@ -251,7 +251,7 @@ public sealed class NamingSettingsStoreTests
                 {
                     var name = moniker.Substring(moniker.LastIndexOf('.') + 1);
                     using var manifest = NamingSettingsManifestTests.Load(moniker.StartsWith("languages.csharp.", StringComparison.Ordinal)
-                        ? "csharpNamingSettings.registration.json" : "visualBasicNamingSettings.registration.json");
+                        ? "csharpUnifiedSettings.registration.json" : "visualBasicUnifiedSettings.registration.json");
                     var defaults = NamingSettingsManifestTests.ReadDefaults(manifest.RootElement.GetProperty("properties").GetProperty(moniker));
                     var value = _queuedArrays[name];
                     // Native JSON-value comparison preserves object-property order when reserializing values.

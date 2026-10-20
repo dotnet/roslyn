@@ -153,7 +153,7 @@ public sealed class NamingSettingsCoordinatorTests
         if (!reset)
         {
             using var manifest = NamingSettingsManifestTests.Load(language == LanguageNames.CSharp
-                ? "csharpNamingSettings.registration.json" : "visualBasicNamingSettings.registration.json");
+                ? "csharpUnifiedSettings.registration.json" : "visualBasicUnifiedSettings.registration.json");
             var propertyDefaults = manifest.RootElement.GetProperty("properties").GetProperty(prefix + name)
                 .GetProperty("items").GetProperty("properties").EnumerateObject().ToDictionary(
                     property => property.Name, property => NamingSettingsManifestTests.ReadScalar(property.Value.GetProperty("default")), StringComparer.Ordinal);

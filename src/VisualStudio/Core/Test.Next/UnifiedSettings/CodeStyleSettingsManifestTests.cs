@@ -36,8 +36,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 public sealed class CodeStyleSettingsManifestTests
 {
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle.predefinedTypes")]
-    [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general.predefinedTypes")]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.codeStyle.predefinedTypes")]
+    [InlineData("visualBasicUnifiedSettings.registration.json", "languages.basic.codeStyle.general.predefinedTypes")]
     public void PredefinedTypeHeadingUsesSentenceCase(string file, string categoryMoniker)
     {
         using var document = Load(file);
@@ -46,8 +46,8 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [WpfTheory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", LanguageNames.CSharp, 13)]
-    [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", LanguageNames.VisualBasic, 9)]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.codeStyle", LanguageNames.CSharp, 13)]
+    [InlineData("visualBasicUnifiedSettings.registration.json", "languages.basic.codeStyle.general", LanguageNames.VisualBasic, 9)]
     [UseExportProvider]
     public void EveryConvertedPreferencePreservesItsLegacyHeadingAndGroupOrder(string file, string categoryMoniker, string language, int groupCount)
     {
@@ -114,7 +114,7 @@ public sealed class CodeStyleSettingsManifestTests
                 legacyGroups[^1].Items.Add(item);
         }
 
-        using var document = Load("csharpFormattingSettings.registration.json");
+        using var document = Load("csharpUnifiedSettings.registration.json");
         var categoryMoniker = page == "general" ? "languages.csharp.advanced.onTypeFormatting" : "languages.csharp.editorConfig." + page;
         var categories = document.RootElement.GetProperty("categories");
         var groups = categories.EnumerateObject().Where(category => category.Name.StartsWith(categoryMoniker + ".", StringComparison.Ordinal))
@@ -157,13 +157,13 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle")]
-    [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general")]
-    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.advanced.onTypeFormatting")]
-    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.editorConfig.indentation")]
-    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.editorConfig.newLines")]
-    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.editorConfig.spacing")]
-    [InlineData("csharpFormattingSettings.registration.json", "languages.csharp.editorConfig.wrapping")]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.codeStyle")]
+    [InlineData("visualBasicUnifiedSettings.registration.json", "languages.basic.codeStyle.general")]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.advanced.onTypeFormatting")]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.indentation")]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.newLines")]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.spacing")]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.wrapping")]
     public void NativePagesExplainEditorConfigOverridesAndProvideTheLearnMoreLink(string file, string categoryMoniker)
     {
         using var document = Load(file);
@@ -182,8 +182,8 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", 13)]
-    [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", 9)]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.codeStyle", 13)]
+    [InlineData("visualBasicUnifiedSettings.registration.json", "languages.basic.codeStyle.general", 9)]
     public void GeneralGroupsAreInlineOnlyAndTheParentRetainsItsPreview(string file, string general, int count)
     {
         using var document = Load(file);
@@ -201,9 +201,8 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", CSharpCodeStyleSettingsPackage.PackageId, 1)]
-    [InlineData("visualBasicCodeStyleSettings.registration.json", VisualBasicCodeStyleSettingsPackage.PackageId, 1)]
-    [InlineData("csharpFormattingSettings.registration.json", CSharpCodeStyleSettingsPackage.PackageId, 4)]
+    [InlineData("csharpUnifiedSettings.registration.json", CSharpUnifiedSettingsPackage.PackageId, 5)]
+    [InlineData("visualBasicUnifiedSettings.registration.json", VisualBasicUnifiedSettingsPackage.PackageId, 1)]
     public void EveryPreviewCategoryRegistersBothLocalizedPackageCommands(string file, string commandSet, int categoryCount)
     {
         using var document = Load(file);
@@ -221,8 +220,8 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData(typeof(CSharpCodeStyleSettingsPackage), "CSharpCodeStyleSettingsCommands.vsct")]
-    [InlineData(typeof(VisualBasicCodeStyleSettingsPackage), "VisualBasicCodeStyleSettingsCommands.vsct")]
+    [InlineData(typeof(CSharpUnifiedSettingsPackage), "CSharpUnifiedSettingsCommands.vsct")]
+    [InlineData(typeof(VisualBasicUnifiedSettingsPackage), "VisualBasicUnifiedSettingsCommands.vsct")]
     public void CategoryCommandsHaveColdPackageRoutingWithoutMenuPlacements(Type package, string resource)
     {
         Assert.Single(package.GetCustomAttributes<ProvideMenuResourceAttribute>());
@@ -231,9 +230,9 @@ public sealed class CodeStyleSettingsManifestTests
         var ns = table.Root!.Name.Namespace;
         var symbol = Assert.Single(table.Descendants(ns + "GuidSymbol"));
         Assert.Equal(package.GUID, new Guid((string)symbol.Attribute("value")!));
-        Assert.Equal(new[] { "0x0100", "0x0101" }, symbol.Elements(ns + "IDSymbol").Select(id => (string?)id.Attribute("value")));
+        Assert.Equal(new[] { "0x0100", "0x0101", "0x0102" }, symbol.Elements(ns + "IDSymbol").Select(id => (string?)id.Attribute("value")));
         Assert.Equal((string?)symbol.Attribute("name"), (string?)table.Root.Element(ns + "Commands")!.Attribute("package"));
-        Assert.Equal(2, table.Descendants(ns + "Button").Count());
+        Assert.Equal(3, table.Descendants(ns + "Button").Count());
         Assert.Equal(symbol.Elements(ns + "IDSymbol").Select(id => (string?)id.Attribute("name")), table.Descendants(ns + "Button").Select(button => (string?)button.Attribute("id")));
         Assert.Empty(table.Descendants(ns + "Parent"));
         Assert.All(table.Descendants(ns + "Button"), button =>
@@ -246,8 +245,8 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", 71, "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F")]
-    [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", 32, "10C168E1-3470-448A-A1AC-73D6BC070750")]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.codeStyle", 71, "EAE577A7-ACB9-40F5-A7B1-D2878C3C7D6F")]
+    [InlineData("visualBasicUnifiedSettings.registration.json", "languages.basic.codeStyle.general", 32, "10C168E1-3470-448A-A1AC-73D6BC070750")]
     public void EveryPreferenceHasDependentSeverityControlAndNativePreview(string file, string categoryMoniker, int count, string legacyPageId)
     {
         using var document = Load(file);
@@ -285,17 +284,16 @@ public sealed class CodeStyleSettingsManifestTests
         Assert.Equal(new Guid(legacyPageId), new Guid(category.GetProperty("legacyOptionPageId").GetString()!));
         var preview = category.GetProperty("previewUIFactory").GetProperty("gel");
         var factoryId = categoryMoniker.StartsWith("languages.csharp.", StringComparison.Ordinal)
-            ? CSharpCodeStyleSettingsPackage.PreviewFactoryId
-            : VisualBasicCodeStyleSettingsPackage.PreviewFactoryId;
+            ? CSharpUnifiedSettingsPackage.PreviewFactoryId
+            : VisualBasicUnifiedSettingsPackage.PreviewFactoryId;
         Assert.Equal(new Guid(factoryId), new Guid(preview.GetProperty("factoryGuid").GetString()!));
         Assert.Equal(0, preview.GetProperty("elementId").GetInt32());
         Assert.Equal("https://go.microsoft.com/fwlink/?linkid=866541", category.GetProperty("helpUri").GetString());
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json")]
-    [InlineData("visualBasicCodeStyleSettings.registration.json")]
-    [InlineData("csharpFormattingSettings.registration.json")]
+    [InlineData("csharpUnifiedSettings.registration.json")]
+    [InlineData("visualBasicUnifiedSettings.registration.json")]
     [InlineData("csharpSettings.registration.json")]
     [InlineData("visualBasicSettings.registration.json")]
     [InlineData("roslynSettings.registration.json")]
@@ -317,8 +315,8 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json", "languages.csharp.editorConfig.codeStyle", LanguageNames.CSharp, "CSharp", 71)]
-    [InlineData("visualBasicCodeStyleSettings.registration.json", "languages.basic.codeStyle.general", LanguageNames.VisualBasic, "VisualBasic", 32)]
+    [InlineData("csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.codeStyle", LanguageNames.CSharp, "CSharp", 71)]
+    [InlineData("visualBasicUnifiedSettings.registration.json", "languages.basic.codeStyle.general", LanguageNames.VisualBasic, "VisualBasic", 32)]
     public async Task EveryGeneralPreferenceHasCompoundLegacyRoamingStorage(string file, string regionMoniker, string language, string legacyLanguage, int count)
     {
         using var document = Load(file);
@@ -356,7 +354,7 @@ public sealed class CodeStyleSettingsManifestTests
     [Fact]
     public void VisualBasicIncludesParenthesesAndUnusedParameterPreferencesWithNativeChoices()
     {
-        using var document = Load("visualBasicCodeStyleSettings.registration.json");
+        using var document = Load("visualBasicUnifiedSettings.registration.json");
         var properties = GetGeneralProperties(document, "languages.basic.codeStyle.general");
         foreach (var kind in new[] { "arithmetic_binary", "other_binary", "relational_binary", "other" })
             Assert.Equal(new[] { "always_for_clarity", "never_if_unnecessary" }, properties.GetProperty("dotnet_style_parentheses_in_" + kind + "_operators").GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
@@ -368,17 +366,17 @@ public sealed class CodeStyleSettingsManifestTests
     [Fact]
     public void AllFiveFormattingPagesHaveTheirCompleteNativeInventoryAndTheFourNativePreviews()
     {
-        using var document = Load("csharpFormattingSettings.registration.json");
+        using var document = Load("csharpUnifiedSettings.registration.json");
         var pages = new[] { ("general", 5), ("indentation", 6), ("newLines", 15), ("spacing", 24), ("wrapping", 2) };
-        var properties = document.RootElement.GetProperty("properties");
-        Assert.Equal(52, properties.EnumerateObject().Count());
-        Assert.DoesNotContain(properties.EnumerateObject(), property => property.Value.GetProperty("type").GetString() == "external");
+        var properties = document.RootElement.GetProperty("properties").EnumerateObject().Where(IsFormattingProperty).ToArray();
+        Assert.Equal(52, properties.Length);
+        Assert.DoesNotContain(properties, property => property.Value.GetProperty("type").GetString() == "external");
         for (var index = 0; index < pages.Length; index++)
         {
             var (page, count) = pages[index];
             var propertyMoniker = page == "general" ? "languages.csharp.advanced.onTypeFormatting" : "languages.csharp.editorConfig." + page;
             var categoryMoniker = page == "general" ? "languages.csharp.advanced.onTypeFormatting" : "languages.csharp.editorConfig." + page;
-            var normalCount = properties.EnumerateObject().Count(property => property.Name.StartsWith(propertyMoniker + ".", StringComparison.Ordinal) && property.Value.GetProperty("type").GetString() != "external");
+            var normalCount = properties.Count(property => property.Name.StartsWith(propertyMoniker + ".", StringComparison.Ordinal) && property.Value.GetProperty("type").GetString() != "external");
             Assert.Equal(count, normalCount);
             var category = document.RootElement.GetProperty("categories").GetProperty(categoryMoniker);
             Assert.True(Guid.TryParse(category.GetProperty("legacyOptionPageId").GetString(), out _));
@@ -389,7 +387,7 @@ public sealed class CodeStyleSettingsManifestTests
             else
             {
                 var preview = category.GetProperty("previewUIFactory").GetProperty("gel");
-                Assert.Equal(new Guid(CSharpCodeStyleSettingsPackage.PreviewFactoryId), new Guid(preview.GetProperty("factoryGuid").GetString()!));
+                Assert.Equal(new Guid(CSharpUnifiedSettingsPackage.PreviewFactoryId), new Guid(preview.GetProperty("factoryGuid").GetString()!));
                 Assert.Equal(index, preview.GetProperty("elementId").GetInt32());
             }
         }
@@ -398,7 +396,7 @@ public sealed class CodeStyleSettingsManifestTests
     [Fact]
     public void FormattingIncludesEveryBraceAndParenthesisFlagAndTypingDependencies()
     {
-        using var document = Load("csharpFormattingSettings.registration.json");
+        using var document = Load("csharpUnifiedSettings.registration.json");
         var regions = document.RootElement.GetProperty("properties");
         foreach (var field in new[] { "formatOnSemicolon", "formatOnCloseBrace" })
             Assert.Equal("${config:languages.csharp.advanced.onTypeFormatting.formatOnTyping} == 'true'", regions.GetProperty("languages.csharp.advanced.onTypeFormatting." + field).GetProperty("enableWhen").GetString());
@@ -441,14 +439,14 @@ public sealed class CodeStyleSettingsManifestTests
     [Fact]
     public void IndependentFormattingScalarsUseExactLegacyLocationsAndActualDefaultsWithoutMaterializingDefaults()
     {
-        using var document = Load("csharpFormattingSettings.registration.json");
+        using var document = Load("csharpUnifiedSettings.registration.json");
         var options = new[] { typeof(CSharpFormattingOptions2), typeof(AutoFormattingOptionsStorage), typeof(FormattingOptionsStorage) }
             .SelectMany(type => type.GetFields(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
             .Select(field => field.GetValue(null)).OfType<IOption2>()
             .ToDictionary(option => CodeStyleSetting.ToUnifiedScalarMoniker(option.Definition.ConfigName));
         var boolCount = 0;
         var enumCount = 0;
-        foreach (var property in document.RootElement.GetProperty("properties").EnumerateObject())
+        foreach (var property in document.RootElement.GetProperty("properties").EnumerateObject().Where(IsFormattingProperty))
         {
             if (property.Value.GetProperty("type").GetString() == "array")
                 continue;
@@ -513,17 +511,16 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Theory]
-    [InlineData("csharpCodeStyleSettings.registration.json")]
-    [InlineData("visualBasicCodeStyleSettings.registration.json")]
-    [InlineData("csharpFormattingSettings.registration.json")]
+    [InlineData("csharpUnifiedSettings.registration.json")]
+    [InlineData("visualBasicUnifiedSettings.registration.json")]
     [InlineData("csharpSettings.registration.json")]
     [InlineData("visualBasicSettings.registration.json")]
     [InlineData("roslynSettings.registration.json")]
     public void RegistrationHasNoDuplicateKeysAndAllResourcesResolveWithoutKeyboardMnemonics(string file)
     {
         using var document = Load(file);
-        var requireQualifiedResourceNames = file is "csharpCodeStyleSettings.registration.json" or
-            "visualBasicCodeStyleSettings.registration.json" or "csharpFormattingSettings.registration.json";
+        var requireQualifiedResourceNames = file is "csharpUnifiedSettings.registration.json" or
+            "visualBasicUnifiedSettings.registration.json";
         Check(document.RootElement, requireQualifiedResourceNames);
         static void Check(JsonElement element, bool requireQualifiedResourceNames)
         {
@@ -575,23 +572,40 @@ public sealed class CodeStyleSettingsManifestTests
     }
 
     [Fact]
-    public void SeparatePackagesRegisterEachNewManifestAndTheTwoNativePreviewFactories()
+    public void ExactlyTwoPackagesOwnAllNativeSettingsAndTheTwoNativePreviewFactories()
     {
         using var setupStream = typeof(CodeStyleSettingsManifestTests).Assembly.GetManifestResourceStream("CodeStyleSettingsSetup.vsixmanifest")!;
         var setup = XDocument.Load(setupStream);
         var assets = setup.Descendants(setup.Root!.Name.Namespace + "Asset");
         var packages = new[]
         {
-            (typeof(CSharpCodeStyleSettingsPackage), @"UnifiedSettings\csharpCodeStyleSettings.registration.json"),
-            (typeof(CSharpFormattingSettingsPackage), @"UnifiedSettings\csharpFormattingSettings.registration.json"),
-            (typeof(VisualBasicCodeStyleSettingsPackage), @"UnifiedSettings\visualBasicCodeStyleSettings.registration.json"),
+            (typeof(CSharpUnifiedSettingsPackage), @"UnifiedSettings\csharpUnifiedSettings.registration.json"),
+            (typeof(VisualBasicUnifiedSettingsPackage), @"UnifiedSettings\visualBasicUnifiedSettings.registration.json"),
         };
+        var registeredPackages = packages.Select(pair => pair.Item1.Assembly).Distinct()
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => !type.IsAbstract && type.IsSubclassOf(typeof(UnifiedSettingsPackage))).ToArray();
+        Assert.Equal(packages.Select(pair => pair.Item1).OrderBy(type => type.FullName), registeredPackages.OrderBy(type => type.FullName));
+        Assert.Equal(new Guid("47b0d77e-35c4-4b41-9fc4-9309ef73f93b"), typeof(CSharpUnifiedSettingsPackage).GUID);
+        Assert.Equal(new Guid("20e17bb0-890f-45f2-8390-55c6c3fe1053"), typeof(VisualBasicUnifiedSettingsPackage).GUID);
         foreach (var (package, path) in packages)
+        {
             Assert.Equal(path, Assert.Single(package.GetCustomAttributes<ProvideSettingsManifestAttribute>()).PackageRelativeManifestFile);
+            Assert.Equal(2, package.GetCustomAttributes<ProvideServiceAttribute>().Count());
+            var menu = Assert.Single(package.GetCustomAttributesData(), attribute => attribute.AttributeType == typeof(ProvideMenuResourceAttribute));
+            Assert.Equal("UnifiedSettingsCommands.ctmenu", menu.ConstructorArguments[0].Value);
+            using var manifest = Load(path.Substring(path.LastIndexOf('\\') + 1));
+            var csharp = package == typeof(CSharpUnifiedSettingsPackage);
+            Assert.Equal(csharp ? 199 : 69, manifest.RootElement.GetProperty("properties").EnumerateObject().Count());
+            Assert.Equal(csharp ? 101 : 44, manifest.RootElement.GetProperty("categories").EnumerateObject().Count());
+            Assert.Equal(csharp ? 5 : 1, manifest.RootElement.GetProperty("categories").EnumerateObject()
+                .Count(category => category.Value.TryGetProperty("previewUIFactory", out _)));
+            CheckPackageOwners(manifest.RootElement, package.GUID);
+        }
         foreach (var (file, factory, package) in new[]
         {
-            ("CSharpCodeStyleSettingsPreview.pkgdef", CSharpCodeStyleSettingsPackage.PreviewFactoryId, CSharpCodeStyleSettingsPackage.PackageId),
-            ("VisualBasicCodeStyleSettingsPreview.pkgdef", VisualBasicCodeStyleSettingsPackage.PreviewFactoryId, VisualBasicCodeStyleSettingsPackage.PackageId),
+            ("CSharpCodeStyleSettingsPreview.pkgdef", CSharpUnifiedSettingsPackage.PreviewFactoryId, CSharpUnifiedSettingsPackage.PackageId),
+            ("VisualBasicCodeStyleSettingsPreview.pkgdef", VisualBasicUnifiedSettingsPackage.PreviewFactoryId, VisualBasicUnifiedSettingsPackage.PackageId),
         })
         {
             var assembly = typeof(CodeStyleSettingsManifestTests).Assembly;
@@ -602,6 +616,25 @@ public sealed class CodeStyleSettingsManifestTests
             Assert.Contains(@"[$RootKey$\UIProviders\{" + factory + "}]", registration);
             Assert.Contains("\"Package\"=\"{" + package + "}\"", registration);
             Assert.Single(assets, asset => (string?)asset.Attribute("Type") == "Microsoft.VisualStudio.VsPackage" && (string?)asset.Attribute("Path") == @"UnifiedSettings\" + file);
+        }
+
+        static void CheckPackageOwners(JsonElement element, Guid packageId)
+        {
+            if (element.ValueKind == JsonValueKind.Object)
+            {
+                foreach (var property in element.EnumerateObject())
+                {
+                    if (property.Name is "packageId" or "set")
+                        Assert.Equal(packageId, Guid.Parse(property.Value.GetString()!));
+                    else
+                        CheckPackageOwners(property.Value, packageId);
+                }
+            }
+            else if (element.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in element.EnumerateArray())
+                    CheckPackageOwners(item, packageId);
+            }
         }
     }
 
@@ -620,8 +653,9 @@ public sealed class CodeStyleSettingsManifestTests
     {
         var language = category.StartsWith("languages.csharp.", StringComparison.Ordinal) ? LanguageNames.CSharp : LanguageNames.VisualBasic;
         var properties = document.RootElement.GetProperty("properties");
-        Assert.Equal(NativeCodeStyleSettingsDefinitions.GetConfigNames(language).Count() * 2 + 1, properties.EnumerateObject().Count());
-        Assert.DoesNotContain(properties.EnumerateObject(), property => property.Value.GetProperty("type").GetString() == "external");
+        var generalProperties = properties.EnumerateObject().Where(property => property.Name.StartsWith(category + ".", StringComparison.Ordinal)).ToArray();
+        Assert.Equal(NativeCodeStyleSettingsDefinitions.GetConfigNames(language).Count() * 2 + 1, generalProperties.Length);
+        Assert.DoesNotContain(generalProperties, property => property.Value.GetProperty("type").GetString() == "external");
         var table = properties.GetProperty(category + ".options");
         Assert.Equal("mappedTable", table.GetProperty("type").GetString());
         Assert.Equal(category, table.GetProperty("monikerPrefix").GetString());
@@ -642,6 +676,10 @@ public sealed class CodeStyleSettingsManifestTests
         using var result = JsonDocument.Parse(JsonSerializer.Serialize(mapped));
         return result.RootElement.Clone();
     }
+
+    private static bool IsFormattingProperty(JsonProperty property)
+        => new[] { "languages.csharp.advanced.onTypeFormatting", "languages.csharp.editorConfig.indentation", "languages.csharp.editorConfig.newLines", "languages.csharp.editorConfig.spacing", "languages.csharp.editorConfig.wrapping" }
+            .Any(category => property.Name.StartsWith(category + ".", StringComparison.Ordinal));
 
     private static JsonDocument Load(string file)
     {
