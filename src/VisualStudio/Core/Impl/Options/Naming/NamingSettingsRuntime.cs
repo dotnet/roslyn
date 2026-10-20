@@ -19,7 +19,7 @@ internal sealed class NamingSettingsRuntime : IDisposable
     private readonly string _legacyKey;
     private readonly Func<NamingStylePreferences> _readLegacy;
     private readonly Action<Task> _observe;
-    private readonly Action<Task> _reportRetryFailure;
+    private readonly Action<Exception> _reportRetryFailure;
     private readonly CancellationTokenSource _lifetime;
     private readonly CancellationToken _cancellationToken;
     private readonly TimeSpan? _retryDelay;
@@ -37,8 +37,7 @@ internal sealed class NamingSettingsRuntime : IDisposable
 
     public NamingSettingsRuntime(NamingSettingsStore store, NamingSettingsCoordinator coordinator,
         ISettingsSubset legacySubset, string legacyKey, Func<NamingStylePreferences> readLegacy,
-        Action<Task> observe, CancellationToken cancellationToken, TimeSpan? retryDelay = null,
-        Action<Task>? reportRetryFailure = null)
+        Action<Task> observe, Action<Exception> reportRetryFailure, CancellationToken cancellationToken, TimeSpan? retryDelay = null)
     {
         _store = store;
         Coordinator = coordinator;
@@ -47,7 +46,7 @@ internal sealed class NamingSettingsRuntime : IDisposable
         _legacyKey = legacyKey;
         _readLegacy = readLegacy;
         _observe = observe;
-        _reportRetryFailure = reportRetryFailure ?? observe;
+        _reportRetryFailure = reportRetryFailure;
         _lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _cancellationToken = _lifetime.Token;
         _retryDelay = retryDelay;

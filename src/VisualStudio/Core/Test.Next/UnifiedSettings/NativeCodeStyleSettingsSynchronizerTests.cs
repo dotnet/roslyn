@@ -37,7 +37,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
     {
         using var cancellation = new CancellationTokenSource();
         var ready = new TaskCompletionSource<Host>(TaskCreationOptions.RunContinuationsAsynchronously);
-        var failures = new List<Task>();
+        var failures = new List<Exception>();
         Host? failedHost = null;
         var attempts = 0;
         var lifetime = NativeCodeStyleSettingsService.RunAsync(async () =>
@@ -73,7 +73,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         {
             recovered = await ready.Task;
             Assert.Equal(2, attempts);
-            await Assert.ThrowsAnyAsync<Exception>(() => Assert.Single(failures));
+            Assert.Single(failures);
             Assert.False(failedHost!.Native.HasSubscription);
             recovered.Native.Change(recovered.Binding.Moniker, "true");
             await recovered.DrainAsync();
@@ -96,16 +96,16 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
     public async Task ServiceDisposalCancelsBootstrapRetry()
     {
         using var cancellation = new CancellationTokenSource();
-        var failed = new TaskCompletionSource<Task>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var failed = new TaskCompletionSource<Exception>(TaskCreationOptions.RunContinuationsAsynchronously);
         var attempts = 0;
         var lifetime = NativeCodeStyleSettingsService.RunAsync(() =>
         {
             attempts++;
             throw new InvalidOperationException("Unavailable settings service.");
-        }, task => failed.SetResult(task), cancellation.Token);
+        }, exception => failed.SetResult(exception), cancellation.Token);
 
         var failure = await failed.Task;
-        await Assert.ThrowsAsync<InvalidOperationException>(() => failure);
+        Assert.IsType<InvalidOperationException>(failure);
         cancellation.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => lifetime);
         Assert.Equal(1, attempts);
@@ -193,7 +193,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         Assert.Equal("true", host.Native.Effective(host.Binding.Moniker));
         Assert.Equal("error", host.Native.Effective(host.Binding.SeverityMoniker));
         Assert.Equal(2, host.Native.CommitCount);
-        await Assert.ThrowsAsync<InvalidOperationException>(() => Assert.Single(host.Failures));
+        Assert.IsType<InvalidOperationException>(Assert.Single(host.Failures));
     }
 
     [WpfTheory]
@@ -355,7 +355,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
     {
         private readonly JoinableTaskContext _context = new();
         private readonly List<Task> _tasks = [];
-        public readonly List<Task> Failures = [];
+        public readonly List<Exception> Failures = [];
         public readonly LegacyStore Legacy = new();
         public readonly NativeStore Native;
         public readonly NativeCodeStyleSettingsSynchronizer.Binding Binding;
@@ -371,8 +371,8 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
             Legacy.Key = Binding.LegacyKey;
             Native = new NativeStore(Binding);
             _persister = new VisualStudioSettingsOptionPersister((_, _) => { }, ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty, Legacy);
-            Synchronizer = new(Native, _persister, [Binding], (_, value) => Refreshed = value, _tasks.Add,
-                _context, CancellationToken.None, TimeSpan.Zero, Failures.Add);
+            Synchronizer = new(Native, _persister, [Binding], (_, value) => Refreshed = value, _tasks.Add, Failures.Add,
+                _context, CancellationToken.None, TimeSpan.Zero);
         }
 
         public async Task InitializeAsync()

@@ -57,7 +57,7 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
     private readonly Action<Task> _observe;
 
     // Reports individual failed attempts while synchronization remains active and retries.
-    private readonly Action<Task> _reportRetryFailure;
+    private readonly Action<Exception> _reportRetryFailure;
 
     // Cancels synchronization and retry waits when the hosting service shuts down.
     private readonly CancellationToken _cancellationToken;
@@ -96,17 +96,17 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
         IEnumerable<Binding> bindings,
         Action<OptionKey2, object?> refresh,
         Action<Task> observe,
+        Action<Exception> reportRetryFailure,
         JoinableTaskContext joinableTaskContext,
         CancellationToken cancellationToken,
-        TimeSpan? retryDelay = null,
-        Action<Task>? reportRetryFailure = null)
+        TimeSpan? retryDelay = null)
     {
         _native = native;
         _legacy = legacy;
         _bindings = bindings.ToDictionary(binding => binding.Moniker, StringComparer.Ordinal);
         _refresh = refresh;
         _observe = observe;
-        _reportRetryFailure = reportRetryFailure ?? observe;
+        _reportRetryFailure = reportRetryFailure;
         _gate = ReentrantSemaphore.Create(1, joinableTaskContext, ReentrantSemaphore.ReentrancyMode.NotRecognized);
         _cancellationToken = cancellationToken;
         _retryDelay = retryDelay;

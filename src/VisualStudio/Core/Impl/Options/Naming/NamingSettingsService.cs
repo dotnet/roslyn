@@ -91,7 +91,8 @@ internal sealed class NamingSettingsService : INamingSettingsService, IDisposabl
         var coordinator = new NamingSettingsCoordinator(store, ReadLegacy, WriteLegacy, _threading.JoinableTaskContext,
             value => Refresh(key, value));
         var runtime = new NamingSettingsRuntime(store, coordinator, manager.GetSubset(legacyKey), legacyKey, ReadLegacy,
-            task => task.ReportNonFatalErrorUnlessCancelledAsync(token), token);
+            task => task.ReportNonFatalErrorUnlessCancelledAsync(token),
+            exception => FatalError.ReportAndCatchUnlessCanceled(exception, token), token);
         lock (_lifetimeGate)
         {
             if (_disposed)

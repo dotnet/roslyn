@@ -65,7 +65,7 @@ public sealed class NamingSettingsRuntimeTests
 
         Assert.Empty(fixture.Manager.Reader.Graph.Rules);
         Assert.Equal(fixture.Legacy, fixture.Refreshes[^1]);
-        await Assert.ThrowsAsync<InvalidDataException>(() => Assert.Single(fixture.Failures));
+        Assert.IsType<InvalidDataException>(Assert.Single(fixture.Failures));
     }
 
     [Theory]
@@ -247,7 +247,7 @@ public sealed class NamingSettingsRuntimeTests
         public readonly NamingSettingsStoreTests.SettingsManagerMock Manager = new();
         public readonly Mock<ISettingsSubset> Subset = new(MockBehavior.Strict);
         public readonly List<Task> Observed = [];
-        public readonly List<Task> Failures = [];
+        public readonly List<Exception> Failures = [];
         public readonly List<NamingStylePreferences> Refreshes = [];
         public NamingStylePreferences Legacy = NamingStylePreferences.Default;
         public int LegacyWrites;
@@ -265,8 +265,8 @@ public sealed class NamingSettingsRuntimeTests
                 LegacyWrites++;
                 NotifyLegacy();
             }, _context, Refreshes.Add);
-            Runtime = new(store, coordinator, Subset.Object, _legacyKey, () => Legacy, Observed.Add,
-                CancellationToken.None, TimeSpan.Zero, Failures.Add);
+            Runtime = new(store, coordinator, Subset.Object, _legacyKey, () => Legacy, Observed.Add, Failures.Add,
+                CancellationToken.None, TimeSpan.Zero);
         }
 
         public void NotifyLegacy() => Subset.Raise(subset => subset.SettingChangedAsync += null, Subset.Object, new PropertyChangedEventArgs(_legacyKey));

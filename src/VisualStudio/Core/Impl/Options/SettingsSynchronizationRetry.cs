@@ -14,7 +14,7 @@ internal static class SettingsSynchronizationRetry
 
     public static async Task RunAsync(
         Func<Task> synchronizeAsync,
-        Action<Task> observe,
+        Action<Exception> reportFailure,
         CancellationToken cancellationToken,
         TimeSpan? retryDelay = null)
     {
@@ -28,7 +28,7 @@ internal static class SettingsSynchronizationRetry
             }
             catch (Exception e) when (e is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
             {
-                observe(Task.FromException(e));
+                reportFailure(e);
             }
 
             await Task.Delay(retryDelay ?? s_defaultRetryDelay, cancellationToken).ConfigureAwait(false);

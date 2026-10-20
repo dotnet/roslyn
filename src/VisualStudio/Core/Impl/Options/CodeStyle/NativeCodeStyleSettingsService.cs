@@ -61,7 +61,7 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
 
         var cancellationToken = _threadingContext.DisposalToken;
         _threadingContext.JoinableTaskFactory.RunAsync(() => RunAsync(SynchronizeAsync,
-            task => task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken), cancellationToken))
+            ReportRetryFailure, cancellationToken))
             .Task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken);
 
         async Task SynchronizeAsync()
@@ -79,14 +79,18 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
             using var legacy = new VisualStudioSettingsOptionPersister(Refresh,
                 ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty, manager);
             using var synchronizer = new NativeCodeStyleSettingsSynchronizer(native, legacy, CreateBindings(language), Refresh,
-                task => task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken), _threadingContext.JoinableTaskContext, cancellationToken);
+                task => task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken), ReportRetryFailure,
+                _threadingContext.JoinableTaskContext, cancellationToken);
             await synchronizer.InitializeAsync().ConfigureAwait(false);
             await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
         }
+
+        void ReportRetryFailure(Exception exception)
+            => FatalError.ReportAndCatchUnlessCanceled(exception, cancellationToken);
     }
 
-    internal static Task RunAsync(Func<Task> synchronizeAsync, Action<Task> observe, CancellationToken cancellationToken)
-        => SettingsSynchronizationRetry.RunAsync(synchronizeAsync, observe, cancellationToken);
+    internal static Task RunAsync(Func<Task> synchronizeAsync, Action<Exception> reportFailure, CancellationToken cancellationToken)
+        => SettingsSynchronizationRetry.RunAsync(synchronizeAsync, reportFailure, cancellationToken);
 
     private IEnumerable<NativeCodeStyleSettingsSynchronizer.Binding> CreateBindings(string language)
     {
