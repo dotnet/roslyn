@@ -9,8 +9,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnifiedSettings;
 
 // Each package can register only one settings manifest. The callbacks and preview factory
 // are supplied by CSharpCodeStyleSettingsPackage, without changing CSharpPackage's manifest.
-// Formatting bitfields are registered as multi-select settings so the declarative migration
-// preserves the complete legacy value, including flags that are not selected in the UI.
+// Formatting flag settings use declarative full migrations that support both the combined
+// legacy bitfields and the older per-flag Boolean fallback values.
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
 [Guid("46e38cde-eded-4ac0-afd4-e7995c8d4092")]
 [ProvideSettingsManifest(PackageRelativeManifestFile = @"UnifiedSettings\csharpFormattingSettings.registration.json")]

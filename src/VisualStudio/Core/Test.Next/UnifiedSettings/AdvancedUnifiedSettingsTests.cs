@@ -412,7 +412,7 @@ public sealed class AdvancedUnifiedSettingsTests
     [InlineData("csharpSettings.registration.json", "languages.csharp.advanced.inheritanceMargin.showInheritanceMargin")]
     [InlineData("visualBasicSettings.registration.json", "languages.basic.advanced.inheritanceMargin.showInheritanceMargin")]
     [InlineData("roslynSettings.registration.json", "languages.dotnet.advanced.offerRemoveUnusedReferences")]
-    public void NullableLegacySettingsUseBooleanCheckboxesAndReversibleMigration(string manifest, string moniker)
+    public void NullableLegacySettingsUseBooleanCheckboxesAndPassMigration(string manifest, string moniker)
     {
         using var draft = Load(manifest);
         using var live = LoadLive(manifest);
@@ -422,36 +422,11 @@ public sealed class AdvancedUnifiedSettingsTests
         Assert.True(setting.GetProperty("default").GetBoolean());
         Assert.False(setting.TryGetProperty("enum", out _));
         Assert.False(setting.TryGetProperty("enumItemLabels", out _));
-        Assert.Equal("full", setting.GetProperty("migration").GetProperty("custom").GetProperty("mode").GetString());
-        var maps = setting.GetProperty("migration").GetProperty("custom").GetProperty("map").EnumerateArray().ToArray();
-        Assert.Equal(4, maps.Length);
-        Assert.Equal("@default", maps[0].GetProperty("result").GetString());
-        Assert.Equal("@default", maps[^1].GetProperty("result").GetString());
-        Assert.Equal("@any", maps[^1].GetProperty("matches")[0].GetString());
+        var pass = setting.GetProperty("migration").GetProperty("pass");
+        Assert.Equal("full", pass.GetProperty("mode").GetString());
+        Assert.Equal("SettingsManager", pass.GetProperty("input").GetProperty("store").GetString());
+        Assert.False(pass.GetProperty("input").TryGetProperty("bitmask", out _));
 
-        foreach (var legacy in new object?[] { true, false, null, "@missing" })
-        {
-            var forward = maps.First(map => map.GetProperty("matches")[0] is var match
-                && (match.ValueKind == JsonValueKind.String && match.GetString() == "@any"
-                    || match.ValueKind is JsonValueKind.True or JsonValueKind.False && Equals(match.GetBoolean(), legacy)));
-            var result = forward.GetProperty("result");
-            var enabled = result.ValueKind == JsonValueKind.String ? setting.GetProperty("default").GetBoolean() : result.GetBoolean();
-            Assert.Equal(!Equals(legacy, false), enabled);
-            if (legacy is null or "@missing")
-                Assert.Equal("@default", result.GetString());
-        }
-
-        foreach (var value in new[] { true, false })
-        {
-            var reverse = maps.First(map => map.GetProperty("result") is var result
-                && result.ValueKind is JsonValueKind.True or JsonValueKind.False && result.GetBoolean() == value);
-            Assert.Equal(value, reverse.GetProperty("matches")[0].GetBoolean());
-        }
-
-        // Reset must select the canonical Boolean, not the @any no-op fallback.
-        var reset = maps.First(map => map.GetProperty("result").ValueKind == JsonValueKind.String
-            && map.GetProperty("result").GetString() == "@default");
-        Assert.True(reset.GetProperty("matches")[0].GetBoolean());
     }
 
     private static void VerifyOption(IOption2 option, string? language, JsonElement setting)
@@ -483,7 +458,7 @@ public sealed class AdvancedUnifiedSettingsTests
 
         if (type == typeof(bool))
         {
-            Assert.Equal(option.Definition.Type == typeof(bool?) || option == VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics ? "custom" : "pass", migration.Name);
+            Assert.Equal(option == VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics ? "custom" : "pass", migration.Name);
             Assert.Equal("boolean", setting.GetProperty("type").GetString());
             Assert.Equal((bool)option.Definition.DefaultValue!, setting.GetProperty("default").GetBoolean());
         }

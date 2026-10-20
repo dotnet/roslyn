@@ -82,31 +82,554 @@
         }
       }
     },
-    "languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBrace": {
-      "type": "array",
-      "items": { "type": "string", "enum": [ "Types", "Methods", "Properties", "Accessors", "AnonymousMethods", "ControlBlocks", "AnonymousTypes", "ObjectCollectionArrayInitializers", "LambdaExpressionBody" ], "enumItemLabels": [ "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_types;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_methods_local_functions;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_properties_indexers_and_events;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_property_indexer_and_event_accessors;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_anonymous_methods;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_control_blocks;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_anonymous_types;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_lambda_expression;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ] },
-      "minItems": 0,
-      "maxItems": 9,
-      "uniqueItems": true,
-      "default": [ "Types", "Methods", "Properties", "Accessors", "AnonymousMethods", "ControlBlocks", "AnonymousTypes", "ObjectCollectionArrayInitializers", "LambdaExpressionBody" ],
+    "languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceTypes": {
+      "type": "boolean",
       "placements": [ { "category": "languages.csharp.editorConfig.newLines.braces" } ],
+      "default": true,
       "order": 0,
-      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:New_line_options_for_braces;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "transientScopesSupported": false,
-      "migration": { "bitfield": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace" }, "map": [ { "result": "Types", "matches": 1 }, { "result": "Methods", "matches": 2 }, { "result": "Properties", "matches": 4 }, { "result": "Accessors", "matches": 256 }, { "result": "AnonymousMethods", "matches": 8 }, { "result": "ControlBlocks", "matches": 16 }, { "result": "AnonymousTypes", "matches": 32 }, { "result": "ObjectCollectionArrayInitializers", "matches": 64 }, { "result": "LambdaExpressionBody", "matches": 128 } ] } }
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_types;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 1
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInTypes"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
     },
-    "languages.csharp.editorConfig.spacing.csharpSpaceBetweenParentheses": {
-      "type": "array",
-      "items": { "type": "string", "enum": [ "Expressions", "TypeCasts", "ControlFlowStatements" ], "enumItemLabels": [ "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_parentheses_of_expressions;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_parentheses_of_type_casts;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}", "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_spaces_within_parentheses_of_control_flow_statements;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}" ] },
-      "minItems": 0,
-      "maxItems": 3,
-      "uniqueItems": true,
-      "default": [],
-      "placements": [ { "category": "languages.csharp.editorConfig.spacing.other" } ],
-      "order": 70,
-      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_parentheses_of_expressions;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+    "languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceMethods": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.newLines.braces" } ],
+      "default": true,
+      "order": 10,
       "transientScopesSupported": false,
-      "migration": { "bitfield": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.csharp_space_between_parentheses" }, "map": [ { "result": "Expressions", "matches": 1 }, { "result": "TypeCasts", "matches": 2 }, { "result": "ControlFlowStatements", "matches": 4 } ] } }
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_methods_local_functions;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 2
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInMethods"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceProperties": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.newLines.braces" } ],
+      "default": true,
+      "order": 20,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_properties_indexers_and_events;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 4
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInProperties"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceAccessors": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.newLines.braces" } ],
+      "default": true,
+      "order": 30,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_property_indexer_and_event_accessors;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 256
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInAccessors"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceAnonymousMethods": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.newLines.braces" } ],
+      "default": true,
+      "order": 40,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_anonymous_methods;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 8
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousMethods"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceControlBlocks": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.newLines.braces" } ],
+      "default": true,
+      "order": 50,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_control_blocks;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 16
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInControlBlocks"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceAnonymousTypes": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.newLines.braces" } ],
+      "default": true,
+      "order": 60,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_anonymous_types;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 32
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInAnonymousTypes"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceObjectCollectionArrayInitializers": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.newLines.braces" } ],
+      "default": true,
+      "order": 70,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 64
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInObjectCollectionArrayInitializers"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceLambdaExpressionBody": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.newLines.braces" } ],
+      "default": true,
+      "order": 80,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_open_brace_on_new_line_for_lambda_expression;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_new_line_before_open_brace",
+              "bitmask": 128
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.NewLinesForBracesInLambdaExpressionBody"
+            }
+          ],
+          "map": [
+            {
+              "result": true,
+              "matches": [
+                1,
+                "@any"
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
+            }
+          ]
+        }
+      }
     },
     "languages.csharp.editorConfig.indentation.csharpIndentBlockContents": {
       "type": "boolean",
@@ -690,63 +1213,152 @@
         }
       }
     },
-    "languages.csharp.editorConfig.spacing.binaryOperatorSpacing": {
-      "type": "string",
-      "placements": [ { "category": "languages.csharp.editorConfig.spacing.operators" } ],
-      "default": "Single",
-      "order": 230,
+    "languages.csharp.editorConfig.spacing.csharpSpaceBetweenParenthesesExpressions": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.spacing.other" } ],
+      "default": false,
+      "order": 70,
       "transientScopesSupported": false,
-      "enum": [
-        "Ignore",
-        "Remove",
-        "Single"
-      ],
-      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Set_spacing_for_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
-      "enumItemLabels": [
-        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Ignore_spaces_around_binary_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
-        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Remove_spaces_before_and_after_binary_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
-        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_before_and_after_binary_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
-      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_parentheses_of_expressions;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "migration": {
         "custom": {
           "mode": "full",
           "inputs": [
             {
               "store": "SettingsManager",
-              "path": "TextEditor.CSharp.Specific.SpacingAroundBinaryOperator"
+              "path": "TextEditor.CSharp.Specific.csharp_space_between_parentheses",
+              "bitmask": 1
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.SpaceWithinExpressionParentheses"
             }
           ],
           "map": [
             {
-              "result": "@default",
+              "result": true,
               "matches": [
-                0
-              ]
-            },
-            {
-              "result": "Single",
-              "matches": [
-                0
-              ]
-            },
-            {
-              "result": "Ignore",
-              "matches": [
-                1
-              ]
-            },
-            {
-              "result": "Remove",
-              "matches": [
-                2
-              ]
-            },
-            {
-              "result": "@default",
-              "matches": [
+                1,
                 "@any"
               ]
+            },
+            {
+              "result": false,
+              "matches": [
+                0,
+                "@any"
+              ]
+            },
+            {
+              "result": true,
+              "matches": [
+                "@missing",
+                true
+              ]
+            },
+            {
+              "result": false,
+              "matches": [
+                "@missing",
+                false
+              ]
+            },
+            {
+              "result": "@default",
+              "matches": [
+                "@missing",
+                "@missing"
+              ]
             }
+          ]
+        }
+      }
+    },
+    "languages.csharp.editorConfig.spacing.csharpSpaceBetweenParenthesesTypeCasts": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.spacing.other" } ],
+      "default": false,
+      "order": 80,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_within_parentheses_of_type_casts;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_space_between_parentheses",
+              "bitmask": 2
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.SpaceWithinCastParentheses"
+            }
+          ],
+          "map": [
+            { "result": true, "matches": [ 1, "@any" ] },
+            { "result": false, "matches": [ 0, "@any" ] },
+            { "result": true, "matches": [ "@missing", true ] },
+            { "result": false, "matches": [ "@missing", false ] },
+            { "result": "@default", "matches": [ "@missing", "@missing" ] }
+          ]
+        }
+      }
+    },
+    "languages.csharp.editorConfig.spacing.csharpSpaceBetweenParenthesesControlFlowStatements": {
+      "type": "boolean",
+      "placements": [ { "category": "languages.csharp.editorConfig.spacing.other" } ],
+      "default": false,
+      "order": 90,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_spaces_within_parentheses_of_control_flow_statements;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.csharp_space_between_parentheses",
+              "bitmask": 4
+            },
+            {
+              "store": "SettingsManager",
+              "path": "TextEditor.CSharp.Specific.SpaceWithinOtherParentheses"
+            }
+          ],
+          "map": [
+            { "result": true, "matches": [ 1, "@any" ] },
+            { "result": false, "matches": [ 0, "@any" ] },
+            { "result": true, "matches": [ "@missing", true ] },
+            { "result": false, "matches": [ "@missing", false ] },
+            { "result": "@default", "matches": [ "@missing", "@missing" ] }
+          ]
+        }
+      }
+    },
+    "languages.csharp.editorConfig.spacing.binaryOperatorSpacing": {
+      "type": "string",
+      "placements": [ { "category": "languages.csharp.editorConfig.spacing.operators" } ],
+      "default": "Single",
+      "order": 230,
+      "transientScopesSupported": false,
+      "enum": [ "Ignore", "Remove", "Single" ],
+      "enumItemLabels": [
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Ignore_spaces_around_binary_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Remove_spaces_before_and_after_binary_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+        "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Insert_space_before_and_after_binary_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}"
+      ],
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Set_spacing_for_operators;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "custom": {
+          "mode": "full",
+          "inputs": [ { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.SpacingAroundBinaryOperator" } ],
+          "map": [
+            { "result": "@default", "matches": [ 0 ] },
+            { "result": "Single", "matches": [ 0 ] },
+            { "result": "Ignore", "matches": [ 1 ] },
+            { "result": "Remove", "matches": [ 2 ] },
+            { "result": "@default", "matches": [ "@any" ] }
           ]
         }
       }

@@ -13,8 +13,7 @@
       "transientScopesSupported": false,
       "messages": [ { "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:This_setting_is_shared_by_CSharp_and_Visual_Basic;{6cf2e545-6109-4730-8883-cf43d7aec3e1}" } ],
       "placements": [ { "category": "languages.csharp.advanced.analysis", "order": 40 }, { "category": "languages.basic.advanced.analysis", "order": 40 } ],
-      // Legacy null means enabled. Put the canonical true value first so reset also writes true.
-      "migration": { "custom": { "mode": "full", "inputs": [ { "store": "SettingsManager", "path": "TextEditor.OfferRemoveUnusedReferences" } ], "map": [ { "result": "@default", "matches": [ true ] }, { "result": true, "matches": [ true ] }, { "result": false, "matches": [ false ] }, { "result": "@default", "matches": [ "@any" ] } ] } }
+      "migration": { "pass": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.OfferRemoveUnusedReferences" } } }
     },
     "languages.dotnet.advanced.enableFileLoggingForDiagnostics": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Enable_file_logging_for_diagnostics;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": false, "transientScopesSupported": false,

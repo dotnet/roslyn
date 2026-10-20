@@ -278,8 +278,7 @@
     },
     "languages.csharp.advanced.inheritanceMargin.showInheritanceMargin": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_inheritance_margin;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": true, "order": 0, "transientScopesSupported": false,
-      // Legacy null means enabled. Put the canonical true value first so reset also writes true.
-      "migration": { "custom": { "mode": "full", "inputs": [ { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.ShowInheritanceMargin" } ], "map": [ { "result": "@default", "matches": [ true ] }, { "result": true, "matches": [ true ] }, { "result": false, "matches": [ false ] }, { "result": "@default", "matches": [ "@any" ] } ] } }
+      "migration": { "pass": { "mode": "full", "input": { "store": "SettingsManager", "path": "TextEditor.CSharp.Specific.ShowInheritanceMargin" } } }
     },
     "languages.csharp.advanced.inheritanceMargin.inheritanceMarginIncludeGlobalImports": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Include_global_imports;..\\Microsoft.VisualStudio.LanguageServices.dll", "type": "boolean", "default": true, "order": 20, "transientScopesSupported": false,

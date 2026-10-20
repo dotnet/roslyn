@@ -369,9 +369,9 @@ public sealed class CodeStyleSettingsManifestTests
     public void AllFiveFormattingPagesHaveTheirCompleteNativeInventoryAndTheFourNativePreviews()
     {
         using var document = Load("csharpFormattingSettings.registration.json");
-        var pages = new[] { ("general", 5), ("indentation", 6), ("newLines", 7), ("spacing", 22), ("wrapping", 2) };
+        var pages = new[] { ("general", 5), ("indentation", 6), ("newLines", 15), ("spacing", 24), ("wrapping", 2) };
         var properties = document.RootElement.GetProperty("properties");
-        Assert.Equal(42, properties.EnumerateObject().Count());
+        Assert.Equal(52, properties.EnumerateObject().Count());
         Assert.DoesNotContain(properties.EnumerateObject(), property => property.Value.GetProperty("type").GetString() == "external");
         for (var index = 0; index < pages.Length; index++)
         {
@@ -402,23 +402,40 @@ public sealed class CodeStyleSettingsManifestTests
         var regions = document.RootElement.GetProperty("properties");
         foreach (var field in new[] { "formatOnSemicolon", "formatOnCloseBrace" })
             Assert.Equal("${config:languages.csharp.advanced.onTypeFormatting.formatOnTyping} == 'true'", regions.GetProperty("languages.csharp.advanced.onTypeFormatting." + field).GetProperty("enableWhen").GetString());
-        var newLines = regions.GetProperty("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBrace");
-        Assert.Equal("array", newLines.GetProperty("type").GetString());
-        Assert.Equal(new[] { "Types", "Methods", "Properties", "Accessors", "AnonymousMethods", "ControlBlocks", "AnonymousTypes", "ObjectCollectionArrayInitializers", "LambdaExpressionBody" }, newLines.GetProperty("items").GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
-        Assert.Equal(new[] { "Types", "Methods", "Properties", "Accessors", "AnonymousMethods", "ControlBlocks", "AnonymousTypes", "ObjectCollectionArrayInitializers", "LambdaExpressionBody" }, newLines.GetProperty("default").EnumerateArray().Select(value => value.GetString()));
-        Assert.Equal("bitfield", newLines.GetProperty("migration").EnumerateObject().Single().Name);
-        Assert.Equal("full", newLines.GetProperty("migration").GetProperty("bitfield").GetProperty("mode").GetString());
-        Assert.Equal("TextEditor.CSharp.Specific.csharp_new_line_before_open_brace", newLines.GetProperty("migration").GetProperty("bitfield").GetProperty("input").GetProperty("path").GetString());
-        var spacing = regions.GetProperty("languages.csharp.editorConfig.spacing.csharpSpaceBetweenParentheses");
-        Assert.Equal("array", spacing.GetProperty("type").GetString());
-        Assert.Equal(new[] { "Expressions", "TypeCasts", "ControlFlowStatements" }, spacing.GetProperty("items").GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
-        Assert.Empty(spacing.GetProperty("default").EnumerateArray());
-        Assert.Equal("bitfield", spacing.GetProperty("migration").EnumerateObject().Single().Name);
-        Assert.Equal("full", spacing.GetProperty("migration").GetProperty("bitfield").GetProperty("mode").GetString());
-        Assert.Equal("TextEditor.CSharp.Specific.csharp_space_between_parentheses", spacing.GetProperty("migration").GetProperty("bitfield").GetProperty("input").GetProperty("path").GetString());
+        var flags = new[]
+        {
+            ("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceTypes", 1, "NewLinesForBracesInTypes"),
+            ("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceMethods", 2, "NewLinesForBracesInMethods"),
+            ("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceProperties", 4, "NewLinesForBracesInProperties"),
+            ("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceAccessors", 256, "NewLinesForBracesInAccessors"),
+            ("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceAnonymousMethods", 8, "NewLinesForBracesInAnonymousMethods"),
+            ("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceControlBlocks", 16, "NewLinesForBracesInControlBlocks"),
+            ("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceAnonymousTypes", 32, "NewLinesForBracesInAnonymousTypes"),
+            ("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceObjectCollectionArrayInitializers", 64, "NewLinesForBracesInObjectCollectionArrayInitializers"),
+            ("languages.csharp.editorConfig.newLines.csharpNewLineBeforeOpenBraceLambdaExpressionBody", 128, "NewLinesForBracesInLambdaExpressionBody"),
+            ("languages.csharp.editorConfig.spacing.csharpSpaceBetweenParenthesesExpressions", 1, "SpaceWithinExpressionParentheses"),
+            ("languages.csharp.editorConfig.spacing.csharpSpaceBetweenParenthesesTypeCasts", 2, "SpaceWithinCastParentheses"),
+            ("languages.csharp.editorConfig.spacing.csharpSpaceBetweenParenthesesControlFlowStatements", 4, "SpaceWithinOtherParentheses"),
+        };
+
+        foreach (var (moniker, bitmask, fallback) in flags)
+        {
+            var migration = regions.GetProperty(moniker).GetProperty("migration").GetProperty("custom");
+            Assert.Equal("full", migration.GetProperty("mode").GetString());
+            var inputs = migration.GetProperty("inputs").EnumerateArray().ToArray();
+            Assert.Equal(2, inputs.Length);
+            Assert.Equal("TextEditor.CSharp.Specific.csharp_" + (moniker.Contains("newLines", StringComparison.Ordinal) ? "new_line_before_open_brace" : "space_between_parentheses"), inputs[0].GetProperty("path").GetString());
+            Assert.Equal(bitmask, inputs[0].GetProperty("bitmask").GetInt32());
+            Assert.Equal("TextEditor.CSharp.Specific." + fallback, inputs[1].GetProperty("path").GetString());
+            var maps = migration.GetProperty("map").EnumerateArray().ToArray();
+            Assert.Equal(5, maps.Length);
+            Assert.Equal(true, maps[0].GetProperty("result").GetBoolean());
+            Assert.Equal(false, maps[1].GetProperty("result").GetBoolean());
+            Assert.Equal("@missing", maps[2].GetProperty("matches")[0].GetString());
+            Assert.Equal("@missing", maps[4].GetProperty("matches")[0].GetString());
+        }
+
         Assert.Equal(new[] { "Ignore", "Remove", "Single" }, regions.GetProperty("languages.csharp.editorConfig.spacing.binaryOperatorSpacing").GetProperty("enum").EnumerateArray().Select(value => value.GetString()));
-        Assert.Equal(new[] { 1, 2, 4, 256, 8, 16, 32, 64, 128 }, newLines.GetProperty("migration").GetProperty("bitfield").GetProperty("map").EnumerateArray().Select(mapping => mapping.GetProperty("matches").GetInt32()));
-        Assert.Equal(new[] { 1, 2, 4 }, spacing.GetProperty("migration").GetProperty("bitfield").GetProperty("map").EnumerateArray().Select(mapping => mapping.GetProperty("matches").GetInt32()));
     }
 
     [Fact]
