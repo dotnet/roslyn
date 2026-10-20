@@ -78,11 +78,14 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
             var manager = await _legacyManager.GetValueAsync(cancellationToken).ConfigureAwait(false);
             using var legacy = new VisualStudioSettingsOptionPersister(Refresh,
                 ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>>.Empty, manager);
-            using var synchronizer = new NativeCodeStyleSettingsSynchronizer(native, legacy, CreateBindings(language), Refresh,
+            var synchronizer = new NativeCodeStyleSettingsSynchronizer(native, legacy, CreateBindings(language), Refresh,
                 task => task.ReportNonFatalErrorUnlessCancelledAsync(cancellationToken), ReportRetryFailure,
                 _threadingContext.JoinableTaskContext, cancellationToken);
-            await synchronizer.InitializeAsync().ConfigureAwait(false);
-            await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
+            await using (synchronizer.ConfigureAwait(false))
+            {
+                await synchronizer.InitializeAsync().ConfigureAwait(false);
+                await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         void ReportRetryFailure(Exception exception)

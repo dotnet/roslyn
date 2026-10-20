@@ -114,6 +114,114 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
     [WpfTheory]
     [InlineData(LanguageNames.CSharp)]
     [InlineData(LanguageNames.VisualBasic)]
+    public async Task FailedBootstrapCancelsQueuedImportsAndNativeUpdates(string language)
+    {
+        using var host = new Host(language);
+        host.Legacy.Value = new CodeStyleOption2<bool>(true, NotificationOption2.Warning).ToXElement().ToString();
+        host.Native.FailNextCommit = true;
+        var committing = new TaskCompletionSource<CancellationToken>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var resume = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        host.Native.BeforeCommit = async token =>
+        {
+            committing.TrySetResult(token);
+            await resume.Task;
+            token.ThrowIfCancellationRequested();
+        };
+        host.Native.BeforeSeedRead = () =>
+        {
+            host.Legacy.ImportAsync(new CodeStyleOption2<bool>(true, NotificationOption2.Error).ToXElement().ToString()).GetAwaiter().GetResult();
+            host.Native.Notify();
+        };
+
+        try
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => host.Synchronizer.InitializeAsync());
+            var queuedToken = await committing.Task;
+            var disposal = host.Synchronizer.DisposeAsync().AsTask();
+            Assert.False(disposal.IsCompleted);
+            resume.SetResult(true);
+
+            await disposal;
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(host.DrainAsync);
+            Assert.True(queuedToken.IsCancellationRequested);
+            Assert.False(host.Native.HasSubscription);
+            Assert.Empty(host.Native.Values);
+            Assert.Null(host.Refreshed);
+        }
+        finally
+        {
+            resume.TrySetResult(true);
+        }
+    }
+
+    [WpfFact]
+    public async Task DisposalWaitsForInFlightNativeWriteAndRejectsLateCallbacks()
+    {
+        using var host = new Host(LanguageNames.CSharp);
+        await host.InitializeAsync();
+        var writing = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var resume = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        host.Legacy.BeforeWrite = async () =>
+        {
+            writing.SetResult(true);
+            await resume.Task;
+        };
+        host.Native.Change(host.Binding.Moniker, "true");
+        await writing.Task;
+        host.Native.Change(host.Binding.SeverityMoniker, "error");
+
+        try
+        {
+            var disposal = host.Synchronizer.DisposeAsync().AsTask();
+            Assert.False(disposal.IsCompleted);
+            host.Synchronizer.OnNext(new SettingsUpdate([
+                ReadResult.Success(host.Binding.Moniker, new SettingValue(SettingValueType.String, JsonSerializer.Serialize("false")))], ReadOptions.NoFallbackToDefault));
+            resume.SetResult(true);
+
+            await disposal;
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(host.DrainAsync);
+            Assert.Equal(1, host.Legacy.WriteCount);
+            Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Silent), host.Refreshed);
+            Assert.False(host.Native.HasSubscription);
+        }
+        finally
+        {
+            resume.TrySetResult(true);
+        }
+    }
+
+    [WpfFact]
+    public async Task DisposalDuringSubscriptionDisposesTheLateSubscription()
+    {
+        using var host = new Host(LanguageNames.CSharp);
+        var subscribing = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var resume = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        host.Native.BeforeSubscribeReturns = async () =>
+        {
+            subscribing.SetResult(true);
+            await resume.Task;
+        };
+        var initialization = host.Synchronizer.InitializeAsync();
+        await subscribing.Task;
+
+        try
+        {
+            var disposal = host.Synchronizer.DisposeAsync().AsTask();
+            Assert.False(disposal.IsCompleted);
+            resume.SetResult(true);
+            await disposal;
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() => initialization);
+            Assert.False(host.Native.HasSubscription);
+        }
+        finally
+        {
+            resume.TrySetResult(true);
+        }
+    }
+
+    [WpfTheory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
     public async Task BootstrapMigratesCompoundXmlUsingExistingHiddenSeverityContract(string language)
     {
         using var host = new Host(language);
@@ -394,7 +502,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         public CodeStyleOption2<bool> ReadLegacy() => CodeStyleOption2<bool>.FromXElement(XElement.Parse(Legacy.Value!));
         public void Dispose()
         {
-            Synchronizer.Dispose();
+            _context.Factory.Run(() => Synchronizer.DisposeAsync().AsTask());
             _persister.Dispose();
             _context.Dispose();
         }
@@ -409,6 +517,8 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         private int _persistedReads;
         public Action? BeforeSeedRead;
         public Func<Task>? BeforeEffectiveRead;
+        public Func<Task>? BeforeSubscribeReturns;
+        public Func<CancellationToken, Task>? BeforeCommit;
         public int CommitCount;
         public bool FailNextCommit;
 
@@ -435,20 +545,24 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
                 await beforeRead();
             return patterns.Select(moniker => Read(moniker, options)).ToArray();
         }
-        public ValueTask<IDisposable> SubscribeAsync(IObserver<SettingsUpdate> observer, IReadOnlyCollection<string> patterns, ReadOptions options, CancellationToken cancellationToken)
+        public async ValueTask<IDisposable> SubscribeAsync(IObserver<SettingsUpdate> observer, IReadOnlyCollection<string> patterns, ReadOptions options, CancellationToken cancellationToken)
         {
             _observer = observer;
             observer.OnNext(new SettingsUpdate(patterns.Select(moniker => Read(moniker, options)).ToArray(), options));
-            return new(this);
+            if (BeforeSubscribeReturns is { } beforeSubscribeReturns)
+                await beforeSubscribeReturns();
+            return this;
         }
-        public ValueTask<CommitResult> RequestCommitAsync(ChangeSource source, SettingsCommit commit, CancellationToken cancellationToken)
+        public async ValueTask<CommitResult> RequestCommitAsync(ChangeSource source, SettingsCommit commit, CancellationToken cancellationToken)
         {
             CommitCount++;
             if (FailNextCommit)
             {
                 FailNextCommit = false;
-                return new(new CommitResult(CommitResultCode.ChangeError, []));
+                return new CommitResult(CommitResultCode.ChangeError, []);
             }
+            if (BeforeCommit is { } beforeCommit)
+                await beforeCommit(cancellationToken);
             foreach (var (moniker, json) in commit.Values)
             {
                 var value = JsonSerializer.Deserialize<string>(json)!;
@@ -462,7 +576,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
                 }
             }
             Notify(source.Id);
-            return new(CommitResult.Success([]));
+            return CommitResult.Success([]);
         }
         public void Change(string moniker, string value)
         {
@@ -489,6 +603,7 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         public string Key = string.Empty;
         public int WriteCount;
         public bool FailNextWrite;
+        public Func<Task>? BeforeWrite;
         public event PropertyChangedAsyncEventHandler? SettingChangedAsync;
         public ISettingsSubset GetSubset(string pattern) => this;
         public GetValueResult TryGetValue<T>(string name, out T value)
@@ -499,6 +614,8 @@ public sealed class NativeCodeStyleSettingsSynchronizerTests
         public async Task SetValueAsync(string name, object? value, bool isMachineLocal)
         {
             Assert.False(isMachineLocal);
+            if (BeforeWrite is { } beforeWrite)
+                await beforeWrite();
             if (FailNextWrite)
             {
                 FailNextWrite = false;

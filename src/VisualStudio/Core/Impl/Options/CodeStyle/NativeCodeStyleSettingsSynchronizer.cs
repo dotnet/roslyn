@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 /// Synchronizes ordinary preference/severity settings with the compound XML used by profiles and roaming.
 /// All pair updates are serialized, and each write reads the current compound value before changing either half.
 /// </summary>
-internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUpdate>, IDisposable
+internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUpdate>, System.IAsyncDisposable
 {
     // Identifies our native commits so their notifications do not echo back into legacy storage.
     private static readonly ChangeSource s_source = new(nameof(NativeCodeStyleSettingsSynchronizer), new Guid("3a6e0fd5-85fb-45f1-9ef6-7cf5d21595db"));
@@ -59,8 +59,16 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
     // Reports individual failed attempts while synchronization remains active and retries.
     private readonly Action<Exception> _reportRetryFailure;
 
-    // Cancels synchronization and retry waits when the hosting service shuts down.
+    // Cancels this attempt's synchronization and retry waits on disposal or hosting service shutdown.
+    private readonly CancellationTokenSource _lifetime;
     private readonly CancellationToken _cancellationToken;
+
+    // Serializes callback admission and subscription ownership with disposal. Never held across an await.
+    private readonly object _lifetimeGate = new();
+    private bool _disposed;
+
+    // Operations admitted under _lifetimeGate. Async disposal drains them before the broker proxy is released.
+    private readonly List<Task> _pendingOperations = [];
 
     // An optional override of the shared retry policy's default delay.
     private readonly TimeSpan? _retryDelay;
@@ -108,17 +116,37 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
         _observe = observe;
         _reportRetryFailure = reportRetryFailure;
         _gate = ReentrantSemaphore.Create(1, joinableTaskContext, ReentrantSemaphore.ReentrancyMode.NotRecognized);
-        _cancellationToken = cancellationToken;
+        _lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _cancellationToken = _lifetime.Token;
         _retryDelay = retryDelay;
         _legacySubset = legacy.SettingsManager.GetSubset("*");
     }
 
     internal Task InitializeAsync()
+    {
+        lock (_lifetimeGate)
+        {
+            if (_disposed)
+                throw new ObjectDisposedException(nameof(NativeCodeStyleSettingsSynchronizer));
+            return TrackOperationAsync(InitializeCoreAsync());
+        }
+    }
+
+    private Task InitializeCoreAsync()
         => _gate.ExecuteAsync(async () =>
         {
             var patterns = _bindings.Values.SelectMany(binding => binding.IsFlag ? new[] { binding.Moniker } : new[] { binding.Moniker, binding.SeverityMoniker }).ToArray();
-            _subscription = await _native.SubscribeAsync(this, patterns, ReadOptions.NoFallbackToDefault, _cancellationToken).ConfigureAwait(false);
-            _legacySubset.SettingChangedAsync += OnLegacyChangedAsync;
+            var subscription = await _native.SubscribeAsync(this, patterns, ReadOptions.NoFallbackToDefault, _cancellationToken).ConfigureAwait(false);
+            lock (_lifetimeGate)
+            {
+                if (_disposed)
+                {
+                    subscription.Dispose();
+                    _cancellationToken.ThrowIfCancellationRequested();
+                }
+                _subscription = subscription;
+                _legacySubset.SettingChangedAsync += OnLegacyChangedAsync;
+            }
             var persisted = (await _native.GetValuesAsync(patterns, ReadOptions.NoFallbackToDefault, _cancellationToken).ConfigureAwait(false))
                 .ToDictionary(result => result.Moniker, StringComparer.Ordinal);
             var effective = (await _native.GetValuesAsync(patterns, ReadOptions.NoRequirements, _cancellationToken).ConfigureAwait(false))
@@ -214,13 +242,18 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
     private Task OnLegacyChangedAsync(object sender, PropertyChangedEventArgs args)
     {
         // SettingsManager may await its handlers during SetValueAsync. Never wait for our own write gate here.
-        var publishing = Volatile.Read(ref _publishingLegacy);
-        var snapshots = _bindings.Values.Where(binding => binding.LegacyKey == args.PropertyName)
-            .Select(binding => new LegacyChange(binding, ReadLegacy(binding, out _)))
-            .Where(change => publishing is null || change.Binding.LegacyKey != publishing.Binding.LegacyKey || !change.Value.Equals(publishing.Value))
-            .ToArray();
-        if (snapshots.Length > 0)
-            _observe(QueueLegacyChangeAsync(snapshots));
+        lock (_lifetimeGate)
+        {
+            if (_disposed)
+                return Task.CompletedTask;
+            var publishing = Volatile.Read(ref _publishingLegacy);
+            var snapshots = _bindings.Values.Where(binding => binding.LegacyKey == args.PropertyName)
+                .Select(binding => new LegacyChange(binding, ReadLegacy(binding, out _)))
+                .Where(change => publishing is null || change.Binding.LegacyKey != publishing.Binding.LegacyKey || !change.Value.Equals(publishing.Value))
+                .ToArray();
+            if (snapshots.Length > 0)
+                _observe(TrackOperationAsync(QueueLegacyChangeAsync(snapshots)));
+        }
         return Task.CompletedTask;
     }
 
@@ -289,10 +322,14 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
         // SubscribeAsync always delivers the initial snapshot first; initialization reads persisted values itself.
         if (Interlocked.Exchange(ref _initialSnapshot, 1) == 0)
             return;
-        _observe(ApplyNativeUpdateAsync(update));
+        lock (_lifetimeGate)
+        {
+            if (!_disposed)
+                _observe(TrackOperationAsync(ApplyNativeUpdateAsync(update)));
+        }
     }
 
-    internal Task ApplyNativeUpdateAsync(SettingsUpdate update)
+    private Task ApplyNativeUpdateAsync(SettingsUpdate update)
         => _gate.ExecuteAsync(async () =>
         {
             var results = update.Values.ToDictionary(result => result.Moniker, StringComparer.Ordinal);
@@ -362,9 +399,31 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
     public void OnError(Exception error) => _observe(Task.FromException(error));
     public void OnCompleted() { }
 
-    public void Dispose()
+    private Task TrackOperationAsync(Task operation)
     {
-        _subscription?.Dispose();
-        _legacySubset.SettingChangedAsync -= OnLegacyChangedAsync;
+        _pendingOperations.RemoveAll(task => task.IsCompleted);
+        _pendingOperations.Add(operation);
+        return operation;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        Task[] pending;
+        lock (_lifetimeGate)
+        {
+            if (!_disposed)
+            {
+                _disposed = true;
+                _lifetime.Cancel();
+                _subscription?.Dispose();
+                _legacySubset.SettingChangedAsync -= OnLegacyChangedAsync;
+            }
+            pending = _pendingOperations.ToArray();
+        }
+
+        // Initialization reports its own failure; callbacks report through _observe. Wait without reporting them twice.
+        await Task.WhenAll(pending.Select(task => task.ContinueWith(static _ => { }, CancellationToken.None,
+            TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default))).ConfigureAwait(false);
+        _lifetime.Dispose();
     }
 }
