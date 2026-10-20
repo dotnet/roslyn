@@ -25684,6 +25684,40 @@ struct S
             CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
         }
 
+        [ConditionalFact(typeof(CoreClrOnly))]
+        public void Unused_And_This_185()
+        {
+            var source = """
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        try
+        {
+            await GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine("Pass");
+        }
+    }    
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public async System.Threading.Tasks.Task M()
+    {
+        _ = this;
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+""";
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe, expectedOutput: "Pass").VerifyDiagnostics();
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe, expectedOutput: "Pass").VerifyDiagnostics();
+        }
+
         [WorkItem(665317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/665317")]
         [Fact]
         public void InitGenericElement()
