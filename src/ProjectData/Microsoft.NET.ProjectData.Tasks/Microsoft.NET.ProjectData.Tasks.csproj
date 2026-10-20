@@ -60,7 +60,8 @@
     <Compile Include="..\Microsoft.NET.ProjectData\HexEncoder.cs" Link="Shared\HexEncoder.cs" />
   </ItemGroup>
 
-  <Target Name="_GenerateProjectDataSchemaProps"
+  <Target Name="_GenerateProjectDataSchemaProps"  
+        Condition="$(DesignTimeBuild) != 'true'"
         BeforeTargets="CoreCompile"
         DependsOnTargets="ResolveProjectReferences">
     <ItemGroup>
