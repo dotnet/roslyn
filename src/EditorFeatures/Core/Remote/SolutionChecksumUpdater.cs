@@ -35,7 +35,6 @@ internal sealed class SolutionChecksumUpdater : IDisposable
     /// </summary>
     private readonly AsyncBatchingWorkQueue _synchronizeActiveDocumentQueue;
 
-    private readonly object _gate = new();
     private readonly WorkspaceEventRegistration _workspaceChangedDisposer;
     private readonly WorkspaceEventRegistration _workspaceChangedImmediateDisposer;
 
@@ -84,11 +83,8 @@ internal sealed class SolutionChecksumUpdater : IDisposable
     public void Dispose()
     {
         // Stop any work that is in progress, and prevent any further work from being queued up.
-        lock (_gate)
-        {
-            _synchronizeWorkspaceQueue.Dispose();
-            _synchronizeActiveDocumentQueue.Dispose();
-        }
+        _synchronizeWorkspaceQueue.Dispose();
+        _synchronizeActiveDocumentQueue.Dispose();
 
         _documentTrackingService.ActiveDocumentChanged -= OnActiveDocumentChanged;
         _workspaceChangedDisposer.Dispose();
@@ -97,10 +93,8 @@ internal sealed class SolutionChecksumUpdater : IDisposable
 
     private void OnWorkspaceChanged(WorkspaceChangeEventArgs _)
     {
-        lock (_gate)
-        {
-            _synchronizeWorkspaceQueue.AddWork();
-        }
+        // Only the latest solution needs proactive synchronization. Stop loading metadata for obsolete snapshots.
+        _synchronizeWorkspaceQueue.AddWork(cancelExistingWork: true);
     }
 
     private void OnWorkspaceChangedImmediate(WorkspaceChangeEventArgs e)
