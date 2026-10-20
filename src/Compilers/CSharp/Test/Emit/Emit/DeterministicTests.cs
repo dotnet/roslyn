@@ -20,7 +20,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Security.Cryptography;
-using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
@@ -154,27 +153,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 // P.A and P.C before Q.B, even though Q.B's delegate use comes first in source.
                 var compilation = CreateCompilation(source, assemblyName: "AnonymousDelegates",
                     options: TestOptions.UnsafeReleaseDll.WithDeterministic(true).WithConcurrentBuild(concurrentBuild));
-                var image = compilation.EmitToArray();
-
-                using var peReader = new PEReader(image);
-                var reader = peReader.GetMetadataReader();
-                var delegates = reader.TypeDefinitions.Select(reader.GetTypeDefinition)
-                    .Where(type => reader.GetString(type.Name).StartsWith("<>f__AnonymousDelegate", StringComparison.Ordinal))
-                    .ToArray();
-
-                AssertEx.Equal(
-                    parameterType == "int"
-                        ? new[] { "<>f__AnonymousDelegate0`3", "<>f__AnonymousDelegate1`4" }
-                        : new[] { "<>f__AnonymousDelegate0", "<>f__AnonymousDelegate1" },
-                    delegates.Select(type => reader.GetString(type.Name)));
-                AssertEx.Equal(new[] { 2, 3 }, delegates.Select(type =>
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
                 {
-                    var invoke = type.GetMethods().Select(reader.GetMethodDefinition)
-                        .Single(method => reader.StringComparer.Equals(method.Name, "Invoke"));
-                    var signature = reader.GetBlobReader(invoke.Signature);
-                    signature.ReadSignatureHeader();
-                    return signature.ReadCompressedInteger();
-                }));
+                    var delegates = module.GlobalNamespace.GetTypeMembers()
+                        .Where(type => type.Name.StartsWith("<>f__AnonymousDelegate", StringComparison.Ordinal))
+                        .ToArray();
+
+                    AssertEx.Equal(
+                        parameterType == "int"
+                            ? new[] { "<>f__AnonymousDelegate0`3", "<>f__AnonymousDelegate1`4" }
+                            : new[] { "<>f__AnonymousDelegate0", "<>f__AnonymousDelegate1" },
+                        delegates.Select(type => type.MetadataName));
+                    AssertEx.Equal(new[] { 2, 3 }, delegates.Select(type => type.DelegateInvokeMethod.ParameterCount));
+                }, verify: Verification.Skipped);
+                verifier.VerifyDiagnostics();
+                var image = verifier.EmittedAssemblyData;
 
                 if (expectedImage.IsDefault)
                 {
