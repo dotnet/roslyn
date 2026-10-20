@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected bool _convertInsufficientExecutionStackExceptionToCancelledByStackGuardException = false; // By default, just let the original exception to bubble up.
 
         /// <summary>
-        /// Check that every rvalue has been converted in the definite assignment pass only (not later passes deriving from it).
+        /// Whether this walker is the definite-assignment diagnostic pass rather than a derived analysis.
         /// </summary>
-        private readonly bool _shouldCheckConverted;
+        private readonly bool _isDefiniteAssignmentPass;
 
         internal DefiniteAssignmentPass(
             CSharpCompilation compilation,
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _trackClassFields = trackClassFields;
             _trackStaticMembers = trackStaticMembers;
             this.topLevelMethod = member as MethodSymbol;
-            _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            _isDefiniteAssignmentPass = this.GetType() == typeof(DefiniteAssignmentPass);
             State = new LocalState(BitVector.Empty);
         }
 
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _unassignedVariableAddressOfSyntaxes = null;
             _requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;
-            _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            _isDefiniteAssignmentPass = this.GetType() == typeof(DefiniteAssignmentPass);
             State = new LocalState(BitVector.Empty);
         }
 
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _sourceAssembly = null;
             this.CurrentSymbol = member;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
-            _shouldCheckConverted = this.GetType() == typeof(DefiniteAssignmentPass);
+            _isDefiniteAssignmentPass = this.GetType() == typeof(DefiniteAssignmentPass);
             State = new LocalState(BitVector.Empty);
         }
 
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(
                 node is null ||
-                !_shouldCheckConverted ||
+                !_isDefiniteAssignmentPass ||
                 isKnownToBeAnLvalue ||
                 !node.NeedsToBeConverted() ||
                 node.WasCompilerGenerated, "expressions should have been converted");
@@ -2568,11 +2568,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Operand evaluation can assign the variable, for example in an inline array index.
-            if (addressOfOpt is { RequiresAssignedOperand: true } &&
+            if (_isDefiniteAssignmentPass &&
+                addressOfOpt is { RequiresAssignedOperand: true } &&
                 this.State.Reachable &&
                 !IsAssigned(operand, out _))
             {
-                Diagnostics.Add(ErrorCode.ERR_UnsafeUnassignedAddressOf, ((PrefixUnaryExpressionSyntax)addressOfOpt.Syntax).OperatorToken.GetLocation());
+                var location = addressOfOpt.Syntax is PrefixUnaryExpressionSyntax prefix
+                    ? prefix.OperatorToken.GetLocation()
+                    : addressOfOpt.Syntax.Location;
+                Diagnostics.Add(ErrorCode.ERR_UnsafeUnassignedAddressOf, location);
             }
 
             WriteArgument(operand, RefKind.Out, null);

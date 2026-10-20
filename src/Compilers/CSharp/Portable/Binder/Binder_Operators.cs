@@ -4177,8 +4177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundAddressOfOperator(node, operand, pointerType, hasErrors,
                 requiresAssignedOperand: !hasErrors &&
                     Compilation.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution) &&
-                    !InUnsafeRegion &&
-                    !Flags.Includes(BinderFlags.SuppressUnsafeDiagnostics));
+                    !InUnsafeRegion);
         }
 
         /// <summary>
