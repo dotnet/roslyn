@@ -18541,8 +18541,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -18559,8 +18572,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -18624,8 +18637,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -18642,8 +18668,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -18703,8 +18729,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -18721,8 +18760,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -18784,8 +18823,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -18802,8 +18854,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -18863,8 +18915,11 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        default(S).M();
+        System.Console.Write("Pass2");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -18881,8 +18936,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
         }
 
         [Fact]
@@ -18940,8 +18995,11 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        default(S).M();
+        System.Console.Write("Pass2");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -18958,8 +19016,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
         }
 
         [Fact]
@@ -19023,8 +19081,11 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        default(S).M();
+        System.Console.Write("Pass2");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -19041,8 +19102,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
         }
 
         [Fact]
@@ -19663,8 +19724,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -19682,8 +19756,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -19749,8 +19823,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -19768,8 +19855,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -19835,8 +19922,11 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        default(S).M();
+        System.Console.Write("Pass2");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -19854,8 +19944,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
         }
 
         [Fact]
@@ -21310,8 +21400,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -21329,8 +21432,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -21398,8 +21501,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -21417,8 +21533,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -21482,8 +21598,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -21501,8 +21630,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -21568,8 +21697,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -21587,8 +21729,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -21652,8 +21794,11 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        default(S).M();
+        System.Console.Write("Pass2");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -21671,8 +21816,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
         }
 
         [Fact]
@@ -21734,8 +21879,11 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        default(S).M();
+        System.Console.Write("Pass2");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -21753,8 +21901,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
         }
 
         [Fact]
@@ -21822,8 +21970,11 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        default(S).M();
+        System.Console.Write("Pass2");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -21841,8 +21992,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
         }
 
         [Fact]
@@ -22952,8 +23103,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -22971,8 +23135,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -23042,8 +23206,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -23061,8 +23238,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -23128,8 +23305,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -23147,8 +23337,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -23216,8 +23406,21 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        try
+        {
+            default(S).M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write("Pass2");
+        }
+
+        byte b = 0;
+        new S() { F = ref b }.M();
+        System.Console.Write("Pass3");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -23235,8 +23438,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2Pass3");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2Pass3");
         }
 
         [Fact]
@@ -23302,8 +23505,11 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        default(S).M();
+        System.Console.Write("Pass2");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -23321,8 +23527,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
         }
 
         [Fact]
@@ -23386,8 +23592,11 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        default(S).M();
+        System.Console.Write("Pass2");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -23405,8 +23614,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
         }
 
         [Fact]
@@ -23476,8 +23685,11 @@ class C
         }
         catch (System.NullReferenceException)
         {
-            System.Console.WriteLine("Pass");
+            System.Console.Write("Pass1");
         }
+
+        default(S).M();
+        System.Console.Write("Pass2");
     }    
 
     static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
@@ -23495,8 +23707,8 @@ ref struct S
 }
 
 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass");
-            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.DebugExe, expectedOutput: "Pass1Pass2");
+            CompileAndVerify(source, targetFramework: TargetFramework.Net100, options: TestOptions.ReleaseExe, expectedOutput: "Pass1Pass2");
         }
 
         [Fact]
