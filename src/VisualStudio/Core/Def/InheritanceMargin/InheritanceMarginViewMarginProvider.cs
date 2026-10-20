@@ -70,7 +70,7 @@ internal sealed class InheritanceMarginViewMarginProvider : IWpfTextViewMarginPr
     public IWpfTextViewMargin? CreateMargin(IWpfTextViewHost wpfTextViewHost, IWpfTextViewMargin marginContainer)
     {
         var textView = wpfTextViewHost.TextView;
-        // The view can be created before its buffer is associated with a workspace document.
+        // Use the content type to figure out the language since the view can be created before its buffer is associated with a workspace document.
         var languageServices = _workspace.Services.SolutionServices.GetProjectServices(textView.TextDataModel.ContentType);
         Contract.ThrowIfNull(languageServices);
 
