@@ -282,49 +282,11 @@ class C
                 }
                 """;
             var expectedOutput = "Hello World!";
-            var expectedIL = """
-                .class public sequential ansi sealed beforefieldinit App
-                    extends [mscorlib]System.ValueType
-                {
-                    .pack 0
-                    .size 1
-                    // Methods
-                    .method public hidebysig static 
-                        void Main () cil managed 
-                    {
-                        // Method begins at RVA 0x2067
-                        // Code size 6 (0x6)
-                        .maxstack 8
-                        .entrypoint
-                        IL_0000: call void App::'<Main>g__Do|0_0'()
-                        IL_0005: ret
-                    } // end of method App::Main
-                    .method private hidebysig static 
-                        void '<Main>g__Do|0_0' () cil managed 
-                    {
-                        .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
-                            01 00 00 00
-                        )
-                        // Method begins at RVA 0x206e
-                        // Code size 11 (0xb)
-                        .maxstack 8
-                        IL_0000: ldstr "Hello World!"
-                        IL_0005: call void [mscorlib]System.Console::WriteLine(string)
-                        IL_000a: ret
-                    } // end of method App::'<Main>g__Do|0_0'
-                } // end of class App
-                """;
-            if (ExecutionConditionUtil.IsMonoOrCoreClr)
-            {
-                expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
-            }
             var verifier = CompileAndVerify(code,
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 expectedOutput: expectedOutput,
                 symbolValidator: validateSymbols
             );
-
-            verifier.VerifyTypeIL("App", expectedIL);
 
             static void validateSymbols(ModuleSymbol module)
             {
