@@ -136,8 +136,25 @@ class C
                 expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
             }
 
-            var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(code,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: expectedOutput,
+                symbolValidator: validateSymbols
+            );
             verifier.VerifyTypeIL("App", expectedIL);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var app = module.GlobalNamespace.GetTypeMember("App");
+                Assert.Equal(Accessibility.Public, app.DeclaredAccessibility);
+                Assert.True(app.IsStatic);
+                var main = app.GetMethod("Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                Assert.True(main.IsStatic);
+                var local = app.GetMethod("<Main>g__local|0_0");
+                Assert.Equal(Accessibility.Private, local.DeclaredAccessibility);
+                Assert.True(local.IsStatic);
+            }
         }
 
         [Fact]
@@ -214,8 +231,28 @@ class C
             {
                 expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
             }
-            var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(code,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: expectedOutput,
+                symbolValidator: validateSymbols
+            );
             verifier.VerifyTypeIL("App", expectedIL);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var app = module.GlobalNamespace.GetTypeMember("App");
+                Assert.Equal(Accessibility.Public, app.DeclaredAccessibility);
+                Assert.False(app.IsStatic);
+                var main = app.GetMethod("Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                Assert.True(main.IsStatic);
+                var doMethod = app.GetMethod("Do");
+                Assert.Equal(Accessibility.Private, doMethod.DeclaredAccessibility);
+                Assert.False(doMethod.IsStatic);
+                var local = app.GetMethod("<Do>g__local|1_0");
+                Assert.Equal(Accessibility.Private, local.DeclaredAccessibility);
+                Assert.False(local.IsStatic);
+            }
         }
 
         [Fact]
@@ -312,8 +349,28 @@ class C
             {
                 expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
             }
-            var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(code,
+                expectedOutput: expectedOutput,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                symbolValidator: validateSymbols
+            );
             verifier.VerifyTypeIL("App", expectedIL);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var app = module.GlobalNamespace.GetTypeMember("App");
+                Assert.Equal(Accessibility.Public, app.DeclaredAccessibility);
+                Assert.False(app.IsStatic);
+                var main = app.GetMethod("Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                Assert.True(main.IsStatic);
+                var doMethod = app.GetMethod("Do");
+                Assert.Equal(Accessibility.Private, doMethod.DeclaredAccessibility);
+                Assert.False(doMethod.IsStatic);
+                var local = app.GetMethod("<Do>g__local|1_0");
+                Assert.Equal(Accessibility.Private, local.DeclaredAccessibility);
+                Assert.True(local.IsStatic);
+            }
         }
 
         [Fact]
@@ -438,8 +495,36 @@ class C
             {
                 expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
             }
-            var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(code,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: expectedOutput,
+                symbolValidator: validateSymbols
+            );
             verifier.VerifyTypeIL("App", expectedIL);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var app = module.GlobalNamespace.GetTypeMember("App");
+                Assert.Equal(Accessibility.Public, app.DeclaredAccessibility);
+                Assert.False(app.IsStatic);
+                var main = app.GetMethod("Main");
+                Assert.Equal(Accessibility.Private, main.DeclaredAccessibility);
+                Assert.True(main.IsStatic);
+                var doMethod = app.GetMethod("Do");
+                Assert.Equal(Accessibility.Private, doMethod.DeclaredAccessibility);
+                Assert.False(doMethod.IsStatic);
+
+                var displayClass = app.GetTypeMember("<>c__DisplayClass1_0");
+                Assert.Equal(Accessibility.Private, displayClass.DeclaredAccessibility);
+
+                var local = displayClass.GetMethod("<Do>g__local|1");
+                Assert.Equal(Accessibility.Internal, local.DeclaredAccessibility);
+                Assert.False(local.IsStatic);
+
+                var lambda = displayClass.GetMethod("<Do>b__0");
+                Assert.Equal(Accessibility.Internal, lambda.DeclaredAccessibility);
+                Assert.False(lambda.IsStatic);
+            }
         }
 
         [Fact]
@@ -497,8 +582,26 @@ class C
             {
                 expectedIL = expectedIL.Replace("[mscorlib]", "[netstandard]");
             }
-            var verifier = CompileAndVerify(code, expectedOutput: expectedOutput);
+            var verifier = CompileAndVerify(code,
+                options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                expectedOutput: expectedOutput,
+                symbolValidator: validateSymbols
+            );
+
             verifier.VerifyTypeIL("App", expectedIL);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var app = module.GlobalNamespace.GetTypeMember("App");
+                Assert.Equal(Accessibility.Public, app.DeclaredAccessibility);
+                Assert.True(app.IsValueType);
+                var main = app.GetMethod("Main");
+                Assert.Equal(Accessibility.Public, main.DeclaredAccessibility);
+                Assert.True(main.IsStatic);
+                var doMethod = app.GetMethod("<Main>g__Do|0_0");
+                Assert.Equal(Accessibility.Private, doMethod.DeclaredAccessibility);
+                Assert.True(doMethod.IsStatic);
+            }
         }
 
         [Fact]
