@@ -19,6 +19,9 @@ internal sealed class NamingPreferencesReadFallback() : IVisualStudioStorageRead
     public Optional<object?> TryRead(string? language, TryReadValueDelegate readValue)
     {
         Contract.ThrowIfNull(language);
-        return readValue($"TextEditor.{language}.Specific.NamingPreferences", typeof(NamingStylePreferences));
+        return readValue(GetStorageKey(language), typeof(NamingStylePreferences));
     }
+
+    internal static string GetStorageKey(string language)
+        => $"TextEditor.{language}.Specific.NamingPreferences";
 }

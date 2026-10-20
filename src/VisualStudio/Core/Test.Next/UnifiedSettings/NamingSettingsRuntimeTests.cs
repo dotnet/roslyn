@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -18,12 +19,91 @@ using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities.UnifiedSettings;
 using Moq;
 using Xunit;
+using LegacySettingsManager = Microsoft.VisualStudio.Settings.ISettingsManager;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 
 public sealed class NamingSettingsRuntimeTests
 {
-    private const string LegacyKey = "TextEditor.CSharp.Specific.NamingPreferences";
+    private const string LegacyKey = "TextEditor.CSharp.Specific.NamingPreferences5";
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task FallbackOnlyProfileSurvivesMigrationAndStartup(string language)
+    {
+        using var fixture = new Fixture(language);
+        fixture.SetLegacyValue(fixture.PrimaryKey, null);
+        var preferences = CreatePreferences("Older profile style");
+        fixture.SetLegacyValue(fixture.FallbackKey, preferences);
+
+        await fixture.MigrateLegacyAsync();
+        await fixture.Runtime.InitializeAsync();
+
+        Assert.Equal(preferences, fixture.Manager.Reader.Graph.ToPreferences());
+        Assert.Equal(preferences, Assert.Single(fixture.Refreshes));
+        Assert.Equal(preferences, fixture.Legacy);
+        Assert.Equal(0, fixture.LegacyWrites);
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task FallbackImportsReachNativeAndRuntime(string language)
+    {
+        using var fixture = new Fixture(language);
+        fixture.SetLegacyValue(fixture.PrimaryKey, null);
+        await fixture.Runtime.InitializeAsync();
+        var preferences = CreatePreferences("Imported fallback style");
+        fixture.SetLegacyValue(fixture.FallbackKey, preferences);
+        fixture.NotifyLegacy(fixture.FallbackKey);
+        await Task.WhenAll(fixture.Observed);
+
+        Assert.Equal(preferences, fixture.Manager.Reader.Graph.ToPreferences());
+        Assert.Equal(preferences, fixture.Refreshes[^1]);
+        Assert.Equal(0, fixture.LegacyWrites);
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task PrimaryPreferencesTakePrecedenceOverFallbackImports(string language)
+    {
+        using var fixture = new Fixture(language);
+        var primary = CreatePreferences("Primary profile style");
+        fixture.Legacy = primary;
+        await fixture.MigrateLegacyAsync();
+        await fixture.Runtime.InitializeAsync();
+        fixture.SetLegacyValue(fixture.FallbackKey, CreatePreferences("Ignored fallback style"));
+        fixture.NotifyLegacy(fixture.FallbackKey);
+        await Task.WhenAll(fixture.Observed);
+
+        Assert.Equal(primary, fixture.Manager.Reader.Graph.ToPreferences());
+        Assert.Equal(primary, fixture.Refreshes[^1]);
+        Assert.Equal(primary, fixture.Legacy);
+        Assert.Equal(0, fixture.LegacyWrites);
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task RemovingPrimaryReactivatesFallback(string language)
+    {
+        using var fixture = new Fixture(language);
+        fixture.Legacy = CreatePreferences("Primary profile style");
+        var fallback = CreatePreferences("Fallback profile style");
+        fixture.SetLegacyValue(fixture.FallbackKey, fallback);
+        await fixture.MigrateLegacyAsync();
+        await fixture.Runtime.InitializeAsync();
+        fixture.SetLegacyValue(fixture.PrimaryKey, null);
+        fixture.NotifyLegacy();
+        await Task.WhenAll(fixture.Observed);
+
+        Assert.Equal(fallback, fixture.Manager.Reader.Graph.ToPreferences());
+        Assert.Equal(fallback, fixture.Refreshes[^1]);
+        Assert.Equal(fallback, fixture.Legacy);
+        Assert.Equal(0, fixture.LegacyWrites);
+    }
 
     [Fact]
     public async Task ClassicModeLeavesTheExistingLegacyPersisterInControl()
@@ -242,34 +322,69 @@ public sealed class NamingSettingsRuntimeTests
         Assert.Contains(choices, choice => choice.Title == "Observed style");
     }
 
+    private static NamingStylePreferences CreatePreferences(string styleName)
+    {
+        var element = NamingStylePreferences.Default.CreateXElement();
+        element.Element("NamingStyles")!.Element("NamingStyle")!.SetAttributeValue("Name", styleName);
+        return NamingStylePreferences.FromXElement(element);
+    }
+
     private sealed class Fixture : IDisposable
     {
         public readonly NamingSettingsStoreTests.SettingsManagerMock Manager = new();
         public readonly Mock<ISettingsSubset> Subset = new(MockBehavior.Strict);
+        private readonly Mock<LegacySettingsManager> _legacyManager = new(MockBehavior.Strict);
         public readonly List<Task> Observed = [];
         public readonly List<Exception> Failures = [];
         public readonly List<NamingStylePreferences> Refreshes = [];
-        public NamingStylePreferences Legacy = NamingStylePreferences.Default;
+        public NamingStylePreferences Legacy
+        {
+            get => ReadLegacy();
+            set => SetLegacyValue(PrimaryKey, value);
+        }
         public int LegacyWrites;
         public readonly NamingSettingsRuntime Runtime;
         private readonly JoinableTaskContext _context = new();
-        private readonly string _legacyKey;
+        public readonly string PrimaryKey;
+        public readonly string FallbackKey;
+        private readonly string _prefix;
 
         public Fixture(string language = LanguageNames.CSharp)
         {
-            _legacyKey = language == LanguageNames.CSharp ? LegacyKey : "TextEditor.VisualBasic.Specific.NamingPreferences";
+            PrimaryKey = language == LanguageNames.CSharp ? LegacyKey : "TextEditor.VisualBasic.Specific.NamingPreferences5";
+            FallbackKey = $"TextEditor.{language}.Specific.NamingPreferences";
+            _prefix = language == LanguageNames.CSharp ? "languages.csharp.editorConfig.naming." : "languages.basic.codeStyle.naming.";
+            Legacy = NamingStylePreferences.Default;
+            SetLegacyValue(FallbackKey, null);
             var store = new NamingSettingsStore(Manager, language);
-            var coordinator = new NamingSettingsCoordinator(store, () => Legacy, value =>
+            var coordinator = new NamingSettingsCoordinator(store, ReadLegacy, value =>
             {
                 Legacy = value;
                 LegacyWrites++;
                 NotifyLegacy();
             }, _context, Refreshes.Add);
-            Runtime = new(store, coordinator, Subset.Object, _legacyKey, () => Legacy, Observed.Add, Failures.Add,
+            Runtime = new(store, coordinator, Subset.Object, PrimaryKey, FallbackKey, ReadLegacy, Observed.Add, Failures.Add,
                 CancellationToken.None, TimeSpan.Zero);
         }
 
-        public void NotifyLegacy() => Subset.Raise(subset => subset.SettingChangedAsync += null, Subset.Object, new PropertyChangedEventArgs(_legacyKey));
+        private NamingStylePreferences ReadLegacy() => NamingSettingsService.ReadLegacyPreferences(_legacyManager.Object, PrimaryKey, FallbackKey);
+
+        public void SetLegacyValue(string key, NamingStylePreferences? preferences)
+        {
+            var xml = preferences?.CreateXElement().ToString() ?? "";
+            _legacyManager.Setup(manager => manager.TryGetValue(key, out xml)).Returns(preferences is null ? GetValueResult.Missing : GetValueResult.Success);
+        }
+
+        public async Task MigrateLegacyAsync()
+        {
+            var specifications = await Runtime.Coordinator.MigrateToUnifiedSettingsAsync(_prefix + "symbolSpecifications", CancellationToken.None);
+            var styles = await Runtime.Coordinator.MigrateToUnifiedSettingsAsync(_prefix + "namingStyles", CancellationToken.None);
+            var rules = await Runtime.Coordinator.MigrateToUnifiedSettingsAsync(_prefix + "rules", CancellationToken.None);
+            Manager.Reader.Graph = new(NamingSettingsStorageSerializer.DeserializeSpecifications(specifications.Items!.ToImmutableArray()),
+                styles.Items!.ToImmutableArray(), rules.Items!.ToImmutableArray());
+        }
+
+        public void NotifyLegacy(string? key = null) => Subset.Raise(subset => subset.SettingChangedAsync += null, Subset.Object, new PropertyChangedEventArgs(key ?? PrimaryKey));
         public void NotifyNative(Guid source) => Manager.Reader.ChangeHandler?.Invoke(new(source, ["languages.csharp.editorConfig.naming.rules"]));
         public void Dispose()
         {

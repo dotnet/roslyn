@@ -82,7 +82,8 @@ internal sealed class NamingSettingsService : INamingSettingsService, IDisposabl
         var key = new OptionKey2(NamingStyleOptions.NamingPreferences, language);
         var storage = (VisualStudioOptionStorage.RoamingProfileStorage)VisualStudioOptionStorage.Storages[key.Option.Definition.ConfigName];
         var legacyKey = storage.GetKey(language);
-        NamingStylePreferences ReadLegacy() => ReadLegacyPreferences(manager, legacyKey);
+        var fallbackKey = NamingPreferencesReadFallback.GetStorageKey(language);
+        NamingStylePreferences ReadLegacy() => ReadLegacyPreferences(manager, legacyKey, fallbackKey);
         void WriteLegacy(NamingStylePreferences value)
         {
             _threading.JoinableTaskFactory.Run(() => manager.SetValueAsync(legacyKey, value.CreateXElement().ToString(), isMachineLocal: false));
@@ -90,7 +91,7 @@ internal sealed class NamingSettingsService : INamingSettingsService, IDisposabl
         var store = new NamingSettingsStore(native, language);
         var coordinator = new NamingSettingsCoordinator(store, ReadLegacy, WriteLegacy, _threading.JoinableTaskContext,
             value => Refresh(key, value));
-        var runtime = new NamingSettingsRuntime(store, coordinator, manager.GetSubset(legacyKey), legacyKey, ReadLegacy,
+        var runtime = new NamingSettingsRuntime(store, coordinator, manager.GetSubset("*"), legacyKey, fallbackKey, ReadLegacy,
             task => task.ReportNonFatalErrorUnlessCancelledAsync(token),
             exception => FatalError.ReportAndCatchUnlessCanceled(exception, token), token);
         lock (_lifetimeGate)
@@ -105,9 +106,11 @@ internal sealed class NamingSettingsService : INamingSettingsService, IDisposabl
         return runtime;
     }
 
-    internal static NamingStylePreferences ReadLegacyPreferences(LegacySettingsManager manager, string key)
+    internal static NamingStylePreferences ReadLegacyPreferences(LegacySettingsManager manager, string key, string fallbackKey)
     {
         var result = manager.TryGetValue(key, out string xml);
+        if (result == GetValueResult.Missing)
+            result = manager.TryGetValue(fallbackKey, out xml);
         if (result == GetValueResult.Missing)
             return NamingStylePreferences.Default;
         if (result != GetValueResult.Success)

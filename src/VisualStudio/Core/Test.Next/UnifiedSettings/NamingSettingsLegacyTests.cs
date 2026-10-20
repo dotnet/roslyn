@@ -15,12 +15,15 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 public sealed class NamingSettingsLegacyTests
 {
     private const string Key = "Naming";
+    private const string FallbackKey = "OldNaming";
 
     [Fact]
     public void OnlyAbsentLegacyValuesUseDefaults()
     {
         var manager = CreateManager(GetValueResult.Missing, "");
-        Assert.Equal(NamingStylePreferences.Default, NamingSettingsService.ReadLegacyPreferences(manager.Object, Key));
+        var xml = "";
+        manager.Setup(service => service.TryGetValue(FallbackKey, out xml)).Returns(GetValueResult.Missing);
+        Assert.Equal(NamingStylePreferences.Default, NamingSettingsService.ReadLegacyPreferences(manager.Object, Key, FallbackKey));
     }
 
     [Theory]
@@ -31,7 +34,7 @@ public sealed class NamingSettingsLegacyTests
     public void FailedLegacyReadsDoNotBecomeSuccessfulDefaults(GetValueResult result)
     {
         var manager = CreateManager(result, "");
-        Assert.Throws<InvalidDataException>(() => NamingSettingsService.ReadLegacyPreferences(manager.Object, Key));
+        Assert.Throws<InvalidDataException>(() => NamingSettingsService.ReadLegacyPreferences(manager.Object, Key, FallbackKey));
     }
 
     [Fact]
@@ -41,14 +44,40 @@ public sealed class NamingSettingsLegacyTests
         element.Element("NamingStyles")!.Element("NamingStyle")!.SetAttributeValue("Name", "Custom style");
         var xml = element.ToString();
         var manager = CreateManager(GetValueResult.Success, xml);
-        Assert.Equal(NamingStylePreferences.FromXElement(XElement.Parse(xml)), NamingSettingsService.ReadLegacyPreferences(manager.Object, Key));
+        Assert.Equal(NamingStylePreferences.FromXElement(XElement.Parse(xml)), NamingSettingsService.ReadLegacyPreferences(manager.Object, Key, FallbackKey));
     }
 
     [Fact]
     public void MalformedProfileXmlIsReportedWithoutOverwritingIt()
     {
         var manager = CreateManager(GetValueResult.Success, "<NamingPreferencesInfo");
-        Assert.Throws<InvalidDataException>(() => NamingSettingsService.ReadLegacyPreferences(manager.Object, Key));
+        Assert.Throws<InvalidDataException>(() => NamingSettingsService.ReadLegacyPreferences(manager.Object, Key, FallbackKey));
+        manager.Verify();
+        manager.VerifyNoOtherCalls();
+    }
+
+    [Theory]
+    [InlineData(GetValueResult.Corrupt)]
+    [InlineData(GetValueResult.IncompatibleType)]
+    [InlineData(GetValueResult.ObsoleteFormat)]
+    [InlineData(GetValueResult.UnknownError)]
+    public void FailedFallbackReadsDoNotBecomeSuccessfulDefaults(GetValueResult result)
+    {
+        var manager = CreateManager(GetValueResult.Missing, "");
+        var xml = "";
+        manager.Setup(service => service.TryGetValue(FallbackKey, out xml)).Returns(result);
+
+        Assert.Throws<InvalidDataException>(() => NamingSettingsService.ReadLegacyPreferences(manager.Object, Key, FallbackKey));
+    }
+
+    [Fact]
+    public void MalformedFallbackXmlIsReportedWithoutOverwritingIt()
+    {
+        var manager = CreateManager(GetValueResult.Missing, "");
+        var xml = "<NamingPreferencesInfo";
+        manager.Setup(service => service.TryGetValue(FallbackKey, out xml)).Returns(GetValueResult.Success).Verifiable();
+
+        Assert.Throws<InvalidDataException>(() => NamingSettingsService.ReadLegacyPreferences(manager.Object, Key, FallbackKey));
         manager.Verify();
         manager.VerifyNoOtherCalls();
     }

@@ -17,6 +17,7 @@ internal sealed class NamingSettingsRuntime : IDisposable
     private readonly NamingSettingsStore _store;
     private readonly ISettingsSubset _legacySubset;
     private readonly string _legacyKey;
+    private readonly string _fallbackLegacyKey;
     private readonly Func<NamingStylePreferences> _readLegacy;
     private readonly Action<Task> _observe;
     private readonly Action<Exception> _reportRetryFailure;
@@ -36,7 +37,7 @@ internal sealed class NamingSettingsRuntime : IDisposable
     public Task Ready => _ready.Task;
 
     public NamingSettingsRuntime(NamingSettingsStore store, NamingSettingsCoordinator coordinator,
-        ISettingsSubset legacySubset, string legacyKey, Func<NamingStylePreferences> readLegacy,
+        ISettingsSubset legacySubset, string legacyKey, string fallbackLegacyKey, Func<NamingStylePreferences> readLegacy,
         Action<Task> observe, Action<Exception> reportRetryFailure, CancellationToken cancellationToken, TimeSpan? retryDelay = null)
     {
         _store = store;
@@ -44,6 +45,7 @@ internal sealed class NamingSettingsRuntime : IDisposable
         Provider = new(coordinator, store.Language);
         _legacySubset = legacySubset;
         _legacyKey = legacyKey;
+        _fallbackLegacyKey = fallbackLegacyKey;
         _readLegacy = readLegacy;
         _observe = observe;
         _reportRetryFailure = reportRetryFailure;
@@ -94,7 +96,7 @@ internal sealed class NamingSettingsRuntime : IDisposable
 
     private Task OnLegacyChangedAsync(object sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName == _legacyKey)
+        if (args.PropertyName == _legacyKey || args.PropertyName == _fallbackLegacyKey)
             _observe(RefreshLegacyAsync());
         return Task.CompletedTask;
     }
