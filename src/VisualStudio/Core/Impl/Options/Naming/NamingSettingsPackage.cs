@@ -26,8 +26,8 @@ internal abstract class NamingSettingsPackage : AsyncPackage
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         var service = this.GetMefService<INamingSettingsService>();
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         // Register callbacks before startup reads arrays; initial migration can load this very package.
         AddService(ProviderServiceType, async (_, token, _) => await service.GetProviderAsync(Language, token).ConfigureAwait(false), promote: false);
         AddService(MigratorServiceType, async (_, token, _) => await service.GetCoordinatorAsync(Language, token).ConfigureAwait(false), promote: false);
