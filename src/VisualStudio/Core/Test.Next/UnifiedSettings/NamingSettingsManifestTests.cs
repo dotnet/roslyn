@@ -57,7 +57,7 @@ public sealed class NamingSettingsManifestTests
             Assert.Equal(package.GUID, Guid.Parse(array.GetProperty("migrationCallback").GetProperty("packageId").GetString()!));
             Assert.Equal(Guid.Parse(migrator), Guid.Parse(array.GetProperty("migrationCallback").GetProperty("serviceId").GetString()!));
         }
-        var graph = new NamingSettingsGraph(NamingSettingsStorageCodec.DecodeSpecifications(ReadDefaults(arrays[0])), ReadDefaults(arrays[1]), ReadDefaults(arrays[2]));
+        var graph = new NamingSettingsGraph(NamingSettingsStorageSerializer.DeserializeSpecifications(ReadDefaults(arrays[0])), ReadDefaults(arrays[1]), ReadDefaults(arrays[2]));
         Assert.Equal(NamingStylePreferences.Default, graph.ToPreferences());
         Assert.True(NamingSettingsGraph.Default.ConfigurationEquals(graph));
         Assert.All(graph.SymbolSpecifications.Concat(graph.NamingStyles), item => Assert.False(item.ContainsKey("legacyId")));

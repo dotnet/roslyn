@@ -264,7 +264,7 @@ public sealed class NamingSettingsStoreTests
                         customizedArrays[moniker] = value;
                     }
                 }
-                backingReader.Graph = new NamingSettingsGraph(NamingSettingsStorageCodec.DecodeSpecifications(_queuedArrays["symbolSpecifications"]),
+                backingReader.Graph = new NamingSettingsGraph(NamingSettingsStorageSerializer.DeserializeSpecifications(_queuedArrays["symbolSpecifications"]),
                     _queuedArrays.TryGetValue("namingStyles", out var styles) ? styles : backingReader.Graph.NamingStyles, _queuedArrays["rules"]);
             }
             return new(commitOutcome, "commit detail");

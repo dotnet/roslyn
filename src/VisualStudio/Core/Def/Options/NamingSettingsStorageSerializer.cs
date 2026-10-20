@@ -11,7 +11,7 @@ using static Microsoft.VisualStudio.LanguageServices.Options.NamingSettingsConst
 
 namespace Microsoft.VisualStudio.LanguageServices.Options;
 
-internal static class NamingSettingsStorageCodec
+internal static class NamingSettingsStorageSerializer
 {
     private static readonly string[] s_listProperties = [Properties.SymbolKinds, Properties.Accessibilities, Properties.RequiredModifiers];
     private static readonly string[] s_specificationProperties = [Properties.Id, Properties.Name, Properties.DefaultName, Properties.SymbolKinds, Properties.Accessibilities, Properties.RequiredModifiers];
@@ -19,19 +19,19 @@ internal static class NamingSettingsStorageCodec
     private static readonly string[] s_ruleProperties = [Properties.SymbolSpecificationId, Properties.NamingStyleId, Properties.Severity];
 
     // Registered object-array defaults support scalar properties, not nested arrays. Tokens contain no commas.
-    public static ImmutableArray<IReadOnlyDictionary<string, object>> EncodeSpecifications(ImmutableArray<IReadOnlyDictionary<string, object>> items)
-        => Transform(EncodeDefinitions(items, isStyle: false), encode: true);
+    public static ImmutableArray<IReadOnlyDictionary<string, object>> SerializeSpecifications(ImmutableArray<IReadOnlyDictionary<string, object>> items)
+        => Transform(SerializeDefinitions(items, isStyle: false), serialize: true);
 
-    public static ImmutableArray<IReadOnlyDictionary<string, object>> DecodeSpecifications(ImmutableArray<IReadOnlyDictionary<string, object>> items)
-        => Transform(items, encode: false);
+    public static ImmutableArray<IReadOnlyDictionary<string, object>> DeserializeSpecifications(ImmutableArray<IReadOnlyDictionary<string, object>> items)
+        => Transform(items, serialize: false);
 
-    public static ImmutableArray<IReadOnlyDictionary<string, object>> EncodeStyles(ImmutableArray<IReadOnlyDictionary<string, object>> items)
-        => EncodeDefinitions(items, isStyle: true).Select(item => OrderProperties(item, s_styleProperties)).ToImmutableArray();
+    public static ImmutableArray<IReadOnlyDictionary<string, object>> SerializeStyles(ImmutableArray<IReadOnlyDictionary<string, object>> items)
+        => SerializeDefinitions(items, isStyle: true).Select(item => OrderProperties(item, s_styleProperties)).ToImmutableArray();
 
-    public static ImmutableArray<IReadOnlyDictionary<string, object>> EncodeRules(ImmutableArray<IReadOnlyDictionary<string, object>> items)
+    public static ImmutableArray<IReadOnlyDictionary<string, object>> SerializeRules(ImmutableArray<IReadOnlyDictionary<string, object>> items)
         => items.Select(item => OrderProperties(item, s_ruleProperties)).ToImmutableArray();
 
-    private static ImmutableArray<IReadOnlyDictionary<string, object>> EncodeDefinitions(ImmutableArray<IReadOnlyDictionary<string, object>> items, bool isStyle)
+    private static ImmutableArray<IReadOnlyDictionary<string, object>> SerializeDefinitions(ImmutableArray<IReadOnlyDictionary<string, object>> items, bool isStyle)
     {
         var normalized = items.Select(item => NamingSettingsGraph.NormalizeDefinition(item, isStyle)).ToImmutableArray();
         var defaults = isStyle ? NamingSettingsGraph.Default.NamingStyles : NamingSettingsGraph.Default.SymbolSpecifications;
@@ -66,7 +66,7 @@ internal static class NamingSettingsStorageCodec
         return ordered;
     }
 
-    private static ImmutableArray<IReadOnlyDictionary<string, object>> Transform(ImmutableArray<IReadOnlyDictionary<string, object>> items, bool encode)
+    private static ImmutableArray<IReadOnlyDictionary<string, object>> Transform(ImmutableArray<IReadOnlyDictionary<string, object>> items, bool serialize)
         => items.Select(item =>
         {
             var properties = item.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
@@ -74,7 +74,7 @@ internal static class NamingSettingsStorageCodec
             {
                 if (!properties.TryGetValue(name, out var value))
                     throw new InvalidDataException($"Naming property '{name}' is required.");
-                if (encode)
+                if (serialize)
                 {
                     if (value is not IEnumerable<string> tokens)
                         throw new InvalidDataException($"Naming property '{name}' must be an array of strings.");
@@ -93,6 +93,6 @@ internal static class NamingSettingsStorageCodec
                     throw new InvalidDataException($"Naming property '{name}' must be a token list.");
                 }
             }
-            return encode ? OrderProperties(properties, s_specificationProperties) : properties;
+            return serialize ? OrderProperties(properties, s_specificationProperties) : properties;
         }).ToImmutableArray();
 }

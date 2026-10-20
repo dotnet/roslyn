@@ -99,8 +99,8 @@ public sealed class NamingSettingsJsonTests
         style["prefix"] = "X";
         var specification = graph.SymbolSpecifications[0].ToDictionary(pair => pair.Key, pair => pair.Value);
         specification["symbolKinds"] = new[] { "class", "interface" };
-        var styles = NamingSettingsStorageCodec.EncodeStyles(graph.NamingStyles.SetItem(1, style));
-        var specifications = NamingSettingsStorageCodec.EncodeSpecifications(graph.SymbolSpecifications.SetItem(0, specification));
+        var styles = NamingSettingsStorageSerializer.SerializeStyles(graph.NamingStyles.SetItem(1, style));
+        var specifications = NamingSettingsStorageSerializer.SerializeSpecifications(graph.SymbolSpecifications.SetItem(0, specification));
         AssertCleanDefinitions(styles);
         AssertCleanDefinitions(specifications);
         Assert.Equal(graph.ToPreferences().NamingStyles[1].Name, styles[1]["name"]);
@@ -109,9 +109,9 @@ public sealed class NamingSettingsJsonTests
 
         var captured = styles[0].ToDictionary(pair => pair.Key, pair => pair.Value);
         captured["name"] = "Name captured in another UI language";
-        var encodedAgain = NamingSettingsStorageCodec.EncodeStyles(styles.SetItem(0, captured));
+        var encodedAgain = NamingSettingsStorageSerializer.SerializeStyles(styles.SetItem(0, captured));
         Assert.Equal(captured["name"], encodedAgain[0]["name"]);
-        Assert.All(NamingSettingsStorageCodec.EncodeStyles(graph.NamingStyles), item =>
+        Assert.All(NamingSettingsStorageSerializer.SerializeStyles(graph.NamingStyles), item =>
         {
             Assert.Equal("", item["name"]);
             Assert.Equal(true, item["defaultName"]);

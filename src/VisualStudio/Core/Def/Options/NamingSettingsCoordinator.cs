@@ -187,9 +187,9 @@ internal sealed class NamingSettingsCoordinator(
     private static ImmutableArray<IReadOnlyDictionary<string, object>> GetItems(NamingSettingsGraph graph, string moniker)
         => moniker.Substring(moniker.LastIndexOf('.') + 1) switch
         {
-            SettingNames.SymbolSpecifications => NamingSettingsStorageCodec.EncodeSpecifications(graph.SymbolSpecifications),
-            SettingNames.NamingStyles => NamingSettingsStorageCodec.EncodeStyles(graph.NamingStyles),
-            SettingNames.Rules => NamingSettingsStorageCodec.EncodeRules(graph.Rules),
+            SettingNames.SymbolSpecifications => NamingSettingsStorageSerializer.SerializeSpecifications(graph.SymbolSpecifications),
+            SettingNames.NamingStyles => NamingSettingsStorageSerializer.SerializeStyles(graph.NamingStyles),
+            SettingNames.Rules => NamingSettingsStorageSerializer.SerializeRules(graph.Rules),
             _ => throw new InvalidDataException($"Unknown naming array '{moniker}'."),
         };
 }

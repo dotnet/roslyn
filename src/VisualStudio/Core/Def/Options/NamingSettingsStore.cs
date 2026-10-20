@@ -47,7 +47,7 @@ internal sealed class NamingSettingsStore(ISettingsManager settingsManager, stri
     {
         var reader = settingsManager.GetReader();
         var graph = new NamingSettingsGraph(
-            NamingSettingsStorageCodec.DecodeSpecifications(ReadItems(SettingNames.SymbolSpecifications)),
+            NamingSettingsStorageSerializer.DeserializeSpecifications(ReadItems(SettingNames.SymbolSpecifications)),
             ReadItems(SettingNames.NamingStyles),
             ReadItems(SettingNames.Rules));
 
@@ -64,9 +64,9 @@ internal sealed class NamingSettingsStore(ISettingsManager settingsManager, stri
 
         // A writer is private to this attempt so a rejected array cannot leave queued changes for a later commit.
         var writer = settingsManager.GetWriter(nameof(NamingSettingsStore), eventSource);
-        EnqueueArray(writer, SettingNames.SymbolSpecifications, NamingSettingsStorageCodec.EncodeSpecifications(graph.SymbolSpecifications));
-        EnqueueArray(writer, SettingNames.NamingStyles, NamingSettingsStorageCodec.EncodeStyles(graph.NamingStyles));
-        EnqueueArray(writer, SettingNames.Rules, NamingSettingsStorageCodec.EncodeRules(graph.Rules));
+        EnqueueArray(writer, SettingNames.SymbolSpecifications, NamingSettingsStorageSerializer.SerializeSpecifications(graph.SymbolSpecifications));
+        EnqueueArray(writer, SettingNames.NamingStyles, NamingSettingsStorageSerializer.SerializeStyles(graph.NamingStyles));
+        EnqueueArray(writer, SettingNames.Rules, NamingSettingsStorageSerializer.SerializeRules(graph.Rules));
 
         // Preserve PendingApproval and error outcomes; the coordinator must verify publication before updating legacy/runtime state.
         return writer.RequestCommit(changeDescription);

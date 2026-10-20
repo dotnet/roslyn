@@ -111,7 +111,7 @@ public sealed class NamingSettingsCoordinatorTests
             Assert.Equal(specifications.Items, repeated.Items);
             var styles = await coordinator.MigrateToUnifiedSettingsAsync(prefix + "namingStyles", CancellationToken.None);
             var rules = await coordinator.MigrateToUnifiedSettingsAsync(prefix + "rules", CancellationToken.None);
-            return new NamingSettingsGraph(NamingSettingsStorageCodec.DecodeSpecifications(specifications.Items!.ToImmutableArray()), styles.Items!.ToImmutableArray(), rules.Items!.ToImmutableArray());
+            return new NamingSettingsGraph(NamingSettingsStorageSerializer.DeserializeSpecifications(specifications.Items!.ToImmutableArray()), styles.Items!.ToImmutableArray(), rules.Items!.ToImmutableArray());
         }
     }
 
@@ -149,7 +149,7 @@ public sealed class NamingSettingsCoordinatorTests
             name == "namingStyles" ? items : current.NamingStyles,
             name == "rules" ? items : current.Rules);
         var prefix = language == LanguageNames.CSharp ? Prefix : "languages.basic.codeStyle.naming.";
-        var storedItems = name == "symbolSpecifications" ? NamingSettingsStorageCodec.EncodeSpecifications(items) : items;
+        var storedItems = name == "symbolSpecifications" ? NamingSettingsStorageSerializer.SerializeSpecifications(items) : items;
         if (!reset)
         {
             using var manifest = NamingSettingsManifestTests.Load(language == LanguageNames.CSharp

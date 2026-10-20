@@ -382,8 +382,8 @@ public sealed class NamingSettingsProviderTests
         Assert.IsType<ExternalSettingOperationResult.Success>(await provider.CommitPendingChangesAsync(CancellationToken.None));
 
         Assert.Equal(ReportDiagnostic.Warn, manager.Reader.Graph.ToPreferences().Rules.NamingRules[0].EnforcementLevel);
-        Assert.Equal(JsonSerializer.Serialize(NamingSettingsStorageCodec.EncodeSpecifications(original.SymbolSpecifications)), JsonSerializer.Serialize(NamingSettingsStorageCodec.EncodeSpecifications(manager.Reader.Graph.SymbolSpecifications)));
-        Assert.Equal(JsonSerializer.Serialize(NamingSettingsStorageCodec.EncodeStyles(original.NamingStyles)), JsonSerializer.Serialize(NamingSettingsStorageCodec.EncodeStyles(manager.Reader.Graph.NamingStyles)));
+        Assert.Equal(JsonSerializer.Serialize(NamingSettingsStorageSerializer.SerializeSpecifications(original.SymbolSpecifications)), JsonSerializer.Serialize(NamingSettingsStorageSerializer.SerializeSpecifications(manager.Reader.Graph.SymbolSpecifications)));
+        Assert.Equal(JsonSerializer.Serialize(NamingSettingsStorageSerializer.SerializeStyles(original.NamingStyles)), JsonSerializer.Serialize(NamingSettingsStorageSerializer.SerializeStyles(manager.Reader.Graph.NamingStyles)));
     }
 
     [Fact]
