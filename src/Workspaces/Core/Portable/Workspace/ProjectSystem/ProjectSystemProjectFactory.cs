@@ -52,7 +52,7 @@ internal sealed partial class ProjectSystemProjectFactory : IDisposable
     private readonly Action<Project> _onProjectRemoved;
 
     /// <summary>
-    /// A set of documents that were added by <see cref="ProjectSystemProject.AddSourceTextContainer"/>, and aren't otherwise
+    /// A set of documents that were added by <see cref="ProjectSystemProject.AddVirtualDocument"/>, and aren't otherwise
     /// tracked for opening/closing.
     /// </summary>
     public ImmutableHashSet<DocumentId> DocumentsNotFromFiles { get; private set; } = [];

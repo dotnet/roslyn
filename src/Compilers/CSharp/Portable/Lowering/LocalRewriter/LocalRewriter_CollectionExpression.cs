@@ -62,11 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // the List<T>.  However, we still still will be able to benefit from calling things
                             // like .AddRange to more efficiently add spread elements.
                             var rewrittenReceiver = node.HasWithElement ? VisitExpression(node.CollectionCreation) : null;
-                            if (rewrittenReceiver is null && TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
-                            {
-                                return result;
-                            }
-
                             if (useListOptimization(_compilation, node))
                             {
                                 return CreateAndPopulateList(
@@ -1229,6 +1224,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? rewrittenReceiver)
         {
             Debug.Assert(!_inExpressionLambda);
+
+            if (rewrittenReceiver is null && TryRewriteSingleElementSpreadToList(node, elementType, out var result))
+            {
+                return result;
+            }
 
             var typeArguments = ImmutableArray.Create(elementType);
             var collectionType = _factory.WellKnownType(WellKnownType.System_Collections_Generic_List_T).Construct(typeArguments);

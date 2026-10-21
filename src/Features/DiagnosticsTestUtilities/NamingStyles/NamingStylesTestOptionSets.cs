@@ -52,6 +52,9 @@ internal sealed class NamingStylesTestOptionSets
     internal OptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefix
         => new(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithFieldUnderscorePrefixOption() } };
 
+    internal OptionsCollection FieldNamesAreSnakeCaseWithUnderscorePrefix
+        => new(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreSnakeCaseWithUnderscorePrefixOption() } };
+
     internal OptionsCollection FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffix
         => new(_languageName) { { NamingStyleOptions.NamingPreferences, FieldNamesAreCamelCaseWithFieldUnderscorePrefixAndUnderscoreEndSuffixOption() } };
 
@@ -205,6 +208,38 @@ internal sealed class NamingStylesTestOptionSets
             prefix: "_",
             suffix: "",
             wordSeparator: "");
+
+        var namingRule = new SerializableNamingRule()
+        {
+            SymbolSpecificationID = symbolSpecification.ID,
+            NamingStyleID = namingStyle.ID,
+            EnforcementLevel = ReportDiagnostic.Error
+        };
+
+        var info = new NamingStylePreferences(
+            [symbolSpecification],
+            [namingStyle],
+            [namingRule]);
+
+        return info;
+    }
+
+    private static NamingStylePreferences FieldNamesAreSnakeCaseWithUnderscorePrefixOption()
+    {
+        var symbolSpecification = new SymbolSpecification(
+            Guid.NewGuid(),
+            "Name",
+            [new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field)],
+            accessibilityList: default,
+            modifiers: default);
+
+        var namingStyle = new NamingStyle(
+            Guid.NewGuid(),
+            capitalizationScheme: Capitalization.AllLower,
+            name: "Name",
+            prefix: "_",
+            suffix: "",
+            wordSeparator: "_");
 
         var namingRule = new SerializableNamingRule()
         {

@@ -19,11 +19,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
-internal sealed partial class HtmlFormattingPass(
-    IDocumentMappingService documentMappingService,
-    ILoggerFactory loggerFactory) : IFormattingPass
+internal sealed partial class HtmlFormattingPass(ILoggerFactory loggerFactory) : IFormattingPass
 {
-    private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly ILogger _logger = loggerFactory.GetOrCreateLogger<HtmlFormattingPass>();
 
     public async Task<ImmutableArray<TextChange>> ExecuteAsync(FormattingContext context, ImmutableArray<TextChange> changes, CancellationToken cancellationToken)
@@ -88,7 +85,10 @@ internal sealed partial class HtmlFormattingPass(
     {
         var codeDocument = context.CodeDocument;
         var originalText = codeDocument.Source.Text;
-        var (scriptAndStyleSpans, razorCommentSpans) = BuildSpans(codeDocument, originalText);
+        var (scriptAndStyleSpans, razorCommentSpans) = BuildSpans(
+            codeDocument,
+            originalText,
+            context.Options.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor);
 
         var csharpSyntaxTree = await context.OriginalSnapshot.GetCSharpSyntaxTreeAsync(declarationDocument: false, cancellationToken).ConfigureAwait(false);
         var csharpSyntaxRoot = await csharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -169,7 +169,7 @@ internal sealed partial class HtmlFormattingPass(
             // since we're at the point where we know for sure a newline was added, and there shouldn't
             // be too many of those scenarios, its worth being extra safe, because the pre-filtering is
             // at the mercy of the exact shape of the edits the Html formatter made.
-            if (_documentMappingService.IsInStringLiteral(codeDocument, csharpSyntaxRoot, declSyntaxRoot, originalPosition, multilineOnly: false))
+            if (DocumentMappingHelper.IsInStringLiteral(codeDocument, csharpSyntaxRoot, declSyntaxRoot, originalPosition, multilineOnly: false))
             {
                 return false;
             }
@@ -182,7 +182,7 @@ internal sealed partial class HtmlFormattingPass(
             using var validChanges = new PooledArrayBuilder<TextChange>();
             foreach (var change in changes)
             {
-                if (_documentMappingService.IsInStringLiteral(codeDocument, csharpSyntaxRoot, declSyntaxRoot, change.Span.Start, multilineOnly: false))
+                if (DocumentMappingHelper.IsInStringLiteral(codeDocument, csharpSyntaxRoot, declSyntaxRoot, change.Span.Start, multilineOnly: false))
                 {
                     continue;
                 }
@@ -309,7 +309,8 @@ internal sealed partial class HtmlFormattingPass(
     /// </summary>
     private static (ImmutableArray<TextSpan> ScriptAndStyleSpans, ImmutableArray<TextSpan> RazorCommentSpans) BuildSpans(
         RazorCodeDocument codeDocument,
-        SourceText sourceText)
+        SourceText sourceText,
+        bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
     {
         var syntaxRoot = codeDocument.GetRequiredSyntaxRoot();
 
@@ -334,7 +335,17 @@ internal sealed partial class HtmlFormattingPass(
                 var end = firstNonWhitespace == endTag.SpanStart
                     ? endTagLine.Start
                     : firstNonWhitespace.GetValueOrDefault() + 1;
-                scriptStyleBuilder.Add(TextSpan.FromBounds(startTag.EndPosition, end));
+                if (end <= startTag.EndPosition)
+                {
+                    continue;
+                }
+
+                var span = TextSpan.FromBounds(startTag.EndPosition, end);
+                if (!ignoreIndentationInScriptOrStyleBlocksWithComplexRazor ||
+                    !RazorSyntaxFacts.ContainsComplexRazorInScriptOrStyleBody(element, sourceText))
+                {
+                    scriptStyleBuilder.Add(span);
+                }
             }
             else if (node is RazorCommentBlockSyntax comment)
             {

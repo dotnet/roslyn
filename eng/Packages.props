@@ -13,8 +13,8 @@
 
       We should try to keep this version in sync with the version of app-local runtime in VS.
     -->
-    <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.11</MicrosoftNetCoreAppRuntimePackagesVersion>
-    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.11</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
+    <MicrosoftNetCoreAppRuntimePackagesVersion>10.0.13</MicrosoftNetCoreAppRuntimePackagesVersion>
+    <MicrosoftWindowsDesktopAppRuntimePackagesVersion>10.0.13</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
     <_xunitVersion>2.9.2</_xunitVersion>
     <!-- SQLitePCLRaw.bundle_green is discontinued at 2.1.11, so keep its managed dependencies aligned. -->
     <SqliteManagedVersion>2.1.11</SqliteManagedVersion>
@@ -113,7 +113,7 @@
     -->
     <PackageVersion Include="envdte" Version="18.12.772" />
     <PackageVersion Include="envdte80" Version="18.12.772" />
-    <PackageVersion Include="MessagePack" Version="2.5.302" />
+    <PackageVersion Include="MessagePack" Version="2.5.303" />
     <PackageVersion Include="Microsoft.ServiceHub.Framework" Version="4.11.156" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition" Version="18.9.89" />
     <PackageVersion Include="Microsoft.VisualStudio.Composition.Analyzers" Version="18.9.89" />
@@ -159,9 +159,15 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="18.3.0-beta.26380.1" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="18.3.0-beta.26461.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="18.0.1082202-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="18.0.1082202-preview" />
+
+    <!--
+      Project System
+    -->
+    <PackageVersion Include="Microsoft.VisualStudio.HotReload.Components" Version="18.12.27-gc0a8171a44" />
+    <PackageVersion Include="Microsoft.VisualStudio.HotReload.RemoteContracts" Version="18.12.27-gc0a8171a44" />
 
     <!--
       VS .NET Runtime
@@ -238,6 +244,8 @@
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net461" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net45" Version="1.0.3" />
     <PackageVersion Include="System.Buffers" Version="$(SystemBuffersVersion)" />
+    <!-- Unify the source generator binary across projects for .NET Framework compiler server consistency. -->
+    <PackageVersion Include="System.ClientModel" Version="1.10.0" />
     <PackageVersion Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
     <PackageVersion Include="System.Composition" Version="$(SystemCompositionVersion)" />

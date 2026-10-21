@@ -19,6 +19,7 @@ internal sealed class DocumentPullDiagnosticsRegistration : IDynamicRegistration
                 Method = Methods.TextDocumentDiagnosticName,
                 RegisterOptions = new DiagnosticRegistrationOptions()
                 {
+                    InterFileDependencies = true,
                     WorkspaceDiagnostics = false
                 }
             }];

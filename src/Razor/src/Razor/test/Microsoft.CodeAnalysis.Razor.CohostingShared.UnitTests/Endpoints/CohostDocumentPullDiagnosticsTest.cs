@@ -442,7 +442,7 @@ public partial class CohostDocumentPullDiagnosticsTest(ITestOutputHelper testOut
 
         AssertEx.EqualOrDiff(input.OriginalInput, testOutput);
 
-        if (!taskListRequest && ClientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions)
+        if (ClientCapabilitiesService.ClientCapabilities.SupportsVisualStudioExtensions)
         {
             Assert.All(result,
                 d =>
