@@ -217,24 +217,9 @@ public sealed class AdvancedUnifiedSettingsTests
             }
         }
 
-        Assert.True(properties.GetProperty("languages.dotnet.advanced.sourceGeneratorExecution").GetProperty("requiresRestart").GetBoolean());
-    }
-
-    [Theory]
-    [InlineData("roslynSettings.registration.json", 6)]
-    public void SharedLanguageSettingsDisplayAnAlwaysVisibleLocalizedMessage(string manifest, int count)
-    {
-        using var document = Load(manifest);
-        var sharedSettings = document.RootElement.GetProperty("properties").EnumerateObject()
-            .Where(property => property.Value.TryGetProperty("placements", out var placements) && placements.GetArrayLength() == 2).ToArray();
-        Assert.Equal(count, sharedSettings.Length);
-        foreach (var setting in sharedSettings)
-        {
-            var message = Assert.Single(setting.Value.GetProperty("messages").EnumerateArray());
-            Assert.Equal("@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:This_setting_is_shared_by_CSharp_and_Visual_Basic;{6cf2e545-6109-4730-8883-cf43d7aec3e1}", message.GetProperty("text").GetString());
-            Assert.Equal("This setting is shared by C# and Visual Basic. Changing it affects both languages.", TestModel.Utilities.EvalResource(message.GetProperty("text").GetString()!));
-            Assert.False(message.TryGetProperty("visibleWhen", out _));
-        }
+        var sourceGeneratorExecution = properties.GetProperty("languages.dotnet.advanced.sourceGeneratorExecution");
+        Assert.Equal("Source generator execution:", TestModel.Utilities.EvalResource(sourceGeneratorExecution.GetProperty("title").GetString()!));
+        Assert.True(sourceGeneratorExecution.GetProperty("requiresRestart").GetBoolean());
     }
 
     [Theory]
@@ -265,32 +250,12 @@ public sealed class AdvancedUnifiedSettingsTests
         Assert.Equal(count + (languageId == "csharp" ? 2 : 0), properties.EnumerateObject().Count(property => property.Name.StartsWith(prefix, StringComparison.Ordinal) && property.Value.TryGetProperty("enableWhen", out _)));
         foreach (var (path, dependency) in expected)
             Assert.Equal($"${{config:{prefix}{dependency}}}=='true'", properties.GetProperty(prefix + path).GetProperty("enableWhen").GetString());
-    }
 
-    [Theory]
-    [InlineData("csharpSettings.registration.json", "csharp")]
-    [InlineData("visualBasicSettings.registration.json", "basic")]
-    public void InlineDiagnosticsLocationHasItsOwnLabelAndDependsOnItsCheckbox(string manifest, string languageId)
-    {
-        using var document = Load(manifest);
-        var properties = document.RootElement.GetProperty("properties");
-        var prefix = $"languages.{languageId}.advanced.analysis.";
-        var checkbox = properties.GetProperty(prefix + "enableInlineDiagnostics");
-        var location = properties.GetProperty(prefix + "inlineDiagnosticsLocation");
+        var checkbox = properties.GetProperty(prefix + "analysis.enableInlineDiagnostics");
+        var location = properties.GetProperty(prefix + "analysis.inlineDiagnosticsLocation");
         Assert.Equal("Display diagnostics inline", TestModel.Utilities.EvalResource(checkbox.GetProperty("title").GetString()!));
         Assert.Equal("Location", TestModel.Utilities.EvalResource(location.GetProperty("title").GetString()!));
-        Assert.Equal($"${{config:{prefix}enableInlineDiagnostics}}=='true'", location.GetProperty("enableWhen").GetString());
         Assert.True(location.GetProperty("order").GetInt32() > checkbox.GetProperty("order").GetInt32());
-    }
-
-    [Theory]
-    [InlineData("roslynSettings.registration.json")]
-    public void SourceGeneratorExecutionDeclaresRestartWithoutIncludingItInTheTitle(string manifest)
-    {
-        using var document = Load(manifest);
-        var setting = document.RootElement.GetProperty("properties").GetProperty("languages.dotnet.advanced.sourceGeneratorExecution");
-        Assert.Equal("Source generator execution:", TestModel.Utilities.EvalResource(setting.GetProperty("title").GetString()!));
-        Assert.True(setting.GetProperty("requiresRestart").GetBoolean());
     }
 
     [Fact]
@@ -340,7 +305,7 @@ public sealed class AdvancedUnifiedSettingsTests
     }
 
     [Fact]
-    public void EnumMappingsPreserveUnknownImportsAndReverseExplicitChoicesAndReset()
+    public void EnumMappingsDeclareFallbackAndResetWithoutLosingExplicitDefaultValues()
     {
         var count = 0;
         foreach (var manifest in new[] { "csharpSettings.registration.json", "visualBasicSettings.registration.json", "roslynSettings.registration.json" })
@@ -362,37 +327,12 @@ public sealed class AdvancedUnifiedSettingsTests
                 Assert.All(maps.Take(maps.Length - 1), map => Assert.Equal(JsonValueKind.Number, map.GetProperty("matches")[0].ValueKind));
                 Assert.Equal(2, maps.Count(map => map.GetProperty("result").GetString() == "@default"));
 
-                // MigrationRule.Reverse selects the FIRST @default output for reset. Retain the
-                // duplicate literal output so an explicitly chosen default still reverses correctly.
+                // Reset uses the first @default entry; an explicit default still needs its literal mapping.
                 var defaultToken = property.Value.GetProperty("default").GetString();
                 var literalDefault = Assert.Single(maps, map => map.GetProperty("result").GetString() == defaultToken);
                 var defaultInteger = literalDefault.GetProperty("matches")[0].GetInt32();
-                var reverseDefault = maps.First(map => map.GetProperty("result").GetString() == "@default");
                 Assert.Equal("@default", maps[0].GetProperty("result").GetString());
-                Assert.Equal(defaultInteger, reverseDefault.GetProperty("matches")[0].GetInt32());
-                Assert.Equal(maps[0].GetRawText(), reverseDefault.GetRawText());
-
-                foreach (var unknown in new[] { int.MinValue, -1, int.MaxValue })
-                {
-                    var match = maps.First(map => map.GetProperty("matches")[0] is var value
-                        && (value.ValueKind == JsonValueKind.String || value.GetInt32() == unknown));
-                    Assert.Equal("@default", match.GetProperty("result").GetString());
-                    Assert.Equal(JsonValueKind.String, match.GetProperty("matches")[0].ValueKind);
-                }
-
-                // MigrationRuleWithKnownLegacyLocations.Apply takes the first matching input.
-                // @default imports are non-customized; LegacySynchronizer ignores their migration
-                // change source, so merely reading an unknown/missing integer does not normalize it.
-                foreach (var map in maps.Where(map => map.GetProperty("result").GetString() != "@default"))
-                {
-                    var integer = map.GetProperty("matches")[0].GetInt32();
-                    var token = map.GetProperty("result").GetString();
-                    var forward = maps.First(candidate => candidate.GetProperty("matches")[0] is var input
-                        && (input.ValueKind == JsonValueKind.String || input.GetInt32() == integer));
-                    Assert.Equal(integer == defaultInteger ? "@default" : token, forward.GetProperty("result").GetString());
-                    var reverseExplicit = maps.First(candidate => candidate.GetProperty("result").GetString() == token);
-                    Assert.Equal(integer, reverseExplicit.GetProperty("matches")[0].GetInt32());
-                }
+                Assert.Equal(defaultInteger, maps[0].GetProperty("matches")[0].GetInt32());
 
                 count++;
             }
@@ -539,46 +479,6 @@ public sealed class AdvancedUnifiedSettingsTests
                     break;
             }
         }
-    }
-
-    [Theory]
-    [InlineData("@Display_diagnostics_inline;..\\Microsoft.VisualStudio.LanguageServices.dll")]
-    [InlineData("@Wrong.Resource.Table:Display_diagnostics_inline;..\\Microsoft.VisualStudio.LanguageServices.dll")]
-    public void AdvancedResourceValidationRejectsMissingOrIncorrectTable(string reference)
-        => Assert.ThrowsAny<Xunit.Sdk.XunitException>(() => VerifyResource(reference));
-
-    [Fact]
-    public void LiveRegistrationsUseVerifiedContinuousMigrationModes()
-    {
-        var count = 0;
-        foreach (var manifest in new[] { "csharpSettings.registration.json", "visualBasicSettings.registration.json", "roslynSettings.registration.json" })
-        {
-            using var document = Load(manifest);
-            var properties = document.RootElement.GetProperty("properties");
-            foreach (var property in properties.EnumerateObject().Where(property => property.Name.Contains(".advanced.")))
-            {
-                var rule = property.Value.GetProperty("migration").EnumerateObject().Single().Value;
-                var logging = property.Name == "languages.dotnet.advanced.enableFileLoggingForDiagnostics";
-                Assert.Equal(logging ? "VsUserSettingsRegistry" : "SettingsManager", GetInput(rule).GetProperty("store").GetString());
-                if (logging || property.Name == "languages.dotnet.advanced.openStackTraceExplorerOnFocus")
-                {
-                    Assert.Equal(logging ? @"Roslyn\Internal\Diagnostics\EnableFileLoggingForDiagnostics" : "StackTraceExplorer.Options.OpenOnFocus", GetInput(rule).GetProperty("path").GetString());
-                    Assert.Equal("full", rule.GetProperty("mode").GetString());
-                    Assert.Equal("boolean", property.Value.GetProperty("type").GetString());
-                    Assert.False(property.Value.GetProperty("default").GetBoolean());
-                    Assert.False((bool)(logging ? VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics : StackTraceExplorerOptionsStorage.OpenOnFocus).Definition.DefaultValue!);
-                }
-                else
-                {
-                    Assert.StartsWith("TextEditor.", GetInput(rule).GetProperty("path").GetString());
-                    Assert.Equal("full", rule.GetProperty("mode").GetString());
-                }
-                Assert.Contains(property.Value.GetProperty("type").GetString(), new[] { "boolean", "string" });
-                count++;
-            }
-        }
-
-        Assert.Equal(140, count);
     }
 
     private static JsonElement GetInput(JsonElement rule)

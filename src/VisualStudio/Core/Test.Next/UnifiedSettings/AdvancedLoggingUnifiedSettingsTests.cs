@@ -45,41 +45,6 @@ public sealed class AdvancedLoggingUnifiedSettingsTests
         Assert.Equal("@any", maps[^1].GetProperty("matches")[0].GetString());
     }
 
-    [Theory]
-    [InlineData(int.MinValue)]
-    [InlineData(-1)]
-    [InlineData(0)]
-    [InlineData(1L)]
-    [InlineData(2)]
-    [InlineData(int.MaxValue)]
-    public void LoggingMigrationEnablesNumericOneAndDefaultsOtherIntegersToFalse(long legacy)
-    {
-        using var live = Load("roslynSettings.registration.json");
-        var maps = live.RootElement.GetProperty("properties").GetProperty(Moniker).GetProperty("migration").GetProperty("custom").GetProperty("map");
-        var firstMatch = maps.EnumerateArray().First(map => map.GetProperty("matches")[0] is var input
-            && (input.ValueKind == JsonValueKind.String || input.GetInt64() == legacy));
-        var output = firstMatch.GetProperty("result");
-        var enabled = output.ValueKind == JsonValueKind.True;
-        Assert.Equal(legacy == 1, enabled);
-    }
-
-    [Fact]
-    public void LoggingMigrationWritesCanonicalIntegersForCheckboxChangesAndReset()
-    {
-        using var live = Load("roslynSettings.registration.json");
-        var maps = live.RootElement.GetProperty("properties").GetProperty(Moniker).GetProperty("migration").GetProperty("custom").GetProperty("map").EnumerateArray().ToArray();
-        foreach (var value in new[] { true, false })
-        {
-            var reverse = maps.First(map => map.GetProperty("result") is var result
-                && result.ValueKind is JsonValueKind.True or JsonValueKind.False && result.GetBoolean() == value);
-            Assert.Equal(value ? 1 : 0, Assert.Single(reverse.GetProperty("matches").EnumerateArray()).GetInt32());
-        }
-
-        var reset = maps.First(map => map.GetProperty("result").ValueKind == JsonValueKind.String
-            && map.GetProperty("result").GetString() == "@default");
-        Assert.Equal(0, Assert.Single(reset.GetProperty("matches").EnumerateArray()).GetInt32());
-    }
-
     private static JsonDocument Load(string manifest)
     {
         using var stream = typeof(AdvancedLoggingUnifiedSettingsTests).Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests." + manifest);

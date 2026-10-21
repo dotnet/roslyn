@@ -42,21 +42,6 @@ public sealed class SettingsManifestAccessibilityTests
         (typeof(BasicVSResources), nameof(BasicVSResources.Place_System_directives_first_when_sorting_imports), "Place 'System' directives first when sorting imports"),
     ];
 
-    public static IEnumerable<object[]> Labels
-        => s_labels.Select(label => new object[] { label.ResourceType, label.Key, label.Label });
-
-    [Theory]
-    [MemberData(nameof(Labels))]
-    public void USXLabelsDoNotContainKeyboardMnemonics(Type resourceType, string key, string expectedLabel)
-    {
-        Assert.DoesNotContain("_USX", key);
-        var resourcePrefix = "@" + resourceType.FullName + ":";
-        var module = ";" + resourceType.Assembly.GetName().Name + ".dll";
-        var label = TestModel.Utilities.EvalResource(resourcePrefix + key + module);
-        Assert.Equal(expectedLabel, label);
-        Assert.DoesNotContain("_", label);
-    }
-
     [Theory]
     [InlineData("csharpSettings.registration.json", 13)]
     [InlineData("visualBasicSettings.registration.json", 14)]
@@ -76,7 +61,10 @@ public sealed class SettingsManifestAccessibilityTests
             Assert.False(copiedLabels.Contains(identifier), "Manifest uses a duplicate resource ID: " + reference);
             if (cleanLabels.TryGetValue(identifier, out var expectedLabel))
             {
-                Assert.Equal(expectedLabel, TestModel.Utilities.EvalResource(reference));
+                Assert.DoesNotContain("_USX", identifier);
+                var label = TestModel.Utilities.EvalResource(reference);
+                Assert.Equal(expectedLabel, label);
+                Assert.DoesNotContain("_", label);
                 affectedReferences.Add(identifier);
             }
         }

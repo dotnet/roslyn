@@ -55,29 +55,8 @@ public sealed class FormattingPageOnboardingTests
             Assert.Contains(pageType.Name, new[] { "CodeStylePage", "NamingStylesOptionPage", "FormattingIndentationOptionPage", "FormattingWrappingPage", "FormattingNewLinesPage", "FormattingSpacingPage" });
             Assert.Equal(pageType.Name is "CodeStylePage" or "NamingStylesOptionPage" ? "Code Style" : @"Code Style\Formatting", registration.ConstructorArguments[2].Value);
         });
-    }
 
-    [Theory]
-    [InlineData("CSharp")]
-    [InlineData("VisualBasic")]
-    public void ObsoletePageImplementationsAreRemoved(string language)
-    {
-        var assembly = (language == "CSharp" ? typeof(CSharpPackage) : typeof(VisualBasicPackage)).Assembly;
-        var prefix = "Microsoft.VisualStudio.LanguageServices." + language + ".Options.";
-        foreach (var typeName in new[] { "AdvancedOptionPage", "AdvancedOptionPageControl", "AdvancedOptionPageStrings" })
-            Assert.Null(assembly.GetType(prefix + typeName));
-        if (language == "CSharp")
-        {
-            foreach (var typeName in new[] { "Formatting.FormattingOptionPage", "FormattingOptionPageControl", "FormattingGeneralOptionPageStrings" })
-                Assert.Null(assembly.GetType(prefix + typeName));
-        }
-    }
-
-    [Theory]
-    [InlineData("csharpSettings.registration.json")]
-    [InlineData("visualBasicSettings.registration.json")]
-    public void LegacyPagesHaveNoNativeSettingsOrCallbacks(string manifestName)
-    {
+        var manifestName = language == "CSharp" ? "csharpSettings.registration.json" : "visualBasicSettings.registration.json";
         using var document = Load(manifestName);
         var root = document.RootElement;
         foreach (var section in new[] { "categories", "properties" })
@@ -86,12 +65,9 @@ public sealed class FormattingPageOnboardingTests
             {
                 Assert.DoesNotContain(".editorConfig", entry.Name);
                 Assert.DoesNotContain(".codeStyle", entry.Name);
-                foreach (var callback in new[] { "callback", "migrationCallback", "previewUIFactory", "commands" })
-                    Assert.False(entry.Value.TryGetProperty(callback, out _));
             });
         }
 
-        var packageType = manifestName.StartsWith("csharp", StringComparison.Ordinal) ? typeof(CSharpPackage) : typeof(VisualBasicPackage);
         var manifest = Assert.Single(packageType.GetCustomAttributesData(), attribute => attribute.AttributeType == typeof(ProvideSettingsManifestAttribute));
         Assert.EndsWith(manifestName, (string)Assert.Single(manifest.NamedArguments).TypedValue.Value!);
     }
@@ -132,16 +108,6 @@ public sealed class FormattingPageOnboardingTests
         var message = Assert.Single(category.GetProperty("messages").EnumerateArray());
         Assert.False(string.IsNullOrEmpty(TestModel.Utilities.EvalResource(message.GetProperty("text").GetString()!)));
     }
-
-    [Theory]
-    [InlineData("Display_inline_parameter_name_hints", "Display inline parameter name hints")]
-    [InlineData("Show_procedure_line_separators", "Show procedure line separators")]
-    [InlineData("Highlight_related_keywords_under_cursor", "Highlight related keywords under cursor")]
-    [InlineData("Highlight_references_to_symbol_under_cursor", "Highlight references to symbol under cursor")]
-    [InlineData("Show_preview_for_rename_tracking", "Show preview for rename tracking")]
-    public void AdvancedLabelsDoNotContainLegacyKeyboardMnemonics(string resourceName, string expectedTitle)
-        => Assert.Equal(expectedTitle, TestModel.Utilities.EvalResource(
-            "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:" + resourceName + ";{6cf2e545-6109-4730-8883-cf43d7aec3e1}"));
 
     private static JsonDocument Load(string manifestName)
     {

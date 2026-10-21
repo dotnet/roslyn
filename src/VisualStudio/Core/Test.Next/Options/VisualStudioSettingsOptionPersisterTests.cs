@@ -35,7 +35,6 @@ public sealed partial class VisualStudioSettingsOptionPersisterTests
     {
         public Func<string, Type, (GetValueResult, object?)>? GetValueImpl;
         public Action<string, object?>? SetValueImpl;
-        public Func<string, object?, bool, Task>? SetValueAsyncImpl;
 
         public readonly MockSettingsSubset Subset = new();
 
@@ -52,7 +51,7 @@ public sealed partial class VisualStudioSettingsOptionPersisterTests
         public Task SetValueAsync(string name, object? value, bool isMachineLocal)
         {
             SetValueImpl?.Invoke(name, value);
-            return SetValueAsyncImpl?.Invoke(name, value, isMachineLocal) ?? Task.CompletedTask;
+            return Task.CompletedTask;
         }
 
         public ISettingsList GetOrCreateList(string name, bool isMachineLocal)
