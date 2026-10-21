@@ -50,7 +50,7 @@ jobs:
         $runnerLog = Get-Content (Join-Path $logs 'runtests.log') -Raw
         if ('${{ parameters.timeout }}' -eq '1' -or '${{ parameters.activity }}' -eq '1') {
           if ($runnerLog -notmatch 'Global test timeout exceeded') { throw 'The RunTests global deadline did not fire.' }
-        } elseif ($runnerLog -notmatch 'inactivity timeout') { throw 'The VSTest inactivity deadline did not fire.' }
+        } elseif ($runnerLog -notmatch 'specified inactivity time of 25 minutes has elapsed' -or $runnerLog -match 'Global test timeout exceeded') { throw 'The VSTest inactivity deadline did not fire.' }
         $dumps = @(Get-ChildItem (Join-Path $root 'artifacts/TestResults') -Filter *.dmp -Recurse)
         if ($dumps.Count -eq 0) { throw 'Timeout did not produce any dump files.' }
         foreach ($target in @('testhost', 'child')) {
