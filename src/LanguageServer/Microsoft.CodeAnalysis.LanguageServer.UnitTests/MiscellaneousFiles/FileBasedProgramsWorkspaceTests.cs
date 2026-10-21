@@ -717,8 +717,11 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
 
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        var workspaceWaiter = testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace);
         globalOptions.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, false);
 
+        // Option changes unload projects asynchronously; wait before looking up the replacement document.
+        await workspaceWaiter.ExpeditedWaitAsync();
         (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         Assert.DoesNotContain("FileBasedProgram", document.Project.ParseOptions!.Features);
         syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
@@ -729,6 +732,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         globalOptions.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, true);
 
+        await workspaceWaiter.ExpeditedWaitAsync();
         (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
 
