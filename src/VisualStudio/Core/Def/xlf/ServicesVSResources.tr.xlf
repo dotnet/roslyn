@@ -317,11 +317,6 @@
         <target state="translated">Tanılamayı satır içi görüntüle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_inline_parameter_name_hints">
-        <source>Disp_lay inline parameter name hints</source>
-        <target state="translated">Satır içi parametre adı ipuç_larını göster</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints_USX">
         <source>Display inline parameter name hints</source>
         <target state="new">Display inline parameter name hints</target>
@@ -512,11 +507,6 @@
         <target state="translated">Tamamlama listesi öğelerinin eşleşen bölümlerini vurgulayın</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">İmlecin altındaki sembole başvuruları _vurgula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor_USX">
         <source>Highlight references to symbol under cursor</source>
         <target state="new">Highlight references to symbol under cursor</target>
@@ -525,11 +515,6 @@
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">İmlecin altında ilgili bileşenleri vurgula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">İmlecin altında ilgili ana_htar sözcükleri vurgula</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor_USX">
@@ -977,11 +962,6 @@
         <target state="translated">Açık belgeler</target>
         <note />
       </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">Çözüm boyutunu iyileştir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
         <source>Optional parameters must provide a default value</source>
         <target state="translated">İsteğe bağlı parametrelerde varsayılan değer sağlanmalıdır</target>
@@ -1145,11 +1125,6 @@
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">Üyeleri Yukarı Çek</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Quick_Actions">
-        <source>Quick Actions</source>
-        <target state="translated">Hızlı Eylemler</target>
         <note />
       </trans-unit>
       <trans-unit id="Reference">
@@ -1407,19 +1382,9 @@
         <target state="translated">İçeri aktarılmayan ad alanlarındaki öğeleri göster</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">Yeniden adlandırma i_zlemesi için önizleme göster</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking_USX">
         <source>Show preview for rename tracking</source>
         <target state="new">Show preview for rename tracking</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">Yordam satır ayıraçlarını _göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators_USX">
@@ -1455,11 +1420,6 @@
       <trans-unit id="Source_generator_execution_USX">
         <source>Source generator execution:</source>
         <target state="new">Source generator execution:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Source_generator_execution_requires_restart">
-        <source>Source generator execution (requires restart):</source>
-        <target state="translated">Kaynak oluşturucu yürütmesi (yeniden başlatma gerektirir):</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace">

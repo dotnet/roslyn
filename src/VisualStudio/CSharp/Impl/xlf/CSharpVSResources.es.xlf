@@ -262,21 +262,6 @@
         <target state="translated">Rodear con</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_block_on_close_brace">
-        <source>Automatically format _block on }</source>
-        <target state="translated">Dar formato automáticamente al _bloque al introducir }</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_on_paste">
-        <source>Automatically format on _paste</source>
-        <target state="translated">Dar formato automáticamente al _pegar</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon">
-        <source>Automatically format _statement on ;</source>
-        <target state="translated">Dar formato automáticamente _a la instrucción al introducir ;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
         <source>Place members in anonymous types on new line</source>
         <target state="translated">Colocar miembros en tipos anónimos en nueva línea</target>
@@ -552,29 +537,9 @@
         <target state="translated">Opciones de nueva línea para palabras clave</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>Enter _outlining mode when files open</source>
-        <target state="translated">Entrar en m_odo de esquematización al abrir archivos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for ///</source>
-        <target state="translated">_Generar comentarios de documentación XML con ///</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
-        <source>_Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="translated">_Insertar * al comienzo de nuevas líneas al escribir comentarios /* */</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Using_Directives">
         <source>Using Directives</source>
         <target state="translated">Directivas Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_usings">
-        <source>_Place 'System' directives first when sorting usings</source>
-        <target state="translated">Al ordenar instrucciones Using, _colocar primero las directivas 'System'</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -600,11 +565,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
         <source>Place open brace on new line for properties, indexers, and events</source>
         <target state="translated">Colocar llave de apertura para propiedades, indizadores y eventos en nueva línea</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
-        <source>Suggest usings for types in _NuGet packages</source>
-        <target state="translated">Sugerir usos para tipos de paquetes _NuGet</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -685,11 +645,6 @@
       <trans-unit id="predefined_type_preferences_colon">
         <source>Predefined type preferences:</source>
         <target state="translated">Preferencias de tipos predefinidos:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Split_string_literals_on_enter">
-        <source>Split string literals on _enter</source>
-        <target state="translated">Dividir literales de cadena al presionar _Entrar</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">

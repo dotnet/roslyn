@@ -47,11 +47,6 @@
         <target state="translated">Microsoft Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
-        <source>Automatic _insertion of Interface and MustOverride members</source>
-        <target state="translated">I_nserción automática de miembros Interface y MustOverride</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata_USX">
         <source>Navigate to Object Browser for symbols defined in metadata</source>
         <target state="new">Navigate to Object Browser for symbols defined in metadata</target>
@@ -87,54 +82,14 @@
         <target state="translated">Mostrar sugerencias para las expresiones "new"</target>
         <note />
       </trans-unit>
-      <trans-unit id="A_utomatic_insertion_of_end_constructs">
-        <source>A_utomatic insertion of end constructs</source>
-        <target state="translated">Inserción a_utomática de construcciones end</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pretty_listing_reformatting_of_code">
-        <source>_Pretty listing (reformatting) of code</source>
-        <target state="translated">_Lista descriptiva (nuevo formato) de código</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>_Enter outlining mode when files open</source>
-        <target state="translated">_Especificar el modo de esquematización al abrir los archivos</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">_Generar comentarios de documentación XML con '''</target>
-        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
-        <source>_Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="translated">_Vaya al Examinador de objetos para obtener los símbolos definidos en los metadatos</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Import_Directives">
         <source>Import Directives</source>
         <target state="translated">Directivas de importación</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
-        <source>Suggest imports for types in _NuGet packages</source>
-        <target state="translated">Sugerir importaciones para tipos de paquetes _NuGet</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages_USX">
         <source>Suggest imports for types in NuGet packages</source>
         <target state="new">Suggest imports for types in NuGet packages</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
-        <source>Suggest imports for types in _reference assemblies</source>
-        <target state="translated">Sugerir importaciones para tipos de ensamblados de r_eferencia</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_imports">
-        <source>_Place 'System' directives first when sorting imports</source>
-        <target state="translated">_Poner directivas del sistema en primer lugar cuando se ordenen las importaciones</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">

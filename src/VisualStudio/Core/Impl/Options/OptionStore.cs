@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -17,8 +16,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 internal sealed class OptionStore : IOptionsReader
 {
     public readonly IGlobalOptionService GlobalOptions;
-
-    public event EventHandler<OptionKey2>? OptionChanged;
 
     /// <summary>
     /// Cached values read from global options.
@@ -82,9 +79,6 @@ internal sealed class OptionStore : IOptionsReader
         return value;
     }
 
-    public void SetOption<T>(Option2<T> option, T value)
-        => SetOption(new OptionKey2(option), value);
-
     public void SetOption<T>(PerLanguageOption2<T> option, string language, T value)
         => SetOption(new OptionKey2(option, language), value);
 
@@ -100,7 +94,6 @@ internal sealed class OptionStore : IOptionsReader
         if (!Equals(value, currentValue))
         {
             _updatedValues = _updatedValues.SetItem(optionKey, value);
-            OptionChanged?.Invoke(this, optionKey);
         }
     }
 }

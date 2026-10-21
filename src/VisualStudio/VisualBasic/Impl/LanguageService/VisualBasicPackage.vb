@@ -26,7 +26,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     '     General (from editor)
     '     Scroll Bars (from editor)
     '     Tabs (from editor)
-    '     Advanced
     '     Code Style (category)
     '       General
     '       Naming
@@ -79,7 +78,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideEditorLogicalView(GetType(VisualBasicCodePageEditorFactory), VSConstants.LOGVIEWID.Debugging_string)>
     <ProvideEditorLogicalView(GetType(VisualBasicCodePageEditorFactory), VSConstants.LOGVIEWID.Code_string)>
     <ProvideEditorLogicalView(GetType(VisualBasicCodePageEditorFactory), VSConstants.LOGVIEWID.TextView_string)>
-    <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160, IsInUnifiedSettings:=True)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
     <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
     <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>

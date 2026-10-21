@@ -1281,9 +1281,6 @@ Additional information: {1}</value>
   <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
     <value>Warning: type does not bind</value>
   </data>
-  <data name="Display_inline_parameter_name_hints" xml:space="preserve">
-    <value>Disp_lay inline parameter name hints</value>
-  </data>
   <data name="Display_inline_parameter_name_hints_USX" xml:space="preserve">
     <value>Display inline parameter name hints</value>
   </data>
@@ -1550,9 +1547,6 @@ Additional information: {1}</value>
     <value>No namespaces needed updating.</value>
     <comment>"Namespaces" is the programming language concept</comment>
   </data>
-  <data name="Quick_Actions" xml:space="preserve">
-    <value>Quick Actions</value>
-  </data>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
   </data>
@@ -1691,9 +1685,6 @@ Additional information: {1}</value>
   <data name="Automatic_Run_generators_after_any_change" xml:space="preserve">
     <value>Automatic. Run generators after any change</value>
   </data>
-  <data name="Source_generator_execution_requires_restart" xml:space="preserve">
-    <value>Source generator execution (requires restart):</value>
-  </data>
   <data name="Source_generator_execution_USX" xml:space="preserve">
     <value>Source generator execution:</value>
   </data>
@@ -1730,29 +1721,17 @@ Additional information: {1}</value>
   <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
   </data>
-  <data name="Show_procedure_line_separators" xml:space="preserve">
-    <value>_Show procedure line separators</value>
-  </data>
   <data name="Show_procedure_line_separators_USX" xml:space="preserve">
     <value>Show procedure line separators</value>
   </data>
   <data name="Editor_Help" xml:space="preserve">
     <value>Editor Help</value>
   </data>
-  <data name="Highlight_related_keywords_under_cursor" xml:space="preserve">
-    <value>Highlight related _keywords under cursor</value>
-  </data>
   <data name="Highlight_related_keywords_under_cursor_USX" xml:space="preserve">
     <value>Highlight related keywords under cursor</value>
   </data>
-  <data name="Highlight_references_to_symbol_under_cursor" xml:space="preserve">
-    <value>_Highlight references to symbol under cursor</value>
-  </data>
   <data name="Highlight_references_to_symbol_under_cursor_USX" xml:space="preserve">
     <value>Highlight references to symbol under cursor</value>
-  </data>
-  <data name="Optimize_for_solution_size" xml:space="preserve">
-    <value>Optimize for solution size</value>
   </data>
   <data name="Large" xml:space="preserve">
     <value>Large</value>
@@ -1816,9 +1795,6 @@ Additional information: {1}</value>
   </data>
   <data name="Enter_key_behavior" xml:space="preserve">
     <value>Enter key behavior</value>
-  </data>
-  <data name="Show_preview_for_rename_tracking" xml:space="preserve">
-    <value>Show preview for rename _tracking</value>
   </data>
   <data name="Show_preview_for_rename_tracking_USX" xml:space="preserve">
     <value>Show preview for rename tracking</value>

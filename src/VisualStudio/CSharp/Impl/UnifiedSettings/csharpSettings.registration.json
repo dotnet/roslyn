@@ -1655,7 +1655,6 @@
     "languages.csharp.advanced.onTypeFormatting": {
       "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:On_type_formatting;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "order": 0,
-      "legacyOptionPageId": "DA0446DD-55BA-401F-A364-7D3238412AE4",
       "messages": [
         {
           "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"

@@ -262,21 +262,6 @@
         <target state="translated">Şununla Çevrele</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_block_on_close_brace">
-        <source>Automatically format _block on }</source>
-        <target state="translated">} girildiğinde _bloğu otomatik biçimlendir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_on_paste">
-        <source>Automatically format on _paste</source>
-        <target state="translated">_Yapıştırırken otomatik olarak biçimlendir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon">
-        <source>Automatically format _statement on ;</source>
-        <target state="translated">; girildiğinde _deyimi otomatik biçimlendir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
         <source>Place members in anonymous types on new line</source>
         <target state="translated">Anonim türlerdeki üyeleri yeni satıra yerleştir</target>
@@ -552,29 +537,9 @@
         <target state="translated">Anahtar sözcükler için yeni satır seçenekleri</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>Enter _outlining mode when files open</source>
-        <target state="translated">Dosyalar açıldığında a_na hat oluşturma moduna gir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for ///</source>
-        <target state="translated">/// için _XML belge açıklamaları üret</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
-        <source>_Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="translated">_/* */ açıklamaları yazarken her yeni satırın başına _ekle *</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Using_Directives">
         <source>Using Directives</source>
         <target state="translated">Using Yönergeleri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_usings">
-        <source>_Place 'System' directives first when sorting usings</source>
-        <target state="translated">using deyimlerini sıralarken 'System' yönergelerini ilk sıraya _yerleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -600,11 +565,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
         <source>Place open brace on new line for properties, indexers, and events</source>
         <target state="translated">Özellikler, dizin oluşturucular ve olaylar için yeni satıra açık ayraç yerleştir</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
-        <source>Suggest usings for types in _NuGet packages</source>
-        <target state="translated">_NuGet paketlerinde türler için using öner</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -685,11 +645,6 @@
       <trans-unit id="predefined_type_preferences_colon">
         <source>Predefined type preferences:</source>
         <target state="translated">Önceden tanımlanmış tür tercihleri:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Split_string_literals_on_enter">
-        <source>Split string literals on _enter</source>
-        <target state="translated">_Enter tuşuna basıldığında dize değişmez değerlerini böl</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">

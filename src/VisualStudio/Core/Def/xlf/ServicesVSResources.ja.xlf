@@ -317,11 +317,6 @@
         <target state="translated">診断をインラインで表示する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_inline_parameter_name_hints">
-        <source>Disp_lay inline parameter name hints</source>
-        <target state="translated">インライン パラメーター名のヒントを表示する(_L)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints_USX">
         <source>Display inline parameter name hints</source>
         <target state="new">Display inline parameter name hints</target>
@@ -512,11 +507,6 @@
         <target state="translated">入力候補一覧の項目の一致している部分を強調表示する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">カーソルの下にあるシンボルへの参照をハイライトする(_H)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor_USX">
         <source>Highlight references to symbol under cursor</source>
         <target state="new">Highlight references to symbol under cursor</target>
@@ -525,11 +515,6 @@
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">カーソルの下にある関連コンポーネントをハイライトする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">カーソルの下にあるキーワードの関連キーワードをハイライトする(_K)</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor_USX">
@@ -977,11 +962,6 @@
         <target state="translated">開かれているドキュメント</target>
         <note />
       </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">ソリューションのサイズを最適化します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
         <source>Optional parameters must provide a default value</source>
         <target state="translated">省略可能なパラメーターには、既定値を指定する必要があります</target>
@@ -1145,11 +1125,6 @@
       <trans-unit id="Pull_Members_Up">
         <source>Pull Members Up</source>
         <target state="translated">メンバーをプルアップ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Quick_Actions">
-        <source>Quick Actions</source>
-        <target state="translated">クイック アクション</target>
         <note />
       </trans-unit>
       <trans-unit id="Reference">
@@ -1407,19 +1382,9 @@
         <target state="translated">インポートされていない名前空間の項目を表示する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">名前変更追跡のプレビューの表示(_T)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking_USX">
         <source>Show preview for rename tracking</source>
         <target state="new">Show preview for rename tracking</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">プロシージャ行の区切り記号を表示する(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators_USX">
@@ -1455,11 +1420,6 @@
       <trans-unit id="Source_generator_execution_USX">
         <source>Source generator execution:</source>
         <target state="new">Source generator execution:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Source_generator_execution_requires_restart">
-        <source>Source generator execution (requires restart):</source>
-        <target state="translated">ソース ジェネレーターの実行 (再起動が必要):</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace">

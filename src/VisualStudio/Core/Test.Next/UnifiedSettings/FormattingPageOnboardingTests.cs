@@ -5,9 +5,12 @@
 using System;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane;
 using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.LanguageServices.VisualBasic;
 using Microsoft.VisualStudio.Shell;
@@ -18,9 +21,24 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 public sealed class FormattingPageOnboardingTests
 {
     [Theory]
-    [InlineData("CSharp", 8, 2)]
-    [InlineData("Basic", 3, 1)]
-    public void OnlyAdvancedAndOnTypeFormattingPagesAreConverted(string language, int expectedPageCount, int convertedCount)
+    [InlineData(LanguageNames.CSharp, nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration), "CodeStylePage")]
+    [InlineData(LanguageNames.VisualBasic, nameof(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration), "CodeStylePage")]
+    [InlineData(LanguageNames.CSharp, nameof(NamingStyleOptions.NamingPreferences), "NamingStylesOptionPage")]
+    [InlineData(LanguageNames.VisualBasic, nameof(NamingStyleOptions.NamingPreferences), "NamingStylesOptionPage")]
+    public void DiagnosticPreviewLinksTargetRegisteredLegacyPages(string language, string optionName, string expectedPageName)
+    {
+        var packageType = language == LanguageNames.CSharp ? typeof(CSharpPackage) : typeof(VisualBasicPackage);
+        var registration = Assert.Single(packageType.GetCustomAttributesData(), attribute =>
+            attribute.AttributeType == typeof(ProvideLanguageEditorOptionPageAttribute)
+            && ((Type)attribute.ConstructorArguments[0].Value!).Name == expectedPageName);
+        var pageType = (Type)registration.ConstructorArguments[0].Value!;
+        Assert.Equal(pageType.GUID, PreviewPaneService.GetOptionPageGuidForOptionName(optionName, language));
+    }
+
+    [Theory]
+    [InlineData("CSharp", 6)]
+    [InlineData("Basic", 2)]
+    public void RemainingPagesAreLegacy(string language, int expectedPageCount)
     {
         var packageType = language == "CSharp" ? typeof(CSharpPackage) : typeof(VisualBasicPackage);
         var registrations = packageType.GetCustomAttributesData()
@@ -33,15 +51,26 @@ public sealed class FormattingPageOnboardingTests
             var pageType = (Type)registration.ConstructorArguments[0].Value!;
             var converted = registration.NamedArguments.Any(argument =>
                 argument.MemberName == nameof(ProvideLanguageEditorOptionPageAttribute.IsInUnifiedSettings) && Equals(argument.TypedValue.Value, true));
-            Assert.Equal(pageType.Name is "AdvancedOptionPage" or "FormattingOptionPage", converted);
-            if (!converted)
-            {
-                Assert.Contains(pageType.Name, new[] { "CodeStylePage", "NamingStylesOptionPage", "FormattingIndentationOptionPage", "FormattingWrappingPage", "FormattingNewLinesPage", "FormattingSpacingPage" });
-                Assert.Equal(pageType.Name is "CodeStylePage" or "NamingStylesOptionPage" ? "Code Style" : @"Code Style\Formatting", registration.ConstructorArguments[2].Value);
-            }
+            Assert.False(converted);
+            Assert.Contains(pageType.Name, new[] { "CodeStylePage", "NamingStylesOptionPage", "FormattingIndentationOptionPage", "FormattingWrappingPage", "FormattingNewLinesPage", "FormattingSpacingPage" });
+            Assert.Equal(pageType.Name is "CodeStylePage" or "NamingStylesOptionPage" ? "Code Style" : @"Code Style\Formatting", registration.ConstructorArguments[2].Value);
         });
-        Assert.Equal(convertedCount, registrations.Count(registration => registration.NamedArguments.Any(argument =>
-            argument.MemberName == nameof(ProvideLanguageEditorOptionPageAttribute.IsInUnifiedSettings) && Equals(argument.TypedValue.Value, true))));
+    }
+
+    [Theory]
+    [InlineData("CSharp")]
+    [InlineData("VisualBasic")]
+    public void ObsoletePageImplementationsAreRemoved(string language)
+    {
+        var assembly = (language == "CSharp" ? typeof(CSharpPackage) : typeof(VisualBasicPackage)).Assembly;
+        var prefix = "Microsoft.VisualStudio.LanguageServices." + language + ".Options.";
+        foreach (var typeName in new[] { "AdvancedOptionPage", "AdvancedOptionPageControl", "AdvancedOptionPageStrings" })
+            Assert.Null(assembly.GetType(prefix + typeName));
+        if (language == "CSharp")
+        {
+            foreach (var typeName in new[] { "Formatting.FormattingOptionPage", "FormattingOptionPageControl", "FormattingGeneralOptionPageStrings" })
+                Assert.Null(assembly.GetType(prefix + typeName));
+        }
     }
 
     [Theory]
@@ -98,7 +127,7 @@ public sealed class FormattingPageOnboardingTests
         }
 
         var category = document.RootElement.GetProperty("categories").GetProperty(prefix);
-        Assert.Equal("DA0446DD-55BA-401F-A364-7D3238412AE4", category.GetProperty("legacyOptionPageId").GetString());
+        Assert.False(category.TryGetProperty("legacyOptionPageId", out _));
         Assert.Equal("https://go.microsoft.com/fwlink/?linkid=866541", category.GetProperty("helpUri").GetString());
         var message = Assert.Single(category.GetProperty("messages").EnumerateArray());
         Assert.False(string.IsNullOrEmpty(TestModel.Utilities.EvalResource(message.GetProperty("text").GetString()!)));
