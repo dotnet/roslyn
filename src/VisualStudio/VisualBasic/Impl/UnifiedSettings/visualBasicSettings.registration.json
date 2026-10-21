@@ -927,38 +927,10 @@
       "migration": {
         "pass": {
           "mode": "full",
-          "inputs": [
-            {
-              "store": "SettingsManager",
-              "path": "TextEditor.VisualBasic.Specific.DisplayLineSeparators"
-            }
-          ],
-          "map": [
-            {
-              "result": "@default",
-              "matches": [
-                true
-              ]
-            },
-            {
-              "result": true,
-              "matches": [
-                true
-              ]
-            },
-            {
-              "result": false,
-              "matches": [
-                false
-              ]
-            },
-            {
-              "result": "@default",
-              "matches": [
-                "@any"
-              ]
-            }
-          ]
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.DisplayLineSeparators"
+          }
         }
       }
     },

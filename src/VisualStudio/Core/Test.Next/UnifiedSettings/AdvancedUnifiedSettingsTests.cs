@@ -257,22 +257,22 @@ public sealed class AdvancedUnifiedSettingsTests
     }
 
     [Fact]
-    public void AdvancedLegacyTargetsAreNotDuplicated()
+    public void LegacyMigrationsUseValidRuleShapesAndUniqueTargets()
     {
         var targets = new HashSet<(string Store, string Path)>();
         foreach (var manifest in new[] { "csharpSettings.registration.json", "visualBasicSettings.registration.json", "roslynSettings.registration.json" })
         {
             using var document = Load(manifest);
             VerifyUniqueProperties(document.RootElement);
-            foreach (var property in document.RootElement.GetProperty("properties").EnumerateObject().Where(property => property.Name.Contains(".advanced.")))
+            foreach (var property in document.RootElement.GetProperty("properties").EnumerateObject().Where(property => property.Value.TryGetProperty("migration", out _)))
             {
-                var rule = property.Value.GetProperty("migration").EnumerateObject().Single().Value;
-                var input = GetInput(rule);
+                var migration = property.Value.GetProperty("migration").EnumerateObject().Single();
+                var input = GetInput(migration);
                 Assert.True(targets.Add((input.GetProperty("store").GetString()!, input.GetProperty("path").GetString()!)), property.Name);
             }
         }
 
-        Assert.Equal(140, targets.Count);
+        Assert.Equal(162, targets.Count);
     }
 
     [Fact]
@@ -364,7 +364,7 @@ public sealed class AdvancedUnifiedSettingsTests
         VerifyResource(setting.GetProperty("title").GetString()!);
         var type = Nullable.GetUnderlyingType(option.Definition.Type) ?? option.Definition.Type;
         var migration = setting.GetProperty("migration").EnumerateObject().Single();
-        var input = GetInput(migration.Value);
+        var input = GetInput(migration);
         switch (Storages[option.Definition.ConfigName])
         {
             case RoamingProfileStorage roaming:
@@ -458,8 +458,24 @@ public sealed class AdvancedUnifiedSettingsTests
         }
     }
 
-    private static JsonElement GetInput(JsonElement rule)
-        => rule.TryGetProperty("input", out var input) ? input : rule.GetProperty("inputs").EnumerateArray().Single();
+    private static JsonElement GetInput(JsonProperty migration)
+    {
+        string[] expectedProperties = migration.Name switch
+        {
+            "pass" => ["input"],
+            "custom" => ["inputs", "map"],
+            "enumIntegerToString" => ["input", "map"],
+            _ => throw new InvalidOperationException(migration.Name),
+        };
+        Assert.Equal(expectedProperties, migration.Value.EnumerateObject()
+            .Where(property => property.Name != "mode")
+            .Select(property => property.Name)
+            .OrderBy(name => name, StringComparer.Ordinal));
+
+        return migration.Name == "custom"
+            ? migration.Value.GetProperty("inputs").EnumerateArray().Single()
+            : migration.Value.GetProperty("input");
+    }
 
     private static JsonDocument Load(string manifest)
     {
