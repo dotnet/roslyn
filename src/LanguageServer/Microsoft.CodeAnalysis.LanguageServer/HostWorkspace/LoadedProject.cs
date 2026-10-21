@@ -388,11 +388,15 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
         public bool Equals(DocumentFileInfo? x, DocumentFileInfo? y)
         {
-            return StringComparer.Ordinal.Equals(x?.FilePath, y?.FilePath);
+            return ReferenceEquals(x, y)
+                || (x is not null && y is not null
+                    && StringComparer.Ordinal.Equals(x.FilePath, y.FilePath)
+                    && x.Folders.SequenceEqual(y.Folders, StringComparer.Ordinal));
         }
 
         public int GetHashCode(DocumentFileInfo obj)
         {
+            // File paths are usually unique, so hashing folders is unlikely to reduce collisions enough to justify the extra work.
             return StringComparer.Ordinal.GetHashCode(obj.FilePath);
         }
     }
