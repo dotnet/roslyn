@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -289,11 +290,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.ForceComplete(locationOpt, filter, cancellationToken);
         }
 
+        public override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default)
+        {
+            Debug.Assert(syntaxReferenceOpt is not null);
+            return IsDefinedInSourceTree(syntaxReferenceOpt, tree, definedWithinSpan)
+                || SourcePartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
+        }
+
         protected override void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
         {
             if (SourcePartialImplementationPart is { } implementation)
             {
                 PartialConstructorChecks(implementation, diagnostics);
+            }
+
+            if (IsPartialDefinition)
+            {
+                DeclaringCompilation.SymbolDeclaredEvent(this);
             }
         }
 
