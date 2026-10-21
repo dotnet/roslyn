@@ -174,7 +174,7 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
             condition = parent.WalkUpParentheses();
 
         var whenTrue = condition.Parent is IfStatementSyntax ifStatement ? ifStatement.Statement : null;
-        SyntaxNode scope = logicalAnd.FirstAncestorOrSelf<StatementSyntax>()?.Parent ?? condition;
+        var scope = logicalAnd.FirstAncestorOrSelf<StatementSyntax>()?.Parent ?? condition;
         foreach (var identifier in scope.DescendantNodes().OfType<IdentifierNameSyntax>())
         {
             if (identifier.Identifier.ValueText == local.Name &&
