@@ -1445,9 +1445,6 @@ Additional information: {1}</value>
   <data name="Code_Style" xml:space="preserve">
     <value>Code Style</value>
   </data>
-  <data name="EditorConfig" xml:space="preserve">
-    <value>EditorConfig</value>
-  </data>
   <data name="Disabled" xml:space="preserve">
     <value>Disabled</value>
   </data>
@@ -1883,124 +1880,6 @@ Additional information: {1}</value>
   </data>
   <data name="Formatting_new_document" xml:space="preserve">
     <value>Formatting new document...</value>
-  </data>
-  <data name="Unable_to_update_naming_settings_0" xml:space="preserve">
-    <value>Unable to update Naming settings: {0}</value>
-  </data>
-  <data name="Refresh_naming_settings_before_applying_changes" xml:space="preserve">
-    <value>Refresh Naming settings before applying changes.</value>
-  </data>
-  <data name="Naming_preferences_could_not_be_reset_Try_again" xml:space="preserve">
-    <value>Naming preferences could not be reset. Try again.</value>
-  </data>
-  <data name="Naming_settings_could_not_be_saved_Refresh_and_try_again" xml:space="preserve">
-    <value>Naming settings could not be saved. Refresh the settings and try again.</value>
-  </data>
-  <data name="Naming_settings_must_be_requested_as_an_array_of_objects" xml:space="preserve">
-    <value>Naming settings must be requested as an array of objects.</value>
-  </data>
-  <data name="Naming_settings_must_be_an_array_of_objects" xml:space="preserve">
-    <value>Naming settings must be an array of objects.</value>
-  </data>
-  <data name="Unable_to_read_naming_setting_0_1_2" xml:space="preserve">
-    <value>Unable to read naming setting '{0}': {1}. {2}</value>
-    <comment>{0} is a setting moniker, {1} is a retrieval outcome, and {2} is a diagnostic detail.</comment>
-  </data>
-  <data name="Unable_to_enqueue_naming_setting_0_1_2" xml:space="preserve">
-    <value>Unable to enqueue validated naming setting '{0}': {1}. {2}</value>
-    <comment>{0} is a setting moniker, {1} is a change outcome, and {2} is a diagnostic detail.</comment>
-  </data>
-  <data name="Complete_naming_configuration_was_not_published" xml:space="preserve">
-    <value>The complete naming configuration was not published. Legacy naming preferences were not changed.</value>
-  </data>
-  <data name="Complete_legacy_naming_configuration_was_not_published" xml:space="preserve">
-    <value>The complete legacy naming configuration was not published.</value>
-  </data>
-  <data name="Reset_naming_preferences_were_not_published" xml:space="preserve">
-    <value>The naming preference defaults were not published.</value>
-  </data>
-  <data name="Unable_to_normalize_naming_settings_0_1" xml:space="preserve">
-    <value>Unable to normalize naming settings: {0}. {1}</value>
-    <comment>{0} is a setting commit outcome and {1} is a diagnostic detail.</comment>
-  </data>
-  <data name="Unable_to_synchronize_legacy_naming_settings_0_1" xml:space="preserve">
-    <value>Unable to synchronize legacy naming settings: {0}. {1}</value>
-    <comment>{0} is a setting commit outcome and {1} is a diagnostic detail.</comment>
-  </data>
-  <data name="Enter_a_name" xml:space="preserve">
-    <value>Enter a name.</value>
-  </data>
-  <data name="A_naming_rule_refers_to_an_unknown_symbol_specification_or_naming_style" xml:space="preserve">
-    <value>A naming rule refers to an unknown symbol specification or naming style.</value>
-  </data>
-  <data name="Symbol_specification_identities_must_be_unique" xml:space="preserve">
-    <value>Symbol specification identities must be unique.</value>
-  </data>
-  <data name="Naming_style_identities_must_be_unique" xml:space="preserve">
-    <value>Naming style identities must be unique.</value>
-  </data>
-  <data name="Naming_settings_changed_while_the_editor_was_open" xml:space="preserve">
-    <value>Naming settings changed while the editor was open. Reload the settings before applying this edit.</value>
-  </data>
-  <data name="Naming_definition_rows_changed_while_the_editor_was_open" xml:space="preserve">
-    <value>Naming definition rows changed while the editor was open. Reload the settings before editing.</value>
-  </data>
-  <data name="Existing_naming_definition_identities_cannot_be_changed" xml:space="preserve">
-    <value>Existing naming definition identities cannot be changed.</value>
-  </data>
-  <data name="Existing_naming_compatibility_identities_cannot_be_changed" xml:space="preserve">
-    <value>Existing naming compatibility identities cannot be changed.</value>
-  </data>
-  <data name="Unsupported_naming_setting_value_0" xml:space="preserve">
-    <value>'{0}' is not a supported value for this naming setting.</value>
-    <comment>{0} is a value from the naming configuration.</comment>
-  </data>
-  <data name="Invalid_naming_identity" xml:space="preserve">
-    <value>Naming IDs must start with a lowercase ASCII letter and contain only lowercase letters, digits or underscores.</value>
-  </data>
-  <data name="Naming_compatibility_identities_must_be_nonempty_GUIDs" xml:space="preserve">
-    <value>Naming compatibility identities must be nonempty GUIDs.</value>
-  </data>
-  <data name="Naming_defaultName_must_be_a_Boolean" xml:space="preserve">
-    <value>Naming defaultName must be a Boolean.</value>
-    <comment>{Locked="defaultName"} A property in the naming configuration.</comment>
-  </data>
-  <data name="Only_built_in_naming_definitions_with_an_empty_name_can_use_defaultName" xml:space="preserve">
-    <value>Only built-in naming definitions with an empty name can use defaultName.</value>
-    <comment>{Locked="defaultName"} A property in the naming configuration.</comment>
-  </data>
-  <data name="Naming_property_0_must_be_a_string" xml:space="preserve">
-    <value>Naming property '{0}' must be a string.</value>
-    <comment>{0} is a property name in the naming configuration.</comment>
-  </data>
-  <data name="Naming_property_0_must_be_an_array" xml:space="preserve">
-    <value>Naming property '{0}' must be an array.</value>
-    <comment>{0} is a property name in the naming configuration.</comment>
-  </data>
-  <data name="Naming_property_0_must_contain_unique_strings" xml:space="preserve">
-    <value>Naming property '{0}' must contain unique strings.</value>
-    <comment>{0} is a property name in the naming configuration.</comment>
-  </data>
-  <data name="Naming_settings_are_stored_in_settings_json" xml:space="preserve">
-    <value>Naming settings are stored in settings.json and synchronized with legacy profiles.</value>
-  </data>
-  <data name="Reset_naming_preferences" xml:space="preserve">
-    <value>Reset naming preferences</value>
-  </data>
-  <data name="Reset_naming_preferences_confirmation" xml:space="preserve">
-    <value>Reset all naming preferences to their defaults? This removes your custom naming rules, symbol specifications, and styles.</value>
-  </data>
-  <data name="All_files_filter" xml:space="preserve">
-    <value>All files (*.*)|*.*</value>
-    <comment>(*.*)|*.* is a Windows file filter pattern and should not be localized.</comment>
-  </data>
-  <data name="Prefer_is_null_for_reference_equality_checks" xml:space="preserve">
-    <value>Prefer 'is null' for reference equality checks</value>
-    <comment>'is null' is a C# expression and should not be localized.</comment>
-  </data>
-  <data name="Prefer_null_check_over_type_check" xml:space="preserve">
-    <value>Prefer 'null' check over type check</value>
-    <comment>'null' is a C# keyword and should not be localized.</comment>
   </data>
   <data name="This_setting_is_shared_by_CSharp_and_Visual_Basic" xml:space="preserve">
     <value>This setting is shared by C# and Visual Basic. Changing it affects both languages.</value>

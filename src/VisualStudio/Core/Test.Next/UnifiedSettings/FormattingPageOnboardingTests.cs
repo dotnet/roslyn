@@ -5,7 +5,10 @@
 using System;
 using System.Linq;
 using System.Text.Json;
+using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
+using Microsoft.VisualStudio.LanguageServices.Options;
 using Microsoft.VisualStudio.LanguageServices.VisualBasic;
 using Microsoft.VisualStudio.Shell;
 using Xunit;
@@ -15,30 +18,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 public sealed class FormattingPageOnboardingTests
 {
     [Theory]
-    [InlineData("FormattingOptionPage", "general")]
-    [InlineData("FormattingIndentationOptionPage", "indentation")]
-    [InlineData("FormattingWrappingPage", "wrapping")]
-    [InlineData("FormattingNewLinesPage", "newLines")]
-    [InlineData("FormattingSpacingPage", "spacing")]
-    public void NativeFormattingPagesAreOnboardedWithoutRemovingLegacyRegistration(string pageName, string categoryName)
-        => VerifyPage(typeof(CSharpPackage), pageName, "CSharp", @"Code Style\Formatting",
-            "csharpUnifiedSettings.registration.json", categoryName switch
-            {
-                "general" => "languages.csharp.advanced.onTypeFormatting",
-                _ => "languages.csharp.editorConfig." + categoryName,
-            });
-
-    [Theory]
-    [InlineData("CSharp", "csharpUnifiedSettings.registration.json", "languages.csharp.editorConfig.codeStyle")]
-    [InlineData("Basic", "visualBasicUnifiedSettings.registration.json", "languages.basic.codeStyle.general")]
-    public void NativeCodeStylePagesAreOnboardedWithoutRemovingLegacyRegistration(string language, string manifestName, string category)
-        => VerifyPage(language == "CSharp" ? typeof(CSharpPackage) : typeof(VisualBasicPackage), "CodeStylePage",
-            language, "Code Style", manifestName, category);
-
-    [Theory]
-    [InlineData("CSharp", 8)]
-    [InlineData("Basic", 3)]
-    public void AllLegacyPagesAreHiddenWithoutRemovingImportRegistrations(string language, int expectedPageCount)
+    [InlineData("CSharp", 8, 2)]
+    [InlineData("Basic", 3, 1)]
+    public void OnlyAdvancedAndOnTypeFormattingPagesAreConverted(string language, int expectedPageCount, int convertedCount)
     {
         var packageType = language == "CSharp" ? typeof(CSharpPackage) : typeof(VisualBasicPackage);
         var registrations = packageType.GetCustomAttributesData()
@@ -48,10 +30,78 @@ public sealed class FormattingPageOnboardingTests
         Assert.All(registrations, registration =>
         {
             Assert.Equal(language, registration.ConstructorArguments[1].Value);
-            var onboarding = Assert.Single(registration.NamedArguments, argument =>
-                argument.MemberName == nameof(ProvideLanguageEditorOptionPageAttribute.IsInUnifiedSettings));
-            Assert.Equal(true, onboarding.TypedValue.Value);
+            var pageType = (Type)registration.ConstructorArguments[0].Value!;
+            var converted = registration.NamedArguments.Any(argument =>
+                argument.MemberName == nameof(ProvideLanguageEditorOptionPageAttribute.IsInUnifiedSettings) && Equals(argument.TypedValue.Value, true));
+            Assert.Equal(pageType.Name is "AdvancedOptionPage" or "FormattingOptionPage", converted);
+            if (!converted)
+            {
+                Assert.Contains(pageType.Name, new[] { "CodeStylePage", "NamingStylesOptionPage", "FormattingIndentationOptionPage", "FormattingWrappingPage", "FormattingNewLinesPage", "FormattingSpacingPage" });
+                Assert.Equal(pageType.Name is "CodeStylePage" or "NamingStylesOptionPage" ? "Code Style" : @"Code Style\Formatting", registration.ConstructorArguments[2].Value);
+            }
         });
+        Assert.Equal(convertedCount, registrations.Count(registration => registration.NamedArguments.Any(argument =>
+            argument.MemberName == nameof(ProvideLanguageEditorOptionPageAttribute.IsInUnifiedSettings) && Equals(argument.TypedValue.Value, true))));
+    }
+
+    [Theory]
+    [InlineData("csharpSettings.registration.json")]
+    [InlineData("visualBasicSettings.registration.json")]
+    public void LegacyPagesHaveNoNativeSettingsOrCallbacks(string manifestName)
+    {
+        using var document = Load(manifestName);
+        var root = document.RootElement;
+        foreach (var section in new[] { "categories", "properties" })
+        {
+            Assert.All(root.GetProperty(section).EnumerateObject(), entry =>
+            {
+                Assert.DoesNotContain(".editorConfig", entry.Name);
+                Assert.DoesNotContain(".codeStyle", entry.Name);
+                foreach (var callback in new[] { "callback", "migrationCallback", "previewUIFactory", "commands" })
+                    Assert.False(entry.Value.TryGetProperty(callback, out _));
+            });
+        }
+
+        var packageType = manifestName.StartsWith("csharp", StringComparison.Ordinal) ? typeof(CSharpPackage) : typeof(VisualBasicPackage);
+        var manifest = Assert.Single(packageType.GetCustomAttributesData(), attribute => attribute.AttributeType == typeof(ProvideSettingsManifestAttribute));
+        Assert.EndsWith(manifestName, (string)Assert.Single(manifest.NamedArguments).TypedValue.Value!);
+    }
+
+    [Fact]
+    public void OnTypeFormattingRetainsSettingsDefaultsAndLegacyMigrations()
+    {
+        using var document = Load("csharpSettings.registration.json");
+        const string prefix = "languages.csharp.advanced.onTypeFormatting";
+        var options = new (string Name, IOption2 Option, string StorageName)[]
+        {
+            ("formatOnTyping", AutoFormattingOptionsStorage.FormatOnTyping, "Auto Formatting On Typing"),
+            ("formatOnSemicolon", AutoFormattingOptionsStorage.FormatOnSemicolon, "Auto Formatting On Semicolon"),
+            ("formatOnCloseBrace", AutoFormattingOptionsStorage.FormatOnCloseBrace, "Auto Formatting On Close Brace"),
+            ("formatOnReturn", AutoFormattingOptionsStorage.FormatOnReturn, "Auto Formatting On Return"),
+            ("formatOnPaste", FormattingOptionsStorage.FormatOnPaste, "FormatOnPaste"),
+        };
+        var properties = document.RootElement.GetProperty("properties");
+        Assert.Equal(options.Length, properties.EnumerateObject().Count(property => property.Name.StartsWith(prefix + ".", StringComparison.Ordinal)));
+        foreach (var (name, option, storageName) in options)
+        {
+            var setting = properties.GetProperty(prefix + "." + name);
+            Assert.Equal("boolean", setting.GetProperty("type").GetString());
+            Assert.Equal(option.DefaultValue, setting.GetProperty("default").GetBoolean());
+            Assert.False(setting.GetProperty("transientScopesSupported").GetBoolean());
+            var migration = setting.GetProperty("migration").GetProperty("pass");
+            Assert.Equal("full", migration.GetProperty("mode").GetString());
+            Assert.Equal("SettingsManager", migration.GetProperty("input").GetProperty("store").GetString());
+            Assert.Equal("TextEditor.CSharp.Specific." + storageName, migration.GetProperty("input").GetProperty("path").GetString());
+            Assert.IsType<VisualStudioOptionStorage.RoamingProfileStorage>(VisualStudioOptionStorage.Storages[option.Definition.ConfigName]);
+            if (name is "formatOnSemicolon" or "formatOnCloseBrace")
+                Assert.Equal("${config:" + prefix + ".formatOnTyping} == 'true'", setting.GetProperty("enableWhen").GetString());
+        }
+
+        var category = document.RootElement.GetProperty("categories").GetProperty(prefix);
+        Assert.Equal("DA0446DD-55BA-401F-A364-7D3238412AE4", category.GetProperty("legacyOptionPageId").GetString());
+        Assert.Equal("https://go.microsoft.com/fwlink/?linkid=866541", category.GetProperty("helpUri").GetString());
+        var message = Assert.Single(category.GetProperty("messages").EnumerateArray());
+        Assert.False(string.IsNullOrEmpty(TestModel.Utilities.EvalResource(message.GetProperty("text").GetString()!)));
     }
 
     [Theory]
@@ -64,29 +114,11 @@ public sealed class FormattingPageOnboardingTests
         => Assert.Equal(expectedTitle, TestModel.Utilities.EvalResource(
             "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:" + resourceName + ";{6cf2e545-6109-4730-8883-cf43d7aec3e1}"));
 
-    private static void VerifyPage(Type packageType, string pageName, string language, string legacyCategory, string manifestName, string category)
+    private static JsonDocument Load(string manifestName)
     {
-        var registration = Assert.Single(packageType.GetCustomAttributesData(), attribute =>
-            attribute.AttributeType == typeof(ProvideLanguageEditorOptionPageAttribute)
-            && attribute.ConstructorArguments[0].Value is Type pageType
-            && pageType.Name == pageName);
-        Assert.Equal(language, registration.ConstructorArguments[1].Value);
-        Assert.Equal(legacyCategory, registration.ConstructorArguments[2].Value);
-        var onboarding = Assert.Single(registration.NamedArguments, argument =>
-            argument.MemberName == nameof(ProvideLanguageEditorOptionPageAttribute.IsInUnifiedSettings));
-        Assert.Equal(true, onboarding.TypedValue.Value);
-
         using var stream = typeof(FormattingPageOnboardingTests).Assembly.GetManifestResourceStream(
             "Roslyn.VisualStudio.Next.UnitTests." + manifestName);
         Assert.NotNull(stream);
-        using var manifest = JsonDocument.Parse(stream!, new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
-        Assert.True(manifest.RootElement.GetProperty("categories").TryGetProperty(category, out _));
-        var settings = manifest.RootElement.GetProperty("properties").EnumerateObject()
-            .Where(property => property.Name.StartsWith(category + ".", StringComparison.Ordinal)
-                || property.Value.TryGetProperty("placements", out var placements)
-                    && placements.EnumerateArray().Any(placement => placement.GetProperty("category").GetString() == category))
-            .ToArray();
-        Assert.NotEmpty(settings);
-        Assert.All(settings, setting => Assert.Contains(setting.Value.GetProperty("type").GetString(), new[] { "boolean", "string", "mappedTable" }));
+        return JsonDocument.Parse(stream!, new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
     }
 }

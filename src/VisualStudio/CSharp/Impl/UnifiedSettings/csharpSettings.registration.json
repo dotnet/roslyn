@@ -1,5 +1,87 @@
 {
   "properties": {
+    "languages.csharp.advanced.onTypeFormatting.formatOnTyping": {
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_when_typing;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Auto Formatting On Typing"
+          }
+        }
+      }
+    },
+    "languages.csharp.advanced.onTypeFormatting.formatOnSemicolon": {
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_statement_on_semicolon_USX;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "enableWhen": "${config:languages.csharp.advanced.onTypeFormatting.formatOnTyping} == 'true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Auto Formatting On Semicolon"
+          }
+        }
+      }
+    },
+    "languages.csharp.advanced.onTypeFormatting.formatOnCloseBrace": {
+      "type": "boolean",
+      "default": true,
+      "order": 20,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_block_on_close_brace_USX;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "enableWhen": "${config:languages.csharp.advanced.onTypeFormatting.formatOnTyping} == 'true'",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Auto Formatting On Close Brace"
+          }
+        }
+      }
+    },
+    "languages.csharp.advanced.onTypeFormatting.formatOnReturn": {
+      "type": "boolean",
+      "default": true,
+      "order": 30,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_on_return;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.Auto Formatting On Return"
+          }
+        }
+      }
+    },
+    "languages.csharp.advanced.onTypeFormatting.formatOnPaste": {
+      "type": "boolean",
+      "default": true,
+      "order": 40,
+      "transientScopesSupported": false,
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Automatically_format_on_paste_USX;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "migration": {
+        "pass": {
+          "mode": "full",
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.CSharp.Specific.FormatOnPaste"
+          }
+        }
+      }
+    },
     "languages.csharp.advanced.analysis.backgroundAnalysisScope": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Run_background_code_analysis_for_colon;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
@@ -1570,6 +1652,17 @@
     }
   },
   "categories": {
+    "languages.csharp.advanced.onTypeFormatting": {
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:On_type_formatting;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
+      "order": 0,
+      "legacyOptionPageId": "DA0446DD-55BA-401F-A364-7D3238412AE4",
+      "messages": [
+        {
+          "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
+        }
+      ],
+      "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541"
+    },
     "languages.csharp.advanced": {
       "title": "@102;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
       "order": 200

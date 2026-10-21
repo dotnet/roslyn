@@ -80,7 +80,7 @@ internal abstract class VisualStudioOptionStorage
         public bool IsPerLanguage
             => Key.Contains(LanguagePlaceholder);
 
-        internal string GetKey(string? language)
+        private string GetKey(string? language)
             => (VisualBasicKey != null && language == LanguageNames.VisualBasic) ? VisualBasicKey : SubstituteLanguage(Key, language);
 
         private static string SubstituteLanguage(string keyName, string? language)

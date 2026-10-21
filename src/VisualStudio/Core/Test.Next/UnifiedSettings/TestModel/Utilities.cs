@@ -7,8 +7,6 @@ using System.Globalization;
 using System.IO;
 using System.Resources;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.CSharp;
 using Microsoft.VisualStudio.LanguageServices.VisualBasic;
@@ -82,8 +80,6 @@ internal static class Utilities
             LanguageServiceDllName => ServicesVSResources.ResourceManager.GetString(resourcesIdentifier, culture),
             "Microsoft.CodeAnalysis.Workspaces.dll" => WorkspacesResources.ResourceManager.GetString(resourcesIdentifier, culture),
             "Microsoft.CodeAnalysis.EditorFeatures.dll" => EditorFeaturesResources.ResourceManager.GetString(resourcesIdentifier, culture),
-            "Microsoft.CodeAnalysis.CSharp.Features.dll" => CSharpFeaturesResources.ResourceManager.GetString(resourcesIdentifier, culture)
-                ?? CSharpAnalyzersResources.ResourceManager.GetString(resourcesIdentifier, culture),
             _ => throw ExceptionUtilities.UnexpectedValue(resourceDll)
         };
     }
@@ -98,9 +94,6 @@ internal static class Utilities
             "Microsoft.VisualStudio.LanguageServices.VisualBasic.VSPackage" => (VisualBasicPackage.ResourceManager, VisualBasicLanguageServiceDllName, Guids.VisualBasicPackageId, typeof(VisualBasicPackage)),
             "Microsoft.CodeAnalysis.WorkspacesResources" => (WorkspacesResources.ResourceManager, "Microsoft.CodeAnalysis.Workspaces.dll", null, typeof(WorkspacesResources)),
             "Microsoft.CodeAnalysis.EditorFeaturesResources" => (EditorFeaturesResources.ResourceManager, "Microsoft.CodeAnalysis.EditorFeatures.dll", null, typeof(EditorFeaturesResources)),
-            "Microsoft.CodeAnalysis.CSharp.CSharpFeaturesResources" => (CSharpFeaturesResources.ResourceManager, "Microsoft.CodeAnalysis.CSharp.Features.dll", null, typeof(CSharpFeaturesResources)),
-            "Microsoft.CodeAnalysis.Editor.CSharp.CSharpEditorResources" => (CSharpEditorResources.ResourceManager, "Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll", null, typeof(CSharpEditorResources)),
-            "Microsoft.CodeAnalysis.CSharp.CSharpAnalyzersResources" => (CSharpAnalyzersResources.ResourceManager, "Microsoft.CodeAnalysis.CSharp.Features.dll", null, typeof(CSharpAnalyzersResources)),
             _ => throw ExceptionUtilities.UnexpectedValue(resourceNamespace),
         };
 }

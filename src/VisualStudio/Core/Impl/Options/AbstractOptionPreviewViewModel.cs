@@ -152,14 +152,6 @@ internal abstract class AbstractOptionPreviewViewModel : AbstractNotifyPropertyC
             separator: "",
             exposedLineSpans: [.. GetExposedLineSpans(textBuffer.CurrentSnapshot)]);
 
-        // The projection helper appends a newline and empty separator after the final excerpt.
-        var sourceSpans = projection.CurrentSnapshot.GetSourceSpans();
-        var finalSpan = sourceSpans.Count - 1;
-        if (finalSpan >= 0 && sourceSpans[finalSpan].Length == 0)
-            finalSpan--;
-        if (finalSpan >= 0 && sourceSpans[finalSpan].GetText() is "\r\n" or "\n" or "\r")
-            projection.DeleteSpans(finalSpan, sourceSpans.Count - finalSpan);
-
         var textView = _textEditorFactoryService.CreateTextView(projection,
           _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Interactive));
 

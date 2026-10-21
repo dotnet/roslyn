@@ -166,7 +166,7 @@ public sealed class AdvancedUnifiedSettingsTests
         var prefix = $"languages.{languageId}.advanced.";
         var expected = s_commonOptions.Concat(language == LanguageNames.CSharp ? s_csharpOnlyOptions : s_visualBasicOnlyOptions).ToArray();
         Assert.Equal(count, expected.Length);
-        Assert.Equal(count, properties.EnumerateObject().Count(property => property.Name.StartsWith(prefix, StringComparison.Ordinal)));
+        Assert.Equal(count + (language == LanguageNames.CSharp ? 5 : 0), properties.EnumerateObject().Count(property => property.Name.StartsWith(prefix, StringComparison.Ordinal)));
         foreach (var (option, path) in expected)
         {
             var setting = properties.GetProperty(prefix + path);
@@ -262,7 +262,7 @@ public sealed class AdvancedUnifiedSettingsTests
         }
 
         Assert.Equal(count, expected.Count);
-        Assert.Equal(count, properties.EnumerateObject().Count(property => property.Name.StartsWith(prefix, StringComparison.Ordinal) && property.Value.TryGetProperty("enableWhen", out _)));
+        Assert.Equal(count + (languageId == "csharp" ? 2 : 0), properties.EnumerateObject().Count(property => property.Name.StartsWith(prefix, StringComparison.Ordinal) && property.Value.TryGetProperty("enableWhen", out _)));
         foreach (var (path, dependency) in expected)
             Assert.Equal($"${{config:{prefix}{dependency}}}=='true'", properties.GetProperty(prefix + path).GetProperty("enableWhen").GetString());
     }
@@ -309,7 +309,7 @@ public sealed class AdvancedUnifiedSettingsTests
             }
         }
 
-        Assert.Equal(135, targets.Count);
+        Assert.Equal(140, targets.Count);
     }
 
     [Fact]
@@ -578,7 +578,7 @@ public sealed class AdvancedUnifiedSettingsTests
             }
         }
 
-        Assert.Equal(135, count);
+        Assert.Equal(140, count);
     }
 
     private static JsonElement GetInput(JsonElement rule)

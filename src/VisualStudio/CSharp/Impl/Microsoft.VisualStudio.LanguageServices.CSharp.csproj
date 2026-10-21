@@ -20,14 +20,9 @@
   <ItemGroup>
     <Content Update=".vsextension/string-resources.json" XlfPreserveFileName="true" />
     <Content Include="UnifiedSettings/csharpSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="UnifiedSettings\csharpUnifiedSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
   <ItemGroup Label="PkgDef">
     <Content Include="Microsoft.VisualStudio.LanguageServices.CSharp.Extra.pkgdef" IncludeInVSIX="true" />
-    <Content Include="UnifiedSettings\CSharpCodeStyleSettingsPreview.pkgdef" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-  <ItemGroup>
-    <VSCTCompile Include="UnifiedSettings\UnifiedSettingsCommands.vsct" ResourceName="UnifiedSettingsCommands.ctmenu" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

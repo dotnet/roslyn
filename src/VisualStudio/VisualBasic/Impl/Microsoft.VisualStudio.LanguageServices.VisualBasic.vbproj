@@ -20,18 +20,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <IncludeInVSIX>true</IncludeInVSIX>
     </Content>
-    <Content Include="UnifiedSettings\visualBasicUnifiedSettings.registration.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <IncludeInVSIX>true</IncludeInVSIX>
-    </Content>
   </ItemGroup>
   <ItemGroup Label="PkgDef">
-    <Content Include="UnifiedSettings\VisualBasicCodeStyleSettingsPreview.pkgdef" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
     <!-- Cannot load in background until the VisualBasicPackage constructor has no more UI dependencies -->
     <Content Include="Microsoft.VisualStudio.LanguageServices.VisualBasic.Extra.pkgdef" IncludeInVSIX="true" />
-  </ItemGroup>
-  <ItemGroup>
-    <VSCTCompile Include="UnifiedSettings\UnifiedSettingsCommands.vsct" ResourceName="UnifiedSettingsCommands.ctmenu" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

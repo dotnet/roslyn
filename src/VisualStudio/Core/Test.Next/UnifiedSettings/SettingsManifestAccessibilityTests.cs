@@ -56,8 +56,7 @@ public sealed class SettingsManifestAccessibilityTests
     }
 
     [Theory]
-    [InlineData("csharpUnifiedSettings.registration.json", 3)]
-    [InlineData("csharpSettings.registration.json", 10)]
+    [InlineData("csharpSettings.registration.json", 13)]
     [InlineData("visualBasicSettings.registration.json", 14)]
     [InlineData("roslynSettings.registration.json", 1)]
     public void ShippingManifestsUseOnlyCleanUSXCounterparts(string file, int expectedLabelCount)

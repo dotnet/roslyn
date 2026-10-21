@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../ServicesVSResources.resx">
     <body>
-      <trans-unit id="A_naming_rule_refers_to_an_unknown_symbol_specification_or_naming_style">
-        <source>A naming rule refers to an unknown symbol specification or naming style.</source>
-        <target state="new">A naming rule refers to an unknown symbol specification or naming style.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">將會建立新的命名空間</target>
@@ -277,16 +272,6 @@
         <target state="translated">註解</target>
         <note />
       </trans-unit>
-      <trans-unit id="Complete_legacy_naming_configuration_was_not_published">
-        <source>The complete legacy naming configuration was not published.</source>
-        <target state="new">The complete legacy naming configuration was not published.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Complete_naming_configuration_was_not_published">
-        <source>The complete naming configuration was not published. Legacy naming preferences were not changed.</source>
-        <target state="new">The complete naming configuration was not published. Legacy naming preferences were not changed.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
         <source>Completion behavior for items from unimported namespaces</source>
         <target state="translated">來自未匯入命名空間項目的完成行為</target>
@@ -362,11 +347,6 @@
         <target state="translated">編輯(_E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="EditorConfig">
-        <source>EditorConfig</source>
-        <target state="new">EditorConfig</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Editor_Help">
         <source>Editor Help</source>
         <target state="translated">編輯器說明</target>
@@ -402,11 +382,6 @@
         <target state="translated">請輸入呼叫位置值，或選擇其他值插入種類</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_a_name">
-        <source>Enter a name.</source>
-        <target state="new">Enter a name.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_key_behavior">
         <source>Enter key behavior</source>
         <target state="translated">ENTER 鍵行為</target>
@@ -440,16 +415,6 @@
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">更新歸併時發生錯誤: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Existing_naming_compatibility_identities_cannot_be_changed">
-        <source>Existing naming compatibility identities cannot be changed.</source>
-        <target state="new">Existing naming compatibility identities cannot be changed.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Existing_naming_definition_identities_cannot_be_changed">
-        <source>Existing naming definition identities cannot be changed.</source>
-        <target state="new">Existing naming definition identities cannot be changed.</target>
         <note />
       </trans-unit>
       <trans-unit id="Experimental_feature">
@@ -666,11 +631,6 @@
         <source>Introduce undefined TODO variables</source>
         <target state="translated">引入未定義的 TODO 變數</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
-      </trans-unit>
-      <trans-unit id="Invalid_naming_identity">
-        <source>Naming IDs must start with a lowercase ASCII letter and contain only lowercase letters, digits or underscores.</source>
-        <target state="new">Naming IDs must start with a lowercase ASCII letter and contain only lowercase letters, digits or underscores.</target>
-        <note />
       </trans-unit>
       <trans-unit id="Invalid_type_name">
         <source>Invalid type name</source>
@@ -932,69 +892,9 @@
         <target state="translated">型別參數</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
       </trans-unit>
-      <trans-unit id="Naming_compatibility_identities_must_be_nonempty_GUIDs">
-        <source>Naming compatibility identities must be nonempty GUIDs.</source>
-        <target state="new">Naming compatibility identities must be nonempty GUIDs.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_defaultName_must_be_a_Boolean">
-        <source>Naming defaultName must be a Boolean.</source>
-        <target state="new">Naming defaultName must be a Boolean.</target>
-        <note>{Locked="defaultName"} A property in the naming configuration.</note>
-      </trans-unit>
-      <trans-unit id="Naming_definition_rows_changed_while_the_editor_was_open">
-        <source>Naming definition rows changed while the editor was open. Reload the settings before editing.</source>
-        <target state="new">Naming definition rows changed while the editor was open. Reload the settings before editing.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_preferences_could_not_be_reset_Try_again">
-        <source>Naming preferences could not be reset. Try again.</source>
-        <target state="new">Naming preferences could not be reset. Try again.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_property_0_must_be_a_string">
-        <source>Naming property '{0}' must be a string.</source>
-        <target state="new">Naming property '{0}' must be a string.</target>
-        <note>{0} is a property name in the naming configuration.</note>
-      </trans-unit>
-      <trans-unit id="Naming_property_0_must_be_an_array">
-        <source>Naming property '{0}' must be an array.</source>
-        <target state="new">Naming property '{0}' must be an array.</target>
-        <note>{0} is a property name in the naming configuration.</note>
-      </trans-unit>
-      <trans-unit id="Naming_property_0_must_contain_unique_strings">
-        <source>Naming property '{0}' must contain unique strings.</source>
-        <target state="new">Naming property '{0}' must contain unique strings.</target>
-        <note>{0} is a property name in the naming configuration.</note>
-      </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="translated">命名規則</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_settings_changed_while_the_editor_was_open">
-        <source>Naming settings changed while the editor was open. Reload the settings before applying this edit.</source>
-        <target state="new">Naming settings changed while the editor was open. Reload the settings before applying this edit.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_settings_could_not_be_saved_Refresh_and_try_again">
-        <source>Naming settings could not be saved. Refresh the settings and try again.</source>
-        <target state="new">Naming settings could not be saved. Refresh the settings and try again.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_settings_must_be_an_array_of_objects">
-        <source>Naming settings must be an array of objects.</source>
-        <target state="new">Naming settings must be an array of objects.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_settings_must_be_requested_as_an_array_of_objects">
-        <source>Naming settings must be requested as an array of objects.</source>
-        <target state="new">Naming settings must be requested as an array of objects.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_style_identities_must_be_unique">
-        <source>Naming style identities must be unique.</source>
-        <target state="new">Naming style identities must be unique.</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">
@@ -1071,11 +971,6 @@
         <source>Only add new line on enter after end of fully typed word</source>
         <target state="translated">只在完整鍵入字的結尾處按 ENTER 來新增新行</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Only_built_in_naming_definitions_with_an_empty_name_can_use_defaultName">
-        <source>Only built-in naming definitions with an empty name can use defaultName.</source>
-        <target state="new">Only built-in naming definitions with an empty name can use defaultName.</target>
-        <note>{Locked="defaultName"} A property in the naming configuration.</note>
       </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
@@ -1192,20 +1087,10 @@
         <target state="translated">優先使用索引運算子</target>
         <note />
       </trans-unit>
-      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
-        <source>Prefer 'is null' for reference equality checks</source>
-        <target state="new">Prefer 'is null' for reference equality checks</target>
-        <note>'is null' is a C# expression and should not be localized.</note>
-      </trans-unit>
       <trans-unit id="Prefer_method_group_conversion">
         <source>Prefer method group conversion</source>
         <target state="translated">建議使用方法群組轉換</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Prefer_null_check_over_type_check">
-        <source>Prefer 'null' check over type check</source>
-        <target state="new">Prefer 'null' check over type check</target>
-        <note>'null' is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
@@ -1272,11 +1157,6 @@
         <target state="translated">參考</target>
         <note />
       </trans-unit>
-      <trans-unit id="Refresh_naming_settings_before_applying_changes">
-        <source>Refresh Naming settings before applying changes.</source>
-        <target state="new">Refresh Naming settings before applying changes.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
         <target state="translated">一般</target>
@@ -1340,11 +1220,6 @@
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
         <target state="translated">重設 Visual Studio 預設按鍵對應</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reset_naming_preferences_were_not_published">
-        <source>The naming preference defaults were not published.</source>
-        <target state="new">The naming preference defaults were not published.</target>
         <note />
       </trans-unit>
       <trans-unit id="Review_Changes">
@@ -1622,11 +1497,6 @@
         <target state="translated">當參數名稱只有尾碼不同時，不出現提示</target>
         <note />
       </trans-unit>
-      <trans-unit id="Symbol_specification_identities_must_be_unique">
-        <source>Symbol specification identities must be unique.</source>
-        <target state="new">Symbol specification identities must be unique.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Symbols_without_references">
         <source>Symbols without references</source>
         <target state="translated">沒有參考的符號</target>
@@ -1722,35 +1592,10 @@
         <target state="translated">已辨識類型名稱</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
-      <trans-unit id="Unable_to_enqueue_naming_setting_0_1_2">
-        <source>Unable to enqueue validated naming setting '{0}': {1}. {2}</source>
-        <target state="new">Unable to enqueue validated naming setting '{0}': {1}. {2}</target>
-        <note>{0} is a setting moniker, {1} is a change outcome, and {2} is a diagnostic detail.</note>
-      </trans-unit>
-      <trans-unit id="Unable_to_normalize_naming_settings_0_1">
-        <source>Unable to normalize naming settings: {0}. {1}</source>
-        <target state="new">Unable to normalize naming settings: {0}. {1}</target>
-        <note>{0} is a setting commit outcome and {1} is a diagnostic detail.</note>
-      </trans-unit>
-      <trans-unit id="Unable_to_read_naming_setting_0_1_2">
-        <source>Unable to read naming setting '{0}': {1}. {2}</source>
-        <target state="new">Unable to read naming setting '{0}': {1}. {2}</target>
-        <note>{0} is a setting moniker, {1} is a retrieval outcome, and {2} is a diagnostic detail.</note>
-      </trans-unit>
-      <trans-unit id="Unable_to_synchronize_legacy_naming_settings_0_1">
-        <source>Unable to synchronize legacy naming settings: {0}. {1}</source>
-        <target state="new">Unable to synchronize legacy naming settings: {0}. {1}</target>
-        <note>{0} is a setting commit outcome and {1} is a diagnostic detail.</note>
-      </trans-unit>
       <trans-unit id="Underline_reassigned_variables">
         <source>Underline reassigned variables</source>
         <target state="translated">為重新指派的變數加上底線</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Unsupported_naming_setting_value_0">
-        <source>'{0}' is not a supported value for this naming setting.</source>
-        <target state="new">'{0}' is not a supported value for this naming setting.</target>
-        <note>{0} is a value from the naming configuration.</note>
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
@@ -2996,31 +2841,6 @@ Additional information: {1}</source>
         <source>Prefer conditional expression over 'if' with returns</source>
         <target state="translated">建議優先使用條件運算式 (優先於具傳回的 'if')</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Unable_to_update_naming_settings_0">
-        <source>Unable to update Naming settings: {0}</source>
-        <target state="new">Unable to update Naming settings: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_settings_are_stored_in_settings_json">
-        <source>Naming settings are stored in settings.json and synchronized with legacy profiles.</source>
-        <target state="new">Naming settings are stored in settings.json and synchronized with legacy profiles.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reset_naming_preferences">
-        <source>Reset naming preferences</source>
-        <target state="new">Reset naming preferences</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Reset_naming_preferences_confirmation">
-        <source>Reset all naming preferences to their defaults? This removes your custom naming rules, symbol specifications, and styles.</source>
-        <target state="new">Reset all naming preferences to their defaults? This removes your custom naming rules, symbol specifications, and styles.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="All_files_filter">
-        <source>All files (*.*)|*.*</source>
-        <target state="new">All files (*.*)|*.*</target>
-        <note>(*.*)|*.* is a Windows file filter pattern and should not be localized.</note>
       </trans-unit>
     </body>
   </file>
