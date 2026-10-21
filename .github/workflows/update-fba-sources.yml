@@ -18,15 +18,15 @@ jobs:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           persist-credentials: false
-      - name: Test updater
-        run: node --test .github/scripts/update-fba-sources.test.cjs
+      - name: Install automation SDK
+        uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
+        with:
+          global-json-file: global.json
       - name: Discover target branches and matching SDKs
         id: branches
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
-        with:
-          script: |
-            const updater = require('./.github/scripts/update-fba-sources.cjs');
-            await updater.discover({ github, context, core });
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: dotnet run --file eng/update-fba-sources.cs -- discover
 
   update:
     needs: discover
@@ -59,21 +59,14 @@ jobs:
           global-json-file: automation/global.json
       - name: Synchronize sources and check declined updates
         id: sync
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        working-directory: automation
         env:
           GITHUB_TOKEN: ${{ github.token }}
           TARGET_BRANCH: ${{ matrix.branch }}
           ROSLYN_VERSION: ${{ matrix.version }}
           SDK_BRANCH: ${{ matrix.sdkBranch }}
           SDK_COMMIT: ${{ matrix.sdkCommit }}
-        with:
-          script: |
-            const updater = require('./automation/.github/scripts/update-fba-sources.cjs');
-            await updater.synchronize({
-              github, context, core, targetDirectory: 'target',
-              branch: process.env.TARGET_BRANCH, version: process.env.ROSLYN_VERSION,
-              sdkBranch: process.env.SDK_BRANCH, sdkCommit: process.env.SDK_COMMIT,
-            });
+        run: dotnet run --file eng/update-fba-sources.cs -- sync ../target
       - name: Install target branch SDK
         if: steps.sync.outputs.changed == 'true'
         uses: actions/setup-dotnet@26b0ec14cb23fa6904739307f278c14f94c95bf1 # v5
