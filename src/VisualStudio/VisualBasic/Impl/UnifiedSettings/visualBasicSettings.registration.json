@@ -540,7 +540,7 @@
       }
     },
     "languages.basic.advanced.inlineHints.enabledForParameters": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Display_inline_parameter_name_hints_USX;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Display_inline_parameter_name_hints;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
       "order": 20,
@@ -723,7 +723,7 @@
       }
     },
     "languages.basic.advanced.imports.placeSystemNamespaceFirst": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Place_System_directives_first_when_sorting_imports_USX;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Place_System_directives_first_when_sorting_imports;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "boolean",
       "default": true,
       "order": 0,
@@ -755,7 +755,7 @@
       }
     },
     "languages.basic.advanced.imports.searchReferenceAssemblies": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Suggest_imports_for_types_in_reference_assemblies_USX;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Suggest_imports_for_types_in_reference_assemblies;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "boolean",
       "default": true,
       "order": 20,
@@ -771,7 +771,7 @@
       }
     },
     "languages.basic.advanced.imports.searchNuGetPackages": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Suggest_imports_for_types_in_NuGet_packages_USX;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Suggest_imports_for_types_in_NuGet_packages;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "boolean",
       "default": true,
       "order": 30,
@@ -803,7 +803,7 @@
       }
     },
     "languages.basic.advanced.highlighting.referenceHighlighting": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Highlight_references_to_symbol_under_cursor_USX;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Highlight_references_to_symbol_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
       "order": 0,
@@ -819,7 +819,7 @@
       }
     },
     "languages.basic.advanced.highlighting.keywordHighlighting": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Highlight_related_keywords_under_cursor_USX;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Highlight_related_keywords_under_cursor;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
       "order": 10,
@@ -835,7 +835,7 @@
       }
     },
     "languages.basic.advanced.outlining.outlining": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Enter_outlining_mode_when_files_open_USX;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Enter_outlining_mode_when_files_open;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "boolean",
       "default": true,
       "order": 0,
@@ -919,7 +919,7 @@
       }
     },
     "languages.basic.advanced.outlining.lineSeparator": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_procedure_line_separators_USX;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_procedure_line_separators;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
       "order": 50,
@@ -1107,7 +1107,7 @@
       }
     },
     "languages.basic.advanced.comments.autoXmlDocCommentGeneration": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Generate_XML_documentation_comments_for_USX;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Generate_XML_documentation_comments_for;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "boolean",
       "default": true,
       "order": 0,
@@ -1171,7 +1171,7 @@
       }
     },
     "languages.basic.advanced.editorHelp.endConstruct": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:A_utomatic_insertion_of_end_constructs_USX;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:A_utomatic_insertion_of_end_constructs;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "boolean",
       "default": true,
       "order": 0,
@@ -1187,7 +1187,7 @@
       }
     },
     "languages.basic.advanced.editorHelp.prettyListing": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Pretty_listing_reformatting_of_code_USX;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Pretty_listing_reformatting_of_code;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "boolean",
       "default": true,
       "order": 10,
@@ -1203,7 +1203,7 @@
       }
     },
     "languages.basic.advanced.editorHelp.automaticInsertionOfAbstractOrInterfaceMembers": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Automatic_insertion_of_Interface_and_MustOverride_members_USX;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Automatic_insertion_of_Interface_and_MustOverride_members;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "boolean",
       "default": true,
       "order": 20,
@@ -1235,7 +1235,7 @@
       }
     },
     "languages.basic.advanced.editorHelp.renameTrackingPreview": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_preview_for_rename_tracking_USX;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_preview_for_rename_tracking;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
       "order": 40,
@@ -1299,7 +1299,7 @@
       }
     },
     "languages.basic.advanced.navigation.navigateToObjectBrowser": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Navigate_to_Object_Browser_for_symbols_defined_in_metadata_USX;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources:Navigate_to_Object_Browser_for_symbols_defined_in_metadata;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
       "type": "boolean",
       "default": false,
       "order": 0,

@@ -317,9 +317,9 @@
         <target state="translated">Afficher les diagnostics en ligne</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_inline_parameter_name_hints_USX">
+      <trans-unit id="Display_inline_parameter_name_hints">
         <source>Display inline parameter name hints</source>
-        <target state="new">Display inline parameter name hints</target>
+        <target state="translated">Afficher les indicateurs de noms de paramètres inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -507,9 +507,9 @@
         <target state="translated">Mettre en surbrillance les parties correspondantes des éléments de liste de saisie semi-automatique</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor_USX">
+      <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>Highlight references to symbol under cursor</source>
-        <target state="new">Highlight references to symbol under cursor</target>
+        <target state="translated">Surligner les références jusqu'au symbole sous le curseur</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -517,9 +517,9 @@
         <target state="translated">Surligner les composants liés sous le curseur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor_USX">
+      <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related keywords under cursor</source>
-        <target state="new">Highlight related keywords under cursor</target>
+        <target state="translated">Surligner les mots clés liés sous le curseur</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1382,14 +1382,14 @@
         <target state="translated">Afficher les éléments des espaces de noms qui ne sont pas importés</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking_USX">
+      <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename tracking</source>
-        <target state="new">Show preview for rename tracking</target>
+        <target state="translated">Afficher un aperçu pour le suivi des renommages</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_procedure_line_separators_USX">
+      <trans-unit id="Show_procedure_line_separators">
         <source>Show procedure line separators</source>
-        <target state="new">Show procedure line separators</target>
+        <target state="translated">Afficher les séparateurs de ligne de procédure</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

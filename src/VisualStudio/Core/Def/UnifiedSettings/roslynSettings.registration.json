@@ -338,7 +338,7 @@
       }
     },
     "languages.dotnet.advanced.splitStringLiterals": {
-      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Split_string_literals_on_enter_USX;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
+      "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Split_string_literals_on_enter;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
       "transientScopesSupported": false,

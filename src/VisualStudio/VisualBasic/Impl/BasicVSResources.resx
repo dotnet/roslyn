@@ -120,35 +120,35 @@
   <data name="Microsoft_Visual_Basic" xml:space="preserve">
     <value>Microsoft Visual Basic</value>
   </data>
-  <data name="Automatic_insertion_of_Interface_and_MustOverride_members_USX" xml:space="preserve">
+  <data name="Automatic_insertion_of_Interface_and_MustOverride_members" xml:space="preserve">
     <value>Automatic insertion of Interface and MustOverride members</value>
   </data>
-  <data name="A_utomatic_insertion_of_end_constructs_USX" xml:space="preserve">
+  <data name="A_utomatic_insertion_of_end_constructs" xml:space="preserve">
     <value>Automatic insertion of end constructs</value>
   </data>
-  <data name="Pretty_listing_reformatting_of_code_USX" xml:space="preserve">
+  <data name="Pretty_listing_reformatting_of_code" xml:space="preserve">
     <value>Pretty listing (reformatting) of code</value>
   </data>
-  <data name="Enter_outlining_mode_when_files_open_USX" xml:space="preserve">
+  <data name="Enter_outlining_mode_when_files_open" xml:space="preserve">
     <value>Enter outlining mode when files open</value>
   </data>
-  <data name="Generate_XML_documentation_comments_for_USX" xml:space="preserve">
+  <data name="Generate_XML_documentation_comments_for" xml:space="preserve">
     <value>Generate XML documentation comments for '''</value>
     <comment>{Locked="'''"} "'''" is a VB keyword and should not be localized.</comment>
   </data>
-  <data name="Navigate_to_Object_Browser_for_symbols_defined_in_metadata_USX" xml:space="preserve">
+  <data name="Navigate_to_Object_Browser_for_symbols_defined_in_metadata" xml:space="preserve">
     <value>Navigate to Object Browser for symbols defined in metadata</value>
   </data>
   <data name="Import_Directives" xml:space="preserve">
     <value>Import Directives</value>
   </data>
-  <data name="Suggest_imports_for_types_in_NuGet_packages_USX" xml:space="preserve">
+  <data name="Suggest_imports_for_types_in_NuGet_packages" xml:space="preserve">
     <value>Suggest imports for types in NuGet packages</value>
   </data>
-  <data name="Suggest_imports_for_types_in_reference_assemblies_USX" xml:space="preserve">
+  <data name="Suggest_imports_for_types_in_reference_assemblies" xml:space="preserve">
     <value>Suggest imports for types in reference assemblies</value>
   </data>
-  <data name="Place_System_directives_first_when_sorting_imports_USX" xml:space="preserve">
+  <data name="Place_System_directives_first_when_sorting_imports" xml:space="preserve">
     <value>Place 'System' directives first when sorting imports</value>
   </data>
   <data name="Qualify_event_access_with_Me" xml:space="preserve">

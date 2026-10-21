@@ -134,11 +134,11 @@ public sealed class FormattingPageOnboardingTests
     }
 
     [Theory]
-    [InlineData("Display_inline_parameter_name_hints_USX", "Display inline parameter name hints")]
-    [InlineData("Show_procedure_line_separators_USX", "Show procedure line separators")]
-    [InlineData("Highlight_related_keywords_under_cursor_USX", "Highlight related keywords under cursor")]
-    [InlineData("Highlight_references_to_symbol_under_cursor_USX", "Highlight references to symbol under cursor")]
-    [InlineData("Show_preview_for_rename_tracking_USX", "Show preview for rename tracking")]
+    [InlineData("Display_inline_parameter_name_hints", "Display inline parameter name hints")]
+    [InlineData("Show_procedure_line_separators", "Show procedure line separators")]
+    [InlineData("Highlight_related_keywords_under_cursor", "Highlight related keywords under cursor")]
+    [InlineData("Highlight_references_to_symbol_under_cursor", "Highlight references to symbol under cursor")]
+    [InlineData("Show_preview_for_rename_tracking", "Show preview for rename tracking")]
     public void AdvancedLabelsDoNotContainLegacyKeyboardMnemonics(string resourceName, string expectedTitle)
         => Assert.Equal(expectedTitle, TestModel.Utilities.EvalResource(
             "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:" + resourceName + ";{6cf2e545-6109-4730-8883-cf43d7aec3e1}"));

@@ -2,9 +2,9 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../BasicVSResources.resx">
     <body>
-      <trans-unit id="A_utomatic_insertion_of_end_constructs_USX">
+      <trans-unit id="A_utomatic_insertion_of_end_constructs">
         <source>Automatic insertion of end constructs</source>
-        <target state="new">Automatic insertion of end constructs</target>
+        <target state="translated">맺음 구문 자동 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_missing_imports_on_paste">
@@ -12,9 +12,9 @@
         <target state="translated">붙여넣을 때 누락된 import 추가</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members_USX">
+      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
         <source>Automatic insertion of Interface and MustOverride members</source>
-        <target state="new">Automatic insertion of Interface and MustOverride members</target>
+        <target state="translated">Interface 및 MustOverride 멤버 자동 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_imports_on_file_open">
@@ -22,14 +22,14 @@
         <target state="translated">파일을 열 때 가져오기 축소</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open_USX">
+      <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter outlining mode when files open</source>
-        <target state="new">Enter outlining mode when files open</target>
+        <target state="translated">개요 모드로 파일 열기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for_USX">
+      <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for '''</source>
-        <target state="new">Generate XML documentation comments for '''</target>
+        <target state="translated">'''에 대해 XML 문서 주석 생성</target>
         <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
@@ -47,14 +47,14 @@
         <target state="translated">Microsoft Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata_USX">
+      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
         <source>Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="new">Navigate to Object Browser for symbols defined in metadata</target>
+        <target state="translated">메타데이터에 정의된 기호를 위해 개체 브라우저로 이동</target>
         <note />
       </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_imports_USX">
+      <trans-unit id="Place_System_directives_first_when_sorting_imports">
         <source>Place 'System' directives first when sorting imports</source>
-        <target state="new">Place 'System' directives first when sorting imports</target>
+        <target state="translated">가져오기를 정렬할 때 'System' 지시문을 먼저 배치</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -72,9 +72,9 @@
         <target state="translated">단순화된 개체 만들기 선호</target>
         <note />
       </trans-unit>
-      <trans-unit id="Pretty_listing_reformatting_of_code_USX">
+      <trans-unit id="Pretty_listing_reformatting_of_code">
         <source>Pretty listing (reformatting) of code</source>
-        <target state="new">Pretty listing (reformatting) of code</target>
+        <target state="translated">코드 자동 서식 지정(서식 다시 지정)</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
@@ -87,9 +87,9 @@
         <target state="translated">Import 지시문</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_imports_for_types_in_NuGet_packages_USX">
+      <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in NuGet packages</source>
-        <target state="new">Suggest imports for types in NuGet packages</target>
+        <target state="translated">NuGet 패키지의 형식에 대한 import 제안</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">
@@ -137,9 +137,9 @@
         <target state="translated">완성 목록</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies_USX">
+      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
         <source>Suggest imports for types in reference assemblies</source>
-        <target state="new">Suggest imports for types in reference assemblies</target>
+        <target state="translated">참조 어셈블리의 형식에 대한 import 제안</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

@@ -1281,7 +1281,7 @@ Additional information: {1}</value>
   <data name="Warning_colon_type_does_not_bind" xml:space="preserve">
     <value>Warning: type does not bind</value>
   </data>
-  <data name="Display_inline_parameter_name_hints_USX" xml:space="preserve">
+  <data name="Display_inline_parameter_name_hints" xml:space="preserve">
     <value>Display inline parameter name hints</value>
   </data>
   <data name="Current_parameter" xml:space="preserve">
@@ -1721,16 +1721,16 @@ Additional information: {1}</value>
   <data name="Insert_Snippet" xml:space="preserve">
     <value>Insert Snippet</value>
   </data>
-  <data name="Show_procedure_line_separators_USX" xml:space="preserve">
+  <data name="Show_procedure_line_separators" xml:space="preserve">
     <value>Show procedure line separators</value>
   </data>
   <data name="Editor_Help" xml:space="preserve">
     <value>Editor Help</value>
   </data>
-  <data name="Highlight_related_keywords_under_cursor_USX" xml:space="preserve">
+  <data name="Highlight_related_keywords_under_cursor" xml:space="preserve">
     <value>Highlight related keywords under cursor</value>
   </data>
-  <data name="Highlight_references_to_symbol_under_cursor_USX" xml:space="preserve">
+  <data name="Highlight_references_to_symbol_under_cursor" xml:space="preserve">
     <value>Highlight references to symbol under cursor</value>
   </data>
   <data name="Large" xml:space="preserve">
@@ -1796,7 +1796,7 @@ Additional information: {1}</value>
   <data name="Enter_key_behavior" xml:space="preserve">
     <value>Enter key behavior</value>
   </data>
-  <data name="Show_preview_for_rename_tracking_USX" xml:space="preserve">
+  <data name="Show_preview_for_rename_tracking" xml:space="preserve">
     <value>Show preview for rename tracking</value>
   </data>
   <data name="_Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">

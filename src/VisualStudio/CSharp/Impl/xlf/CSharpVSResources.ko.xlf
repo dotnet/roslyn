@@ -42,19 +42,19 @@
         <target state="translated">세미콜론 입력 시 자동으로 문 완성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_block_on_close_brace_USX">
+      <trans-unit id="Automatically_format_block_on_close_brace">
         <source>Automatically format block on }</source>
-        <target state="new">Automatically format block on }</target>
+        <target state="translated">} 입력 시 블록 서식 자동 지정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_on_paste_USX">
+      <trans-unit id="Automatically_format_on_paste">
         <source>Automatically format on paste</source>
-        <target state="new">Automatically format on paste</target>
+        <target state="translated">붙여넣을 때 서식 자동 지정</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon_USX">
+      <trans-unit id="Automatically_format_statement_on_semicolon">
         <source>Automatically format statement on ;</source>
-        <target state="new">Automatically format statement on ;</target>
+        <target state="translated">; 입력 시 문 서식 자동 지정</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
@@ -107,9 +107,9 @@
         <target state="translated">색 구성표 편집</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open_USX">
+      <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter outlining mode when files open</source>
-        <target state="new">Enter outlining mode when files open</target>
+        <target state="translated">개요 모드로 파일 열기</target>
         <note />
       </trans-unit>
       <trans-unit id="File_scoped">
@@ -122,9 +122,9 @@
         <target state="translated">일반</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for_USX">
+      <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for ///</source>
-        <target state="new">Generate XML documentation comments for ///</target>
+        <target state="translated">///에 대해 XML 문서 주석 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
@@ -132,9 +132,9 @@
         <target state="translated">관계 연산자:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments_USX">
+      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="new">Insert * at the start of new lines when writing /* */ comments</target>
+        <target state="translated">/* */ 주석을 작성할 때 새 줄의 시작 부분에 * 삽입</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
@@ -177,9 +177,9 @@
         <target state="translated">패턴 일치 기본 설정:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_usings_USX">
+      <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>Place 'System' directives first when sorting usings</source>
-        <target state="new">Place 'System' directives first when sorting usings</target>
+        <target state="translated">using 정렬 시 'System' 지시문 먼저 배치</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -242,14 +242,14 @@
         <target state="translated">새 코드 조각 환경 표시(실험적)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Split_string_literals_on_enter_USX">
+      <trans-unit id="Split_string_literals_on_enter">
         <source>Split string literals on enter</source>
-        <target state="new">Split string literals on enter</target>
+        <target state="translated">&lt;Enter&gt; 키를 누르면 문자열 리터럴 분할</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages_USX">
+      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in NuGet packages</source>
-        <target state="new">Suggest usings for types in NuGet packages</target>
+        <target state="translated">NuGet 패키지의 형식에 대한 using 제안</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">

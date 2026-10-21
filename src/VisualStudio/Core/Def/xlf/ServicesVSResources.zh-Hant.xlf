@@ -317,9 +317,9 @@
         <target state="translated">顯示內嵌診斷</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_inline_parameter_name_hints_USX">
+      <trans-unit id="Display_inline_parameter_name_hints">
         <source>Display inline parameter name hints</source>
-        <target state="new">Display inline parameter name hints</target>
+        <target state="translated">顯示內嵌參數名稱提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -507,9 +507,9 @@
         <target state="translated">醒目提示自動完成清單項目的相符部分</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor_USX">
+      <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>Highlight references to symbol under cursor</source>
-        <target state="new">Highlight references to symbol under cursor</target>
+        <target state="translated">反白顯示資料指標下符號的參考項目</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -517,9 +517,9 @@
         <target state="translated">反白資料指標下的相關元件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor_USX">
+      <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related keywords under cursor</source>
-        <target state="new">Highlight related keywords under cursor</target>
+        <target state="translated">反白資料指標下的相關關鍵字</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1382,14 +1382,14 @@
         <target state="translated">顯示來自未匯入命名空間的項目</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking_USX">
+      <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename tracking</source>
-        <target state="new">Show preview for rename tracking</target>
+        <target state="translated">顯示預覽以追蹤重新命名</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_procedure_line_separators_USX">
+      <trans-unit id="Show_procedure_line_separators">
         <source>Show procedure line separators</source>
-        <target state="new">Show procedure line separators</target>
+        <target state="translated">顯示程序行分隔符號</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

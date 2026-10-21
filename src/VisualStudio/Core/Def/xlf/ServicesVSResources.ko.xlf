@@ -317,9 +317,9 @@
         <target state="translated">진단 인라인 표시</target>
         <note />
       </trans-unit>
-      <trans-unit id="Display_inline_parameter_name_hints_USX">
+      <trans-unit id="Display_inline_parameter_name_hints">
         <source>Display inline parameter name hints</source>
-        <target state="new">Display inline parameter name hints</target>
+        <target state="translated">인라인 매개 변수 이름 힌트 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -507,9 +507,9 @@
         <target state="translated">완성 목록 항목의 일치하는 부분 강조 표시</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_references_to_symbol_under_cursor_USX">
+      <trans-unit id="Highlight_references_to_symbol_under_cursor">
         <source>Highlight references to symbol under cursor</source>
-        <target state="new">Highlight references to symbol under cursor</target>
+        <target state="translated">커서 아래의 기호에 대한 참조 강조</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -517,9 +517,9 @@
         <target state="translated">커서 아래의 관련 구성 요소 강조</target>
         <note />
       </trans-unit>
-      <trans-unit id="Highlight_related_keywords_under_cursor_USX">
+      <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related keywords under cursor</source>
-        <target state="new">Highlight related keywords under cursor</target>
+        <target state="translated">커서 아래의 관련 키워드 강조</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -1382,14 +1382,14 @@
         <target state="translated">가져오지 않은 네임스페이스의 항목 표시</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_preview_for_rename_tracking_USX">
+      <trans-unit id="Show_preview_for_rename_tracking">
         <source>Show preview for rename tracking</source>
-        <target state="new">Show preview for rename tracking</target>
+        <target state="translated">이름 바꾸기 추적 미리 보기 표시</target>
         <note />
       </trans-unit>
-      <trans-unit id="Show_procedure_line_separators_USX">
+      <trans-unit id="Show_procedure_line_separators">
         <source>Show procedure line separators</source>
-        <target state="new">Show procedure line separators</target>
+        <target state="translated">프로시저 줄 구분선 표시</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">

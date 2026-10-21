@@ -42,19 +42,19 @@
         <target state="translated">セミコロンでステートメントをオートコンプリートに設定する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_block_on_close_brace_USX">
+      <trans-unit id="Automatically_format_block_on_close_brace">
         <source>Automatically format block on }</source>
-        <target state="new">Automatically format block on }</target>
+        <target state="translated">} でブロックをオートフォーマットする</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_on_paste_USX">
+      <trans-unit id="Automatically_format_on_paste">
         <source>Automatically format on paste</source>
-        <target state="new">Automatically format on paste</target>
+        <target state="translated">貼り付け時にオートフォーマットする</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon_USX">
+      <trans-unit id="Automatically_format_statement_on_semicolon">
         <source>Automatically format statement on ;</source>
-        <target state="new">Automatically format statement on ;</target>
+        <target state="translated">; でステートメントをオートフォーマットする</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
@@ -107,9 +107,9 @@
         <target state="translated">配色の編集</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open_USX">
+      <trans-unit id="Enter_outlining_mode_when_files_open">
         <source>Enter outlining mode when files open</source>
-        <target state="new">Enter outlining mode when files open</target>
+        <target state="translated">ファイルを開くときにアウトライン モードに入る</target>
         <note />
       </trans-unit>
       <trans-unit id="File_scoped">
@@ -122,9 +122,9 @@
         <target state="translated">全般</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for_USX">
+      <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for ///</source>
-        <target state="new">Generate XML documentation comments for ///</target>
+        <target state="translated">/// が入力されたとき、XML ドキュメント コメントを生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
@@ -132,9 +132,9 @@
         <target state="translated">関係演算子: &lt; &gt; &lt;= &gt;= is as == !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
       </trans-unit>
-      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments_USX">
+      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
         <source>Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="new">Insert * at the start of new lines when writing /* */ comments</target>
+        <target state="translated">/* */ コメントを記述する際、新しい行の先頭に * を挿入する</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
@@ -177,9 +177,9 @@
         <target state="translated">パターン マッチング設定:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_usings_USX">
+      <trans-unit id="Place_System_directives_first_when_sorting_usings">
         <source>Place 'System' directives first when sorting usings</source>
-        <target state="new">Place 'System' directives first when sorting usings</target>
+        <target state="translated">using を並べ替える際に、'System' ディレクティブを先頭に配置する</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -242,14 +242,14 @@
         <target state="translated">新しいスニペット エクスペリエンスの表示 (試験段階)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Split_string_literals_on_enter_USX">
+      <trans-unit id="Split_string_literals_on_enter">
         <source>Split string literals on enter</source>
-        <target state="new">Split string literals on enter</target>
+        <target state="translated">Enter で文字列リテラルを分割する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages_USX">
+      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in NuGet packages</source>
-        <target state="new">Suggest usings for types in NuGet packages</target>
+        <target state="translated">NuGet パッケージの型に using を提案する</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
