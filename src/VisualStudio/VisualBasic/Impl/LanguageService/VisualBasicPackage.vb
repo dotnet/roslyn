@@ -90,7 +90,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     Friend NotInheritable Class VisualBasicPackage
 #Enable Warning BC40000
         Inherits AbstractPackage(Of VisualBasicPackage, VisualBasicLanguageService)
-        Implements IVbCompilerService
         Implements IVsUserSettingsQuery
 
         Private _libraryManager As ObjectBrowserLibraryManager
@@ -109,10 +108,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
                                                                           Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
-                                                                          ' Creating the COM aggregate is a UI-affinitized operation, so it can't happen in
-                                                                          ' the package constructor if we want to allow background loading. The service
-                                                                          ' container caches the result, so the aggregate is still created once.
-                                                                          Return Implementation.Interop.ComAggregate.CreateAggregatedObject(Me)
+                                                                          ' Creating the COM aggregate is a UI-affinitized operation, so it has to happen on the main thread.
+                                                                          Return Implementation.Interop.ComAggregate.CreateAggregatedObject(New VisualBasicCompilerService(ComponentModel))
                                                                       End Function, promote:=True)
 
                               DirectCast(Me, IServiceContainer).AddService(
