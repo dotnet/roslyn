@@ -106,7 +106,6 @@ internal sealed class NativeCodeStyleSettingsService : INativeCodeStyleSettingsS
             var moniker = NativeCodeStyleSettingsDefinitions.GetRowMoniker(language, option.Definition.ConfigName);
             yield return new(new CodeStyleSetting(option.Definition.ConfigName, option, language, string.Empty), storage.GetKey(key.Language), moniker);
         }
-
     }
 
     private void Refresh(OptionKey2 key, object? value)

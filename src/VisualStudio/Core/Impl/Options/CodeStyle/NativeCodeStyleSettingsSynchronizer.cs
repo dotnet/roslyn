@@ -289,7 +289,9 @@ internal sealed class NativeCodeStyleSettingsSynchronizer : IObserver<SettingsUp
                 if (_legacyValues.TryGetValue(binding.Moniker, out var previousLegacyValue) &&
                     value.Equals(previousLegacyValue) &&
                     NativeValueMatches(binding, value))
+                {
                     continue;
+                }
                 pending.Add((binding, value));
                 foreach (var severity in binding.IsFlag ? new[] { false } : new[] { false, true })
                 {

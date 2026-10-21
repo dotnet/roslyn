@@ -119,7 +119,7 @@ internal sealed class CodeStyleSettingsPreview : UserControl
 
     private bool TryScrollContainingPage(int delta)
     {
-        for (DependencyObject? parent = GetParent(this); parent is not null; parent = GetParent(parent))
+        for (var parent = GetParent(this); parent is not null; parent = GetParent(parent))
         {
             if (parent is ScrollViewer scrollViewer)
             {
