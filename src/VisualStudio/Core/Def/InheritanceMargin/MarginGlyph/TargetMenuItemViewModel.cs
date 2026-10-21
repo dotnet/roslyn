@@ -14,6 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 /// </summary>
 internal class TargetMenuItemViewModel : MenuItemViewModel
 {
+    public override bool IsIndented => true;
+
     /// <summary>
     /// DefinitionItem used for navigation.
     /// </summary>
