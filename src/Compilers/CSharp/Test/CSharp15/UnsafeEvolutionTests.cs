@@ -2052,6 +2052,462 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_Assigned(bool updatedRules, bool initializedBeforeDeclaration, bool nested)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M()
+                {
+                    Buffer b{{(initializedBeforeDeclaration ? " = default" : "")}};
+                    void F() { {{(nested ? "void G() { _ = &b[0]; } G();" : "_ = &b[0];")}} }
+                    {{(initializedBeforeDeclaration ? "" : "b = default;")}}
+                    F();
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_Unassigned(bool updatedRules, bool nested)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M()
+                {
+                    Buffer b;
+                    void F() { {{(nested ? "void G() { _ = &b[0]; } G();" : "_ = &b[0];")}} }
+                    F();
+                    b = default;
+                    F();
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (7,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            //         F();
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(7, 9));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_Unassigned_UnsafeContext(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    Buffer b;
+                    void F() { unsafe { _ = &b[0]; } }
+                    F();
+                    b = default;
+                    F();
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_Unassigned_UnsafeContextInContainer(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    unsafe
+                    {
+                        Buffer b;
+                        void F() { _ = &b[0]; }
+                        F();
+                        b = default;
+                        F();
+                    }
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_AssignedInLocalFunction(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    Buffer b;
+                    void F() { b = default; _ = &b[0]; }
+                    F();
+                    _ = &b[0];
+                    Buffer c;
+                    void G() { unsafe { _ = &c[0]; } }
+                    G();
+                    _ = &c[0];
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(1)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_UnsafeCaller(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    Buffer b;
+                    void F() { _ = &b[0]; }
+                    unsafe { F(); }
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (7,18): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            //         unsafe { F(); }
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(7, 18));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_PartialAssignment_Inside(bool updatedRules, [CombinatorialValues(1, 2)] int length)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M()
+                {
+                    Buffer b;
+                    void F() { b[0] = 1; _ = &b[0]; }
+                    F();
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray({{length}})]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        var comp = CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+        if (length == 1)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (7,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                //         F();
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(7, 9));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_PartialAssignment_Outside(bool updatedRules, [CombinatorialValues(1, 2)] int length)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M()
+                {
+                    Buffer b;
+                    b[0] = 1;
+                    void F() { _ = &b[0]; }
+                    F();
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray({{length}})]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        var comp = CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+        if (length == 1)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                //         F();
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(8, 9));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_ForwardCall(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    F();
+                    Buffer b;
+                    void F() { _ = &b[0]; }
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (5,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            //         F();
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(5, 9));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_Delegate(bool updatedRules, bool assigned)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M()
+                {
+                    Buffer b{{(assigned ? " = default" : "")}};
+                    void F() { _ = &b[0]; }
+                    System.Action action = F;
+                    action();
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        var comp = CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+        if (assigned)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (7,32): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                //         System.Action action = F;
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F").WithLocation(7, 32));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_UnusedLocalFunction(bool updatedRules)
+    {
+        var source = """
+            #pragma warning disable CS8321 // unused local function
+            class C
+            {
+                static void M()
+                {
+                    Buffer b;
+                    void F() { _ = &b[0]; }
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_Recursive(bool updatedRules, bool assigned)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M()
+                {
+                    Buffer b{{(assigned ? " = default" : "")}};
+                    void F(bool recurse)
+                    {
+                        if (recurse) F(false);
+                        _ = &b[0];
+                    }
+                    F(true);
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        var comp = CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+        if (assigned)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (11,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                //         F(true);
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F(true)").WithLocation(11, 9));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_Field(bool updatedRules, bool assigned)
+    {
+        var source = $$"""
+            class C
+            {
+                static void M()
+                {
+                    S s;
+                    s.{{(assigned ? "First" : "Second")}} = default;
+                    void F() { s.Second = default; _ = &s.First[0]; }
+                    F();
+                }
+            }
+            struct S
+            {
+                public Buffer First;
+                public Buffer Second;
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        var comp = CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+        if (assigned)
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (8,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                //         F();
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(8, 9));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_LocalInlineArrayInLocalFunction(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    void F()
+                    {
+                        Buffer b;
+                        _ = &b[0];
+                    }
+                    F();
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyDiagnostics(
+            // (8,17): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            //             _ = &b[0];
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(8, 17));
+    }
+
+    [Theory, CombinatorialData]
     public void Pointer_AddressOf_AfterAwait(bool updatedRules, bool release)
     {
         var source = """
