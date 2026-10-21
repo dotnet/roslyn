@@ -39,12 +39,30 @@ public sealed class TimeoutTests
         var deadline = DateTime.UtcNow.AddSeconds(30);
         while (DateTime.UtcNow < deadline)
         {
-            if (File.Exists(path) && int.TryParse(await File.ReadAllTextAsync(path), out var pid))
-                return pid;
+            if (File.Exists(path))
+            {
+                // Atomic publication can expose the path before the rename's delete-access handle closes.
+                using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                using var reader = new StreamReader(stream);
+                if (int.TryParse(await reader.ReadToEndAsync(), out var pid))
+                    return pid;
+            }
             await Task.Delay(20);
         }
 
         throw new TimeoutException($"Fixture did not write child identity to {path}.");
+    }
+
+    [ConditionalFact(typeof(WindowsOnly))]
+    public async Task ReadyIdentityReaderAllowsPublicationHandle()
+    {
+        using var temp = new TempRoot();
+        var path = Path.Combine(temp.CreateDirectory().Path, "child.pid");
+        File.WriteAllText(path, Environment.ProcessId.ToString());
+        using var publication = new FileStream(path, FileMode.Open, FileAccess.Read,
+            FileShare.ReadWrite | FileShare.Delete, bufferSize: 4096, FileOptions.DeleteOnClose);
+
+        Assert.Equal(Environment.ProcessId, await WaitForChildAsync(path));
     }
 
     [ConditionalFact(typeof(WindowsOnly))]
