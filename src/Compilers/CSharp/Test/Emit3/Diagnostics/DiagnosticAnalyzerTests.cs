@@ -2325,11 +2325,14 @@ public class Class
                     ReportNodeDiagnostics(syntaxContext.Node, syntaxContext.ReportDiagnostic);
                 }, _syntaxKinds);
 
-                context.RegisterOperationAction(operationContext =>
+                if (!_operationKinds.IsEmpty)
                 {
-                    sortedCallbackEntityNames.Add($"Operation: {operationContext.ContainingSymbol.Name}");
-                    ReportOperationDiagnostics(operationContext.Operation, operationContext.ContainingSymbol.Name, operationContext.ReportDiagnostic);
-                }, _operationKinds);
+                    context.RegisterOperationAction(operationContext =>
+                    {
+                        sortedCallbackEntityNames.Add($"Operation: {operationContext.ContainingSymbol.Name}");
+                        ReportOperationDiagnostics(operationContext.Operation, operationContext.ContainingSymbol.Name, operationContext.ReportDiagnostic);
+                    }, _operationKinds);
+                }
 
                 context.RegisterCompilationEndAction(endContext =>
                 {
@@ -3229,6 +3232,111 @@ static partial class B
             };
 
             compilation.VerifyAnalyzerDiagnostics(analyzers, expected: expected);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86086")]
+        public async Task TestPartialConstructorSyntaxNodeActions(bool separateFiles)
+        {
+            var definition = """
+                partial class C
+                {
+                    public partial C(int x);
+                }
+                """;
+            var implementation = """
+                partial class C
+                {
+                    public partial C(int x) { }
+                }
+                """;
+            var sources = separateFiles
+                ? new[] { definition, implementation }
+                : new[] { definition + Environment.NewLine + implementation };
+            var compilation = CreateCompilation(sources, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyEmitDiagnostics();
+
+            var analyzer = new GeneratedCodeSyntaxAndOperationAnalyzer(
+                GeneratedCodeAnalysisFlags.None, [SyntaxKind.ConstructorDeclaration], []);
+            var expectedDefinition = new[]
+            {
+                // (3,5): warning GeneratedCodeAnalyzerWarning: GeneratedCodeAnalyzerMessage for 'Node: public partial C(int x);'
+                //     public partial C(int x);
+                Diagnostic("GeneratedCodeAnalyzerWarning", "public partial C(int x);").WithArguments("Node: public partial C(int x);").WithLocation(3, 5),
+            };
+            var expectedImplementation = new[]
+            {
+                // (3,5) or (7,5): warning GeneratedCodeAnalyzerWarning: GeneratedCodeAnalyzerMessage for 'Node: public partial C(int x) { }'
+                //     public partial C(int x) { }
+                Diagnostic("GeneratedCodeAnalyzerWarning", "public partial C(int x) { }").WithArguments("Node: public partial C(int x) { }").WithLocation(separateFiles ? 3 : 7, 5),
+            };
+            var expected = expectedDefinition.Concat(expectedImplementation).ToArray();
+
+            var diagnostics = await compilation.WithAnalyzers([analyzer]).GetAnalyzerDiagnosticsAsync();
+            diagnostics.Where(d => d.Id != GeneratedCodeSyntaxAndOperationAnalyzer.Summary.Id).Verify(expected);
+
+            for (int i = 0; i < compilation.SyntaxTrees.Length; i++)
+            {
+                diagnostics = await compilation.WithAnalyzers([analyzer]).GetAnalyzerSemanticDiagnosticsAsync(
+                    compilation.GetSemanticModel(compilation.SyntaxTrees[i]), filterSpan: null, CancellationToken.None);
+                diagnostics.Verify(!separateFiles ? expected : i == 0 ? expectedDefinition : expectedImplementation);
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86086")]
+        public async Task TestPartialEventSyntaxNodeActions(bool separateFiles)
+        {
+            var definition = """
+                partial class C
+                {
+                    public partial event System.Action E;
+                }
+                """;
+            var implementation = """
+                partial class C
+                {
+                    public partial event System.Action E { add { } remove { } }
+                }
+                """;
+            var sources = separateFiles
+                ? new[] { definition, implementation }
+                : new[] { definition + Environment.NewLine + implementation };
+            var compilation = CreateCompilation(sources, parseOptions: TestOptions.RegularPreview);
+            compilation.VerifyEmitDiagnostics();
+
+            var analyzer = new GeneratedCodeSyntaxAndOperationAnalyzer(
+                GeneratedCodeAnalysisFlags.None,
+                [SyntaxKind.EventFieldDeclaration, SyntaxKind.EventDeclaration, SyntaxKind.AddAccessorDeclaration, SyntaxKind.RemoveAccessorDeclaration],
+                []);
+            var expectedDefinition = new[]
+            {
+                // (3,5): warning GeneratedCodeAnalyzerWarning: GeneratedCodeAnalyzerMessage for 'Node: public partial event System.Action E;'
+                //     public partial event System.Action E;
+                Diagnostic("GeneratedCodeAnalyzerWarning", "public partial event System.Action E;").WithArguments("Node: public partial event System.Action E;").WithLocation(3, 5),
+            };
+            int implementationLine = separateFiles ? 3 : 7;
+            var expectedImplementation = new[]
+            {
+                // (3,5) or (7,5): warning GeneratedCodeAnalyzerWarning: GeneratedCodeAnalyzerMessage for 'Node: public partial event System.Action E { add { } remove { } }'
+                //     public partial event System.Action E { add { } remove { } }
+                Diagnostic("GeneratedCodeAnalyzerWarning", "public partial event System.Action E { add { } remove { } }").WithArguments("Node: public partial event System.Action E { add { } remove { } }").WithLocation(implementationLine, 5),
+                // (3,44) or (7,44): warning GeneratedCodeAnalyzerWarning: GeneratedCodeAnalyzerMessage for 'Node: add { }'
+                //     public partial event System.Action E { add { } remove { } }
+                Diagnostic("GeneratedCodeAnalyzerWarning", "add { }").WithArguments("Node: add { }").WithLocation(implementationLine, 44),
+                // (3,52) or (7,52): warning GeneratedCodeAnalyzerWarning: GeneratedCodeAnalyzerMessage for 'Node: remove { }'
+                //     public partial event System.Action E { add { } remove { } }
+                Diagnostic("GeneratedCodeAnalyzerWarning", "remove { }").WithArguments("Node: remove { }").WithLocation(implementationLine, 52),
+            };
+            var expected = expectedDefinition.Concat(expectedImplementation).ToArray();
+
+            var diagnostics = await compilation.WithAnalyzers([analyzer]).GetAnalyzerDiagnosticsAsync();
+            diagnostics.Where(d => d.Id != GeneratedCodeSyntaxAndOperationAnalyzer.Summary.Id).Verify(expected);
+
+            for (int i = 0; i < compilation.SyntaxTrees.Length; i++)
+            {
+                diagnostics = await compilation.WithAnalyzers([analyzer]).GetAnalyzerSemanticDiagnosticsAsync(
+                    compilation.GetSemanticModel(compilation.SyntaxTrees[i]), filterSpan: null, CancellationToken.None);
+                diagnostics.Verify(!separateFiles ? expected : i == 0 ? expectedDefinition : expectedImplementation);
+            }
         }
 
         [Theory, CombinatorialData, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/71149")]
