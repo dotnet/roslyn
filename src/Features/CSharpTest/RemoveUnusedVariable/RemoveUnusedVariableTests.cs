@@ -835,4 +835,147 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78528")]
+    public Task RemoveUnusedVariableAssignedInElseStatementWithoutBraces()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    bool [|recreateIssue|];
+                    if (true)
+                    {
+                    }
+                    else
+                        recreateIssue = true;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    if (true)
+                    {
+                    }
+                    else
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78528")]
+    public Task RemoveUnusedVariableAssignedInForStatementWithoutBraces()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    bool [|recreateIssue|];
+                    for (int i = 0; i < 1; i++)
+                        recreateIssue = true;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    for (int i = 0; i < 1; i++)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78528")]
+    public Task RemoveUnusedVariableAssignedInForeachStatementWithoutBraces()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    bool [|recreateIssue|];
+                    foreach (var i in new[] { 1 })
+                        recreateIssue = true;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    foreach (var i in new[] { 1 })
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78528")]
+    public Task RemoveUnusedVariableAssignedInWhileStatementWithoutBraces()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    bool [|recreateIssue|];
+                    while (true)
+                        recreateIssue = true;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    while (true)
+                    {
+                    }
+                }
+            }
+            """);
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78528")]
+    public Task RemoveUnusedVariableAssignedInDoStatementWithoutBraces()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    bool [|recreateIssue|];
+                    do
+                        recreateIssue = true;
+                    while (true);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    do
+                    {
+                    }
+                    while (true);
+                }
+            }
+            """);
 }
