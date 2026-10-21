@@ -1488,7 +1488,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    [Theory, CombinatorialData]
     public void Pointer_AddressOf_UnassignedLocal_UnsafeContext(bool updatedRules, bool allowUnsafe)
     {
         var source = """
@@ -1552,7 +1552,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         ]);
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    [Theory, CombinatorialData]
     public void Pointer_AddressOf_AssignedLocal_UnsafeContext(bool updatedRules, bool allowUnsafe)
     {
         var source = """
@@ -1688,7 +1688,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&z").WithLocation(9, 5));
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    [Theory, CombinatorialData]
     public void Pointer_AddressOf_ImportedEmptyStruct(bool updatedRules, bool useCompilationReference)
     {
         var lib = CreateCompilation("public struct S;");
@@ -1778,7 +1778,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(11, 26));
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    [Theory, CombinatorialData]
     public void Pointer_AddressOf_UnassignedOutParameter_UnsafeContext(bool updatedRules)
     {
         var source = """
@@ -2009,7 +2009,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             ]);
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    [Theory, CombinatorialData]
     public void Pointer_AddressOf_DataFlow(bool updatedRules, bool assigned, bool unsafeContext)
     {
         var source = $$"""
@@ -2051,7 +2051,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         AssertEx.Equal(["x"], flow.UnsafeAddressTaken.Select(s => s.Name));
     }
 
-    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/pull/86017")]
+    [Theory, CombinatorialData]
     public void Pointer_AddressOf_AfterAwait(bool updatedRules, bool release)
     {
         var source = """
