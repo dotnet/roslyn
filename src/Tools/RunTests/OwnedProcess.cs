@@ -148,8 +148,6 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
             info.Environment.Clear();
             foreach (var pair in environment)
                 info.Environment[pair.Key] = pair.Value;
-            if (info.Environment.TryGetValue("ROSLYN_TIMEOUT_PROBE_MODE", out var probeMode) && probeMode is not null)
-                info.Environment["ROSLYN_TIMEOUT_PROBE_LAUNCHER_PID"] = Environment.ProcessId.ToString(CultureInfo.InvariantCulture);
             if (args[3] == "arguments")
                 info.Arguments = args[4];
             else
