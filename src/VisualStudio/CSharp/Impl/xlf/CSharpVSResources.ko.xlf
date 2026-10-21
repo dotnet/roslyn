@@ -117,11 +117,6 @@
         <target state="translated">파일 범위 지정됨</target>
         <note />
       </trans-unit>
-      <trans-unit id="General">
-        <source>General</source>
-        <target state="translated">일반</target>
-        <note>Title of the control group on the General Formatting options page</note>
-      </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for ///</source>
         <target state="translated">///에 대해 XML 문서 주석 생성</target>
@@ -643,7 +638,7 @@
         <note />
       </trans-unit>
       <trans-unit id="predefined_type_preferences_colon">
-        <source>Predefined type preferences:</source>
+        <source>predefined type preferences:</source>
         <target state="translated">미리 정의된 형식 기본 설정:</target>
         <note />
       </trans-unit>

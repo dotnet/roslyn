@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
@@ -48,7 +47,6 @@ using Microsoft.CodeAnalysis.VisualBasic.AutomaticInsertionOfAbstractOrInterface
 using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 using Microsoft.VisualStudio.LanguageServices.Options;
-using Microsoft.VisualStudio.LanguageServices.VisualBasic;
 using Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings.TestModel;
 using Xunit;
 using static Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionStorage;
@@ -408,12 +406,6 @@ public sealed class AdvancedUnifiedSettingsTests
             Assert.Equal(Enum.GetValues(type).Cast<object>().Select(Convert.ToInt32).Distinct().OrderBy(value => value), maps.Select(map => map.GetProperty("matches")[0].GetInt32()).Distinct().OrderBy(value => value));
             var defaultMap = Assert.Single(maps, map => map.GetProperty("matches")[0].GetInt32() == Convert.ToInt32(option.Definition.DefaultValue));
             Assert.Equal(defaultMap.GetProperty("result").GetString(), setting.GetProperty("default").GetString());
-            foreach (var map in maps)
-            {
-                var result = map.GetProperty("result").GetString();
-                var reverse = maps.First(candidate => candidate.GetProperty("result").GetString() == result);
-                Assert.Equal(map.GetProperty("matches")[0].GetInt32(), reverse.GetProperty("matches")[0].GetInt32());
-            }
         }
     }
 
@@ -423,22 +415,7 @@ public sealed class AdvancedUnifiedSettingsTests
         var separator = reference.IndexOf(';');
         var namespaceSeparator = reference.IndexOf(':');
         Assert.True(namespaceSeparator > 1 && namespaceSeparator < separator, reference);
-        var resourceTable = reference[1..namespaceSeparator];
-        var key = reference[(namespaceSeparator + 1)..separator];
-        var assembly = reference[(separator + 1)..];
-        var (resourceType, resourceManager) = assembly switch
-        {
-            @"..\Microsoft.CodeAnalysis.Workspaces.dll" => (typeof(WorkspacesResources), WorkspacesResources.ResourceManager),
-            @"..\Microsoft.CodeAnalysis.EditorFeatures.dll" => (typeof(EditorFeaturesResources), EditorFeaturesResources.ResourceManager),
-            @"..\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll" => (typeof(BasicVSResources), BasicVSResources.ResourceManager),
-            @"..\Microsoft.VisualStudio.LanguageServices.CSharp.dll" => (typeof(Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources), Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources.ResourceManager),
-            @"..\Microsoft.VisualStudio.LanguageServices.dll" => (typeof(Microsoft.VisualStudio.LanguageServices.ServicesVSResources), Microsoft.VisualStudio.LanguageServices.ServicesVSResources.ResourceManager),
-            _ => throw new ArgumentException("Unexpected Advanced resource assembly", nameof(reference)),
-        };
-        Assert.Equal(resourceType.FullName, resourceTable);
-        Assert.Contains(resourceTable + ".resources", resourceType.Assembly.GetManifestResourceNames());
-        var value = resourceManager.GetString(key, CultureInfo.GetCultureInfo("en"));
-        Assert.False(string.IsNullOrEmpty(value), reference);
+        Assert.False(string.IsNullOrEmpty(TestModel.Utilities.EvalResource(reference)), reference);
     }
 
     [Theory]

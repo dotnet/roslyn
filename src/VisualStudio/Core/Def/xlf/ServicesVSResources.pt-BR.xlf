@@ -222,11 +222,6 @@
         <target state="translated">Visualização de código</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_style_header_use_editor_config_USX">
-        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. [More info](https://go.microsoft.com/fwlink/?linkid=866541)</source>
-        <target state="new">Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. [More info](https://go.microsoft.com/fwlink/?linkid=866541)</target>
-        <note>Keep the Markdown hyperlink syntax and URL unchanged; translate the text inside the square brackets.</note>
-      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">Recolher funções locais ao recolher para definições</target>
@@ -642,11 +637,6 @@
         <target state="translated">Tipo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">Grande</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Loaded_items">
         <source>Loaded items</source>
         <target state="translated">Itens carregados</target>
@@ -1042,11 +1032,6 @@
         <target state="translated">Cole um rastreamento de pilha para exibir e navegar pelos seus valores.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">Desempenho</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
         <target state="translated">Insira um nome de tipo</target>
@@ -1130,11 +1115,6 @@
       <trans-unit id="Reference">
         <source>Reference</source>
         <target state="translated">Referência</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">Normal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1400,11 +1380,6 @@
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
         <source>Skip analyzers for implicitly triggered builds</source>
         <target state="translated">Ignorar analisadores para compilações acionadas implicitamente</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">Pequeno</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">

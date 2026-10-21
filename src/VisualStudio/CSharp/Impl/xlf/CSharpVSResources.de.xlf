@@ -117,11 +117,6 @@
         <target state="translated">Dateibereich</target>
         <note />
       </trans-unit>
-      <trans-unit id="General">
-        <source>General</source>
-        <target state="translated">Allgemein</target>
-        <note>Title of the control group on the General Formatting options page</note>
-      </trans-unit>
       <trans-unit id="Generate_XML_documentation_comments_for">
         <source>Generate XML documentation comments for ///</source>
         <target state="translated">XML-Dokumentationskommentare für /// eingeben</target>
@@ -643,7 +638,7 @@
         <note />
       </trans-unit>
       <trans-unit id="predefined_type_preferences_colon">
-        <source>Predefined type preferences:</source>
+        <source>predefined type preferences:</source>
         <target state="translated">Vordefinierte Typeinstellungen:</target>
         <note />
       </trans-unit>

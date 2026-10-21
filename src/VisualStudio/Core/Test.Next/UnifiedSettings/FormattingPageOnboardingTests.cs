@@ -104,9 +104,8 @@ public sealed class FormattingPageOnboardingTests
 
         var category = document.RootElement.GetProperty("categories").GetProperty(prefix);
         Assert.False(category.TryGetProperty("legacyOptionPageId", out _));
-        Assert.Equal("https://go.microsoft.com/fwlink/?linkid=866541", category.GetProperty("helpUri").GetString());
-        var message = Assert.Single(category.GetProperty("messages").EnumerateArray());
-        Assert.False(string.IsNullOrEmpty(TestModel.Utilities.EvalResource(message.GetProperty("text").GetString()!)));
+        Assert.False(category.TryGetProperty("messages", out _));
+        Assert.False(category.TryGetProperty("helpUri", out _));
     }
 
     private static JsonDocument Load(string manifestName)

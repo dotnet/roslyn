@@ -222,11 +222,6 @@
         <target state="translated">코드 미리 보기</target>
         <note />
       </trans-unit>
-      <trans-unit id="Code_style_header_use_editor_config_USX">
-        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. [More info](https://go.microsoft.com/fwlink/?linkid=866541)</source>
-        <target state="new">Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. [More info](https://go.microsoft.com/fwlink/?linkid=866541)</target>
-        <note>Keep the Markdown hyperlink syntax and URL unchanged; translate the text inside the square brackets.</note>
-      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">정의로 축소할 때 로컬 함수 축소</target>
@@ -642,11 +637,6 @@
         <target state="translated">종류</target>
         <note />
       </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">크게</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Loaded_items">
         <source>Loaded items</source>
         <target state="translated">로드된 항목</target>
@@ -1042,11 +1032,6 @@
         <target state="translated">값을 보고 탐색하려면 스택 추적을 붙여넣습니다.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
       </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">성능</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
         <target state="translated">형식 이름을 입력하세요.</target>
@@ -1130,11 +1115,6 @@
       <trans-unit id="Reference">
         <source>Reference</source>
         <target state="translated">참조</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">일반</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1400,11 +1380,6 @@
       <trans-unit id="Skip_analyzers_for_implicitly_triggered_builds">
         <source>Skip analyzers for implicitly triggered builds</source>
         <target state="translated">암시적으로 트리거된 빌드에 대한 분석기 건너뛰기</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">작게</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">

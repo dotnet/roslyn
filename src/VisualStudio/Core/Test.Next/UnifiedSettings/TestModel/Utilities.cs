@@ -75,11 +75,8 @@ internal static class Utilities
         return resourceDll switch
         {
             CSharpLanguageServiceDllName => CSharpVSResources.ResourceManager.GetString(resourcesIdentifier, culture),
-            VisualBasicLanguageServiceDllName => VisualBasicPackage.ResourceManager.GetString(resourcesIdentifier, culture)
-                ?? BasicVSResources.ResourceManager.GetString(resourcesIdentifier, culture),
+            VisualBasicLanguageServiceDllName => VisualBasicPackage.ResourceManager.GetString(resourcesIdentifier, culture),
             LanguageServiceDllName => ServicesVSResources.ResourceManager.GetString(resourcesIdentifier, culture),
-            "Microsoft.CodeAnalysis.Workspaces.dll" => WorkspacesResources.ResourceManager.GetString(resourcesIdentifier, culture),
-            "Microsoft.CodeAnalysis.EditorFeatures.dll" => EditorFeaturesResources.ResourceManager.GetString(resourcesIdentifier, culture),
             _ => throw ExceptionUtilities.UnexpectedValue(resourceDll)
         };
     }
@@ -89,9 +86,7 @@ internal static class Utilities
         {
             "Microsoft.VisualStudio.LanguageServices.ServicesVSResources" => (ServicesVSResources.ResourceManager, LanguageServiceDllName, Guids.RoslynPackageId, typeof(ServicesVSResources)),
             "Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources" => (CSharpVSResources.ResourceManager, CSharpLanguageServiceDllName, Guids.CSharpPackageId, typeof(CSharpVSResources)),
-            "Microsoft.VisualStudio.LanguageServices.CSharp.VSPackage" => (CSharpPackage.ResourceManager, CSharpLanguageServiceDllName, Guids.CSharpPackageId, typeof(CSharpPackage)),
             "Microsoft.VisualStudio.LanguageServices.VisualBasic.BasicVSResources" => (BasicVSResources.ResourceManager, VisualBasicLanguageServiceDllName, Guids.VisualBasicPackageId, typeof(BasicVSResources)),
-            "Microsoft.VisualStudio.LanguageServices.VisualBasic.VSPackage" => (VisualBasicPackage.ResourceManager, VisualBasicLanguageServiceDllName, Guids.VisualBasicPackageId, typeof(VisualBasicPackage)),
             "Microsoft.CodeAnalysis.WorkspacesResources" => (WorkspacesResources.ResourceManager, "Microsoft.CodeAnalysis.Workspaces.dll", null, typeof(WorkspacesResources)),
             "Microsoft.CodeAnalysis.EditorFeaturesResources" => (EditorFeaturesResources.ResourceManager, "Microsoft.CodeAnalysis.EditorFeatures.dll", null, typeof(EditorFeaturesResources)),
             _ => throw ExceptionUtilities.UnexpectedValue(resourceNamespace),

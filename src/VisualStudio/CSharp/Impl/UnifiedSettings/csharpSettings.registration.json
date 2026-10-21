@@ -1654,13 +1654,7 @@
   "categories": {
     "languages.csharp.advanced.onTypeFormatting": {
       "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:On_type_formatting;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
-      "order": 0,
-      "messages": [
-        {
-          "text": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Code_style_header_use_editor_config_USX;{6cf2e545-6109-4730-8883-cf43d7aec3e1}"
-        }
-      ],
-      "helpUri": "https://go.microsoft.com/fwlink/?linkid=866541"
+      "order": 0
     },
     "languages.csharp.advanced": {
       "title": "@102;{13c3bbb4-f18f-4111-9f54-a0fb010d9194}",
