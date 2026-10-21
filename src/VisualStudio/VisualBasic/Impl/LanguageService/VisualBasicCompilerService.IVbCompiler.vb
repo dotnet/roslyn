@@ -9,7 +9,7 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.In
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
-    Partial Friend Class VisualBasicPackage
+    Partial Friend NotInheritable Class VisualBasicCompilerService
         Implements IVbCompiler
 
         Public Function Compile(ByVal pcWarnings As IntPtr, ByVal pcErrors As IntPtr, ByVal ppErrors As IntPtr) As Integer Implements IVbCompiler.Compile
@@ -23,8 +23,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 pVbCompilerHost,
                 pProjHier,
                 TypeOf punkProject Is IVsIntellisenseProject,
-                Me,
-                ComponentModel.GetService(Of IThreadingContext))
+                _serviceProvider,
+                _componentModel.GetService(Of IThreadingContext))
         End Function
 
         Public Function IsValidIdentifier(wszIdentifier As String) As Boolean Implements IVbCompiler.IsValidIdentifier

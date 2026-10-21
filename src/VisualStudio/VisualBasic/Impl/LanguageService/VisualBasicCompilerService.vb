@@ -13,13 +13,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     ' The object behind the legacy SID_SVisualBasicCompiler service. The property page for WinForms projects gets
     ' this service and casts it to IVBEntryPointProvider. That interface is redefined in managed code, so the object
     ' has to be a COM aggregate for the cast to go through COM QueryInterface rather than managed type identity.
-    Friend NotInheritable Class VisualBasicCompilerService
+    Partial Friend NotInheritable Class VisualBasicCompilerService
         Implements IVbCompilerService
         Implements IVBEntryPointProvider
 
+        Private ReadOnly _serviceProvider As IServiceProvider
         Private ReadOnly _componentModel As IComponentModel
 
-        Public Sub New(componentModel As IComponentModel)
+        Public Sub New(serviceProvider As IServiceProvider, componentModel As IComponentModel)
+            _serviceProvider = serviceProvider
             _componentModel = componentModel
         End Sub
 

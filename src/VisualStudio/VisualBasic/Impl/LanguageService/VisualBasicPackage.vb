@@ -109,7 +109,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                                                                           Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
                                                                           ' Creating the COM aggregate is a UI-affinitized operation, so it has to happen on the main thread.
-                                                                          Return Implementation.Interop.ComAggregate.CreateAggregatedObject(New VisualBasicCompilerService(ComponentModel))
+                                                                          Return Implementation.Interop.ComAggregate.CreateAggregatedObject(New VisualBasicCompilerService(Me, ComponentModel))
                                                                       End Function, promote:=True)
 
                               DirectCast(Me, IServiceContainer).AddService(
