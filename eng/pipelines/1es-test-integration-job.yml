@@ -124,6 +124,11 @@ stages:
         arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
     preDeployAndRunTestsOperations:
     - operation: executePowerShellInline
+      displayName: Enable long path
+      scriptBlock: |
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force
+      timeout: '0:0:1:0'
+    - operation: executePowerShellInline
       displayName: Checkout Roslyn
       timeout: '0:1:20:0'
       scriptBlock: |
@@ -157,13 +162,15 @@ stages:
           git init $repositoryPath
           if ($LASTEXITCODE -ne 0) { throw 'Initializing the Roslyn repository failed.' }
           Set-Location $repositoryPath
-          git remote add origin '$(RoslynMirrorUrl)'
+          git -C $repositoryPath remote add origin '$(RoslynMirrorUrl)'
           if ($LASTEXITCODE -ne 0) { throw 'Configuring the RoslynMirror remote failed.' }
-          Set-GitConfiguration -Name core.longpaths -Value true
-          Set-GitConfiguration -Name remote.origin.tagOpt -Value '--no-tags'
-          git fetch --force --no-tags --depth=1 origin $repositoryVersion
+          git -C $repositoryPath config --local core.longpaths true
+          if ($LASTEXITCODE -ne 0) { throw 'Enabling Git long paths failed.' }
+          git -C $repositoryPath config --local remote.origin.tagOpt --no-tags
+          if ($LASTEXITCODE -ne 0) { throw 'Disabling Git tag fetching failed.' }
+          git -C $repositoryPath fetch --force --no-tags --depth=1 origin $repositoryVersion
           if ($LASTEXITCODE -ne 0) { throw 'Fetching the Roslyn resource commit failed.' }
-          git checkout --detach $repositoryVersion
+          git -C $repositoryPath checkout --detach $repositoryVersion
           if ($LASTEXITCODE -ne 0) { throw 'Checking out the Roslyn resource commit failed.' }
 
           if ('${{ parameters.prNumber }}' -ne 'None') {
@@ -174,9 +181,9 @@ stages:
 
           if ('${{ parameters.testsCommitHash }}' -ne '(default)') {
             Write-Host 'Checking out tests at the requested commit.'
-            git fetch origin '${{ parameters.testsCommitHash }}'
+            git -C $repositoryPath fetch origin '${{ parameters.testsCommitHash }}'
             if ($LASTEXITCODE -ne 0) { throw 'Fetching the requested tests commit failed.' }
-            git checkout --detach FETCH_HEAD
+            git -C $repositoryPath checkout --detach FETCH_HEAD
             if ($LASTEXITCODE -ne 0) { throw 'Checking out the requested tests commit failed.' }
           }
 
@@ -203,13 +210,13 @@ stages:
             }
 
             Write-Host "Checking out tests at commit from Visual Studio build: $roslynCommitHash"
-            git fetch origin $roslynCommitHash
+            git -C $repositoryPath fetch origin $roslynCommitHash
             if ($LASTEXITCODE -ne 0) { throw 'Fetching the Visual Studio tests commit failed.' }
-            git checkout --detach FETCH_HEAD
+            git -C $repositoryPath checkout --detach FETCH_HEAD
             if ($LASTEXITCODE -ne 0) { throw 'Checking out the Visual Studio tests commit failed.' }
           }
 
-          $persistedGitConfiguration = @(git config --local --get-regexp '^(credential\.|http\..*\.extraheader$)')
+          $persistedGitConfiguration = @(git -C $repositoryPath config --local --get-regexp '^(credential\.|http\..*\.extraheader$)')
           $gitConfigExitCode = $LASTEXITCODE
           if ($gitConfigExitCode -ne 0 -and $gitConfigExitCode -ne 1) {
             throw "Could not inspect persisted Git authentication configuration (exit code $gitConfigExitCode)."
@@ -221,13 +228,6 @@ stages:
         finally {
           Remove-Item -LiteralPath $gitConfigPath -Force
         }
-    - operation: executePowerShellInline
-      displayName: Enable Long Paths
-      timeout: '0:0:5:0'
-      scriptBlock: |
-        Set-Location '[WorkingDirectory]\Roslyn'
-        reg import eng\enable-long-paths.reg
-        if ($LASTEXITCODE -ne 0) { throw 'Enabling long paths failed.' }
     - operation: executePowerShellInline
       displayName: Build
       timeout: '0:2:0:0'
