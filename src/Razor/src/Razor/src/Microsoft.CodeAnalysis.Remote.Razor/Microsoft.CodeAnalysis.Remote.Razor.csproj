@@ -63,6 +63,7 @@
       <Private>true</Private>
     </ProjectReference>
     <PackageReference Include="Nerdbank.Streams" />
+    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
   </ItemGroup>
 

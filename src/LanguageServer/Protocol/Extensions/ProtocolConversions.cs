@@ -104,8 +104,16 @@ internal static partial class ProtocolConversions
         { WellKnownTags.Deprecated, ImmutableArray.Create(LSP.CompletionItemTag.Deprecated) },
     }.ToImmutableDictionary();
 
+    /// <summary>
+    /// Configures generated metadata and converters for Roslyn's built-in protocol contracts.
+    /// Callers with additional contracts must add their generated metadata to <see cref="JsonSerializerOptions.TypeInfoResolverChain"/>.
+    /// MEF-hosted LSP extensions can export <see cref="System.Text.Json.Serialization.Metadata.IJsonTypeInfoResolver"/>
+    /// under their LSP language contract from an assembly in the host's MEF catalog
+    /// to provide metadata before server initialization.
+    /// </summary>
     public static JsonSerializerOptions AddLspSerializerOptions(this JsonSerializerOptions options)
     {
+        options.TypeInfoResolver = LSP.LspJsonSerializerContext.Resolver;
         LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(options);
         options.Converters.Add(new LSP.NaturalObjectConverter());
         options.Converters.Add(new DocumentUriConverter());

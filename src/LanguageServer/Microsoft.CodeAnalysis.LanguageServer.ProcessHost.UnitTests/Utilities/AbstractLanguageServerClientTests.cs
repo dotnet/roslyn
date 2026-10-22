@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -104,9 +105,17 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
 
     internal sealed class WorkDoneProgressTarget
     {
+        private static readonly JsonSerializerOptions s_jsonSerializerOptions = CreateJsonSerializerOptions();
         private readonly object _gate = new();
         private readonly Dictionary<string, WorkDoneProgressUnit> _unitsByToken = [];
         private readonly List<(string Title, TaskCompletionSource<WorkDoneProgressUnit> Source)> _unitSourcesByTitle = [];
+
+        private static JsonSerializerOptions CreateJsonSerializerOptions()
+        {
+            var options = new JsonSerializerOptions(ProtocolConversions.LspJsonSerializerOptions);
+            options.TypeInfoResolverChain.Add(new DefaultJsonTypeInfoResolver());
+            return options;
+        }
 
         [JsonRpcMethod(Methods.WindowWorkDoneProgressCreateName, UseSingleObjectParameterDeserialization = true)]
         public Task HandleCreateWorkDoneProgress(WorkDoneProgressCreateParams workDoneProgressCreateParams, CancellationToken _)
@@ -125,7 +134,7 @@ public abstract partial class AbstractLanguageServerClientTests(ITestOutputHelpe
         [JsonRpcMethod(Methods.ProgressNotificationName, UseSingleObjectParameterDeserialization = true)]
         public Task HandleProgress(JsonElement progressParams, CancellationToken _)
         {
-            var progressReport = progressParams.Deserialize<ProgressReportParams>(ProtocolConversions.LspJsonSerializerOptions);
+            var progressReport = progressParams.Deserialize<ProgressReportParams>(s_jsonSerializerOptions);
             WorkDoneProgressUnit unit;
 
             lock (_gate)

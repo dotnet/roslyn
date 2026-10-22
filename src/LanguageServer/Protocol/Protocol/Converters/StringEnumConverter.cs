@@ -5,7 +5,6 @@
 using System;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq.Expressions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -17,29 +16,13 @@ namespace Roslyn.LanguageServer.Protocol;
 /// <typeparam name="TStringEnumType">The actual type implementing <see cref="IStringEnum"/>.</typeparam>
 internal sealed class StringEnumConverter<TStringEnumType>
     : JsonConverter<TStringEnumType>
-    where TStringEnumType : IStringEnum
+    where TStringEnumType : struct, IStringEnum<TStringEnumType>
 {
-    private static readonly Func<string, TStringEnumType> CreateEnum;
-
-    static StringEnumConverter()
-    {
-        // TODO. When C# starts supporting static methods in interfaces, add a static Create method to IStringEnum and remove CreateEnum.
-        var constructor = typeof(TStringEnumType).GetConstructor([typeof(string)]);
-        if (constructor is null)
-        {
-            throw new InvalidOperationException(string.Format(CultureInfo.InvariantCulture, LanguageServerProtocolResources.StringEnumMissingConstructor, typeof(TStringEnumType).FullName));
-        }
-
-        var param = Expression.Parameter(typeof(string), "value");
-        var body = Expression.New(constructor, param);
-        CreateEnum = Expression.Lambda<Func<string, TStringEnumType>>(body, param).Compile();
-    }
-
-    public override TStringEnumType? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    public override TStringEnumType Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         if (reader.TokenType == JsonTokenType.String)
         {
-            return CreateEnum(reader.GetString());
+            return default(TStringEnumType).Create(reader.GetString()!);
         }
         else if (reader.TokenType == JsonTokenType.Null)
         {
@@ -77,7 +60,7 @@ internal sealed class StringEnumConverter<TStringEnumType>
         {
             if (value is string stringValue)
             {
-                return CreateEnum(stringValue);
+                return default(TStringEnumType).Create(stringValue);
             }
 
             return base.ConvertFrom(context, culture, value);

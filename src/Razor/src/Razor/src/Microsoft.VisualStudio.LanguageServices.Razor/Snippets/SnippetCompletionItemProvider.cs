@@ -111,7 +111,7 @@ internal sealed class SnippetCompletionItemProvider : ISnippetCompletionItemProv
                 Detail = s.Description,
                 InsertTextFormat = InsertTextFormat.Snippet,
                 InsertText = s.Shortcut,
-                Data = s.CompletionData,
+                Data = s.CompletionData.ToJsonElement(),
                 Kind = CompletionItemKind.Snippet,
                 CommitCharacters = commitCharacters,
                 // Sort snippets after elements with the same label, matching C# behavior.

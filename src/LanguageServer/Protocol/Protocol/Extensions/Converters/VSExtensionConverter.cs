@@ -8,6 +8,11 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+internal interface IVSExtensionConverter
+{
+    Type BaseType { get; }
+}
+
 /// <summary>
 /// Converter used to serialize and deserialize classes extending types defined in the
 /// Microsoft.VisualStudio.LanguageServer.Protocol package.
@@ -15,10 +20,12 @@ using System.Text.Json.Serialization;
 /// <typeparam name="TBase">Base class that is specified in the
 /// Microsoft.VisualStudio.LanguageServer.Protocol package.</typeparam>
 /// <typeparam name="TExtension">Extension class that extends TBase.</typeparam>
-internal sealed class VSExtensionConverter<TBase, TExtension> : JsonConverter<TBase>
+internal sealed class VSExtensionConverter<TBase, TExtension> : JsonConverter<TBase>, IVSExtensionConverter
 where TExtension : TBase
 {
     private JsonSerializerOptions? _trimmedOptions;
+
+    Type IVSExtensionConverter.BaseType => typeof(TBase);
 
     public override TBase? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
