@@ -978,4 +978,68 @@ public sealed partial class RemoveUnusedVariableTests : AbstractCSharpDiagnostic
                 }
             }
             """);
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78528")]
+    public Task RemoveUnusedVariableAssignedInSwitchSection()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(int i)
+                {
+                    bool [|recreateIssue|];
+                    switch (i)
+                    {
+                        case 0:
+                            recreateIssue = true;
+                            break;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(int i)
+                {
+                    switch (i)
+                    {
+                        case 0:
+                            break;
+                    }
+                }
+            }
+            """);
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/78528")]
+    public Task RemoveUnusedVariableAssignedAsOnlyStatementInSwitchSection()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M(int i)
+                {
+                    bool [|recreateIssue|];
+                    switch (i)
+                    {
+                        case 0:
+                            recreateIssue = true;
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(int i)
+                {
+                    switch (i)
+                    {
+                        case 0:
+                    }
+                }
+            }
+            """);
 }
