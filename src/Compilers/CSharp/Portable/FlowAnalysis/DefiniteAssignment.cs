@@ -138,6 +138,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BitVector _alreadyReported;
 
         /// <summary>
+        /// Tracks variables for which we have already reported an unsafe unassigned address-of error.
+        /// </summary>
+        private BitVector _alreadyReportedUnsafeAddressOf;
+
+        /// <summary>
         /// true if we should check to ensure that out parameters are assigned on every exit point.
         /// </summary>
         private readonly bool _requireOutParamsAssigned;
@@ -333,6 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<ParameterSymbol> methodParameters = MethodParameters;
             ParameterSymbol methodThisParameter = MethodThisParameter;
             _alreadyReported = BitVector.Empty;           // no variables yet reported unassigned
+            _alreadyReportedUnsafeAddressOf = BitVector.Empty;
             this.regionPlace = RegionPlace.Before;
             EnterParameters(methodParameters);               // with parameters assigned
 

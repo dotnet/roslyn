@@ -119,10 +119,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var location = syntax is PrefixUnaryExpressionSyntax prefix
-                ? prefix.OperatorToken.GetLocation()
-                : syntax.Location;
-            Diagnostics.Add(ErrorCode.ERR_UnsafeUnassignedAddressOf, location);
+            var symbol = variableBySlot[slot].Symbol;
+            if (!_alreadyReportedUnsafeAddressOf[slot] && !symbol.GetTypeOrReturnType().Type.IsErrorType())
+            {
+                var location = syntax is PrefixUnaryExpressionSyntax prefix
+                    ? prefix.OperatorToken.GetLocation()
+                    : syntax.Location;
+                Diagnostics.Add(ErrorCode.ERR_UnsafeUnassignedAddressOf, location, symbol.Name);
+            }
+
+            _alreadyReportedUnsafeAddressOf[slot] = true;
         }
 
         private void RecordAssignmentRequirementInLocalFunction(int slot, bool isUnsafeAddressOf = false)

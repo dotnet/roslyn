@@ -2863,8 +2863,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUnassignedAddressOf">
-        <source>Taking an address of a variable that is not definitely assigned requires an unsafe context</source>
-        <target state="new">Taking an address of a variable that is not definitely assigned requires an unsafe context</target>
+        <source>Taking an address of variable '{0}' that is not definitely assigned requires an unsafe context</source>
+        <target state="new">Taking an address of variable '{0}' that is not definitely assigned requires an unsafe context</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">

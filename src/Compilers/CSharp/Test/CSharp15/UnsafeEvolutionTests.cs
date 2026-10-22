@@ -1444,9 +1444,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (2,5): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (2,5): error CS9402: Taking an address of variable 'x' that is not definitely assigned requires an unsafe context
             // _ = &x; // 1
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(2, 5),
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("x").WithLocation(2, 5),
         };
 
         var options = TestOptions.ReleaseExe.WithAllowUnsafe(allowUnsafe).WithUpdatedMemorySafetyRules(updatedRules);
@@ -1617,12 +1617,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (4,5): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (4,5): error CS9402: Taking an address of variable 'Y' that is not definitely assigned requires an unsafe context
             // _ = &s.Y;
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(4, 5),
-            // (7,5): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("Y").WithLocation(4, 5),
+            // (7,5): error CS9402: Taking an address of variable 't' that is not definitely assigned requires an unsafe context
             // _ = &t;
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(7, 5));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("t").WithLocation(7, 5));
     }
 
     [Theory, CombinatorialData]
@@ -1654,9 +1654,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, references: [libReference],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (3,5): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (3,5): error CS9402: Taking an address of variable 'x' that is not definitely assigned requires an unsafe context
             // _ = &x;
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(3, 5));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("x").WithLocation(3, 5));
 
         CreateCompilation(source, references: [libReference],
             parseOptions: TestOptions.Regular15,
@@ -1770,12 +1770,12 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (5,25): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (5,25): error CS9402: Taking an address of variable 'value' that is not definitely assigned requires an unsafe context
             //         fixed (int* p = &value) { }
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(5, 25),
-            // (11,26): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("value").WithLocation(5, 25),
+            // (11,26): error CS9402: Taking an address of variable 'value' that is not definitely assigned requires an unsafe context
             //         fixed (void* p = &value) { }
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(11, 26));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("value").WithLocation(11, 26));
     }
 
     [Theory, CombinatorialData]
@@ -1843,9 +1843,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (14,13): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (14,13): error CS9402: Taking an address of variable 'y' that is not definitely assigned requires an unsafe context
             //         _ = &y;
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(14, 13));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("y").WithLocation(14, 13));
     }
 
     [Theory, CombinatorialData]
@@ -1887,9 +1887,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net100,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (6,13): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (6,13): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
             //         _ = &b[0];
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(6, 13));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("b").WithLocation(6, 13));
     }
 
     [Theory, CombinatorialData]
@@ -1906,9 +1906,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
             // _ = &s;
             Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("string").WithLocation(2, 5),
-            // (2,5): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (2,5): error CS9402: Taking an address of variable 's' that is not definitely assigned requires an unsafe context
             // _ = &s;
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(2, 5));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("s").WithLocation(2, 5));
     }
 
     [Theory, CombinatorialData]
@@ -1932,9 +1932,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         if (updatedRules)
         {
             comp.VerifyDiagnostics(
-                // (6,13): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                // (6,13): error CS9402: Taking an address of variable 'x' that is not definitely assigned requires an unsafe context
                 //         _ = &x;
-                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(6, 13));
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("x").WithLocation(6, 13));
         }
         else
         {
@@ -2033,9 +2033,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         else
         {
             comp.VerifyDiagnostics(
-                // (6,13): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                // (6,13): error CS9402: Taking an address of variable 'x' that is not definitely assigned requires an unsafe context
                 //         _ = &x;
-                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(6, 13));
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("x").WithLocation(6, 13));
         }
 
         var tree = comp.SyntaxTrees.Single();
@@ -2131,12 +2131,190 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net100,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (7,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (7,9): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
             //         F(); // 1
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(7, 9),
-            // (15,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("b").WithLocation(7, 9),
+            // (15,9): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
             //         F(); // 2
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(15, 9));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("b").WithLocation(15, 9));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_MultipleUnassigned(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M1()
+                {
+                    Buffer b, c;
+                    void F() { _ = &b[0]; _ = &c[0]; }
+                    F(); // 1
+                    F();
+                }
+                static void M2()
+                {
+                    Buffer b, c;
+                    void F() { _ = &b[0]; _ = &c[0]; }
+                    b = default;
+                    F(); // 2
+                    F();
+                }
+                static void M3()
+                {
+                    Buffer b, c;
+                    void F() { _ = &b[0]; _ = &c[0]; }
+                    c = default;
+                    F(); // 3
+                    F();
+                }
+                static void M4()
+                {
+                    Buffer b, c;
+                    void F() { _ = &b[0]; _ = &c[0]; }
+                    b = default;
+                    c = default;
+                    F();
+                    F();
+                }
+                static void M5()
+                {
+                    Buffer b, c;
+                    void F() { void G() { _ = &b[0]; _ = &c[0]; } G(); }
+                    F(); // 5
+                    F();
+                }
+                static void M6()
+                {
+                    Buffer b, c;
+                    void F() { void G() { _ = &b[0]; _ = &c[0]; } G(); }
+                    b = default;
+                    F(); // 6
+                    F();
+                }
+                static void M7()
+                {
+                    Buffer b, c;
+                    void F() { void G() { _ = &b[0]; _ = &c[0]; } G(); }
+                    c = default;
+                    F(); // 7
+                    F();
+                }
+                static void M8()
+                {
+                    Buffer b, c;
+                    void F() { void G() { _ = &b[0]; _ = &c[0]; } G(); }
+                    b = default;
+                    c = default;
+                    F();
+                    F();
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(2)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics(
+            // (7,9): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
+            //         F(); // 1
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("b").WithLocation(7, 9),
+            // (7,9): error CS9402: Taking an address of variable 'c' that is not definitely assigned requires an unsafe context
+            //         F(); // 1
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("c").WithLocation(7, 9),
+            // (15,9): error CS9402: Taking an address of variable 'c' that is not definitely assigned requires an unsafe context
+            //         F(); // 2
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("c").WithLocation(15, 9),
+            // (23,9): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
+            //         F(); // 3
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("b").WithLocation(23, 9),
+            // (39,9): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
+            //         F(); // 5
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("b").WithLocation(39, 9),
+            // (39,9): error CS9402: Taking an address of variable 'c' that is not definitely assigned requires an unsafe context
+            //         F(); // 5
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("c").WithLocation(39, 9),
+            // (47,9): error CS9402: Taking an address of variable 'c' that is not definitely assigned requires an unsafe context
+            //         F(); // 6
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("c").WithLocation(47, 9),
+            // (55,9): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
+            //         F(); // 7
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("b").WithLocation(55, 9));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_CapturedInlineArray_IndependentSuppression(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M()
+                {
+                    Buffer b;
+                    void F() { _ = b[0]; _ = &b[0]; }
+                    F(); // 1
+                    F();
+                }
+            }
+            [System.Runtime.CompilerServices.InlineArray(1)]
+            struct Buffer
+            {
+                private int _element;
+            }
+            """;
+
+        CreateCompilation(source,
+            targetFramework: TargetFramework.Net100,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics(
+            // (7,9): error CS0170: Use of possibly unassigned field '_element'
+            //         F(); // 1
+            Diagnostic(ErrorCode.ERR_UseDefViolationField, "F()").WithArguments("_element").WithLocation(7, 9),
+            // (7,9): error CS9402: Taking an address of variable '_element' that is not definitely assigned requires an unsafe context
+            //         F(); // 1
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("_element").WithLocation(7, 9));
+    }
+
+    [Theory, CombinatorialData]
+    public void Pointer_AddressOf_IndependentSuppression(bool updatedRules)
+    {
+        var source = """
+            class C
+            {
+                static void M(bool b)
+                {
+                    int x;
+                    _ = x;
+                    if (b) _ = &x;
+                    _ = &x;
+                    int y;
+                    if (b) _ = &y;
+                    _ = y;
+                    _ = &y;
+                }
+            }
+            """;
+
+        CreateCompilation(source,
+            options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics(
+            // (6,13): error CS0165: Use of unassigned local variable 'x'
+            //         _ = x;
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(6, 13),
+            // (7,20): error CS9402: Taking an address of variable 'x' that is not definitely assigned requires an unsafe context
+            //         if (b) _ = &x;
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("x").WithLocation(7, 20),
+            // (10,20): error CS9402: Taking an address of variable 'y' that is not definitely assigned requires an unsafe context
+            //         if (b) _ = &y;
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("y").WithLocation(10, 20),
+            // (11,13): error CS0165: Use of unassigned local variable 'y'
+            //         _ = y;
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "y").WithArguments("y").WithLocation(11, 13));
     }
 
     [Theory, CombinatorialData]
@@ -2253,9 +2431,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net100,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (7,18): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (7,18): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
             //         unsafe { F(); }
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(7, 18));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("b").WithLocation(7, 18));
     }
 
     [Theory, CombinatorialData]
@@ -2288,9 +2466,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         else
         {
             comp.VerifyDiagnostics(
-                // (7,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                // (7,9): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
                 //         F();
-                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(7, 9));
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("b").WithLocation(7, 9));
         }
     }
 
@@ -2325,9 +2503,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         else
         {
             comp.VerifyDiagnostics(
-                // (8,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                // (8,9): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
                 //         F();
-                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("b").WithLocation(8, 9));
         }
     }
 
@@ -2355,9 +2533,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net100,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (5,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (5,9): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
             //         F();
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(5, 9));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("b").WithLocation(5, 9));
     }
 
     [Theory, CombinatorialData]
@@ -2391,9 +2569,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         else
         {
             comp.VerifyDiagnostics(
-                // (7,32): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                // (7,32): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
                 //         System.Action action = F;
-                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F").WithLocation(7, 32));
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F").WithArguments("b").WithLocation(7, 32));
         }
     }
 
@@ -2457,9 +2635,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         else
         {
             comp.VerifyDiagnostics(
-                // (11,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                // (11,9): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
                 //         F(true);
-                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F(true)").WithLocation(11, 9));
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F(true)").WithArguments("b").WithLocation(11, 9));
         }
     }
 
@@ -2499,9 +2677,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         else
         {
             comp.VerifyDiagnostics(
-                // (8,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+                // (8,9): error CS9402: Taking an address of variable 'First' that is not definitely assigned requires an unsafe context
                 //         F();
-                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(8, 9));
+                Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithArguments("First").WithLocation(8, 9));
         }
     }
 
@@ -2532,9 +2710,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net100,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (8,17): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            // (8,17): error CS9402: Taking an address of variable 'b' that is not definitely assigned requires an unsafe context
             //             _ = &b[0];
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithLocation(8, 17));
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&").WithArguments("b").WithLocation(8, 17));
     }
 
     [Theory, CombinatorialData]
