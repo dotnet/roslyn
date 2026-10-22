@@ -60,9 +60,6 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         if (await declaration.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) is not TypeDeclarationSyntax syntax)
             return null;
 
-        if (namedType.DeclaredAccessibility == Accessibility.Private)
-            return syntax;
-
         var switchArmTypes = switchExpression.DescendantNodes()
             .OfType<SwitchExpressionArmSyntax>()
             .Select(arm => arm.Pattern)
