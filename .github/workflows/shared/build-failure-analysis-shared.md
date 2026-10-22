@@ -8,6 +8,11 @@ description: "Shared body for build-failure-analysis workflows"
 
 model: gpt-6.1-sol
 
+# AWF v0.28.10 does not auto-select Responses for GPT-6 models.
+# https://github.com/dotnet/roslyn/issues/86174
+env:
+  COPILOT_PROVIDER_WIRE_API: responses
+
 network:
   allowed:
     - defaults
