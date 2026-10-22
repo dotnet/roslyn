@@ -921,7 +921,7 @@
     "languages.basic.advanced.outlining.lineSeparator": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_procedure_line_separators;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
-      "default": false,
+      "default": true,
       "order": 50,
       "transientScopesSupported": false,
       "migration": {

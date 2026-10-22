@@ -174,6 +174,18 @@ public sealed class AdvancedUnifiedSettingsTests
         }
     }
 
+    [Theory]
+    [InlineData("csharpSettings.registration.json", "languages.csharp.advanced.imports.placeSystemNamespaceFirst", false)]
+    [InlineData("visualBasicSettings.registration.json", "languages.basic.advanced.imports.placeSystemNamespaceFirst", true)]
+    [InlineData("csharpSettings.registration.json", "languages.csharp.advanced.outlining.lineSeparator", false)]
+    [InlineData("visualBasicSettings.registration.json", "languages.basic.advanced.outlining.lineSeparator", true)]
+    public void LanguageDefaultsMatchGeneralProfile(string manifest, string moniker, bool expectedDefault)
+    {
+        using var document = Load(manifest);
+        var setting = document.RootElement.GetProperty("properties").GetProperty(moniker);
+        Assert.Equal(expectedDefault, setting.GetProperty("default").GetBoolean());
+    }
+
     [Fact]
     public void GlobalOptionsHaveOneDefinitionAndCorrectPlacements()
     {
@@ -389,7 +401,14 @@ public sealed class AdvancedUnifiedSettingsTests
         {
             Assert.Equal(option == VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics ? "custom" : "pass", migration.Name);
             Assert.Equal("boolean", setting.GetProperty("type").GetString());
-            Assert.Equal((bool)option.Definition.DefaultValue!, setting.GetProperty("default").GetBoolean());
+            var expectedDefault = (bool)option.Definition.DefaultValue!;
+            // The General profile overrides these shared option defaults for individual languages.
+            if (option == GenerationOptions.PlaceSystemNamespaceFirst && language == LanguageNames.CSharp)
+                expectedDefault = false;
+            else if (option == LineSeparatorsOptionsStorage.LineSeparator && language == LanguageNames.VisualBasic)
+                expectedDefault = true;
+
+            Assert.Equal(expectedDefault, setting.GetProperty("default").GetBoolean());
         }
         else
         {

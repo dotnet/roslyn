@@ -395,7 +395,7 @@
     "languages.csharp.advanced.imports.placeSystemNamespaceFirst": {
       "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Place_System_directives_first_when_sorting_usings;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
-      "default": true,
+      "default": false,
       "order": 0,
       "transientScopesSupported": false,
       "migration": {
