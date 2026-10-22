@@ -2052,16 +2052,35 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
-    public void Pointer_AddressOf_CapturedInlineArray_Assigned(bool updatedRules, bool initializedBeforeDeclaration, bool nested)
+    public void Pointer_AddressOf_CapturedInlineArray_Assigned(bool updatedRules)
     {
-        var source = $$"""
+        var source = """
             class C
             {
-                static void M()
+                static void M1()
                 {
-                    Buffer b{{(initializedBeforeDeclaration ? " = default" : "")}};
-                    void F() { {{(nested ? "void G() { _ = &b[0]; } G();" : "_ = &b[0];")}} }
-                    {{(initializedBeforeDeclaration ? "" : "b = default;")}}
+                    Buffer b = default;
+                    void F() { _ = &b[0]; }
+                    F();
+                }
+                static void M2()
+                {
+                    Buffer b = default;
+                    void F() { void G() { _ = &b[0]; } G(); }
+                    F();
+                }
+                static void M3()
+                {
+                    Buffer b;
+                    void F() { _ = &b[0]; }
+                    b = default;
+                    F();
+                }
+                static void M4()
+                {
+                    Buffer b;
+                    void F() { void G() { _ = &b[0]; } G(); }
+                    b = default;
                     F();
                 }
             }
@@ -2079,16 +2098,24 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Theory, CombinatorialData]
-    public void Pointer_AddressOf_CapturedInlineArray_Unassigned(bool updatedRules, bool nested)
+    public void Pointer_AddressOf_CapturedInlineArray_Unassigned(bool updatedRules)
     {
-        var source = $$"""
+        var source = """
             class C
             {
-                static void M()
+                static void M1()
                 {
                     Buffer b;
-                    void F() { {{(nested ? "void G() { _ = &b[0]; } G();" : "_ = &b[0];")}} }
+                    void F() { _ = &b[0]; }
+                    F(); // 1
+                    b = default;
                     F();
+                }
+                static void M2()
+                {
+                    Buffer b;
+                    void F() { void G() { _ = &b[0]; } G(); }
+                    F(); // 2
                     b = default;
                     F();
                 }
@@ -2105,8 +2132,11 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
             // (7,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
-            //         F();
-            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(7, 9));
+            //         F(); // 1
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(7, 9),
+            // (15,9): error CS9402: Taking an address of a variable that is not definitely assigned requires an unsafe context
+            //         F(); // 2
+            Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "F()").WithLocation(15, 9));
     }
 
     [Theory, CombinatorialData]

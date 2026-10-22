@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var args = diagnostic is DiagnosticWithInfo { Info: { Arguments: var arguments } } ? arguments : diagnostic.Arguments.ToArray();
 
-                // Unsafe diagnostics can occur only in strict analysis for imported structs that compatibility analysis treats as empty.
+                // We can get here with ERR_UnsafeUnassignedAddressOf in strict analysis for imported structs that compatibility analysis treats as empty.
                 Debug.Assert(newCode != oldCode ||
                     oldCode is ErrorCode.ERR_InsufficientStack or ErrorCode.ERR_UnsafeUnassignedAddressOf,
                     oldCode.ToString());
