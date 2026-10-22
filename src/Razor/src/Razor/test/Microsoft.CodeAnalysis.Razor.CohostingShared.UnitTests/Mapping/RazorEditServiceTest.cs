@@ -764,6 +764,91 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task NewMethod_NoCodeBlock_EditorConfig_BraceOnNextLine()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (@"C:\path\to\.editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public async Task NewMethod_NoCodeBlock_EditorConfig_BraceOnSameLine()
+    {
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });
+
+        await TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (@"C:\path\to\.editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    razor_code_block_brace_on_next_line = false
+                    """)
+            ]);
+    }
+
+    [Fact]
     public Task NewMethod_ExpressionBodied_NoCodeBlock()
       => TestAsync(
           csharpSource: """
