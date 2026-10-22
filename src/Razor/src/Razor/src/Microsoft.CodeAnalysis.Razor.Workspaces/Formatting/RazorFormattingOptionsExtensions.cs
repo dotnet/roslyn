@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using LspFormattingOptions = Roslyn.LanguageServer.Protocol.FormattingOptions;
 
@@ -23,14 +24,22 @@ internal static class RazorFormattingOptionsExtensions
     {
         var spaceSettings = clientSettings.ClientSpaceSettings;
         var advancedSettings = clientSettings.AdvancedSettings;
+        var options = RazorFormattingOptionsStorage.GetOptions(razorDocument, cancellationToken);
 
         var insertSpaces = formattingOptions?.InsertSpaces ?? !spaceSettings.IndentWithTabs;
         var tabSize = formattingOptions?.TabSize ?? spaceSettings.IndentSize;
         var csharpSyntaxFormattingOptions = razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken);
 
-        var codeBlockBraceOnNextLine = advancedSettings.CodeBlockBraceOnNextLine;
-        var attributeIndentStyle = advancedSettings.AttributeIndentStyle;
-        var ignoreIndentationInScriptOrStyleBlocksWithComplexRazor = advancedSettings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor;
+        // Use client preferences when Razor editorconfig values are missing or invalid.
+        var codeBlockBraceOnNextLine = options.GetOption(
+            RazorFormattingOptionsStorage.CodeBlockBraceOnNextLine,
+            advancedSettings.CodeBlockBraceOnNextLine);
+        var attributeIndentStyle = options.GetOption(
+            RazorFormattingOptionsStorage.AttributeIndentStyle,
+            advancedSettings.AttributeIndentStyle);
+        var ignoreIndentationInScriptOrStyleBlocksWithComplexRazor = options.GetOption(
+            RazorFormattingOptionsStorage.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
+            advancedSettings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor);
 
         return new RazorFormattingOptions
         {
