@@ -55,7 +55,7 @@ parameters:
   - name: testMachineLab
     displayName: CloudTest Lab (required for migration validation)
     type: string
-    default: Roslyn
+    default: Roslyn-AMD64
   - name: testMachineHoldStrategy
     displayName: Test Machine Hold Strategy
     type: string
