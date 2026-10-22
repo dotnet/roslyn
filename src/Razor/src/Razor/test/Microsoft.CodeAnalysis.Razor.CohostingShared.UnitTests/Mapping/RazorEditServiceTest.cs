@@ -796,7 +796,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """,
             additionalFiles:
             [
-                (@"C:\path\to\.editorconfig", """
+                (FilePath(".editorconfig"), """
                     root = true
 
                     [*.razor]
@@ -839,7 +839,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """,
             additionalFiles:
             [
-                (@"C:\path\to\.editorconfig", """
+                (FilePath(".editorconfig"), """
                     root = true
 
                     [*.razor]
@@ -2250,8 +2250,8 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         AssertEx.SetEqual(csharpSpans.Keys.OrderAsArray(), razorSpans.Keys.OrderAsArray());
 
         var razorPath = fileKind == RazorFileKind.Legacy
-            ? @"C:\path\to\document.cshtml"
-            : @"C:\path\to\document.razor";
+            ? FilePath("document.cshtml")
+            : FilePath("document.razor");
         var csharpPath = razorPath + ".g.cs";
         var csharpSourceText = SourceText.From(csharpSource.Text);
         var razorSourceText = SourceText.From(razorSource.Text);
