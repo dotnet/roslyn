@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.CodeAnalysis.LanguageServer;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 
 namespace Microsoft.CodeAnalysis.Razor.Remote;
 
@@ -66,11 +68,15 @@ internal static class RazorServices
         additionalResolvers: [],
         interfaces: MessagePackServices);
 
-    public static readonly RazorServiceDescriptors JsonDescriptors = new(
-        ComponentName, // Needs to match the above because so much of our ServiceHub infrastructure is convention based
-        featureDisplayNameProvider: GetFeatureDisplayName,
-        jsonConverters: [.. ProtocolConversions.LspJsonSerializerOptions.Converters],
-        interfaces: JsonServices);
+    public static readonly RazorServiceDescriptors JsonDescriptors = CreateJsonDescriptors(JsonHelpers.JsonSerializerOptions.TypeInfoResolver!);
+
+    public static RazorServiceDescriptors CreateJsonDescriptors(IJsonTypeInfoResolver jsonTypeInfoResolver)
+        => new(
+            ComponentName,
+            featureDisplayNameProvider: GetFeatureDisplayName,
+            jsonConverters: [.. ProtocolConversions.LspJsonSerializerOptions.Converters],
+            jsonTypeInfoResolver,
+            interfaces: JsonServices);
 
     private static string GetFeatureDisplayName(string feature)
     {

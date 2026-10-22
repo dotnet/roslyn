@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Text.Json.Serialization.Metadata;
 using MessagePack;
 using MessagePack.Formatters;
 using MessagePack.Resolvers;
@@ -15,7 +16,7 @@ using StreamJsonRpc;
 namespace Microsoft.CodeAnalysis.Remote;
 
 /// <summary>
-/// Wraps MessagePack or JSON serialization options/converters.
+/// Wraps MessagePack or JSON serialization options/converters and optional JSON metadata.
 /// </summary>
 internal readonly struct RemoteSerializationOptions
 {
@@ -28,6 +29,7 @@ internal readonly struct RemoteSerializationOptions
     }.GetFrozenCopy();
 
     private readonly object _options;
+    private readonly IJsonTypeInfoResolver? _systemTextJsonTypeInfoResolver;
 
     public RemoteSerializationOptions(ImmutableArray<IMessagePackFormatter> additionalFormatters, ImmutableArray<IFormatterResolver> additionalResolvers)
         => _options = StandardResolverAllowPrivate.Options
@@ -39,6 +41,15 @@ internal readonly struct RemoteSerializationOptions
 
     public RemoteSerializationOptions(ImmutableArray<System.Text.Json.Serialization.JsonConverter> jsonConverters)
         => _options = jsonConverters;
+
+    public RemoteSerializationOptions(
+        ImmutableArray<System.Text.Json.Serialization.JsonConverter> jsonConverters,
+        IJsonTypeInfoResolver jsonTypeInfoResolver)
+        : this(jsonConverters)
+    {
+        Contract.ThrowIfNull(jsonTypeInfoResolver);
+        _systemTextJsonTypeInfoResolver = jsonTypeInfoResolver;
+    }
 
     public MessagePackSerializerOptions MessagePackOptions => (MessagePackSerializerOptions)_options;
     public ImmutableArray<JsonConverter> JsonConverters => (ImmutableArray<JsonConverter>)_options;
@@ -70,6 +81,9 @@ internal readonly struct RemoteSerializationOptions
         }
         else if (formatter is SystemTextJsonFormatter stjFormatter)
         {
+            if (_systemTextJsonTypeInfoResolver is not null)
+                stjFormatter.JsonSerializerOptions.TypeInfoResolver = _systemTextJsonTypeInfoResolver;
+
             var converters = stjFormatter.JsonSerializerOptions.Converters;
 
             foreach (var converter in SystemTextJsonConverters)

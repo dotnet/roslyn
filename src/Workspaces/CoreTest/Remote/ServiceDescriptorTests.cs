@@ -13,6 +13,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using MessagePack;
@@ -36,8 +38,10 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic.CodeGeneration;
 using Microsoft.CodeAnalysis.VisualBasic.Formatting;
 using Microsoft.CodeAnalysis.VisualBasic.Simplification;
+using Microsoft.ServiceHub.Framework;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Remote.UnitTests;
@@ -45,6 +49,68 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests;
 [UseExportProvider]
 public sealed class ServiceDescriptorTests
 {
+    [Fact]
+    public void SystemTextJsonMetadataAndConvertersSurviveOptionsCloning()
+    {
+        var resolver = new StringJsonTypeInfoResolver();
+        var converter = new System.Text.Json.Serialization.JsonStringEnumConverter<Accessibility>();
+        var options = new RemoteSerializationOptions([converter], resolver);
+        var formatter = new SystemTextJsonFormatter();
+        var originalOptions = new JsonSerializerOptions(formatter.JsonSerializerOptions);
+        var converterCount = formatter.JsonSerializerOptions.Converters.Count;
+
+        Assert.Same(formatter, options.ConfigureFormatter(formatter));
+        Assert.Equal(ServiceJsonRpcDescriptor.Formatters.UTF8SystemTextJson, options.Formatter);
+        Assert.Equal(ServiceJsonRpcDescriptor.MessageDelimiters.HttpLikeHeaders, options.MessageDelimiters);
+        Assert.Null(options.MultiplexingStreamOptions);
+        Assert.Same(resolver, formatter.JsonSerializerOptions.TypeInfoResolver);
+        Assert.Equal(converterCount + 1, formatter.JsonSerializerOptions.Converters.Count);
+        Assert.Same(converter, formatter.JsonSerializerOptions.Converters.Last());
+        Assert.Same(originalOptions.PropertyNamingPolicy, formatter.JsonSerializerOptions.PropertyNamingPolicy);
+        Assert.Equal(originalOptions.DefaultIgnoreCondition, formatter.JsonSerializerOptions.DefaultIgnoreCondition);
+        Assert.Equal(originalOptions.NumberHandling, formatter.JsonSerializerOptions.NumberHandling);
+
+        var clonedOptions = new JsonSerializerOptions(formatter.JsonSerializerOptions);
+        Assert.Equal("\"value\"", JsonSerializer.Serialize("value", clonedOptions));
+        Assert.Throws<NotSupportedException>(() => JsonSerializer.Serialize(Guid.Empty, clonedOptions));
+    }
+
+    [Fact]
+    public void LegacySystemTextJsonConstructorPreservesDefaultResolver()
+    {
+        var options = new RemoteSerializationOptions(ImmutableArray<System.Text.Json.Serialization.JsonConverter>.Empty);
+        var formatter = new SystemTextJsonFormatter();
+        var resolver = formatter.JsonSerializerOptions.TypeInfoResolver;
+        var converterCount = formatter.JsonSerializerOptions.Converters.Count;
+
+        Assert.Same(formatter, options.ConfigureFormatter(formatter));
+        Assert.Same(resolver, formatter.JsonSerializerOptions.TypeInfoResolver);
+        Assert.Equal(converterCount, formatter.JsonSerializerOptions.Converters.Count);
+        Assert.Equal(ServiceJsonRpcDescriptor.Formatters.UTF8SystemTextJson, options.Formatter);
+    }
+
+    [Fact]
+    public void LegacyNewtonsoftJsonConstructorPreservesConverterBehavior()
+    {
+        var converter = new Newtonsoft.Json.Converters.StringEnumConverter();
+        var options = new RemoteSerializationOptions(ImmutableArray.Create<Newtonsoft.Json.JsonConverter>(converter));
+        var formatter = new JsonMessageFormatter();
+
+        Assert.Same(formatter, options.ConfigureFormatter(formatter));
+        Assert.Equal(ServiceJsonRpcDescriptor.Formatters.UTF8, options.Formatter);
+        Assert.Same(converter, formatter.JsonSerializer.Converters.Last());
+        using var reader = new Newtonsoft.Json.JsonTextReader(new StringReader("\"Public\""));
+        Assert.Equal(Accessibility.Public, formatter.JsonSerializer.Deserialize<Accessibility>(reader));
+    }
+
+    private sealed class StringJsonTypeInfoResolver : IJsonTypeInfoResolver
+    {
+        public JsonTypeInfo GetTypeInfo(Type type, JsonSerializerOptions options)
+            => type == typeof(string)
+                ? JsonMetadataServices.CreateValueInfo<string>(options, JsonMetadataServices.StringConverter)
+                : null;
+    }
+
     public static IEnumerable<object[]> AllServiceDescriptors
         => ServiceDescriptors.Instance.GetTestAccessor().Descriptors
             .Select(descriptor => new object[] { descriptor.Key, descriptor.Value });

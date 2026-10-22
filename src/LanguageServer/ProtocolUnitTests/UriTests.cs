@@ -425,9 +425,9 @@ public sealed class UriTests : AbstractLanguageServerProtocolTests
         Assert.True(areEqual != (documentUri1 != documentUri2));
     }
 
-    private sealed record class ResolvedDocumentInfo(string WorkspaceKind, string ProjectLanguage);
-    private sealed record class CustomResolveParams([property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument);
-    private sealed record class LanguageSpecificResponse(bool HandlerCalled);
+    internal sealed record class ResolvedDocumentInfo(string WorkspaceKind, string ProjectLanguage);
+    internal sealed record class CustomResolveParams([property: JsonPropertyName("textDocument")] LSP.TextDocumentIdentifier TextDocument);
+    internal sealed record class LanguageSpecificResponse(bool HandlerCalled);
 
     [ExportCSharpVisualBasicStatelessLspService(typeof(CustomResolveHandler)), PartNotDiscoverable, Shared]
     [LanguageServerEndpoint(MethodName, LanguageServerConstants.DefaultLanguageName)]

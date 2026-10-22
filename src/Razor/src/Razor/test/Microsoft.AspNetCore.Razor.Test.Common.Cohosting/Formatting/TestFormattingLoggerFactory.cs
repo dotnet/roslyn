@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Text.Json;
-using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 using Xunit.Abstractions;
@@ -18,18 +17,19 @@ internal class TestFormattingLoggerFactory(ITestOutputHelper testOutputHelper) :
     {
     }
 
-    public IFormattingLogger? CreateLogger(string documentFilePath, string formattingType)
+    public IFormattingLogger? CreateLogger(string documentFilePath, string formattingType, JsonSerializerOptions serializerOptions)
     {
-        var logger = new TestFormattingLogger(_testOutputHelper);
+        var logger = new TestFormattingLogger(_testOutputHelper, serializerOptions);
         logger.LogMessage($"{formattingType} formatting for {documentFilePath}");
         return logger;
     }
 
-    private class TestFormattingLogger(ITestOutputHelper testOutputHelper) : IFormattingLogger
+    private class TestFormattingLogger(ITestOutputHelper testOutputHelper, JsonSerializerOptions serializerOptions) : IFormattingLogger
     {
         private readonly HashSet<string> _loggedNames = [];
 
         private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
+        private readonly JsonSerializerOptions _serializerOptions = serializerOptions;
 
         public void LogMessage(string message)
         {
@@ -40,7 +40,7 @@ internal class TestFormattingLoggerFactory(ITestOutputHelper testOutputHelper) :
         {
             Assert.True(_loggedNames.Add(name), $"The name '{name}' has already been logged. Names must be unique per formatter run.");
             _testOutputHelper.WriteLine($"{name}:");
-            _testOutputHelper.WriteLine(JsonSerializer.Serialize(value, JsonHelpers.JsonSerializerOptions));
+            _testOutputHelper.WriteLine(JsonSerializer.Serialize(value, _serializerOptions));
         }
 
         public void LogSourceText(string name, SourceText sourceText)

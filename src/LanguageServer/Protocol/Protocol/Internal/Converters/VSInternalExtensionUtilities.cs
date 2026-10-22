@@ -59,10 +59,7 @@ internal static class VSInternalExtensionUtilities
         {
             for (var i = 0; i < existingConvertersCount; i++)
             {
-                var existingConverterType = converters[i].GetType();
-                if (existingConverterType.IsGenericType &&
-                    (existingConverterType.GetGenericTypeDefinition() == typeof(VSExtensionConverter<,>) || existingConverterType.GetGenericTypeDefinition() == typeof(VSExtensionConverter<,>)) &&
-                    existingConverterType.GenericTypeArguments[0] == typeof(TBase))
+                if (converters[i] is IVSExtensionConverter converter && converter.BaseType == typeof(TBase))
                 {
                     converters.RemoveAt(i);
                     existingConvertersCount--;

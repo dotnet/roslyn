@@ -41,7 +41,15 @@ namespace Roslyn.Test.Utilities;
 [UseExportProvider]
 public abstract partial class AbstractLanguageServerProtocolTests
 {
-    protected static readonly JsonSerializerOptions JsonSerializerOptions = RoslynLanguageServer.CreateJsonMessageFormatter().JsonSerializerOptions;
+    protected static readonly JsonSerializerOptions JsonSerializerOptions = CreateTestJsonMessageFormatter().JsonSerializerOptions;
+
+    private static SystemTextJsonFormatter CreateTestJsonMessageFormatter()
+    {
+        var formatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+        // Production contracts use generated metadata; synthetic test contracts may use reflection.
+        formatter.JsonSerializerOptions.AddLspSerializerContext(new TestJsonTypeInfoResolver());
+        return formatter;
+    }
 
     private protected static DocumentUri CreateAbsoluteDocumentUri(string suffix)
         => ProtocolConversions.CreateAbsoluteDocumentUri(TestHelpers.CreateAbsolutePath(suffix));
@@ -50,6 +58,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
     protected AbstractLanguageServerProtocolTests(ITestOutputHelper testOutputHelper)
     {
+        TestJsonTypeInfoResolver.RegisterTestAssembly(GetType().Assembly);
         TestOutputHelper = testOutputHelper;
     }
 
@@ -630,7 +639,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
 
             ClientCapabilities = initializationOptions.ClientCapabilities;
 
-            var clientMessageFormatter = initializationOptions.ClientMessageFormatter ?? RoslynLanguageServer.CreateJsonMessageFormatter();
+            var clientMessageFormatter = initializationOptions.ClientMessageFormatter ?? CreateTestJsonMessageFormatter();
 
             var (clientStream, serverStream) = FullDuplexStream.CreatePair();
 
@@ -697,7 +706,7 @@ public abstract partial class AbstractLanguageServerProtocolTests
         {
             var factory = TestWorkspace.ExportProvider.GetExportedValue<CSharpVisualBasicLanguageServerFactory>();
 
-            var jsonMessageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+            var jsonMessageFormatter = CreateTestJsonMessageFormatter();
             var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
             {
                 ExceptionStrategy = ExceptionProcessing.ISerializable,

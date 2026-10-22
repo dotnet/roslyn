@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CommonLanguageServerProtocol.Framework.Example;
 using Microsoft.Extensions.DependencyInjection;
 using Nerdbank.Streams;
+using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
 
@@ -19,7 +20,14 @@ public sealed class RequestExecutionQueueTests
 {
     private sealed class MockServer : SystemTextJsonLanguageServer<TestRequestContext>
     {
-        private static readonly JsonSerializerOptions s_jsonSerializerOptions = new SystemTextJsonFormatter().JsonSerializerOptions.AddLspSerializerOptions();
+        private static readonly JsonSerializerOptions s_jsonSerializerOptions = CreateJsonSerializerOptions();
+
+        private static JsonSerializerOptions CreateJsonSerializerOptions()
+        {
+            var options = new SystemTextJsonFormatter().JsonSerializerOptions.AddLspSerializerOptions();
+            options.AddLspSerializerContext(new TestJsonTypeInfoResolver(typeof(RequestExecutionQueueTests).Assembly));
+            return options;
+        }
 
         public MockServer() : base(new JsonRpc(new HeaderDelimitedMessageHandler(FullDuplexStream.CreatePair().Item1)), s_jsonSerializerOptions)
         {

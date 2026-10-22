@@ -17,6 +17,7 @@ using Roslyn.Test.Utilities;
 using StreamJsonRpc;
 using Xunit;
 using Xunit.Abstractions;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 
@@ -69,7 +70,7 @@ public sealed class PartialResultProgressTests : AbstractLanguageServerProtocolT
 
         Assert.Equal(
             TestPartialResultHandler.ReportedValue,
-            progressParams.GetProperty("value").EnumerateArray().Single().GetString());
+            progressParams.GetProperty("value").EnumerateArray().Single().GetProperty("uri").GetString());
     }
 
     /// <summary>
@@ -91,19 +92,19 @@ public sealed class PartialResultProgressTests : AbstractLanguageServerProtocolT
         public Task<JsonElement> WaitForProgressAsync() => _progressSource.Task;
     }
 
-    internal sealed class TestPartialResultParams : IPartialResultParams<string[]>
+    internal sealed class TestPartialResultParams : IPartialResultParams<LSP.Location[]>
     {
         [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public IProgress<string[]>? PartialResultToken { get; set; }
+        public IProgress<LSP.Location[]>? PartialResultToken { get; set; }
     }
 
     [ExportCSharpVisualBasicStatelessLspService(typeof(TestPartialResultHandler)), PartNotDiscoverable, Shared]
     [Method(MethodName)]
-    internal sealed class TestPartialResultHandler : ILspServiceRequestHandler<TestPartialResultParams, string[]>
+    internal sealed class TestPartialResultHandler : ILspServiceRequestHandler<TestPartialResultParams, LSP.Location[]>
     {
         public const string MethodName = nameof(TestPartialResultHandler);
-        public const string ReportedValue = "partial result";
+        public const string ReportedValue = "file:///test.cs";
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -114,10 +115,10 @@ public sealed class PartialResultProgressTests : AbstractLanguageServerProtocolT
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => false;
 
-        public Task<string[]> HandleRequestAsync(TestPartialResultParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<LSP.Location[]> HandleRequestAsync(TestPartialResultParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            request.PartialResultToken?.Report([ReportedValue]);
-            return Task.FromResult<string[]>([]);
+            request.PartialResultToken?.Report([new LSP.Location { DocumentUri = new DocumentUri(ReportedValue), Range = new() }]);
+            return Task.FromResult<LSP.Location[]>([]);
         }
     }
 }
