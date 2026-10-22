@@ -38,7 +38,9 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
         Assert.Equal(0, await CleanShutdownAsync(third));
     }
 
-    [Theory, CombinatorialData]
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false, Skip = "https://github.com/dotnet/roslyn/issues/86037")]
     public async Task OneThinClientKilled_OnlyThatConnectionTornDown(bool useNamedPipe)
     {
         await using var daemon = CreateDaemon();
