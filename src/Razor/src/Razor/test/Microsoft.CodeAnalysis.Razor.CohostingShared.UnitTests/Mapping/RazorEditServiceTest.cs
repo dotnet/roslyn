@@ -2156,7 +2156,8 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         TestCode razorSource,
         string newCSharpSource,
         string expectedRazorSource,
-        RazorFileKind? fileKind = null)
+        RazorFileKind? fileKind = null,
+        (string fileName, string contents)[]? additionalFiles = null)
     {
         var csharpSpans = csharpSource.NamedSpans;
         var razorSpans = razorSource.NamedSpans;
@@ -2200,7 +2201,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         var changes = GetChanges(csharpSource.Text, newCSharpSource);
         Assert.NotEmpty(changes);
 
-        var document = CreateProjectAndRazorDocument(razorSource.Text, fileKind, documentFilePath: razorPath);
+        var document = CreateProjectAndRazorDocument(razorSource.Text, fileKind, documentFilePath: razorPath, additionalFiles: additionalFiles);
 
         var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
         var codeDocument = await snapshotManager.GetSnapshot(document).GetGeneratedOutputAsync(DisposalToken);
@@ -2214,6 +2215,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         var originalCSharpSyntaxTree = CSharpSyntaxTree.ParseText(csharpDocument.Text, cancellationToken: DisposalToken);
 
         var responseTextChanges = await _razorEditService.AssumeNotNull().GetTestAccessor().MapCSharpEditsAsync(
+            document,
             changes.SelectAsArray(static c => c.ToRazorTextChange()),
             codeDocument,
             originalCSharpSyntaxTree,
