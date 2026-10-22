@@ -60,13 +60,11 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         if (await declaration.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) is not TypeDeclarationSyntax syntax)
             return null;
 
-        var switchArmTypes = switchExpression.DescendantNodes()
-            .OfType<SwitchExpressionArmSyntax>()
-            .Select(arm => arm.Pattern)
-            .OfType<DeclarationPatternSyntax>();
-
-        var namedTypeAllowsNulls = namedType.NullableAnnotation == NullableAnnotation.Annotated;
-        // TODO check if there is a null arm if the above is true
+        if (namedType.NullableAnnotation == NullableAnnotation.Annotated &&
+            !switchExpression.Arms.Any(arm => arm.Pattern is ConstantPatternSyntax constantPattern && constantPattern.Expression.IsKind(SyntaxKind.NullLiteralExpression)))
+        {
+            return null;
+        }
 
         if (!await AreAllDerrivedTypesHandledAsync(solution, semanticModel, switchExpression.Arms, namedType, true, cancellationToken).ConfigureAwait(false))
             return null;
