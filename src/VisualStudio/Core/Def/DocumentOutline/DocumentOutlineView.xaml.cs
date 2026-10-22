@@ -42,6 +42,8 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
     private readonly DocumentOutlineViewModel _viewModel;
     private readonly IVsToolbarTrayHost _toolbarTrayHost;
     private readonly IVsWindowSearchHost _windowSearchHost;
+    private readonly IVsUIDataSource _searchControlDataSource;
+    private DocumentOutlineSearchTask? _searchTask;
 
     public DocumentOutlineView(
         IVsUIShell4 uiShell,
@@ -75,9 +77,11 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
 
         var searchControl = (SearchControl)((IVsWindowSearchHostPrivate)_windowSearchHost).SearchControl;
         searchControl.SetResourceReference(FrameworkElement.StyleProperty, SearchControl.ToolBarStyleKey);
+        _searchControlDataSource = (IVsUIDataSource)searchControl.DataContext;
 
         this.PreviewKeyDown += OnPreviewKeyDown;
         viewTracker.CaretMovedOrActiveViewChanged += ViewTracker_CaretMovedOrActiveViewChanged;
+        viewModel.SearchCompleted += OnSearchCompleted;
     }
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
@@ -114,6 +118,9 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
     public void Dispose()
     {
         this.PreviewKeyDown -= OnPreviewKeyDown;
+        _viewModel.SearchCompleted -= OnSearchCompleted;
+        _searchTask?.Stop();
+        _searchTask = null;
         _toolbarTrayHost.Close();
         _windowSearchHost.TerminateSearch();
         _viewTracker.CaretMovedOrActiveViewChanged -= ViewTracker_CaretMovedOrActiveViewChanged;
@@ -210,12 +217,28 @@ internal sealed partial class DocumentOutlineView : UserControl, IOleCommandTarg
 
     IVsSearchTask IVsWindowSearch.CreateSearch(uint dwCookie, IVsSearchQuery pSearchQuery, IVsSearchCallback pSearchCallback)
     {
-        _viewModel.SearchText = pSearchQuery.SearchString;
-        return new VsSearchTask(dwCookie, pSearchQuery, pSearchCallback);
+        _searchTask = new DocumentOutlineSearchTask(_threadingContext, _viewModel, dwCookie, pSearchQuery, pSearchCallback);
+        return _searchTask;
+    }
+
+    private void OnSearchCompleted(string searchText, uint resultCount)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+
+        if (_searchTask is DocumentOutlineSearchTask searchTask && searchTask.SearchQuery.SearchString == searchText)
+        {
+            searchTask.Complete(resultCount);
+
+            // Task completion is one-shot, but document edits can continue changing the visible result count.
+            if (ReferenceEquals(_searchTask, searchTask) && searchTask.TaskStatus == VSConstants.VsSearchTaskStatus.Completed)
+                InternalUtilities.SetValue(_searchControlDataSource, SearchControlDataSource.PropertyNames.SearchResultsCount, (int)resultCount);
+        }
     }
 
     void IVsWindowSearch.ClearSearch()
     {
+        _searchTask?.Stop();
+        _searchTask = null;
         _viewModel.SearchText = "";
     }
 
