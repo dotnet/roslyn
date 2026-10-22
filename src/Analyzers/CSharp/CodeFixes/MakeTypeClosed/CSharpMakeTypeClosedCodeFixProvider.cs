@@ -167,12 +167,13 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
 
         var node = root.FindNode(diagnostic.Location.SourceSpan);
 
+        var typeDecl = await GetTypeToRefactorWhenValidAsync(document.Project.Solution, semanticModel, node, context.CancellationToken).ConfigureAwait(false);
+
+        if (typeDecl == null)
+            return;
+
         async Task<Solution> ApplyAsync(CancellationToken ct)
         {
-            var typeDecl = await GetTypeToRefactorWhenValidAsync(document.Project.Solution, semanticModel, node, ct).ConfigureAwait(false);
-            if (typeDecl == null)
-                return document.Project.Solution;
-
             var targetDoc = document.Project.Solution.GetDocument(typeDecl.SyntaxTree);
             if (targetDoc == null)
                 return document.Project.Solution;
