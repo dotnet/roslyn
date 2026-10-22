@@ -51,7 +51,7 @@ The feature flag can be used in either of these forms:
 When the feature flag is present without an explicit path, the current implementation uses:
 
 ```text
-<temp>/roslyn-cache
+<LocalApplicationData>/roslyn-cache
 ```
 
 There are currently two ways to get the feature onto the request:
