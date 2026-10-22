@@ -757,6 +757,9 @@ internal sealed partial class SolutionCompilationState
         public RegularCompilationTracker WithDoNotCreateCreationPolicy()
         {
             var state = this.ReadState();
+            this.ProjectState.TraceSnapshotHistory(
+                state is null ? "freeze-empty" :
+                state is FinalCompilationTrackerState ? "freeze-final" : "freeze-inprogress");
 
             // We're freezing the solution for features where latency performance is paramount.  Do not run SGs or
             // create skeleton references at this point.  Just use whatever we've already generated for each in the
@@ -794,6 +797,7 @@ internal sealed partial class SolutionCompilationState
                 var frozenProjectState = this.ProjectState
                     .RemoveAllNormalDocuments()
                     .AddDocuments(documentsWithTrees);
+                frozenProjectState.TraceSnapshotHistory("freeze-filtered");
 
                 // Defer creating these compilations.  It's common to freeze projects (as part of a solution freeze)
                 // that are then never examined.  Creating compilations can be a little costly, so this saves doing

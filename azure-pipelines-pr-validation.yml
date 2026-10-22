@@ -16,6 +16,9 @@ parameters:
 - name: EnforceLatestCommit
   type: boolean
   default: true
+- name: BuildExactCommitForDiagnostics
+  type: boolean
+  default: false
 - name: VisualStudioBranchName
   type: string
   default: default
@@ -161,7 +164,12 @@ extends:
               Write-Host "##vso[task.setvariable variable=OutputOriginalBuildNumber;isoutput=true;isreadonly=true]$originalBuildNumber"
               Write-Host "##vso[task.setvariable variable=OriginalBuildNumber;isreadonly=true]$originalBuildNumber"
 
-        - powershell: Write-Host "##vso[task.setvariable variable=SourceBranchName;isreadonly=true]$('$(Build.SourceBranch)'.Substring('refs/heads/'.Length))"
+        - powershell: |
+            $branch = "$(Build.SourceBranch)"
+            if ("${{ parameters.BuildExactCommitForDiagnostics }}" -eq "True") {
+              $branch = "refs/heads/main"
+            }
+            Write-Host "##vso[task.setvariable variable=SourceBranchName;isreadonly=true]$($branch.Substring('refs/heads/'.Length))"
           displayName: Setting SourceBranchName variable
           condition: succeeded()
 
@@ -181,6 +189,27 @@ extends:
             filePath: 'eng\setup-pr-validation.ps1'
             arguments: "-prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
           condition: succeeded()
+
+        - ${{ if parameters.BuildExactCommitForDiagnostics }}:
+          - task: PowerShell@2
+            displayName: Pin diagnostics build to the requested source commit
+            inputs:
+              targetType: inline
+              script: |
+                $commit = $env:DIAGNOSTICS_COMMIT_SHA
+                if ($commit -notmatch '\A[0-9a-fA-F]{40}\z') {
+                  throw "Diagnostics require a full source commit SHA."
+                }
+                git -C $env:BUILD_SOURCESDIRECTORY checkout --detach $commit
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Failed to check out the diagnostics source commit."
+                }
+                $actual = git -C $env:BUILD_SOURCESDIRECTORY rev-parse HEAD
+                if ($actual -ne $commit) {
+                  throw "The diagnostics build is not on the requested source commit."
+                }
+            env:
+              DIAGNOSTICS_COMMIT_SHA: ${{ parameters.CommitSHA }}
 
         - task: Powershell@2
           name: FancyBuild
@@ -340,7 +369,11 @@ extends:
           condition: succeeded()
 
         - powershell: |
-            $branchName = "$(Build.SourceBranch)".Substring("refs/heads/".Length)
+            $branch = "$(Build.SourceBranch)"
+            if ("${{ parameters.BuildExactCommitForDiagnostics }}" -eq "True") {
+              $branch = "refs/heads/main"
+            }
+            $branchName = $branch.Substring("refs/heads/".Length)
             Write-Host "##vso[task.setvariable variable=ComponentBranchName]$branchName"
           displayName: Get Branch Name
         - template: /eng/pipelines/insert.yml@self
@@ -353,7 +386,10 @@ extends:
             titlePrefix: $(PRTitlePrefix)
             sourceBranch: $(ComponentBranchName)
             componentBuildProjectName: $(System.TeamProject)
-            publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/$(ComponentBranchName)/eng/config/PublishData.json"
+            ${{ if parameters.BuildExactCommitForDiagnostics }}:
+              publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/${{ parameters.CommitSHA }}/eng/config/PublishData.json"
+            ${{ else }}:
+              publishDataURI: "https://raw.githubusercontent.com/dotnet/roslyn/$(ComponentBranchName)/eng/config/PublishData.json"
             queueSpeedometerValidation: true
             dropPath: '$(Pipeline.Workspace)\VSSetup'
             retainInsertedBuild: false
