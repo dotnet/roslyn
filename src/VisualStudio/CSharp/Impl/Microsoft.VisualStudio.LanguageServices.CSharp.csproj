@@ -16,6 +16,10 @@
     <GeneratePkgDefProductVersion>true</GeneratePkgDefProductVersion>
     <DeployExtension>false</DeployExtension>
     <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
+
+    <!-- The extension generator writes extension.json outside the compiler's cached outputs.
+         Bypass the server-only compilation cache so clean builds regenerate the required VSIX manifest. -->
+    <UseSharedCompilation>false</UseSharedCompilation>
   </PropertyGroup>
   <ItemGroup>
     <Content Update=".vsextension/string-resources.json" XlfPreserveFileName="true" />
