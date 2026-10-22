@@ -84,6 +84,11 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         CancellationToken cancellationToken = default)
     {
         var derivedClasses = await SymbolFinder.FindDerivedClassesAsync(type, solution, false, [.. solution.Projects], cancellationToken).ConfigureAwait(false);
+
+        // early return, this cant ever have a false positive because the only case that a false positive would occur would be when a branch is the default ('_') branch but then all types are handled and the diagnostic would not be raised in the first place.
+        if (derivedClasses.Count() > switchArms.Count)
+            return false;
+
         foreach (var derivedClass in derivedClasses)
         {
             cancellationToken.ThrowIfCancellationRequested();
