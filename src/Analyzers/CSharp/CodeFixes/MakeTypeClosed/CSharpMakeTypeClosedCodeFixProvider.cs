@@ -130,6 +130,8 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
                     continue;
 
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                Contract.ThrowIfNull(root);
+
                 var node = root.FindNode(location.Location.SourceSpan);
 
                 var objectCreation = node.FirstAncestorOrSelf<BaseObjectCreationExpressionSyntax>();
@@ -161,6 +163,8 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         Contract.ThrowIfNull(semanticModel);
 
         var root = await diagDocument.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        Contract.ThrowIfNull(root);
+
         var node = root.FindNode(diagnostic.Location.SourceSpan);
 
         async Task<Solution> ApplyAsync(CancellationToken ct)
@@ -174,6 +178,8 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
                 return document.Project.Solution;
 
             var targetRoot = await targetDoc.GetSyntaxRootAsync(ct).ConfigureAwait(false);
+            Contract.ThrowIfNull(targetRoot);
+
             var generator = SyntaxGenerator.GetGenerator(targetDoc);
             var newNode = generator.WithModifiers(
                 typeDecl,
@@ -210,7 +216,11 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
                 continue;
 
             var diagSemanticModel = await diagDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(diagSemanticModel);
+
             var diagRoot = await diagDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            Contract.ThrowIfNull(diagRoot);
+
             var node = diagRoot.FindNode(diagnostic.Location.SourceSpan);
 
             var typeDeclaration = await GetTypeToRefactorWhenValidAsync(
