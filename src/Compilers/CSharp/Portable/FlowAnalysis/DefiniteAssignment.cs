@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // local function, record the read and skip the diagnostic
             if (IsCapturedInLocalFunction(slot))
             {
-                RecordAssignmentRequirementInLocalFunction(slot);
+                RecordReadInLocalFunction(slot);
                 return;
             }
 
@@ -2579,7 +2579,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.State.Reachable &&
                 !IsAssigned(operand, out int unassignedSlot))
             {
-                ReportUnsafeUnassignedAddressOf(addressOfOpt.Syntax, unassignedSlot);
+                var symbol = variableBySlot[unassignedSlot].Symbol;
+                if (!_alreadyReportedUnsafeAddressOf[unassignedSlot] && !symbol.GetTypeOrReturnType().Type.IsErrorType())
+                {
+                    var location = addressOfOpt.Syntax is PrefixUnaryExpressionSyntax prefix
+                        ? prefix.OperatorToken.GetLocation()
+                        : addressOfOpt.Syntax.Location;
+                    Diagnostics.Add(ErrorCode.ERR_UnsafeUnassignedAddressOf, location, symbol.Name);
+                }
+
+                _alreadyReportedUnsafeAddressOf[unassignedSlot] = true;
             }
 
             WriteArgument(operand, RefKind.Out, null);

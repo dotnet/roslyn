@@ -5,7 +5,6 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -15,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal sealed class LocalFunctionState : AbstractLocalFunctionState
         {
             public BitVector ReadVars = BitVector.Empty;
-            public BitVector UnsafeAddressOfVars = BitVector.Empty;
 
             public BitVector CapturedMask = BitVector.Null;
             public BitVector InvertedCapturedMask = BitVector.Null;
@@ -55,37 +53,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var unsafeAddressOfVars = localFunctionState.UnsafeAddressOfVars;
-            for (int slot = 1; slot < unsafeAddressOfVars.Capacity; slot++)
-            {
-                if (unsafeAddressOfVars[slot])
-                {
-                    var symbol = variableBySlot[slot].Symbol;
-                    CheckIfAssignedDuringLocalFunctionReplay(symbol, syntax, slot, isUnsafeAddressOf: true);
-                }
-            }
-
             base.VisitLocalFunctionUse(localFunc, localFunctionState, syntax, isCall);
         }
 
         /// <summary>
-        /// Check that the given variable is definitely assigned when replaying a local function's
-        /// requirements, whether from reads or safe-context address-of operations within that function.
+        /// Check that the given variable is definitely assigned when replaying local function
+        /// reads. If not, produce an error.
         /// </summary>
         /// <remarks>
         /// Specifying the slot manually may be necessary if the symbol is a field,
         /// in which case <see cref="LocalDataFlowPass{TLocalState, TLocalFunctionState}.VariableSlot(Symbol, int)"/>
         /// will not know which containing slot to look for.
         /// </remarks>
-        private void CheckIfAssignedDuringLocalFunctionReplay(Symbol symbol, SyntaxNode node, int slot, bool isUnsafeAddressOf = false)
+        private void CheckIfAssignedDuringLocalFunctionReplay(Symbol symbol, SyntaxNode node, int slot)
         {
             Debug.Assert(!IsConditionalState);
             if ((object)symbol != null)
             {
-                if (!isUnsafeAddressOf)
-                {
-                    NoteRead(symbol);
-                }
+                NoteRead(symbol);
 
                 if (this.State.Reachable)
                 {
@@ -96,12 +81,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (slot > 0 && !this.State.IsAssigned(slot))
                     {
-                        if (isUnsafeAddressOf)
-                        {
-                            ReportUnsafeUnassignedAddressOf(node, slot);
-                            return;
-                        }
-
                         // Local functions can "call forward" to after a variable has
                         // been declared but before it has been assigned, so we can never
                         // consider the declaration location when reporting errors.
@@ -111,27 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void ReportUnsafeUnassignedAddressOf(SyntaxNode syntax, int slot)
-        {
-            if (IsCapturedInLocalFunction(slot))
-            {
-                RecordAssignmentRequirementInLocalFunction(slot, isUnsafeAddressOf: true);
-                return;
-            }
-
-            var symbol = variableBySlot[slot].Symbol;
-            if (!_alreadyReportedUnsafeAddressOf[slot] && !symbol.GetTypeOrReturnType().Type.IsErrorType())
-            {
-                var location = syntax is PrefixUnaryExpressionSyntax prefix
-                    ? prefix.OperatorToken.GetLocation()
-                    : syntax.Location;
-                Diagnostics.Add(ErrorCode.ERR_UnsafeUnassignedAddressOf, location, symbol.Name);
-            }
-
-            _alreadyReportedUnsafeAddressOf[slot] = true;
-        }
-
-        private void RecordAssignmentRequirementInLocalFunction(int slot, bool isUnsafeAddressOf = false)
+        private void RecordReadInLocalFunction(int slot)
         {
             var localFunc = GetNearestLocalFunctionOpt(CurrentSymbol);
 
@@ -140,21 +99,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var usages = GetOrCreateLocalFuncUsages(localFunc);
 
             // If this slot is a struct with individually assignable
-            // fields we need to record each field's requirement separately,
-            // since some fields may be assigned when the requirement is replayed.
+            // fields we need to record each field assignment separately,
+            // since some fields may be assigned when this read is replayed
             VariableIdentifier id = variableBySlot[slot];
             var type = id.Symbol.GetTypeOrReturnType().Type;
 
             Debug.Assert(!_emptyStructTypeCache.IsEmptyStructType(type));
-
-            // Assigning the first element does not fully assign a multi-element inline array.
-            if (isUnsafeAddressOf &&
-                type.HasInlineArrayAttribute(out int length) && length > 1 &&
-                type.TryGetPossiblyUnsupportedByLanguageInlineArrayElementField() is not null)
-            {
-                usages.UnsafeAddressOfVars[slot] = true;
-                return;
-            }
 
             if (EmptyStructTypeCache.IsTrackableStructType(type))
             {
@@ -163,20 +113,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int fieldSlot = GetOrCreateSlot(field, slot);
                     if (fieldSlot > 0 && !State.IsAssigned(fieldSlot))
                     {
-                        RecordAssignmentRequirementInLocalFunction(fieldSlot, isUnsafeAddressOf);
+                        RecordReadInLocalFunction(fieldSlot);
                     }
                 }
             }
             else
             {
-                if (isUnsafeAddressOf)
-                {
-                    usages.UnsafeAddressOfVars[slot] = true;
-                }
-                else
-                {
-                    usages.ReadVars[slot] = true;
-                }
+                usages.ReadVars[slot] = true;
             }
         }
 
@@ -236,9 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var savedState = CreateLocalFunctionState();
             savedState.ReadVars = startState.ReadVars.Clone();
-            savedState.UnsafeAddressOfVars = startState.UnsafeAddressOfVars.Clone();
             startState.ReadVars.Clear();
-            startState.UnsafeAddressOfVars.Clear();
             return savedState;
         }
 
@@ -266,16 +207,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 NonMonotonicState = state;
             }
 
-            // Keep requirements only for captured variables.
+            // Build a list of variables that are both captured and read before assignment
             var capturedAndRead = currentState.ReadVars;
             capturedAndRead.IntersectWith(currentState.CapturedMask);
-            var capturedAndAddressOf = currentState.UnsafeAddressOfVars;
-            capturedAndAddressOf.IntersectWith(currentState.CapturedMask);
 
             // Union and check to see if there are any changes
-            bool changed = savedState.ReadVars.UnionWith(capturedAndRead);
-            changed |= savedState.UnsafeAddressOfVars.UnionWith(capturedAndAddressOf);
-            return changed;
+            return savedState.ReadVars.UnionWith(capturedAndRead);
         }
     }
 }
