@@ -797,6 +797,20 @@ namespace Microsoft.CodeAnalysis
         private protected abstract ImmutableArray<IImportScope> GetImportScopesCore(int position, CancellationToken cancellationToken);
 
         /// <summary>
+        /// Gets the type of the elements produced when <paramref name="type"/> is iterated over by a <c>foreach</c>
+        /// (<c>For Each</c> in Visual Basic) loop at the given position.
+        /// </summary>
+        /// <param name="position">A character position used to identify a declaration scope. This character position must be
+        /// within the FullSpan of the Root syntax node in this SemanticModel.</param>
+        /// <param name="type">The type of the collection being iterated over.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The iteration type, or null if <paramref name="type"/> cannot be iterated over at <paramref name="position"/>.</returns>
+        public ITypeSymbol? GetIterationType(int position, ITypeSymbol type, CancellationToken cancellationToken = default)
+            => GetIterationTypeCore(position, type, cancellationToken);
+
+        private protected abstract ITypeSymbol? GetIterationTypeCore(int position, ITypeSymbol type, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Determines if the symbol is accessible from the specified location.
         /// </summary>
         /// <param name="position">A character position used to identify a declaration scope and
