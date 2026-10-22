@@ -12,10 +12,10 @@ AGENTS.md @dotnet/roslyn-infrastructure
 
 .github/instructions/Compiler.instructions.md @dotnet/roslyn-compiler
 .github/instructions/IDE.instructions.md @dotnet/roslyn-ide
-.github/instructions/Razor.instructions.md @dotnet/razor-tooling
+.github/instructions/Razor.instructions.md @dotnet/roslyn-ide
 .github/memory/testing/compiler.md @dotnet/roslyn-compiler
 .github/memory/testing/ide.md @dotnet/roslyn-ide
-.github/memory/testing/razor.md @dotnet/razor-tooling
+.github/memory/testing/razor.md @dotnet/roslyn-ide
 
 docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
@@ -37,8 +37,8 @@ src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
 src/LanguageServer/ @dotnet/roslyn-ide
 src/NuGet/ @dotnet/roslyn-infrastructure
-src/Razor/ @dotnet/razor-tooling @dotnet/roslyn-ide
-src/Razor/src/Compiler/ @dotnet/razor-tooling @dotnet/roslyn-ide @dotnet/razor-compiler
+src/Razor/ @dotnet/roslyn-ide
+src/Razor/src/Compiler/ @dotnet/roslyn-ide @dotnet/razor-compiler
 src/RoslynAnalyzers/ @dotnet/roslyn-ide
 src/Scripting/ @dotnet/roslyn-interactive
 src/Setup/ @dotnet/roslyn-infrastructure
