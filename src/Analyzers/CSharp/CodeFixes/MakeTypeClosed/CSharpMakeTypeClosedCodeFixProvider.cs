@@ -194,7 +194,7 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         context.RegisterCodeFix(
             CodeAction.Create(
                 CodeFixesResources.Make_class_closed,
-                ct => ApplyAsync(ct),
+                ApplyAsync,
                 CodeFixesResources.Make_class_closed),
             context.Diagnostics);
     }
