@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (entry.State != EntryState.Modified || !tableBuilder.TryModifyEntries(newOutputs, stopwatch.Elapsed, inputs, entry.State))
                         {
-                            tableBuilder.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, entry.State);
+                            tableBuilder.AddEntries(newOutputs, EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
                         }
                     }
                 }
