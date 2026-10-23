@@ -5918,7 +5918,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 diagnostics: diagnostics);
 
                             // Bind member initializer assignment expression
-                            return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
+                            var boundAssignment = BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
+
+                            // Indexers cannot be assigned in a with expression
+                            if (initializer.Left.Kind() == SyntaxKind.ImplicitElementAccess &&
+                                initializer.Parent.IsKind(SyntaxKind.WithInitializerExpression))
+                            {
+                                Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
+                                return boundAssignment.WithHasErrors();
+                            }
+
+                            return boundAssignment;
                         }
                         break;
                     }

@@ -13462,7 +13462,7 @@ done:
                 ref openBrace,
                 SyntaxKind.CloseBraceToken,
                 static @this => @this.IsPossibleExpression(),
-                static @this => @this.ParseExpressionCore(),
+                static @this => @this.ParseWithInitializerMember(),
                 SkipBadInitializerListTokens,
                 allowTrailingSeparator: true,
                 requireOneElement: false,
@@ -13476,6 +13476,32 @@ done:
                     openBrace,
                     list,
                     this.EatToken(SyntaxKind.CloseBraceToken)));
+        }
+
+        private ExpressionSyntax ParseWithInitializerMember()
+        {
+            if (this.IsDictionaryInitializer())
+            {
+                // [...] = <expr>
+                // Parsed as in an object initializer, rather than as an assignment to a collection expression,
+                // for better error recovery. The binder reports that indexers are not allowed in a with expression.
+                // Anything else starting with '[', such as a lambda with attributes, is parsed as an expression.
+                using var resetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+                var argumentList = this.ParseBracketedArgumentList();
+                if (this.CurrentToken.Kind == SyntaxKind.EqualsToken)
+                {
+                    return _syntaxFactory.AssignmentExpression(
+                        SyntaxKind.SimpleAssignmentExpression,
+                        _syntaxFactory.ImplicitElementAccess(argumentList),
+                        this.EatToken(),
+                        this.ParsePossibleRefExpression());
+                }
+
+                resetPoint.Reset();
+            }
+
+            return this.ParseExpressionCore();
         }
 
 #nullable disable
