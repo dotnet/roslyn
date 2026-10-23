@@ -1,0 +1,281 @@
+# Roslyn VS integration tests executed through DartLab CloudTest operations.
+
+parameters:
+  - name: name
+    type: string
+  - name: prNumber
+    type: string
+    default: 'None'
+  - name: sha
+    type: string
+    default: 'None'
+  - name: EnforceLatestCommit
+    type: boolean
+    default: true
+  - name: visualStudioBootstrapperURI
+    type: string
+    default: '(default)'
+  - name: testsCommitHash
+    type: string
+    default: '(default)'
+  - name: testsCommitFromVisualStudioBuild
+    type: boolean
+    default: false
+  - name: testMachineLab
+    type: string
+    default: ''
+  - name: testMachineHoldStrategy
+    type: string
+    default: None
+    values:
+    - None
+    - Completion
+    - Execution
+    - Failure
+    - Timeout
+  - name: dartLabTemplatesRepositoryAlias
+    type: string
+    default: DartLabTemplates
+  - name: roslynRepositoryAlias
+    type: string
+    default: self
+  - name: testStageFilter
+    type: object
+    default: ''
+  - name: configuration
+    type: string
+    default: 'Debug'
+  - name: testPlatform
+    type: string
+    default: x64
+    values: [ x86, x64 ]
+  - name: oop64bit
+    # This is actually a boolean but must be defined as string.
+    # Parameters are evaluated at compile time, but all variables are strings at compile time.
+    # So in order to pass a parameter that comes from a variable these must be typed as string.
+    type: string
+    default: true
+  - name: lspEditor
+    type: string
+    default: false
+  - name: testCaseFilter
+    type: string
+    default: ''
+  - name: skipCustomRoslynDeploy
+    type: boolean
+    default: false
+
+stages:
+- template: /templates/stages/visual-studio/single-executable.yml@${{ parameters.dartLabTemplatesRepositoryAlias }}
+  parameters:
+    name: ${{ parameters.name }}
+    displayName: Roslyn VS Integration ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }}
+    owner: mlinfraswat
+    testMachineLab: ${{ parameters.testMachineLab }}
+    testMachineHoldStrategy: ${{ parameters.testMachineHoldStrategy }}
+    variables:
+    - name: RoslynMirrorUrl
+      # The resource's .url is a REST API endpoint, not a Git clone URL.
+      value: https://dev.azure.com/dnceng/internal/_git/dotnet-roslyn
+    - name: RoslynMirrorVersion
+      value: $[ resources.repositories.RoslynMirror.version ]
+    templateContext:
+      areaPath: DevDiv\NET Developer Experience\CSharp and VB IDE
+      ${{ if ne(parameters.testStageFilter, '') }}:
+        filter: ${{ parameters.testStageFilter }}
+    visualStudioBootstrapperURI: ${{ iif(eq(parameters.visualStudioBootstrapperURI, '(default)'), 'https://vsdrop.corp.microsoft.com/file/v1/$(VisualStudio.BuildUnderTest.ProductsDropName);bootstrappers/Enterprise/vs_enterprise.exe', parameters.visualStudioBootstrapperURI) }}
+    visualStudioInstallationParameters: --add Microsoft.VisualStudio.Component.NuGet --add Microsoft.VisualStudio.Component.Roslyn.Compiler --add Microsoft.Component.MSBuild --add Microsoft.NetCore.Component.Runtime.6.0 --add Microsoft.NetCore.Component.SDK --add Microsoft.Net.Component.4.7.2.TargetingPack --add Microsoft.VisualStudio.Component.Roslyn.LanguageServices --add Microsoft.VisualStudio.Component.FSharp --add Microsoft.ComponentGroup.ClickOnce.Publish --add Microsoft.NetCore.Component.DevelopmentTools --add Microsoft.VisualStudio.Component.MSODBC.SQL --add Microsoft.VisualStudio.Component.MSSQL.CMDLnUtils --add Microsoft.VisualStudio.Component.SQL.LocalDB.Runtime --add Microsoft.VisualStudio.Component.SQL.CLR --add Microsoft.VisualStudio.Component.CoreEditor --add Microsoft.VisualStudio.Workload.CoreEditor --add Microsoft.Net.Component.4.8.SDK --add Microsoft.Net.ComponentGroup.DevelopmentPrerequisites --add Microsoft.VisualStudio.Component.TypeScript.TSServer --add Microsoft.VisualStudio.ComponentGroup.WebToolsExtensions --add Microsoft.VisualStudio.Component.JavaScript.TypeScript --add Microsoft.VisualStudio.Component.JavaScript.Diagnostics --add Microsoft.VisualStudio.Component.TextTemplating --add Microsoft.VisualStudio.Component.IISExpress --add Microsoft.VisualStudio.Component.Common.Azure.Tools --add Microsoft.Component.ClickOnce --add Microsoft.VisualStudio.Component.ManagedDesktop.Core --add Microsoft.VisualStudio.Component.SQL.SSDT --add Microsoft.VisualStudio.Component.SQL.DataSources --add Component.Microsoft.Web.LibraryManager --add Component.Microsoft.WebTools.BrowserLink.WebLivePreview --add Microsoft.VisualStudio.ComponentGroup.Web --add Microsoft.VisualStudio.Component.FSharp.WebTemplates --add Microsoft.VisualStudio.Component.DockerTools --add Microsoft.NetCore.Component.Web --add Microsoft.VisualStudio.Component.WebDeploy --add Microsoft.VisualStudio.Component.AppInsights.Tools --add Microsoft.VisualStudio.Component.Web --add Microsoft.Net.Component.4.8.TargetingPack --add Microsoft.Net.ComponentGroup.4.8.DeveloperTools --add Microsoft.VisualStudio.Component.AspNet45 --add Microsoft.VisualStudio.Component.AspNet --add Component.Microsoft.VisualStudio.Web.AzureFunctions --add Microsoft.VisualStudio.ComponentGroup.AzureFunctions --add Microsoft.VisualStudio.Component.Debugger.Snapshot --add Microsoft.VisualStudio.ComponentGroup.Web.CloudTools --add Microsoft.VisualStudio.Component.IntelliTrace.FrontEnd --add Microsoft.VisualStudio.Component.DiagnosticTools --add Microsoft.VisualStudio.Component.EntityFramework --add Microsoft.VisualStudio.Component.LiveUnitTesting --add Microsoft.VisualStudio.Component.Debugger.JustInTime --add Component.Microsoft.VisualStudio.LiveShare.2022 --add Microsoft.VisualStudio.Component.WslDebugging --add Microsoft.VisualStudio.Component.IntelliCode --add Microsoft.VisualStudio.Workload.NetWeb --add Microsoft.VisualStudio.Component.ManagedDesktop.Prerequisites --add Microsoft.ComponentGroup.Blend --add Microsoft.VisualStudio.Component.DotNetModelBuilder --add Microsoft.VisualStudio.Component.FSharp.Desktop --add Microsoft.VisualStudio.Component.PortableLibrary --add Microsoft.VisualStudio.Workload.ManagedDesktop --add Microsoft.Net.Component.4.6.TargetingPack --add Microsoft.VisualStudio.Component.VSSDK --add Microsoft.VisualStudio.ComponentGroup.VisualStudioExtension.Prerequisites --add Microsoft.Component.CodeAnalysis.SDK --add Microsoft.VisualStudio.Workload.VisualStudioExtension --installPath "C:\Test\VisualStudio" --quiet --norestart --wait
+    testMachineEnvironmentVariables:
+      CI: 'true'
+      XUNIT_LOGS: '[WorkingDirectory]\Roslyn\artifacts\log\${{ parameters.configuration }}'
+    testExecutablePath: '[WorkingDirectory]\Roslyn\eng\test-vsi.ps1'
+    testExecutableArguments: >-
+      -ci
+      -configuration ${{ parameters.configuration }}
+      -testPlatform ${{ parameters.testPlatform }}
+      ${{ iif(eq(parameters.skipCustomRoslynDeploy, true), '-skipCustomRoslynDeploy', '') }}
+      -oop64bit:$${{ parameters.oop64bit }}
+      -collectDumps
+      -lspEditor:$${{ parameters.lspEditor }}
+      -testResultsDirectory "[LoggingDirectory]"
+      -testResultsFormat trx
+      ${{ iif(ne(parameters.testCaseFilter, ''), format('-testFilter:''{0}''', parameters.testCaseFilter), '') }}
+    testResultType: TRX
+    testRunName: '$(System.JobAttempt)-Integration ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }}'
+    testRunTimeout: '0:4:0:0'
+    testMachineTotalCount: '1'
+    preTestMachineConfigurationSteps:
+    - checkout: none
+    - task: DownloadBuildArtifacts@1
+      displayName: Download Visual Studio build artifacts
+      inputs:
+        buildType: specific
+        project: $(resources.pipeline.VisualStudioBuildUnderTest.projectID)
+        definition: $(resources.pipeline.VisualStudioBuildUnderTest.pipelineID)
+        buildVersionToDownload: specific
+        buildId: $(resources.pipeline.VisualStudioBuildUnderTest.runID)
+        downloadType: specific
+        artifactName: BuildArtifacts
+        downloadPath: $(Pipeline.Workspace)\VisualStudioBuildUnderTest
+    - task: PowerShell@2
+      name: SetProductsDropName
+      displayName: Set 'VisualStudio.BuildUnderTest.ProductsDropName'
+      inputs:
+        filePath: $(DartLab.Path)\Scripts\VisualStudio\Build\Get-VisualStudioDropName.ps1
+        arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
+    preDeployAndRunTestsOperations:
+    - operation: executePowerShellInline
+      displayName: Enable long path
+      scriptBlock: |
+        New-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force
+      timeout: '0:0:1:0'
+    - operation: executePowerShellInline
+      displayName: Checkout Roslyn
+      timeout: '0:1:20:0'
+      scriptBlock: |
+        Import-Module DartLab.Modules.Git
+        Install-Git -Scope Process
+
+        $managedIdentityClientId = [guid]::Empty
+        if (-not [guid]::TryParse('$(DartLab.1ES.ManagedIdentity.ClientID)', [ref]$managedIdentityClientId)) {
+          throw 'DartLab.1ES.ManagedIdentity.ClientID did not resolve to a valid managed identity client ID.'
+        }
+
+        $gitConfigPath = Join-Path $env:TEMP 'RoslynVSIntegration.gitconfig'
+        @"
+        [credential]
+            helper =
+        "@ | Set-Content -Path $gitConfigPath -Encoding ascii
+        $env:GIT_CONFIG_GLOBAL = $gitConfigPath
+        $env:GIT_CONFIG_COUNT = '4'
+        $env:GIT_CONFIG_KEY_0 = 'credential.helper'
+        $env:GIT_CONFIG_VALUE_0 = 'manager'
+        $env:GIT_CONFIG_KEY_1 = 'credential.interactive'
+        $env:GIT_CONFIG_VALUE_1 = 'false'
+        $env:GIT_CONFIG_KEY_2 = 'credential.azreposManagedIdentity'
+        $env:GIT_CONFIG_VALUE_2 = $managedIdentityClientId.ToString()
+        $env:GIT_CONFIG_KEY_3 = 'credential.credentialStore'
+        $env:GIT_CONFIG_VALUE_3 = 'none'
+
+        try {
+          $repositoryPath = '[WorkingDirectory]\Roslyn'
+          $repositoryVersion = '$(RoslynMirrorVersion)'
+          git init $repositoryPath
+          if ($LASTEXITCODE -ne 0) { throw 'Initializing the Roslyn repository failed.' }
+          Set-Location $repositoryPath
+          git -C $repositoryPath remote add origin '$(RoslynMirrorUrl)'
+          if ($LASTEXITCODE -ne 0) { throw 'Configuring the RoslynMirror remote failed.' }
+          git -C $repositoryPath config --local core.longpaths true
+          if ($LASTEXITCODE -ne 0) { throw 'Enabling Git long paths failed.' }
+          git -C $repositoryPath config --local remote.origin.tagOpt --no-tags
+          if ($LASTEXITCODE -ne 0) { throw 'Disabling Git tag fetching failed.' }
+          git -C $repositoryPath fetch --force --no-tags --depth=1 origin $repositoryVersion
+          if ($LASTEXITCODE -ne 0) { throw 'Fetching the Roslyn resource commit failed.' }
+          git -C $repositoryPath checkout --detach $repositoryVersion
+          if ($LASTEXITCODE -ne 0) { throw 'Checking out the Roslyn resource commit failed.' }
+
+          if ('${{ parameters.prNumber }}' -ne 'None') {
+            Write-Host 'Setting up the PR validation branch.'
+            & .\eng\setup-pr-validation.ps1 -prNumber '${{ parameters.prNumber }}' -commitSHA '${{ parameters.sha }}' -enforceLatestCommit $${{ parameters.EnforceLatestCommit }}
+            if ($LASTEXITCODE -ne 0) { throw 'Setting up the PR validation branch failed.' }
+          }
+
+          if ('${{ parameters.testsCommitHash }}' -ne '(default)') {
+            Write-Host 'Checking out tests at the requested commit.'
+            git -C $repositoryPath fetch origin '${{ parameters.testsCommitHash }}'
+            if ($LASTEXITCODE -ne 0) { throw 'Fetching the requested tests commit failed.' }
+            git -C $repositoryPath checkout --detach FETCH_HEAD
+            if ($LASTEXITCODE -ne 0) { throw 'Checking out the requested tests commit failed.' }
+          }
+
+          if ($${{ parameters.testsCommitFromVisualStudioBuild }}) {
+            $globalJsonPath = Join-Path (Get-Location) 'global.json'
+            $globalJsonBackupPath = "$globalJsonPath.roslyn-test-gate-$([Guid]::NewGuid())"
+
+            if (Test-Path -LiteralPath $globalJsonPath) {
+              Move-Item -LiteralPath $globalJsonPath -Destination $globalJsonBackupPath
+            }
+
+            try {
+              $roslynCommitHash = dotnet .\eng\isolated\get-roslyn-commit-hash-in-vs.cs
+              $dotnetExitCode = $LASTEXITCODE
+            }
+            finally {
+              if (Test-Path -LiteralPath $globalJsonBackupPath) {
+                Move-Item -LiteralPath $globalJsonBackupPath -Destination $globalJsonPath
+              }
+            }
+
+            if ($dotnetExitCode -ne 0) {
+              throw "Resolving the Roslyn commit from Visual Studio failed with exit code $dotnetExitCode."
+            }
+
+            Write-Host "Checking out tests at commit from Visual Studio build: $roslynCommitHash"
+            git -C $repositoryPath fetch origin $roslynCommitHash
+            if ($LASTEXITCODE -ne 0) { throw 'Fetching the Visual Studio tests commit failed.' }
+            git -C $repositoryPath checkout --detach FETCH_HEAD
+            if ($LASTEXITCODE -ne 0) { throw 'Checking out the Visual Studio tests commit failed.' }
+          }
+
+          $persistedGitConfiguration = @(git -C $repositoryPath config --local --get-regexp '^(credential\.|http\..*\.extraheader$)')
+          $gitConfigExitCode = $LASTEXITCODE
+          if ($gitConfigExitCode -ne 0 -and $gitConfigExitCode -ne 1) {
+            throw "Could not inspect persisted Git authentication configuration (exit code $gitConfigExitCode)."
+          }
+          if ($persistedGitConfiguration.Count -ne 0) {
+            throw 'The Roslyn checkout contains persisted Git authentication configuration.'
+          }
+        }
+        finally {
+          Remove-Item -LiteralPath $gitConfigPath -Force
+        }
+    - operation: executePowerShellInline
+      displayName: Build
+      timeout: '0:2:0:0'
+      scriptBlock: |
+        Import-Module DartLab.Modules.Git
+        Install-Git
+        Set-Location '[WorkingDirectory]\Roslyn'
+        & .\eng\build.ps1 -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine /p:BuildDependencyVsix=true
+        if ($LASTEXITCODE -ne 0) { throw "Building Roslyn failed with exit code $LASTEXITCODE." }
+    postTestExecutionJobs:
+    - job: Publish
+      displayName: Publish test diagnostics
+      dependsOn: TestExecution
+      condition: always()
+      pool:
+        vmImage: windows-latest
+      steps:
+      - checkout: none
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Test Results Directory
+        inputs:
+          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}'
+          ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+          publishLocation: Container
+        continueOnError: true
+        condition: always()
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Logs
+        inputs:
+          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'
+          ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+          publishLocation: Container
+        continueOnError: true
+        condition: always()
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Screenshots and Test Attachments (Old Tests)
+        inputs:
+          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\${{ parameters.configuration }}\net472\TestResults'
+          ArtifactName: '$(System.JobAttempt)-Screenshots ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
+          publishLocation: Container
+        continueOnError: true
+        condition: always()
+    postDeployAndRunTestsOperations:
+    # Preserve dumps, logs, screenshots, and attachments even when tests fail.
+    - operation: executePowerShellScript
+      displayName: Collect Roslyn test diagnostics
+      scriptPath: C:\DartLab\Scripts\FileSystem\Copy-Files.ps1
+      scriptParameters: -CopyDirectory '[WorkingDirectory]\Roslyn\artifacts' -IncludeFilePatterns @('TestResults\**', 'log\**', 'bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\${{ parameters.configuration }}\net472\TestResults\**') -DestinationDirectory '[LoggingDirectory]' -Subdirectory 'Roslyn'
+      continueOnError: true
+      timeout: '0:0:20:0'
