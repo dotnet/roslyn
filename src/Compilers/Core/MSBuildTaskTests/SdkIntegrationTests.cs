@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using Basic.CompilerLog.Util;
 using Microsoft.Build.Logging.StructuredLogger;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -197,6 +198,165 @@ public sealed class SdkIntegrationTests : IDisposable
         {
             Assert.False(options.SpecificDiagnosticOptions.TryGetValue("BC41997", out _));
         }
+
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalTheory(typeof(DotNetSdkAvailable))]
+    [InlineData("")]
+    [InlineData("<MemorySafetyRulesVersion></MemorySafetyRulesVersion>")]
+    [InlineData("<MemorySafetyRulesVersion>1</MemorySafetyRulesVersion>")]
+    public void MemorySafetyRules_Version1(string property)
+    {
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <TargetFramework>net11.0</TargetFramework>
+                    <LangVersion>preview</LangVersion>
+                    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+                    {property}
+                </PropertyGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("C.cs").WriteAllText("""
+            class C
+            {
+                void M1()
+                {
+                    M2();
+                }
+                unsafe void M2() { }
+            }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path);
+        var compilation = ReadCompilations(binlogPath).Single();
+
+        compilation.VerifyDiagnostics();
+
+        var options = (CSharpCompilationOptions)compilation.Options;
+        Assert.Equal(MemorySafetyRulesVersion.Version1, options.MemorySafetyRulesVersion);
+
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    public void MemorySafetyRules_FeatureFlag()
+    {
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <TargetFramework>net11.0</TargetFramework>
+                    <LangVersion>preview</LangVersion>
+                    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+                    <Features>$(Features);updated-memory-safety-rules</Features>
+                </PropertyGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("C.cs").WriteAllText("""
+            class C
+            {
+                void M1()
+                {
+                    M2();
+                }
+                unsafe void M2() { }
+            }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path, succeeds: false);
+        var compilation = ReadCompilations(binlogPath).Single();
+
+        compilation.VerifyDiagnostics(
+            // C.cs(5,9): error CS9362: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         M2();
+            TestHelpers.Diagnostic(9362, "M2()").WithArguments("C.M2()").WithLocation(5, 9));
+
+        var options = (CSharpCompilationOptions)compilation.Options;
+        Assert.Equal(MemorySafetyRulesVersion.Version2, options.MemorySafetyRulesVersion);
+
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    public void MemorySafetyRules_Version2()
+    {
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <TargetFramework>net11.0</TargetFramework>
+                    <LangVersion>preview</LangVersion>
+                    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+                    <MemorySafetyRulesVersion>2</MemorySafetyRulesVersion>
+                </PropertyGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("C.cs").WriteAllText("""
+            class C
+            {
+                void M1()
+                {
+                    M2();
+                }
+                unsafe void M2() { }
+            }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path, succeeds: false);
+        var compilation = ReadCompilations(binlogPath).Single();
+
+        compilation.VerifyDiagnostics(
+            // C.cs(5,9): error CS9362: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe'
+            //         M2();
+            TestHelpers.Diagnostic(9362, "M2()").WithArguments("C.M2()").WithLocation(5, 9));
+
+        var options = (CSharpCompilationOptions)compilation.Options;
+        Assert.Equal(MemorySafetyRulesVersion.Version2, options.MemorySafetyRulesVersion);
+
+        ArtifactUploadUtil.SetSucceeded();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkAvailable))]
+    public void MemorySafetyRules_InvalidVersion()
+    {
+        var projectFile = ProjectDir.CreateFile("console.csproj");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+                <PropertyGroup>
+                    <TargetFramework>net11.0</TargetFramework>
+                    <LangVersion>preview</LangVersion>
+                    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+                    <MemorySafetyRulesVersion>999</MemorySafetyRulesVersion>
+                </PropertyGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile("C.cs").WriteAllText("""
+            class C
+            {
+                void M1()
+                {
+                    M2();
+                }
+                unsafe void M2() { }
+            }
+            """);
+
+        var binlogPath = RunBuild(projectFile.Path, succeeds: false);
+        var compilation = ReadCompilations(binlogPath).Single();
+
+        compilation.VerifyDiagnostics(
+            // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '999'. Accepted values are: 1, 2
+            TestHelpers.Diagnostic(9400).WithArguments("MemorySafetyRulesVersion", "999", "1, 2").WithLocation(1, 1));
+
+        var options = (CSharpCompilationOptions)compilation.Options;
+        Assert.Equal((MemorySafetyRulesVersion)999, options.MemorySafetyRulesVersion);
 
         ArtifactUploadUtil.SetSucceeded();
     }
