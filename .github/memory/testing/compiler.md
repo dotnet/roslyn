@@ -39,3 +39,14 @@ public class MyTests : CSharpTestBase
   `Single()` instead of checking counts then indexing.
 - **Prefer raw string literals** (`"""..."""`) over verbatim strings (`@"..."`)
   for test source code.
+
+## BuildValidator reference resolution
+
+`src/Tools/BuildValidator.UnitTests` covers the local reference resolver. Run
+`dotnet test src/Tools/BuildValidator.UnitTests/BuildValidator.UnitTests.csproj`.
+The resolver prefers IL candidates for a given MVID and retains ReadyToRun
+candidates as fallbacks when no IL candidate has that MVID. Its tests use
+synthetic PE header markers to exercise selection without invoking crossgen2
+or executing native code.
+An IL candidate discovered under another filename replaces an already cached
+ReadyToRun fallback for the same MVID.
