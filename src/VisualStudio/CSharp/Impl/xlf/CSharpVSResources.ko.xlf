@@ -42,6 +42,21 @@
         <target state="translated">세미콜론 입력 시 자동으로 문 완성</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_format_block_on_close_brace">
+        <source>Automatically format block on }</source>
+        <target state="translated">} 입력 시 블록 서식 자동 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_on_paste">
+        <source>Automatically format on paste</source>
+        <target state="translated">붙여넣을 때 서식 자동 지정</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon">
+        <source>Automatically format statement on ;</source>
+        <target state="translated">; 입력 시 문 서식 자동 지정</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
         <target state="translated">인수 목록에 자동으로 완성 목록 표시</target>
@@ -92,20 +107,30 @@
         <target state="translated">색 구성표 편집</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>Enter outlining mode when files open</source>
+        <target state="translated">개요 모드로 파일 열기</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">파일 범위 지정됨</target>
         <note />
       </trans-unit>
-      <trans-unit id="General">
-        <source>General</source>
-        <target state="translated">일반</target>
-        <note>Title of the control group on the General Formatting options page</note>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>Generate XML documentation comments for ///</source>
+        <target state="translated">///에 대해 XML 문서 주석 생성</target>
+        <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">관계 연산자:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
+        <source>Insert * at the start of new lines when writing /* */ comments</source>
+        <target state="translated">/* */ 주석을 작성할 때 새 줄의 시작 부분에 * 삽입</target>
+        <note />
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
@@ -132,6 +157,11 @@
         <target state="translated">using 추가 안 함</target>
         <note />
       </trans-unit>
+      <trans-unit id="On_type_formatting">
+        <source>On-type Formatting</source>
+        <target state="new">On-type Formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Only_add_using_if_explicitly_completed">
         <source>Only add using if explicitly completed (via TAB or double-click)</source>
         <target state="translated">명시적으로 완료(탭 키 또는 두 번 클릭)한 경우에만 using 추가</target>
@@ -140,6 +170,11 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">패턴 일치 기본 설정:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_usings">
+        <source>Place 'System' directives first when sorting usings</source>
+        <target state="translated">using 정렬 시 'System' 지시문 먼저 배치</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -202,6 +237,16 @@
         <target state="translated">새 코드 조각 환경 표시(실험적)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_string_literals_on_enter">
+        <source>Split string literals on enter</source>
+        <target state="translated">&lt;Enter&gt; 키를 누르면 문자열 리터럴 분할</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
+        <source>Suggest usings for types in NuGet packages</source>
+        <target state="translated">NuGet 패키지의 형식에 대한 using 제안</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
         <target state="translated">.NET Framework 어셈블리의 형식에 using 제안</target>
@@ -210,21 +255,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">코드 감싸기</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_block_on_close_brace">
-        <source>Automatically format _block on }</source>
-        <target state="translated">} 입력 시 블록 서식 자동 지정(_B)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_on_paste">
-        <source>Automatically format on _paste</source>
-        <target state="translated">붙여넣을 때 서식 자동 지정(_P)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon">
-        <source>Automatically format _statement on ;</source>
-        <target state="translated">; 입력 시 문 서식 자동 지정(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
@@ -502,29 +532,9 @@
         <target state="translated">키워드에 대한 줄 바꿈 옵션</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>Enter _outlining mode when files open</source>
-        <target state="translated">개요 모드로 파일 열기(_O)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for ///</source>
-        <target state="translated">///에 대해 XML 문서 주석 생성(_G)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
-        <source>_Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="translated">/* */ 주석을 작성할 때 새 줄의 시작 부분에 * 삽입(_I)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Using_Directives">
         <source>Using Directives</source>
         <target state="translated">Using 지시문</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_usings">
-        <source>_Place 'System' directives first when sorting usings</source>
-        <target state="translated">using 정렬 시 'System' 지시문 먼저 배치(_P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -550,11 +560,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
         <source>Place open brace on new line for properties, indexers, and events</source>
         <target state="translated">속성, 인덱서 및 이벤트의 여는 중괄호를 새 줄에 배치합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
-        <source>Suggest usings for types in _NuGet packages</source>
-        <target state="translated">NuGet 패키지의 형식에 대한 using 제안(_N)</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -635,11 +640,6 @@
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
         <target state="translated">미리 정의된 형식 기본 설정:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Split_string_literals_on_enter">
-        <source>Split string literals on _enter</source>
-        <target state="translated">&lt;Enter&gt; 키를 누르면 문자열 리터럴 분할(_E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">

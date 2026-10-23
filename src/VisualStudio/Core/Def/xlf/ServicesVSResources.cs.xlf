@@ -313,8 +313,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
-        <source>Disp_lay inline parameter name hints</source>
-        <target state="translated">Zobrazovat nápovědy k názvům v_ložených parametrů</target>
+        <source>Display inline parameter name hints</source>
+        <target state="translated">Zobrazovat nápovědy k názvům vložených parametrů</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -503,8 +503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">Z_výrazňovat odkazy na symbol pod kurzorem</target>
+        <source>Highlight references to symbol under cursor</source>
+        <target state="translated">Zvýrazňovat odkazy na symbol pod kurzorem</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -513,8 +513,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">Zvýrazňovat související _klíčová slova pod kurzorem</target>
+        <source>Highlight related keywords under cursor</source>
+        <target state="translated">Zvýrazňovat související klíčová slova pod kurzorem</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -635,11 +635,6 @@
       <trans-unit id="Kind">
         <source>Kind</source>
         <target state="translated">Druh</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">Velké</target>
         <note />
       </trans-unit>
       <trans-unit id="Loaded_items">
@@ -957,11 +952,6 @@
         <target state="translated">Otevřené dokumenty</target>
         <note />
       </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">Optimalizovat pro velikost řešení</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
         <source>Optional parameters must provide a default value</source>
         <target state="translated">Nepovinné parametry musí poskytovat výchozí hodnotu.</target>
@@ -1041,11 +1031,6 @@
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">Pokud chcete zobrazit a procházet jeho hodnoty, vložte trasování zásobníku.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
-      </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">Výkon</target>
-        <note />
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
@@ -1127,19 +1112,9 @@
         <target state="translated">Stáhnout členy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Quick_Actions">
-        <source>Quick Actions</source>
-        <target state="translated">Rychlé akce</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reference">
         <source>Reference</source>
         <target state="translated">Odkaz</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">Normální</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1388,13 +1363,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">Zobrazit náhled pro sledování _rename</target>
+        <source>Show preview for rename tracking</source>
+        <target state="translated">Zobrazit náhled pro sledování rename</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">Zob_razit oddělovače řádků procedur</target>
+        <source>Show procedure line separators</source>
+        <target state="translated">Zobrazit oddělovače řádků procedur</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -1407,11 +1382,6 @@
         <target state="translated">Přeskočit analyzátory pro implicitně aktivované buildy</target>
         <note />
       </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">Malé</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
         <target state="translated">Chování fragmentů</target>
@@ -1422,9 +1392,9 @@
         <target state="translated">Generátory zdroje</target>
         <note />
       </trans-unit>
-      <trans-unit id="Source_generator_execution_requires_restart">
-        <source>Source generator execution (requires restart):</source>
-        <target state="translated">Spuštění generátoru zdroje (vyžaduje restartování):</target>
+      <trans-unit id="Source_generator_execution_USX">
+        <source>Source generator execution:</source>
+        <target state="new">Source generator execution:</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace">
@@ -1525,6 +1495,11 @@
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
         <target state="translated">Toto je neplatný obor názvů.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_setting_is_shared_by_CSharp_and_Visual_Basic">
+        <source>This setting is shared by C# and Visual Basic. Changing it affects both languages.</source>
+        <target state="new">This setting is shared by C# and Visual Basic. Changing it affects both languages.</target>
         <note />
       </trans-unit>
       <trans-unit id="Title">

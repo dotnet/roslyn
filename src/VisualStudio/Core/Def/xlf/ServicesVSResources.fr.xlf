@@ -313,8 +313,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_parameter_name_hints">
-        <source>Disp_lay inline parameter name hints</source>
-        <target state="translated">Affic_her les indicateurs de noms de paramètres inline</target>
+        <source>Display inline parameter name hints</source>
+        <target state="translated">Afficher les indicateurs de noms de paramètres inline</target>
         <note />
       </trans-unit>
       <trans-unit id="Display_inline_type_hints">
@@ -503,8 +503,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_references_to_symbol_under_cursor">
-        <source>_Highlight references to symbol under cursor</source>
-        <target state="translated">_Surligner les références jusqu'au symbole sous le curseur</target>
+        <source>Highlight references to symbol under cursor</source>
+        <target state="translated">Surligner les références jusqu'au symbole sous le curseur</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
@@ -513,8 +513,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Highlight_related_keywords_under_cursor">
-        <source>Highlight related _keywords under cursor</source>
-        <target state="translated">Surligner les mots clés liés sous le _curseur</target>
+        <source>Highlight related keywords under cursor</source>
+        <target state="translated">Surligner les mots clés liés sous le curseur</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -635,11 +635,6 @@
       <trans-unit id="Kind">
         <source>Kind</source>
         <target state="translated">Genre</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Large">
-        <source>Large</source>
-        <target state="translated">Grande</target>
         <note />
       </trans-unit>
       <trans-unit id="Loaded_items">
@@ -957,11 +952,6 @@
         <target state="translated">Documents ouverts</target>
         <note />
       </trans-unit>
-      <trans-unit id="Optimize_for_solution_size">
-        <source>Optimize for solution size</source>
-        <target state="translated">Optimiser pour la taille de la solution</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Optional_parameters_must_provide_a_default_value">
         <source>Optional parameters must provide a default value</source>
         <target state="translated">Les paramètres facultatifs doivent fournir une valeur par défaut</target>
@@ -1041,11 +1031,6 @@
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">Collez une trace de pile pour afficher et parcourir ses valeurs.</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
-      </trans-unit>
-      <trans-unit id="Performance">
-        <source>Performance</source>
-        <target state="translated">Performances</target>
-        <note />
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
@@ -1127,19 +1112,9 @@
         <target state="translated">Élever les membres</target>
         <note />
       </trans-unit>
-      <trans-unit id="Quick_Actions">
-        <source>Quick Actions</source>
-        <target state="translated">Actions rapides</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reference">
         <source>Reference</source>
         <target state="translated">Référence</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular">
-        <source>Regular</source>
-        <target state="translated">Normal</target>
         <note />
       </trans-unit>
       <trans-unit id="Regular_Expressions">
@@ -1388,13 +1363,13 @@
         <note />
       </trans-unit>
       <trans-unit id="Show_preview_for_rename_tracking">
-        <source>Show preview for rename _tracking</source>
-        <target state="translated">Affiche_r un aperçu pour le suivi des renommages</target>
+        <source>Show preview for rename tracking</source>
+        <target state="translated">Afficher un aperçu pour le suivi des renommages</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
-        <source>_Show procedure line separators</source>
-        <target state="translated">_Afficher les séparateurs de ligne de procédure</target>
+        <source>Show procedure line separators</source>
+        <target state="translated">Afficher les séparateurs de ligne de procédure</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -1407,11 +1382,6 @@
         <target state="translated">Ignorer les analyseurs pour les builds déclenchées implicitement</target>
         <note />
       </trans-unit>
-      <trans-unit id="Small">
-        <source>Small</source>
-        <target state="translated">Petite</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
         <target state="translated">Comportement des extraits de code</target>
@@ -1422,9 +1392,9 @@
         <target state="translated">Générateurs sources</target>
         <note />
       </trans-unit>
-      <trans-unit id="Source_generator_execution_requires_restart">
-        <source>Source generator execution (requires restart):</source>
-        <target state="translated">Exécution du générateur source (redémarrage nécessaire) :</target>
+      <trans-unit id="Source_generator_execution_USX">
+        <source>Source generator execution:</source>
+        <target state="new">Source generator execution:</target>
         <note />
       </trans-unit>
       <trans-unit id="Stack_Trace">
@@ -1525,6 +1495,11 @@
       <trans-unit id="This_is_an_invalid_namespace">
         <source>This is an invalid namespace</source>
         <target state="translated">Ceci est un espace de noms non valide</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="This_setting_is_shared_by_CSharp_and_Visual_Basic">
+        <source>This setting is shared by C# and Visual Basic. Changing it affects both languages.</source>
+        <target state="new">This setting is shared by C# and Visual Basic. Changing it affects both languages.</target>
         <note />
       </trans-unit>
       <trans-unit id="Title">

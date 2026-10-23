@@ -67,5 +67,6 @@
     <EmbeddedResource Include="TestFiles\analyzer_input.csv" />
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\VisualBasic\Impl\UnifiedSettings\visualBasicSettings.registration.json" />
     <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\CSharp\Impl\UnifiedSettings\csharpSettings.registration.json" />
+    <EmbeddedResource Include="$(RepoRoot)\src\VisualStudio\Core\Def\UnifiedSettings\roslynSettings.registration.json" />
   </ItemGroup>
 </Project>
