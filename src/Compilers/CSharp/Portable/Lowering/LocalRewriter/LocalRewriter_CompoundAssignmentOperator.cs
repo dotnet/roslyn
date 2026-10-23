@@ -325,6 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     refKind = variableRepresentsLocation ? RefKind.Ref : RefKind.None;
+                    refKind = AdjustReadonlyReceiverCaptureRefKind(rewrittenReceiver, refKind);
 
                     isKnownToReferToTempIfReferenceType = !variableRepresentsLocation || rewrittenReceiver.Type.IsValueType ||
                                                           !CodeGenerator.HasHome(rewrittenReceiver,

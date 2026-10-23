@@ -4074,37 +4074,37 @@ public class Test
 2
 2").VerifyIL("Test.TestINop<T>", @"
 {
-  // Code size       73 (0x49)
+  // Code size       75 (0x4b)
   .maxstack  3
-  .locals init (int V_0,
-                T V_1)
+  .locals init (T V_0,
+                int V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       ""T Test.Nop<T>(T)""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  dup
-  IL_000a:  constrained. ""T""
-  IL_0010:  callvirt   ""int I.IntPropI.get""
-  IL_0015:  stloc.0
-  IL_0016:  ldloc.0
-  IL_0017:  ldc.i4.1
-  IL_0018:  add
-  IL_0019:  constrained. ""T""
-  IL_001f:  callvirt   ""void I.IntPropI.set""
-  IL_0024:  ldarg.0
-  IL_0025:  call       ""T Test.Nop<T>(T)""
-  IL_002a:  stloc.1
-  IL_002b:  ldloca.s   V_1
-  IL_002d:  dup
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  constrained. ""T""
+  IL_000f:  callvirt   ""int I.IntPropI.get""
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  ldloc.1
+  IL_0018:  ldc.i4.1
+  IL_0019:  add
+  IL_001a:  constrained. ""T""
+  IL_0020:  callvirt   ""void I.IntPropI.set""
+  IL_0025:  ldarg.0
+  IL_0026:  call       ""T Test.Nop<T>(T)""
+  IL_002b:  stloc.0
+  IL_002c:  ldloca.s   V_0
   IL_002e:  constrained. ""T""
   IL_0034:  callvirt   ""int I.IntPropI.get""
-  IL_0039:  stloc.0
-  IL_003a:  ldloc.0
-  IL_003b:  ldc.i4.1
-  IL_003c:  add
-  IL_003d:  constrained. ""T""
-  IL_0043:  callvirt   ""void I.IntPropI.set""
-  IL_0048:  ret
+  IL_0039:  stloc.1
+  IL_003a:  ldloca.s   V_0
+  IL_003c:  ldloc.1
+  IL_003d:  ldc.i4.1
+  IL_003e:  add
+  IL_003f:  constrained. ""T""
+  IL_0045:  callvirt   ""void I.IntPropI.set""
+  IL_004a:  ret
 }
 ");
         }
