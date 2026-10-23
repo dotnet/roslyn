@@ -7,10 +7,10 @@ using Test.Utilities;
 using Xunit;
 using VerifyCS = Test.Utilities.CSharpCodeFixVerifier<
     Roslyn.Diagnostics.Analyzers.ExportedPartsShouldHaveImportingConstructor,
-    Roslyn.Diagnostics.Analyzers.ExportedPartsShouldHaveImportingConstructorCodeFixProvider>;
+    Roslyn.Diagnostics.Analyzers.CSharpExportedPartsShouldHaveImportingConstructorCodeFixProvider>;
 using VerifyVB = Test.Utilities.VisualBasicCodeFixVerifier<
     Roslyn.Diagnostics.Analyzers.ExportedPartsShouldHaveImportingConstructor,
-    Roslyn.Diagnostics.Analyzers.ExportedPartsShouldHaveImportingConstructorCodeFixProvider>;
+    Roslyn.Diagnostics.Analyzers.BasicExportedPartsShouldHaveImportingConstructorCodeFixProvider>;
 
 namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
@@ -966,6 +966,42 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
                     // No code fix is offered for this case
                     Sources = { source },
                 },
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("System.Composition")]
+        [InlineData("System.ComponentModel.Composition")]
+        public async Task MissingAttribute_PrimaryConstructor_CSharpAsync(string mefNamespace)
+        {
+            var source = $$"""
+                using {{mefNamespace}};
+
+                [|[Export]
+                class C() {
+                }|]
+                """;
+            var fixedSource = $$"""
+                using {{mefNamespace}};
+
+                [Export]
+                [method: ImportingConstructor]
+                class C() {
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestState =
+                {
+                    Sources = { source },
+                    AdditionalReferences = { AdditionalMetadataReferences.SystemComponentModelCompositionReference },
+                },
+                FixedState =
+                {
+                    Sources = { fixedSource },
+                },
+                LanguageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12,
             }.RunAsync();
         }
     }
