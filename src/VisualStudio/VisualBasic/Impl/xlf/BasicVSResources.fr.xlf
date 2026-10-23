@@ -2,15 +2,35 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="fr" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="A_utomatic_insertion_of_end_constructs_USX">
+        <source>Automatic insertion of end constructs</source>
+        <target state="new">Automatic insertion of end constructs</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_missing_imports_on_paste">
         <source>Add missing imports on paste</source>
         <target state="translated">Ajouter les imports manquants au moment du collage</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members_USX">
+        <source>Automatic insertion of Interface and MustOverride members</source>
+        <target state="new">Automatic insertion of Interface and MustOverride members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_imports_on_file_open">
         <source>Collapse Imports on file open</source>
         <target state="translated">Réduire les importations sur le fichier ouvert</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open_USX">
+        <source>Enter outlining mode when files open</source>
+        <target state="new">Enter outlining mode when files open</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_XML_documentation_comments_for_USX">
+        <source>Generate XML documentation comments for '''</source>
+        <target state="new">Generate XML documentation comments for '''</target>
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
@@ -32,6 +52,16 @@
         <target state="translated">_Insertion automatique des membres Interface et MustOverride</target>
         <note />
       </trans-unit>
+      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata_USX">
+        <source>Navigate to Object Browser for symbols defined in metadata</source>
+        <target state="new">Navigate to Object Browser for symbols defined in metadata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_imports_USX">
+        <source>Place 'System' directives first when sorting imports</source>
+        <target state="new">Place 'System' directives first when sorting imports</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
         <source>Prefer 'IsNot' expression</source>
         <target state="translated">Préférer l'expression 'IsNot'</target>
@@ -45,6 +75,11 @@
       <trans-unit id="Prefer_simplified_object_creation">
         <source>Prefer simplified object creation</source>
         <target state="translated">Préférer la création d’objets simplifiée</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Pretty_listing_reformatting_of_code_USX">
+        <source>Pretty listing (reformatting) of code</source>
+        <target state="new">Pretty listing (reformatting) of code</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
@@ -85,6 +120,11 @@
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
         <target state="translated">Suggérer des imports pour les types dans les packages _NuGet</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_imports_for_types_in_NuGet_packages_USX">
+        <source>Suggest imports for types in NuGet packages</source>
+        <target state="new">Suggest imports for types in NuGet packages</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
@@ -140,6 +180,11 @@
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
         <target state="translated">Listes de saisie semi-automatique</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies_USX">
+        <source>Suggest imports for types in reference assemblies</source>
+        <target state="new">Suggest imports for types in reference assemblies</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

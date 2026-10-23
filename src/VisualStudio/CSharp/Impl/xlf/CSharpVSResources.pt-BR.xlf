@@ -42,6 +42,21 @@
         <target state="translated">Concluir a instrução automaticamente no ponto e vírgula</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_format_block_on_close_brace_USX">
+        <source>Automatically format block on }</source>
+        <target state="new">Automatically format block on }</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_on_paste_USX">
+        <source>Automatically format on paste</source>
+        <target state="new">Automatically format on paste</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon_USX">
+        <source>Automatically format statement on ;</source>
+        <target state="new">Automatically format statement on ;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
         <target state="translated">Mostrar automaticamente a lista de conclusão nas listas de argumentos</target>
@@ -92,6 +107,11 @@
         <target state="translated">Editar o esquema de cores</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open_USX">
+        <source>Enter outlining mode when files open</source>
+        <target state="new">Enter outlining mode when files open</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">Escopo do arquivo</target>
@@ -102,10 +122,20 @@
         <target state="translated">Geral</target>
         <note>Title of the control group on the General Formatting options page</note>
       </trans-unit>
+      <trans-unit id="Generate_XML_documentation_comments_for_USX">
+        <source>Generate XML documentation comments for ///</source>
+        <target state="new">Generate XML documentation comments for ///</target>
+        <note />
+      </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">Em operadores relacionais:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments_USX">
+        <source>Insert * at the start of new lines when writing /* */ comments</source>
+        <target state="new">Insert * at the start of new lines when writing /* */ comments</target>
+        <note />
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
@@ -132,6 +162,11 @@
         <target state="translated">Nunca adicionar usando</target>
         <note />
       </trans-unit>
+      <trans-unit id="On_type_formatting">
+        <source>On-type Formatting</source>
+        <target state="new">On-type Formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Only_add_using_if_explicitly_completed">
         <source>Only add using if explicitly completed (via TAB or double-click)</source>
         <target state="translated">Adicionar usando somente se explicitamente concluído (via TAB ou clicar duas vezes)</target>
@@ -140,6 +175,11 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Preferências de correspondência de padrões:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_usings_USX">
+        <source>Place 'System' directives first when sorting usings</source>
+        <target state="new">Place 'System' directives first when sorting usings</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -200,6 +240,16 @@
       <trans-unit id="Show_new_snippet_experience_experimental">
         <source>Show new snippet experience (experimental)</source>
         <target state="translated">Mostrar nova experiência de snippet de código (experimental)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Split_string_literals_on_enter_USX">
+        <source>Split string literals on enter</source>
+        <target state="new">Split string literals on enter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages_USX">
+        <source>Suggest usings for types in NuGet packages</source>
+        <target state="new">Suggest usings for types in NuGet packages</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -633,7 +683,7 @@
         <note />
       </trans-unit>
       <trans-unit id="predefined_type_preferences_colon">
-        <source>predefined type preferences:</source>
+        <source>Predefined type preferences:</source>
         <target state="translated">Preferências de tipo predefinidas:</target>
         <note />
       </trans-unit>

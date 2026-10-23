@@ -21,9 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Options;
 /// <summary>
 /// Serializes settings to and from VS Settings storage.
 /// </summary>
-internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudioSettingsOptionPersister<ISettingsManager>
+internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudioSettingsOptionPersister<ISettingsManager>, IDisposable
 {
     private readonly ImmutableDictionary<string, Lazy<IVisualStudioStorageReadFallback, OptionNameMetadata>> _readFallbacks;
+    private readonly ISettingsSubset _settingsSubset;
 
     public VisualStudioSettingsOptionPersister(
         Action<OptionKey2, object?> refreshOption,
@@ -33,9 +34,12 @@ internal sealed class VisualStudioSettingsOptionPersister : AbstractVisualStudio
     {
         _readFallbacks = readFallbacks;
 
-        var settingsSubset = settingsManager.GetSubset("*");
-        settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
+        _settingsSubset = settingsManager.GetSubset("*");
+        _settingsSubset.SettingChangedAsync += OnSettingChangedAsync;
     }
+
+    public void Dispose()
+        => _settingsSubset.SettingChangedAsync -= OnSettingChangedAsync;
 
     private Task OnSettingChangedAsync(object sender, PropertyChangedEventArgs args)
     {
