@@ -78,12 +78,10 @@ jobs:
         run: dotnet msbuild src/Workspaces/CSharp/Portable/Microsoft.CodeAnalysis.CSharp.Workspaces.csproj -restore -t:UpdateXlf
       - name: Create or update pull request
         if: steps.sync.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
-        with:
-          path: target
-          base: ${{ matrix.branch }}
-          branch: ${{ steps.sync.outputs.head }}
-          title: '[${{ matrix.branch }}] Update FBA sources'
-          commit-message: Update FBA sources from dotnet/sdk
-          body: ${{ steps.sync.outputs.body }}
-          add-paths: src/Workspaces/CSharp/Portable/SyncedSource
+        working-directory: automation
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TARGET_BRANCH: ${{ matrix.branch }}
+          UPDATE_BRANCH: ${{ steps.sync.outputs.head }}
+          PR_BODY: ${{ steps.sync.outputs.body }}
+        run: dotnet run --file eng/update-fba-sources.cs -- publish ../target
