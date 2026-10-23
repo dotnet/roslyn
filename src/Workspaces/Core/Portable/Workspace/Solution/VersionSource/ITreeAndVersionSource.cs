@@ -17,4 +17,6 @@ internal interface ITreeAndVersionSource
     Task<TreeAndVersion> GetValueAsync(CancellationToken cancellationToken);
     TreeAndVersion GetValue(CancellationToken cancellationToken);
     bool TryGetValue([NotNullWhen(true)] out TreeAndVersion? value);
+    bool TryGetVersion(out VersionStamp version);
+    ValueTask<VersionStamp> GetVersionAsync(CancellationToken cancellationToken);
 }
