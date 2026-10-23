@@ -36,14 +36,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If argument IsNot Nothing Then
                     Dim parameter = argument.DetermineParameter(_semanticModel, cancellationToken:=_cancellationToken)
                     If parameter?.IsParams = True AndAlso TypeOf parameter.Type Is IArrayTypeSymbol Then
-                        Dim parameterType = DirectCast(parameter.Type, IArrayTypeSymbol)
+                        Dim compilation = _semanticModel.Compilation
+                        If compilation Is Nothing OrElse castType Is Nothing Then
+                            Return False
+                        End If
 
-                        Dim conversion = _semanticModel.Compilation.ClassifyConversion(castType, parameterType)
+                        Dim parameterType = DirectCast(parameter.Type, IArrayTypeSymbol)
+                        If parameterType.ElementType Is Nothing Then
+                            Return False
+                        End If
+
+                        Dim conversion = compilation.ClassifyConversion(castType, parameterType)
                         If conversion.Exists AndAlso conversion.IsWidening Then
                             Return False
                         End If
 
-                        Dim conversionElementType = _semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType)
+                        Dim conversionElementType = compilation.ClassifyConversion(castType, parameterType.ElementType)
                         If conversionElementType.Exists AndAlso (conversionElementType.IsIdentity OrElse conversionElementType.IsWidening) Then
                             Return True
                         End If
