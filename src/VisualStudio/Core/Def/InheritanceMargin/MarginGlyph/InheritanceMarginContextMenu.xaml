@@ -9,8 +9,9 @@
                    xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell.Styles;assembly=Microsoft.VisualStudio.Shell.Styles"
                    x:Name="InheritanceContextMenu"
                    MenuItem.SubmenuOpened="TargetsSubmenu_OnOpen"
+                   ItemsSource="{Binding MenuItemViewModels, Mode=OneTime}"
                    MaxHeight="400"
-                   StaysOpen="True"
+                   StaysOpen="False"
                    TextOptions.TextRenderingMode="Grayscale">
   <ctrls:ContextMenu.Resources>
     <DataTemplate DataType="{x:Type interop:ImageMoniker}">
@@ -60,9 +61,6 @@
           <Setter Property="ctrls:TextBlock.PreferredTextFormattingMode" Value="{x:Null}" />
           <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
         </DataTrigger>
-        <Trigger Property="IsOpen" Value="True">
-          <Setter Property="ItemsSource" Value="{Binding MenuItemViewModels, Mode=OneTime}" />
-        </Trigger>
       </Style.Triggers>
     </Style>
   </ctrls:ContextMenu.Style>

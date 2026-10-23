@@ -48,16 +48,21 @@
                  HorizontalOffset="0"
                  Placement="Custom"
                  PlacementTarget="{Binding ElementName=Glyph}">
+      <ctrls:Popup.Resources>
+        <Style x:Key="HoverFlyoutStyle" TargetType="{x:Type ctrls:FlyoutSurface}">
+          <Setter Property="BorderThickness" Value="0" />
+          <EventSetter Event="MouseLeave" Handler="InheritanceMargin_OnMouseLeave" />
+        </Style>
+      </ctrls:Popup.Resources>
       <ctrls:DropDownButton x:Name="HoverButton"
                             AutomationProperties.Name="{Binding AutomationName, Mode=OneTime}"
-                            Kind="Subtle"
+                            CornerRadius="{x:Static styles:CornerRadii.L}"
                             Padding="0"
                             ToolTip="{Binding PlacementTarget.ToolTip, ElementName=HoverPopup}"
                             Cursor="Arrow"
                             DropDown="{Binding ContextMenu, RelativeSource={RelativeSource Self}}"
                             Height="{x:Static styles:Sizes.ControlMinHeight}"
                             IsKeyboardFocusWithinChanged="InheritanceMargin_OnIsKeyboardFocusWithinChanged"
-                            MouseLeave="InheritanceMargin_OnMouseLeave"
                             PreviewKeyDown="HoverButton_OnPreviewKeyDown"
                             ShowDropDownGlyph="False"
                             Width="{x:Static styles:Sizes.ControlMinWidth}">

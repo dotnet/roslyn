@@ -10,6 +10,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -17,6 +18,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
@@ -49,6 +51,8 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
         _listener = listener;
 
         InitializeComponent();
+        // Scope the hover style to this surface, not its nested menu flyouts.
+        HoverPopup.Child.SetValue(StyleProperty, HoverPopup.Resources["HoverFlyoutStyle"]);
         DataContext = InheritanceMarginGlyphViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
         HoverPopup.CustomPopupPlacementCallback = PlaceHoverPopup;
     }
@@ -108,14 +112,22 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
 
     private void CloseHoverPopupIfInactive()
     {
-        if (!InheritanceMenu.IsOpen && !IsKeyboardFocusWithin && !HoverButton.IsKeyboardFocusWithin && !IsMouseOver && !IsMouseOverHoverButton())
-            CloseHoverPopup();
-    }
+        // Let mouse and focus transitions across the popup's presentation source finish before checking them.
+        var token = _listener.BeginAsyncOperation(nameof(CloseHoverPopupIfInactive));
+        var joinableTaskFactory = _threadingContext.JoinableTaskFactory.WithPriority(Dispatcher, DispatcherPriority.Input);
+        joinableTaskFactory.RunAsync(async () =>
+        {
+            await joinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
 
-    private bool IsMouseOverHoverButton()
-    {
-        // MouseLeave can arrive before the popup's IsMouseOver has been updated.
-        return HoverPopup.IsOpen && new Rect(HoverButton.RenderSize).Contains(Mouse.GetPosition(HoverButton));
+            if (!InheritanceMenu.IsOpen
+                && !IsKeyboardFocusWithin
+                && !HoverButton.IsKeyboardFocusWithin
+                && !IsMouseOver
+                && !HoverPopup.Child.IsMouseOver)
+            {
+                CloseHoverPopup();
+            }
+        }).Task.CompletesAsyncOperation(token);
     }
 
     private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
