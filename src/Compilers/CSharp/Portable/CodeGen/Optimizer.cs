@@ -2259,7 +2259,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return new BoundRefAccess(node.Syntax, left.LocalSymbol.RefKind, right, right.Type);
                 }
 
-                // assigned local is not used later => just emit the Right
+                // assigned local is not used later => just emit the Right as value.
+                if (CodeGenerator.IsRef(right))
+                {
+                    return new BoundPassByCopy(node.Syntax, right, right.Type);
+                }
+
                 return right;
             }
             else
