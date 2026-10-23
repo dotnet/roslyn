@@ -30,7 +30,7 @@ public class ProjectSystemAdapterTests
     [Fact]
     public void ExternalAccessProjectSystemContractsCanBeMocked()
     {
-        var mock = new Mock<IWorkspaceProjectContext>();
+        var mock = new Mock<IWorkspaceProjectContext>(MockBehavior.Strict);
         mock.SetupGet(context => context.ProjectFilePath).Returns("project.csproj");
 
         Assert.Equal("project.csproj", mock.Object.ProjectFilePath);
