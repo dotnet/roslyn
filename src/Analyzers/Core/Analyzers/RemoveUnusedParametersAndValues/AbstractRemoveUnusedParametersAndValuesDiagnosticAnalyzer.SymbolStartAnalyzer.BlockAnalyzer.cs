@@ -219,7 +219,14 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                     return;
                 }
 
-                var properties = s_propertiesMap[(_options.UnusedValueExpressionStatementPreference, isUnusedLocalAssignment: false, isRemovableAssignment: false)];
+                var preference = _options.UnusedValueExpressionStatementPreference;
+                if (preference == UnusedValuePreference.DiscardVariable &&
+                    !expressionStatement.SemanticModel!.LookupSymbols(value.Syntax.SpanStart, name: DiscardVariableName).IsEmpty)
+                {
+                    preference = UnusedValuePreference.UnusedLocalVariable;
+                }
+
+                var properties = s_propertiesMap[(preference, isUnusedLocalAssignment: false, isRemovableAssignment: false)];
                 var diagnostic = DiagnosticHelper.Create(s_expressionValueIsUnusedRule,
                                                          value.Syntax.GetLocation(),
                                                          _options.UnusedValueExpressionStatementNotification,
