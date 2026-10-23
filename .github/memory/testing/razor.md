@@ -24,6 +24,12 @@ Layer-specific test guidance for Razor tooling/compiler tests under `src/Razor`.
   paths and contents through `additionalFiles`. `CohostTestBase` registers files
   named `.editorconfig` as analyzer-config documents, including nested configs,
   so endpoints resolve options through the production path.
+- Shared cohost tests run on Windows and Unix. Use `CohostTestBase.FilePath` for
+  document and analyzer-config paths (and `Path.Combine` for nested segments),
+  rather than hard-coded Windows paths. On Unix, backslashes are filename
+  characters, so `Path.GetFileName` will not recognise `C:\path\to\.editorconfig`
+  as an analyzer config. Keep configs and documents under the same project root
+  so the config applies to the document.
 - Integration tests using `AdditionalSyntaxTrees` for tag helper discovery must
   set `UseTwoPhaseCompilation => true` (see `ComponentDiscoveryIntegrationTest`).
   Under two-phase compilation the `AdditionalSyntaxTrees` are compiled into a

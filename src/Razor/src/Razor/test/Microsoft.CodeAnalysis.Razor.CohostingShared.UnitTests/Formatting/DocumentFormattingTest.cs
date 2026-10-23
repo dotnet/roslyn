@@ -14,6 +14,200 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentFormattingTestBase(testOutput)
 {
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task DocumentFormatting_UsesRazorEditorConfig_Razor()
+        => RunFormattingTestAsync(
+            input: """
+                @code {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                @code {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @code
+                {
+                    int Value = 1;
+                }
+                """,
+            fileKind: RazorFileKind.Component,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task DocumentFormatting_UsesRazorEditorConfig_Cshtml()
+        => RunFormattingTestAsync(
+            input: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            htmlFormatted: """
+                @functions {
+                int Value=1;
+                }
+                """,
+            expected: """
+                @functions
+                {
+                    int Value = 1;
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.{razor,cshtml}]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task DocumentFormatting_UsesRazorEditorConfig_AlignWithFirst()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            htmlFormatted: """
+                <div class="example"
+                     id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                     id="content">
+                </div>
+                """,
+            attributeIndentStyle: AttributeIndentStyle.IndentByTwo,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = align_with_first
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task DocumentFormatting_UsesRazorEditorConfig_IndentByOne()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            htmlFormatted: """
+                <div class="example"
+                     id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                    id="content">
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_one
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task DocumentFormatting_UsesRazorEditorConfig_IndentByTwo()
+        => RunFormattingTestAsync(
+            input: """
+                <div class="example"
+                id="content">
+                </div>
+                """,
+            htmlFormatted: """
+                <div class="example"
+                     id="content">
+                </div>
+                """,
+            expected: """
+                <div class="example"
+                        id="content">
+                </div>
+                """,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_two
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task DocumentFormatting_UsesComplexRazorEditorConfig()
+        => RunFormattingTestAsync(
+            input: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            htmlFormatted: """
+                <script>
+                    @if (true)
+                    {
+                    @:value
+                    }
+                </script>
+                """,
+            expected: """
+                <script>
+                    @if (true)
+                    {
+                        @:value
+                    }
+                </script>
+                """,
+            validateHtmlFormattedMatchesWebTools: false,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = false
+                    """)
+            ]);
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/razor/issues/5607")]
     public Task DocumentFormatting_UsesNestedEditorConfigs_Razor()
         => RunFormattingTestAsync(
