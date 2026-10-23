@@ -2807,6 +2807,11 @@
         <target state="translated">若型別宣告中沒有參數清單，則無法將引數傳遞給其基底型別。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedCloseBraceBeforeTypeMember">
+        <source>'}' closes the type, but more type members follow.</source>
+        <target state="new">'}' closes the type, but more type members follow.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
         <target state="translated">未預期的參數清單。</target>
