@@ -75,7 +75,8 @@ stages:
     testMachineHoldStrategy: ${{ parameters.testMachineHoldStrategy }}
     variables:
     - name: RoslynMirrorUrl
-      value: $[ resources.repositories.RoslynMirror.url ]
+      # The resource's .url is a REST API endpoint, not a Git clone URL.
+      value: https://dev.azure.com/dnceng/internal/_git/dotnet-roslyn
     - name: RoslynMirrorVersion
       value: $[ resources.repositories.RoslynMirror.version ]
     templateContext:
