@@ -181,12 +181,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public void AbandonedClientMutexIsReleased()
         {
             var mutexName = BuildServerConnection.GetClientMutexName(ServerUtil.GetPipeName());
-            using var keepAlive = new Mutex(initiallyOwned: false, mutexName);
+            using var keepAlive = new ServerNamedMutex(mutexName, initiallyOwned: false, out _);
             using var clientMutex = BuildServerConnection.OpenOrCreateClientMutex(mutexName, out _);
             RunOnOtherThread(() =>
             {
-                using var owner = new Mutex(initiallyOwned: false, mutexName);
-                Assert.True(owner.WaitOne(TimeSpan.FromSeconds(30)));
+                using var owner = new ServerNamedMutex(mutexName, initiallyOwned: false, out _);
+                Assert.True(owner.Mutex.WaitOne(TimeSpan.FromSeconds(30)));
                 // Abandon ownership by exiting this thread without releasing the mutex.
             });
 
@@ -214,8 +214,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 tryCreateServerFunc: (_, _) =>
                 {
                     threadId = Environment.CurrentManagedThreadId;
-                    using var mutex = Mutex.OpenExisting(mutexName);
-                    mutex.ReleaseMutex();
+                    using var mutex = new ServerNamedMutex(mutexName, initiallyOwned: false, out var createdNew);
+                    Assert.False(createdNew);
+                    mutex.Mutex.ReleaseMutex();
                     return false;
                 },
                 Logger,

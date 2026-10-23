@@ -51,7 +51,7 @@ The feature flag can be used in either of these forms:
 When the feature flag is present without an explicit path, the current implementation uses:
 
 ```text
-<temp>/roslyn-cache
+<LocalApplicationData>/roslyn-cache
 ```
 
 There are currently two ways to get the feature onto the request:
@@ -155,6 +155,10 @@ Any failure while reading from or writing to the cache is treated as a cache mis
 Cache entries are written using a staging directory and then published with a directory move. This is intended to ensure readers only observe fully populated entries.
 
 Per-entry synchronization is used so that multiple writers racing on the same key do not all try to publish the same result concurrently. If another process is already populating an entry, the current request simply continues with normal compilation behavior.
+
+Cache-entry mutexes are restricted to the current user and coordinate processes across sessions on the same machine. The default cache directory is per-user. Custom paths, including those set through `ROSLYN_CACHE_PATH`, are used as configured; they are not automatically partitioned by user.
+
+If different users point to the same cache directory, do not rely on these mutexes to synchronize their writers. Staging and directory-move publication still apply, but the per-entry writer coordination described above does not extend across users. Prefer separate cache directories per user. Directory access controls do not serialize writers, and the [security requirements](#security) still apply.
 
 ## Diagnostics
 
