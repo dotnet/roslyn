@@ -35,12 +35,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             if (mode == "exited-launcher")
             {
+                var pid = int.Parse(File.ReadAllText(Path.Combine(directory, "launcher.pid")));
 #if NET
+                // VSTest redirects testhost output. Retain its original output pipe explicitly for this orphaned-pipe scenario.
+                using var launcherOutput = OperatingSystem.IsLinux()
+                    ? new FileStream($"/proc/{pid}/fd/1", FileMode.Open, FileAccess.Write, FileShare.ReadWrite)
+                    : null;
                 new Thread(HungTestHost) { IsBackground = false }.Start();
 #endif
-                var pid = int.Parse(File.ReadAllText(Path.Combine(directory, "launcher.pid")));
                 using var launcher = Process.GetProcessById(pid);
                 launcher.Kill();
+                HungTestHost();
             }
             HungTestHost();
         }

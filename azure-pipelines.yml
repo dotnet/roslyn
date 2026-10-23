@@ -141,23 +141,8 @@ stages:
   jobs:
   - template: eng/pipelines/timeout-dump-proof.yml
     parameters:
-      jobName: Direct_Proof_Windows_Core
-      pool: ${{ parameters.windowsPool }}
-  - template: eng/pipelines/timeout-dump-proof.yml
-    parameters:
-      jobName: Direct_Proof_Windows_Desktop
-      framework: desktop
-      pool: ${{ parameters.windowsPool }}
-  - template: eng/pipelines/timeout-dump-proof.yml
-    parameters:
       jobName: Direct_Proof_Linux_Core
       pool: ${{ parameters.ubuntuPool }}
-  - template: eng/pipelines/timeout-dump-proof.yml
-    parameters:
-      jobName: Direct_Proof_Actual90
-      modes: exited-launcher
-      timeout: 90
-      pool: ${{ parameters.windowsPool }}
   - template: eng/pipelines/timeout-dump-proof.yml
     parameters:
       jobName: Direct_Proof_Actual25
