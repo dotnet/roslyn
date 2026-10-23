@@ -2862,6 +2862,11 @@
         <target state="translated">此操作只能在不安全的上下文中使用</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsafeUnassignedAddressOf">
+        <source>The operand of an address-of expression must be definitely assigned outside an unsafe context.</source>
+        <target state="new">The operand of an address-of expression must be definitely assigned outside an unsafe context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
         <target state="translated">在 SkipLocalsInit 内没有初始值设定项的 stackalloc 表达式只能在不安全的上下文中使用</target>
