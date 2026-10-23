@@ -32,11 +32,6 @@ internal static class NavigateToSearchResultHelpers
 {
     private static readonly char[] s_dotArray = ['.'];
 
-    /// <summary>
-    /// Orders results that are otherwise equal, such as matches of the same kind.
-    /// </summary>
-    /// <param name="activeDocument">The document the user was editing when they invoked the navigate-to operation.</param>
-    /// <param name="itemDocument">The document the result is contained within.</param>
     public static string ComputeSecondarySort(
         (DocumentId id, IReadOnlyList<string> folders)? activeDocument,
         INavigableItem.NavigableDocument itemDocument,

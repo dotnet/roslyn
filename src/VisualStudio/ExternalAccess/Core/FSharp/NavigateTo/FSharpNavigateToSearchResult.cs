@@ -23,10 +23,8 @@ internal class FSharpNavigateToSearchResult
 
     /// <param name="isCaseSensitive">Whether <paramref name="name"/> matched the search pattern in the pattern's case.</param>
     /// <param name="nameMatchSpans">The spans of <paramref name="name"/> that matched the search pattern.</param>
-    /// <param name="parameterCount">The number of parameters the declaration takes, if any.  Results that are
-    /// otherwise equal are sorted by it, as they are for a C# or VB declaration.</param>
-    /// <param name="typeParameterCount">The number of type parameters the declaration takes, if any.  Results that
-    /// are otherwise equal, including in <paramref name="parameterCount"/>, are sorted by it.</param>
+    /// <param name="parameterCount">Breaks ties between otherwise equal results, as for a C# or VB declaration.</param>
+    /// <param name="typeParameterCount">Breaks the ties <paramref name="parameterCount"/> leaves.</param>
     public FSharpNavigateToSearchResult(
         string additionalInformation,
         string kind,
