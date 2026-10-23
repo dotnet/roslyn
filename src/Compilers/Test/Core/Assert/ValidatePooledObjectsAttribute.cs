@@ -46,6 +46,7 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
     /// <summary>
     /// When set to <see langword="true"/>, waits briefly for outstanding objects to be freed before reporting leaks.
     /// Command-line tests need this because the analyzer driver has a background task which <see cref="CommonCompiler.Run"/> doesn't always wait for.
+    /// Allocations made after the test method completes are not tracked.
     /// </summary>
     public bool WaitForOutstandingObjectsToBeFreed { get; set; }
 
@@ -94,6 +95,11 @@ public sealed class ValidatePooledObjectsAttribute : BeforeAfterTestAttribute
 
         if (LeakReason is null && !s_suppressClassLevelValidation.Value && WaitForOutstandingObjectsToBeFreed)
         {
+            // Background work (e.g. analyzer driver initialization abandoned on compiler early exit) can
+            // still be running and allocating under this context. Ignore allocations made after the test
+            // completed so they cannot race with the leak check; objects allocated during the test must
+            // still be freed.
+            context?.StopAcceptingAllocations();
             context?.WaitForOutstandingObjectsToBeFreed(s_asyncCleanupTimeout);
         }
 
