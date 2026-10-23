@@ -2835,6 +2835,7 @@ Microsoft.CodeAnalysis.SemanticModel.GetDiagnostics(System.Nullable{Microsoft.Co
 Microsoft.CodeAnalysis.SemanticModel.GetEnclosingSymbol(System.Int32,System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.SemanticModel.GetEnclosingSymbolCore(System.Int32,System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.SemanticModel.GetImportScopes(System.Int32,System.Threading.CancellationToken)
+Microsoft.CodeAnalysis.SemanticModel.GetIterationType(System.Int32,Microsoft.CodeAnalysis.ITypeSymbol,System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.SemanticModel.GetMemberGroupCore(Microsoft.CodeAnalysis.SyntaxNode,System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.SemanticModel.GetMethodBodyDiagnostics(System.Nullable{Microsoft.CodeAnalysis.Text.TextSpan},System.Threading.CancellationToken)
 Microsoft.CodeAnalysis.SemanticModel.GetNullableContext(System.Int32)

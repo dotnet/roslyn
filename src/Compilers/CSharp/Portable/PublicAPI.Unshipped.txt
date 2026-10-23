@@ -99,3 +99,4 @@ Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions
 Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions.IncludeTypeSuffix = 1 -> Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions
 Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions.None = 0 -> Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions
 static Microsoft.CodeAnalysis.CSharp.TypedConstantExtensions.ToCSharpString(this Microsoft.CodeAnalysis.TypedConstant constant, Microsoft.CodeAnalysis.CSharp.TypedConstantFormattingOptions options) -> string!
+static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetAsyncIterationType(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, int position, Microsoft.CodeAnalysis.ITypeSymbol! type, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.ITypeSymbol?
