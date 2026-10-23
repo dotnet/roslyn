@@ -10,9 +10,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests;
 
 /// <summary>
-/// A language Roslyn has no compilation for, which is what F# is to these tests. It is enough of a language
-/// for a workspace to hold a project and its documents, and it keeps C# and Visual Basic out of tests that
-/// have nothing to do with either.
+/// A language Roslyn has no compilation for, as F# is: enough for a workspace to hold a project and its documents.
 /// </summary>
 internal static class NoCompilationLanguage
 {
@@ -30,7 +28,7 @@ internal interface INoCompilationLanguageService : ILanguageService
 internal sealed class NoCompilationLanguageService : INoCompilationLanguageService
 {
     [ImportingConstructor]
-    [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public NoCompilationLanguageService()
     {
     }

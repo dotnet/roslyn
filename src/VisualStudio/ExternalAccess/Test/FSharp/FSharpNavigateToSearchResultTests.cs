@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Internal.NavigateTo;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.Navigation;
 using Microsoft.CodeAnalysis.ExternalAccess.FSharp.NavigateTo;
@@ -11,17 +13,22 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.FSharp.UnitTests;
 
-/// <summary>
-/// The F# results are sorted as a C# or VB result is: see NavigateToPrioritizeResultInCurrentDocument in NavigateToTests.
-/// </summary>
-public sealed class FSharpNavigateToSearchResultTests
+// F# results sort as C# or VB ones do: see NavigateToPrioritizeResultInCurrentDocument in NavigateToTests.
+public sealed class FSharpNavigateToSearchResultTests : IDisposable
 {
+    private readonly AdhocWorkspace _workspace = new(NoCompilationLanguage.CreateHostServices());
+    private readonly ProjectId _projectId;
+
+    public FSharpNavigateToSearchResultTests()
+        => _projectId = _workspace.AddProject("Project", NoCompilationLanguage.Name).Id;
+
+    public void Dispose()
+        => _workspace.Dispose();
+
     [Fact]
     public void ResultInActiveDocumentSortsFirst()
     {
-        using var workspace = new AdhocWorkspace(NoCompilationLanguage.CreateHostServices());
-        var projectId = workspace.AddProject("Project", NoCompilationLanguage.Name).Id;
-        var document = AddDocument(workspace, projectId, "Active", ["A", "B", "C"]);
+        var document = AddDocument("Active", ["A", "B", "C"]);
 
         Assert.Equal("0000 0002 0001 M Active", SecondarySort(document, activeDocument: document));
     }
@@ -33,10 +40,8 @@ public sealed class FSharpNavigateToSearchResultTests
     [InlineData(new[] { "A", "B", "C", "D1" }, new[] { "A", "B", "C", "D2" }, "0003")]
     public void ResultSortsByFolderDistanceFromActiveDocument(string[] activeFolders, string[] otherFolders, string folderDistance)
     {
-        using var workspace = new AdhocWorkspace(NoCompilationLanguage.CreateHostServices());
-        var projectId = workspace.AddProject("Project", NoCompilationLanguage.Name).Id;
-        var activeDocument = AddDocument(workspace, projectId, "Active", activeFolders);
-        var otherDocument = AddDocument(workspace, projectId, "Other", otherFolders);
+        var activeDocument = AddDocument("Active", activeFolders);
+        var otherDocument = AddDocument("Other", otherFolders);
 
         Assert.Equal($"{folderDistance} 0002 0001 M Other", SecondarySort(otherDocument, activeDocument));
     }
@@ -44,9 +49,7 @@ public sealed class FSharpNavigateToSearchResultTests
     [Fact]
     public void ResultWithoutActiveDocumentOrCountsSortsByName()
     {
-        using var workspace = new AdhocWorkspace(NoCompilationLanguage.CreateHostServices());
-        var projectId = workspace.AddProject("Project", NoCompilationLanguage.Name).Id;
-        var document = AddDocument(workspace, projectId, "Other", []);
+        var document = AddDocument("Other", []);
 
         INavigateToSearchResult result = new InternalFSharpNavigateToSearchResult(
             new FSharpNavigateToSearchResult("", FSharpNavigateToItemKind.Method, FSharpNavigateToMatchKind.Exact, "M", NavigableItem(document)),
@@ -60,13 +63,9 @@ public sealed class FSharpNavigateToSearchResultTests
     [Fact]
     public void ResultMatchesWithTheCaseAndSpansOfTheName()
     {
-        using var workspace = new AdhocWorkspace(NoCompilationLanguage.CreateHostServices());
-        var projectId = workspace.AddProject("Project", NoCompilationLanguage.Name).Id;
-        var document = AddDocument(workspace, projectId, "Other", []);
+        var document = AddDocument("Other", []);
 
-        INavigateToSearchResult result = new InternalFSharpNavigateToSearchResult(
-            new FSharpNavigateToSearchResult("", FSharpNavigateToItemKind.Method, FSharpNavigateToMatchKind.Prefix, isCaseSensitive: true, "Program", [new TextSpan(0, 3)], NavigableItem(document), parameterCount: 0, typeParameterCount: 0),
-            activeDocument: null);
+        var result = SearchResult(document, matchKind: FSharpNavigateToMatchKind.Prefix, isCaseSensitive: true, name: "Program", nameMatchSpans: [new TextSpan(0, 3)]);
 
         var match = Assert.Single(result.Matches);
         Assert.True(match.IsCaseSensitive);
@@ -74,18 +73,18 @@ public sealed class FSharpNavigateToSearchResultTests
     }
 
     private static string SecondarySort(Document document, Document activeDocument)
-    {
-        INavigateToSearchResult result = new InternalFSharpNavigateToSearchResult(
-            new FSharpNavigateToSearchResult("", FSharpNavigateToItemKind.Method, FSharpNavigateToMatchKind.Exact, isCaseSensitive: false, "M", [], NavigableItem(document), parameterCount: 2, typeParameterCount: 1),
+        => SearchResult(document, activeDocument, parameterCount: 2, typeParameterCount: 1).SecondarySort;
+
+    private static INavigateToSearchResult SearchResult(
+        Document document, Document? activeDocument = null, FSharpNavigateToMatchKind matchKind = FSharpNavigateToMatchKind.Exact,
+        bool isCaseSensitive = false, string name = "M", ImmutableArray<TextSpan> nameMatchSpans = default, int parameterCount = 0, int typeParameterCount = 0)
+        => new InternalFSharpNavigateToSearchResult(
+            new FSharpNavigateToSearchResult("", FSharpNavigateToItemKind.Method, matchKind, isCaseSensitive, name, nameMatchSpans, NavigableItem(document), parameterCount, typeParameterCount),
             activeDocument);
 
-        return result.SecondarySort;
-    }
-
-    // The path is rooted with the one separator every platform reads as one: the sort key ends with the parts
-    // of the file name, and a backslash would leave the name attached to the drive letter on Unix.
-    private static Document AddDocument(AdhocWorkspace workspace, ProjectId projectId, string name, string[] folders)
-        => workspace.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(projectId), name + ".fs", folders, filePath: "/" + name + ".fs"));
+    // Rooted with '/' rather than a drive and backslash, which Unix would keep as part of the file name in the sort key.
+    private Document AddDocument(string name, string[] folders)
+        => _workspace.AddDocument(DocumentInfo.Create(DocumentId.CreateNewId(_projectId), name + ".fs", folders, filePath: "/" + name + ".fs"));
 
     private static FSharpNavigableItem NavigableItem(Document document)
         => new(FSharpGlyph.MethodPublic, [], document, new TextSpan(0, 0));
