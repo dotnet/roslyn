@@ -19,6 +19,9 @@ This tool implements the LSP specification, enabling features such as:
 - Document formatting
 - And more
 
+> [!WARNING]
+> Use `roslyn-language-server` only with files or projects that you fully trust. Files you load in the language server may be executed. See also [Secure MSBuild usage best practices](https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-security-best-practices?view=visualstudio#run-build-only-on-sources-you-know-and-reviewed).
+
 ## Installation
 
 Install the language server as a .NET tool:
