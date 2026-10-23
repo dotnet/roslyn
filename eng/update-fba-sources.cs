@@ -163,9 +163,10 @@ static async Task SynchronizeAsync(HttpClient client, string repository, string 
         $"repos/{repository}/pulls?base={Uri.EscapeDataString(branch)}&head={Uri.EscapeDataString($"{owner}:{head}")}&state=closed",
         GitHubJsonContext.Default.GitHubPullRequestArray).ConfigureAwait(false);
     var marker = $"<!-- fba-source-snapshot: {snapshot} -->";
-    if (pulls.Any(pull => pull.MergedAt is null && pull.Body?.Contains(marker, StringComparison.Ordinal) == true))
+    var declinedPull = pulls.FirstOrDefault(pull => pull.MergedAt is null && pull.Body?.Contains(marker, StringComparison.Ordinal) == true);
+    if (declinedPull is not null)
     {
-        Console.WriteLine($"Skipping previously declined FBA source snapshot {snapshot} for {branch}.");
+        Console.WriteLine($"Skipping previously declined FBA source snapshot {snapshot} for {branch}: PR #{declinedPull.Number} (https://github.com/{repository}/pull/{declinedPull.Number}).");
         WriteOutput("changed", "false");
         return;
     }
@@ -381,7 +382,7 @@ static void WriteOutput(string name, string value)
 sealed record GitHubBranch(string Name, GitHubCommit Commit);
 sealed record GitHubCommit(string Sha);
 sealed record GitHubFile(string Type, string Encoding, string Content);
-sealed record GitHubPullRequest(string? Body, [property: JsonPropertyName("merged_at")] string? MergedAt);
+sealed record GitHubPullRequest(int Number, string? Body, [property: JsonPropertyName("merged_at")] string? MergedAt);
 sealed record SdkBranch(string Name, string Commit, string Version);
 sealed record TargetBranch(string Branch, string Version, string SdkBranch, string SdkCommit);
 sealed record BranchMatrix(List<TargetBranch> Include);
