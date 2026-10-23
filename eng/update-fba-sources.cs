@@ -1,4 +1,4 @@
-#!/usr/bin/env dotnet
+﻿#!/usr/bin/env dotnet
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -85,6 +85,8 @@ static async Task DiscoverAsync(HttpClient client, string repository)
         targets.Add(new TargetBranch(branch.Name, version, sdk?.Name ?? "", sdk?.Commit ?? ""));
     }
 
+    // Something is wrong if there isn't at least one eligible branch (normally main), even if no sources need updating.
+    // The upper bound is GitHub Actions' limit of 256 jobs per matrix.
     if (targets.Count is < 1 or > 256)
         throw new InvalidOperationException($"Expected between 1 and 256 FBA target branches, found {targets.Count}.");
 
