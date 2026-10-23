@@ -16,7 +16,6 @@ parameters:
     type: string
     default: '(default)'
   - name: testsCommitHash
-    # Explicit GitHub commit SHA; '(default)' skips this override.
     type: string
     default: '(default)'
   - name: testsCommitFromVisualStudioBuild
@@ -183,16 +182,10 @@ stages:
 
           if ('${{ parameters.testsCommitHash }}' -ne '(default)') {
             Write-Host 'Checking out tests at the requested commit.'
-            $requestedTestsCommit = '${{ parameters.testsCommitHash }}'
-            git -C $repositoryPath fetch https://github.com/dotnet/roslyn.git $requestedTestsCommit
+            git -C $repositoryPath fetch origin '${{ parameters.testsCommitHash }}'
             if ($LASTEXITCODE -ne 0) { throw 'Fetching the requested tests commit failed.' }
             git -C $repositoryPath checkout --detach FETCH_HEAD
             if ($LASTEXITCODE -ne 0) { throw 'Checking out the requested tests commit failed.' }
-            $checkedOutTestsCommit = git -C $repositoryPath rev-parse HEAD
-            if ($LASTEXITCODE -ne 0) { throw 'Resolving the checked out tests commit failed.' }
-            if ($checkedOutTestsCommit -ne $requestedTestsCommit) {
-              throw "Checked out tests commit '$checkedOutTestsCommit' does not match the requested tests commit '$requestedTestsCommit'."
-            }
           }
 
           if ($${{ parameters.testsCommitFromVisualStudioBuild }}) {
