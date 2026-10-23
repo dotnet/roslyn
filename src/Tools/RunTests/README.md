@@ -105,6 +105,29 @@ Historical timing data for Helix partitioning can be selected with `--accessToke
 `--projectUri`, `--pipelineDefinitionId`, and `--targetBranchName`. When omitted,
 these use the corresponding Azure Pipelines environment variables.
 
+## Timeout diagnostics
+
+Single-machine execution launches VSTest directly inside a Windows job or Unix
+process group, without an intermediate launcher. Windows creates the process
+suspended, assigns it to the job, and then resumes it; Unix establishes the process
+group as part of `posix_spawn`, before the target executes. Timeout discovery and cleanup therefore include
+surviving children even after their launcher exits. User cancellation terminates
+owned processes without starting dump collection.
+
+At the global deadline, RunTests attempts dumps before terminating owned processes.
+Each collector has a two-minute deadline, and concurrent work items share a
+ten-minute diagnostic budget. Termination and redirected-output drain waits are
+each capped at thirty seconds. If draining expires, the readers are canceled and
+completion has one final thirty-second bound. An exited launcher cannot keep
+cleanup waiting indefinitely for output pipes inherited by a child.
+
+`runtests.log` is written and flushed throughout execution. Timeout messages identify
+the work item, owned target and collector PIDs, dump path, collection stage, failures,
+and cleanup outcome. Helper output includes the selected dump backend and whether
+its dump request returned. Only successful, nonempty collector outputs become `.dmp`
+files; failed or interrupted attempts are reported explicitly. Existing aggregate
+dump-size pruning can remove completed dumps and logs each removal.
+
 ## Exit Codes
 
 - `0` — All tests passed (or `--help` was shown)
