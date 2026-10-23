@@ -28,7 +28,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
     [Fact]
-    public async Task DeferredDocumentLoadRemovesMiscellaneousDocumentOnNextLookupAsync()
+    public async Task OnDemandLoadRemovesMiscellaneousDocumentOnNextLookupAsync()
     {
         var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
         await using var testLspServer = await CreateTestLspServerAsync(
@@ -76,7 +76,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task DeferredDocumentLoadProjectsCapturedTrackedTextAsync()
+    public async Task OnDemandLoadProjectsCapturedTrackedTextAsync()
     {
         var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
         await using var testLspServer = await CreateTestLspServerAsync(

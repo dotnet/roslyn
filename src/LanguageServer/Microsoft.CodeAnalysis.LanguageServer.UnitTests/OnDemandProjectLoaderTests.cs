@@ -130,7 +130,8 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
             Assert.Equal(3, loader.DesignTimeBuildCount);
             AssertEx.SetEqual(
                 [projectPath, referencedProjectPath, transitiveProjectPath],
-                loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects.Select(static project => project.FilePath));
+                loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects.Select(static project => project.FilePath),
+                comparer: PathUtilities.Comparer);
         }
         finally
         {
@@ -175,7 +176,8 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
             Assert.Equal(2, loader.DesignTimeBuildCount);
             AssertEx.SetEqual(
                 [projectPath, referencedProjectPath],
-                loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects.Select(static project => project.FilePath));
+                loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects.Select(static project => project.FilePath),
+                comparer: PathUtilities.Comparer);
         }
         finally
         {
@@ -204,7 +206,8 @@ public sealed class OnDemandProjectLoaderTests(ITestOutputHelper testOutputHelpe
             Assert.Equal(1, loader.DesignTimeBuildCount);
 
             var loadedProject = Assert.Single(loader.WorkspaceFactory.HostWorkspace.CurrentSolution.Projects);
-            Assert.Equal(projectPath, loadedProject.FilePath);
+            Assert.NotNull(loadedProject.FilePath);
+            Assert.Equal(projectPath, loadedProject.FilePath, comparer: PathUtilities.Comparer);
         }
         finally
         {

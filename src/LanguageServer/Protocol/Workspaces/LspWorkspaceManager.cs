@@ -241,7 +241,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         var canLoadOnDemand = allowProjectLoading && _onDemandProjectLoader?.CanLoad(uri) == true;
 
         if (initialContext.Workspace.Kind == WorkspaceKind.Host || !canLoadOnDemand)
-            return new(RecordDocumentFoundResult(initialContext));
+            return new(RecordDocumentFoundResult(initialContext, fromOnDemand: false));
 
         var projectLoadTask = _onDemandProjectLoader!.TryLoadProjectsAsync(uri);
 
@@ -250,7 +250,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             var finalContext = await FindDocumentAfterProjectLoadAsync(
                 projectLoadTask, textDocumentIdentifier, trackedDocuments, cancellationToken).ConfigureAwait(false);
 
-            return RecordDocumentFoundResult(finalContext ?? initialContext);
+            return RecordDocumentFoundResult(finalContext ?? initialContext, fromOnDemand: finalContext is not null);
         });
 
         async Task<(Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked)?> FindDocumentAsync(
@@ -264,8 +264,6 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 .. workspaces.Where(workspace => workspace.Kind != WorkspaceKind.MiscellaneousFiles),
                 .. workspaces.Where(workspace => workspace.Kind == WorkspaceKind.MiscellaneousFiles),
             ];
-
-            // Search through all workspaces in two passes: first for regular workspaces, then for miscellaneous files workspaces.
 
             foreach (var workspace in sortedWorkspaces)
             {
@@ -295,7 +293,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 return null;
 
             // The provider may add tracked documents to a workspace or return an untracked URI in a transient solution.
-            trackedDocuments.TryGetValue(uri, out var trackedDocument);
+            TrackedDocumentInfo? trackedDocument = trackedDocuments.TryGetValue(uri, out var documentInfo) ? documentInfo : null;
 
             try
             {
@@ -341,27 +339,27 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             return (workspace, document.Project.Solution, document, isForked);
         }
-    }
 
-    private LspWorkspaceContext RecordDocumentFoundResult((Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked) documentContext)
-    {
-        // Record metadata on how we got this document.
-        var workspaceKind = documentContext.Solution.WorkspaceKind;
-        _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
-        _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(documentContext.IsForked);
-        _logger.LogDebug($"{documentContext.Document.FilePath} found in workspace {workspaceKind}; project {documentContext.Document.Project.Name}");
+        LspWorkspaceContext RecordDocumentFoundResult((Workspace Workspace, Solution Solution, TextDocument Document, bool IsForked) documentContext, bool fromOnDemand)
+        {
+            // Record metadata on how we got this document.
+            var workspaceKind = documentContext.Solution.WorkspaceKind;
+            _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
+            _requestTelemetryLogger.UpdateUsedForkedSolutionCounter(documentContext.IsForked);
+            _logger.LogDebug($"{documentContext.Document.FilePath} found in workspace {workspaceKind} from on-demand load: {fromOnDemand}; project {documentContext.Document.Project.Name}");
 
-        return new(documentContext.Workspace, documentContext.Solution, documentContext.Document);
-    }
+            return new(documentContext.Workspace, documentContext.Solution, documentContext.Document);
+        }
 
-    private void RecordDocumentMissingResult(DocumentUri uri)
-    {
-        // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
-        // Depending on the host, this can be entirely normal (for example, opening a loose file).
-        var searchedWorkspaceKinds = string.Join(
-            ";", _lspWorkspaceRegistrationService.GetAllRegistrations().SelectAsArray(static workspace => workspace.Kind));
-        _logger.LogDebug($"Could not find '{uri}'.  Searched {searchedWorkspaceKinds}");
-        _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
+        void RecordDocumentMissingResult(DocumentUri uri)
+        {
+            // We didn't find the document in any workspace, record a telemetry notification that we did not find it.
+            // Depending on the host, this can be entirely normal (for example, opening a loose file).
+            var searchedWorkspaceKinds = string.Join(
+                ";", _lspWorkspaceRegistrationService.GetAllRegistrations().SelectAsArray(static workspace => workspace.Kind));
+            _logger.LogDebug($"Could not find '{uri}'.  Searched {searchedWorkspaceKinds}");
+            _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: false, workspaceKind: null);
+        }
     }
 
     /// <summary>
