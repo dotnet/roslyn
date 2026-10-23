@@ -89,11 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(name);
             Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
-            Assert.True(name.IsMissing);
-            Assert.Equal(2, name.Errors().Length);
+            Assert.False(name.IsMissing);
+            Assert.Equal(1, name.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_UnexpectedToken, name.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, name.Errors()[1].Code);
-            Assert.Equal(string.Empty, name.ToString());
+            Assert.Equal("partial", name.ToString());
         }
 
         [Fact]
@@ -104,11 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(name);
             Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
-            Assert.True(name.IsMissing);
-            Assert.Equal(2, name.Errors().Length);
+            Assert.False(name.IsMissing);
+            Assert.Equal(1, name.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_UnexpectedToken, name.Errors()[0].Code);
-            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, name.Errors()[1].Code);
-            Assert.Equal(string.Empty, name.ToString());
+            Assert.Equal("partial", name.ToString());
         }
 
         [Fact]
