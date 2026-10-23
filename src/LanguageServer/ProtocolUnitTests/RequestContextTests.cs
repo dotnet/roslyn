@@ -36,9 +36,12 @@ public sealed class RequestContextTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.NotNull(await copy.GetRequiredSolutionAsync(CancellationToken.None));
         context.ClearSolutionContext();
 
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetRequiredWorkspaceAsync(CancellationToken.None));
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetRequiredSolutionAsync(CancellationToken.None));
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetTextDocumentAsync(CancellationToken.None));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetRequiredWorkspaceAsync(CancellationToken.None));
+        Assert.Equal("Workspace context has been cleared.", exception.Message);
+        exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetRequiredSolutionAsync(CancellationToken.None));
+        Assert.Equal("Workspace context has been cleared.", exception.Message);
+        exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await copy.GetTextDocumentAsync(CancellationToken.None));
+        Assert.Equal("Workspace context has been cleared.", exception.Message);
     }
 
     [Fact]
@@ -56,7 +59,7 @@ public sealed class RequestContextTests(ITestOutputHelper testOutputHelper) : Ab
             NoOpLspLogger.Instance,
             "test",
             CancellationToken.None);
-        contextWithoutSolution.ClearSolutionContext();
-        await Assert.ThrowsAsync<InvalidOperationException>(async () => await contextWithoutSolution.GetRequiredSolutionAsync(CancellationToken.None));
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () => await contextWithoutSolution.GetRequiredSolutionAsync(CancellationToken.None));
+        Assert.Equal("Workspace context was not requested.", exception.Message);
     }
 }

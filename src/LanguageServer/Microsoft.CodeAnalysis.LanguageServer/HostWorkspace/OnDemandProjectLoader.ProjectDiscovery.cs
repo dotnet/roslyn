@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.IO.Enumeration;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
@@ -16,6 +17,7 @@ internal sealed partial class OnDemandProjectLoader
         ILoggerFactory loggerFactory)
     {
         private static readonly StringComparison s_pathComparison = PathUtilities.IsUnixLikePlatform ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        // Use case-insensitive comparison for project file extensions since we do not limit extensions to be lower-case on unix-like platforms.
         private readonly ImmutableHashSet<string> _supportedProjectFileExtensions = supportedProjectFileExtensions.ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
         private readonly ILogger _logger = loggerFactory.CreateLogger<ProjectDiscovery>();
 
@@ -76,13 +78,10 @@ internal sealed partial class OnDemandProjectLoader
             try
             {
                 var builder = ImmutableArray.CreateBuilder<string>();
-                foreach (var filePath in Directory.EnumerateFiles(directory))
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
+                using var enumerator = new ProjectFileEnumerator(directory, _supportedProjectFileExtensions, cancellationToken);
 
-                    if (IsSupportedProject(filePath))
-                        builder.Add(filePath);
-                }
+                while (enumerator.MoveNext())
+                    builder.Add(enumerator.Current);
 
                 return builder.ToImmutable();
             }
@@ -98,5 +97,39 @@ internal sealed partial class OnDemandProjectLoader
 
         internal bool IsSupportedProject(string filePath)
             => _supportedProjectFileExtensions.Contains(Path.GetExtension(filePath));
+
+        private sealed class ProjectFileEnumerator(
+            string directory,
+            ImmutableHashSet<string> supportedExtensions,
+            CancellationToken cancellationToken)
+            : FileSystemEnumerator<string>(directory, s_enumerationOptions)
+        {
+            private static readonly EnumerationOptions s_enumerationOptions = new()
+            {
+                AttributesToSkip = 0,
+                IgnoreInaccessible = false,
+                RecurseSubdirectories = false,
+            };
+
+            protected override bool ShouldIncludeEntry(ref FileSystemEntry entry)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (entry.IsDirectory)
+                    return false;
+
+                var extension = Path.GetExtension(entry.FileName);
+                foreach (var supportedExtension in supportedExtensions)
+                {
+                    if (extension.Equals(supportedExtension.AsSpan(), StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+
+                return false;
+            }
+
+            protected override string TransformEntry(ref FileSystemEntry entry)
+                => entry.ToFullPath();
+        }
     }
 }

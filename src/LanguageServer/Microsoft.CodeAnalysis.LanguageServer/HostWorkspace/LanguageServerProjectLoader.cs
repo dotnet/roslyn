@@ -415,11 +415,13 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
             _loadedProjects.Add(projectPath, loadedProject);
 
             loadedProject.NeedsReload += LoadedProject_NeedsReload;
+
+            // Schedule the project with a low priority until we have checked whether it can be loaded from the cache.
             _projectsToReload.AddWork(loadedProject.ProjectFilePath, priority: (int)ProjectReloadPriority.Low);
         }
 
         // Try to load the contents from the project cache if we have one; we'll do this outside the lock
-        var applied = await TryApplyCachedProjectInfoAsync(projectPath, loadedProject);
+        var applied = await TryApplyCachedProjectInfoAsync(loadedProject);
         if (!applied)
         {
             // Since we were unable to load from the cache, we can raise its priority to ensure it gets reloaded.
@@ -428,7 +430,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
         return loadedProject;
 
-        async Task<bool> TryApplyCachedProjectInfoAsync(string projectPath, LoadedProject loadedProject)
+        async Task<bool> TryApplyCachedProjectInfoAsync(LoadedProject loadedProject)
         {
             try
             {

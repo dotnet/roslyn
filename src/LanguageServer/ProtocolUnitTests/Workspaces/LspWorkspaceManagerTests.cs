@@ -120,7 +120,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
-    public async Task DeferredDocumentCancellationDoesNotCancelSharedLoadAsync()
+    public async Task CancelingOneResolutionDoesNotCancelSharedProjectLoadAsync()
     {
         var composition = this.Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory));
         await using var testLspServer = await CreateTestLspServerAsync(
@@ -140,6 +140,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         var text = SourceText.From("class C { }");
         await manager.StartTrackingAsync(uri, text, "csharp", lspVersion: 1, CancellationToken.None);
 
+        // Both resolutions wait on the same project-loading traversal, but have independent cancellation.
         using var cancellation = new CancellationTokenSource();
         var canceledCapture = await manager.CaptureLspDocumentContextAsync(
             CreateTextDocumentIdentifier(uri), manager.GetTrackedDocuments(), allowProjectLoading: true, cancellation.Token);
@@ -150,6 +151,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
 
         var canceledResolution = canceledCapture.ResolveAsync(CancellationToken.None);
         var survivingResolution = survivingCapture.ResolveAsync(CancellationToken.None);
+        // Canceling one resolution must cancel only its wait, not the shared traversal.
         cancellation.Cancel();
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => canceledResolution);
 
@@ -159,6 +161,7 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
         await testLspServer.TestWorkspace.ChangeSolutionAsync(loadedSolution);
         loader.Complete();
 
+        // The shared traversal must still complete so the other resolution can use the loaded project.
         var context = await survivingResolution;
         Assert.Equal(WorkspaceKind.Host, context.Workspace.Kind);
     }
@@ -171,8 +174,8 @@ public sealed class LspWorkspaceManagerTests(ITestOutputHelper testOutputHelper)
 
         public Task TryLoadProjectsAsync(DocumentUri uri) => _completion.Task;
 
-        public ValueTask WaitForActiveLoadsAsync()
-            => new(_completion.Task);
+        public Task WaitForActiveLoadsAsync()
+            => _completion.Task;
 
         public void Complete() => _completion.SetResult(true);
     }

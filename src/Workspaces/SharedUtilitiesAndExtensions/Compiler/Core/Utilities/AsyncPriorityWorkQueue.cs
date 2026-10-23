@@ -137,17 +137,20 @@ internal sealed class AsyncPriorityWorkQueue<TItem> : IDisposable where TItem : 
     {
         for (var priorityToCheck = _itemsByPriority.Length - 1; priorityToCheck >= 0; priorityToCheck--)
         {
-            if (!_itemsByPriority[priorityToCheck].Contains(item))
-                continue;
+            if (_itemsByPriority[priorityToCheck].Contains(item))
+            {
+                // Check if the item is already scheduled at a sufficient priority.
+                if (priorityToCheck >= priority)
+                    return false;
 
-            if (priorityToCheck >= priority)
-                return false;
-
-            Contract.ThrowIfFalse(_itemsByPriority[priorityToCheck].Remove(item));
-            Contract.ThrowIfFalse(_itemsByPriority[priority].Add(item));
-            return true;
+                // Found the item at a lower priority, remove it and add it to the new priority.
+                Contract.ThrowIfFalse(_itemsByPriority[priorityToCheck].Remove(item));
+                Contract.ThrowIfFalse(_itemsByPriority[priority].Add(item));
+                return true;
+            }
         }
 
+        // Add the item to the correct priority since it was not found.
         return addIfUnscheduled && _itemsByPriority[priority].Add(item);
     }
 

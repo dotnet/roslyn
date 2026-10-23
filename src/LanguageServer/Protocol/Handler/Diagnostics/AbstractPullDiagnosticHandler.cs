@@ -60,8 +60,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// <summary>
     /// Creates the appropriate LSP type to report a new set of diagnostics and resultId.
     /// </summary>
-    protected abstract TReport CreateReport(
-        TextDocumentIdentifier identifier, LSP.Diagnostic[] diagnostics, string resultId, ClientCapabilities clientCapabilities);
+    protected abstract TReport CreateReport(TextDocumentIdentifier identifier, LSP.Diagnostic[] diagnostics, string resultId, ClientCapabilities clientCapabilities);
 
     /// <summary>
     /// Creates the appropriate LSP type to report unchanged diagnostics. Can return <see langword="false"/> to
@@ -101,6 +100,8 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         }
         else
         {
+            // Because WaitForChangesAsync could be long-running we process diagnostics first
+            // so that memory can be released before waiting for changes.
             var category = await ProcessDiagnosticsAsync(diagnosticsParams, context, progress, cancellationToken).ConfigureAwait(false);
 
             context.ClearSolutionContext();
@@ -289,11 +290,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         progress.Report(report);
     }
 
-    private void HandleRemovedDocuments(
-        RequestContext context,
-        HashSet<PreviousPullResult> removedPreviousResults,
-        BufferedProgress<TReport> progress,
-        ClientCapabilities clientCapabilities)
+    private void HandleRemovedDocuments(RequestContext context, HashSet<PreviousPullResult> removedPreviousResults, BufferedProgress<TReport> progress, ClientCapabilities clientCapabilities)
     {
         foreach (var removedResult in removedPreviousResults)
         {

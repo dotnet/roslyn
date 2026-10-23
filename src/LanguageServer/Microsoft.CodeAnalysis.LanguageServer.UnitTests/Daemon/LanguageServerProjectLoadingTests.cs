@@ -27,15 +27,9 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
         var sourceUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.GetFullPath("Program.cs"));
         var targetUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.GetFullPath("Target.cs"));
 
-        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        await server.ExecuteNotificationAsync(Methods.WorkspaceDidChangeWorkspaceFoldersName, new DidChangeWorkspaceFoldersParams
-        {
-            Event = new WorkspaceFoldersChangeEvent
-            {
-                Added = [new WorkspaceFolder { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.RootPath), Name = "workspace" }],
-                Removed = []
-            }
-        });
+        await using var server = await CreateLanguageServerAsync(
+            serverConfiguration: ServerConfigurationWithoutDevKit,
+            workspaceFolderPaths: [workspace.RootPath]);
         await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, new DidOpenTextDocumentParams
         {
             TextDocument = new TextDocumentItem
@@ -99,15 +93,9 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
         var sourceUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.GetFullPath("Application/Program.cs"));
         var targetUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.GetFullPath("Library/Target.cs"));
 
-        await using var server = await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit);
-        await server.ExecuteNotificationAsync(Methods.WorkspaceDidChangeWorkspaceFoldersName, new DidChangeWorkspaceFoldersParams
-        {
-            Event = new WorkspaceFoldersChangeEvent
-            {
-                Added = [new WorkspaceFolder { DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(workspace.RootPath), Name = "workspace" }],
-                Removed = []
-            }
-        });
+        await using var server = await CreateLanguageServerAsync(
+            serverConfiguration: ServerConfigurationWithoutDevKit,
+            workspaceFolderPaths: [workspace.RootPath]);
         await server.ExecuteRequestAsync<DidOpenTextDocumentParams, object>(Methods.TextDocumentDidOpenName, new DidOpenTextDocumentParams
         {
             TextDocument = new TextDocumentItem
@@ -132,10 +120,10 @@ public sealed class LanguageServerProjectLoadingTests(ITestOutputHelper testOutp
             CancellationToken.None);
 
         var definition = Assert.Single(Assert.IsType<LSP.Location[]>(definitions));
+        Assert.Equal(2, hostWorkspace.CurrentSolution.Projects.Count());
         Assert.Equal(targetUri, definition.DocumentUri);
         Assert.Equal(0, definition.Range.Start.Line);
         Assert.Equal(13, definition.Range.Start.Character);
-        Assert.Equal(2, hostWorkspace.CurrentSolution.Projects.Count());
         Assert.Single(hostWorkspace.CurrentSolution.GetDocumentIds(sourceUri));
         Assert.Single(hostWorkspace.CurrentSolution.GetDocumentIds(targetUri));
     }

@@ -23,8 +23,7 @@ internal sealed class CapturedLspWorkspaceContext
         => _result = AsyncLazy.Create(static (resolveAsync, _) => resolveAsync(), resolveAsync);
 
     public Task<LspWorkspaceContext> ResolveAsync(CancellationToken cancellationToken)
-        => _result?.GetValueAsync(cancellationToken)
-            ?? throw new InvalidOperationException("Workspace context has been cleared.");
+        => (_result ?? throw new InvalidOperationException("Workspace context has been cleared.")).GetValueAsync(cancellationToken);
 
     public void Clear()
     {

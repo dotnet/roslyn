@@ -22,5 +22,5 @@ internal interface IOnDemandProjectLoader : ILspService
     /// <summary>
     /// Waits for all active on-demand projects to load.
     /// </summary>
-    ValueTask WaitForActiveLoadsAsync();
+    Task WaitForActiveLoadsAsync();
 }

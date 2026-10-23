@@ -46,7 +46,7 @@ internal sealed partial class OnDemandProjectLoader(
     LanguageServerProjectLoader projectLoader,
     IGlobalOptionService globalOptionService,
     IAsynchronousOperationListener listener,
-    ILoggerFactory loggerFactory) : IOnDemandProjectLoader, IOnServerShutdown, IDisposable
+    ILoggerFactory loggerFactory) : IOnDemandProjectLoader, IOnServerShutdown
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<OnDemandProjectLoader>();
     private readonly CancellationTokenSource _shutdownCancellationSource = new();
@@ -65,12 +65,11 @@ internal sealed partial class OnDemandProjectLoader(
 
     public bool CanLoad(DocumentUri uri)
         => IsOnDemandLoadingEnabled &&
-           !_shutdownCancellationSource.IsCancellationRequested &&
            uri.ParsedDocumentUri?.IsFile == true;
 
     public Task TryLoadProjectsAsync(DocumentUri uri)
     {
-        if (!CanLoad(uri))
+        if (!CanLoad(uri) || _shutdownCancellationSource.IsCancellationRequested)
             return Task.CompletedTask;
 
         var filePath = Path.GetFullPath(uri.GetDocumentFilePathFromUri());
@@ -81,49 +80,47 @@ internal sealed partial class OnDemandProjectLoader(
             if (_activeTraversals.TryGetValue(directory, out var activeLoad))
                 return activeLoad;
 
+            var asyncToken = listener.BeginAsyncOperation(nameof(TryLoadProjectsAsync));
+
             var workspaceFolders = workspaceFolderTracker.GetRequiredWorkspaceFolderPaths();
             var cancellationToken = _shutdownCancellationSource.Token;
-            var loadTask = Task.Run(() => LoadDiscoveredProjectsAsync(directory, workspaceFolders, cancellationToken));
+            // Do not pass the cancellation token to Task.Run. LoadDiscoveredProjectsAsync handles cancellation
+            // and uses its finally block to remove the traversal and dispose asyncToken.
+            var loadTask = Task.Run(() => LoadDiscoveredProjectsAsync(directory, workspaceFolders, asyncToken, cancellationToken));
             _activeTraversals.Add(directory, loadTask);
             return loadTask;
         }
     }
 
-    public ValueTask WaitForActiveLoadsAsync()
+    public Task WaitForActiveLoadsAsync()
     {
         if (!IsOnDemandLoadingEnabled)
-            return ValueTask.CompletedTask;
+            return Task.CompletedTask;
 
         lock (_activeLoadsGate)
         {
             return _activeTraversals.Count == 0
-                ? ValueTask.CompletedTask
-                : new(Task.WhenAll(_activeTraversals.Values));
+                ? Task.CompletedTask
+                : Task.WhenAll(_activeTraversals.Values);
         }
     }
 
     public Task ShutdownAsync()
     {
         _shutdownCancellationSource.Cancel();
+        _shutdownCancellationSource.Dispose();
         return Task.CompletedTask;
     }
 
     public Task ExitAsync()
         => Task.CompletedTask;
 
-    public void Dispose()
-    {
-        _shutdownCancellationSource.Cancel();
-        _shutdownCancellationSource.Dispose();
-    }
-
     private async Task LoadDiscoveredProjectsAsync(
         string directory,
         ImmutableHashSet<string> workspaceFolders,
+        IAsyncToken asyncToken,
         CancellationToken cancellationToken)
     {
-        using var _ = listener.BeginAsyncOperation(nameof(LoadDiscoveredProjectsAsync));
-
         try
         {
             _logger.LogDebug("Discovering projects on demand from '{Directory}'.", directory);
@@ -168,6 +165,7 @@ internal sealed partial class OnDemandProjectLoader(
             {
                 _activeTraversals.Remove(directory);
             }
+            asyncToken.Dispose();
         }
 
         void QueueProject(string projectPath, List<Task<LoadedProject?>> projectsToLoad, HashSet<string> visitedProjects)
