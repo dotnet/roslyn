@@ -301,26 +301,26 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 try
                 {
-                    logger.Log($"Begin writing request for {request.RequestId}");
+                    logger.LogOperational($"Begin writing request for {request.RequestId}");
                     await request.WriteAsync(pipeStream, cancellationToken).ConfigureAwait(false);
-                    logger.Log($"End writing request for {request.RequestId}");
+                    logger.LogOperational($"End writing request for {request.RequestId}");
                 }
                 catch (Exception e)
                 {
-                    logger.LogException(e, $"Error writing build request for {request.RequestId}");
+                    logger.LogOperationalException(e, $"Error writing build request for {request.RequestId}");
                     return new RejectedBuildResponse($"Error writing build request: {e.Message}");
                 }
 
                 // Wait for the compilation and a monitor to detect if the server disconnects
                 var serverCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-                logger.Log($"Begin reading response for {request.RequestId}");
+                logger.LogOperational($"Begin reading response for {request.RequestId}");
 
                 var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
                 var monitorTask = MonitorDisconnectAsync(pipeStream, request.RequestId, logger, serverCts.Token);
                 await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
 
-                logger.Log($"End reading response for {request.RequestId}");
+                logger.LogOperational($"End reading response for {request.RequestId}");
 
                 BuildResponse response;
                 if (responseTask.IsCompleted)
@@ -332,13 +332,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
                     catch (Exception e)
                     {
-                        logger.LogException(e, $"Reading response for {request.RequestId}");
+                        logger.LogOperationalException(e, $"Reading response for {request.RequestId}");
                         response = new RejectedBuildResponse($"Error reading response: {e.Message}");
                     }
                 }
                 else
                 {
-                    logger.Log($"Client disconnect for {request.RequestId}");
+                    logger.LogOperational($"Client disconnect for {request.RequestId}");
                     response = new RejectedBuildResponse($"Client disconnected");
                 }
 
@@ -378,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 {
                     // It is okay for this call to fail.  Errors will be reflected in the
                     // IsConnected property which will be read on the next iteration of the
-                    logger.LogException(e, $"Error poking pipe {requestId}.");
+                    logger.LogOperationalException(e, $"Error poking pipe {requestId}.");
                 }
             }
         }
@@ -399,12 +399,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 // Machine-local named pipes are named "\\.\pipe\<pipename>".
                 // We use the SHA1 of the directory the compiler exes live in as the pipe name.
                 // The NamedPipeClientStream class handles the "\\.\pipe\" part for us.
-                logger.Log("Attempt to open named pipe '{0}'", pipeName);
+                logger.LogOperational("Attempt to open named pipe '{0}'", pipeName);
 
                 pipeStream = NamedPipeUtil.CreateClient(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
                 cancellationToken.ThrowIfCancellationRequested();
 
-                logger.Log("Attempt to connect named pipe '{0}'", pipeName);
+                logger.LogOperational("Attempt to connect named pipe '{0}'", pipeName);
                 try
                 {
                     // NamedPipeClientStream.ConnectAsync on the "full" framework has a bug where it
@@ -426,11 +426,11 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     // IOException: The server is connected to another client and the
                     //              time-out period has expired.
 
-                    logger.LogException(e, $"Connecting to server timed out after {timeoutMs} ms");
+                    logger.LogOperationalException(e, $"Connecting to server timed out after {timeoutMs} ms");
                     pipeStream.Dispose();
                     return null;
                 }
-                logger.Log("Named pipe '{0}' connected", pipeName);
+                logger.LogOperational("Named pipe '{0}' connected", pipeName);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 if (!NamedPipeUtil.CheckPipeConnectionOwnership(pipeStream))
                 {
                     pipeStream.Dispose();
-                    logger.Log("Owner of named pipe is incorrect");
+                    logger.LogOperational("Owner of named pipe is incorrect");
                     return null;
                 }
 
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception e) when (!(e is TaskCanceledException || e is OperationCanceledException))
             {
-                logger.LogException(e, "Exception while connecting to process");
+                logger.LogOperationalException(e, "Exception while connecting to process");
                 pipeStream?.Dispose();
                 return null;
             }
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var dotNetRoot = IsBuiltinToolRunningOnCoreClr
                 ? RuntimeHostInfo.GetToolDotNetRoot(
                     buildEnvironment,
-                    logger is null ? null : logger.Log)
+                    logger is null ? null : (format, arguments) => logger.LogOperational(format, arguments))
                 : null;
             if (dotNetRoot == null && !RuntimeHostInfo.ShouldDisableTieredCompilation)
             {
@@ -544,14 +544,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
             // Set our DOTNET_ROOT
             if (dotNetRoot != null)
             {
-                logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
+                logger?.LogOperational("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 environmentVariables[RuntimeHostInfo.DotNetRootEnvironmentName] = dotNetRoot;
             }
 
             if (RuntimeHostInfo.ShouldDisableTieredCompilation && !environmentVariables.ContainsKey(RuntimeHostInfo.DotNetTieredCompilationEnvironmentName))
             {
                 var value = "0";
-                logger?.Log("Setting {0} to '{1}'", RuntimeHostInfo.DotNetTieredCompilationEnvironmentName, value);
+                logger?.LogOperational("Setting {0} to '{1}'", RuntimeHostInfo.DotNetTieredCompilationEnvironmentName, value);
                 environmentVariables[RuntimeHostInfo.DotNetTieredCompilationEnvironmentName] = value;
             }
 
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 return false;
             }
 
-            logger.Log("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
+            logger.LogOperational("Attempting to create process '{0}' {1}", serverInfo.processFilePath, serverInfo.commandLineArguments);
 
             var environmentVariables = GetServerEnvironmentVariables(buildEnvironment, logger);
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -625,14 +625,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                     if (success)
                     {
-                        logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
+                        logger.LogOperational("Successfully created process with process id {0}", processInfo.dwProcessId);
                         CloseHandle(processInfo.hProcess);
                         CloseHandle(processInfo.hThread);
                         processId = processInfo.dwProcessId;
                     }
                     else
                     {
-                        logger.LogError("Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
+                        logger.LogOperational("Error: Failed to create process. GetLastError={0}", Marshal.GetLastWin32Error());
                     }
                     return success;
                 }
@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     if (Process.Start(startInfo) is { } process)
                     {
                         processId = process.Id;
-                        logger.Log("Successfully created process with process id {0}", processId);
+                        logger.LogOperational("Successfully created process with process id {0}", processId);
                         return true;
                     }
                     else

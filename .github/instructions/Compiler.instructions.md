@@ -83,6 +83,12 @@ Compiler tasks are in `src/Compilers/Core/MSBuildTask/`:
 - `Vbc.cs` - VB compiler task  
 - `ManagedCompiler.cs` - Base compiler task functionality
 
+Compiler-server logging uses semantic kinds: detailed `Trace` events are for the optional
+`RoslynCommandLineLogFile`, while `Operational` events describe client lifecycle, compiler
+selection, and fallback behavior that host adapters may surface. Classify events by meaning at
+the call site; keep sink routing in the adapter, and do not treat operational classification as
+MSBuild error severity.
+
 ## Performance Considerations
 
 1. **Lexer/Parser optimizations**: Use `InternalSyntax` types for performance-critical code
