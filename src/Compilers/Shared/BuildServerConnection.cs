@@ -1004,25 +1004,23 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public bool IsDisposed { get; private set; }
         public bool IsLocked { get; private set; }
 
-        public ServerNamedMutex(string mutexName, out bool createdNew, bool currentUserOnly = true)
-            : this(mutexName, initiallyOwned: true, out createdNew, currentUserOnly)
+        public ServerNamedMutex(string mutexName, out bool createdNew)
+            : this(mutexName, initiallyOwned: true, out createdNew)
         {
         }
 
-        internal ServerNamedMutex(string mutexName, bool initiallyOwned, out bool createdNew, bool currentUserOnly = true)
+        internal ServerNamedMutex(string mutexName, bool initiallyOwned, out bool createdNew)
         {
 #if NET
             Mutex = new Mutex(
                 initiallyOwned: initiallyOwned,
                 name: mutexName,
-                options: GetOptions(currentUserOnly),
+                options: GetOptions(),
                 createdNew: out createdNew
             );
 #else
-            Mutex = currentUserOnly
-                ? new Mutex(initiallyOwned, mutexName, out createdNew, CreateMutexSecurity())
-                : new Mutex(initiallyOwned, mutexName, out createdNew);
-            if (currentUserOnly && !createdNew)
+            Mutex = new Mutex(initiallyOwned, mutexName, out createdNew, CreateMutexSecurity());
+            if (!createdNew)
             {
                 try
                 {
@@ -1042,21 +1040,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 IsLocked = true;
         }
 
-        public static bool WasOpen(string mutexName, bool currentUserOnly = true)
+        public static bool WasOpen(string mutexName)
         {
             Mutex? m = null;
             try
             {
 #if NET
-                return Mutex.TryOpenExisting(mutexName, GetOptions(currentUserOnly), out m);
+                return Mutex.TryOpenExisting(mutexName, GetOptions(), out m);
 #else
-                var rights = MutexRights.Synchronize | MutexRights.Modify;
-                if (currentUserOnly)
-                {
-                    rights |= MutexRights.ReadPermissions;
-                }
-
-                return Mutex.TryOpenExisting(mutexName, rights, out m) && (!currentUserOnly || IsCurrentUserOnly(m));
+                const MutexRights rights = MutexRights.Synchronize | MutexRights.Modify | MutexRights.ReadPermissions;
+                return Mutex.TryOpenExisting(mutexName, rights, out m) && IsCurrentUserOnly(m);
 #endif
             }
             catch
@@ -1072,9 +1065,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
 #if NET
-        private static NamedWaitHandleOptions GetOptions(bool currentUserOnly) => new()
+        private static NamedWaitHandleOptions GetOptions() => new()
         {
-            CurrentUserOnly = currentUserOnly,
+            CurrentUserOnly = true,
             CurrentSessionOnly = false,
         };
 #else

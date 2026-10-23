@@ -156,6 +156,10 @@ Cache entries are written using a staging directory and then published with a di
 
 Per-entry synchronization is used so that multiple writers racing on the same key do not all try to publish the same result concurrently. If another process is already populating an entry, the current request simply continues with normal compilation behavior.
 
+Cache-entry mutexes are restricted to the current user and coordinate processes across sessions on the same machine. The default cache directory is per-user. Custom paths, including those set through `ROSLYN_CACHE_PATH`, are used as configured; they are not automatically partitioned by user.
+
+If different users point to the same cache directory, do not rely on these mutexes to synchronize their writers. Staging and directory-move publication still apply, but the per-entry writer coordination described above does not extend across users. Prefer separate cache directories per user. Directory access controls do not serialize writers, and the [security requirements](#security) still apply.
+
 ## Diagnostics
 
 While the experiment is active, the compiler server logs notable cache events, including:

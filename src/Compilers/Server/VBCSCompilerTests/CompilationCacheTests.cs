@@ -385,6 +385,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         }
 
         [Fact]
+        public void TryStoreResult_SkipsEntry_WhenUserScopedMutexIsHeld()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "MyLib.dll";
+            var deterministicKey = "locked-store";
+            var hashKey = CompilationCache.ComputeHashKey(deterministicKey);
+            var assemblyPath = Path.Combine(Temp.CreateDirectory().Path, dllName);
+            File.WriteAllBytes(assemblyPath, [1, 2, 3]);
+            var outputFiles = new CompilationOutputFiles { AssemblyPath = assemblyPath };
+
+            using var entryLock = AcquireEntryMutex(cache, dllName, hashKey);
+            var result = cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, _logger);
+
+            Assert.Equal(CompilationCacheStoreResult.SkippedRace, result);
+            Assert.False(Directory.Exists(Path.Combine(cacheDir, dllName, hashKey)));
+        }
+
+        [Fact]
         public void TryStoreResult_OnlyOneWriterStoresEntry()
         {
             var cacheDir = Temp.CreateDirectory().Path;
@@ -967,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 {
                     try
                     {
-                        using var mutex = new ServerNamedMutex(mutexName, out var createdNew, currentUserOnly: false);
+                        using var mutex = new ServerNamedMutex(mutexName, out var createdNew);
                         if (!createdNew && !mutex.TryLock(timeoutMs: Timeout.Infinite))
                         {
                             throw new InvalidOperationException("Failed to acquire named mutex.");

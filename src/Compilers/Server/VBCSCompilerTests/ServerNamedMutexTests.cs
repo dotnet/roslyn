@@ -53,39 +53,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.False(BuildServerConnection.WasServerMutexOpen(mutexName));
         }
 
-        [ConditionalFact(typeof(NotOnAnyMono))]
-        public void CrossUserMutexCreationAndDiscovery()
-        {
-            var mutexName = BuildServerConnection.GetServerMutexName(ServerUtil.GetPipeName());
-            using var mutex = new ServerNamedMutex(mutexName, out var createdNew, currentUserOnly: false);
-            Assert.True(createdNew);
-            Assert.True(ServerNamedMutex.WasOpen(mutexName, currentUserOnly: false));
-
-#if NET
-            Assert.True(Mutex.TryOpenExisting(mutexName, new NamedWaitHandleOptions
-            {
-                CurrentUserOnly = false,
-                CurrentSessionOnly = false,
-            }, out var peer));
-#else
-            Assert.True(Mutex.TryOpenExisting(mutexName, out var peer));
-#endif
-            peer.Dispose();
-        }
-
 #if NET
         [ConditionalFact(typeof(UnixLikeOnly))]
         public void UserScopesAreIndependentOnUnix()
         {
             var mutexName = BuildServerConnection.GetServerMutexName(ServerUtil.GetPipeName());
-            using var crossUserMutex = new ServerNamedMutex(mutexName, out var createdNew, currentUserOnly: false);
+            var crossUserOptions = new NamedWaitHandleOptions
+            {
+                CurrentUserOnly = false,
+                CurrentSessionOnly = false,
+            };
+            using var crossUserMutex = new Mutex(initiallyOwned: false, mutexName, crossUserOptions, out var createdNew);
             Assert.True(createdNew);
             Assert.False(ServerNamedMutex.WasOpen(mutexName));
 
             using var userMutex = new ServerNamedMutex(mutexName, out createdNew);
             Assert.True(createdNew);
             Assert.True(ServerNamedMutex.WasOpen(mutexName));
-            Assert.True(ServerNamedMutex.WasOpen(mutexName, currentUserOnly: false));
+            Assert.True(Mutex.TryOpenExisting(mutexName, crossUserOptions, out var peer));
+            peer.Dispose();
         }
 #else
         [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
@@ -110,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             using var mutex = new Mutex(initiallyOwned: false, mutexName, out var createdNew, security);
             Assert.True(createdNew);
-            Assert.True(ServerNamedMutex.WasOpen(mutexName, currentUserOnly: false));
+            Assert.True(Mutex.TryOpenExisting(mutexName, out var peer));
+            peer.Dispose();
             Assert.False(ServerNamedMutex.WasOpen(mutexName));
             Assert.Throws<WaitHandleCannotBeOpenedException>(() => new ServerNamedMutex(mutexName, out _));
         }

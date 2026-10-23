@@ -375,16 +375,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private IDisposable? TryAcquireEntryMutex(string dllName, string hashKey, bool createIfMissing = true)
         {
-            // Unlike compiler-server startup and lifetime mutexes, cache-entry mutexes use cross-session, cross-user scope
-            // so processes sharing a cache directory use the same locks, subject to OS permissions.
-
             var mutexName = GetCacheEntryMutexName(dllName, hashKey);
-            if (!createIfMissing && !ServerNamedMutex.WasOpen(mutexName, currentUserOnly: false))
+            if (!createIfMissing && !ServerNamedMutex.WasOpen(mutexName))
             {
                 return null;
             }
 
-            var mutex = new ServerNamedMutex(mutexName, out var createdNew, currentUserOnly: false);
+            var mutex = new ServerNamedMutex(mutexName, out var createdNew);
             if (createdNew)
             {
                 if (!createIfMissing)
