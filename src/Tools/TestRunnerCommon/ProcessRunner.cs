@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace RunTests
+namespace TestRunner
 {
     public readonly struct ProcessResult
     {

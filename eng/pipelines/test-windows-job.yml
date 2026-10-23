@@ -32,9 +32,9 @@ jobs:
         path: '$(Build.SourcesDirectory)'
 
     - task: BatchScript@1
-      displayName: Rehydrate RunTests
+      displayName: Rehydrate RunHelix
       inputs:
-        filename: ./artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/rehydrate.cmd
+        filename: ./artifacts/bin/RunHelix/${{ parameters.configuration }}/net10.0/rehydrate.cmd
       env:
         HELIX_CORRELATION_PAYLOAD: '$(Build.SourcesDirectory)\.duplicate'
 
@@ -52,12 +52,12 @@ jobs:
             if ($env:HELIX_API_ACCESS_TOKEN) {
               $helixArguments += @('--helixApiAccessToken', $env:HELIX_API_ACCESS_TOKEN)
             }
-            & dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunTests/${{ parameters.configuration }}/net10.0/RunTests.dll" --ci --helix --testConfiguration ${{ parameters.configuration }} --logs "$(Build.SourcesDirectory)/artifacts/log/${{ parameters.configuration }}" --helixQueueName ${{ testRun.helixQueueName }} @helixArguments ${{ testRun.testArguments }}
+            & dotnet exec "$(Build.SourcesDirectory)/artifacts/bin/RunHelix/${{ parameters.configuration }}/net10.0/RunHelix.dll" --ci --testConfiguration ${{ parameters.configuration }} --helixQueueName ${{ testRun.helixQueueName }} @helixArguments ${{ testRun.testArguments }}
         env:
           SYSTEM_ACCESSTOKEN: $(System.AccessToken)
           HELIX_API_ACCESS_TOKEN: ${{ parameters.helixApiAccessToken }}
 
-      # RunTests uses the same output paths for every Helix submission. Move each submission's
+      # RunHelix uses the same output paths for every Helix submission. Move each submission's
       # outputs aside so the next sequential submission cannot overwrite or mix its diagnostics.
       - task: PowerShell@2
         displayName: Preserve ${{ testRun.displayName }} submission logs
