@@ -1,0 +1,81 @@
+parameters:
+- name: pool
+  type: object
+- name: jobName
+  type: string
+- name: framework
+  type: string
+  default: core
+- name: modes
+  type: string
+  default: host,child,exited-launcher,startup-child
+- name: timeout
+  type: number
+  default: 1
+
+jobs:
+- job: ${{ parameters.jobName }}
+  pool: ${{ parameters.pool }}
+  timeoutInMinutes: 120
+  steps:
+  - checkout: self
+    clean: true
+  - template: install-dotnet.yml
+  - pwsh: |
+      dotnet build src/Tools/RunTests/RunTests.csproj -p:RunAnalyzersDuringBuild=true -bl:artifacts/log/Debug/proof-build.binlog --verbosity minimal
+      if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      $framework = if ('${{ parameters.framework }}' -eq 'desktop') { 'net472' } else { 'net10.0' }
+      dotnet build src/Compilers/Core/CodeAnalysisTest/Microsoft.CodeAnalysis.UnitTests.csproj -f $framework -bl:artifacts/log/Debug/probe-build.binlog --verbosity minimal
+      exit $LASTEXITCODE
+    displayName: Build existing test assembly and direct-launch runner
+  - ${{ each mode in split(parameters.modes, ',') }}:
+    - pwsh: |
+        $root = "$(Build.SourcesDirectory)"
+        $logs = Join-Path $root "artifacts/log/Debug/${{ mode }}"
+        $dotnet = (Get-Command dotnet).Source
+        $runner = Join-Path $root "artifacts/bin/RunTests/Debug/net10.0/RunTests.dll"
+        $arguments = @($runner, '--ci', '--testFramework', '${{ parameters.framework }}', '--include', '^Microsoft.CodeAnalysis.UnitTests$',
+          '--testfilter', 'FullyQualifiedName~DirectLaunchTimeoutProof', '--timeout', '${{ parameters.timeout }}', '--logs', $logs,
+          "--env:ROSLYN_DIRECT_PROOF_MODE=${{ mode }}", "--env:ROSLYN_DIRECT_PROOF_OUTPUT=$logs",
+          "--env:ROSLYN_DIRECT_PROOF_RUNNER=$runner", "--env:ROSLYN_DIRECT_PROOF_DOTNET=$dotnet", "--env:DOTNET_STARTUP_HOOKS=$runner")
+        & dotnet @arguments
+        $result = $LASTEXITCODE
+        Write-Host "Intentional timeout result: $result"
+        if ($result -eq 0) { throw 'Expected timeout failure.' }
+        $runnerLog = Get-Content (Join-Path $logs 'runtests.log') -Raw
+        if ('${{ parameters.timeout }}' -eq '1' -or '${{ mode }}' -eq 'exited-launcher') {
+          if ($runnerLog -notmatch 'Global test timeout exceeded') { throw 'The RunTests global deadline did not fire.' }
+        } elseif ($runnerLog -notmatch 'specified inactivity time of 25 minutes has elapsed' -or $runnerLog -match 'Global test timeout exceeded') {
+          throw 'The production VSTest inactivity deadline did not fire.'
+        }
+        $targets = if ('${{ mode }}' -eq 'startup-child') { @('child') } elseif ('${{ mode }}' -eq 'host') { @('testhost') } else { @('testhost', 'child') }
+        foreach ($target in $targets) {
+          $pidFile = Join-Path $logs "$target.pid"
+          if (-not (Test-Path $pidFile)) { throw "Missing identity for $target" }
+          $targetPid = (Get-Content $pidFile -Raw).Trim()
+          # Desktop VSTest's parent-exit monitor terminates its host; the orphaned child must still be dumped.
+          $requiresDump = -not ('${{ parameters.framework }}' -eq 'desktop' -and '${{ mode }}' -eq 'exited-launcher' -and $target -eq 'testhost')
+          if ($requiresDump) {
+            $match = [regex]::Match($runnerLog, "dump completed: PID=$targetPid, path=(.+), bytes=(\d+), elapsed=")
+            if (-not $match.Success) { throw "Missing completed dump for $target PID=$targetPid" }
+            $dump = Get-Item $match.Groups[1].Value
+            if ($dump.Length -le 0 -or $dump.Length -ne [long]$match.Groups[2].Value) { throw "Invalid dump for $target PID=$targetPid" }
+            Write-Host "Verified $target PID=$targetPid bytes=$($dump.Length) path=$($dump.FullName)"
+          }
+          $alive = Get-Process -Id $targetPid -ErrorAction SilentlyContinue
+          if ($alive -and -not $alive.HasExited) {
+            $zombie = -not $IsWindows -and (Get-Content "/proc/$targetPid/stat") -match '\) Z '
+            if (-not $zombie) { throw "Owned $target PID=$targetPid is still alive." }
+          }
+        }
+        if ($runnerLog -notmatch 'cleanup and output drain completed') { throw 'Cleanup did not complete.' }
+        if ('${{ mode }}' -in @('exited-launcher', 'startup-child') -and $runnerLog -notmatch 'discovery started: scope launcher PID=\d+, exited=True') {
+          throw 'Launcher exit was not observed before discovery.'
+        }
+        exit 0
+      displayName: Prove ${{ mode }} timeout dumps
+      continueOnError: true
+  - template: publish-logs.yml
+    parameters:
+      jobName: ${{ parameters.jobName }}
+      configuration: Debug

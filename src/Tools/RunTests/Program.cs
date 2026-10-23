@@ -23,8 +23,17 @@ namespace RunTests
 
         private const long MaxTotalDumpSizeInMegabytes = 8196;
 
+        private static void HungChild() => System.Threading.Thread.Sleep(System.Threading.Timeout.Infinite);
+
         internal static async Task<int> Main(string[] args)
         {
+            if (args is ["--direct-proof-child", var ready])
+            {
+                File.WriteAllText(ready, Environment.ProcessId.ToString());
+                HungChild();
+                return ExitSuccess;
+            }
+
             if (args is ["--dump-process", ..])
                 return DumpCollector.RunHelper(args);
 

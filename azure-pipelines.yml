@@ -137,6 +137,34 @@ parameters:
       demands: ImageOverride -equals $(Vs2026PreviewQueueName)
 
 stages:
+- stage: Timeout_Dump_Proof
+  jobs:
+  - template: eng/pipelines/timeout-dump-proof.yml
+    parameters:
+      jobName: Direct_Proof_Windows_Core
+      pool: ${{ parameters.windowsPool }}
+  - template: eng/pipelines/timeout-dump-proof.yml
+    parameters:
+      jobName: Direct_Proof_Windows_Desktop
+      framework: desktop
+      pool: ${{ parameters.windowsPool }}
+  - template: eng/pipelines/timeout-dump-proof.yml
+    parameters:
+      jobName: Direct_Proof_Linux_Core
+      pool: ${{ parameters.ubuntuPool }}
+  - template: eng/pipelines/timeout-dump-proof.yml
+    parameters:
+      jobName: Direct_Proof_Actual90
+      modes: exited-launcher
+      timeout: 90
+      pool: ${{ parameters.windowsPool }}
+  - template: eng/pipelines/timeout-dump-proof.yml
+    parameters:
+      jobName: Direct_Proof_Actual25
+      modes: host
+      timeout: 90
+      pool: ${{ parameters.windowsPool }}
+
 - stage: Windows_Debug_Build
   dependsOn: []
   jobs:
