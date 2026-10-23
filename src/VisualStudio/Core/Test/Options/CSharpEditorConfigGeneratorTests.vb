@@ -195,6 +195,7 @@ csharp_indent_braces = false
 csharp_indent_case_contents = true
 csharp_indent_case_contents_when_block = true
 csharp_indent_labels = one_less_than_current
+csharp_indent_list_pattern_contents = false
 csharp_indent_switch_labels = true
 
 # Space preferences
@@ -459,6 +460,7 @@ csharp_indent_braces = false
 csharp_indent_case_contents = true
 csharp_indent_case_contents_when_block = true
 csharp_indent_labels = one_less_than_current
+csharp_indent_list_pattern_contents = false
 csharp_indent_switch_labels = true
 
 # Space preferences
