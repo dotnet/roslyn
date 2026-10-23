@@ -2582,10 +2582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var symbol = variableBySlot[unassignedSlot].Symbol;
                 if (!_alreadyReportedUnsafeAddressOf[unassignedSlot] && !symbol.GetTypeOrReturnType().Type.IsErrorType())
                 {
-                    var location = addressOfOpt.Syntax is PrefixUnaryExpressionSyntax prefix
-                        ? prefix.OperatorToken.GetLocation()
-                        : addressOfOpt.Syntax.Location;
-                    Diagnostics.Add(ErrorCode.ERR_UnsafeUnassignedAddressOf, location, symbol.Name);
+                    Diagnostics.Add(ErrorCode.ERR_UnsafeUnassignedAddressOf, addressOfOpt.Syntax.Location);
                 }
 
                 _alreadyReportedUnsafeAddressOf[unassignedSlot] = true;
