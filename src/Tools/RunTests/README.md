@@ -107,8 +107,10 @@ these use the corresponding Azure Pipelines environment variables.
 
 ## Timeout diagnostics
 
-Single-machine execution starts each work item inside a Windows job or Unix process
-group before launching VSTest. Timeout discovery and cleanup therefore include
+Single-machine execution launches VSTest directly inside a Windows job or Unix
+process group, without an intermediate launcher. Windows creates the process
+suspended, assigns it to the job, and then resumes it; Unix establishes the process
+group as part of `posix_spawn`, before the target executes. Timeout discovery and cleanup therefore include
 surviving children even after their launcher exits. User cancellation terminates
 owned processes without starting dump collection.
 

@@ -25,9 +25,6 @@ namespace RunTests
 
         internal static async Task<int> Main(string[] args)
         {
-            if (args is ["--run-owned-process", ..])
-                return OwnedProcess.RunHelper(args);
-
             if (args is ["--dump-process", ..])
                 return DumpCollector.RunHelper(args);
 
@@ -179,9 +176,9 @@ namespace RunTests
             foreach (var processResult in processResults)
             {
                 var process = processResult.Process;
-                var startInfo = process.StartInfo;
+                var startInfo = processResult.StartInfo;
                 Logger.Log($"### Begin {process.Id}");
-                Logger.Log($"### {startInfo.FileName} {startInfo.Arguments}");
+                Logger.Log($"### {startInfo.FileName} {startInfo.Arguments} {string.Join(" ", startInfo.ArgumentList)}");
                 Logger.Log($"### Exit code {processResult.ExitCode}");
                 Logger.Log("### Standard Output");
                 foreach (var line in processResult.OutputLines)

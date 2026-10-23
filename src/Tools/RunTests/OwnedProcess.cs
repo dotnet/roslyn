@@ -10,7 +10,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
@@ -40,17 +39,15 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
         _label = label;
     }
 
-    internal static async Task<OwnedProcess> StartAsync(ProcessStartInfo command, string dotnetPath, string label, bool diagnosticOutput = false, CancellationToken cancellationToken = default)
+    internal static OwnedProcess Start(ProcessStartInfo command, string label, bool diagnosticOutput = false, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         SafeFileHandle? job = null;
-        var scopeName = "-";
         try
         {
             if (OperatingSystem.IsWindows())
             {
-                scopeName = @"Local\Roslyn.RunTests." + Guid.NewGuid().ToString("N");
-                job = CreateJobObjectW(IntPtr.Zero, scopeName);
+                job = CreateJobObjectW(IntPtr.Zero, null);
                 if (job.IsInvalid)
                     throw new Win32Exception(Marshal.GetLastWin32Error());
                 var limits = new JobLimits { Basic = new BasicJobLimits { LimitFlags = 0x00002000 } };
@@ -58,57 +55,11 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
                     throw new Win32Exception(Marshal.GetLastWin32Error());
             }
 
-            var info = new ProcessStartInfo(dotnetPath)
-            {
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                RedirectStandardInput = true,
-                CreateNoWindow = true,
-                WorkingDirectory = command.WorkingDirectory,
-            };
-            // Target startup hooks must not run before the wrapper establishes ownership.
-            info.Environment.Remove("DOTNET_STARTUP_HOOKS");
-            info.ArgumentList.Add(typeof(Program).Assembly.Location);
-            info.ArgumentList.Add("--run-owned-process");
-            info.ArgumentList.Add(scopeName);
-            info.ArgumentList.Add(command.FileName);
-            info.ArgumentList.Add(command.ArgumentList.Count == 0 ? "arguments" : "argument-list");
-            if (command.ArgumentList.Count == 0)
-                info.ArgumentList.Add(command.Arguments);
-            else
-                foreach (var argument in command.ArgumentList)
-                    info.ArgumentList.Add(argument);
-
-            var process = ProcessRunner.CreateProcess(info,
-                onOutputDataReceived: line => LogOutput("stdout", line),
-                onErrorDataReceived: line => LogOutput("stderr", line));
+            Logger.Log($"[{label}] ownership startup started: executable={command.FileName}.");
+            var process = NativeProcess.Start(command, job,
+                line => LogOutput("stdout", line), line => LogOutput("stderr", line), cancellationToken);
             var owned = new OwnedProcess(process, job, label);
-            Logger.Log($"[{label}] ownership startup started: launcher PID={process.Id}, limit={CleanupTimeout}.");
-            long startIdentity;
-            try
-            {
-                // The wrapper cannot exit normally until it receives the target environment.
-                _ = process.Process.StartTime;
-                startIdentity = ProcessUtil.GetProcessStartIdentity(process.Process);
-                await process.Process.StandardInput.WriteLineAsync(JsonSerializer.Serialize(command.Environment))
-                    .WaitAsync(CleanupTimeout, cancellationToken).ConfigureAwait(false);
-                process.Process.StandardInput.Close();
-            }
-            catch (Exception ex)
-            {
-                ConsoleUtil.Warning($"[{label}] ownership startup failed: PID={process.Id}: {ex}");
-                try
-                {
-                    await owned.DisposeAsync().ConfigureAwait(false);
-                }
-                finally
-                {
-                    process.Process.Dispose();
-                }
-                throw;
-            }
-            Logger.Log($"[{label}] ownership launcher started: PID={process.Id}, start={startIdentity}, scope={scopeName}.");
+            Logger.Log($"[{label}] ownership launcher started: PID={process.Id}, scope={(job is null ? "process group" : "Windows job")}.");
             return owned;
 
             void LogOutput(string stream, string line)
@@ -126,51 +77,10 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
         }
     }
 
-    internal static int RunHelper(string[] args)
-    {
-        try
-        {
-            if (OperatingSystem.IsWindows())
-            {
-                using var job = OpenJobObjectW(0x0001, false, args[1]);
-                if (job.IsInvalid || !AssignProcessToJobObject(job, Process.GetCurrentProcess().Handle))
-                    throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
-            else if (setpgid(0, 0) != 0)
-            {
-                throw new Win32Exception(Marshal.GetLastWin32Error());
-            }
-
-            var info = new ProcessStartInfo(args[2]) { UseShellExecute = false };
-            var environment = JsonSerializer.Deserialize<Dictionary<string, string?>>(Console.ReadLine()
-                ?? throw new InvalidOperationException("Ownership wrapper did not receive the target environment."))
-                ?? throw new InvalidOperationException("Ownership wrapper received a null target environment.");
-            info.Environment.Clear();
-            foreach (var pair in environment)
-                info.Environment[pair.Key] = pair.Value;
-            if (args[3] == "arguments")
-                info.Arguments = args[4];
-            else
-                foreach (var argument in args.Skip(4))
-                    info.ArgumentList.Add(argument);
-
-            // Inherit the wrapper's pipes. Waiting for this process must not also wait for pipe EOF.
-            using var process = Process.Start(info)!;
-            Console.Error.WriteLine($"Ownership scope ready: launcher={Environment.ProcessId}, target={process.Id}.");
-            process.WaitForExit();
-            return process.ExitCode;
-        }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"Ownership scope failed: {ex}");
-            return Program.ExitFailure;
-        }
-    }
-
     internal async Task<List<Target>> GetProcessesAsync(CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        ConsoleUtil.WriteLine($"[{_label}] discovery started: scope launcher PID={Info.Id}, exited={Info.Process.HasExited}.");
+        ConsoleUtil.WriteLine($"[{_label}] discovery started: scope launcher PID={Info.Id}, exited={Info.ExitCode.IsCompleted}.");
         var pids = _job is not null ? GetWindowsProcessIds(_job) : await GetUnixProcessIdsAsync(Info.Id, cancellationToken).ConfigureAwait(false);
         var processes = new List<Target>();
         foreach (var pid in pids)
@@ -403,12 +313,7 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
     }
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern SafeFileHandle CreateJobObjectW(IntPtr attributes, string name);
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern SafeFileHandle OpenJobObjectW(uint access, [MarshalAs(UnmanagedType.Bool)] bool inherit, string name);
-    [DllImport("kernel32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool AssignProcessToJobObject(SafeFileHandle job, IntPtr process);
+    private static extern SafeFileHandle CreateJobObjectW(IntPtr attributes, string? name);
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool IsProcessInJob(IntPtr process, SafeFileHandle job, [MarshalAs(UnmanagedType.Bool)] out bool result);
@@ -421,8 +326,6 @@ internal sealed class OwnedProcess : IDisposable, IAsyncDisposable
     [DllImport("kernel32.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SetInformationJobObject(SafeFileHandle job, int informationClass, ref JobLimits information, int length);
-    [DllImport("libc", SetLastError = true)]
-    private static extern int setpgid(int pid, int pgid);
     [DllImport("libc", SetLastError = true)]
     private static extern int getpgid(int pid);
     [DllImport("libc", SetLastError = true)]

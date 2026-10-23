@@ -15,13 +15,15 @@ namespace RunTests
     public readonly struct ProcessResult
     {
         public Process Process { get; }
+        public ProcessStartInfo StartInfo { get; }
         public int ExitCode { get; }
         public ReadOnlyCollection<string> OutputLines { get; }
         public ReadOnlyCollection<string> ErrorLines { get; }
 
-        public ProcessResult(Process process, int exitCode, ReadOnlyCollection<string> outputLines, ReadOnlyCollection<string> errorLines)
+        public ProcessResult(Process process, ProcessStartInfo startInfo, int exitCode, ReadOnlyCollection<string> outputLines, ReadOnlyCollection<string> errorLines)
         {
             Process = process;
+            StartInfo = startInfo;
             ExitCode = exitCode;
             OutputLines = outputLines;
             ErrorLines = errorLines;
@@ -33,16 +35,18 @@ namespace RunTests
         public Process Process { get; }
         public ProcessStartInfo StartInfo { get; }
         public Task<ProcessResult> Result { get; }
+        internal Task<int> ExitCode { get; }
         private readonly CancellationTokenSource _outputCancellation;
 
         public int Id => Process.Id;
 
-        public ProcessInfo(Process process, ProcessStartInfo startInfo, Task<ProcessResult> result, CancellationTokenSource outputCancellation)
+        internal ProcessInfo(Process process, ProcessStartInfo startInfo, Task<ProcessResult> result, CancellationTokenSource outputCancellation, Task<int> exitCode)
         {
             Process = process;
             StartInfo = startInfo;
             Result = result;
             _outputCancellation = outputCancellation;
+            ExitCode = exitCode;
         }
 
         internal void StopReadingOutput()
@@ -93,8 +97,6 @@ namespace RunTests
             Action<string>? onOutputDataReceived = null,
             Action<string>? onErrorDataReceived = null)
         {
-            var errorLines = new List<string>();
-            var outputLines = new List<string>();
             var process = new Process();
             process.StartInfo = processStartInfo;
 
@@ -106,15 +108,38 @@ namespace RunTests
                 process.PriorityClass = ProcessPriorityClass.BelowNormal;
             }
 
+            return TrackProcess(process, processStartInfo,
+                processStartInfo.RedirectStandardOutput ? process.StandardOutput : null,
+                processStartInfo.RedirectStandardError ? process.StandardError : null,
+                WaitForExitAsync(), onOutputDataReceived, onErrorDataReceived);
+
+            async Task<int> WaitForExitAsync()
+            {
+                await process.WaitForExitAsync().ConfigureAwait(false);
+                return process.ExitCode;
+            }
+        }
+
+        internal static ProcessInfo TrackProcess(
+            Process process,
+            ProcessStartInfo startInfo,
+            StreamReader? standardOutput,
+            StreamReader? standardError,
+            Task<int> exitCode,
+            Action<string>? onOutputDataReceived,
+            Action<string>? onErrorDataReceived)
+        {
+            var errorLines = new List<string>();
+            var outputLines = new List<string>();
             var outputCancellation = new CancellationTokenSource();
-            var outputTask = processStartInfo.RedirectStandardOutput
-                ? ReadAsync(process.StandardOutput, outputLines, onOutputDataReceived)
+            var outputTask = standardOutput is not null
+                ? ReadAsync(standardOutput, outputLines, onOutputDataReceived)
                 : Task.CompletedTask;
-            var errorTask = processStartInfo.RedirectStandardError
-                ? ReadAsync(process.StandardError, errorLines, onErrorDataReceived)
+            var errorTask = standardError is not null
+                ? ReadAsync(standardError, errorLines, onErrorDataReceived)
                 : Task.CompletedTask;
 
-            return new ProcessInfo(process, processStartInfo, CompleteAsync(), outputCancellation);
+            return new ProcessInfo(process, startInfo, CompleteAsync(), outputCancellation, exitCode);
 
             async Task<ProcessResult> CompleteAsync()
             {
@@ -122,15 +147,17 @@ namespace RunTests
                 {
                     // Do not use BeginOutputReadLine: its EOF wait is folded into WaitForExitAsync,
                     // even after the process exits, if a surviving child inherited the pipe.
-                    await process.WaitForExitAsync().ConfigureAwait(false);
-                    Logger.Log($"Process {process.Id} exited with code {process.ExitCode}; draining redirected output.");
+                    var code = await exitCode.ConfigureAwait(false);
+                    Logger.Log($"Process {process.Id} exited with code {code}; draining redirected output.");
                     await Task.WhenAll(outputTask, errorTask).ConfigureAwait(false);
-                    return new ProcessResult(process, process.ExitCode,
+                    return new ProcessResult(process, startInfo, code,
                         new ReadOnlyCollection<string>(outputLines), new ReadOnlyCollection<string>(errorLines));
                 }
                 finally
                 {
                     outputCancellation.Dispose();
+                    standardOutput?.Dispose();
+                    standardError?.Dispose();
                 }
             }
 

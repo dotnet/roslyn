@@ -88,7 +88,7 @@ namespace RunTests
                     startInfo.ArgumentList.Add(startIdentity.ToString(CultureInfo.InvariantCulture));
                     startInfo.ArgumentList.Add(path);
                     ConsoleUtil.WriteLine($"[{label}] dump helper start: target={name}, PID={process.Id}, start={startIdentity}, path={dumpPath}.");
-                    await CollectWithHelperAsync(startInfo, dotnetPath, path, dumpPath, label, HelperTimeout, budget).ConfigureAwait(false);
+                    await CollectWithHelperAsync(startInfo, path, dumpPath, label, HelperTimeout, budget).ConfigureAwait(false);
                     var dumpSize = new FileInfo(dumpPath).Length;
                     collected++;
                     ConsoleUtil.WriteLine($"[{label}] dump completed: PID={process.Id}, path={dumpPath}, bytes={dumpSize}, elapsed={watch.Elapsed}.");
@@ -114,7 +114,7 @@ namespace RunTests
                 ConsoleUtil.Warning($"[{label}] no timeout dumps collected.");
         }
 
-        internal static async Task CollectWithHelperAsync(ProcessStartInfo startInfo, string dotnetPath, string partialPath, string dumpPath, string label, TimeSpan timeout, CancellationToken budget)
+        internal static async Task CollectWithHelperAsync(ProcessStartInfo startInfo, string partialPath, string dumpPath, string label, TimeSpan timeout, CancellationToken budget)
         {
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(budget);
             deadline.CancelAfter(timeout);
@@ -150,8 +150,8 @@ namespace RunTests
             {
                 try
                 {
-                    return await OwnedProcess.StartAsync(startInfo, dotnetPath, label + " dump helper",
-                        diagnosticOutput: true, cancellationToken: deadline.Token).ConfigureAwait(false);
+                    return OwnedProcess.Start(startInfo, label + " dump helper",
+                        diagnosticOutput: true, cancellationToken: deadline.Token);
                 }
                 catch (OperationCanceledException ex) when (!budget.IsCancellationRequested && deadline.IsCancellationRequested)
                 {

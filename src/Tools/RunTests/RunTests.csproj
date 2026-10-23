@@ -10,8 +10,6 @@
     <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="UnitTests\**\*.cs" />
-    <InternalsVisibleTo Include="RunTests.UnitTests" />
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="System.Reflection.Metadata" />
     <PackageReference Include="Mono.Options" />
