@@ -77,33 +77,24 @@ internal sealed partial class HostLegacySolutionEventsWorkspaceEventListener : I
         // crawler.  As such, they only need events for the project types they care about: the ones whose tests can be
         // discovered from source.  Sending notifications about any other project isn't helpful.
 
-        var projectId = e.ProjectId ?? e.DocumentId?.ProjectId;
-        if (projectId != null)
-        {
-            var project = e.OldSolution.GetProject(projectId) ?? e.NewSolution.GetProject(projectId);
-            if (project != null && !IsUnitTestingSupported(project.Language))
-                return;
-        }
+        var project = GetProject(e);
+        if (project != null && !IsUnitTestingSupported(project.Language))
+            return;
 
         _eventQueue.AddWork(e);
     }
 
-    /// <summary>
-    /// Unit testing discovers tests from source for C#, VB and F#.  Only C# and VB are synced to OOP though, so F#
-    /// events are aggregated in this process instead - see <see cref="ProcessWorkspaceChangeEventsAsync"/>.
-    /// </summary>
+    private static Project? GetProject(WorkspaceChangeEventArgs e)
+    {
+        var projectId = e.ProjectId ?? e.DocumentId?.ProjectId;
+        return projectId is null ? null : e.OldSolution.GetProject(projectId) ?? e.NewSolution.GetProject(projectId);
+    }
+
     private static bool IsUnitTestingSupported(string language)
         => RemoteSupportedLanguages.IsSupported(language) || language is LanguageNames.FSharp;
 
     private static bool CanBeAggregatedRemotely(WorkspaceChangeEventArgs e)
-    {
-        var projectId = e.ProjectId ?? e.DocumentId?.ProjectId;
-        if (projectId is null)
-            return true;
-
-        var project = e.OldSolution.GetProject(projectId) ?? e.NewSolution.GetProject(projectId);
-        return project is null || RemoteSupportedLanguages.IsSupported(project.Language);
-    }
+        => GetProject(e) is not { } project || RemoteSupportedLanguages.IsSupported(project.Language);
 
     private async ValueTask ProcessWorkspaceChangeEventsAsync(ImmutableSegmentedList<WorkspaceChangeEventArgs> events, CancellationToken cancellationToken)
     {

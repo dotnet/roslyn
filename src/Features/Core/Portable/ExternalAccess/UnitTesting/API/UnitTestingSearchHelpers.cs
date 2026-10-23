@@ -75,11 +75,7 @@ internal static class UnitTestingSearchHelpers
         return await GetSourceLocationsInProcessAsync(project, query, cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// A project with no compilation - an F# one - has neither the syntax trees nor the declared-symbol indexes the
-    /// shared search runs on, so it answers for itself.  Such projects are also never synced to OOP, which is why
-    /// this stays in process.
-    /// </summary>
+    // Projects without a compilation are never synced to OOP, so this stays in process.
     private static async Task<ImmutableArray<UnitTestingDocumentSpan>> GetLanguageSpecificSourceLocationsAsync(
         Project project, UnitTestingSearchQuery query, CancellationToken cancellationToken)
     {

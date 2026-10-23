@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -11,8 +11,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 /// <summary>
 /// Locates a test in source for a language that has no Roslyn compilation to search, and so cannot be served by the
-/// declared-symbol indexes <see cref="UnitTestingSearchHelpers"/> uses for C# and Visual Basic.  A language that does
-/// produce a compilation must not export this: the index path is both faster and remotable.
+/// declared-symbol indexes <see cref="UnitTestingSearchHelpers"/> uses for C# and Visual Basic.
 /// </summary>
 internal interface IUnitTestingSearchService : ILanguageService
 {

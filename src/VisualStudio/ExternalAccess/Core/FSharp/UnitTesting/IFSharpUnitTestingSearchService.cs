@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -51,8 +51,7 @@ internal readonly struct FSharpUnitTestingSourceLocation(Document document, Text
 }
 
 /// <summary>
-/// Answers where a test named by a test adapter lives in F# source.  Live Unit Testing and Test Explorer ask this
-/// because F# projects carry no Roslyn compilation for the shared declared-symbol search to use.
+/// Answers where a test named by a test adapter lives in F# source, for Live Unit Testing and Test Explorer.
 /// </summary>
 internal interface IFSharpUnitTestingSearchService
 {
