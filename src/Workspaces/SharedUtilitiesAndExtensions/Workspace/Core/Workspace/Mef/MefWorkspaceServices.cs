@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-[assembly: DebuggerTypeProxy(typeof(MefWorkspaceServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>>))]
+[assembly: DebuggerTypeProxy(typeof(MefWorkspaceServices.LazyServiceMetadataDebuggerProxy), Target = typeof(ImmutableArray<Lazy<IWorkspaceService?, WorkspaceServiceMetadata>>))]
 
 namespace Microsoft.CodeAnalysis.Host.Mef;
 
@@ -21,11 +21,11 @@ internal sealed class MefWorkspaceServices : HostWorkspaceServices
 {
     private readonly Workspace _workspace;
 
-    private readonly ImmutableArray<(Lazy<IWorkspaceService, WorkspaceServiceMetadata> lazyService, bool usesFactory)> _services;
+    private readonly ImmutableArray<(Lazy<IWorkspaceService?, WorkspaceServiceMetadata> lazyService, bool usesFactory)> _services;
 
     // map of type name to workspace service
-    private ImmutableDictionary<Type, (Lazy<IWorkspaceService, WorkspaceServiceMetadata>? lazyService, bool usesFactory)> _serviceMap
-        = ImmutableDictionary<Type, (Lazy<IWorkspaceService, WorkspaceServiceMetadata>? lazyService, bool usesFactory)>.Empty;
+    private ImmutableDictionary<Type, (Lazy<IWorkspaceService?, WorkspaceServiceMetadata>? lazyService, bool usesFactory)> _serviceMap
+        = ImmutableDictionary<Type, (Lazy<IWorkspaceService?, WorkspaceServiceMetadata>? lazyService, bool usesFactory)>.Empty;
 
     private readonly object _gate = new();
     private readonly HashSet<IDisposable> _ownedDisposableServices = new(ReferenceEqualityComparer.Instance);
@@ -42,9 +42,9 @@ internal sealed class MefWorkspaceServices : HostWorkspaceServices
         _workspace = workspace;
 
         var services = host.GetExports<IWorkspaceService, WorkspaceServiceMetadata>()
-            .Select(lz => (lz, usesFactory: false));
+            .Select(lz => (lazyService: new Lazy<IWorkspaceService?, WorkspaceServiceMetadata>(() => lz.Value, lz.Metadata), usesFactory: false));
         var factories = host.GetExports<IWorkspaceServiceFactory, WorkspaceServiceMetadata>()
-            .Select(lz => (new Lazy<IWorkspaceService, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata), usesFactory: true));
+            .Select(lz => (lazyService: new Lazy<IWorkspaceService?, WorkspaceServiceMetadata>(() => lz.Value.CreateService(this), lz.Metadata), usesFactory: true));
 
         _services = [.. services, .. factories];
     }
@@ -101,6 +101,7 @@ internal sealed class MefWorkspaceServices : HostWorkspaceServices
         base.Dispose();
     }
 
+    [return: MaybeNull]
     public override TWorkspaceService GetService<TWorkspaceService>()
     {
         if (TryGetService(typeof(TWorkspaceService), out var lazyService, out var usesFactory))
@@ -117,7 +118,12 @@ internal sealed class MefWorkspaceServices : HostWorkspaceServices
             //   lock-free fast path.
             var checkAddDisposable = usesFactory && !lazyService.IsValueCreated;
 
-            var serviceInstance = (TWorkspaceService)lazyService.Value;
+            var serviceInstance = lazyService.Value;
+            if (serviceInstance is null)
+            {
+                return default;
+            }
+
             if (checkAddDisposable && serviceInstance is IDisposable disposable)
             {
                 lock (_gate)
@@ -126,15 +132,15 @@ internal sealed class MefWorkspaceServices : HostWorkspaceServices
                 }
             }
 
-            return serviceInstance;
+            return (TWorkspaceService)serviceInstance;
         }
         else
         {
-            return default!;
+            return default;
         }
     }
 
-    private bool TryGetService(Type serviceType, [NotNullWhen(true)] out Lazy<IWorkspaceService, WorkspaceServiceMetadata>? lazyService, out bool usesFactory)
+    private bool TryGetService(Type serviceType, [NotNullWhen(true)] out Lazy<IWorkspaceService?, WorkspaceServiceMetadata>? lazyService, out bool usesFactory)
     {
         if (!_serviceMap.TryGetValue(serviceType, out var service))
         {
@@ -200,7 +206,7 @@ internal sealed class MefWorkspaceServices : HostWorkspaceServices
     internal bool TryGetLanguageServices(string languageName, [NotNullWhen(true)] out MefLanguageServices? languageServices)
         => _languageServicesMap.TryGetValue(languageName, out languageServices);
 
-    internal sealed class LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services)
+    internal sealed class LazyServiceMetadataDebuggerProxy(ImmutableArray<Lazy<IWorkspaceService?, WorkspaceServiceMetadata>> services)
     {
         public (string type, string layer)[] Metadata
             => [.. services.Select(s => (s.Metadata.ServiceType, s.Metadata.Layer))];
