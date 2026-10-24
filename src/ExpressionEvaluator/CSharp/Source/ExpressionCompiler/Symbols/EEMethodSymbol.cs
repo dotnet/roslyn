@@ -512,39 +512,41 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             try
             {
                 var declaredLocals = PooledHashSet<LocalSymbol>.GetInstance();
-                try
+                // For pure expression evaluations (body is a return statement), pattern
+                // variables are temporary to the single evaluation and should not be
+                // persisted via CreateVariable/GetVariableAddress. For assignments and
+                // declarations, pattern variables should be persisted as before.
+                // Pattern variables remain in declaredLocalsArray regardless so they are
+                // added to the block's Locals for CheckLocalsDefined and lowering.
+                var persistedLocalsArray = body is BoundReturnStatement
+                    ? declaredLocalsArray.WhereAsArray(
+                        static local => local.DeclarationKind != LocalDeclarationKind.PatternVariable)
+                    : declaredLocalsArray;
+                // Rewrite local declaration statement.
+                body = (BoundStatement)LocalDeclarationRewriter.Rewrite(
+                    compilation,
+                    declaredLocals,
+                    body,
+                    persistedLocalsArray,
+                    diagnostics.DiagnosticBag);
+
+                // Verify local declaration names.
+                foreach (var local in declaredLocals)
                 {
-                    // Rewrite local declaration statement.
-                    body = (BoundStatement)LocalDeclarationRewriter.Rewrite(
-                        compilation,
-                        declaredLocals,
-                        body,
-                        declaredLocalsArray,
-                        diagnostics.DiagnosticBag);
-
-                    // Verify local declaration names.
-                    foreach (var local in declaredLocals)
+                    Debug.Assert(local.Locations.Length > 0);
+                    var name = local.Name;
+                    if (name.StartsWith("$", StringComparison.Ordinal))
                     {
-                        Debug.Assert(local.Locations.Length > 0);
-                        var name = local.Name;
-                        if (name.StartsWith("$", StringComparison.Ordinal))
-                        {
-                            diagnostics.Add(ErrorCode.ERR_UnexpectedCharacter, local.GetFirstLocation(), name[0]);
-                            return;
-                        }
-                    }
-
-                    // Rewrite references to placeholder "locals".
-                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, declaredLocals, body, diagnostics.DiagnosticBag);
-
-                    if (diagnostics.HasAnyErrors())
-                    {
+                        diagnostics.Add(ErrorCode.ERR_UnexpectedCharacter, local.GetFirstLocation(), name[0]);
+                        declaredLocals.Free();
                         return;
                     }
                 }
-                finally
+
+                if (diagnostics.HasAnyErrors())
                 {
                     declaredLocals.Free();
+                    return;
                 }
 
                 var syntax = body.Syntax;
@@ -582,11 +584,34 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         }
                     }
 
+                    // Add locals declared by the expression itself (e.g., pattern variables
+                    // from 'is' expressions like "obj is MyType myObj"). These are not part
+                    // of the original method's locals but need to be in scope for lowering.
+                    foreach (var local in declaredLocalsArray)
+                    {
+                        if (localsSet.Add(local))
+                        {
+                            localsBuilder.Add(local);
+                        }
+                    }
+
+                    // Add placeholder locals (e.g., ObjectAddressLocalSymbol for @0x123,
+                    // ExceptionLocalSymbol for $exception) that appear in the bound tree.
+                    // These are created dynamically during binding by PlaceholderLocalBinder
+                    // and are not part of any predefined locals list. They need to be declared
+                    // in the block so that CheckLocalsDefined passes. They will later be
+                    // rewritten to method calls by PlaceholderLocalRewriter.
+                    var placeholderCollector = new PlaceholderLocalCollector(localsSet, localsBuilder);
+                    placeholderCollector.Visit(body);
+
                     body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
 
                     Debug.Assert(!diagnostics.HasAnyErrors());
                     Debug.Assert(!body.HasErrors);
+
                     PipelinePhaseValidator.AssertAfterInitialBinding(body);
+
+                    bool hasDeclaredLocals = persistedLocalsArray.Length > 0;
 
                     body = LocalRewriter.Rewrite(
                         compilation: this.DeclaringCompilation,
@@ -603,12 +628,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         codeCoverageSpans: out ImmutableArray<SourceSpan> codeCoverageSpans,
                         sawLambdas: out bool sawLambdas,
                         sawLocalFunctions: out bool sawLocalFunctions,
-                        sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler);
+                        sawAwaitInExceptionHandler: out bool sawAwaitInExceptionHandler,
+                        disablePatternVariableTempSharing: hasDeclaredLocals);
 
                     Debug.Assert(!sawAwaitInExceptionHandler);
                     Debug.Assert(codeCoverageSpans.IsEmpty);
 
                     if (body.HasErrors)
+                    {
+                        return;
+                    }
+
+                    // Rewrite references to placeholder "locals" after local rewriting.
+                    // This must happen after LocalRewriter.Rewrite because the pattern lowering
+                    // needs the original BoundLocal nodes to generate correct binding assignments.
+                    // The disablePatternVariableTempSharing flag above prevents the lowering from
+                    // sharing pattern temps with the declared locals that will be rewritten here.
+                    body = (BoundStatement)PlaceholderLocalRewriter.Rewrite(compilation, declaredLocals, body, diagnostics.DiagnosticBag);
+
+                    declaredLocals.Free();
+
+                    if (diagnostics.HasAnyErrors())
                     {
                         return;
                     }
@@ -725,6 +765,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             catch (BoundTreeVisitor.CancelledByStackGuardException ex)
             {
                 ex.AddAnError(diagnostics);
+            }
+
+        }
+
+        /// <summary>
+        /// Walks the bound tree to collect <see cref="PlaceholderLocalSymbol"/> instances
+        /// referenced as <see cref="BoundLocal"/> nodes. These are created dynamically during
+        /// binding by <see cref="PlaceholderLocalBinder"/> (e.g., ObjectAddressLocalSymbol for
+        /// @0x123) and need to be declared in the enclosing block for correctness validation.
+        /// </summary>
+        private sealed class PlaceholderLocalCollector : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            private readonly PooledHashSet<LocalSymbol> _localsSet;
+            private readonly ArrayBuilder<LocalSymbol> _localsBuilder;
+
+            internal PlaceholderLocalCollector(PooledHashSet<LocalSymbol> localsSet, ArrayBuilder<LocalSymbol> localsBuilder)
+            {
+                _localsSet = localsSet;
+                _localsBuilder = localsBuilder;
+            }
+
+            public override BoundNode VisitLocal(BoundLocal node)
+            {
+                if (node.LocalSymbol is PlaceholderLocalSymbol && _localsSet.Add(node.LocalSymbol))
+                {
+                    _localsBuilder.Add(node.LocalSymbol);
+                }
+
+                return base.VisitLocal(node);
             }
         }
 
