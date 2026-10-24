@@ -6,8 +6,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -28,8 +26,153 @@ internal sealed class SumConverter : JsonConverterFactory
 
     public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
     {
-        var converterType = typeof(SumConverter<>).MakeGenericType(typeToConvert);
-        return (JsonConverter)Activator.CreateInstance(converterType)!;
+        // Keep closed converters statically visible to NGEN rather than constructing generic types at runtime.
+#pragma warning disable CS0618 // Obsolete contracts remain part of the wire protocol.
+        if (typeToConvert == typeof(SumType<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>))
+            return new SumConverter<SumType<bool, CallHierarchyOptions, CallHierarchyRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<bool, CodeActionOptions>))
+            return new SumConverter<SumType<bool, CodeActionOptions>>();
+        if (typeToConvert == typeof(SumType<bool, DeclarationOptions, DeclarationRegistrationOptions>))
+            return new SumConverter<SumType<bool, DeclarationOptions, DeclarationRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<bool, DefinitionOptions>))
+            return new SumConverter<SumType<bool, DefinitionOptions>>();
+        if (typeToConvert == typeof(SumType<bool, DocumentColorOptions, DocumentColorRegistrationOptions>))
+            return new SumConverter<SumType<bool, DocumentColorOptions, DocumentColorRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<bool, DocumentFormattingOptions>))
+            return new SumConverter<SumType<bool, DocumentFormattingOptions>>();
+        if (typeToConvert == typeof(SumType<bool, DocumentHighlightOptions>))
+            return new SumConverter<SumType<bool, DocumentHighlightOptions>>();
+        if (typeToConvert == typeof(SumType<bool, DocumentRangeFormattingOptions>))
+            return new SumConverter<SumType<bool, DocumentRangeFormattingOptions>>();
+        if (typeToConvert == typeof(SumType<bool, DocumentSymbolOptions>))
+            return new SumConverter<SumType<bool, DocumentSymbolOptions>>();
+        if (typeToConvert == typeof(SumType<bool, FoldingRangeOptions>))
+            return new SumConverter<SumType<bool, FoldingRangeOptions>>();
+        if (typeToConvert == typeof(SumType<bool, HoverOptions>))
+            return new SumConverter<SumType<bool, HoverOptions>>();
+        if (typeToConvert == typeof(SumType<bool, ImplementationOptions, ImplementationRegistrationOptions>))
+            return new SumConverter<SumType<bool, ImplementationOptions, ImplementationRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<bool, InlayHintOptions, InlayHintRegistrationOptions>))
+            return new SumConverter<SumType<bool, InlayHintOptions, InlayHintRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<bool, InlineCompletionOptions>))
+            return new SumConverter<SumType<bool, InlineCompletionOptions>>();
+        if (typeToConvert == typeof(SumType<bool, InlineValueOptions, InlineValueRegistrationOptions>))
+            return new SumConverter<SumType<bool, InlineValueOptions, InlineValueRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<bool, LinkedEditingRangeOptions>))
+            return new SumConverter<SumType<bool, LinkedEditingRangeOptions>>();
+        if (typeToConvert == typeof(SumType<bool, MonikerOptions, MonikerRegistrationOptions>))
+            return new SumConverter<SumType<bool, MonikerOptions, MonikerRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<bool, object>))
+            return new SumConverter<SumType<bool, object>>();
+        if (typeToConvert == typeof(SumType<bool, ReferenceOptions>))
+            return new SumConverter<SumType<bool, ReferenceOptions>>();
+        if (typeToConvert == typeof(SumType<bool, RenameOptions>))
+            return new SumConverter<SumType<bool, RenameOptions>>();
+        if (typeToConvert == typeof(SumType<bool, SaveOptions>))
+            return new SumConverter<SumType<bool, SaveOptions>>();
+        if (typeToConvert == typeof(SumType<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>))
+            return new SumConverter<SumType<bool, SelectionRangeOptions, SelectionRangeRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<bool, SemanticTokensRequestsFullSetting>))
+            return new SumConverter<SumType<bool, SemanticTokensRequestsFullSetting>>();
+        if (typeToConvert == typeof(SumType<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>))
+            return new SumConverter<SumType<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>))
+            return new SumConverter<SumType<bool, TypeHierarchyOptions, TypeHierarchyRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<bool, WorkspaceSymbolOptions>))
+            return new SumConverter<SumType<bool, WorkspaceSymbolOptions>>();
+        if (typeToConvert == typeof(SumType<Command, CodeAction>))
+            return new SumConverter<SumType<Command, CodeAction>>();
+        if (typeToConvert == typeof(SumType<CompletionItem[], CompletionList>))
+            return new SumConverter<SumType<CompletionItem[], CompletionList>>();
+        if (typeToConvert == typeof(SumType<DiagnosticOptions, DiagnosticRegistrationOptions>))
+            return new SumConverter<SumType<DiagnosticOptions, DiagnosticRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<DocumentSymbol[], SymbolInformation[]>))
+            return new SumConverter<SumType<DocumentSymbol[], SymbolInformation[]>>();
+        if (typeToConvert == typeof(SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>))
+            return new SumConverter<SumType<FullDocumentDiagnosticReport, UnchangedDocumentDiagnosticReport>>();
+        if (typeToConvert == typeof(SumType<InlineCompletionItem[], InlineCompletionList>))
+            return new SumConverter<SumType<InlineCompletionItem[], InlineCompletionList>>();
+        if (typeToConvert == typeof(SumType<InlineValueText, InlineValueVariableLookup, InlineValueEvaluatableExpression>))
+            return new SumConverter<SumType<InlineValueText, InlineValueVariableLookup, InlineValueEvaluatableExpression>>();
+        if (typeToConvert == typeof(SumType<Location, Location[], LocationLink[]>))
+            return new SumConverter<SumType<Location, Location[], LocationLink[]>>();
+        if (typeToConvert == typeof(SumType<Location, Location[], DocumentLink[]>))
+            return new SumConverter<SumType<Location, Location[], DocumentLink[]>>();
+        if (typeToConvert == typeof(SumType<Location, WorkspaceSymbolLocation>))
+            return new SumConverter<SumType<Location, WorkspaceSymbolLocation>>();
+        if (typeToConvert == typeof(SumType<Location[], LocationLink[]>))
+            return new SumConverter<SumType<Location[], LocationLink[]>>();
+        if (typeToConvert == typeof(SumType<Location[], VSInternalReferenceItem[]>))
+            return new SumConverter<SumType<Location[], VSInternalReferenceItem[]>>();
+        if (typeToConvert == typeof(SumType<NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions>))
+            return new SumConverter<SumType<NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<Range, InsertReplaceRange>))
+            return new SumConverter<SumType<Range, InsertReplaceRange>>();
+        if (typeToConvert == typeof(SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>))
+            return new SumConverter<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>();
+        if (typeToConvert == typeof(SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>))
+            return new SumConverter<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport>>();
+        if (typeToConvert == typeof(SumType<RenameRange, DefaultBehaviorPrepareRename, Range>))
+            return new SumConverter<SumType<RenameRange, DefaultBehaviorPrepareRename, Range>>();
+        if (typeToConvert == typeof(SumType<SemanticTokens, SemanticTokensDelta>))
+            return new SumConverter<SumType<SemanticTokens, SemanticTokensDelta>>();
+        if (typeToConvert == typeof(SumType<SemanticTokensOptions, SemanticTokensRegistrationOptions>))
+            return new SumConverter<SumType<SemanticTokensOptions, SemanticTokensRegistrationOptions>>();
+        if (typeToConvert == typeof(SumType<SymbolInformation[], DocumentSymbol[]>))
+            return new SumConverter<SumType<SymbolInformation[], DocumentSymbol[]>>();
+        if (typeToConvert == typeof(SumType<SymbolInformation[], WorkspaceSymbol[]>))
+            return new SumConverter<SumType<SymbolInformation[], WorkspaceSymbol[]>>();
+        if (typeToConvert == typeof(SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>))
+            return new SumConverter<SumType<TextDocumentContentChangePartial, TextDocumentContentChangeWholeDocument>>();
+        if (typeToConvert == typeof(SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>))
+            return new SumConverter<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>();
+        if (typeToConvert == typeof(SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]>))
+            return new SumConverter<SumType<TextDocumentEdit[], SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]>>();
+        if (typeToConvert == typeof(SumType<TextEdit, AnnotatedTextEdit>))
+            return new SumConverter<SumType<TextEdit, AnnotatedTextEdit>>();
+        if (typeToConvert == typeof(SumType<TextEdit, InsertReplaceEdit>))
+            return new SumConverter<SumType<TextEdit, InsertReplaceEdit>>();
+        if (typeToConvert == typeof(SumType<VSInternalContinueCharacterSingle, VSInternalContinueCharacterRange, VSInternalContinueCharacterClass>))
+            return new SumConverter<SumType<VSInternalContinueCharacterSingle, VSInternalContinueCharacterRange, VSInternalContinueCharacterClass>>();
+        if (typeToConvert == typeof(SumType<VSInternalReferenceItem, Location>))
+            return new SumConverter<SumType<VSInternalReferenceItem, Location>>();
+        if (typeToConvert == typeof(SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>))
+            return new SumConverter<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>();
+        if (typeToConvert == typeof(SumType<WorkspaceFolder, DocumentUri>))
+            return new SumConverter<SumType<WorkspaceFolder, DocumentUri>>();
+        if (typeToConvert == typeof(SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>))
+            return new SumConverter<SumType<WorkspaceFullDocumentDiagnosticReport, WorkspaceUnchangedDocumentDiagnosticReport>>();
+        if (typeToConvert == typeof(SumType<bool, SemanticTokensFullOptions>))
+            return new SumConverter<SumType<bool, SemanticTokensFullOptions>>();
+        if (typeToConvert == typeof(SumType<bool, int, string>))
+            return new SumConverter<SumType<bool, int, string>>();
+        if (typeToConvert == typeof(SumType<int, string>))
+            return new SumConverter<SumType<int, string>>();
+        if (typeToConvert == typeof(SumType<string, bool>))
+            return new SumConverter<SumType<string, bool>>();
+        if (typeToConvert == typeof(SumType<string, int, bool, string[]>))
+            return new SumConverter<SumType<string, int, bool, string[]>>();
+        if (typeToConvert == typeof(SumType<string, InlayHintLabelPart[]>))
+            return new SumConverter<SumType<string, InlayHintLabelPart[]>>();
+        if (typeToConvert == typeof(SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>))
+            return new SumConverter<SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>>();
+        if (typeToConvert == typeof(SumType<string, MarkedString>))
+            return new SumConverter<SumType<string, MarkedString>>();
+        if (typeToConvert == typeof(SumType<string, MarkupContent>))
+            return new SumConverter<SumType<string, MarkupContent>>();
+        if (typeToConvert == typeof(SumType<string, NotebookDocumentFilter>))
+            return new SumConverter<SumType<string, NotebookDocumentFilter>>();
+        if (typeToConvert == typeof(SumType<string, RelativePattern>))
+            return new SumConverter<SumType<string, RelativePattern>>();
+        if (typeToConvert == typeof(SumType<string, StringValue>))
+            return new SumConverter<SumType<string, StringValue>>();
+        if (typeToConvert == typeof(SumType<string, Tuple<int, int>>))
+            return new SumConverter<SumType<string, Tuple<int, int>>>();
+        if (typeToConvert == typeof(SumType<string[], VSInternalCommitCharacter[]>))
+            return new SumConverter<SumType<string[], VSInternalCommitCharacter[]>>();
+#pragma warning restore CS0618
+
+        throw new NotSupportedException($"Missing statically registered JSON converter for union type '{typeToConvert}'.");
     }
 
     internal sealed class SumTypeInfoCache
@@ -47,26 +190,17 @@ internal sealed class SumConverter : JsonConverterFactory
 
         private readonly IReadOnlyList<UnionTypeInfo> objectUnionTypeInfos;
 
-        public SumTypeInfoCache(Type sumTypeType)
+        public SumTypeInfoCache(IReadOnlyList<UnionTypeInfo> unionTypeInfos)
         {
             var allUnionTypeInfosSet = new List<UnionTypeInfo>();
             List<UnionTypeInfo>? primitiveUnionTypeInfosSet = null;
             List<UnionTypeInfo>? arrayUnionTypeInfosSet = null;
             List<UnionTypeInfo>? objectUnionTypeInfosSet = null;
 
-            // If the SumType is a nullable extract the underlying type and re-assign
-            sumTypeType = NormalizeToNonNullable(sumTypeType);
-
-            var typeInfo = sumTypeType.GetTypeInfo();
-            var parameterTypes = typeInfo.GenericTypeArguments;
-            foreach (var parameterType in parameterTypes)
+            foreach (var unionTypeInfo in unionTypeInfos)
             {
-                var parameterTypeInfo = NormalizeToNonNullable(parameterType).GetTypeInfo();
-                var declaredConstructor = typeInfo.GetConstructor([parameterType]) ??
-                    throw new ArgumentException(nameof(sumTypeType), "All constructor parameter types must be represented in the generic type arguments of the SumType");
-
-                var kindAttribute = parameterType.GetCustomAttribute<KindAttribute>();
-                var unionTypeInfo = new UnionTypeInfo(parameterType, declaredConstructor, kindAttribute);
+                var parameterType = unionTypeInfo.Type;
+                var parameterTypeInfo = NormalizeToNonNullable(parameterType);
                 allUnionTypeInfosSet.Add(unionTypeInfo);
 
                 if (parameterTypeInfo.IsPrimitive ||
@@ -132,54 +266,50 @@ internal sealed class SumConverter : JsonConverterFactory
             // System.Text.Json can pre-compile the generic SumType<> constructor call so we don't need to do it through reflection every time.
             internal delegate T StjReader<T>(ref Utf8JsonReader reader, JsonSerializerOptions options);
 
-            private static readonly Type[] expressionLambdaMethodTypes = [typeof(Type), typeof(Expression), typeof(ParameterExpression[])];
-            private static readonly MethodInfo expressionLambdaMethod = typeof(Expression)
-                .GetMethods()
-                .Where(mi =>
-                                !mi.IsGenericMethod &&
-                                mi.Name == "Lambda" &&
-                                mi.GetParameters()
-                                .Select(p => p.ParameterType)
-                                .SequenceEqual(expressionLambdaMethodTypes))
-                .Single();
-
-            private static readonly Type[] jsonSerializerDeserializeMethodTypes = [typeof(Utf8JsonReader).MakeByRefType(), typeof(JsonSerializerOptions)];
-            private static readonly MethodInfo jsonSerializerDeserializeMethod = typeof(JsonSerializer)
-                .GetMethods()
-                .Where(mi =>
-                                mi.IsGenericMethod &&
-                                mi.Name == "Deserialize" &&
-                                mi.GetParameters()
-                                .Select(p => p.ParameterType)
-                                .SequenceEqual(jsonSerializerDeserializeMethodTypes))
-                .Single();
-
-            public UnionTypeInfo(Type type, ConstructorInfo constructor, KindAttribute? kindAttribute)
+            public UnionTypeInfo(Type type, Delegate reader)
             {
                 this.Type = type ?? throw new ArgumentNullException(nameof(type));
-                this.Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
-                this.KindAttribute = kindAttribute;
-
-                var param1 = Expression.Parameter(typeof(Utf8JsonReader).MakeByRefType(), "reader");
-                var param2 = Expression.Parameter(typeof(JsonSerializerOptions), "options");
-                var body = Expression.New(
-                    constructor,
-                    Expression.Call(
-                        jsonSerializerDeserializeMethod.MakeGenericMethod(type),
-                        param1,
-                        param2));
-                var expression = (LambdaExpression)expressionLambdaMethod.Invoke(null, [typeof(StjReader<>).MakeGenericType(constructor.DeclaringType), body, new[] { param1, param2 }])!;
-
-                StjReaderFunction = expression.Compile();
+                this.KindAttribute = GetKind(type);
+                StjReaderFunction = reader;
             }
 
             public Type Type { get; }
 
-            public ConstructorInfo Constructor { get; }
-
             public KindAttribute? KindAttribute { get; }
 
-            public object StjReaderFunction { get; }
+            public Delegate StjReaderFunction { get; }
+
+            internal static KindAttribute? GetKind(Type type)
+            {
+                if (type == typeof(CreateFile))
+                    return new("create");
+                if (type == typeof(DeleteFile))
+                    return new("delete");
+                if (type == typeof(RenameFile))
+                    return new("rename");
+                if (type == typeof(FullDocumentDiagnosticReport) ||
+                    type == typeof(RelatedFullDocumentDiagnosticReport) ||
+                    type == typeof(WorkspaceFullDocumentDiagnosticReport))
+                {
+                    return new(DocumentDiagnosticReportKind.Full);
+                }
+
+                if (type == typeof(UnchangedDocumentDiagnosticReport) ||
+                    type == typeof(RelatedUnchangedDocumentDiagnosticReport) ||
+                    type == typeof(WorkspaceUnchangedDocumentDiagnosticReport))
+                {
+                    return new(DocumentDiagnosticReportKind.Unchanged);
+                }
+
+                if (type == typeof(VSInternalContinueCharacterSingle))
+                    return new(VSInternalContinueCharacterSingle.Type, "_vs_type");
+                if (type == typeof(VSInternalContinueCharacterRange))
+                    return new(VSInternalContinueCharacterRange.Type, "_vs_type");
+                if (type == typeof(VSInternalContinueCharacterClass))
+                    return new(VSInternalContinueCharacterClass.Type, "_vs_type");
+
+                return null;
+            }
         }
     }
 }
@@ -194,12 +324,10 @@ internal sealed class SumConverter<T> : JsonConverter<T>
         if (reader.TokenType == JsonTokenType.Null)
         {
             // We shouldn't really ever have a non-Nullable SumType being received as null but, if we do, return an "empty" SumType
-            return (T)Activator.CreateInstance(objectType)!;
+            return default;
         }
 
-        // objectType will be one of the various SumType variants. In order for this converter to work with all SumTypes it has to use reflection.
-        // This method works by attempting to deserialize the json into each of the type parameters to a SumType and stops at the first success.
-        var sumTypeInfoCache = SumConverter.SumTypeCache.GetOrAdd(objectType, (t) => new SumConverter.SumTypeInfoCache(t));
+        var sumTypeInfoCache = SumConverter.SumTypeCache.GetOrAdd(objectType, static _ => default(T).CreateTypeInfo());
 
         var applicableUnionTypeInfos = sumTypeInfoCache.GetApplicableInfos(reader.TokenType);
         if (applicableUnionTypeInfos.Count > 0)
@@ -301,7 +429,7 @@ internal sealed class SumConverter<T> : JsonConverter<T>
             result = ((SumConverter.SumTypeInfoCache.UnionTypeInfo.StjReader<T>)unionTypeInfo.StjReaderFunction).Invoke(ref reader, options);
             return true;
         }
-        catch
+        catch (Exception ex) when (ex is JsonException or InvalidOperationException or FormatException or OverflowException)
         {
             reader = backupReader;
             result = default!;

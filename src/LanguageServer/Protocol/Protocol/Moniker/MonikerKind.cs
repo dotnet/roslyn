@@ -16,8 +16,10 @@ using System.Text.Json.Serialization;
 /// <remarks>Since LSP 3.16</remarks>
 [JsonConverter(typeof(StringEnumConverter<MonikerKind>))]
 [TypeConverter(typeof(StringEnumConverter<MonikerKind>.TypeConverter))]
-internal readonly record struct MonikerKind(string Value) : IStringEnum
+internal readonly record struct MonikerKind(string Value) : IStringEnum<MonikerKind>
 {
+    MonikerKind IStringEnum<MonikerKind>.Create(string value) => new(value);
+
     /// <summary>
     /// The moniker represent a symbol that is imported into a project
     /// </summary>

@@ -6,8 +6,10 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO.Pipes;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization.Metadata;
 using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.Extensions.Logging;
@@ -216,7 +218,8 @@ public partial class AbstractLanguageServerClientTests
 
             Assert.False(_thinClientProcess.HasExited);
 
-            var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+            var messageFormatter = LanguageServerHost.CreateJsonMessageFormatter();
+            messageFormatter.JsonSerializerOptions.TypeInfoResolverChain.Add(new DefaultJsonTypeInfoResolver());
             _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(sendingStream, receivingStream, messageFormatter))
             {
                 AllowModificationWhileListening = true,

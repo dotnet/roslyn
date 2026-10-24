@@ -5,6 +5,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
@@ -224,7 +225,7 @@ internal sealed class RazorFormattingService : IRazorFormattingService
         var logger = _formattingLoggerFactory.CreateLogger(documentSnapshot.FilePath, formattingType);
         logger?.LogObject("FileKind", documentSnapshot.FileKind);
         logger?.LogObject("Options", options);
-        logger?.LogObject("Parameters", new { hostDocumentIndex, triggerCharacter, collapseChanges, includeCSharpLanguageFeatureEdits, validate, declarationDocument });
+        logger?.LogObject("Parameters", new FormattingLogParameters(hostDocumentIndex, triggerCharacter, collapseChanges, includeCSharpLanguageFeatureEdits, validate, declarationDocument));
         logger?.LogObject("GeneratedDocumentChanges", generatedDocumentChanges);
         logger?.LogSourceText("InitialDocument", codeDocument.Source.Text);
         FormattingEngine.LogSyntaxTree(logger, codeDocument);
@@ -292,6 +293,14 @@ internal sealed class RazorFormattingService : IRazorFormattingService
     {
         return FormattingEngine.ReplaceInChanges(razorChanges, "/*$0*/", "$0");
     }
+
+    internal sealed record FormattingLogParameters(
+        [property: JsonPropertyName("hostDocumentIndex")] int HostDocumentIndex,
+        [property: JsonPropertyName("triggerCharacter")] char TriggerCharacter,
+        [property: JsonPropertyName("collapseChanges")] bool CollapseChanges,
+        [property: JsonPropertyName("includeCSharpLanguageFeatureEdits")] bool IncludeCSharpLanguageFeatureEdits,
+        [property: JsonPropertyName("validate")] bool Validate,
+        [property: JsonPropertyName("declarationDocument")] bool? DeclarationDocument);
 
     internal TestAccessor GetTestAccessor() => new(this);
 

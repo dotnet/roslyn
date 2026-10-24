@@ -16,8 +16,10 @@ using System.Text.Json.Serialization;
 /// <remarks>Since LSP 3.16</remarks>
 [JsonConverter(typeof(StringEnumConverter<SemanticTokenFormat>))]
 [TypeConverter(typeof(StringEnumConverter<SemanticTokenFormat>.TypeConverter))]
-internal readonly record struct SemanticTokenFormat(string Value) : IStringEnum
+internal readonly record struct SemanticTokenFormat(string Value) : IStringEnum<SemanticTokenFormat>
 {
+    SemanticTokenFormat IStringEnum<SemanticTokenFormat>.Create(string value) => new(value);
+
     /// <summary>
     /// Tokens are described using relative positions.
     /// </summary>
