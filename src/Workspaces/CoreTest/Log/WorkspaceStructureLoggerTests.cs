@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Logging;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -200,18 +201,25 @@ public sealed class WorkspaceStructureLoggerTests
                 cts.Token));
     }
 
+    [Theory]
+    [InlineData("", "%USERPROFILE%")]
+    [InlineData("%USERPROFILE%", "%userprofile%")]
+    public void ReplacePathComponent_NoOpReplacement_ReturnsOriginal(string oldValue, string newValue)
+    {
+        const string path = "/test/path";
+
+        Assert.Equal(path, TestWorkspaceStructureLogger.ReplacePathComponentForTest(path, oldValue, newValue));
+    }
+
     private sealed class TestWorkspaceStructureLogger : WorkspaceStructureLogger
     {
+        public static string ReplacePathComponentForTest(string path, string oldValue, string newValue)
+            => ReplacePathComponent(path, oldValue, newValue);
+
         protected override Task<IEnumerable<XElement>> CreateAdditionalProjectElementsAsync(Project project, CancellationToken cancellationToken)
         {
             return Task.FromResult<IEnumerable<XElement>>(
                 [new XElement("customElement", new XAttribute("key", "value"))]);
         }
-    }
-
-    // We use this implementation because Progress<T> posts callbacks asynchronously on net472.
-    private sealed class SynchronousProgress<T>(Action<T> handler) : IProgress<T>
-    {
-        public void Report(T value) => handler(value);
     }
 }
