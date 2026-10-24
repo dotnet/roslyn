@@ -59,19 +59,19 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
 
     private CustomPopupPlacement[] PlaceHoverPopup(Size popupSize, Size targetSize, Point offset)
     {
-        // Align the rendered icons, including the flyout chrome and device-pixel rounding.
-        var buttonCenter = HoverButton.TranslatePoint(new Point(HoverButton.ActualWidth / 2, HoverButton.ActualHeight / 2), HoverPopup.Child);
+        // Match image origins and leave device-pixel rounding to the popup.
+        var imageOrigin = HoverImage.TranslatePoint(default, HoverPopup.Child);
         var scaleX = popupSize.Width / HoverPopup.Child.RenderSize.Width;
         var scaleY = popupSize.Height / HoverPopup.Child.RenderSize.Height;
         return [new CustomPopupPlacement(
-            new Point(Math.Floor(-buttonCenter.X * scaleX), Math.Floor(-buttonCenter.Y * scaleY)),
+            new Point(-imageOrigin.X * scaleX, -imageOrigin.Y * scaleY),
             PopupPrimaryAxis.None)];
     }
 
     private void OpenHoverPopup()
     {
         HoverPopup.PlacementRectangle = new Rect(
-            GlyphImage.TranslatePoint(new Point(GlyphImage.ActualWidth / 2, GlyphImage.ActualHeight / 2), this),
+            GlyphImage.TranslatePoint(default, this),
             default(Size));
         HoverPopup.IsOpen = true;
     }
@@ -123,7 +123,7 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
                 && !IsKeyboardFocusWithin
                 && !HoverButton.IsKeyboardFocusWithin
                 && !IsMouseOver
-                && !HoverPopup.Child.IsMouseOver)
+                && !HoverButton.IsMouseOver)
             {
                 CloseHoverPopup();
             }

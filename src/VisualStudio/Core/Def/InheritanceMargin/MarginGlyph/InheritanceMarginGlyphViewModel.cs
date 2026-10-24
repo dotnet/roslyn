@@ -11,6 +11,7 @@ using System.Windows.Documents;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Text.Classification;
 using Roslyn.Utilities;
@@ -50,13 +51,12 @@ internal sealed class InheritanceMarginGlyphViewModel
                 {
                     var member = _tag.MembersOnLine[0];
 
-                    // Here we want to show a classified text with loc text,
-                    // e.g. 'Bar' is inherited.
-                    // But the classified text are inlines, so can't directly use string.format to generate the string
+                    // Preserve symbol classification within the localized tooltip.
                     var inlines = member.DisplayTexts.ToInlines(_classificationFormatMap, _classificationTypeMap);
-                    var startOfThePlaceholder = ServicesVSResources._0_is_inherited.IndexOf("{0}", StringComparison.Ordinal);
-                    var prefixString = ServicesVSResources._0_is_inherited[..startOfThePlaceholder];
-                    var suffixString = ServicesVSResources._0_is_inherited[(startOfThePlaceholder + "{0}".Length)..];
+                    var format = GetToolTipFormat(member);
+                    var startOfThePlaceholder = format.IndexOf("{0}", StringComparison.Ordinal);
+                    var prefixString = format[..startOfThePlaceholder];
+                    var suffixString = format[(startOfThePlaceholder + "{0}".Length)..];
                     inlines.Insert(0, new Run(prefixString));
                     inlines.Add(new Run(suffixString));
 
@@ -68,7 +68,7 @@ internal sealed class InheritanceMarginGlyphViewModel
                 {
                     field = new TextBlock
                     {
-                        Text = ServicesVSResources.Multiple_members_are_inherited
+                        Text = ServicesVSResources.Show_inheritance_for_members_on_this_line
                     };
                 }
             }
@@ -131,16 +131,44 @@ internal sealed class InheritanceMarginGlyphViewModel
         {
             var member = tag.MembersOnLine[0];
 
-            var automationName = string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
+            var automationName = string.Format(GetToolTipFormat(member), member.DisplayTexts.JoinText());
             var menuItemViewModels = InheritanceMarginHelpers.CreateModelsForMarginItem(member);
             return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName, scaleFactor, menuItemViewModels);
         }
         else
         {
             // Same automation name can't be set for control for accessibility purpose. So add the line number info.
-            var automationName = string.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
+            var automationName = string.Format(ServicesVSResources.Show_inheritance_for_members_on_line_0, tag.LineNumber);
             var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForMultipleMembers(tag.MembersOnLine);
             return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName, scaleFactor, menuItemViewModels);
         }
+    }
+
+    private static string GetToolTipFormat(InheritanceMarginItem member)
+    {
+        var relationships = InheritanceRelationship.None;
+        foreach (var target in member.TargetItems)
+            relationships |= target.RelationToMember;
+
+        return relationships switch
+        {
+            InheritanceRelationship.BaseType => ServicesVSResources.Show_base_types_for_0,
+            InheritanceRelationship.DerivedType => ServicesVSResources.Show_derived_types_for_0,
+            InheritanceRelationship.ImplementedInterface => ServicesVSResources.Show_implemented_interfaces_for_0,
+            InheritanceRelationship.InheritedInterface => ServicesVSResources.Show_base_interfaces_for_0,
+            InheritanceRelationship.ImplementingType or InheritanceRelationship.ImplementingMember => ServicesVSResources.Show_implementations_for_0,
+            InheritanceRelationship.ImplementedMember => ServicesVSResources.Show_implemented_members_for_0,
+            InheritanceRelationship.OverriddenMember => ServicesVSResources.Show_base_members_for_0,
+            InheritanceRelationship.OverridingMember => ServicesVSResources.Show_overrides_for_0,
+            InheritanceRelationship.BaseType | InheritanceRelationship.ImplementedInterface
+                => ServicesVSResources.Show_base_types_and_implemented_interfaces_for_0,
+            InheritanceRelationship.BaseType | InheritanceRelationship.DerivedType
+                => ServicesVSResources.Show_base_and_derived_types_for_0,
+            InheritanceRelationship.ImplementedMember | InheritanceRelationship.OverriddenMember
+                => ServicesVSResources.Show_implemented_and_overridden_members_for_0,
+            InheritanceRelationship.OverriddenMember | InheritanceRelationship.OverridingMember
+                => ServicesVSResources.Show_base_members_and_overrides_for_0,
+            _ => ServicesVSResources.Show_inheritance_for_0,
+        };
     }
 }

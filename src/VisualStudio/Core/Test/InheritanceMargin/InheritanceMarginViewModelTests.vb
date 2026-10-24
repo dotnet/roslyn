@@ -158,8 +158,8 @@ public interface IBar
 public class Bar : IBar
 {
 }"
-            Dim tooltipTextForIBar = String.Format(ServicesVSResources._0_is_inherited, "interface IBar")
-            Dim tooltipTextForBar = String.Format(ServicesVSResources._0_is_inherited, "class Bar")
+            Dim tooltipTextForIBar = String.Format(ServicesVSResources.Show_implementations_for_0, "interface IBar")
+            Dim tooltipTextForBar = String.Format(ServicesVSResources.Show_implemented_interfaces_for_0, "class Bar")
             Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, GlyphViewModelData) From {
                 {2, New GlyphViewModelData(
                     KnownMonikers.Implemented,
@@ -190,10 +190,10 @@ public class Bar : AbsBar
     public override void Foo();
 }"
 
-            Dim tooltipTextForAbsBar = String.Format(ServicesVSResources._0_is_inherited, "class AbsBar")
-            Dim tooltipTextForAbstractFoo = String.Format(ServicesVSResources._0_is_inherited, "abstract void AbsBar.Foo()")
-            Dim tooltipTextForBar = String.Format(ServicesVSResources._0_is_inherited, "class Bar")
-            Dim tooltipTextForOverrideFoo = String.Format(ServicesVSResources._0_is_inherited, "override void Bar.Foo()")
+            Dim tooltipTextForAbsBar = String.Format(ServicesVSResources.Show_derived_types_for_0, "class AbsBar")
+            Dim tooltipTextForAbstractFoo = String.Format(ServicesVSResources.Show_overrides_for_0, "abstract void AbsBar.Foo()")
+            Dim tooltipTextForBar = String.Format(ServicesVSResources.Show_base_types_for_0, "class Bar")
+            Dim tooltipTextForOverrideFoo = String.Format(ServicesVSResources.Show_base_members_for_0, "override void Bar.Foo()")
             Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, GlyphViewModelData) From {
                 {2, New GlyphViewModelData(
                     KnownMonikers.Overridden,
@@ -232,9 +232,9 @@ public interface IBar1 { }
 public interface IBar2 : IBar1 { }
 public interface IBar3 : IBar2 { }
 "
-            Dim tooltipTextForIBar1 = String.Format(ServicesVSResources._0_is_inherited, "interface IBar1")
-            Dim tooltipTextForIBar2 = String.Format(ServicesVSResources._0_is_inherited, "interface IBar2")
-            Dim tooltipTextForIBar3 = String.Format(ServicesVSResources._0_is_inherited, "interface IBar3")
+            Dim tooltipTextForIBar1 = String.Format(ServicesVSResources.Show_implementations_for_0, "interface IBar1")
+            Dim tooltipTextForIBar2 = String.Format(ServicesVSResources.Show_inheritance_for_0, "interface IBar2")
+            Dim tooltipTextForIBar3 = String.Format(ServicesVSResources.Show_base_interfaces_for_0, "interface IBar3")
             Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, GlyphViewModelData) From {
                 {2, New GlyphViewModelData(
                     KnownMonikers.Implemented,
@@ -270,11 +270,11 @@ public class Bar1 {}
 public class Bar2 : Bar1 {}
 public class Bar3 : Bar2 {}"
 
-            Dim tooltipTextForBar1 = String.Format(ServicesVSResources._0_is_inherited, "class Bar1")
+            Dim tooltipTextForBar1 = String.Format(ServicesVSResources.Show_derived_types_for_0, "class Bar1")
             Dim targetForBar1 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden)).
                 Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing)).Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing))
 
-            Dim tooltipTextForBar2 = String.Format(ServicesVSResources._0_is_inherited, "class Bar2")
+            Dim tooltipTextForBar2 = String.Format(ServicesVSResources.Show_base_and_derived_types_for_0, "class Bar2")
 
             Dim targetForBar2 = ImmutableArray.Create(Of MenuItemViewModel)(
                 New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding)).
@@ -282,7 +282,7 @@ public class Bar3 : Bar2 {}"
                         Add(New HeaderMenuItemViewModel(ServicesVSResources.Derived_types, KnownMonikers.Overridden)).
                     Add(New TargetMenuItemViewModel("Bar3", KnownMonikers.ClassPublic, Nothing))
 
-            Dim tooltipTextForBar3 = String.Format(ServicesVSResources._0_is_inherited, "class Bar3")
+            Dim tooltipTextForBar3 = String.Format(ServicesVSResources.Show_base_types_for_0, "class Bar3")
             Dim targetForBar3 = ImmutableArray.Create(Of MenuItemViewModel)(New HeaderMenuItemViewModel(ServicesVSResources.Base_Types, KnownMonikers.Overriding)).
                 Add(New TargetMenuItemViewModel("Bar1", KnownMonikers.ClassPublic, Nothing)).
                 Add(New TargetMenuItemViewModel("Bar2", KnownMonikers.ClassPublic, Nothing))
@@ -330,10 +330,10 @@ public class BarSample : IBar1
     public virtual event EventHandler e1, e2;
 }"
 
-            Dim tooltipTextForIBar1 = String.Format(ServicesVSResources._0_is_inherited, "interface IBar1")
-            Dim tooltipTextForE1AndE2InInterface = ServicesVSResources.Multiple_members_are_inherited
-            Dim tooltipTextForBarSample = String.Format(ServicesVSResources._0_is_inherited, "class BarSample")
-            Dim tooltipTextForE1AndE2InBarSample = ServicesVSResources.Multiple_members_are_inherited
+            Dim tooltipTextForIBar1 = String.Format(ServicesVSResources.Show_implementations_for_0, "interface IBar1")
+            Dim tooltipTextForE1AndE2InInterface = ServicesVSResources.Show_inheritance_for_members_on_this_line
+            Dim tooltipTextForBarSample = String.Format(ServicesVSResources.Show_implemented_interfaces_for_0, "class BarSample")
+            Dim tooltipTextForE1AndE2InBarSample = ServicesVSResources.Show_inheritance_for_members_on_this_line
             Return VerifyAsync(markup, LanguageNames.CSharp, New Dictionary(Of Integer, GlyphViewModelData) From {
                 {3, New GlyphViewModelData(
                     KnownMonikers.Implemented,
@@ -345,7 +345,7 @@ public class BarSample : IBar1
                 {5, New GlyphViewModelData(
                     KnownMonikers.Implemented,
                     tooltipTextForE1AndE2InInterface,
-                    String.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, 5),
+                    String.Format(ServicesVSResources.Show_inheritance_for_members_on_line_0, 5),
                     1,
                     New MenuItemViewModelData("event EventHandler IBar1.e1", "event EventHandler IBar1.e1", KnownMonikers.EventPublic, GetType(MemberMenuItemViewModel),
                         New MenuItemViewModelData(ServicesVSResources.Implementing_members, ServicesVSResources.Implementing_members, KnownMonikers.Implemented, GetType(HeaderMenuItemViewModel)),
@@ -363,7 +363,7 @@ public class BarSample : IBar1
                 {10, New GlyphViewModelData(
                     KnownMonikers.Implementing,
                     tooltipTextForE1AndE2InBarSample,
-                    String.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, 10),
+                    String.Format(ServicesVSResources.Show_inheritance_for_members_on_line_0, 10),
                     1,
                     New MenuItemViewModelData("virtual event EventHandler BarSample.e1", "virtual event EventHandler BarSample.e1", KnownMonikers.EventPublic, GetType(MemberMenuItemViewModel),
                         New MenuItemViewModelData(ServicesVSResources.Implemented_members, ServicesVSResources.Implemented_members, KnownMonikers.Implementing, GetType(HeaderMenuItemViewModel)),

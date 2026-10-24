@@ -23,6 +23,10 @@
              UseLayoutRounding="True">
   <UserControl.ToolTip>
     <ctrls:ToolTip DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+      <ctrls:ToolTip.LayoutTransform>
+        <ScaleTransform ScaleX="{Binding ScaleFactor, Mode=OneTime}"
+                        ScaleY="{Binding ScaleFactor, Mode=OneTime}" />
+      </ctrls:ToolTip.LayoutTransform>
       <ctrls:ToolTip.Style>
         <Style TargetType="{x:Type ctrls:ToolTip}">
           <Style.Triggers>
@@ -41,7 +45,17 @@
                     HorizontalAlignment="Center"
                     Moniker="{Binding ImageMoniker, Mode=OneTime}"
                     VerticalAlignment="Center"
-                    Width="{x:Static styles:Sizes.IconS}" />
+                    Width="{x:Static styles:Sizes.IconS}">
+      <img:CrispImage.Style>
+        <Style TargetType="{x:Type img:CrispImage}">
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding IsOpen, ElementName=HoverPopup}" Value="True">
+              <Setter Property="Opacity" Value="0" />
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </img:CrispImage.Style>
+    </img:CrispImage>
     <ctrls:Popup x:Name="HoverPopup"
                  DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
                  FocusOnOpen="{Binding PlacementTarget.IsKeyboardFocusWithin, RelativeSource={RelativeSource Self}}"
@@ -50,36 +64,40 @@
                  PlacementTarget="{Binding ElementName=Glyph}">
       <ctrls:Popup.Resources>
         <Style x:Key="HoverFlyoutStyle" TargetType="{x:Type ctrls:FlyoutSurface}">
+          <Setter Property="Background" Value="Transparent" />
           <Setter Property="BorderThickness" Value="0" />
           <EventSetter Event="MouseLeave" Handler="InheritanceMargin_OnMouseLeave" />
         </Style>
       </ctrls:Popup.Resources>
-      <ctrls:DropDownButton x:Name="HoverButton"
-                            AutomationProperties.Name="{Binding AutomationName, Mode=OneTime}"
-                            CornerRadius="{x:Static styles:CornerRadii.L}"
-                            Padding="0"
-                            ToolTip="{Binding PlacementTarget.ToolTip, ElementName=HoverPopup}"
-                            Cursor="Arrow"
-                            DropDown="{Binding ContextMenu, RelativeSource={RelativeSource Self}}"
-                            Height="{x:Static styles:Sizes.ControlMinHeight}"
-                            IsKeyboardFocusWithinChanged="InheritanceMargin_OnIsKeyboardFocusWithinChanged"
-                            PreviewKeyDown="HoverButton_OnPreviewKeyDown"
-                            ShowDropDownGlyph="False"
-                            Width="{x:Static styles:Sizes.ControlMinWidth}">
-        <ctrls:DropDownButton.ContextMenu>
-          <local:InheritanceMarginContextMenu x:Name="InheritanceMenu"
-                                             MenuItem.Click="TargetMenuItem_OnClick"
-                                             Closed="ContextMenu_OnClose"
-                                             DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
-                                             Opened="ContextMenu_OnOpen" />
-        </ctrls:DropDownButton.ContextMenu>
-        <img:CrispImage img:CrispImage.ScaleFactor="{Binding ScaleFactor, Mode=OneTime}"
-                        Height="{x:Static styles:Sizes.IconS}"
-                        HorizontalAlignment="Center"
-                        Moniker="{Binding ImageMoniker, Mode=OneTime}"
-                        VerticalAlignment="Center"
-                        Width="{x:Static styles:Sizes.IconS}" />
-      </ctrls:DropDownButton>
+      <Border Height="{x:Static styles:Sizes.ControlMinHeight}"
+              Width="{x:Static styles:Sizes.ControlMinWidth}">
+        <ctrls:DropDownButton x:Name="HoverButton"
+                              AutomationProperties.Name="{Binding AutomationName, Mode=OneTime}"
+                              DropDown="{Binding ContextMenu, RelativeSource={RelativeSource Self}}"
+                              CornerRadius="{x:Static styles:CornerRadii.L}"
+                              Padding="0"
+                              ToolTip="{Binding PlacementTarget.ToolTip, ElementName=HoverPopup}"
+                              Cursor="Arrow"
+                              IsKeyboardFocusWithinChanged="InheritanceMargin_OnIsKeyboardFocusWithinChanged"
+                              MouseLeave="InheritanceMargin_OnMouseLeave"
+                              PreviewKeyDown="HoverButton_OnPreviewKeyDown"
+                              ShowDropDownGlyph="False">
+          <ctrls:DropDownButton.ContextMenu>
+            <local:InheritanceMarginContextMenu x:Name="InheritanceMenu"
+                                               MenuItem.Click="TargetMenuItem_OnClick"
+                                               Closed="ContextMenu_OnClose"
+                                               DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                                               Opened="ContextMenu_OnOpen" />
+          </ctrls:DropDownButton.ContextMenu>
+          <img:CrispImage x:Name="HoverImage"
+                          img:CrispImage.ScaleFactor="{Binding ScaleFactor, Mode=OneTime}"
+                          Height="{x:Static styles:Sizes.IconS}"
+                          HorizontalAlignment="Center"
+                          Moniker="{Binding ImageMoniker, Mode=OneTime}"
+                          VerticalAlignment="Center"
+                          Width="{x:Static styles:Sizes.IconS}" />
+        </ctrls:DropDownButton>
+      </Border>
     </ctrls:Popup>
   </Grid>
 </UserControl>
