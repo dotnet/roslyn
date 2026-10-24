@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -28,6 +28,42 @@ public sealed class DotnetRootEnvCollection
 [Collection(DotnetRootEnvCollection.Name)]
 public class LsCacheRoundTripEquivalenceTests
 {
+	[Theory]
+	[InlineData("TargetFrameworkMoniker", ".NETCoreApp,Version=v10.0")]
+	[InlineData("NETCoreSdkVersion", "10.0.100")]
+	[InlineData("EnableHotReloadInRuntimeConfigDevFile", "false")]
+	[InlineData("HotReloadAutoRestart", "true")]
+	[InlineData("MetadataUpdaterSupport", "false")]
+	[InlineData("PublishAot", "true")]
+	[InlineData("PublishTrimmed", "true")]
+	[InlineData("StartupHookSupport", "false")]
+	[InlineData("Optimize", "true")]
+	[InlineData("DebugSymbols", "false")]
+	[InlineData("Configuration", "Debug")]
+	[InlineData("IntermediateOutputPath", "obj/Debug/net10.0/")]
+	[InlineData("HotReloadBrowserToolsAssetPrefix", "/_framework")]
+	[InlineData("StaticWebAssetsEnabled", "true")]
+	[InlineData("JSModulesEnabled", "true")]
+	[InlineData("WebAssemblyHotReloadCapabilities", "Baseline;AddMethodToExistingType")]
+	public async Task FullRoundTrip_PreservesHotReloadProperties(string name, string value)
+	{
+		Assert.Contains(name, ProjectProperties.All);
+		string projectFile = Path.GetFullPath("App.csproj");
+		string content = ProjectDataWriter.BuildContent(
+			projectFile, writeHeader: true, isPrimary: true, lastDtbSucceeded: true,
+			sliceDimensions: null, properties: [MakeKvp(name, value)],
+			commandLineArguments: null, sourceFiles: null, metadataReferences: null,
+			analyzerReferences: null, analyzerConfigFiles: null, additionalFiles: null, projectReferences: null);
+
+		using StringReader reader = new(content);
+		var slices = await ProductDataFromProjectDataAssembly.CacheFileReader.ReadFromAsync(
+			reader, new ProductDataFromProjectDataAssembly.CachePathResolver(),
+			Path.GetDirectoryName(projectFile)!, projectFile, expectedProjectFilePath: null,
+			stringPool: null, cancellationToken: TestContext.Current.CancellationToken);
+
+		Assert.Equal(value, Assert.Single(slices).Properties[name]);
+	}
+
 	[Fact]
 	public async Task FullRoundTrip_FrameworkPackEntries_AreReconstructedAfterRead()
 	{

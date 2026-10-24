@@ -161,6 +161,30 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	}
 
 	[Fact]
+	public async Task ProjectDataBuild_PersistsWebAssemblyHotReloadCapabilities()
+	{
+		string projectFile = this.WriteProject(
+			"App.csproj",
+			multiTargeting: false,
+			extraProperties: "<WebAssemblyHotReloadCapabilities>Baseline;AddMethodToExistingType</WebAssemblyHotReloadCapabilities>");
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:ProjectDataBuild",
+				"/p:DesignTimeBuild=true",
+				"/p:BuildingProject=false",
+				"/p:SkipCompilerExecution=true",
+				"/p:EnableProjectDataInProjectFolder=true",
+			]);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		string content = File.ReadAllText(projectFile + ".lscache").Replace("\r\n", "\n");
+		Assert.Contains("\nWebAssemblyHotReloadCapabilities=Baseline;AddMethodToExistingType\n", content);
+	}
+
+	[Fact]
 	public async Task ProjectDataBuild_AfterSdkImport_IncludesGeneratedAssemblyInfoInCache()
 	{
 		string projectFile = this.WriteProject(
