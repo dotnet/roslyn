@@ -3410,6 +3410,34 @@ Class C
             End Using
         End Function
 
+        <WorkItem("https://github.com/dotnet/roslyn/issues/78447")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function CompletionInPreprocessorWithDefinedSymbolInFile(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateTestStateFromWorkspace(
+                    <Workspace>
+                        <Project Language="Visual Basic" CommonReferences="true" PreprocessorSymbols="GOO=1,BAR=2,BAZ=3">
+                            <Document>
+#Const FOO = 4
+#Const UNDEFINED_1 = 0
+#Const UNDEFINED_2 = False
+#Const BAR = False
+
+#if $$
+                            </Document>
+                        </Project>
+                    </Workspace>,
+                              showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionItemsContainAll({"GOO", "BAR", "BAZ", "FOO", "True", "False"})
+                Await state.AssertCompletionItemsDoNotContainAny({"UNDEFINED_1", "UNDEFINED_2"})
+                state.SendTypeChars("GO")
+                state.SendTab()
+                Await state.AssertNoCompletionSession()
+                Assert.Contains("#if GOO", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <ExportLanguageService(GetType(ISnippetInfoService), LanguageNames.VisualBasic, ServiceLayer.Test), [Shared], PartNotDiscoverable>
         Friend Class MockSnippetInfoService
             Implements ISnippetInfoService
