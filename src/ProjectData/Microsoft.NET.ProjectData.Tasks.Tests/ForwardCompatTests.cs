@@ -1022,8 +1022,8 @@ public class ForwardCompatTests
 		// If this fails because you intentionally changed the emittable set: bump the minor in the
 		// cache schema (which flows to CacheFormat.VersionHeader) and update ExpectedMinor +
 		// ExpectedEmittableHash below to the values printed in the failure message.
-		const int ExpectedMinor = 2;
-		const string ExpectedEmittableHash = "4F7E8056D1E53C2805BA30975E889F762D97752B24BD69F77CFFF6233D1604E6";
+		const int ExpectedMinor = 3;
+		const string ExpectedEmittableHash = "5777C028431F0B257CE5FC8D1EAEC582339355CFD99B3E4B2F713D8E1FCF1377";
 
 		// Metadata is hashed AS item-type:key pairs (not a flattened union) so that reusing an
 		// existing metadata NAME on a different item type — which leaves ProjectItems.AllMetadata
