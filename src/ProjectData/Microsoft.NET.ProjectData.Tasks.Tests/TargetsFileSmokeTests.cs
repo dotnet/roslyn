@@ -21,6 +21,10 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		AppContext.BaseDirectory,
 		"Microsoft.NET.ProjectData.targets");
 
+	private static readonly string SchemaPropsFile = Path.Combine(
+		AppContext.BaseDirectory,
+		"Microsoft.NET.ProjectData.Schema.props");
+
 	/// <summary>
 	/// Safety-net timeout for each spawned <c>dotnet msbuild</c> invocation. If a child MSBuild/restore
 	/// process (or a lingering MSBuild worker node / build server that inherited the redirected stdout/stderr
@@ -47,11 +51,14 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	}
 
 	[Fact]
-	public void TargetsFileShipsAlongsideTaskAssembly()
+	public void MsBuildFilesShipsAlongsideTaskAssembly()
 	{
 		Assert.True(
 			File.Exists(TargetsFile),
 			$"Expected the targets file to be next to the test binary so MSBuild can resolve it. Looked for: {TargetsFile}");
+		Assert.True(
+			File.Exists(SchemaPropsFile),
+			$"Expected the props file to be next to the test binary so MSBuild can resolve it. Looked for: {SchemaPropsFile}");
 	}
 
 	[Fact]
