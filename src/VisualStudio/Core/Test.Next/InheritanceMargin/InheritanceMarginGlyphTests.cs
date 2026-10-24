@@ -464,7 +464,7 @@ public sealed class InheritanceMarginGlyphTests
     }
 
     [WpfFact]
-    public async Task LeavingButtonDismissesHover()
+    public async Task LeavingButtonDismissesHoverImmediately()
     {
         using var workspace = CreateWorkspace();
         using var host = new GlyphHost(await CreateGlyphAsync(workspace));
@@ -477,17 +477,17 @@ public sealed class InheritanceMarginGlyphTests
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
             Assert.True(popup.IsOpen);
             button.RaiseEvent(new MouseEventArgs(Mouse.PrimaryDevice, timestamp: 0) { RoutedEvent = Mouse.MouseLeaveEvent });
-            await workspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.InheritanceMargin).ExpeditedWaitAsync();
             Assert.False(popup.IsOpen);
         }
         finally
         {
             popup.IsOpen = false;
+            await workspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.InheritanceMargin).ExpeditedWaitAsync();
         }
     }
 
     [WpfFact]
-    public async Task LeavingFlyoutDismissesHover()
+    public async Task LeavingFlyoutDismissesHoverImmediately()
     {
         using var workspace = CreateWorkspace();
         using var host = new GlyphHost(await CreateGlyphAsync(workspace));
@@ -500,13 +500,13 @@ public sealed class InheritanceMarginGlyphTests
             Assert.True(popup.IsOpen);
 
             popup.Child.RaiseEvent(new MouseEventArgs(Mouse.PrimaryDevice, timestamp: 0) { RoutedEvent = Mouse.MouseLeaveEvent });
-            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
 
             Assert.False(popup.IsOpen);
         }
         finally
         {
             popup.IsOpen = false;
+            await workspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.InheritanceMargin).ExpeditedWaitAsync();
         }
     }
 

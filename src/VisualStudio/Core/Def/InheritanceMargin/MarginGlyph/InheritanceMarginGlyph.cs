@@ -10,7 +10,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
@@ -112,22 +110,14 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
 
     private void CloseHoverPopupIfInactive()
     {
-        // Let mouse and focus transitions across the popup's presentation source finish before checking them.
-        var token = _listener.BeginAsyncOperation(nameof(CloseHoverPopupIfInactive));
-        var joinableTaskFactory = _threadingContext.JoinableTaskFactory.WithPriority(Dispatcher, DispatcherPriority.Input);
-        joinableTaskFactory.RunAsync(async () =>
+        if (!InheritanceMenu.IsOpen
+            && !IsKeyboardFocusWithin
+            && !HoverButton.IsKeyboardFocusWithin
+            && !IsMouseOver
+            && !HoverButton.IsMouseOver)
         {
-            await joinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
-
-            if (!InheritanceMenu.IsOpen
-                && !IsKeyboardFocusWithin
-                && !HoverButton.IsKeyboardFocusWithin
-                && !IsMouseOver
-                && !HoverButton.IsMouseOver)
-            {
-                CloseHoverPopup();
-            }
-        }).Task.CompletesAsyncOperation(token);
+            CloseHoverPopup();
+        }
     }
 
     private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
