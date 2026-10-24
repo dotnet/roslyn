@@ -2,33 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Automation;
-using System.Windows.Automation.Peers;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
-using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 
-internal sealed class InheritanceMarginGlyph : Button
+internal sealed partial class InheritanceMarginGlyph : UserControl
 {
-    private const string ToolTipStyleKey = "ToolTipStyle";
-
-    private static readonly object s_toolTipPlaceholder = new();
-
     private readonly IThreadingContext _threadingContext;
     private readonly IStreamingFindUsagesPresenter _streamingFindUsagesPresenter;
     private readonly IUIThreadOperationExecutor _operationExecutor;
@@ -54,121 +48,84 @@ internal sealed class InheritanceMarginGlyph : Button
         _textView = textView;
         _listener = listener;
 
-        Background = Brushes.Transparent;
-        BorderBrush = Brushes.Transparent;
-
-        Click += InheritanceMargin_OnClick;
-        MouseEnter += InheritanceMargin_OnMouseEnter;
-        MouseLeave += InheritanceMargin_OnMouseLeave;
-        KeyUp += OnKeyUp;
-
-        Resources.Add(ToolTipStyleKey, new Style(typeof(ToolTip))
-        {
-            Setters =
-            {
-                new Setter(BackgroundProperty, new DynamicResourceExtension(EnvironmentColors.ToolTipBrushKey)),
-                new Setter(BorderBrushProperty, new DynamicResourceExtension(EnvironmentColors.ToolTipBorderBrushKey)),
-                new Setter(ForegroundProperty, new DynamicResourceExtension(EnvironmentColors.ToolTipTextBrushKey)),
-            },
-        });
-
-        var viewModel = InheritanceMarginGlyphViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
-        SetValue(AutomationProperties.NameProperty, viewModel.AutomationName);
-
-        // Control template only shows the image
-        var templateBorder = new FrameworkElementFactory(typeof(Border), "Border");
-        templateBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
-        templateBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(BackgroundProperty));
-        templateBorder.SetValue(Border.BorderBrushProperty, new TemplateBindingExtension(BorderBrushProperty));
-
-        var templateImage = new FrameworkElementFactory(typeof(CrispImage));
-        templateImage.SetValue(CrispImage.MonikerProperty, viewModel.ImageMoniker);
-        templateImage.SetValue(CrispImage.ScaleFactorProperty, viewModel.ScaleFactor);
-        templateBorder.AppendChild(templateImage);
-
-        Template = new ControlTemplate { VisualTree = templateBorder };
-        DataContext = viewModel;
-
-        // Add the context menu and tool tip as placeholders
-        ContextMenu = new ContextMenu();
-        ToolTip = s_toolTipPlaceholder;
+        InitializeComponent();
+        // Scope the hover style to this surface, not its nested menu flyouts.
+        HoverPopup.Child.SetValue(StyleProperty, HoverPopup.Resources["HoverFlyoutStyle"]);
+        DataContext = InheritanceMarginGlyphViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
+        HoverPopup.CustomPopupPlacementCallback = PlaceHoverPopup;
     }
 
-    protected override void OnToolTipOpening(ToolTipEventArgs e)
+    private CustomPopupPlacement[] PlaceHoverPopup(Size popupSize, Size targetSize, Point offset)
     {
-        if (ToolTip == s_toolTipPlaceholder)
-        {
-            var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
-            ToolTip = new ToolTip { Content = viewModel.ToolTipTextBlock, Style = (Style)FindResource(ToolTipStyleKey) };
-        }
-
-        base.OnToolTipOpening(e);
+        // Match image origins and leave device-pixel rounding to the popup.
+        var imageOrigin = HoverImage.TranslatePoint(default, HoverPopup.Child);
+        var scaleX = popupSize.Width / HoverPopup.Child.RenderSize.Width;
+        var scaleY = popupSize.Height / HoverPopup.Child.RenderSize.Height;
+        return [new CustomPopupPlacement(
+            new Point(-imageOrigin.X * scaleX, -imageOrigin.Y * scaleY),
+            PopupPrimaryAxis.None)];
     }
 
-    protected override void OnContextMenuOpening(ContextMenuEventArgs e)
+    private void OpenHoverPopup()
     {
-        LazyInitializeContextMenu();
-        base.OnContextMenuOpening(e);
-    }
-
-    protected override AutomationPeer OnCreateAutomationPeer()
-        => new InheritanceMarginAutomationPeer(this);
-
-    private void LazyInitializeContextMenu()
-    {
-        if (ContextMenu is not InheritanceMarginContextMenu)
-        {
-            var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
-
-            ContextMenu = new InheritanceMarginContextMenu(
-                _threadingContext,
-                _streamingFindUsagesPresenter,
-                _operationExecutor,
-                _workspace,
-                _listener,
-                viewModel.ScaleFactor);
-            ContextMenu.DataContext = viewModel;
-            ContextMenu.ItemsSource = viewModel.MenuItemViewModels;
-            ContextMenu.Opened += ContextMenu_OnOpen;
-            ContextMenu.Closed += ContextMenu_OnClose;
-        }
-    }
-
-    private void InheritanceMargin_OnClick(object sender, RoutedEventArgs e)
-    {
-        LazyInitializeContextMenu();
-        ContextMenu.IsOpen = true;
-        e.Handled = true;
-    }
-
-    private void ChangeBorderToHoveringColor()
-    {
-        SetResourceReference(BackgroundProperty, VsBrushes.CommandBarMenuBackgroundGradientKey);
-        SetResourceReference(BorderBrushProperty, VsBrushes.CommandBarMenuBorderKey);
+        HoverPopup.PlacementRectangle = new Rect(
+            GlyphImage.TranslatePoint(default, this),
+            default(Size));
+        HoverPopup.IsOpen = true;
     }
 
     private void InheritanceMargin_OnMouseEnter(object sender, MouseEventArgs e)
     {
-        ChangeBorderToHoveringColor();
+        OpenHoverPopup();
+    }
+
+    private void InheritanceMargin_OnMouseDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton is MouseButton.Left or MouseButton.Right)
+        {
+            OpenHoverPopup();
+            HoverButton.ShowDropDown();
+            e.Handled = true;
+        }
+    }
+
+    private void InheritanceMargin_OnGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        if (e.NewFocus == this)
+        {
+            OpenHoverPopup();
+            if (HoverButton.IsVisible)
+                HoverButton.Focus();
+        }
+    }
+
+    private void InheritanceMargin_OnIsKeyboardFocusWithinChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (!(bool)e.NewValue)
+            CloseHoverPopupIfInactive();
     }
 
     private void InheritanceMargin_OnMouseLeave(object sender, MouseEventArgs e)
+        => CloseHoverPopupIfInactive();
+
+    private void CloseHoverPopupIfInactive()
     {
-        // If the context menu is open, then don't reset the color of the button because we need
-        // the margin looks like being pressed.
-        if (!ContextMenu.IsOpen)
+        if (!InheritanceMenu.IsOpen
+            && !IsKeyboardFocusWithin
+            && !HoverButton.IsKeyboardFocusWithin
+            && !IsMouseOver
+            && !HoverButton.IsMouseOver)
         {
-            ResetBorderToInitialColor();
+            CloseHoverPopup();
         }
     }
 
     private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
     {
-        // If mouse is still hovering. Don't reset the color. The context menu might be closed because user clicks within the margin
-        if (!IsMouseOver)
-        {
-            ResetBorderToInitialColor();
-        }
+        if (IsKeyboardFocusWithin || HoverButton.IsKeyboardFocusWithin || InheritanceMenu.IsKeyboardFocusWithin || Keyboard.IsKeyDown(Key.Escape))
+            ResetFocus();
+
+        CloseHoverPopupIfInactive();
     }
 
     private void ContextMenu_OnOpen(object sender, RoutedEventArgs e)
@@ -194,39 +151,75 @@ internal sealed class InheritanceMarginGlyph : Button
         }
     }
 
-    private void ResetBorderToInitialColor()
+    private void InheritanceMargin_OnUnloaded(object sender, RoutedEventArgs e)
     {
-        this.Background = Brushes.Transparent;
-        this.BorderBrush = Brushes.Transparent;
+        InheritanceMenu.IsOpen = false;
+        CloseHoverPopup();
     }
 
-    private void OnKeyUp(object sender, KeyEventArgs e)
+    private void CloseHoverPopup()
     {
-        // Move the focus back to textView when the Esc is pressed
-        // It ensures the focus won't be left at the margin
+        HoverPopup.IsOpen = false;
+    }
+
+    private void TargetMenuItem_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (e.OriginalSource is MenuItem { DataContext: TargetMenuItemViewModel viewModel })
+        {
+            InheritanceMarginLogger.LogNavigateToTarget();
+
+            var token = _listener.BeginAsyncOperation(nameof(TargetMenuItem_OnClick));
+            TargetMenuItem_OnClickAsync(viewModel).CompletesAsyncOperation(token);
+        }
+    }
+
+    private async Task TargetMenuItem_OnClickAsync(TargetMenuItemViewModel viewModel)
+    {
+        using var context = _operationExecutor.BeginExecute(
+            title: EditorFeaturesResources.Navigating,
+            defaultDescription: string.Format(ServicesVSResources.Navigate_to_0, viewModel.DisplayContent),
+            allowCancellation: true,
+            showProgress: false);
+
+        var cancellationToken = context.UserCancellationToken;
+        var rehydrated = await viewModel.DefinitionItem.TryRehydrateAsync(_workspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
+        if (rehydrated == null)
+            return;
+
+        await _streamingFindUsagesPresenter.TryPresentLocationOrNavigateIfOneAsync(
+            _threadingContext,
+            _workspace,
+            string.Format(CultureInfo.InvariantCulture, EditorFeaturesResources._0_declarations, viewModel.DisplayContent),
+            [rehydrated],
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private void HoverButton_OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
         if (e.Key == Key.Escape)
         {
+            CloseHoverPopup();
             ResetFocus();
+            e.Handled = true;
+        }
+        else if (e.Key == Key.Tab && (e.KeyboardDevice.Modifiers & (ModifierKeys.Control | ModifierKeys.Alt)) == 0)
+        {
+            // Tab navigation cannot cross the popup's separate presentation source.
+            var direction = (e.KeyboardDevice.Modifiers & ModifierKeys.Shift) != 0
+                ? FocusNavigationDirection.Previous
+                : FocusNavigationDirection.Next;
+            CloseHoverPopup();
+            MoveFocus(new TraversalRequest(direction));
+            e.Handled = true;
         }
     }
 
     private void ResetFocus()
     {
-        if (!_textView.HasAggregateFocus)
+        var visualElement = _textView.VisualElement;
+        if (visualElement.Focusable)
         {
-            var visualElement = _textView.VisualElement;
-            if (visualElement.Focusable)
-            {
-                Keyboard.Focus(visualElement);
-            }
-        }
-    }
-
-    private sealed class InheritanceMarginAutomationPeer(InheritanceMarginGlyph owner) : ButtonAutomationPeer(owner)
-    {
-        protected override AutomationControlType GetAutomationControlTypeCore()
-        {
-            return AutomationControlType.Group;
+            Keyboard.Focus(visualElement);
         }
     }
 }
