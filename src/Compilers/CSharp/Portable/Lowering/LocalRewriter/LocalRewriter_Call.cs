@@ -384,6 +384,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<BoundExpression> arguments = node.Arguments;
                 bool invokedAsExtensionMethod = node.InvokedAsExtensionMethod;
 
+                var previousTransientInlineArrays = _allocatedTransientInlineArrays;
+                _allocatedTransientInlineArrays = null;
+
                 // Rewritten receiver can be actually the first argument of an extension invocation.
                 BoundExpression? firstRewrittenArgument = null;
                 if (rewrittenReceiver is not null && node.ReceiverOpt is null)
@@ -422,6 +425,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, temps.ToImmutableAndFree());
+
+                if (_allocatedTransientInlineArrays is not null)
+                {
+                    foreach (var (type, length) in _allocatedTransientInlineArrays)
+                    {
+                        _transientInlineArrayAllocator.ReturnInlineArray(type, length);
+                    }
+                    _allocatedTransientInlineArrays.Free();
+                }
+
+                _allocatedTransientInlineArrays = previousTransientInlineArrays;
 
                 if (Instrument)
                 {
@@ -835,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     visitedArgumentsBuilder.Add(i == 0 && firstRewrittenArgument is not null
                         ? firstRewrittenArgument
-                        : VisitExpression(argument));
+                        : visitArgument(argument, this, i, argsToParamsOpt, parameters));
 
                     foreach (var placeholder in argumentPlaceholders)
                     {
@@ -993,6 +1007,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return false;
+            }
+
+            static BoundExpression visitArgument(BoundExpression argument, LocalRewriter @this, int argumentIndex, ImmutableArray<int> argsToParamsOpt, ImmutableArray<ParameterSymbol> parameters)
+            {
+                if (argument is BoundConversion conversion)
+                {
+                    var paramIndex = argsToParamsOpt.IsDefault ? argumentIndex : argsToParamsOpt[argumentIndex];
+                    return @this.VisitConversion(conversion, parameters[paramIndex]);
+                }
+                else
+                {
+                    return @this.VisitExpression(argument);
+                }
             }
         }
 
