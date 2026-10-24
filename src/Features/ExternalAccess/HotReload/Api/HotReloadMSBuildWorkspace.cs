@@ -154,8 +154,13 @@ internal sealed partial class HotReloadMSBuildWorkspace : Workspace
 
         foreach (var (path, change) in changedFiles)
         {
-            // when a file is added we reevaluate the project:
-            Contract.ThrowIfTrue(change == HotReloadFileChangeKind.Add);
+            // Added files are handled by project reevaluation.
+            // Non-workspace files (for example under wwwroot) are ignored here to avoid crashes
+            // before reevaluation occurs.
+            if (change == HotReloadFileChangeKind.Add)
+            {
+                continue;
+            }
 
             var documentIds = updatedSolution.GetDocumentIdsWithFilePath(path);
             if (change == HotReloadFileChangeKind.Delete)
