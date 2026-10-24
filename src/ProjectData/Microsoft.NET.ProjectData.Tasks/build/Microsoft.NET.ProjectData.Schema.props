@@ -2,23 +2,39 @@
 <!-- Auto-generated. Do not modify manually. -->
 <Project>
   <ItemGroup>
-    <_ProjectDataProperties Include="AssemblyName"                            > <Value>$(AssemblyName)</Value>                     </_ProjectDataProperties>
-    <_ProjectDataProperties Include="BaseIntermediateOutputPath"              > <Value>$(BaseIntermediateOutputPath)</Value>       </_ProjectDataProperties>
-    <_ProjectDataProperties Include="BaseOutputPath"                          > <Value>$(BaseOutputPath)</Value>                   </_ProjectDataProperties>
-    <_ProjectDataProperties Include="CompilerGeneratedFilesOutputPath"        > <Value>$(CompilerGeneratedFilesOutputPath)</Value> </_ProjectDataProperties>
-    <_ProjectDataProperties Include="IsTestProject"                           > <Value>$(IsTestProject)</Value>                    </_ProjectDataProperties>
-    <_ProjectDataProperties Include="MaxSupportedLangVersion"                 > <Value>$(MaxSupportedLangVersion)</Value>          </_ProjectDataProperties>
-    <_ProjectDataProperties Include="OutputType"                              > <Value>$(OutputType)</Value>                       </_ProjectDataProperties>
-    <_ProjectDataProperties Include="ProjectAssetsFile"                       > <Value>$(ProjectAssetsFile)</Value>                </_ProjectDataProperties>
-    <_ProjectDataProperties Include="RootNamespace"                           > <Value>$(RootNamespace)</Value>                    </_ProjectDataProperties>
-    <_ProjectDataProperties Include="RunAnalyzers"                            > <Value>$(RunAnalyzers)</Value>                     </_ProjectDataProperties>
-    <_ProjectDataProperties Include="RunAnalyzersDuringLiveAnalysis"          > <Value>$(RunAnalyzersDuringLiveAnalysis)</Value>   </_ProjectDataProperties>
-    <_ProjectDataProperties Include="SolutionPath"                            > <Value>$(SolutionPath)</Value>                     </_ProjectDataProperties>
-    <_ProjectDataProperties Include="TargetFramework"                         > <Value>$(TargetFramework)</Value>                  </_ProjectDataProperties>
-    <_ProjectDataProperties Include="TargetFrameworkIdentifier"               > <Value>$(TargetFrameworkIdentifier)</Value>        </_ProjectDataProperties>
-    <_ProjectDataProperties Include="TargetFrameworkVersion"                  > <Value>$(TargetFrameworkVersion)</Value>           </_ProjectDataProperties>
-    <_ProjectDataProperties Include="TargetPath"                              > <Value>$(TargetPath)</Value>                       </_ProjectDataProperties>
-    <_ProjectDataProperties Include="TargetRefPath"                           > <Value>$(TargetRefPath)</Value>                    </_ProjectDataProperties>
-    <_ProjectDataProperties Include="TemporaryDependencyNodeTargetIdentifier" > <Value>$(TargetFramework)</Value>                  </_ProjectDataProperties>
+    <_ProjectDataProperties Include="AssemblyName"                            > <Value>$(AssemblyName)</Value>                          </_ProjectDataProperties>
+    <_ProjectDataProperties Include="BaseIntermediateOutputPath"              > <Value>$(BaseIntermediateOutputPath)</Value>            </_ProjectDataProperties>
+    <_ProjectDataProperties Include="BaseOutputPath"                          > <Value>$(BaseOutputPath)</Value>                        </_ProjectDataProperties>
+    <_ProjectDataProperties Include="CompilerGeneratedFilesOutputPath"        > <Value>$(CompilerGeneratedFilesOutputPath)</Value>      </_ProjectDataProperties>
+    <_ProjectDataProperties Include="Configuration"                           > <Value>$(Configuration)</Value>                         </_ProjectDataProperties>
+    <_ProjectDataProperties Include="DebugSymbols"                            > <Value>$(DebugSymbols)</Value>                          </_ProjectDataProperties>
+    <_ProjectDataProperties Include="EnableHotReloadInRuntimeConfigDevFile"   > <Value>$(EnableHotReloadInRuntimeConfigDevFile)</Value> </_ProjectDataProperties>
+    <_ProjectDataProperties Include="HotReloadAutoRestart"                    > <Value>$(HotReloadAutoRestart)</Value>                  </_ProjectDataProperties>
+    <_ProjectDataProperties Include="HotReloadBrowserToolsAssetPrefix"        > <Value>$(HotReloadBrowserToolsAssetPrefix)</Value>      </_ProjectDataProperties>
+    <_ProjectDataProperties Include="IntermediateOutputPath"                  > <Value>$(IntermediateOutputPath)</Value>                </_ProjectDataProperties>
+    <_ProjectDataProperties Include="IsTestProject"                           > <Value>$(IsTestProject)</Value>                         </_ProjectDataProperties>
+    <_ProjectDataProperties Include="JSModulesEnabled"                        > <Value>$(JSModulesEnabled)</Value>                      </_ProjectDataProperties>
+    <_ProjectDataProperties Include="MaxSupportedLangVersion"                 > <Value>$(MaxSupportedLangVersion)</Value>               </_ProjectDataProperties>
+    <_ProjectDataProperties Include="MetadataUpdaterSupport"                  > <Value>$(MetadataUpdaterSupport)</Value>                </_ProjectDataProperties>
+    <_ProjectDataProperties Include="NETCoreSdkVersion"                       > <Value>$(NETCoreSdkVersion)</Value>                     </_ProjectDataProperties>
+    <_ProjectDataProperties Include="Optimize"                                > <Value>$(Optimize)</Value>                              </_ProjectDataProperties>
+    <_ProjectDataProperties Include="OutputType"                              > <Value>$(OutputType)</Value>                            </_ProjectDataProperties>
+    <_ProjectDataProperties Include="ProjectAssetsFile"                       > <Value>$(ProjectAssetsFile)</Value>                     </_ProjectDataProperties>
+    <_ProjectDataProperties Include="PublishAot"                              > <Value>$(PublishAot)</Value>                            </_ProjectDataProperties>
+    <_ProjectDataProperties Include="PublishTrimmed"                          > <Value>$(PublishTrimmed)</Value>                        </_ProjectDataProperties>
+    <_ProjectDataProperties Include="RootNamespace"                           > <Value>$(RootNamespace)</Value>                         </_ProjectDataProperties>
+    <_ProjectDataProperties Include="RunAnalyzers"                            > <Value>$(RunAnalyzers)</Value>                          </_ProjectDataProperties>
+    <_ProjectDataProperties Include="RunAnalyzersDuringLiveAnalysis"          > <Value>$(RunAnalyzersDuringLiveAnalysis)</Value>        </_ProjectDataProperties>
+    <_ProjectDataProperties Include="SolutionPath"                            > <Value>$(SolutionPath)</Value>                          </_ProjectDataProperties>
+    <_ProjectDataProperties Include="StartupHookSupport"                      > <Value>$(StartupHookSupport)</Value>                    </_ProjectDataProperties>
+    <_ProjectDataProperties Include="StaticWebAssetsEnabled"                  > <Value>$(StaticWebAssetsEnabled)</Value>                </_ProjectDataProperties>
+    <_ProjectDataProperties Include="TargetFramework"                         > <Value>$(TargetFramework)</Value>                       </_ProjectDataProperties>
+    <_ProjectDataProperties Include="TargetFrameworkIdentifier"               > <Value>$(TargetFrameworkIdentifier)</Value>             </_ProjectDataProperties>
+    <_ProjectDataProperties Include="TargetFrameworkMoniker"                  > <Value>$(TargetFrameworkMoniker)</Value>                </_ProjectDataProperties>
+    <_ProjectDataProperties Include="TargetFrameworkVersion"                  > <Value>$(TargetFrameworkVersion)</Value>                </_ProjectDataProperties>
+    <_ProjectDataProperties Include="TargetPath"                              > <Value>$(TargetPath)</Value>                            </_ProjectDataProperties>
+    <_ProjectDataProperties Include="TargetRefPath"                           > <Value>$(TargetRefPath)</Value>                         </_ProjectDataProperties>
+    <_ProjectDataProperties Include="TemporaryDependencyNodeTargetIdentifier" > <Value>$(TargetFramework)</Value>                       </_ProjectDataProperties>
+    <_ProjectDataProperties Include="WebAssemblyHotReloadCapabilities"        > <Value>$(WebAssemblyHotReloadCapabilities)</Value>      </_ProjectDataProperties>
   </ItemGroup>
 </Project>
