@@ -73,6 +73,7 @@
               Width="{x:Static styles:Sizes.ControlMinWidth}">
         <ctrls:DropDownButton x:Name="HoverButton"
                               AutomationProperties.Name="{Binding AutomationName, Mode=OneTime}"
+                              Background="{DynamicResource {x:Static styles:ShellColors.ControlSolidFillDefaultBrushKey}}"
                               DropDown="{Binding ContextMenu, RelativeSource={RelativeSource Self}}"
                               CornerRadius="{x:Static styles:CornerRadii.L}"
                               Padding="0"

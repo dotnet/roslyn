@@ -254,6 +254,7 @@ public sealed class InheritanceMarginGlyphTests
                 CornerRadius = ShellStyles.CornerRadii.L,
                 Content = new Border { Width = ShellStyles.Sizes.IconS, Height = ShellStyles.Sizes.IconS, Background = Brushes.Black },
             };
+            lightbulb.SetResourceReference(Control.BackgroundProperty, ShellStyles.ShellColors.ControlSolidFillDefaultBrushKey);
             var lightbulbHost = new Border
             {
                 Width = ShellStyles.Sizes.ControlMinWidth,
@@ -324,6 +325,10 @@ public sealed class InheritanceMarginGlyphTests
             "HighContrast" => Brushes.Black,
             _ => throw new ArgumentOutOfRangeException(nameof(theme)),
         };
+        var solidFill = ((SolidColorBrush)element.Resources[ShellStyles.ShellColors.ControlFillDefaultBrushKey]).Color;
+        solidFill.A = 255;
+        element.Resources[ShellStyles.ShellColors.ControlSolidFillDefaultBrushKey] = new SolidColorBrush(solidFill);
+        element.Resources[ShellStyles.ShellColors.ControlSolidFillDefaultColorKey] = solidFill;
         element.Resources[ShellStyles.ShellColors.ControlFillSecondaryBrushKey] = new SolidColorBrush(Color.FromArgb(128, 255, 255, 255));
         element.Resources[ShellStyles.ShellColors.ControlFillTertiaryBrushKey] = new SolidColorBrush(Color.FromArgb(96, 255, 255, 255));
         element.Resources[ShellStyles.ShellColors.ControlStrokeDefaultBrushKey] = theme == "HighContrast"
