@@ -5,7 +5,6 @@
              xmlns:img="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
              xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph"
              xmlns:styles="clr-namespace:Microsoft.VisualStudio.Shell.Styles;assembly=Microsoft.VisualStudio.Shell.Styles"
-             x:Name="Glyph"
              x:ClassModifier="internal"
              KeyboardNavigation.TabNavigation="Once"
              AutomationProperties.Name="{Binding AutomationName, Mode=OneTime}"
@@ -21,22 +20,58 @@
              SnapsToDevicePixels="True"
              Unloaded="InheritanceMargin_OnUnloaded"
              UseLayoutRounding="True">
+  <UserControl.Resources>
+    <Style x:Key="InheritanceToolTipStyle" TargetType="{x:Type ctrls:ToolTip}">
+      <Setter Property="Placement" Value="Bottom" />
+      <Setter Property="TextOptions.TextFormattingMode" Value="{Binding PlacementTarget.(TextOptions.TextFormattingMode), RelativeSource={RelativeSource Self}}" />
+      <Setter Property="VerticalOffset" Value="{Binding ToolTipVerticalOffset, Mode=OneTime}" />
+      <Style.Triggers>
+        <Trigger Property="IsOpen" Value="True">
+          <Setter Property="Content" Value="{Binding ToolTipTextBlock, Mode=OneTime}" />
+        </Trigger>
+      </Style.Triggers>
+    </Style>
+    <DataTemplate x:Key="HoverPopupTemplate">
+      <ctrls:Popup DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                  FocusOnOpen="{Binding PlacementTarget.IsKeyboardFocusWithin, RelativeSource={RelativeSource Self}}"
+                  HorizontalOffset="0"
+                  Opened="HoverPopup_OnOpened"
+                  Placement="Custom">
+        <ctrls:Popup.Child>
+          <Border Height="{x:Static styles:Sizes.ControlMinHeight}"
+                  MouseLeave="InheritanceMargin_OnMouseLeave"
+                  Width="{x:Static styles:Sizes.ControlMinWidth}">
+            <ctrls:DropDownButton AutomationProperties.Name="{Binding AutomationName, Mode=OneTime}"
+                                 CornerRadius="{x:Static styles:CornerRadii.M}"
+                                 Padding="0"
+                                 Background="{DynamicResource {x:Static styles:ShellColors.ControlSolidFillDefaultBrushKey}}"
+                                 Cursor="Arrow"
+                                 IsKeyboardFocusWithinChanged="InheritanceMargin_OnIsKeyboardFocusWithinChanged"
+                                 MouseLeave="InheritanceMargin_OnMouseLeave"
+                                 PreviewKeyDown="HoverButton_OnPreviewKeyDown"
+                                 ShowDropDownGlyph="False">
+              <ctrls:DropDownButton.ToolTip>
+                <ctrls:ToolTip DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                              Style="{StaticResource InheritanceToolTipStyle}" />
+              </ctrls:DropDownButton.ToolTip>
+              <ctrls:DropDownButton.ContextMenu>
+                <local:InheritanceMarginContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" />
+              </ctrls:DropDownButton.ContextMenu>
+              <img:CrispImage img:CrispImage.ScaleFactor="{Binding ScaleFactor, Mode=OneTime}"
+                             Height="{x:Static styles:Sizes.IconS}"
+                             HorizontalAlignment="Center"
+                             Moniker="{Binding ImageMoniker, Mode=OneTime}"
+                             VerticalAlignment="Center"
+                             Width="{x:Static styles:Sizes.IconS}" />
+            </ctrls:DropDownButton>
+          </Border>
+        </ctrls:Popup.Child>
+      </ctrls:Popup>
+    </DataTemplate>
+  </UserControl.Resources>
   <UserControl.ToolTip>
-    <ctrls:ToolTip DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
-      <ctrls:ToolTip.LayoutTransform>
-        <ScaleTransform ScaleX="{Binding ScaleFactor, Mode=OneTime}"
-                        ScaleY="{Binding ScaleFactor, Mode=OneTime}" />
-      </ctrls:ToolTip.LayoutTransform>
-      <ctrls:ToolTip.Style>
-        <Style TargetType="{x:Type ctrls:ToolTip}">
-          <Style.Triggers>
-            <Trigger Property="IsOpen" Value="True">
-              <Setter Property="Content" Value="{Binding ToolTipTextBlock, Mode=OneTime}" />
-            </Trigger>
-          </Style.Triggers>
-        </Style>
-      </ctrls:ToolTip.Style>
-    </ctrls:ToolTip>
+    <ctrls:ToolTip DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
+                  Style="{StaticResource InheritanceToolTipStyle}" />
   </UserControl.ToolTip>
   <Grid Background="Transparent">
     <img:CrispImage x:Name="GlyphImage"
@@ -45,60 +80,6 @@
                     HorizontalAlignment="Center"
                     Moniker="{Binding ImageMoniker, Mode=OneTime}"
                     VerticalAlignment="Center"
-                    Width="{x:Static styles:Sizes.IconS}">
-      <img:CrispImage.Style>
-        <Style TargetType="{x:Type img:CrispImage}">
-          <Style.Triggers>
-            <DataTrigger Binding="{Binding IsOpen, ElementName=HoverPopup}" Value="True">
-              <Setter Property="Opacity" Value="0" />
-            </DataTrigger>
-          </Style.Triggers>
-        </Style>
-      </img:CrispImage.Style>
-    </img:CrispImage>
-    <ctrls:Popup x:Name="HoverPopup"
-                 DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
-                 FocusOnOpen="{Binding PlacementTarget.IsKeyboardFocusWithin, RelativeSource={RelativeSource Self}}"
-                 HorizontalOffset="0"
-                 Placement="Custom"
-                 PlacementTarget="{Binding ElementName=Glyph}">
-      <ctrls:Popup.Resources>
-        <Style x:Key="HoverFlyoutStyle" TargetType="{x:Type ctrls:FlyoutSurface}">
-          <Setter Property="Background" Value="Transparent" />
-          <Setter Property="BorderThickness" Value="0" />
-          <EventSetter Event="MouseLeave" Handler="InheritanceMargin_OnMouseLeave" />
-        </Style>
-      </ctrls:Popup.Resources>
-      <Border Height="{x:Static styles:Sizes.ControlMinHeight}"
-              Width="{x:Static styles:Sizes.ControlMinWidth}">
-        <ctrls:DropDownButton x:Name="HoverButton"
-                              AutomationProperties.Name="{Binding AutomationName, Mode=OneTime}"
-                              Background="{DynamicResource {x:Static styles:ShellColors.ControlSolidFillDefaultBrushKey}}"
-                              DropDown="{Binding ContextMenu, RelativeSource={RelativeSource Self}}"
-                              CornerRadius="{x:Static styles:CornerRadii.L}"
-                              Padding="0"
-                              ToolTip="{Binding PlacementTarget.ToolTip, ElementName=HoverPopup}"
-                              Cursor="Arrow"
-                              IsKeyboardFocusWithinChanged="InheritanceMargin_OnIsKeyboardFocusWithinChanged"
-                              MouseLeave="InheritanceMargin_OnMouseLeave"
-                              PreviewKeyDown="HoverButton_OnPreviewKeyDown"
-                              ShowDropDownGlyph="False">
-          <ctrls:DropDownButton.ContextMenu>
-            <local:InheritanceMarginContextMenu x:Name="InheritanceMenu"
-                                               MenuItem.Click="TargetMenuItem_OnClick"
-                                               Closed="ContextMenu_OnClose"
-                                               DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
-                                               Opened="ContextMenu_OnOpen" />
-          </ctrls:DropDownButton.ContextMenu>
-          <img:CrispImage x:Name="HoverImage"
-                          img:CrispImage.ScaleFactor="{Binding ScaleFactor, Mode=OneTime}"
-                          Height="{x:Static styles:Sizes.IconS}"
-                          HorizontalAlignment="Center"
-                          Moniker="{Binding ImageMoniker, Mode=OneTime}"
-                          VerticalAlignment="Center"
-                          Width="{x:Static styles:Sizes.IconS}" />
-        </ctrls:DropDownButton>
-      </Border>
-    </ctrls:Popup>
+                    Width="{x:Static styles:Sizes.IconS}" />
   </Grid>
 </UserControl>

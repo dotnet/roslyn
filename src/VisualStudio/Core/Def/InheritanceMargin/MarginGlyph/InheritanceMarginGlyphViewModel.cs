@@ -8,6 +8,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -36,44 +37,43 @@ internal sealed class InheritanceMarginGlyphViewModel
     {
         get
         {
-            if (field is null)
+            var members = _tag.MembersOnLine;
+            TextBlock textBlock;
+
+            if (members.All(static m => m.TopLevelDisplayText != null))
             {
-                var members = _tag.MembersOnLine;
+                var member = _tag.MembersOnLine[0];
+                Contract.ThrowIfNull(member.TopLevelDisplayText);
 
-                if (members.All(static m => m.TopLevelDisplayText != null))
-                {
-                    var member = _tag.MembersOnLine[0];
-                    Contract.ThrowIfNull(member.TopLevelDisplayText);
-
-                    field = new[] { new TaggedText(TextTags.Text, member.TopLevelDisplayText) }.ToTextBlock(_classificationFormatMap, _classificationTypeMap);
-                }
-                else if (members.Length == 1)
-                {
-                    var member = _tag.MembersOnLine[0];
-
-                    // Preserve symbol classification within the localized tooltip.
-                    var inlines = member.DisplayTexts.ToInlines(_classificationFormatMap, _classificationTypeMap);
-                    var format = GetToolTipFormat(member);
-                    var startOfThePlaceholder = format.IndexOf("{0}", StringComparison.Ordinal);
-                    var prefixString = format[..startOfThePlaceholder];
-                    var suffixString = format[(startOfThePlaceholder + "{0}".Length)..];
-                    inlines.Insert(0, new Run(prefixString));
-                    inlines.Add(new Run(suffixString));
-
-                    field = inlines.ToTextBlock(_classificationFormatMap);
-                    field.FlowDirection = FlowDirection.LeftToRight;
-
-                }
-                else
-                {
-                    field = new TextBlock
-                    {
-                        Text = ServicesVSResources.Show_inheritance_for_members_on_this_line
-                    };
-                }
+                textBlock = new[] { new TaggedText(TextTags.Text, member.TopLevelDisplayText) }.ToTextBlock(_classificationFormatMap, _classificationTypeMap);
             }
+            else if (members.Length == 1)
+            {
+                var member = _tag.MembersOnLine[0];
 
-            return field;
+                // Preserve symbol classification within the localized tooltip.
+                var inlines = member.DisplayTexts.ToInlines(_classificationFormatMap, _classificationTypeMap);
+                var format = GetToolTipFormat(member);
+                var startOfThePlaceholder = format.IndexOf("{0}", StringComparison.Ordinal);
+                var prefixString = format[..startOfThePlaceholder];
+                var suffixString = format[(startOfThePlaceholder + "{0}".Length)..];
+                inlines.Insert(0, new Run(prefixString));
+                inlines.Add(new Run(suffixString));
+
+                textBlock = inlines.ToTextBlock(_classificationFormatMap);
+                textBlock.FlowDirection = FlowDirection.LeftToRight;
+            }
+            else
+            {
+                textBlock = new TextBlock
+                {
+                    Text = ServicesVSResources.Show_inheritance_for_members_on_this_line
+                };
+            }
+            textBlock.LayoutTransform = new ScaleTransform(ScaleFactor, ScaleFactor);
+            textBlock.UseLayoutRounding = true;
+            RenderOptions.SetClearTypeHint(textBlock, ClearTypeHint.Enabled);
+            return textBlock;
         }
     }
 
@@ -91,6 +91,9 @@ internal sealed class InheritanceMarginGlyphViewModel
     /// Scale factor for the margin.
     /// </summary>
     public double ScaleFactor { get; }
+
+    // Placement offsets inherit the target's zoom, unlike the tooltip's chrome.
+    public double ToolTipVerticalOffset => Microsoft.VisualStudio.Shell.Controls.ToolTip.Offset / ScaleFactor;
 
     private InheritanceMarginGlyphViewModel(
         InheritanceMarginTag tag,

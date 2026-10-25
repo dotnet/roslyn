@@ -9,15 +9,20 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
+using ShellControls = Microsoft.VisualStudio.Shell.Controls;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 
@@ -29,6 +34,19 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
     private readonly Workspace _workspace;
     private readonly IWpfTextView _textView;
     private readonly IAsynchronousOperationListener _listener;
+    private ShellControls.Popup? _hoverPopup;
+    private bool _openMenuWhenHoverOpens;
+
+    private ShellControls.DropDownButton HoverButton
+    {
+        get
+        {
+            Contract.ThrowIfNull(_hoverPopup);
+            return (ShellControls.DropDownButton)((Border)_hoverPopup.Child).Child;
+        }
+    }
+
+    private InheritanceMarginContextMenu InheritanceMenu => (InheritanceMarginContextMenu)HoverButton.ContextMenu;
 
     public InheritanceMarginGlyph(
         Workspace workspace,
@@ -49,29 +67,87 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
         _listener = listener;
 
         InitializeComponent();
-        // Scope the hover style to this surface, not its nested menu flyouts.
-        HoverPopup.Child.SetValue(StyleProperty, HoverPopup.Resources["HoverFlyoutStyle"]);
         DataContext = InheritanceMarginGlyphViewModel.Create(classificationTypeMap, classificationFormatMap, tag, textView.ZoomLevel);
-        HoverPopup.CustomPopupPlacementCallback = PlaceHoverPopup;
+        var textFormattingMode = (TextFormattingMode?)textView.VisualElement.GetValue(ShellControls.TextBlock.PreferredTextFormattingModeProperty)
+            ?? TextOptions.GetTextFormattingMode(textView.VisualElement);
+        TextOptions.SetTextFormattingMode(this, textFormattingMode);
     }
 
     private CustomPopupPlacement[] PlaceHoverPopup(Size popupSize, Size targetSize, Point offset)
     {
-        // Match image origins and leave device-pixel rounding to the popup.
-        var imageOrigin = HoverImage.TranslatePoint(default, HoverPopup.Child);
-        var scaleX = popupSize.Width / HoverPopup.Child.RenderSize.Width;
-        var scaleY = popupSize.Height / HoverPopup.Child.RenderSize.Height;
-        return [new CustomPopupPlacement(
-            new Point(-imageOrigin.X * scaleX, -imageOrigin.Y * scaleY),
-            PopupPrimaryAxis.None)];
+        Contract.ThrowIfNull(_hoverPopup);
+        var button = HoverButton;
+        // Callback coordinates already include device scaling and editor zoom.
+        var imageOrigin = ((FrameworkElement)button.Content).TranslatePoint(default, _hoverPopup.Child);
+        var scaleX = popupSize.Width / _hoverPopup.Child.RenderSize.Width;
+        var scaleY = popupSize.Height / _hoverPopup.Child.RenderSize.Height;
+        var position = new Point(
+            -Math.Round(imageOrigin.X * scaleX, MidpointRounding.AwayFromZero),
+            -Math.Round(imageOrigin.Y * scaleY, MidpointRounding.AwayFromZero));
+        var view = _textView.VisualElement;
+        if (PresentationSource.FromVisual(view) is not null && view.RenderSize.Height > 0)
+        {
+            var anchor = GlyphImage.PointToScreen(default);
+            var viewTop = view.PointToScreen(default).Y;
+            var viewBottom = view.PointToScreen(new Point(0, view.RenderSize.Height)).Y;
+            var buttonOrigin = button.TranslatePoint(default, _hoverPopup.Child);
+            var buttonTop = position.Y + buttonOrigin.Y * scaleY;
+            var minimumTop = viewTop - anchor.Y;
+            var maximumTop = Math.Max(minimumTop, viewBottom - anchor.Y - button.ActualHeight * scaleY);
+            position.Y += Math.Min(Math.Max(buttonTop, minimumTop), maximumTop) - buttonTop;
+        }
+
+        return [new CustomPopupPlacement(position, PopupPrimaryAxis.None)];
     }
 
-    private void OpenHoverPopup()
+    private void OpenHoverPopup(bool openMenu = false)
     {
-        HoverPopup.PlacementRectangle = new Rect(
+        if (_hoverPopup is null)
+        {
+            _hoverPopup = (ShellControls.Popup)((DataTemplate)Resources["HoverPopupTemplate"]).LoadContent();
+            _hoverPopup.PlacementTarget = this;
+            _hoverPopup.CustomPopupPlacementCallback = PlaceHoverPopup;
+            TextOptions.SetTextFormattingMode(HoverButton, TextOptions.GetTextFormattingMode(this));
+            HoverButton.DropDown = InheritanceMenu;
+            // The menu has its own compiled XAML; connect its events after loading the template.
+            InheritanceMenu.AddHandler(MenuItem.ClickEvent, new RoutedEventHandler(TargetMenuItem_OnClick));
+            InheritanceMenu.Closed += ContextMenu_OnClose;
+            InheritanceMenu.Opened += ContextMenu_OnOpen;
+            GlyphImage.Style = new Style(typeof(CrispImage))
+            {
+                Triggers =
+                {
+                    new DataTrigger
+                    {
+                        Binding = new Binding(nameof(_hoverPopup.IsOpen)) { Source = _hoverPopup },
+                        Value = true,
+                        Setters = { new Setter(OpacityProperty, 0.0) },
+                    },
+                },
+            };
+            ((Grid)Content).Children.Add(_hoverPopup);
+        }
+
+        _hoverPopup.PlacementRectangle = new Rect(
             GlyphImage.TranslatePoint(default, this),
             default(Size));
-        HoverPopup.IsOpen = true;
+        _hoverPopup.IsOpen = true;
+        if (openMenu)
+        {
+            if (PresentationSource.FromVisual(HoverButton) is not null)
+                HoverButton.ShowDropDown();
+            else
+                _openMenuWhenHoverOpens = true;
+        }
+    }
+
+    private void HoverPopup_OnOpened(object sender, EventArgs e)
+    {
+        if (_openMenuWhenHoverOpens)
+        {
+            _openMenuWhenHoverOpens = false;
+            HoverButton.ShowDropDown();
+        }
     }
 
     private void InheritanceMargin_OnMouseEnter(object sender, MouseEventArgs e)
@@ -83,8 +159,7 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
     {
         if (e.ChangedButton is MouseButton.Left or MouseButton.Right)
         {
-            OpenHoverPopup();
-            HoverButton.ShowDropDown();
+            OpenHoverPopup(openMenu: true);
             e.Handled = true;
         }
     }
@@ -110,14 +185,27 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
 
     private void CloseHoverPopupIfInactive()
     {
+        if (_hoverPopup is null)
+            return;
+
         if (!InheritanceMenu.IsOpen
             && !IsKeyboardFocusWithin
             && !HoverButton.IsKeyboardFocusWithin
             && !IsMouseOver
-            && !HoverButton.IsMouseOver)
+            && !IsMouseOverHoverButton())
         {
             CloseHoverPopup();
         }
+    }
+
+    private bool IsMouseOverHoverButton()
+    {
+        if (_hoverPopup is not { IsOpen: true })
+            return false;
+
+        var position = Mouse.GetPosition(HoverButton);
+        return position.X >= 0 && position.Y >= 0
+            && position.X < HoverButton.ActualWidth && position.Y < HoverButton.ActualHeight;
     }
 
     private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
@@ -153,13 +241,18 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
 
     private void InheritanceMargin_OnUnloaded(object sender, RoutedEventArgs e)
     {
-        InheritanceMenu.IsOpen = false;
-        CloseHoverPopup();
+        if (_hoverPopup is not null)
+        {
+            InheritanceMenu.IsOpen = false;
+            CloseHoverPopup();
+        }
     }
 
     private void CloseHoverPopup()
     {
-        HoverPopup.IsOpen = false;
+        _openMenuWhenHoverOpens = false;
+        if (_hoverPopup is not null)
+            _hoverPopup.IsOpen = false;
     }
 
     private void TargetMenuItem_OnClick(object sender, RoutedEventArgs e)
