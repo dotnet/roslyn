@@ -85,7 +85,8 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
             throw new ArgumentNullException(nameof(node));
         }
 
-        var parameters = GetTypeInferenceMethodParameters(node);
+        using var _ = ListPool<TypeInferenceMethodParameter>.GetPooledObject(out var parameters);
+        GetTypeInferenceMethodParameters(node, parameters);
 
         // This is really similar to the code in WriteComponentAttribute and WriteComponentChildContent - except simpler because
         // attributes and child contents look like variables.
@@ -402,10 +403,8 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         }
     }
 
-    private List<TypeInferenceMethodParameter> GetTypeInferenceMethodParameters(ComponentTypeInferenceMethodIntermediateNode node)
+    private static void GetTypeInferenceMethodParameters(ComponentTypeInferenceMethodIntermediateNode node, List<TypeInferenceMethodParameter> p)
     {
-        var p = new List<TypeInferenceMethodParameter>();
-
         // Preserve order between attributes and splats
         foreach (var child in node.Component.Children)
         {
@@ -477,8 +476,6 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
                 i++;
             }
         }
-
-        return p;
     }
 
     private static void UseCapturedCascadingGenericParameterVariable(ComponentIntermediateNode node, TypeInferenceMethodParameter parameter, TypeInferenceArgName variableName)
@@ -1085,7 +1082,8 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         }
         else
         {
-            var parameters = GetTypeInferenceMethodParameters(node.TypeInferenceNode);
+            using var _ = ListPool<TypeInferenceMethodParameter>.GetPooledObject(out var parameters);
+            GetTypeInferenceMethodParameters(node.TypeInferenceNode, parameters);
 
             // If this component is going to cascade any of its generic types, we have to split its type inference
             // into two parts. First we call an inference method that captures all the parameters in local variables,
