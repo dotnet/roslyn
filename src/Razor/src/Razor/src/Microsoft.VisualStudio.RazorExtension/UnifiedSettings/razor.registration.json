@@ -101,6 +101,12 @@
       "title": "@Setting_AttributeIndentStyleDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
       "description": "@Setting_AttributeIndentStyleDescription;{13b72f58-279e-49e0-a56d-296be02f0805}"
     },
+    "languages.razor.advanced.ignoreIndentationInScriptOrStyleBlocksWithComplexRazor": {
+      "type": "boolean",
+      "default": true,
+      "title": "@Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDisplayName;{13b72f58-279e-49e0-a56d-296be02f0805}",
+      "description": "@Setting_IgnoreIndentationInScriptOrStyleBlocksWithComplexRazorDescription;{13b72f58-279e-49e0-a56d-296be02f0805}"
+    },
     "languages.razor.advanced.commitElementsWithSpace": {
       "type": "boolean",
       "default": true,

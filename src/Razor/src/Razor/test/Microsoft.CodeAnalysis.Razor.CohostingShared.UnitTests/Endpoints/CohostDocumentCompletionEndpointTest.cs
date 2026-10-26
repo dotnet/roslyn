@@ -138,6 +138,262 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
             expectedItemLabels: ["var", "char", "DateTime", "Exception"]);
     }
 
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_Keyword(bool isComponent)
+    {
+        var result = await VerifyCompletionListAsync(
+            input: "@$$",
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "@",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["documentation"],
+            itemToResolve: "documentation",
+            expected: "@documentation",
+            expectedResolvedItemDescription: "Specify XML documentation for the generated class.",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static builder => builder.RazorLanguageVersion = RazorLanguageVersion.Version_12_0);
+
+        Assert.NotNull(result);
+        var item = Assert.Single(result.Items, item => item.Label == "documentation");
+        Assert.Equal(CompletionItemKind.Keyword, item.Kind);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_PartialKeyword(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: "@doc$$",
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["documentation"],
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static builder => builder.RazorLanguageVersion = RazorLanguageVersion.Version_12_0);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_SummarySnippet(bool isComponent)
+    {
+        var result = await VerifyCompletionListAsync(
+            input: """
+                <p>Before</p>
+                @$$
+                <p>After</p>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "@",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["documentation", $"documentation {SR.Directive} ..."],
+            itemToResolve: $"documentation {SR.Directive} ...",
+            expected: """
+                <p>Before</p>
+                @documentation {
+                    <summary>
+                        $0
+                    </summary>
+                }
+                <p>After</p>
+                """,
+            expectedResolvedItemDescription: $$"""
+                @documentation {
+                    <summary>
+                        ...
+                    </summary>
+                }
+                {{SR.DirectiveSnippetDescription}}
+                """,
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static builder => builder.RazorLanguageVersion = RazorLanguageVersion.Version_12_0);
+
+        Assert.NotNull(result);
+        var item = Assert.Single(result.Items, item => item.Label == $"documentation {SR.Directive} ...");
+        Assert.Equal(CompletionItemKind.Snippet, item.Kind);
+        Assert.Equal(InsertTextFormat.Snippet, item.InsertTextFormat);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_NotOfferedBeforeRazor12(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: "@$$",
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "@",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["using"],
+            unexpectedItemLabels: ["documentation", $"documentation {SR.Directive} ..."],
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            projectConfigure: static builder => builder.RazorLanguageVersion = RazorLanguageVersion.Version_11_0);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_XmlElements(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @documentation {
+                    <$$
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["summary", "remarks", "example"],
+            unexpectedItemLabels: ["div", "string", "DateTime"],
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_NestedXmlElements(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                @documentation {
+                    <summary>
+                    <$$
+                    </summary>
+                }
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = "<",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["see", "seealso", "c", "code", "para"],
+            unexpectedItemLabels: ["div", "string", "DateTime"],
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_XmlElementCompletionEdit(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <p>Before</p>
+                @documentation {
+                    <su$$
+                }
+                <p>After</p>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["summary"],
+            itemToResolve: "summary",
+            expected: """
+                <p>Before</p>
+                @documentation {
+                    <summary
+                }
+                <p>After</p>
+                """,
+            expectedResolvedItemDescription: "",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_CrefTypeCompletion(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <p>Before</p>
+                @documentation {
+                    <summary>See <see cref="$$"/>.</summary>
+                }
+                <p>After</p>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            },
+            expectedItemLabels: ["DocumentationTarget"],
+            unexpectedItemLabels: ["summary", "div"],
+            itemToResolve: "DocumentationTarget",
+            expected: """
+                <p>Before</p>
+                @documentation {
+                    <summary>See <see cref="DocumentationTarget"/>.</summary>
+                }
+                <p>After</p>
+                """,
+            expectedResolvedItemDescription: "class DocumentationTarget",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                ("DocumentationTarget.cs", """
+                    public class DocumentationTarget
+                    {
+                    }
+                    """)
+            ]);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public async Task DocumentationDirective_CrefMemberCompletion(bool isComponent)
+    {
+        await VerifyCompletionListAsync(
+            input: """
+                <p>Before</p>
+                @documentation {
+                    <summary>See <see cref="DocumentationTarget.$$"/>.</summary>
+                }
+                <p>After</p>
+                """,
+            completionContext: new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Typing,
+                TriggerCharacter = ".",
+                TriggerKind = CompletionTriggerKind.TriggerCharacter
+            },
+            expectedItemLabels: ["Value"],
+            unexpectedItemLabels: ["summary", "div"],
+            itemToResolve: "Value",
+            expected: """
+                <p>Before</p>
+                @documentation {
+                    <summary>See <see cref="DocumentationTarget.Value"/>.</summary>
+                }
+                <p>After</p>
+                """,
+            expectedResolvedItemDescription: "int DocumentationTarget.Value { get; }",
+            fileKind: isComponent ? RazorFileKind.Component : RazorFileKind.Legacy,
+            additionalFiles:
+            [
+                ("DocumentationTarget.cs", """
+                    public class DocumentationTarget
+                    {
+                        public int Value => 42;
+                    }
+                    """)
+            ]);
+    }
+
     [Fact]
     public async Task CSharpClassesAtTransition()
     {
@@ -2114,12 +2370,14 @@ public partial class CohostDocumentCompletionEndpointTest(ITestOutputHelper test
         bool commitElementsWithSpace = true,
         RazorFileKind? fileKind = null,
         TimeSpan? retryTimeout = null,
-        (string fileName, string contents)[]? additionalFiles = null)
+        (string fileName, string contents)[]? additionalFiles = null,
+        Action<RazorProjectBuilder>? projectConfigure = null)
     {
         var document = CreateProjectAndRazorDocument(
             input.Text,
             fileKind,
-            additionalFiles: additionalFiles);
+            additionalFiles: additionalFiles,
+            projectConfigure: projectConfigure);
         var sourceText = await document.GetTextAsync(DisposalToken);
 
         ClientSettingsManager.Update(ClientAdvancedSettings.Default with { AutoInsertAttributeQuotes = autoInsertAttributeQuotes, CommitElementsWithSpace = commitElementsWithSpace });

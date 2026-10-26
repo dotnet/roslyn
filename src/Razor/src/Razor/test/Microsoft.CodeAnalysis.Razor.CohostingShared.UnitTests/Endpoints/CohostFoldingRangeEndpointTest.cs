@@ -20,6 +20,34 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 public class CohostFoldingRangeEndpointTest(ITestOutputHelper testOutputHelper) : CohostEndpointTestBase(testOutputHelper)
 {
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public Task DocumentationDirective()
+        => VerifyFoldingRangesAsync("""
+            @documentation {[|
+                <summary>
+                Component documentation.
+                </summary>
+            }|]
+
+            <p>After</p>
+            """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85414")]
+    public Task DocumentationAndCodeDirectives()
+        => VerifyFoldingRangesAsync("""
+            @documentation {[|
+                <summary>Component documentation.</summary>
+            }|]
+
+            @code {[|
+                private int _count;
+            }|]
+
+            <p>After</p>
+            """);
+
+    [Fact]
     public Task BadLooseFileUri()
        => VerifyFoldingRangesAsync("""
             <div>

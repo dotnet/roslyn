@@ -2101,18 +2101,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         return GetParameterState(parameterType, parameter.FlowAnalysisAnnotations).State;
                     }
-                case PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property when
-                        variable.ContainingSlot is > 0 and var containingSlot &&
-                        _variables[containingSlot].Symbol.GetTypeOrReturnType().Type is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
-                        Binder.IsUnionTypeValueProperty(unionType, property):
-                    {
-                        return unionType.UnionValueDeclaredNullableFlowState;
-                    }
 
                 case FieldSymbol:
                 case PropertySymbol:
                 case EventSymbol:
-                    return GetDefaultState(symbol);
+                    return GetDefaultState(variable.ContainingSlot, symbol);
                 case { Kind: SymbolKind.ErrorType }:
                     return NullableFlowState.NotNull;
                 default:
@@ -2959,7 +2952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var (variable, slot) in members)
             {
                 var symbol = AsMemberOfType(targetType, variable.Symbol);
-                SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(symbol));
+                SetStateAndTrackForFinally(ref this.State, slot, GetDefaultState(targetSlot, symbol));
                 InheritDefaultState(GetTypeOrReturnType(symbol), slot);
             }
             members.Free();
@@ -3003,9 +2996,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeWithAnnotations;
         }
 
-        private NullableFlowState GetDefaultState(Symbol symbol)
+        private NullableFlowState GetDefaultState(int containingSlot, Symbol symbol)
         {
-            return ApplyUnconditionalAnnotations(GetTypeOrReturnTypeWithAnnotations(symbol).ToTypeWithState(), GetRValueAnnotations(symbol)).State;
+            return ApplyUnconditionalAnnotations(GetTypeOrReturnTypeWithAnnotations(symbol).ToTypeWithState(), GetRValueAnnotations(containingSlot, receiverTypeForMemberAccessOpt: null, symbol)).State;
         }
 
         private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int skipSlot)
@@ -3659,7 +3652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _ = CheckPossibleNullReceiver(receiver);
 
             var resultType = ResultType.ToTypeWithAnnotations(compilation);
-            var resultState = ApplyUnconditionalAnnotations(resultType.ToTypeWithState(), GetRValueAnnotations(withExpr.CloneMethod));
+            var resultState = ApplyUnconditionalAnnotations(resultType.ToTypeWithState(), GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: withExpr.CloneMethod));
             var resultSlot = GetOrCreatePlaceholderSlot(withExpr);
             // carry over the null state of members of 'receiver' to the result of the with-expression.
             TrackNullableStateForAssignment(receiver, resultType, resultSlot, resultState, MakeSlot(receiver));
@@ -4345,13 +4338,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructor, delayCompletionForTargetMember: isTargetTyped);
 
             ImmutableArray<VisitResult> argumentResults = reinferenceResult.Results;
+            ImmutableArray<VisitResult> argumentConversionResultsOpt = reinferenceResult.ConversionResultsOpt;
             ArgumentsCompletionDelegate<MethodSymbol>? argumentsCompletion = reinferenceResult.Completion;
             Debug.Assert(isTargetTyped == argumentsCompletion is not null);
 
             var type = node.Type;
             var initializerOpt = node.InitializerExpressionOpt;
-            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion) =
-                inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped, hasObjectInitializer: initializerOpt is { });
+            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int>? initialStateInferenceCompletion) =
+                inferInitialObjectState(node, type, constructor, arguments, argumentResults, argumentConversionResultsOpt, isTargetTyped, hasObjectInitializer: initializerOpt is { });
 
             InitializerCompletionAfterTargetType? initializerCompletion = null;
             if (initializerOpt != null)
@@ -4368,7 +4362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TypeSymbol? type,
                 ImmutableArray<VisitResult> argumentResults,
                 ArgumentsCompletionDelegate<MethodSymbol>? argumentsCompletion,
-                Func<TypeSymbol, MethodSymbol?, int>? initialStateInferenceCompletion,
+                Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int>? initialStateInferenceCompletion,
                 InitializerCompletionAfterTargetType? initializerCompletion,
                 NullableFlowState resultState,
                 bool isTargetTyped)
@@ -4397,7 +4391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundObjectCreationExpressionBase node,
                 ImmutableArray<VisitResult> argumentResults,
                 ArgumentsCompletionDelegate<MethodSymbol> argumentsCompletion,
-                Func<TypeSymbol, MethodSymbol?, int> initialStateInferenceCompletion,
+                Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int> initialStateInferenceCompletion,
                 InitializerCompletionAfterTargetType? initializerCompletion,
                 NullableFlowState resultState)
             {
@@ -4411,8 +4405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var type = resultTypeWithAnnotations.Type;
                         MethodSymbol? constructor = getConstructor(node, type);
 
-                        argumentsCompletion(argumentResults, constructor?.Parameters ?? default, constructor);
-                        int slot = initialStateInferenceCompletion(type, constructor);
+                        (_, ImmutableArray<VisitResult> conversionResults, _) = argumentsCompletion(argumentResults, constructor?.Parameters ?? default, constructor);
+                        int slot = initialStateInferenceCompletion(type, constructor, conversionResults);
                         initializerCompletion?.Invoke(slot, type);
 
                         return setAnalyzedNullability(
@@ -4433,9 +4427,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constructor;
             }
 
-            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, int>? completion) inferInitialObjectState(
-                BoundExpression node, TypeSymbol type, MethodSymbol? constructor,
-                ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitResult> argumentResults,
+            (int slot, NullableFlowState resultState, Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int>? completion) inferInitialObjectState(
+                BoundObjectCreationExpressionBase node, TypeSymbol type, MethodSymbol? constructor,
+                ImmutableArray<BoundExpression> arguments, ImmutableArray<VisitResult> argumentResults, ImmutableArray<VisitResult> argumentConversionResultsOpt,
                 bool isTargetTyped,
                 bool hasObjectInitializer)
             {
@@ -4501,8 +4495,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (isSuitableUnionConstruction(type, constructor, out PropertySymbol? valueProperty))
                         {
-                            // When a union constructor is called, the new union's Value gets the null state of the incoming value.
-                            SetUnionValueStateFromConstructorArgument(arguments[0], argumentResults[0].RValueType, slot, valueProperty);
+                            if (node.Expanded)
+                            {
+                                // For now, assume that an expanded collection is never null.
+                                // This might not be the case with collection builders, tracked by https://github.com/dotnet/roslyn/issues/86064.
+                                // Still better than potentially inferring from an argument that maps to an element or using default state.
+                                // Especially that nullable builders are unlikely to exist outside of compiler tests.
+                                SetUnionValueState(slot, valueProperty, NullableFlowState.NotNull);
+                            }
+                            else if (!argumentConversionResultsOpt.IsDefaultOrEmpty)
+                            {
+                                // When a union constructor is called, the new union's Value gets the null state of the incoming value.
+                                SetUnionValueStateFromConstructorArgument(arguments[0], argumentConversionResultsOpt[0].RValueType, slot, valueProperty);
+                            }
                         }
                     }
                 }
@@ -4526,15 +4531,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Func<TypeSymbol, MethodSymbol?, int> inferInitialObjectStateAsContinuation(
-                BoundExpression node,
+            Func<TypeSymbol, MethodSymbol?, ImmutableArray<VisitResult>, int> inferInitialObjectStateAsContinuation(
+                BoundObjectCreationExpressionBase node,
                 ImmutableArray<BoundExpression> arguments,
                 ImmutableArray<VisitResult> argumentResults,
                 bool hasObjectInitializer)
             {
-                return (TypeSymbol type, MethodSymbol? constructor) =>
+                return (TypeSymbol type, MethodSymbol? constructor, ImmutableArray<VisitResult> argumentConversionResultsOpt) =>
                 {
-                    var (slot, resultState, completion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, isTargetTyped: false, hasObjectInitializer);
+                    var (slot, resultState, completion) = inferInitialObjectState(node, type, constructor, arguments, argumentResults, argumentConversionResultsOpt, isTargetTyped: false, hasObjectInitializer);
                     Debug.Assert(completion is null);
                     Debug.Assert(resultState == NullableFlowState.NotNull);
                     return slot;
@@ -4557,11 +4562,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandState = argumentTypeWithState.State;
             }
 
+            SetUnionValueState(containingSlot, valueProperty, operandState);
+        }
+
+        private void SetUnionValueState(int containingSlot, PropertySymbol valueProperty, NullableFlowState state)
+        {
             int iUnionValuePropertySlot = GetOrCreateSlot(valueProperty, containingSlot);
             Debug.Assert(iUnionValuePropertySlot > 0);
             if (iUnionValuePropertySlot > 0)
             {
-                SetState(ref this.State, iUnionValuePropertySlot, operandState);
+                SetState(ref this.State, iUnionValuePropertySlot, state);
             }
         }
 
@@ -4719,7 +4729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (argumentsCompletion is not null)
                     {
-                        (symbol, _) = argumentsCompletion(argumentResults, parameters, member: symbol);
+                        (symbol, _, _) = argumentsCompletion(argumentResults, parameters, member: symbol);
                     }
 
                     Debug.Assert(initializationCompletion is null || symbol is not null);
@@ -7444,16 +7454,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeWithState GetReturnTypeWithState(MethodSymbol method)
         {
-            return TypeWithState.Create(method.ReturnTypeWithAnnotations, GetRValueAnnotations(method));
+            return TypeWithState.Create(method.ReturnTypeWithAnnotations, GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: method));
         }
 
-        private FlowAnalysisAnnotations GetRValueAnnotations(Symbol? symbol)
+        private FlowAnalysisAnnotations GetRValueAnnotations(int containingSlotOpt, TypeSymbol? receiverTypeForMemberAccessOpt, Symbol? symbol)
         {
             // Annotations are ignored when binding an attribute to avoid cycles. (Members used
             // in attributes are error scenarios, so missing warnings should not be important.)
             if (IsAnalyzingAttribute)
             {
                 return FlowAnalysisAnnotations.None;
+            }
+
+            if (symbol is PropertySymbol { Name: WellKnownMemberNames.ValuePropertyName } property &&
+                ((containingSlotOpt > 0 ? _variables[containingSlotOpt].Symbol.GetTypeOrReturnType().Type : receiverTypeForMemberAccessOpt) ?? property.ContainingType)
+                    is NamedTypeSymbol { IsUnionType: true, UnionCaseTypesNoUseSiteDiagnostics: not [] } unionType &&
+                Binder.IsUnionTypeValueProperty(unionType, property))
+            {
+                return unionType.UnionValueDeclaredNullableFlowState.MayBeNull() ? FlowAnalysisAnnotations.MaybeNull : FlowAnalysisAnnotations.NotNull;
             }
 
             var annotations = symbol.GetFlowAnalysisAnnotations();
@@ -7623,17 +7641,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(reinferenceResult.Completion is null);
         }
 
-        private delegate (TMember? member, bool returnNotNull) ArgumentsCompletionDelegate<TMember>(ImmutableArray<VisitResult> argumentResults, ImmutableArray<ParameterSymbol> parametersOpt, TMember? member) where TMember : Symbol;
+        private delegate (TMember? member, ImmutableArray<VisitResult> conversionResults, bool returnNotNull) ArgumentsCompletionDelegate<TMember>(ImmutableArray<VisitResult> argumentResults, ImmutableArray<ParameterSymbol> parametersOpt, TMember? member) where TMember : Symbol;
 
         private delegate void InitializerCompletionAfterTargetType(int containingSlot, TypeSymbol containingType);
         private delegate void InitializerCompletionAfterUpdatedSymbol(int containingSlot, Symbol updatedSymbol);
 
-        private readonly struct ReinferenceResult<TMember>(TMember? member, ImmutableArray<VisitResult> results,
+        private readonly struct ReinferenceResult<TMember>(TMember? member, ImmutableArray<VisitResult> results, ImmutableArray<VisitResult> conversionResultsOpt,
             bool returnNotNull, ArgumentsCompletionDelegate<TMember>? completion)
             where TMember : Symbol
         {
             public readonly TMember? Member = member;
             public readonly ImmutableArray<VisitResult> Results = results;
+            public readonly ImmutableArray<VisitResult> ConversionResultsOpt = conversionResultsOpt;
             public readonly bool ReturnNotNull = returnNotNull;
             public readonly ArgumentsCompletionDelegate<TMember>? Completion = completion;
         }
@@ -7698,7 +7717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (delayCompletionForTargetMember)
                 {
-                    return new ReinferenceResult<TMember>(member, results, shouldReturnNotNull, visitArgumentsCoreAsContinuation(
+                    return new ReinferenceResult<TMember>(member, results, conversionResultsOpt: default, shouldReturnNotNull, visitArgumentsCoreAsContinuation(
                                                                       receiverType,
                                                                       node, arguments, argumentsNoConversions, conversions, refKindsOpt,
                                                                       argsToParamsOpt, defaultArguments, expanded, usesExtensionReceiver));
@@ -7813,8 +7832,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                conversionResultsBuilder.Free();
-
                 if (node is BoundCall { Method: { OriginalDefinition: LocalFunctionSymbol localFunction } })
                 {
                     VisitLocalFunctionUse(localFunction);
@@ -7868,7 +7885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 notNullParametersBuilder?.Free();
-                return new ReinferenceResult<TMember>(member, results, shouldReturnNotNull, completion: null);
+                return new ReinferenceResult<TMember>(member, results, conversionResultsBuilder.ToImmutableAndFree(), shouldReturnNotNull, completion: null);
             }
 
             ArgumentsCompletionDelegate<TMember> visitArgumentsCoreAsContinuation(
@@ -7892,7 +7909,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                            member, delayCompletionForTargetMember: false);
                            Debug.Assert(result.Completion is null);
 
-                           return (result.Member, result.ReturnNotNull);
+                           return (result.Member, result.ConversionResultsOpt, result.ReturnNotNull);
                        };
             }
 
@@ -9675,7 +9692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(targetField.TypeWithAnnotations.Type.StrippedType() is NamedTypeSymbol { IsUnionType: true });
                             int targetFieldSlot = GetOrCreateSlot(targetField, slot);
 
-                            TypeWithState valueFieldType = ApplyUnconditionalAnnotations(valueField.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(valueField));
+                            TypeWithState valueFieldType = ApplyUnconditionalAnnotations(valueField.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: valueField));
                             int valueFieldSlot = -1;
                             if (PossiblyNullableType(valueFieldType.Type))
                             {
@@ -10645,7 +10662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    returnType = ApplyUnconditionalAnnotations(returnType, GetRValueAnnotations(method));
+                    returnType = ApplyUnconditionalAnnotations(returnType, GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: method));
                 }
             }
 
@@ -11618,7 +11635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         VisitArgumentOutboundAssignmentsAndPostConditions(
                             receiverType: invocation.ReceiverOpt?.Type,
-                            variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(parameter),
+                            variable.Expression, parameter.RefKind, parameter, parameter.TypeWithAnnotations, GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: null, symbol: parameter),
                             new VisitResult(variable.Type.ToTypeWithState(), variable.Type),
                             notNullParametersOpt: null, compareExchangeInfoOpt: default);
                     }
@@ -12264,7 +12281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 updatedProperty = reinferenceResult.Member;
 
                 TypeWithAnnotations typeWithAnnotations = GetTypeOrReturnTypeWithAnnotations(updatedProperty);
-                FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(updatedProperty);
+                FlowAnalysisAnnotations memberAnnotations = GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: node.ReceiverOpt.Type, symbol: updatedProperty);
                 TypeWithState typeWithState = ApplyUnconditionalAnnotations(typeWithAnnotations.ToTypeWithState(), memberAnnotations);
 
                 SetResult(node, typeWithState, typeWithAnnotations);
@@ -12318,7 +12335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitPropertyArguments(node, receiverType, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
             }
 
-            var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
+            var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: receiverOpt?.Type, symbol: indexer));
             SetResult(node, resultType, indexer.TypeWithAnnotations);
             SetUpdatedSymbol(node, node.Indexer, indexer);
             return null;
@@ -12405,7 +12422,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var type = GetTypeOrReturnTypeWithAnnotations(member);
-            var memberAnnotations = GetRValueAnnotations(member);
+            var memberAnnotations = GetRValueAnnotations(containingSlotOpt: -1, receiverTypeForMemberAccessOpt: receiverType.Type, symbol: member);
             var resultType = ApplyUnconditionalAnnotations(type.ToTypeWithState(), memberAnnotations);
 
             // We are supposed to track information for the node. Use whatever we managed to

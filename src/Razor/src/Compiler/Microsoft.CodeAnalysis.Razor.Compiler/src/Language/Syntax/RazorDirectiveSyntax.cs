@@ -14,8 +14,4 @@ internal sealed partial class RazorDirectiveSyntax
     [MemberNotNullWhen(true, nameof(DirectiveDescriptor))]
     public bool IsDirective(DirectiveDescriptor directive)
         => DirectiveDescriptor == directive;
-
-    [MemberNotNullWhen(true, nameof(DirectiveDescriptor))]
-    public bool IsDirectiveKind(DirectiveKind kind)
-        => DirectiveDescriptor?.Kind == kind;
 }

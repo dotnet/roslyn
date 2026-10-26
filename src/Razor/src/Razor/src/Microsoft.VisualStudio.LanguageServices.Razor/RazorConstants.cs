@@ -7,10 +7,6 @@ namespace Microsoft.VisualStudio.Razor;
 
 internal static class RazorConstants
 {
-    public const string LegacyContentType = "LegacyRazorCSharp";
-
-    public const string LegacyCoreContentType = "LegacyRazorCoreCSharp";
-
     public const string RazorLSPContentTypeName = "Razor";
 
     public const string RazorLanguageServiceString = "4513FA64-5B72-4B58-9D4C-1D3C81996C2C";

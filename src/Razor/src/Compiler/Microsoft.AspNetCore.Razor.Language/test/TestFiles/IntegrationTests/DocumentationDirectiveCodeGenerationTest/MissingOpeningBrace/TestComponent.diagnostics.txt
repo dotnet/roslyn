@@ -1,0 +1,1 @@
+﻿x:\dir\subdir\Test\TestComponent.razor(1,16): Error RZ1017: Unexpected literal following the 'documentation' directive. Expected '{'.

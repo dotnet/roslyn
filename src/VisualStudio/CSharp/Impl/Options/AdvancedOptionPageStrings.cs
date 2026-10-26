@@ -351,6 +351,9 @@ internal static class AdvancedOptionPageStrings
     public static string Option_Fix_text_pasted_into_string_literals
         => ServicesVSResources.Fix_text_pasted_into_string_literals;
 
+    public static string Option_Fix_generic_type_names_pasted_into_cref_attributes
+        => ServicesVSResources.Fix_generic_type_names_pasted_into_cref_attributes;
+
     public static string Option_Go_To_Definition
         => ServicesVSResources.Go_To_Definition;
 

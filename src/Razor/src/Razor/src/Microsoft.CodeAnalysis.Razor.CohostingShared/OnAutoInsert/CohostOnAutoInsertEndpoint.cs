@@ -79,7 +79,7 @@ internal sealed class CohostOnAutoInsertEndpoint(
 
     protected override Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, TextDocument razorDocument, CancellationToken cancellationToken)
     {
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
+        var csharpSyntaxFormattingOptions = razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken);
         return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
     }
 
@@ -94,10 +94,11 @@ internal sealed class CohostOnAutoInsertEndpoint(
         var clientSettings = _clientSettingsManager.GetClientSettings();
         var razorFormattingOptions = RazorFormattingOptions.From(
             request.Options,
-            codeBlockBraceOnNextLine: clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine,
-            attributeIndentStyle: clientSettings.AdvancedSettings.AttributeIndentStyle,
+            clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine,
+            clientSettings.AdvancedSettings.AttributeIndentStyle,
+            clientSettings.AdvancedSettings.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor,
             csharpSyntaxFormattingOptions);
-        var resolvedCSharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(razorFormattingOptions);
+        var resolvedCSharpSyntaxFormattingOptions = razorFormattingOptions.GetResolvedCSharpSyntaxFormattingOptions();
         razorFormattingOptions = razorFormattingOptions with
         {
             CSharpSyntaxFormattingOptions = resolvedCSharpSyntaxFormattingOptions

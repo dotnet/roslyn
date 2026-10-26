@@ -1,0 +1,36 @@
+﻿RazorDocument - [0..103)::103 - [@documentation {LF    <summary>LF    Uses <see cref="System.DateTime"/>.LF    </summary>}LF<p>After</p>]
+    MarkupBlock - [0..103)::103
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..91)::91
+            RazorDocumentationDirective - [0..89)::89 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring}
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..89)::88
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..89)::75
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [15..16)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [16..88)::72
+                            CSharpStatementLiteral - [16..88)::72 - [LF    <summary>LF    Uses <see cref="System.DateTime"/>.LF    </summary>] - Gen<Stmt>
+                                Text;[LF    <summary>LF    Uses <see cref="System.DateTime"/>.LF    </summary>];
+                        RazorMetaCode - [88..89)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [89..91)::2 - Gen<None>
+                NewLine;[LF];
+        MarkupElement - [91..103)::12
+            MarkupStartTag - [91..94)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [94..99)::5 - [After] - Gen<Markup>
+                Text;[After];
+            MarkupEndTag - [99..103)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+    EndOfFile;[];

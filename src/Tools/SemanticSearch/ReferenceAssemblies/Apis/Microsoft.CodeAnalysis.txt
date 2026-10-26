@@ -2397,7 +2397,9 @@ Microsoft.CodeAnalysis.Operations.LoopKind.While
 Microsoft.CodeAnalysis.Operations.LoopKind.value__
 Microsoft.CodeAnalysis.Operations.OperationExtensions
 Microsoft.CodeAnalysis.Operations.OperationExtensions.Descendants(Microsoft.CodeAnalysis.IOperation)
+Microsoft.CodeAnalysis.Operations.OperationExtensions.Descendants(Microsoft.CodeAnalysis.IOperation,System.Func{Microsoft.CodeAnalysis.IOperation,System.Boolean})
 Microsoft.CodeAnalysis.Operations.OperationExtensions.DescendantsAndSelf(Microsoft.CodeAnalysis.IOperation)
+Microsoft.CodeAnalysis.Operations.OperationExtensions.DescendantsAndSelf(Microsoft.CodeAnalysis.IOperation,System.Func{Microsoft.CodeAnalysis.IOperation,System.Boolean})
 Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentName(Microsoft.CodeAnalysis.Operations.IDynamicIndexerAccessOperation,System.Int32)
 Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentName(Microsoft.CodeAnalysis.Operations.IDynamicInvocationOperation,System.Int32)
 Microsoft.CodeAnalysis.Operations.OperationExtensions.GetArgumentName(Microsoft.CodeAnalysis.Operations.IDynamicObjectCreationOperation,System.Int32)

@@ -165,7 +165,7 @@ internal sealed class KnownSourcePasteProcessor(
             new SnapshotSpan(SnapshotBeforePaste, 0, SnapshotBeforePaste.Length), SnapshotBeforePaste.ContentType);
         var snapshotBeforeTrivialEdit = clonedBuffer.CurrentSnapshot;
 
-        var edit = clonedBuffer.CreateEdit();
+        using var edit = clonedBuffer.CreateEdit();
         edit.Replace(_selectionSpanBeforePaste.ToSpan(), trivialContent);
 
         var snapshotAfterTrivialEdit = edit.Apply();

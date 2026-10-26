@@ -206,14 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override NamedTypeSymbol GetEffectiveBaseClass(ConsList<TypeParameterSymbol> inProgress)
         {
-            // Constraints are not checked in crefs, so this should never be examined.
-            throw ExceptionUtilities.Unreachable();
+            return ErrorTypeSymbol.UnknownResultType;
         }
 
         internal override TypeSymbol GetDeducedBaseType(ConsList<TypeParameterSymbol> inProgress)
         {
-            // Constraints are not checked in crefs, so this should never be examined.
-            throw ExceptionUtilities.Unreachable();
+            return ErrorTypeSymbol.UnknownResultType;
         }
 
         public override bool IsImplicitlyDeclared

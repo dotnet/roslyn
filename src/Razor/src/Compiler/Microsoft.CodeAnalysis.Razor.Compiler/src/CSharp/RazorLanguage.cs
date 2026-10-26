@@ -8,8 +8,4 @@ namespace Microsoft.CodeAnalysis.Razor;
 public static class RazorLanguage
 {
     public const string Name = "Razor";
-
-    public const string ContentType = "RazorCSharp";
-
-    public const string CoreContentType = "RazorCoreCSharp";
 }

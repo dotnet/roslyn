@@ -1,0 +1,10 @@
+﻿Source Location: (16:0,16 [24] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/MalformedInlineXml.cshtml)
+|<summary>Missing end tag|
+Generated Location: (1172:18,4 [24] )
+|<summary>Missing end tag|
+
+Source Location: (69:2,12 [36] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/MalformedInlineXml.cshtml)
+| /* note */ public int Value => 42; |
+Generated Location: (2405:38,0 [36] )
+| /* note */ public int Value => 42; |
+

@@ -29,6 +29,17 @@ internal sealed class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocu
     }
 
     /// <summary>
+    /// Gets or sets the Visual Studio project context for this report.
+    /// </summary>
+    [JsonPropertyName("_vs_projectContext")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public VSProjectContext? ProjectContext
+    {
+        get;
+        set;
+    }
+
+    /// <summary>
     /// Gets or sets the version number for which the diagnostics are reported.
     /// If the document is not marked as open 'null' can be provided.
     /// </summary>

@@ -1623,7 +1623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var syntax = ParameterSyntax;
 
-                            // We create unsafe binder so caller-unsafe errors in the signature are suppressed - there is no way user could suppress them there and they will be reported at the call site anyway.
+                            // We create unsafe binder so requires-unsafe errors in the signature are suppressed - there is no way user could suppress them there and they will be reported at the call site anyway.
                             var binder = GetDefaultParameterValueBinder(syntax).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.UnsafeRegion, ContainingSymbol); // this binder is good for our purpose
 
                             binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);
@@ -1684,7 +1684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             var syntax = ParameterSyntax;
 
-                            // We create unsafe binder so caller-unsafe errors in the signature are suppressed - there is no way user could suppress them there and they will be reported at the call site anyway.
+                            // We create unsafe binder so requires-unsafe errors in the signature are suppressed - there is no way user could suppress them there and they will be reported at the call site anyway.
                             var binder = GetDefaultParameterValueBinder(syntax).WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.UnsafeRegion, ContainingSymbol); // this binder is good for our purpose
 
                             binder.TryGetCollectionIterationType(syntax, Type, out elementTypeWithAnnotations);

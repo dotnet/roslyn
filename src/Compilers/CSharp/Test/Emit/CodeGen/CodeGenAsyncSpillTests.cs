@@ -4199,7 +4199,7 @@ class Driver
             {
                 ILVerifyMessage = """
                     [Run]: Return value missing on the stack. { Offset = 0x33 }
-                    [Goo]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [Goo]: Unexpected type on the stack. { Offset = 0x13, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
@@ -6516,7 +6516,7 @@ class Driver
             {
                 ILVerifyMessage = """
                     [Run]: Return value missing on the stack. { Offset = 0x50 }
-                    [Bar]: Unexpected type on the stack. { Offset = 0xc, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                    [Bar]: Unexpected type on the stack. { Offset = 0x13, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                     """
             });
 
@@ -7335,12 +7335,28 @@ class Driver
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [GetVal]: Unexpected type on the stack. { Offset = 0xc, Found = value 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<T0>' }
+                    [GetVal]: Unexpected type on the stack. { Offset = 0x13, Found = value 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<T0>' }
                     [Run]: Return value missing on the stack. { Offset = 0xb7 }
                     """
             });
 
             verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("TestCase.GetVal<T>", """
+                {
+                  // Code size       20 (0x14)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldobj      "TestCase"
+                  IL_0006:  pop
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+                  IL_000d:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0012:  ldarg.1
+                  IL_0013:  ret
+                }
+                """);
+
             verifier.VerifyIL("TestCase.Run()", """
                 {
                   // Code size      184 (0xb8)
@@ -7444,6 +7460,123 @@ class Driver
                     IL_00b6:  endfinally
                   }
                   IL_00b7:  ret
+                }
+                """);
+
+            comp = CreateRuntimeAsyncCompilation(source, TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [GetVal]: Unexpected type on the stack. { Offset = 0x19, Found = value 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<T0>' }
+                    [Run]: Return value missing on the stack. { Offset = 0xd1 }
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("TestCase.GetVal<T>", """
+                {
+                  // Code size       26 (0x1a)
+                  .maxstack  1
+                  .locals init (TestCase V_0,
+                            T V_1)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldobj      "TestCase"
+                  IL_0006:  stloc.0
+                  IL_0007:  nop
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+                  IL_000e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0013:  nop
+                  IL_0014:  ldarg.1
+                  IL_0015:  stloc.1
+                  IL_0016:  br.s       IL_0018
+                  IL_0018:  ldloc.1
+                  IL_0019:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void AsyncStackSpill_DiscardedThisWithRuntimeAsyncInStruct()
+        {
+            var source = @"
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        try
+        {
+            await GetRef().M();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.WriteLine(""Pass"");
+        }
+    }
+
+    static ref S GetRef() => ref System.Runtime.CompilerServices.Unsafe.NullRef<S>();
+}
+
+struct S
+{
+    public async System.Threading.Tasks.Task M()
+    {
+        _ = this;
+        await System.Threading.Tasks.Task.CompletedTask;
+    }
+}
+";
+
+            var comp = CreateRuntimeAsyncCompilation(source, TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("Pass"), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x1e }
+                    [M]: Return value missing on the stack. { Offset = 0x11 }
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S.M", """
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldobj      "S"
+                  IL_0006:  pop
+                  IL_0007:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                  IL_000c:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0011:  ret
+                }
+                """);
+
+            comp = CreateRuntimeAsyncCompilation(source, TestOptions.DebugExe);
+            verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("Pass"), verify: Verification.Fails with
+            {
+                ILVerifyMessage = """
+                    [Main]: Return value missing on the stack. { Offset = 0x25 }
+                    [M]: Return value missing on the stack. { Offset = 0x14 }
+                    """
+            });
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S.M", """
+                                {
+                  // Code size       21 (0x15)
+                  .maxstack  1
+                  .locals init (S V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldobj      "S"
+                  IL_0006:  stloc.0
+                  IL_0007:  nop
+                  IL_0008:  nop
+                  IL_0009:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.CompletedTask.get"
+                  IL_000e:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0013:  nop
+                  IL_0014:  ret
                 }
                 """);
         }
@@ -9452,7 +9585,7 @@ struct S
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [M]: Return value missing on the stack. { Offset = 0x3a }
+                    [M]: Return value missing on the stack. { Offset = 0x2f }
                     [Main]: Return value missing on the stack. { Offset = 0x1a }
                     """
             });
@@ -9460,36 +9593,32 @@ struct S
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S.M<T>(T)", """
                 {
-                  // Code size       59 (0x3b)
+                  // Code size       48 (0x30)
                   .maxstack  3
                   .locals init (T V_0,
-                                T V_1,
+                                int V_1,
                                 int V_2,
-                                int V_3,
-                                int V_4)
+                                int V_3)
                   IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_0
-                  IL_0004:  dup
-                  IL_0005:  ldobj      "T"
-                  IL_000a:  stloc.1
-                  IL_000b:  constrained. "T"
-                  IL_0011:  callvirt   "int I.Prop.get"
-                  IL_0016:  stloc.2
-                  IL_0017:  call       "System.Threading.Tasks.Task<int> S.GetInt()"
-                  IL_001c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0021:  stloc.3
-                  IL_0022:  ldloc.1
-                  IL_0023:  box        "T"
-                  IL_0028:  ldloc.2
+                  IL_0001:  dup
+                  IL_0002:  stloc.0
+                  IL_0003:  box        "T"
+                  IL_0008:  callvirt   "int I.Prop.get"
+                  IL_000d:  stloc.1
+                  IL_000e:  call       "System.Threading.Tasks.Task<int> S.GetInt()"
+                  IL_0013:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0018:  stloc.2
+                  IL_0019:  ldloc.0
+                  IL_001a:  box        "T"
+                  IL_001f:  ldloc.1
+                  IL_0020:  ldloc.2
+                  IL_0021:  add
+                  IL_0022:  dup
+                  IL_0023:  stloc.3
+                  IL_0024:  callvirt   "void I.Prop.set"
                   IL_0029:  ldloc.3
-                  IL_002a:  add
-                  IL_002b:  dup
-                  IL_002c:  stloc.s    V_4
-                  IL_002e:  callvirt   "void I.Prop.set"
-                  IL_0033:  ldloc.s    V_4
-                  IL_0035:  call       "void System.Console.Write(int)"
-                  IL_003a:  ret
+                  IL_002a:  call       "void System.Console.Write(int)"
+                  IL_002f:  ret
                 }
                 """);
         }
@@ -9540,7 +9669,7 @@ struct S
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [M]: Return value missing on the stack. { Offset = 0x3a }
+                    [M]: Return value missing on the stack. { Offset = 0x2f }
                     [Main]: Return value missing on the stack. { Offset = 0x1a }
                     """
             });
@@ -9548,36 +9677,32 @@ struct S
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S.M<T>(T)", """
                 {
-                  // Code size       59 (0x3b)
+                  // Code size       48 (0x30)
                   .maxstack  3
                   .locals init (T V_0,
-                                T V_1,
+                                int V_1,
                                 int V_2,
-                                int V_3,
-                                int V_4)
+                                int V_3)
                   IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_0
-                  IL_0004:  dup
-                  IL_0005:  ldobj      "T"
-                  IL_000a:  stloc.1
-                  IL_000b:  constrained. "T"
-                  IL_0011:  callvirt   "int I<T>.Prop.get"
-                  IL_0016:  stloc.2
-                  IL_0017:  call       "System.Threading.Tasks.Task<int> S.GetInt()"
-                  IL_001c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0021:  stloc.3
-                  IL_0022:  ldloc.1
-                  IL_0023:  box        "T"
-                  IL_0028:  ldloc.2
+                  IL_0001:  dup
+                  IL_0002:  stloc.0
+                  IL_0003:  box        "T"
+                  IL_0008:  callvirt   "int I<T>.Prop.get"
+                  IL_000d:  stloc.1
+                  IL_000e:  call       "System.Threading.Tasks.Task<int> S.GetInt()"
+                  IL_0013:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0018:  stloc.2
+                  IL_0019:  ldloc.0
+                  IL_001a:  box        "T"
+                  IL_001f:  ldloc.1
+                  IL_0020:  ldloc.2
+                  IL_0021:  add
+                  IL_0022:  dup
+                  IL_0023:  stloc.3
+                  IL_0024:  callvirt   "void I<T>.Prop.set"
                   IL_0029:  ldloc.3
-                  IL_002a:  add
-                  IL_002b:  dup
-                  IL_002c:  stloc.s    V_4
-                  IL_002e:  callvirt   "void I<T>.Prop.set"
-                  IL_0033:  ldloc.s    V_4
-                  IL_0035:  call       "void System.Console.Write(int)"
-                  IL_003a:  ret
+                  IL_002a:  call       "void System.Console.Write(int)"
+                  IL_002f:  ret
                 }
                 """);
         }
@@ -9627,7 +9752,7 @@ struct S
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [M]: Return value missing on the stack. { Offset = 0x3a }
+                    [M]: Return value missing on the stack. { Offset = 0x2f }
                     [Main]: Return value missing on the stack. { Offset = 0x1a }
                     """
             });
@@ -9635,36 +9760,32 @@ struct S
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("S.M<T>(T)", """
                 {
-                  // Code size       59 (0x3b)
+                  // Code size       48 (0x30)
                   .maxstack  3
                   .locals init (T V_0,
-                                T V_1,
+                                int V_1,
                                 int V_2,
-                                int V_3,
-                                int V_4)
+                                int V_3)
                   IL_0000:  ldarg.0
-                  IL_0001:  stloc.0
-                  IL_0002:  ldloca.s   V_0
-                  IL_0004:  dup
-                  IL_0005:  ldobj      "T"
-                  IL_000a:  stloc.1
-                  IL_000b:  constrained. "T"
-                  IL_0011:  callvirt   "int I<T>.Prop.get"
-                  IL_0016:  stloc.2
-                  IL_0017:  call       "System.Threading.Tasks.Task<int> S.GetInt()"
-                  IL_001c:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
-                  IL_0021:  stloc.3
-                  IL_0022:  ldloc.1
-                  IL_0023:  box        "T"
-                  IL_0028:  ldloc.2
+                  IL_0001:  dup
+                  IL_0002:  stloc.0
+                  IL_0003:  box        "T"
+                  IL_0008:  callvirt   "int I<T>.Prop.get"
+                  IL_000d:  stloc.1
+                  IL_000e:  call       "System.Threading.Tasks.Task<int> S.GetInt()"
+                  IL_0013:  call       "int System.Runtime.CompilerServices.AsyncHelpers.Await<int>(System.Threading.Tasks.Task<int>)"
+                  IL_0018:  stloc.2
+                  IL_0019:  ldloc.0
+                  IL_001a:  box        "T"
+                  IL_001f:  ldloc.1
+                  IL_0020:  ldloc.2
+                  IL_0021:  add
+                  IL_0022:  dup
+                  IL_0023:  stloc.3
+                  IL_0024:  callvirt   "void I<T>.Prop.set"
                   IL_0029:  ldloc.3
-                  IL_002a:  add
-                  IL_002b:  dup
-                  IL_002c:  stloc.s    V_4
-                  IL_002e:  callvirt   "void I<T>.Prop.set"
-                  IL_0033:  ldloc.s    V_4
-                  IL_0035:  call       "void System.Console.Write(int)"
-                  IL_003a:  ret
+                  IL_002a:  call       "void System.Console.Write(int)"
+                  IL_002f:  ret
                 }
                 """);
         }

@@ -36,10 +36,25 @@ internal sealed class DirectiveCompletionItemProvider : IRazorCompletionItemProv
 
     // internal for testing
     // Do not forget to update both insert and display text !important
-    internal static readonly FrozenDictionary<string, (string InsertText, string DisplayText)> SingleLineDirectiveSnippets = new Dictionary<string, (string InsertText, string DisplayText)>(StringComparer.Ordinal)
+    internal static readonly FrozenDictionary<string, (string InsertText, string DisplayText)> DirectiveSnippets = new Dictionary<string, (string InsertText, string DisplayText)>(StringComparer.Ordinal)
     {
         ["addTagHelper"] = ("addTagHelper ${1:*}, ${2:Microsoft.AspNetCore.Mvc.TagHelpers}", "addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers"),
         ["attribute"] = ("attribute [${1:Authorize}]$0", "attribute [Authorize]"),
+        ["documentation"] = (
+            """
+            documentation {
+                <summary>
+                    $0
+                </summary>
+            }
+            """,
+            """
+            documentation {
+                <summary>
+                    ...
+                </summary>
+            }
+            """),
         ["implements"] = ("implements ${1:IDisposable}$0", "implements IDisposable"),
         ["inherits"] = ("inherits ${1:ComponentBase}$0", "inherits ComponentBase"),
         ["inject"] = ("inject ${1:IService} ${2:MyService}", "inject IService MyService"),
@@ -133,7 +148,7 @@ internal sealed class DirectiveCompletionItemProvider : IRazorCompletionItemProv
 
         ReadOnlySpan<DirectiveDescriptor> directives = [.. syntaxTree.Options.Directives, .. defaultDirectives];
 
-        using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: directives.Length + SingleLineDirectiveSnippets.Count);
+        using var completionItems = new PooledArrayBuilder<RazorCompletionItem>(capacity: directives.Length + DirectiveSnippets.Count);
 
         foreach (var directive in directives)
         {
@@ -153,7 +168,7 @@ internal sealed class DirectiveCompletionItemProvider : IRazorCompletionItemProv
 
             completionItems.Add(completionItem);
 
-            if (SingleLineDirectiveSnippets.TryGetValue(directive.Directive, out var snippetTexts))
+            if (DirectiveSnippets.TryGetValue(directive.Directive, out var snippetTexts))
             {
                 var snippetDescription = $"@{snippetTexts.DisplayText}{Environment.NewLine}{SR.DirectiveSnippetDescription}";
 

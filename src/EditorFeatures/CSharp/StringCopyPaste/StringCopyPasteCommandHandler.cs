@@ -159,14 +159,14 @@ internal sealed partial class StringCopyPasteCommandHandler(
             textView, _undoHistoryRegistry, _editorOperationsFactoryService);
 
         {
-            var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
+            using var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
             foreach (var change in snapshotBeforePaste.Version.Changes)
                 edit.Replace(change.NewSpan, change.OldText);
             edit.Apply();
         }
 
         {
-            var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
+            using var edit = subjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null);
             foreach (var selection in selectionsBeforePaste)
                 edit.Replace(selection.Span, "");
 

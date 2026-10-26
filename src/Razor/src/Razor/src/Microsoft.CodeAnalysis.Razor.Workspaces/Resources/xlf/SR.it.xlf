@@ -54,19 +54,9 @@
         <target state="translated">L'editor Razor usa il generatore di origine Razor, che richiede che i file *.razor e *.cshtml siano AdditionalFiles nel progetto. {0} sembra provenire da '{1}', che contiene documenti Razor, ma questo file non è un AdditionalFile, quindi l'esperienza di modifica sarà limitata. Non verranno registrati altri messaggi per questo progetto.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">Offset non valido.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">Parola chiave di {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">I servizi di linguaggio Razor non sono configurati correttamente. Manca il servizio di linguaggio '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">

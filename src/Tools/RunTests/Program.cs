@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -14,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Test.Utilities;
 
 namespace RunTests
 {
@@ -26,12 +25,15 @@ namespace RunTests
 
         internal static async Task<int> Main(string[] args)
         {
+            if (args is ["--dump-process", ..])
+                return DumpCollector.RunHelper(args);
+
             Logger.Log("RunTest command line");
             Logger.Log(string.Join(" ", args));
-            var options = Options.Parse(args);
+            var options = Options.Parse(args, out var helpShown);
             if (options == null)
             {
-                return ExitFailure;
+                return helpShown ? ExitSuccess : ExitFailure;
             }
 
             ConsoleUtil.WriteLine($"Running '{options.DotnetFilePath} --version'..");
@@ -45,7 +47,9 @@ namespace RunTests
                 return await HelixTestRunner.RunAsync(options, assemblyFilePaths);
             }
 
-            if (options.CollectDumps)
+            Directory.CreateDirectory(options.LogFilesDirectory);
+
+            if (options.CollectDumps && OperatingSystem.IsWindows())
             {
                 if (!DumpUtil.IsAdministrator())
                 {
@@ -61,8 +65,9 @@ namespace RunTests
             {
                 // Setup cancellation for ctrl-c key presses
                 using var cts = new CancellationTokenSource();
-                Console.CancelKeyPress += delegate
+                Console.CancelKeyPress += (_, e) =>
                 {
+                    e.Cancel = true;
                     cts.Cancel();
                     DisableRegistryDumpCollection();
                 };
@@ -70,11 +75,11 @@ namespace RunTests
                 int result;
                 if (options.Timeout is { } timeout)
                 {
-                    result = await RunCoreAsync(options, cts.Token);
+                    result = await RunCoreAsync(options, timeout, cts.Token);
                 }
                 else
                 {
-                    result = await RunAsync(options, cts.Token);
+                    result = await RunAsync(options, cts.Token, cts.Token);
                 }
 
                 CheckTotalDumpFilesSize();
@@ -87,23 +92,24 @@ namespace RunTests
 
             void DisableRegistryDumpCollection()
             {
-                if (options.CollectDumps && DumpUtil.IsAdministrator())
+                if (options.CollectDumps && OperatingSystem.IsWindows() && DumpUtil.IsAdministrator())
                 {
                     DumpUtil.DisableRegistryDumpCollection();
                 }
             }
         }
 
-        private static async Task<int> RunCoreAsync(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunCoreAsync(Options options, TimeSpan timeout, CancellationToken cancellationToken)
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var runTask = RunAsync(options, cts.Token);
-            var timeoutTask = Task.Delay(options.Timeout.Value, cancellationToken);
+            var runTask = RunAsync(options, cts.Token, cancellationToken);
+            var timeoutTask = Task.Delay(timeout, cancellationToken);
 
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
             {
-                await HandleTimeout(options, cancellationToken);
+                if (!cancellationToken.IsCancellationRequested)
+                    ConsoleUtil.Error("Global test timeout exceeded; collecting owned work-item dumps before termination.");
                 cts.Cancel();
 
                 try
@@ -117,17 +123,18 @@ namespace RunTests
                     // Cancellation exceptions expected here. 
                 }
 
+                WriteLogFile(options);
                 return ExitFailure;
             }
 
             return await runTask;
         }
 
-        private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken)
+        private static async Task<int> RunAsync(Options options, CancellationToken cancellationToken, CancellationToken userCancellationToken)
         {
             var assemblyFilePaths = GetAssemblyFilePaths(options);
 
-            var testExecutor = new ProcessTestExecutor();
+            var testExecutor = new ProcessTestExecutor(userCancellationToken);
             var testRunner = new TestRunner(options, testExecutor);
             var start = DateTime.Now;
             if (assemblyFilePaths.Length == 0)
@@ -137,8 +144,6 @@ namespace RunTests
                 return ExitFailure;
             }
 
-            ConsoleUtil.WriteLine($"Proc dump location: {options.ProcDumpFilePath}");
-
             var result = await testRunner.RunAllAsync(assemblyFilePaths, cancellationToken).ConfigureAwait(true);
             var elapsed = DateTime.Now - start;
 
@@ -146,7 +151,6 @@ namespace RunTests
 
             LogProcessResultDetails(result.ProcessResults);
             WriteLogFile(options);
-            DisplayResults(options.Display, result.TestResults);
 
             if (!result.Succeeded)
             {
@@ -167,7 +171,7 @@ namespace RunTests
                 var startInfo = process.StartInfo;
                 Logger.Log($"### Begin {process.Id}");
                 Logger.Log($"### {startInfo.FileName} {startInfo.Arguments}");
-                Logger.Log($"### Exit code {process.ExitCode}");
+                Logger.Log($"### Exit code {processResult.ExitCode}");
                 Logger.Log("### Standard Output");
                 foreach (var line in processResult.OutputLines)
                 {
@@ -202,52 +206,6 @@ namespace RunTests
             }
 
             Logger.Clear();
-        }
-
-        /// <summary>
-        /// Invoked when a timeout occurs and we need to dump all of the test processes and shut down 
-        /// the runnner.
-        /// </summary>
-        private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
-        {
-            ConsoleUtil.Error("Test timeout exceeded, dumping remaining processes");
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                var screenshotPath = Path.Combine(options.LogFilesDirectory, $"timeout.png");
-                ConsoleUtil.WriteLine($"Taking screenshot on timeout at {screenshotPath}");
-                var output = await ProcessRunner.CreateProcess("Powershell.exe", $"-command \"& {{ . .\\eng\\build-utils-win.ps1; Capture-Screenshot {screenshotPath} }}\"", displayWindow: false, cancellationToken: cancellationToken).Result;
-                ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.OutputLines));
-                ConsoleUtil.WriteLine(string.Join(Environment.NewLine, output.ErrorLines));
-            }
-
-            var dumpDir = options.LogFilesDirectory;
-            Directory.CreateDirectory(dumpDir);
-
-            if (options.CollectDumps)
-            {
-                var counter = 0;
-                foreach (var proc in ProcessUtil.GetTestHostProcesses().OrderBy(x => x.ProcessName))
-                {
-                    var name = proc.ProcessName;
-
-                    var dumpFilePath = Path.Combine(dumpDir, $"{name}-{counter}.dmp");
-                    ConsoleUtil.Write($"Dumping {name} {proc.Id} to {dumpFilePath} ... ");
-
-                    if (DumpCollector.TryDumpProcess(proc, dumpFilePath))
-                    {
-                        ConsoleUtil.WriteLine($"succeeded ({new FileInfo(dumpFilePath).Length} bytes)");
-                    }
-                    else
-                    {
-                        ConsoleUtil.WriteLine("FAILED");
-                    }
-
-                    counter++;
-                }
-            }
-
-            WriteLogFile(options);
         }
 
         private static ImmutableArray<AssemblyInfo> GetAssemblyFilePaths(Options options)
@@ -341,14 +299,16 @@ namespace RunTests
                 return false;
             }
 
-            static bool IsMatch(TestRuntime testRuntime, string dirName) =>
-                testRuntime switch
-                {
-                    TestRuntime.Both => IsCompatibleWithCurrentPlatform(dirName),
-                    TestRuntime.Core => Regex.IsMatch(dirName, @"^net\d+\.") && IsCompatibleWithCurrentPlatform(dirName),
-                    TestRuntime.Framework => dirName is "net472",
-                    _ => throw new InvalidOperationException($"Unexpected {nameof(TestRuntime)} value: {testRuntime}"),
-                };
+            static bool IsMatch(TestRuntime testRuntime, string dirName)
+            {
+                if (dirName is "net472")
+                    return (testRuntime & TestRuntime.Framework) != 0;
+
+                if (Regex.IsMatch(dirName, @"^net\d+\."))
+                    return (testRuntime & TestRuntime.Core) != 0 && IsCompatibleWithCurrentPlatform(dirName);
+
+                return false;
+            }
 
             static bool IsCompatibleWithCurrentPlatform(string tfmDirName)
             {
@@ -363,34 +323,6 @@ namespace RunTests
                 }
 
                 return true;
-            }
-        }
-
-        private static void DisplayResults(Display display, ImmutableArray<TestResult> testResults)
-        {
-            foreach (var cur in testResults)
-            {
-                var open = false;
-                switch (display)
-                {
-                    case Display.All:
-                        open = true;
-                        break;
-                    case Display.None:
-                        open = false;
-                        break;
-                    case Display.Succeeded:
-                        open = cur.Succeeded;
-                        break;
-                    case Display.Failed:
-                        open = !cur.Succeeded;
-                        break;
-                }
-
-                if (open)
-                {
-                    ProcessRunner.OpenFile(cur.ResultsDisplayFilePath);
-                }
             }
         }
 

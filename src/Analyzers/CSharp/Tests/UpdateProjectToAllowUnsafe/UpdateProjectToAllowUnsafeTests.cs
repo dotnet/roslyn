@@ -29,7 +29,7 @@ public sealed class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticPr
 
     private async Task TestAllowUnsafeEnabledIfDisabledAsync(string initialMarkup)
     {
-        var parameters = TestParameters.Default;
+        var parameters = TestParameters.Default.WithParseOptions(CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
         using (var workspace = CreateWorkspaceFromOptions(initialMarkup, parameters))
         {
             var (_, action) = await GetCodeActionsAsync(workspace, parameters);
@@ -40,43 +40,53 @@ public sealed class UpdateProjectToAllowUnsafeTests : AbstractCSharpDiagnosticPr
         }
 
         // no action offered if unsafe was already enabled
-        await TestMissingAsync(initialMarkup, new TestParameters(compilationOptions:
+        await TestMissingAsync(initialMarkup, parameters.WithCompilationOptions(
             new CSharpCompilationOptions(outputKind: default, allowUnsafe: true)));
     }
 
-    [Fact]
-    public Task OnUnsafeClass()
+    [Theory, CombinatorialData]
+    public Task OnClass([CombinatorialValues("unsafe", "safe")] string modifier)
         => TestAllowUnsafeEnabledIfDisabledAsync(
-            """
-            unsafe class [|C|] // The compiler reports this on the name, not the 'unsafe' keyword.
+            $$"""
+            [|{{modifier}}|] class C
             {
             }
             """);
 
-    [Fact]
-    public Task OnUnsafeMethod()
+    [Theory, CombinatorialData]
+    public Task OnMethod([CombinatorialValues("unsafe", "safe")] string modifier)
         => TestAllowUnsafeEnabledIfDisabledAsync(
-            """
+            $$"""
             class C
             {
-                unsafe void [|M|]()
+                [|{{modifier}}|] void M()
                 {
                 }
             }
             """);
 
-    [Fact]
-    public Task OnUnsafeLocalFunction()
+    [Theory, CombinatorialData]
+    public Task OnLocalFunction([CombinatorialValues("unsafe", "safe")] string modifier)
         => TestAllowUnsafeEnabledIfDisabledAsync(
-            """
+            $$"""
             class C
             {
                 void M()
                 {
-                    unsafe void [|F|]()
+                    [|{{modifier}}|] void F()
                     {
                     }
                 }
+            }
+            """);
+
+    [Theory, CombinatorialData]
+    public Task OnAccessor([CombinatorialValues("unsafe", "safe")] string modifier)
+        => TestAllowUnsafeEnabledIfDisabledAsync(
+            $$"""
+            class C
+            {
+                int P { [|{{modifier}}|] get; set; }
             }
             """);
 
