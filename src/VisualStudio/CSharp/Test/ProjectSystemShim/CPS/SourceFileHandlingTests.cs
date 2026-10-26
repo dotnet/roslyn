@@ -6,8 +6,10 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.VisualStudio.LanguageServices.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -22,6 +24,105 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
     public class SourceFileHandlingTests
     {
+        [WpfFact]
+        public async Task CreateBatchScopeAsync_DefersSourceFileChangesUntilDisposal()
+        {
+            using var environment = new TestEnvironment();
+            using IWorkspaceProjectContext project = await CreateCSharpCPSProjectAsync(environment, "project1");
+            IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
+
+            var originalPath = @"c:\original.cs";
+            var addedPath = @"c:\added.cs";
+            project.AddSourceFile(originalPath);
+            Assert.Equal(originalPath, Assert.Single(GetCurrentDocuments()).FilePath);
+
+            await using (await project.CreateBatchScopeAsync(CancellationToken.None))
+            {
+                project.RemoveSourceFile(originalPath);
+                project.AddSourceFile(addedPath);
+
+                Assert.Equal(originalPath, Assert.Single(GetCurrentDocuments()).FilePath);
+            }
+
+            Assert.Equal(addedPath, Assert.Single(GetCurrentDocuments()).FilePath);
+        }
+
+        [WpfFact]
+        public async Task CreateBatchScopeAsync_NestedScopesPublishOnlyAfterOutermostDisposal()
+        {
+            using var environment = new TestEnvironment();
+            using IWorkspaceProjectContext project = await CreateCSharpCPSProjectAsync(environment, "project1");
+            IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
+
+            var outerPath = @"c:\outer.cs";
+            var innerPath = @"c:\inner.cs";
+            await using (await project.CreateBatchScopeAsync(CancellationToken.None))
+            {
+                project.AddSourceFile(outerPath);
+                await using (await project.CreateBatchScopeAsync(CancellationToken.None))
+                {
+                    project.AddSourceFile(innerPath);
+                    Assert.Empty(GetCurrentDocuments());
+                }
+
+                Assert.Empty(GetCurrentDocuments());
+            }
+
+            Assert.Equal(new[] { outerPath, innerPath }, GetCurrentDocuments().Select(document => document.FilePath));
+        }
+
+        [WpfFact]
+        public async Task CreateBatchScopeAsync_NestedInSynchronousScopeDefersChanges()
+        {
+            using var environment = new TestEnvironment();
+            using IWorkspaceProjectContext project = await CreateCSharpCPSProjectAsync(environment, "project1");
+            IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
+
+            var outerPath = @"c:\outer.cs";
+            var innerPath = @"c:\inner.cs";
+            await using (project.CreateBatchScope())
+            {
+                project.AddSourceFile(outerPath);
+                await using (await project.CreateBatchScopeAsync(CancellationToken.None))
+                {
+                    project.AddSourceFile(innerPath);
+                    Assert.Empty(GetCurrentDocuments());
+                }
+
+                Assert.Empty(GetCurrentDocuments());
+            }
+
+            Assert.Equal(new[] { outerPath, innerPath }, GetCurrentDocuments().Select(document => document.FilePath));
+        }
+
+        [WpfFact]
+        public async Task CreateBatchScopeAsync_PreCanceledTokenDoesNotLeaveActiveScope()
+        {
+            using var environment = new TestEnvironment();
+            using IWorkspaceProjectContext project = await CreateCSharpCPSProjectAsync(environment, "project1");
+            IEnumerable<Document> GetCurrentDocuments() => environment.Workspace.CurrentSolution.Projects.Single().Documents;
+            using var cancellationSource = new CancellationTokenSource();
+            cancellationSource.Cancel();
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
+            {
+                await using var scope = await project.CreateBatchScopeAsync(cancellationSource.Token);
+            });
+
+            var immediatePath = @"c:\immediate.cs";
+            project.AddSourceFile(immediatePath);
+            Assert.Equal(immediatePath, Assert.Single(GetCurrentDocuments()).FilePath);
+
+            var batchedPath = @"c:\batched.cs";
+            await using (await project.CreateBatchScopeAsync(CancellationToken.None))
+            {
+                project.AddSourceFile(batchedPath);
+                Assert.Equal(immediatePath, Assert.Single(GetCurrentDocuments()).FilePath);
+            }
+
+            Assert.Equal(new[] { immediatePath, batchedPath }, GetCurrentDocuments().Select(document => document.FilePath));
+        }
+
         [WpfFact]
         public async Task AddRemoveSourceFile_CPS()
         {
