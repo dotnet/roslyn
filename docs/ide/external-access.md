@@ -6,8 +6,4 @@ We track the APIs that we've exposed with a roslyn analyzer, which will fail the
 
 Because "shipping" for EA projects occurs every time a change is checked in, we don't bother updating the `InternalAPI.Shipped.txt` file for these projects.
 
-Every EA project has an `Internal` namespace that is considered Roslyn implementation details. For example, the OmniSharp namespace is `Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Internal`. We do not track the APIs under these namespaces, and it's on the dependent projects to not reference anything from these namespaces. Not every EA project actually uses this namespace. If an EA project that doesn't currently use their `Internal` namespace wants to start, modify `/src/Tools/ExternalAccess/.editorconfig` to set the `dotnet_public_api_analyzer.skip_namespaces` key to that namespace for the affected files. Multiple namespaces can be included by using a `,` separator.
-
-## OmniSharp
-
-When a change needs to be made to an API in the ExternalAccess.OmniSharp or ExternalAccess.OmniSharp.CSharp packages, ping @333fred, @JoeRobich, @filipw, or @david-driscoll as a heads up. Breaking changes are allowed, but please wait for acknowledgement and followup questions to ensure that we don't completely break OmniSharp scenarios.
+Every EA project can have an `Internal` namespace that is considered Roslyn implementation details. We do not track the APIs under these namespaces, and it's on the dependent projects to not reference anything from these namespaces. Not every EA project actually uses this namespace. If an EA project that doesn't currently use its `Internal` namespace wants to start, modify the corresponding `.editorconfig` to set the `dotnet_public_api_analyzer.skip_namespaces` key to that namespace for the affected files. Multiple namespaces can be included by using a `,` separator.

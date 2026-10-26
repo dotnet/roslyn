@@ -38,8 +38,6 @@
                             LazyIntermediateToken - (222:3,64 [20] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - "named-form-handler"
                     ComponentAttribute - (256:3,98 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Parameter - Parameter - AttributeStructure.DoubleQuotes
                         IntermediateToken - (256:3,98 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 2
-            CSharpCode - (270:4,7 [52] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (270:4,7 [52] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public T Parameter { get; set; }\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_0

@@ -13668,4 +13668,34 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp14,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
+
+#if NET
+    [Fact]
+    public Task RemoveNativeIntegerCastsWithNet100References()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
+            TestCode = """
+                using System;
+
+                public class C
+                {
+                    public nuint FromIntPtr(IntPtr x) => (nuint)[|(nint)|]x;
+                    public int ToInt(IntPtr x) => (int)[|(nint)|]x;
+                    public nint FromUIntPtr(UIntPtr x) => (nint)[|(nuint)|]x;
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public class C
+                {
+                    public nuint FromIntPtr(IntPtr x) => (nuint)x;
+                    public int ToInt(IntPtr x) => (int)x;
+                    public nint FromUIntPtr(UIntPtr x) => (nint)x;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+#endif
 }

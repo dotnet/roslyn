@@ -34,6 +34,65 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         public class StartupTests : VBCSCompilerServerTests
         {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void LoggingFromEnvironment(bool logToDirectory)
+            {
+                var directory = TempRoot.CreateDirectory();
+                var logPath = logToDirectory ? directory.Path : Path.Combine(directory.Path, "server.log");
+
+                RunServerWithLogging(logPath);
+
+                var logFile = Assert.Single(Directory.GetFiles(directory.Path));
+                if (logToDirectory)
+                {
+                    Assert.StartsWith("server.", Path.GetFileName(logFile));
+                    Assert.EndsWith(".log", logFile);
+                }
+                else
+                {
+                    Assert.Equal(logPath, logFile);
+                }
+
+                var log = File.ReadAllText(logFile);
+                Assert.Contains("ID=VBCSCompiler ", log);
+                Assert.Contains("Keep alive timeout is: 1000 milliseconds.", log);
+            }
+
+            [Fact]
+            public void ExplicitLogFileOverridesEnvironment()
+            {
+                var directory = TempRoot.CreateDirectory();
+                var environmentLogPath = Path.Combine(directory.Path, "environment.log");
+                var explicitLogPath = Path.Combine(directory.Path, "explicit.log");
+
+                RunServerWithLogging(environmentLogPath, $@" -log:""{explicitLogPath}""");
+
+                Assert.False(File.Exists(environmentLogPath));
+                var log = File.ReadAllText(explicitLogPath);
+                Assert.Contains("ID=VBCSCompiler ", log);
+                Assert.Contains("Keep alive timeout is: 1000 milliseconds.", log);
+            }
+
+            private static void RunServerWithLogging(string environmentLogPath, string additionalArguments = "")
+            {
+                var filePath = typeof(VBCSCompiler).Assembly.Location;
+                var arguments = $"-pipename:{ServerUtil.GetPipeName()} -timeout:1{additionalArguments}";
+                if (BuildServerConnection.IsBuiltinToolRunningOnCoreClr)
+                {
+                    arguments = RuntimeHostInfo.GetDotNetExecCommandLine(filePath, arguments);
+                    filePath = RuntimeHostInfo.GetDotNetHostPath(StandardBuildEnvironment.Instance);
+                }
+
+                var result = ProcessUtilities.Run(filePath, arguments, additionalEnvironmentVars:
+                    new Dictionary<string, string>
+                    {
+                        [CompilerServerLogger.EnvironmentVariableName] = environmentLogPath,
+                    });
+                Assert.True(result.ExitCode == CommonCompiler.Succeeded, result.ToString());
+            }
+
             [ConditionalFact(typeof(WindowsOnly))]
             [WorkItem(217709, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/217709")]
             public async Task ShadowCopyAnalyzerAssemblyLoaderMissingDirectory()

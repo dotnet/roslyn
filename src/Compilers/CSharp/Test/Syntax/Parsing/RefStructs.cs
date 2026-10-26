@@ -6,6 +6,7 @@
 
 using Xunit;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -80,21 +81,21 @@ class Program
 
             var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (4,9): error CS1031: Type expected
+                // (4,15): error CS0106: The modifier 'ref' is not valid for this item
                 //     ref class S1{}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class"),
-                // (6,16): error CS1031: Type expected
-                //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe"),
-                // (8,9): error CS1031: Type expected
-                //     ref interface I1{};
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(8, 9),
-                // (10,16): error CS1031: Type expected
-                //     public ref delegate ref int D1();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(10, 16),
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "S1").WithArguments("ref").WithLocation(4, 15),
                 // (6,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2")
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30),
+                // (6,12): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     public ref unsafe struct S2{}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(6, 12),
+                // (8,19): error CS0106: The modifier 'ref' is not valid for this item
+                //     ref interface I1{};
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I1").WithArguments("ref").WithLocation(8, 19),
+                // (10,33): error CS0106: The modifier 'ref' is not valid for this item
+                //     public ref delegate ref int D1();
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D1").WithArguments("ref").WithLocation(10, 33)
             );
         }
 
@@ -102,25 +103,12 @@ class Program
         public void RefModifierRecovery_Class()
         {
             const string source = "ref class C { }";
-            UsingTree(source,
-                // (1,5): error CS1031: Type expected
-                // ref class C { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 5));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.ClassDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
@@ -131,34 +119,21 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
+                // (1,11): error CS0106: The modifier 'ref' is not valid for this item
                 // ref class C { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
         public void RefModifierRecovery_Interface()
         {
             const string source = "ref interface I { }";
-            UsingTree(source,
-                // (1,5): error CS1031: Type expected
-                // ref interface I { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 5));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.InterfaceDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.InterfaceKeyword);
                     N(SyntaxKind.IdentifierToken, "I");
                     N(SyntaxKind.OpenBraceToken);
@@ -169,34 +144,21 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
+                // (1,15): error CS0106: The modifier 'ref' is not valid for this item
                 // ref interface I { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "I").WithArguments("ref").WithLocation(1, 15));
         }
 
         [Fact]
         public void RefModifierRecovery_Enum()
         {
             const string source = "ref enum E { }";
-            UsingTree(source,
-                // (1,5): error CS1031: Type expected
-                // ref enum E { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 5));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.EnumDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.EnumKeyword);
                     N(SyntaxKind.IdentifierToken, "E");
                     N(SyntaxKind.OpenBraceToken);
@@ -207,34 +169,21 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
+                // (1,10): error CS0106: The modifier 'ref' is not valid for this item
                 // ref enum E { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "E").WithArguments("ref").WithLocation(1, 10));
         }
 
         [Fact]
         public void RefModifierRecovery_Delegate()
         {
             const string source = "ref delegate void D();";
-            UsingTree(source,
-                // (1,5): error CS1031: Type expected
-                // ref delegate void D();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 5));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.DelegateDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.PredefinedType);
                     {
@@ -253,9 +202,9 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
+                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
                 // ref delegate void D();
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 5));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("ref").WithLocation(1, 19));
         }
 
         [Fact]
@@ -662,34 +611,18 @@ class Program
             const string source = "ref class R { } class C { ref class R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
+                // (1,11): error CS0106: The modifier 'ref' is not valid for this item
                 // ref class R { } class C { ref class R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 5),
-                // (1,31): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 11),
+                // (1,37): error CS0106: The modifier 'ref' is not valid for this item
                 // ref class R { } class C { ref class R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 31));
-            UsingTree(source,
-            // (1,5): error CS1031: Type expected
-            // ref class R { } class C { ref class R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 5),
-            // (1,31): error CS1031: Type expected
-            // ref class R { } class C { ref class R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 31));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 37));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.ClassDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -700,19 +633,9 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.ClassDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.ClassKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -731,35 +654,25 @@ class Program
             const string source = "ref readonly class R { } class C { ref readonly class R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
+                // (1,20): error CS0106: The modifier 'readonly' is not valid for this item
                 // ref readonly class R { } class C { ref readonly class R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 14),
-                // (1,49): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 20),
+                // (1,20): error CS0106: The modifier 'ref' is not valid for this item
                 // ref readonly class R { } class C { ref readonly class R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 49));
-            UsingTree(source,
-            // (1,14): error CS1031: Type expected
-            // ref readonly class R { } class C { ref readonly class R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 14),
-            // (1,49): error CS1031: Type expected
-            // ref readonly class R { } class C { ref readonly class R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(1, 49));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 20),
+                // (1,55): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly class R { } class C { ref readonly class R { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 55),
+                // (1,55): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly class R { } class C { ref readonly class R { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 55));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.ClassDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -770,20 +683,10 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.ClassDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.ClassKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -876,35 +779,19 @@ class Program
             const string source = "ref readonly struct R { } class C { ref readonly struct R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
+                // (1,1): error CS1585: Member modifier 'ref' must precede the member type and name
                 // ref readonly struct R { } class C { ref readonly struct R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 14),
-                // (1,50): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
+                // (1,37): error CS1585: Member modifier 'ref' must precede the member type and name
                 // ref readonly struct R { } class C { ref readonly struct R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 50));
-            UsingTree(source,
-            // (1,14): error CS1031: Type expected
-            // ref readonly struct R { } class C { ref readonly struct R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 14),
-            // (1,50): error CS1031: Type expected
-            // ref readonly struct R { } class C { ref readonly struct R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 50));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 37));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.StructDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -915,20 +802,10 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.StructKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -990,34 +867,18 @@ class Program
             const string source = "ref interface R { } class C { ref interface R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
+                // (1,15): error CS0106: The modifier 'ref' is not valid for this item
                 // ref interface R { } class C { ref interface R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 5),
-                // (1,35): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 15),
+                // (1,45): error CS0106: The modifier 'ref' is not valid for this item
                 // ref interface R { } class C { ref interface R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 35));
-            UsingTree(source,
-            // (1,5): error CS1031: Type expected
-            // ref interface R { } class C { ref interface R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 5),
-            // (1,35): error CS1031: Type expected
-            // ref interface R { } class C { ref interface R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 35));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 45));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.InterfaceDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.InterfaceKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -1028,19 +889,9 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.InterfaceDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.InterfaceKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -1059,35 +910,25 @@ class Program
             const string source = "ref readonly interface R { } class C { ref readonly interface R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
+                // (1,24): error CS0106: The modifier 'readonly' is not valid for this item
                 // ref readonly interface R { } class C { ref readonly interface R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 14),
-                // (1,53): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 24),
+                // (1,24): error CS0106: The modifier 'ref' is not valid for this item
                 // ref readonly interface R { } class C { ref readonly interface R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 53));
-            UsingTree(source,
-            // (1,14): error CS1031: Type expected
-            // ref readonly interface R { } class C { ref readonly interface R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 14),
-            // (1,53): error CS1031: Type expected
-            // ref readonly interface R { } class C { ref readonly interface R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(1, 53));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 24),
+                // (1,63): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly interface R { } class C { ref readonly interface R { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 63),
+                // (1,63): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly interface R { } class C { ref readonly interface R { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 63));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.InterfaceDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.InterfaceKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -1098,20 +939,10 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.InterfaceDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.InterfaceKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -1173,34 +1004,18 @@ class Program
             const string source = "ref enum R { } class C { ref enum R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
+                // (1,10): error CS0106: The modifier 'ref' is not valid for this item
                 // ref enum R { } class C { ref enum R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 5),
-                // (1,30): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 10),
+                // (1,35): error CS0106: The modifier 'ref' is not valid for this item
                 // ref enum R { } class C { ref enum R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 30));
-            UsingTree(source,
-            // (1,5): error CS1031: Type expected
-            // ref enum R { } class C { ref enum R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 5),
-            // (1,30): error CS1031: Type expected
-            // ref enum R { } class C { ref enum R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 30));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 35));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.EnumDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.EnumKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -1211,19 +1026,9 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.EnumDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.EnumKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -1242,35 +1047,25 @@ class Program
             const string source = "ref readonly enum R { } class C { ref readonly enum R { } }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
+                // (1,19): error CS0106: The modifier 'readonly' is not valid for this item
                 // ref readonly enum R { } class C { ref readonly enum R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 14),
-                // (1,48): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 19),
+                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
                 // ref readonly enum R { } class C { ref readonly enum R { } }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 48));
-            UsingTree(source,
-            // (1,14): error CS1031: Type expected
-            // ref readonly enum R { } class C { ref readonly enum R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 14),
-            // (1,48): error CS1031: Type expected
-            // ref readonly enum R { } class C { ref readonly enum R { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "enum").WithLocation(1, 48));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 19),
+                // (1,53): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly enum R { } class C { ref readonly enum R { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 53),
+                // (1,53): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly enum R { } class C { ref readonly enum R { } }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 53));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.EnumDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.EnumKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -1281,20 +1076,10 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.EnumDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.EnumKeyword);
                         N(SyntaxKind.IdentifierToken, "R");
                         N(SyntaxKind.OpenBraceToken);
@@ -1372,34 +1157,18 @@ class Program
             const string source = "ref delegate void R(); class C { ref delegate void R(); }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,5): error CS1031: Type expected
+                // (1,19): error CS0106: The modifier 'ref' is not valid for this item
                 // ref delegate void R(); class C { ref delegate void R(); }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 5),
-                // (1,38): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 19),
+                // (1,52): error CS0106: The modifier 'ref' is not valid for this item
                 // ref delegate void R(); class C { ref delegate void R(); }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 38));
-            UsingTree(source,
-            // (1,5): error CS1031: Type expected
-            // ref delegate void R(); class C { ref delegate void R(); }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 5),
-            // (1,38): error CS1031: Type expected
-            // ref delegate void R(); class C { ref delegate void R(); }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 38));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 52));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.DelegateDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.PredefinedType);
                     {
@@ -1418,19 +1187,9 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.DelegateDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
@@ -1457,35 +1216,25 @@ class Program
             const string source = "ref readonly delegate void R(); class C { ref readonly delegate void R(); }";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
+                // (1,28): error CS0106: The modifier 'readonly' is not valid for this item
                 // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 14),
-                // (1,56): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 28),
+                // (1,28): error CS0106: The modifier 'ref' is not valid for this item
                 // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 56));
-            UsingTree(source,
-            // (1,14): error CS1031: Type expected
-            // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 14),
-            // (1,56): error CS1031: Type expected
-            // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(1, 56));
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 28),
+                // (1,70): error CS0106: The modifier 'readonly' is not valid for this item
+                // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("readonly").WithLocation(1, 70),
+                // (1,70): error CS0106: The modifier 'ref' is not valid for this item
+                // ref readonly delegate void R(); class C { ref readonly delegate void R(); }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "R").WithArguments("ref").WithLocation(1, 70));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.DelegateDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.DelegateKeyword);
                     N(SyntaxKind.PredefinedType);
                     {
@@ -1504,20 +1253,10 @@ class Program
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.DelegateDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.DelegateKeyword);
                         N(SyntaxKind.PredefinedType);
                         {
@@ -2380,24 +2119,52 @@ class Program
         [Fact]
         public void PartialRefStruct()
         {
-            var text = @"
+            const string text = @"
 class Program
 {
     partial ref struct S {}
     partial ref struct S {}
 }
 ";
-            var comp = CreateCompilation(text);
-            comp.VerifyDiagnostics(
-                // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
+            UsingTree(text);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "Program");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
-                // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
+                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,24): error CS0102: The type 'Program' already contains a definition for 'S'
-                //     partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("Program", "S").WithLocation(5, 24));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5));
         }
 
         [Fact]
@@ -2440,10 +2207,7 @@ class C
         {
             const string source = "class C { ref unsafe struct S {} }";
 
-            UsingTree(source,
-                // (1,15): error CS1031: Type expected
-                // class C { ref unsafe struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe").WithLocation(1, 15));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2451,19 +2215,9 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.UnsafeKeyword);
                         N(SyntaxKind.StructKeyword);
                         N(SyntaxKind.IdentifierToken, "S");
@@ -2477,9 +2231,9 @@ class C
             EOF();
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (1,15): error CS1031: Type expected
+                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
                 // class C { ref unsafe struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe").WithLocation(1, 15));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
@@ -2487,10 +2241,7 @@ class C
         {
             const string source = "class C { ref readonly struct S {} }";
 
-            UsingTree(source,
-                // (1,24): error CS1031: Type expected
-                // class C { ref readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 24));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2498,20 +2249,10 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.StructKeyword);
                         N(SyntaxKind.IdentifierToken, "S");
                         N(SyntaxKind.OpenBraceToken);
@@ -2524,9 +2265,9 @@ class C
             EOF();
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (1,24): error CS1031: Type expected
+                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
                 // class C { ref readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 24));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
@@ -2534,10 +2275,7 @@ class C
         {
             const string source = "class C { ref unsafe readonly struct S {} }";
 
-            UsingTree(source,
-                // (1,15): error CS1031: Type expected
-                // class C { ref unsafe readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe").WithLocation(1, 15));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2545,19 +2283,9 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
                         N(SyntaxKind.UnsafeKeyword);
                         N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.StructKeyword);
@@ -2572,9 +2300,9 @@ class C
             EOF();
 
             CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (1,15): error CS1031: Type expected
+                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
                 // class C { ref unsafe readonly struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe").WithLocation(1, 15));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
@@ -2588,30 +2316,13 @@ class C
                 }
                 """;
 
-            UsingTree(
-                source,
-                // (1,14): error CS1031: Type expected
-                // ref readonly struct R { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 14),
-                // (4,18): error CS1031: Type expected
-                //     ref readonly struct S { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 18));
+            UsingTree(source);
             N(SyntaxKind.CompilationUnit);
             {
-                N(SyntaxKind.IncompleteMember);
-                {
-                    N(SyntaxKind.RefType);
-                    {
-                        N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.ReadOnlyKeyword);
-                        M(SyntaxKind.IdentifierName);
-                        {
-                            M(SyntaxKind.IdentifierToken);
-                        }
-                    }
-                }
                 N(SyntaxKind.StructDeclaration);
                 {
+                    N(SyntaxKind.RefKeyword);
+                    N(SyntaxKind.ReadOnlyKeyword);
                     N(SyntaxKind.StructKeyword);
                     N(SyntaxKind.IdentifierToken, "R");
                     N(SyntaxKind.OpenBraceToken);
@@ -2622,20 +2333,10 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.IncompleteMember);
-                    {
-                        N(SyntaxKind.RefType);
-                        {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            M(SyntaxKind.IdentifierName);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.StructKeyword);
                         N(SyntaxKind.IdentifierToken, "S");
                         N(SyntaxKind.OpenBraceToken);
@@ -2648,12 +2349,12 @@ class C
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,14): error CS1031: Type expected
+                // (1,1): error CS1585: Member modifier 'ref' must precede the member type and name
                 // ref readonly struct R { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(1, 14),
-                // (4,18): error CS1031: Type expected
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 1),
+                // (4,5): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     ref readonly struct S { }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 18));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 5));
         }
 
         [Fact]
@@ -2675,13 +2376,10 @@ class C
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.IncompleteMember);
                     {
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
+                            N(SyntaxKind.IdentifierToken, "scoped");
                         }
                     }
                     N(SyntaxKind.StructDeclaration);
@@ -2722,14 +2420,11 @@ class C
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.IncompleteMember);
                     {
-                        N(SyntaxKind.RefType);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.RefKeyword);
-                            N(SyntaxKind.ReadOnlyKeyword);
-                            N(SyntaxKind.IdentifierName);
-                            {
-                                N(SyntaxKind.IdentifierToken, "scoped");
-                            }
+                            N(SyntaxKind.IdentifierToken, "scoped");
                         }
                     }
                     N(SyntaxKind.StructDeclaration);
@@ -2754,39 +2449,7 @@ class C
         [Fact]
         public void RefPartialReadonlyStruct()
         {
-            var comp = CreateCompilation(@"
-class C
-{
-    ref partial readonly struct S {}
-    ref partial readonly struct S {}
-}");
-            comp.VerifyDiagnostics(
-                // (4,17): error CS1585: Member modifier 'readonly' must precede the member type and name
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(4, 17),
-                // (5,17): error CS1585: Member modifier 'readonly' must precede the member type and name
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "readonly").WithArguments("readonly").WithLocation(5, 17),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     ref partial readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
-        }
-
-        [Fact]
-        public void RefReadonlyPartialStruct_RefFirst()
-        {
-            const string text = "class C { ref readonly partial struct S {} }";
-
-            UsingTree(text,
-                // (1,24): error CS1031: Type expected
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 24),
-                // (1,24): error CS1525: Invalid expression term 'partial'
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 24),
-                // (1,24): error CS1002: ; expected
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 24));
+            UsingTree("class C { ref partial readonly struct S {} }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -2794,28 +2457,54 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.FieldDeclaration);
-                    {
-                        N(SyntaxKind.VariableDeclaration);
-                        {
-                            N(SyntaxKind.RefType);
-                            {
-                                N(SyntaxKind.RefKeyword);
-                                N(SyntaxKind.ReadOnlyKeyword);
-                                M(SyntaxKind.IdentifierName);
-                                {
-                                    M(SyntaxKind.IdentifierToken);
-                                }
-                            }
-                            M(SyntaxKind.VariableDeclarator);
-                            {
-                                M(SyntaxKind.IdentifierToken);
-                            }
-                        }
-                        M(SyntaxKind.SemicolonToken);
-                    }
                     N(SyntaxKind.StructDeclaration);
                     {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            var comp = CreateCompilation(@"
+class C
+{
+    ref partial readonly struct S {}
+    ref partial readonly struct S {}
+}");
+            comp.VerifyDiagnostics(
+                // (4,5): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 5),
+                // (5,5): error CS1585: Member modifier 'ref' must precede the member type and name
+                //     ref partial readonly struct S {}
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 5));
+        }
+
+        [Fact]
+        public void RefReadonlyPartialStruct_RefFirst()
+        {
+            const string text = "class C { ref readonly partial struct S {} }";
+
+            UsingTree(text);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
                         N(SyntaxKind.PartialKeyword);
                         N(SyntaxKind.StructKeyword);
                         N(SyntaxKind.IdentifierToken, "S");
@@ -2829,69 +2518,113 @@ class C
             EOF();
 
             CreateCompilation(text).VerifyDiagnostics(
-                // (1,24): error CS1031: Type expected
+                // (1,11): error CS1585: Member modifier 'ref' must precede the member type and name
                 // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 24),
-                // (1,24): error CS1525: Invalid expression term 'partial'
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 24),
-                // (1,24): error CS1002: ; expected
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "partial").WithLocation(1, 24),
-                // (1,24): error CS9064: Target runtime doesn't support ref fields.
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportRefFields, "").WithLocation(1, 24),
-                // (1,24): error CS9059: A ref field can only be declared in a ref struct.
-                // class C { ref readonly partial struct S {} }
-                Diagnostic(ErrorCode.ERR_RefFieldInNonRefStruct, "").WithLocation(1, 24));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(1, 11));
         }
 
         [Fact]
         public void RefReadonlyPartialStruct()
         {
-            var comp = CreateCompilation(@"
+            const string text = @"
 class C
 {
     partial ref readonly struct S {}
     partial ref readonly struct S {}
-}");
-            comp.VerifyDiagnostics(
+}";
+            UsingTree(text);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(text).VerifyDiagnostics(
                 // (4,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
                 Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 13),
-                // (4,26): error CS1031: Type expected
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(4, 26),
                 // (5,13): error CS1585: Member modifier 'ref' must precede the member type and name
                 //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13),
-                // (5,26): error CS1031: Type expected
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "struct").WithLocation(5, 26),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     partial ref readonly struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 13));
         }
 
         [Fact]
         public void ReadonlyPartialRefStruct()
         {
-            var comp = CreateCompilation(@"
+            const string text = @"
 class C
 {
     readonly partial ref struct S {}
     readonly partial ref struct S {}
-}");
-            comp.VerifyDiagnostics(
-                // (4,22): error CS1585: Member modifier 'ref' must precede the member type and name
+}";
+            UsingTree(text);
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.StructDeclaration);
+                    {
+                        N(SyntaxKind.ReadOnlyKeyword);
+                        N(SyntaxKind.PartialKeyword);
+                        N(SyntaxKind.RefKeyword);
+                        N(SyntaxKind.StructKeyword);
+                        N(SyntaxKind.IdentifierToken, "S");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (4,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(4, 22),
-                // (5,22): error CS1585: Member modifier 'ref' must precede the member type and name
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 14),
+                // (5,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_BadModifierLocation, "ref").WithArguments("ref").WithLocation(5, 22),
-                // (5,33): error CS0102: The type 'C' already contains a definition for 'S'
-                //     readonly partial ref struct S {}
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "S").WithArguments("C", "S").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 14));
         }
 
         [Fact]

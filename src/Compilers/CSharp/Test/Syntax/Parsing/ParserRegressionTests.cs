@@ -50,15 +50,9 @@ class Program
                 // (7,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial class B {}
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(7, 13),
-                // (7,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(7, 5),
                 // (8,13): error CS1004: Duplicate 'partial' modifier
                 //     partial partial class B {}
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(8, 13),
-                // (8,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial partial class B {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(8, 5),
                 // (10,29): error CS0106: The modifier 'abstract' is not valid for this item
                 //     partial abstract struct S {}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S").WithArguments("abstract").WithLocation(10, 29),
@@ -93,9 +87,6 @@ class Program
             EOF();
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                // partial partial partial class C { }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(1, 1),
                 // (1,9): error CS1004: Duplicate 'partial' modifier
                 // partial partial partial class C { }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "partial").WithArguments("partial").WithLocation(1, 9));

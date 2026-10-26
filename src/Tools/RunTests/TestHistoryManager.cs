@@ -75,8 +75,8 @@ internal class TestHistoryManager
             return null;
         }
 
-        var testRun = await GetTestRunAsync(azdoClient, lastSuccessfulBuild, testRunName, cancellationToken);
-        if (testRun == null)
+        var testRuns = await GetTestRunsAsync(azdoClient, lastSuccessfulBuild, testRunName, cancellationToken);
+        if (testRuns is null || testRuns.Count == 0)
         {
             ConsoleUtil.Warning($"Unable to get a run with name {testRunName} from build {lastSuccessfulBuild.Url}.");
             return null;
@@ -84,54 +84,64 @@ internal class TestHistoryManager
 
         ConsoleUtil.WriteLine($"Looking up test execution data for build {lastSuccessfulBuild.Id} on branch {targetBranch} and test run {testRunName}");
 
-        var totalTests = testRun.TotalTests;
-
         Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testInfos = new();
-        var duplicateCount = 0;
 
         // Get runtimes for all tests.
         var timer = new Stopwatch();
         timer.Start();
-        for (var i = 0; i < totalTests; i += MaxTestsReturnedPerRequest)
+        foreach (var testRun in testRuns.OrderByDescending(r => r.Id))
         {
-            var testResults = await GetTestResultsAsync(azdoClient, testRun, i, MaxTestsReturnedPerRequest, cancellationToken);
-            foreach (var testResult in testResults)
+            Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)> testInfosForRun = new();
+            var duplicateCount = 0;
+
+            for (var i = 0; i < testRun.TotalTests; i += MaxTestsReturnedPerRequest)
             {
-                // Helix outputs results for the whole dll work item suffixed with WorkItemExecution which we should ignore.
-                if (testResult.AutomatedTestName.Contains("WorkItemExecution"))
+                var testResults = await GetTestResultsAsync(azdoClient, testRun, i, MaxTestsReturnedPerRequest, cancellationToken);
+                foreach (var testResult in testResults)
                 {
-                    Logger.Log($"Skipping overall result for work item {testResult.AutomatedTestName}");
-                    continue;
-                }
+                    // Helix outputs results for the whole dll work item suffixed with WorkItemExecution which we should ignore.
+                    if (testResult.AutomatedTestName.Contains("WorkItemExecution"))
+                    {
+                        Logger.Log($"Skipping overall result for work item {testResult.AutomatedTestName}");
+                        continue;
+                    }
 
-                var testName = CleanTestName(testResult.AutomatedTestName);
+                    var testName = CleanTestName(testResult.AutomatedTestName);
 
-                if (testInfos.TryGetValue(testName, out var existing))
-                {
-                    // We can get duplicate tests if a test file is included in multiple assemblies (e.g. analyzer codestyle tests).
-                    // This is fine, we'll just use capture one of the run times since it is the same test being run in both cases and unlikely to have different run times.
-                    //
-                    // Another case that can happen is if a test is incorrectly authored to have the same name and namespace as a test in another assembly.  For example
-                    // a test that applies to both VB and C#, but the tests in both the C# and VB assembly accidentally use the C# namespace.
-                    // It may have a different run time, but ADO does not let us differentiate by assembly name, so we just have to pick one.
-                    //
-                    // Keep tracking the count of theory instances so we can apply async lifetime adjustment.
-                    testInfos[testName] = (existing.Duration, existing.TestTheoryInstances + testResult.SubResultsCount);
-                    duplicateCount++;
+                    if (testInfosForRun.TryGetValue(testName, out var existing))
+                    {
+                        // We can get duplicate tests if a test file is included in multiple assemblies (e.g. analyzer codestyle tests).
+                        // This is fine, we'll just capture one of the run times since it is the same test being run in both cases and unlikely to have different run times.
+                        //
+                        // Another case that can happen is if a test is incorrectly authored to have the same name and namespace as a test in another assembly.  For example
+                        // a test that applies to both VB and C#, but the tests in both the C# and VB assembly accidentally use the C# namespace.
+                        // It may have a different run time, but ADO does not let us differentiate by assembly name, so we just have to pick one.
+                        //
+                        // Keep tracking the count of theory instances so we can apply async lifetime adjustment.
+                        testInfosForRun[testName] = (existing.Duration, existing.TestTheoryInstances + testResult.SubResultsCount);
+                        duplicateCount++;
+                    }
+                    else
+                    {
+                        testInfosForRun[testName] = (TimeSpan.FromMilliseconds(testResult.DurationInMs), testResult.SubResultsCount);
+                    }
                 }
-                else
-                {
-                    testInfos[testName] = (TimeSpan.FromMilliseconds(testResult.DurationInMs), testResult.SubResultsCount);
-                }
+            }
+
+            if (duplicateCount > 0)
+            {
+                Logger.Log($"Found {duplicateCount} duplicate tests in run {testRun.Name} ({testRun.Id}).");
+            }
+
+            // Runs are processed newest-first, so successful retry results take precedence over
+            // results from earlier attempts and theory instance counts are not counted twice.
+            foreach (var (testName, testInfo) in testInfosForRun)
+            {
+                testInfos.TryAdd(testName, testInfo);
             }
         }
 
         timer.Stop();
-
-        if (duplicateCount > 0)
-        {
-            Logger.Log($"Found {duplicateCount} duplicate tests in run {testRun.Name}.");
-        }
 
         if (testInfos.Count == 0)
         {
@@ -176,11 +186,11 @@ internal class TestHistoryManager
         }
     }
 
-    private static async Task<AzdoTestRun?> GetTestRunAsync(AzdoClient azdoClient, AzdoBuild build, string testRunName, CancellationToken cancellationToken)
+    private static async Task<List<AzdoTestRun>?> GetTestRunsAsync(AzdoClient azdoClient, AzdoBuild build, string testRunName, CancellationToken cancellationToken)
     {
         try
         {
-            return await azdoClient.GetTestRunAsync("public", build, testRunName, cancellationToken);
+            return await azdoClient.GetTestRunsAsync("public", build, testRunName, cancellationToken);
         }
         catch (Exception ex)
         {

@@ -1,0 +1,25 @@
+﻿Source Location: (1:0,1 [38] x:\dir\subdir\Test\TestComponent.cshtml)
+|using Microsoft.AspNetCore.Components;|
+Generated Location: (320:11,0 [38] )
+|using Microsoft.AspNetCore.Components;|
+
+Source Location: (52:1,11 [5] x:\dir\subdir\Test\TestComponent.cshtml)
+|TItem|
+Generated Location: (564:20,0 [5] )
+|TItem|
+
+Source Location: (222:14,7 [248] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter] public TItem[] Items1 { get; set; }
+    [Parameter] public List<TItem[]> Items2 { get; set; }
+    [Parameter] public Func<TItem[]> Items3 { get; set; }
+    [Parameter] public RenderFragment<TItem[]> ChildContent { get; set; }
+|
+Generated Location: (796:30,0 [248] )
+|
+    [Parameter] public TItem[] Items1 { get; set; }
+    [Parameter] public List<TItem[]> Items2 { get; set; }
+    [Parameter] public Func<TItem[]> Items3 { get; set; }
+    [Parameter] public RenderFragment<TItem[]> ChildContent { get; set; }
+|
+

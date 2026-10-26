@@ -21,10 +21,9 @@ public class WorkspaceTestBase : TestBase
 
     protected static readonly TimeSpan AsyncEventTimeout = TimeSpan.FromMinutes(5);
 
-    public WorkspaceTestBase()
+    public WorkspaceTestBase(ProjectGuardFiles projectGuardFiles)
     {
-        ProjectGuardFiles.EnsureWrittenToTemp();
-        this.SolutionDirectory = Temp.CreateDirectory();
+        this.SolutionDirectory = projectGuardFiles.CreateSolutionDirectory();
     }
 
     private static string NormalizePath(string path)

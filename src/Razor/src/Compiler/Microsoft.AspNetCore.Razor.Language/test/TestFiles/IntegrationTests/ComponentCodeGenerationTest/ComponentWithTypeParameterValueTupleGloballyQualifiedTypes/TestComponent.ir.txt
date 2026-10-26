@@ -18,8 +18,6 @@
                             LazyIntermediateToken - (293:13,33 [21] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - context.I2.MyStructId
                     ComponentAttribute - (239:11,27 [1] x:\dir\subdir\Test\TestComponent.cshtml) - InferParam - InferParam - AttributeStructure.DoubleQuotes
                         IntermediateToken - (239:11,27 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - 1
-            CSharpCode - (38:3,7 [169] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (38:3,7 [169] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter]\n    public TParam InferParam { get; set; }\n\n    [Parameter]\n    public RenderFragment<(MyClass I1, MyStruct I2, TParam P)> Template { get; set; }\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateTestComponent_0

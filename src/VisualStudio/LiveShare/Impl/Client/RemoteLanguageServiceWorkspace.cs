@@ -287,7 +287,7 @@ internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, I
 
     public async Task<DocumentSpan?> GetDocumentSpanFromLocationAsync(LSP.Location location, CancellationToken cancellationToken)
     {
-        var document = GetOrAddDocument(location.DocumentUri.GetRequiredParsedUri().LocalPath);
+        var document = GetOrAddDocument(location.DocumentUri.GetRequiredParsedUri().FsPath);
         if (document == null)
         {
             return null;
@@ -511,6 +511,7 @@ internal sealed class RemoteLanguageServiceWorkspace : CodeAnalysis.Workspace, I
 
         foreach (var change in changes)
         {
+            Contract.ThrowIfNull(change.NewText);
             edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
         }
 

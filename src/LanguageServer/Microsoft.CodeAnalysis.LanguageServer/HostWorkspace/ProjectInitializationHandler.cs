@@ -25,14 +25,19 @@ internal sealed class ProjectInitializationHandler : IDisposable
 
     private IDisposable? _subscription;
 
-    public ProjectInitializationHandler(IClientLanguageServerManager clientLanguageServerManager, IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
+    public ProjectInitializationHandler(
+        IClientLanguageServerManager clientLanguageServerManager,
+        IServiceBroker serviceBroker,
+        ILoggerFactory loggerFactory,
+        VSCodeRequestTelemetryLogger requestTelemetryLogger)
     {
         _serviceBroker = serviceBroker;
         _serviceBroker.AvailabilityChanged += AvailabilityChanged;
         _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
 
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
-        _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(clientLanguageServerManager, _logger);
+        _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(
+            clientLanguageServerManager, _logger, requestTelemetryLogger);
     }
 
     public static async ValueTask SendProjectInitializationCompleteNotificationAsync(IClientLanguageServerManager clientLanguageServerManager)
@@ -78,7 +83,10 @@ internal sealed class ProjectInitializationHandler : IDisposable
         _serviceBrokerClient.Dispose();
     }
 
-    internal sealed class ProjectInitializationCompleteObserver(IClientLanguageServerManager clientLanguageServerManager, ILogger logger) : IObserver<ProjectInitializationCompletionState>
+    internal sealed class ProjectInitializationCompleteObserver(
+        IClientLanguageServerManager clientLanguageServerManager,
+        ILogger logger,
+        VSCodeRequestTelemetryLogger requestTelemetryLogger) : IObserver<ProjectInitializationCompletionState>
     {
         [JsonRpcMethod("onCompleted")]
         public void OnCompleted()
@@ -96,7 +104,7 @@ internal sealed class ProjectInitializationHandler : IDisposable
         public void OnNext(ProjectInitializationCompletionState value)
         {
             logger.LogDebug("Devkit project initialization completed");
-            VSCodeRequestTelemetryLogger.ReportProjectInitializationComplete();
+            requestTelemetryLogger.ReportProjectInitializationComplete();
             _ = SendProjectInitializationCompleteNotificationAsync(clientLanguageServerManager).AsTask().ReportNonFatalErrorAsync();
         }
     }

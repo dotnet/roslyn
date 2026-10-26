@@ -4,6 +4,7 @@
 
 using System.Collections.Immutable;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
@@ -13,6 +14,7 @@ internal sealed partial class DefaultFileChangeWatcher
     internal sealed class FileChangeContext : IFileChangeContext
     {
         private readonly DefaultFileChangeWatcher _owner;
+        private readonly RoslynTelemetry _telemetry;
 
         /// <summary>
         /// A monitor lock held for code touching <see cref="_explicitlyWatchedFiles"/>, and <see cref="_watchedDirectoriesWatches"/> during disposal. It is not expected to be held
@@ -38,6 +40,7 @@ internal sealed partial class DefaultFileChangeWatcher
         public FileChangeContext(DefaultFileChangeWatcher owner, ImmutableArray<WatchedDirectory> watchedDirectories)
         {
             _owner = owner;
+            _telemetry = RoslynTelemetry.Current;
             _watchedDirectories = watchedDirectories;
 
             // Acquire the directory watches for each directory; it's important this happens last in the constructor since events
@@ -47,7 +50,7 @@ internal sealed partial class DefaultFileChangeWatcher
                 _watchedDirectoriesWatches.Add(_owner.AcquireDirectoryWatch(watchedDirectory, this, includeSubdirectories: true));
         }
 
-        public event EventHandler<string>? FileChanged;
+        public event EventHandler<FileChangedEventArgs>? FileChanged;
 
         public IWatchedFile EnqueueWatchingFile(string filePath)
         {
@@ -87,6 +90,11 @@ internal sealed partial class DefaultFileChangeWatcher
         /// </summary>
         internal void OnFileSystemEvent(FileSystemEventArgs e)
         {
+            // The underlying FileSystemWatcher is shared between contexts (and so between servers), and raises its
+            // events on an OS notification thread whose context is whichever caller happened to arm the watch, so
+            // attribute to the instance that owns this context rather than to the ambient one.
+            using var _ = RoslynTelemetry.SetCurrent(_telemetry);
+
             bool shouldRaiseForNewPath;
             bool shouldRaiseForOldPath = false;
 
@@ -102,10 +110,19 @@ internal sealed partial class DefaultFileChangeWatcher
             }
 
             if (shouldRaiseForNewPath)
-                FileChanged?.Invoke(this, e.FullPath);
+            {
+                var changeKind = e.ChangeType switch
+                {
+                    WatcherChangeTypes.Created or WatcherChangeTypes.Renamed => FileChangeKind.Created,
+                    WatcherChangeTypes.Deleted => FileChangeKind.Deleted,
+                    _ => FileChangeKind.Changed,
+                };
+
+                FileChanged?.Invoke(this, new(e.FullPath, changeKind));
+            }
 
             if (shouldRaiseForOldPath)
-                FileChanged?.Invoke(this, ((RenamedEventArgs)e).OldFullPath);
+                FileChanged?.Invoke(this, new(((RenamedEventArgs)e).OldFullPath, FileChangeKind.Deleted));
         }
 
         /// <summary>

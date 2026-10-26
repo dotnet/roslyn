@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -21,20 +23,22 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
 
     private ImmutableHashSet<ProjectId> _incompatibleProjectIds = [];
 
-    public void HandleMissingDocument(TextDocumentIdentifier? textDocumentIdentifier, RequestContext context)
+    public async Task HandleMissingDocumentAsync(TextDocumentIdentifier? textDocumentIdentifier, RequestContext context, CancellationToken cancellationToken)
     {
-        if (context.Solution is null)
+        if (await context.GetSolutionAsync(cancellationToken).ConfigureAwait(false) is not Solution solution)
         {
             // If the solution is null, we have no idea what is going on, so err on the side of ignoring this request
             // and not annoying the user.
             return;
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete - https://github.com/dotnet/roslyn/issues/84785
         if (textDocumentIdentifier?.DocumentUri.ParsedUri is not Uri uri)
         {
             // Can't do anything without a uri
             return;
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         // We know that the textDocumentIdentifier doesn't map to a document in the solution, or we wouldn't be here,
         // but we don't want to notify the user for each file, so we try to find the project that contains the file
@@ -42,14 +46,16 @@ internal sealed class IncompatibleProjectService(IIncompatibleProjectNotifier in
 
         var filePath = uri.GetDocumentFilePathFromUri();
         var filePathSpan = filePath.AsSpan();
-        foreach (var project in context.Solution.Projects)
+        foreach (var project in solution.Projects)
         {
             if (project.FilePath is null)
             {
                 continue;
             }
 
-            if (filePathSpan.StartsWith(PathUtilities.GetDirectoryName(project.FilePath.AsSpan()), PathUtilities.OSSpecificPathComparison))
+            if (filePathSpan.StartsWith(
+                PathUtilities.GetDirectoryName(project.FilePath.AsSpan()),
+                PathUtilities.OSSpecificPathComparison))
             {
                 if (!project.State.HasAllInformation)
                 {

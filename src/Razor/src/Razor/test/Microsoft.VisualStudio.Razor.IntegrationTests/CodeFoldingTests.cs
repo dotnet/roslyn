@@ -235,7 +235,7 @@ public class CodeFoldingTests(ITestOutputHelper testOutputHelper) : AbstractRazo
             """);
     }
 
-    [IdeFact]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85699")]
     public async Task CodeFolding_ForEach()
     {
         await TestServices.SolutionExplorer.AddFileAsync(

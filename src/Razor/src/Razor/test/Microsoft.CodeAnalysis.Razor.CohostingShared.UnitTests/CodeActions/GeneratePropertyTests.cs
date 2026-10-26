@@ -47,6 +47,48 @@ public class GeneratePropertyTests(ITestOutputHelper testOutputHelper) : CohostC
     }
 
     [Fact]
+    public async Task GenerateProperty_FromCodeBlock_ExistingCodeBlock_UsesEditorConfig()
+    {
+        var input = """
+            @code
+            {
+                private (int, string) M()
+                {
+                    return [||]NewProperty;
+                }
+            }
+            """;
+
+        var expected = """
+            @code
+            {
+                private (int, string) M()
+                {
+                    return NewProperty;
+                }
+
+                public (int,string) NewProperty { get; private set; }
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionIndex: PropertyActionIndex,
+            makeDiagnosticsRequest: true,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_after_comma = false
+                    """)
+            ]);
+    }
+
+    [Fact]
     public async Task GenerateProperty_FromImplicitExpression_WithoutCodeBlock()
     {
         var input = """

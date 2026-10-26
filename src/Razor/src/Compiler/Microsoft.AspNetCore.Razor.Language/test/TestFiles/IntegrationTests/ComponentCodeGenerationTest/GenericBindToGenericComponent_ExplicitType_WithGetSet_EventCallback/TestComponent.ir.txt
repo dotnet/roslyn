@@ -21,5 +21,3 @@
                     ComponentAttribute - (95:1,76 [11] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
                         CSharpExpression - (95:1,76 [11] x:\dir\subdir\Test\TestComponent.cshtml)
                             IntermediateToken - (95:1,76 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - UpdateValue
-            CSharpCode - (119:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (119:2,7 [118] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public TParam ParentValue { get; set; } = default;\n    public EventCallback<TParam> UpdateValue { get; set; }\n

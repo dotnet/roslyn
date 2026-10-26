@@ -124,12 +124,13 @@ internal sealed class ModelComputation<TModel> where TModel : class
             [_notifyControllerTask, nextTask],
             async tasks =>
             {
-                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _stopCancellationToken);
+                await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _stopCancellationToken).NoThrowAwaitable();
+
+                if (_stopCancellationToken.IsCancellationRequested)
+                    return;
 
                 if (tasks.All(t => t.Status == TaskStatus.RanToCompletion))
                 {
-                    _stopCancellationToken.ThrowIfCancellationRequested();
-
                     // Check if we're still the last task.  If so then we should update the
                     // controller. Otherwise there's a pending task that should run.  We
                     // don't need to update the controller (and the presenters) until our

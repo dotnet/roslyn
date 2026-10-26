@@ -511,6 +511,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 UseSiteInfo<AssemblySymbol> result = new UseSiteInfo<AssemblySymbol>(primaryDependency);
                 CalculateUseSiteDiagnostic(ref result);
                 deriveCompilerFeatureRequiredUseSiteInfo(ref result);
+                if (result.DiagnosticInfo is null &&
+                    PEUtilities.DeriveUnrecognizedMemorySafetyRulesAttributeDiagnostic(this) is { } diagnostic)
+                {
+                    result = result.AdjustDiagnosticInfo(diagnostic);
+                }
                 _lazyCachedUseSiteInfo.Initialize(primaryDependency, result);
             }
 

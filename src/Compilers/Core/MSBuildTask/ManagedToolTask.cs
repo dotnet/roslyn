@@ -11,6 +11,7 @@ using System.Resources;
 using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
@@ -82,7 +83,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 if (_useAppHost is not { } useAppHost)
                 {
-                    _useAppHost = useAppHost = File.Exists(Path.Combine(GetToolDirectory(), AppHostToolName));
+                    _useAppHost = useAppHost = TaskEnvironment.FileExists(Path.Combine(GetToolDirectory(), AppHostToolName));
                     Debug.Assert(IsBuiltinToolRunningOnCoreClr || useAppHost);
                 }
 
@@ -167,7 +168,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 // which means `ToolExe` is not really overridden by user (yes, the user sets it but basically to its default value).
                 ToolExe = null;
 
-                return UseAppHost ? PathToBuiltInTool : RuntimeHostInfo.GetDotNetPathOrDefault();
+                // This calls GetDotNetHostPath which can return a relative path. That is okay even though
+                // the method name suggests it returns a full path. There is no requirement it's a full path
+                // and several implementations return partial ones.
+                return UseAppHost
+                    ? PathToBuiltInTool
+                    : RuntimeHostInfo.GetDotNetHostPath(TaskEnvironment.BuildEnvironment);
             }
 
             return Path.Combine(ToolPath ?? "", ToolExe);
@@ -319,20 +325,22 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             // Set DOTNET_ROOT so that the apphost executables launch properly.
             // Unset all other DOTNET_ROOT* variables so for example DOTNET_ROOT_X64 does not override ours.
-            if (IsBuiltinToolRunningOnCoreClr && RuntimeHostInfo.GetToolDotNetRoot(Log.LogMessage) is { } dotNetRoot)
+            if (IsBuiltinToolRunningOnCoreClr &&
+                RuntimeHostInfo.GetToolDotNetRoot(TaskEnvironment.BuildEnvironment, Log.LogMessage) is { } dotNetRoot)
             {
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetRootEnvironmentName, dotNetRoot);
                 EnvironmentVariables =
                 [
-                    .. EnvironmentVariables?.Where(static e => !e.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase)) ?? [],
-                    .. Environment.GetEnvironmentVariables().Cast<System.Collections.DictionaryEntry>()
-                        .Where(e => ((string)e.Key).StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, StringComparison.OrdinalIgnoreCase))
+                    .. EnvironmentVariables?.Where(static e => !e.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, Environment.EnvironmentVariableComparison)) ?? [],
+                    .. TaskEnvironment.GetEnvironmentVariables()
+                        .Where(e => e.Key.StartsWith(RuntimeHostInfo.DotNetRootEnvironmentName, Environment.EnvironmentVariableComparison))
                         .Select(e => $"{e.Key}="),
                     $"{RuntimeHostInfo.DotNetRootEnvironmentName}={dotNetRoot}",
                 ];
             }
 
-            if (RuntimeHostInfo.ShouldDisableTieredCompilation && Environment.GetEnvironmentVariable(RuntimeHostInfo.DotNetTieredCompilationEnvironmentName) == null)
+            if (RuntimeHostInfo.ShouldDisableTieredCompilation &&
+                TaskEnvironment.GetEnvironmentVariable(RuntimeHostInfo.DotNetTieredCompilationEnvironmentName) == null)
             {
                 var value = "0";
                 Log.LogMessage("Setting {0} to '{1}'", RuntimeHostInfo.DotNetTieredCompilationEnvironmentName, value);

@@ -133,16 +133,24 @@ internal static partial class MarkupSplitter
             pieceBuilders[i] = [];
         }
 
+        // Decl-surface declarations (@inject) carry no source text -- only a zero-length span -- and always
+        // belong in the decl half, so collect them apart from the per-member routing.
+        var declSurface = new List<IntermediateNode>();
+
         foreach (var child in analysis.Children)
         {
             if (child.Node is CSharpCodeIntermediateNode csharp)
             {
                 RouteCSharpChild(csharp, child, memberSpans, pieceBuilders);
             }
+            else if (IsDeclSurfaceDeclaration(child.Node))
+            {
+                declSurface.Add(child.Node);
+            }
             else
             {
-                // A markup marker or a zero-length synthesized declaration lives entirely inside one
-                // member; route the original node there by reference (keeping its source mappings).
+                // A markup marker lives entirely inside one member; route the original node there by
+                // reference (keeping its source mappings). AllMarkupCovered guarantees an owner.
                 var owner = FindMemberIndex(memberSpans, child.Start);
                 if (owner >= 0)
                 {
@@ -151,7 +159,7 @@ internal static partial class MarkupSplitter
             }
         }
 
-        var result = ImmutableArray.CreateBuilder<RoutedMember>(memberSpans.Length);
+        var result = ImmutableArray.CreateBuilder<RoutedMember>(memberSpans.Length + (declSurface.Count > 0 ? 1 : 0));
         for (var i = 0; i < memberSpans.Length; i++)
         {
             var pieces = pieceBuilders[i].ToImmutableArray();
@@ -161,6 +169,13 @@ internal static partial class MarkupSplitter
             result.Add(liftToImpl[i]
                 ? new RoutedMember(declPieces: [], implPieces: pieces)
                 : new RoutedMember(declPieces: pieces, implPieces: []));
+        }
+
+        // Emit the decl-surface declarations as a final decl-only member so BuildDeclDocument places them
+        // in the decl half (and MakeImplInPlace keeps them out of the impl).
+        if (declSurface.Count > 0)
+        {
+            result.Add(new RoutedMember(declPieces: [.. declSurface], implPieces: []));
         }
 
         return result.ToImmutable();

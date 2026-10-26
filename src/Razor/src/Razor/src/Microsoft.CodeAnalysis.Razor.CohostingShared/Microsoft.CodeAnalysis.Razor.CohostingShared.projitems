@@ -41,6 +41,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)RazorAnalyzerAssemblyRedirector.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorConfigurationChangedServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorMiscellaneousProjectInfoService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentAnalyzerConfigOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentExcerptService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentExcerptServiceWrapper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)RazorSourceGeneratedDocumentSpanMappingService.cs" />

@@ -2,28 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.IO;
-using System.Threading;
+using System;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
-internal static class ProjectGuardFiles
+public sealed class ProjectGuardFiles : IDisposable
 {
-    private static int _alreadyWritten = 0;
+    private readonly TempRoot _tempRoot = new();
+    private readonly TempDirectory _tempDirectory;
 
-    internal static void EnsureWrittenToTemp()
+    public ProjectGuardFiles()
     {
-        if (Interlocked.CompareExchange(ref _alreadyWritten, value: 1, comparand: 0) != 0)
-            return;
+        _tempDirectory = _tempRoot.CreateDirectory();
 
-        File.WriteAllText(Path.Combine(Path.GetTempPath(), "global.json"),
+        _tempDirectory.CreateFile("global.json").WriteAllText(
            """
            {
                "comment": "this file is empty to ensure we get the 'standard' behavior as if no global.json was specified in the first place"
            }
            """);
 
-        File.WriteAllText(Path.Combine(Path.GetTempPath(), "Directory.Build.props"),
+        _tempDirectory.CreateFile("Directory.Build.props").WriteAllText(
            """
            <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
            <Project>
@@ -41,12 +41,12 @@ internal static class ProjectGuardFiles
            </Project>
            """);
 
-        File.WriteAllText(Path.Combine(Path.GetTempPath(), "Directory.Build.rsp"),
+        _tempDirectory.CreateFile("Directory.Build.rsp").WriteAllText(
            """
            # This file intentionally left blank to avoid accidental import during testing
            """);
 
-        File.WriteAllText(Path.Combine(Path.GetTempPath(), "Directory.Build.targets"),
+        _tempDirectory.CreateFile("Directory.Build.targets").WriteAllText(
            """
            <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
            <Project>
@@ -55,7 +55,7 @@ internal static class ProjectGuardFiles
            </Project>
            """);
 
-        File.WriteAllText(Path.Combine(Path.GetTempPath(), "NuGet.Config"),
+        _tempDirectory.CreateFile("NuGet.Config").WriteAllText(
             """
             <?xml version="1.0" encoding="utf-8"?>
             <configuration>
@@ -70,4 +70,10 @@ internal static class ProjectGuardFiles
             </configuration>
             """);
     }
+
+    internal TempDirectory CreateSolutionDirectory()
+        => _tempDirectory.CreateDirectory(Guid.NewGuid().ToString("N"));
+
+    public void Dispose()
+        => _tempRoot.Dispose();
 }

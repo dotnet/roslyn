@@ -48,6 +48,48 @@ public class GenerateFieldTests(ITestOutputHelper testOutputHelper) : CohostCode
     }
 
     [Fact]
+    public async Task GenerateField_FromCodeBlock_ExistingCodeBlock_UsesEditorConfig()
+    {
+        var input = """
+            @code
+            {
+                private (int, string) M()
+                {
+                    return [||]newField;
+                }
+            }
+            """;
+
+        var expected = """
+            @code
+            {
+                private (int, string) M()
+                {
+                    return newField;
+                }
+
+                private (int,string) newField;
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateVariable,
+            codeActionIndex: FieldActionIndex,
+            makeDiagnosticsRequest: true,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_after_comma = false
+                    """)
+            ]);
+    }
+
+    [Fact]
     public async Task GenerateReadonlyField_FromCodeBlock_ExistingCodeBlock()
     {
         var input = """

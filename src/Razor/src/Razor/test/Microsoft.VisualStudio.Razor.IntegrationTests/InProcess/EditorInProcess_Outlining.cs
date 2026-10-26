@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Outlining;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
 
@@ -28,24 +29,17 @@ internal partial class EditorInProcess
         var textView = await TestServices.Editor.GetActiveTextViewAsync(cancellationToken);
         var manager = await GetOutlineManagerAsync(textView, cancellationToken);
 
-        using var semaphore = new SemaphoreSlim(1);
-        await semaphore.WaitAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         var span = new SnapshotSpan(textView.TextSnapshot, 0, textView.TextSnapshot.Length);
 
         manager.RegionsChanged += On_RegionsChanged;
 
-        // Check that we're not ALREADY changed
-        var regions = manager.GetAllRegions(span);
-        if (regions.Any())
-        {
-            semaphore.Release();
-            manager.RegionsChanged -= On_RegionsChanged;
-        }
-
         try
         {
-            await semaphore.WaitAsync(cancellationToken);
+            CompleteIfResolved();
+            await completionSource.Task.WithCancellation(cancellationToken);
         }
         finally
         {
@@ -53,13 +47,15 @@ internal partial class EditorInProcess
         }
 
         void On_RegionsChanged(object sender, RegionsChangedEventArgs e)
+            => CompleteIfResolved();
+
+        void CompleteIfResolved()
         {
             var regions = manager.GetAllRegions(span);
 
             if (regions.Any())
             {
-                semaphore.Release();
-                manager.RegionsChanged -= On_RegionsChanged;
+                completionSource.TrySetResult(true);
             }
         }
     }

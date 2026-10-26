@@ -45,6 +45,16 @@ public class AssemblyRedirectorTests
     }
 
     [Fact]
+    public void AssemblyRedirector_RedirectsCaseInsensitively()
+    {
+        var redirector = new RazorCompilerAnalyzerAssemblyRedirector();
+        var actualPath = redirector.RedirectPath(@"C:\analyzers\microsoft.codeanalysis.razor.compiler.dll");
+
+        Assert.NotNull(actualPath);
+        Assert.EndsWith("Microsoft.CodeAnalysis.Razor.Compiler.dll", actualPath, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void AssemblyRedirector_OnlyActivatesForRazorPaths()
     {
         var activated = false;

@@ -390,7 +390,7 @@ public class CohostSemanticTokensRangeEndpointTest(ITestOutputHelper testOutputH
     {
         var sourceText = await document.GetTextAsync(cancellationToken);
         var span = new LinePositionSpan(new(0, 0), new(sourceText.Lines.Count, 0));
-        var endpoint = new CohostSemanticTokensRangeEndpoint(IncompatibleProjectService, RemoteServiceInvoker, NoOpTelemetryReporter.Instance);
+        var endpoint = new CohostSemanticTokensRangeEndpoint(IncompatibleProjectService, RemoteServiceInvoker, NoOpTelemetryReporter.Instance, SemanticTokensLegendService);
         return await endpoint.GetTestAccessor().HandleRequestAsync(document, span, cancellationToken);
     }
 }
