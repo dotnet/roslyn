@@ -676,4 +676,5 @@ internal enum FunctionId
     Workspace_EventsImmediate = 900,
     ChecksumUpdater_SynchronizeTextChangesStatus = 901,
     RemoteHostService_SynchronizeTextAsyncStatus = 902,
+    Interactive_Host_Initialized = 903,
 }
