@@ -25,13 +25,7 @@ internal sealed class WorkspaceWillRenameEndpoint(
 
     public async Task<WorkspaceEdit?> HandleWillRenameAsync(RenameFilesParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var solution = await context.GetSolutionAsync(cancellationToken).ConfigureAwait(false);
-        if (solution is null)
-        {
-            _logger.LogWarning($"Got a didRenameFiles notification but didn't get a solution to work with.");
-            return null;
-        }
-
+        var solution = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
         return await HandleRequestAsync(request, solution, cancellationToken).ConfigureAwait(false);
     }
 
