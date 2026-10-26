@@ -306,9 +306,14 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
     private class WorkspaceFolderVisitor(Cache cache, ArrayBuilder<string> entryPointsBuilder, ArrayBuilder<string> directoriesContainingCsprojBuilder, ILogger logger)
     {
+        /// <summary>The limit on links followed while resolving one path, in place of the OS's own limit (e.g. 40 on Linux).</summary>
+        private const int MaxLinksFollowed = 40;
+
         /// <summary>
-        /// The resolved paths of the directories visited so far, i.e. with any directory links in them replaced by their targets.
+        /// The resolved paths of the directories visited so far, i.e. with the links in every component replaced by their targets.
         /// A directory link to an ancestor (or two links into each other) would otherwise make the walk unbounded.
+        /// The links in a link's target must be resolved too: otherwise e.g. 'a/link1 -> ../link2/a' with 'link2 -> .'
+        /// reaches 'a' under a new path ('link2/a', 'link2/link2/a', ...) each time.
         /// </summary>
         private readonly HashSet<string> _visitedResolvedDirectories = new(s_pathComparer);
 
@@ -318,14 +323,25 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         internal void Visit()
         {
             // Note: passing `DateTimeOffset.MinValue` here will force `VisitDirectory` to stat the directory again to get its created/modified times out.
-            VisitDirectory(cache.WorkspacePath, Path.TrimEndingDirectorySeparator(cache.WorkspacePath), DateTimeOffset.MinValue);
+            string resolvedWorkspacePath;
+            try
+            {
+                resolvedWorkspacePath = GetResolvedPath(cache.WorkspacePath);
+            }
+            catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
+            {
+                logger.LogWarning("Could not resolve links in workspace path '{Directory}' during file-based app discovery: {ExceptionMessage}", cache.WorkspacePath, ex.Message);
+                resolvedWorkspacePath = Path.TrimEndingDirectorySeparator(cache.WorkspacePath);
+            }
+
+            VisitDirectory(cache.WorkspacePath, resolvedWorkspacePath, DateTimeOffset.MinValue);
 
             while (_pendingDirectoryLinks.TryDequeue(out var link))
                 VisitDirectory(link.Directory, link.ResolvedDirectory, link.CreatedOrModifiedTimeUtc);
         }
 
         /// <param name="directory">The path of the directory as reached by the walk. Discovered entry points are reported under this path.</param>
-        /// <param name="resolvedDirectory">The path of the directory with any directory links in it replaced by their targets.</param>
+        /// <param name="resolvedDirectory">The path of the directory with the links in every component replaced by their targets.</param>
         private void VisitDirectory(string directory, string resolvedDirectory, DateTimeOffset createdOrModifiedTimeUtc)
         {
             var directoryName = Path.GetFileName(directory.AsSpan());
@@ -401,10 +417,10 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
 
         private void VisitReparsePointDirectory(string directory, string resolvedDirectory, DateTimeOffset createdOrModifiedTimeUtc)
         {
-            FileSystemInfo? linkTarget;
+            string linkTarget;
             try
             {
-                linkTarget = new DirectoryInfo(resolvedDirectory).ResolveLinkTarget(returnFinalTarget: true);
+                linkTarget = GetResolvedPath(resolvedDirectory);
             }
             catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
             {
@@ -412,14 +428,67 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 return;
             }
 
-            if (linkTarget is null)
+            if (s_pathComparer.Equals(linkTarget, resolvedDirectory))
             {
                 // Not a link (e.g. a cloud-file placeholder), so it is visited like any other directory.
                 VisitDirectory(directory, resolvedDirectory, createdOrModifiedTimeUtc);
                 return;
             }
 
-            _pendingDirectoryLinks.Enqueue((directory, Path.TrimEndingDirectorySeparator(linkTarget.FullName), createdOrModifiedTimeUtc));
+            _pendingDirectoryLinks.Enqueue((directory, linkTarget, createdOrModifiedTimeUtc));
+        }
+
+        /// <summary>
+        /// Gets the full path with the links in every component replaced by their targets, like <c>realpath</c>.
+        /// The '..' components of a link's target are applied after the components before them are resolved, as the OS does.
+        /// </summary>
+        private static string GetResolvedPath(string path)
+        {
+            var fullPath = Path.GetFullPath(path);
+            var current = Path.GetPathRoot(fullPath)!;
+            var remaining = new Stack<string>();
+            PushComponents(remaining, fullPath[current.Length..]);
+
+            var linksFollowed = 0;
+            while (remaining.TryPop(out var component))
+            {
+                if (component is "" or ".")
+                    continue;
+
+                if (component == "..")
+                {
+                    current = Path.GetDirectoryName(current) ?? current;
+                    continue;
+                }
+
+                var next = Path.Join(current, component);
+                var linkTarget = new DirectoryInfo(next).LinkTarget;
+                if (linkTarget is null)
+                {
+                    current = next;
+                    continue;
+                }
+
+                if (++linksFollowed > MaxLinksFollowed)
+                    throw new IOException($"Too many levels of links in '{path}'.");
+
+                if (Path.IsPathRooted(linkTarget))
+                {
+                    current = Path.GetPathRoot(linkTarget)!;
+                    linkTarget = linkTarget[current.Length..];
+                }
+
+                PushComponents(remaining, linkTarget);
+            }
+
+            return Path.TrimEndingDirectorySeparator(current);
+
+            static void PushComponents(Stack<string> stack, string relativePath)
+            {
+                var components = relativePath.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+                for (var i = components.Length - 1; i >= 0; i--)
+                    stack.Push(components[i]);
+            }
         }
 
         private void VisitCsFile(string file, DateTimeOffset createdOrModifiedTimeUtc)
