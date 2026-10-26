@@ -2863,8 +2863,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUnassignedAddressOf">
-        <source>The operand of an address-of expression must be definitely assigned outside an unsafe context.</source>
-        <target state="new">The operand of an address-of expression must be definitely assigned outside an unsafe context.</target>
+        <source>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</source>
+        <target state="new">The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">

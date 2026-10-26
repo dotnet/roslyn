@@ -8297,7 +8297,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>This operation may only be used in an unsafe context</value>
   </data>
   <data name="ERR_UnsafeUnassignedAddressOf" xml:space="preserve">
-    <value>The operand of an address-of expression must be definitely assigned outside an unsafe context.</value>
+    <value>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</value>
   </data>
   <data name="ERR_UnsafeUninitializedStackAlloc" xml:space="preserve">
     <value>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</value>
