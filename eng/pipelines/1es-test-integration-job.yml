@@ -1,4 +1,4 @@
-# Roslyn VS integration tests executed through DartLab CloudTest operations.
+# Roslyn VS integration tests executed through DartLab 1ESS operations.
 
 parameters:
   - name: name

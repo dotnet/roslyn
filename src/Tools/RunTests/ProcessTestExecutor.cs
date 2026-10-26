@@ -40,7 +40,7 @@ namespace RunTests
             fileContentsBuilder.AppendLine($@"/Platform:{options.Architecture}");
             if (options.TestResultsFormat == "trx")
             {
-                fileContentsBuilder.AppendLine($@"/Logger:trx;LogFileName=""{xmlResultsFilePath}""");
+                fileContentsBuilder.AppendLine($@"/Logger:trx;LogFileName=""{Path.GetFullPath(xmlResultsFilePath)}""");
             }
             else
             {
