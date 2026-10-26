@@ -9,9 +9,11 @@ using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
+using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests.Miscellaneous;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -20,6 +22,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
@@ -714,8 +717,11 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
 
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        var workspaceWaiter = testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace);
         globalOptions.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, false);
 
+        // Option changes unload projects asynchronously; wait before looking up the replacement document.
+        await workspaceWaiter.ExpeditedWaitAsync();
         (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         Assert.DoesNotContain("FileBasedProgram", document.Project.ParseOptions!.Features);
         syntaxTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
@@ -726,6 +732,7 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         globalOptions.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, true);
 
+        await workspaceWaiter.ExpeditedWaitAsync();
         (_, document) = await GetRequiredLspWorkspaceAndDocumentAsync(looseFileUri, testLspServer).ConfigureAwait(false);
         Assert.Contains("FileBasedProgram", document.Project.ParseOptions!.Features);
 
@@ -1209,12 +1216,12 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Lookup "Util.cs" in the "App" project context
         var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(utilCsFile.Path);
-        (_, _, var textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(utilCsUri, projects[0].Id), CancellationToken.None);
+        var textDocument = (await testLspServer.CaptureLspDocumentContextAsync(CreateTextDocumentIdentifier(utilCsUri, projects[0].Id)))?.Document;
         Assert.NotNull(textDocument);
         Assert.Equal("App", textDocument.Project.AssemblyName);
 
         // Lookup "Util.cs" in the "Ordinary" project context
-        (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(utilCsUri, projects[1].Id), CancellationToken.None);
+        textDocument = (await testLspServer.CaptureLspDocumentContextAsync(CreateTextDocumentIdentifier(utilCsUri, projects[1].Id)))?.Document;
         Assert.NotNull(textDocument);
         Assert.Equal("Ordinary", textDocument.Project.AssemblyName);
     }
@@ -1311,6 +1318,16 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
             OptionUpdater = options => options.SetGlobalOption(FileBasedAppsOptionsStorage.EnableAutomaticDiscovery, false),
         });
         Assert.Null(await GetMiscellaneousDocumentAsync(testLspServer));
+
+        // Restore before loading so a delayed assets-file notification cannot reload the edited Util.cs.
+        // Intentionally narrows this test to projects that don't need to be restored before loading.
+        Assert.True(await RestoreHandler.RestoreAsync(
+            [appCsFile.Path],
+            testLspServer.GetRequiredLspService<WorkDoneProgressManager>(),
+            testLspServer.GetRequiredLspService<DotnetCliHelper>(),
+            testLspServer.GetRequiredLspService<LspLoggerFactory>().CreateLogger<RestoreHandler>(),
+            enableProgressReporting: false,
+            CancellationToken.None));
 
         // Open App.cs.
         var appCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
@@ -1480,8 +1497,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
 
         // Lookup "App.cs" in the "App" project context
         var utilCsUri = ProtocolConversions.CreateAbsoluteDocumentUri(appCsFile.Path);
-        (_, _, var textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(
-            CreateTextDocumentIdentifier(utilCsUri, projects[0].Id), CancellationToken.None);
+        var textDocument = (await testLspServer.CaptureLspDocumentContextAsync(
+            CreateTextDocumentIdentifier(utilCsUri, projects[0].Id)))?.Document;
         document = (Document)textDocument!;
         Assert.Equal("App", document.Project.AssemblyName);
 
@@ -1490,8 +1507,8 @@ public sealed class FileBasedProgramsWorkspaceTests(ITestOutputHelper testOutput
         Assert.Empty(syntaxTree.GetDiagnostics(CancellationToken.None));
 
         // Lookup "App.cs" in the "Ordinary" project context
-        (_, _, textDocument) = await testLspServer.GetManager().GetLspDocumentInfoAsync(
-            CreateTextDocumentIdentifier(utilCsUri, projects[1].Id), CancellationToken.None);
+        textDocument = (await testLspServer.CaptureLspDocumentContextAsync(
+            CreateTextDocumentIdentifier(utilCsUri, projects[1].Id)))?.Document;
         Assert.NotNull(textDocument);
         document = (Document)textDocument!;
         Assert.Equal("Ordinary", document.Project.AssemblyName);

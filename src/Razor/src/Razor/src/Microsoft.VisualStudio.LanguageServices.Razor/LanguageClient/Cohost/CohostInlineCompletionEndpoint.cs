@@ -104,7 +104,7 @@ internal sealed class CohostInlineCompletionEndpoint(
 
         if (result.Range is not null)
         {
-            var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
+            var csharpSyntaxFormattingOptions = razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken);
             var settings = _clientSettingsManager.GetClientSettings().AdvancedSettings;
             var options = RazorFormattingOptions.From(
                 formattingOptions,

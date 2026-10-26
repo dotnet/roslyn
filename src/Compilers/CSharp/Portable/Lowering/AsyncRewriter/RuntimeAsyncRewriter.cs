@@ -69,7 +69,8 @@ internal sealed class RuntimeAsyncRewriter : BoundTreeRewriterWithStackGuard
             var thisParameter = rewriter._factory.CurrentFunction.ThisParameter;
             if (thisParameter is { Type.IsValueType: true, RefKind: not RefKind.None })
             {
-                // This is a struct or a type parameter. We need to replace it with a hoisted local to preserve behavior from
+                Debug.Assert(!thisParameter.Type.IsTypeParameter());
+                // This is a struct. We need to replace it with a hoisted local to preserve behavior from
                 // compiler-generated state machines; `this` is a ref, but results are not observable outside of the method.
                 // We do this regardless of whether `this` is captured to a ref local, because any usage of `ldarg.0` in these
                 // scenarios is illegal after the first await. We could be more precise and only do this if `this` is actually

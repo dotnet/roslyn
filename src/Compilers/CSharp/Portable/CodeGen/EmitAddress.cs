@@ -201,7 +201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private LocalDefinition EmitPassByCopyAddress(BoundPassByCopy passByCopyExpr, AddressKind addressKind, bool used)
         {
-            Debug.Assert(used);
             // Normally we can just defer PassByCopy to the `default`,
             // but in some cases the value inside is already a temp that is local to that node.
             // In such case we can skip extra store/reload
@@ -328,6 +327,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used)
             {
+                if (!dup.IsAlive)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
                 _builder.EmitOpCode(ILOpCode.Dup);
             }
 
@@ -358,7 +362,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private LocalDefinition EmitAddressOfTempClone(BoundExpression expression, bool used)
         {
-            Debug.Assert(used);
             EmitExpression(expression, used);
 
             if (used)
@@ -393,7 +396,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Local:
                     var local = (BoundLocal)value;
                     var symbol = local.LocalSymbol;
-                    if (topSequence.Locals.Contains(symbol))
+                    Debug.Assert(symbol.RefKind == RefKind.None, "No test coverage for the scenario.");
+                    if (symbol.RefKind == RefKind.None && topSequence.Locals.Contains(symbol))
                     {
                         return symbol;
                     }
@@ -607,13 +611,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     (addressKind != AddressKind.ReadOnlyStrict ? AddressKind.ReadOnly : addressKind);
 
             BoundExpression receiver = fieldAccess.ReceiverOpt;
-            if (!used && !IsRef(receiver) && receiver is not BoundPointerIndirectionOperator && receiver.Type.IsValueType)
+            if (!used && receiver.Type.IsValueType)
             {
-                // It is enough to get side-effects of getting the receiver
-                return EmitReceiverRef(
-                    receiver,
-                    receiverAddressKind,
-                    used: false);
+                if (receiver is BoundThisReference && receiver.Type.IsDisplayClassType())
+                {
+                    // Receiver cannot be a null ref
+                    return null;
+                }
+
+                if (!IsRef(receiver) && receiver is not BoundPointerIndirectionOperator)
+                {
+                    // It is enough to get side-effects of getting the receiver
+                    return EmitReceiverRef(
+                        receiver,
+                        receiverAddressKind,
+                        used: false);
+                }
             }
 
             var tempOpt = EmitReceiverRef(

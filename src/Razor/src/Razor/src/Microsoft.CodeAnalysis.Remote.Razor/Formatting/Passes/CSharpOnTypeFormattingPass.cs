@@ -115,7 +115,7 @@ internal sealed class CSharpOnTypeFormattingPass(
         var indent = context.GetIndentationLevelString(1);
         var mappedChanges = await _razorEditService.MapCSharpEditsAsync(
             normalizedChanges.SelectAsArray(static c => c.ToRazorTextChange()),
-            context.CurrentSnapshot,
+            context.CurrentRemoteSnapshot,
             declarationDocument: csharpDocument.IsDeclarationDocument,
             context.IncludeCSharpLanguageFeatureEdits,
             directlyMappedEditFilter: change => ShouldKeepDirectlyMappedEdit(context, indent, change),

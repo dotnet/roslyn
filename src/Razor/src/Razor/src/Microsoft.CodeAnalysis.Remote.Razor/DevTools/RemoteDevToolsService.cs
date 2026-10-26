@@ -78,7 +78,7 @@ internal sealed class RemoteDevToolsService(in ServiceArgs args) : RazorDocument
                     ? await declSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false)
                     : null;
 #pragma warning disable CS0618 // Type or member is obsolete
-                return CSharpFormattingPass.GetFormattingDocumentContentsForSyntaxVisualizer(codeDocument, csharpSyntaxRoot, declSyntaxRoot, DocumentMappingService);
+                return CSharpFormattingPass.GetFormattingDocumentContentsForSyntaxVisualizer(codeDocument, csharpSyntaxRoot, declSyntaxRoot);
 #pragma warning restore CS0618 // Type or member is obsolete
             },
             cancellationToken);

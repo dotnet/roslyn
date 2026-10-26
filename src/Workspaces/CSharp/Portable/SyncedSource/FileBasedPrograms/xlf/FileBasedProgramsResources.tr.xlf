@@ -57,11 +57,6 @@
         <target state="translated">Yönerge değerinde basit bir dize sabit değeri bekleniyordu. Ham sabit değerler ve düz metin dizesi sabit değerleri yönerge değerlerinde desteklenmez. Bulunan: {0}</target>
         <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
-      <trans-unit id="ExperimentalFeatureDisabled">
-        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="translated">Bu deneysel bir özelliktir, etkinleştirmek için '{0}' MSBuild özelliğini 'true' değerine ayarlayın.</target>
-        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
-      </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
         <target state="translated">'{0}' yönergesinde tanınmayan dosya uzantısı var. Şu anda yalnızca şu uzantılar tanınıyor: {1}</target>

@@ -12,6 +12,7 @@ public struct GitCommit
     public string Message { get; set; }
     public string CommitId { get; set; }
     public string RemoteUrl { get; set; }
+    internal string[] Parents { get; set; }
 
     public readonly string MessageShort => Message.Split('\n')[0];
 }

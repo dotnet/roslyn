@@ -68,7 +68,7 @@ internal sealed class LanguageServerTelemetry : IDisposable
         string? daemonSessionId = null)
     {
         if (serverConfiguration.TelemetryLevel is not { } telemetryLevel ||
-            (!isDefaultSession && telemetryLevel == "off"))
+            telemetryLevel == "off")
         {
             return null;
         }
