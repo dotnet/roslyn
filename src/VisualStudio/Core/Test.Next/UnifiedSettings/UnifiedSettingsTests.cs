@@ -137,9 +137,10 @@ public sealed class UnifiedSettingsTests
         var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
         var categories = jsonDocument!.Root["categories"]!.AsObject();
         var propertyToCategory = categories.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Deserialize<Category>());
-        Assert.Equal(2, propertyToCategory.Count);
+        Assert.Equal(19, propertyToCategory.Count);
         Assert.Equal("C#", propertyToCategory["languages.csharp"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["languages.csharp.intellisense"]!.Title);
+        Assert.Equal("Advanced", propertyToCategory["languages.csharp.advanced"]!.Title);
     }
 
     [Fact]
@@ -245,9 +246,10 @@ public sealed class UnifiedSettingsTests
         var jsonDocument = await JsonNode.ParseAsync(registrationFileStream!, documentOptions: new JsonDocumentOptions { CommentHandling = JsonCommentHandling.Skip });
         var categories = jsonDocument!.Root["categories"]!.AsObject();
         var propertyToCategory = categories.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Deserialize<Category>());
-        Assert.Equal(2, propertyToCategory.Count);
+        Assert.Equal(18, propertyToCategory.Count);
         Assert.Equal("Visual Basic", propertyToCategory["languages.basic"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["languages.basic.intellisense"]!.Title);
+        Assert.Equal("Advanced", propertyToCategory["languages.basic.advanced"]!.Title);
     }
 
     [Fact]

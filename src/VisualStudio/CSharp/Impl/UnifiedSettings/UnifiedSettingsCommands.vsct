@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable">
+  <Commands package="guidUnifiedSettingsPackage">
+    <Buttons>
+      <Button guid="guidUnifiedSettingsPackage" id="GenerateEditorConfig" type="Button">
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <CommandFlag>NoButtonCustomize</CommandFlag>
+        <CommandFlag>NoKeyCustomize</CommandFlag>
+        <Strings><ButtonText>GenerateEditorConfig</ButtonText></Strings>
+      </Button>
+      <Button guid="guidUnifiedSettingsPackage" id="LearnMore" type="Button">
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <CommandFlag>NoButtonCustomize</CommandFlag>
+        <CommandFlag>NoKeyCustomize</CommandFlag>
+        <Strings><ButtonText>LearnMore</ButtonText></Strings>
+      </Button>
+      <Button guid="guidUnifiedSettingsPackage" id="ResetNaming" type="Button">
+        <CommandFlag>CommandWellOnly</CommandFlag>
+        <CommandFlag>NoButtonCustomize</CommandFlag>
+        <CommandFlag>NoKeyCustomize</CommandFlag>
+        <Strings><ButtonText>ResetNaming</ButtonText></Strings>
+      </Button>
+    </Buttons>
+  </Commands>
+  <Symbols>
+    <GuidSymbol name="guidUnifiedSettingsPackage" value="{47b0d77e-35c4-4b41-9fc4-9309ef73f93b}">
+      <IDSymbol name="GenerateEditorConfig" value="0x0100" />
+      <IDSymbol name="LearnMore" value="0x0101" />
+      <IDSymbol name="ResetNaming" value="0x0102" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

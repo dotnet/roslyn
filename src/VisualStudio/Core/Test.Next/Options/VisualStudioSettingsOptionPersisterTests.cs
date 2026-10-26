@@ -21,20 +21,44 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.UnitTests;
 
 [UseExportProvider]
-public sealed class VisualStudioSettingsOptionPersisterTests
+public sealed partial class VisualStudioSettingsOptionPersisterTests
 {
     private sealed class MockSettingsSubset : ISettingsSubset
     {
-        public event PropertyChangedAsyncEventHandler? SettingChangedAsync;
+        private PropertyChangedAsyncEventHandler? _settingChangedAsync;
+
+        public event PropertyChangedAsyncEventHandler? SettingChangedAsync
+        {
+            add => _settingChangedAsync += value;
+            remove => _settingChangedAsync -= value;
+        }
+
+        public int HandlerCount => _settingChangedAsync?.GetInvocationList().Length ?? 0;
 
         public void TriggerSettingChanged(string storageName)
-            => SettingChangedAsync?.Invoke(this, new PropertyChangedEventArgs(storageName));
+            => _settingChangedAsync?.Invoke(this, new PropertyChangedEventArgs(storageName));
+    }
+
+    [Fact]
+    public void DisposeUnsubscribesFromSettingsChangeEvent()
+    {
+        var settingsManager = new MockSettingsManager();
+        var refreshCount = 0;
+        var persister = new VisualStudioSettingsOptionPersister((_, _) => refreshCount++, s_noFallbacks, settingsManager);
+        Assert.Equal(1, settingsManager.Subset.HandlerCount);
+
+        persister.Dispose();
+        Assert.Equal(0, settingsManager.Subset.HandlerCount);
+        settingsManager.Subset.TriggerSettingChanged("some.setting");
+
+        Assert.Equal(0, refreshCount);
     }
 
     private sealed class MockSettingsManager : ISettingsManager
     {
         public Func<string, Type, (GetValueResult, object?)>? GetValueImpl;
         public Action<string, object?>? SetValueImpl;
+        public Func<string, object?, bool, Task>? SetValueAsyncImpl;
 
         public readonly MockSettingsSubset Subset = new();
 
@@ -51,7 +75,7 @@ public sealed class VisualStudioSettingsOptionPersisterTests
         public Task SetValueAsync(string name, object? value, bool isMachineLocal)
         {
             SetValueImpl?.Invoke(name, value);
-            return Task.CompletedTask;
+            return SetValueAsyncImpl?.Invoke(name, value, isMachineLocal) ?? Task.CompletedTask;
         }
 
         public ISettingsList GetOrCreateList(string name, bool isMachineLocal)

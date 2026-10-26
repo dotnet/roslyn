@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="es" original="../ServicesVSResources.resx">
     <body>
+      <trans-unit id="A_naming_rule_refers_to_an_unknown_symbol_specification_or_naming_style">
+        <source>A naming rule refers to an unknown symbol specification or naming style.</source>
+        <target state="new">A naming rule refers to an unknown symbol specification or naming style.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="A_new_namespace_will_be_created">
         <source>A new namespace will be created</source>
         <target state="translated">Se creará un espacio de nombres</target>
@@ -222,6 +227,11 @@
         <target state="translated">Vista previa del código</target>
         <note />
       </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config_USX">
+        <source>Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. [More info](https://go.microsoft.com/fwlink/?linkid=866541)</source>
+        <target state="new">Your .editorconfig file might override the local settings configured on this page which only apply to your machine. To configure these settings to travel with your solution use EditorConfig files. [More info](https://go.microsoft.com/fwlink/?linkid=866541)</target>
+        <note>Keep the Markdown hyperlink syntax and URL unchanged; translate the text inside the square brackets.</note>
+      </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
         <target state="translated">Contraer funciones locales al contraer en definiciones</target>
@@ -265,6 +275,16 @@
       <trans-unit id="Comments">
         <source>Comments</source>
         <target state="translated">Comentarios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Complete_legacy_naming_configuration_was_not_published">
+        <source>The complete legacy naming configuration was not published.</source>
+        <target state="new">The complete legacy naming configuration was not published.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Complete_naming_configuration_was_not_published">
+        <source>The complete naming configuration was not published. Legacy naming preferences were not changed.</source>
+        <target state="new">The complete naming configuration was not published. Legacy naming preferences were not changed.</target>
         <note />
       </trans-unit>
       <trans-unit id="Completion_behavior_for_items_from_unimported_namespaces">
@@ -317,6 +337,11 @@
         <target state="translated">_Mostrar sugerencias de nombre de parámetro insertadas</target>
         <note />
       </trans-unit>
+      <trans-unit id="Display_inline_parameter_name_hints_USX">
+        <source>Display inline parameter name hints</source>
+        <target state="new">Display inline parameter name hints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Display_inline_type_hints">
         <source>Display inline type hints</source>
         <target state="translated">Mostrar sugerencias de tipo insertado</target>
@@ -335,6 +360,11 @@
       <trans-unit id="Edit">
         <source>_Edit</source>
         <target state="translated">_Editar</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EditorConfig">
+        <source>EditorConfig</source>
+        <target state="new">EditorConfig</target>
         <note />
       </trans-unit>
       <trans-unit id="Editor_Help">
@@ -372,6 +402,11 @@
         <target state="translated">Escriba un valor de sitio de llamada o elija otro tipo de inserción de valor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_a_name">
+        <source>Enter a name.</source>
+        <target state="new">Enter a name.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enter_key_behavior">
         <source>Enter key behavior</source>
         <target state="translated">Especificar el comportamiento de la clave</target>
@@ -405,6 +440,16 @@
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">Actualización de errores de forma periódica: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Existing_naming_compatibility_identities_cannot_be_changed">
+        <source>Existing naming compatibility identities cannot be changed.</source>
+        <target state="new">Existing naming compatibility identities cannot be changed.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Existing_naming_definition_identities_cannot_be_changed">
+        <source>Existing naming definition identities cannot be changed.</source>
+        <target state="new">Existing naming definition identities cannot be changed.</target>
         <note />
       </trans-unit>
       <trans-unit id="Experimental_feature">
@@ -507,6 +552,11 @@
         <target state="translated">_Resaltar referencias al símbolo bajo el cursor</target>
         <note />
       </trans-unit>
+      <trans-unit id="Highlight_references_to_symbol_under_cursor_USX">
+        <source>Highlight references to symbol under cursor</source>
+        <target state="new">Highlight references to symbol under cursor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">Resaltar componentes relacionados bajo el cursor</target>
@@ -515,6 +565,11 @@
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related _keywords under cursor</source>
         <target state="translated">Resaltar palabras cla_ve relacionadas bajo el cursor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_keywords_under_cursor_USX">
+        <source>Highlight related keywords under cursor</source>
+        <target state="new">Highlight related keywords under cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -611,6 +666,11 @@
         <source>Introduce undefined TODO variables</source>
         <target state="translated">Introducir variables TODO sin definir</target>
         <note>"TODO" is an indicator that more work should be done at the location where the TODO is inserted</note>
+      </trans-unit>
+      <trans-unit id="Invalid_naming_identity">
+        <source>Naming IDs must start with a lowercase ASCII letter and contain only lowercase letters, digits or underscores.</source>
+        <target state="new">Naming IDs must start with a lowercase ASCII letter and contain only lowercase letters, digits or underscores.</target>
+        <note />
       </trans-unit>
       <trans-unit id="Invalid_type_name">
         <source>Invalid type name</source>
@@ -872,9 +932,69 @@
         <target state="translated">Parámetro de tipo</target>
         <note>This string can be found under "Tools | Options | Text Editor | Basic | Code Style | Naming | Manage Specifications | + | Symbol kinds". All of the "NamingSpecification_VisualBasic_*" strings represent language constructs, and some of them are also actual keywords (NOT this one). Refers to the Visual Basic language concept of a "type parameter".</note>
       </trans-unit>
+      <trans-unit id="Naming_compatibility_identities_must_be_nonempty_GUIDs">
+        <source>Naming compatibility identities must be nonempty GUIDs.</source>
+        <target state="new">Naming compatibility identities must be nonempty GUIDs.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_defaultName_must_be_a_Boolean">
+        <source>Naming defaultName must be a Boolean.</source>
+        <target state="new">Naming defaultName must be a Boolean.</target>
+        <note>{Locked="defaultName"} A property in the naming configuration.</note>
+      </trans-unit>
+      <trans-unit id="Naming_definition_rows_changed_while_the_editor_was_open">
+        <source>Naming definition rows changed while the editor was open. Reload the settings before editing.</source>
+        <target state="new">Naming definition rows changed while the editor was open. Reload the settings before editing.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_preferences_could_not_be_reset_Try_again">
+        <source>Naming preferences could not be reset. Try again.</source>
+        <target state="new">Naming preferences could not be reset. Try again.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_property_0_must_be_a_string">
+        <source>Naming property '{0}' must be a string.</source>
+        <target state="new">Naming property '{0}' must be a string.</target>
+        <note>{0} is a property name in the naming configuration.</note>
+      </trans-unit>
+      <trans-unit id="Naming_property_0_must_be_an_array">
+        <source>Naming property '{0}' must be an array.</source>
+        <target state="new">Naming property '{0}' must be an array.</target>
+        <note>{0} is a property name in the naming configuration.</note>
+      </trans-unit>
+      <trans-unit id="Naming_property_0_must_contain_unique_strings">
+        <source>Naming property '{0}' must contain unique strings.</source>
+        <target state="new">Naming property '{0}' must contain unique strings.</target>
+        <note>{0} is a property name in the naming configuration.</note>
+      </trans-unit>
       <trans-unit id="Naming_rules">
         <source>Naming rules</source>
         <target state="translated">Reglas de nomenclatura</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_settings_changed_while_the_editor_was_open">
+        <source>Naming settings changed while the editor was open. Reload the settings before applying this edit.</source>
+        <target state="new">Naming settings changed while the editor was open. Reload the settings before applying this edit.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_settings_could_not_be_saved_Refresh_and_try_again">
+        <source>Naming settings could not be saved. Refresh the settings and try again.</source>
+        <target state="new">Naming settings could not be saved. Refresh the settings and try again.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_settings_must_be_an_array_of_objects">
+        <source>Naming settings must be an array of objects.</source>
+        <target state="new">Naming settings must be an array of objects.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_settings_must_be_requested_as_an_array_of_objects">
+        <source>Naming settings must be requested as an array of objects.</source>
+        <target state="new">Naming settings must be requested as an array of objects.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_style_identities_must_be_unique">
+        <source>Naming style identities must be unique.</source>
+        <target state="new">Naming style identities must be unique.</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigate_to_0">
@@ -951,6 +1071,11 @@
         <source>Only add new line on enter after end of fully typed word</source>
         <target state="translated">Solo agregar una nueva línea al pulsar Intro cuando se haya terminado de escribir completamente una palabra</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Only_built_in_naming_definitions_with_an_empty_name_can_use_defaultName">
+        <source>Only built-in naming definitions with an empty name can use defaultName.</source>
+        <target state="new">Only built-in naming definitions with an empty name can use defaultName.</target>
+        <note>{Locked="defaultName"} A property in the naming configuration.</note>
       </trans-unit>
       <trans-unit id="Open_documents">
         <source>Open documents</source>
@@ -1067,10 +1192,20 @@
         <target state="translated">Preferir operador de índice</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_is_null_for_reference_equality_checks">
+        <source>Prefer 'is null' for reference equality checks</source>
+        <target state="new">Prefer 'is null' for reference equality checks</target>
+        <note>'is null' is a C# expression and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Prefer_method_group_conversion">
         <source>Prefer method group conversion</source>
         <target state="translated">Preferir la conversión de grupo de métodos</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Prefer_null_check_over_type_check">
+        <source>Prefer 'null' check over type check</source>
+        <target state="new">Prefer 'null' check over type check</target>
+        <note>'null' is a C# keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Prefer_range_operator">
         <source>Prefer range operator</source>
@@ -1137,6 +1272,11 @@
         <target state="translated">Referencia</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refresh_naming_settings_before_applying_changes">
+        <source>Refresh Naming settings before applying changes.</source>
+        <target state="new">Refresh Naming settings before applying changes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Regular">
         <source>Regular</source>
         <target state="translated">Normal</target>
@@ -1200,6 +1340,11 @@
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
         <target state="translated">Restablecer asignaciones de teclado predeterminadas de Visual Studio</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_naming_preferences_were_not_published">
+        <source>The naming preference defaults were not published.</source>
+        <target state="new">The naming preference defaults were not published.</target>
         <note />
       </trans-unit>
       <trans-unit id="Review_Changes">
@@ -1392,9 +1537,19 @@
         <target state="translated">Mostrar vista previa para _seguimiento de cambio de nombre</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_preview_for_rename_tracking_USX">
+        <source>Show preview for rename tracking</source>
+        <target state="new">Show preview for rename tracking</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">Mo_strar separadores de líneas de procedimientos</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_procedure_line_separators_USX">
+        <source>Show procedure line separators</source>
+        <target state="new">Show procedure line separators</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
@@ -1420,6 +1575,11 @@
       <trans-unit id="Source_Generators">
         <source>Source Generators</source>
         <target state="translated">Generadores de origen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_generator_execution_USX">
+        <source>Source generator execution:</source>
+        <target state="new">Source generator execution:</target>
         <note />
       </trans-unit>
       <trans-unit id="Source_generator_execution_requires_restart">
@@ -1460,6 +1620,11 @@
       <trans-unit id="Suppress_hints_when_parameter_names_differ_only_by_suffix">
         <source>Suppress hints when parameter names differ only by suffix</source>
         <target state="translated">Suprimir las sugerencias cuando los nombres de parámetro solo se diferencien por el sufijo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbol_specification_identities_must_be_unique">
+        <source>Symbol specification identities must be unique.</source>
+        <target state="new">Symbol specification identities must be unique.</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbols_without_references">
@@ -1527,6 +1692,11 @@
         <target state="translated">Este espacio de nombres no es válido</target>
         <note />
       </trans-unit>
+      <trans-unit id="This_setting_is_shared_by_CSharp_and_Visual_Basic">
+        <source>This setting is shared by C# and Visual Basic. Changing it affects both languages.</source>
+        <target state="new">This setting is shared by C# and Visual Basic. Changing it affects both languages.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Title">
         <source>Title</source>
         <target state="translated">Título</target>
@@ -1552,10 +1722,35 @@
         <target state="translated">Se reconoce el nombre de tipo</target>
         <note>"Type" is the programming language concept</note>
       </trans-unit>
+      <trans-unit id="Unable_to_enqueue_naming_setting_0_1_2">
+        <source>Unable to enqueue validated naming setting '{0}': {1}. {2}</source>
+        <target state="new">Unable to enqueue validated naming setting '{0}': {1}. {2}</target>
+        <note>{0} is a setting moniker, {1} is a change outcome, and {2} is a diagnostic detail.</note>
+      </trans-unit>
+      <trans-unit id="Unable_to_normalize_naming_settings_0_1">
+        <source>Unable to normalize naming settings: {0}. {1}</source>
+        <target state="new">Unable to normalize naming settings: {0}. {1}</target>
+        <note>{0} is a setting commit outcome and {1} is a diagnostic detail.</note>
+      </trans-unit>
+      <trans-unit id="Unable_to_read_naming_setting_0_1_2">
+        <source>Unable to read naming setting '{0}': {1}. {2}</source>
+        <target state="new">Unable to read naming setting '{0}': {1}. {2}</target>
+        <note>{0} is a setting moniker, {1} is a retrieval outcome, and {2} is a diagnostic detail.</note>
+      </trans-unit>
+      <trans-unit id="Unable_to_synchronize_legacy_naming_settings_0_1">
+        <source>Unable to synchronize legacy naming settings: {0}. {1}</source>
+        <target state="new">Unable to synchronize legacy naming settings: {0}. {1}</target>
+        <note>{0} is a setting commit outcome and {1} is a diagnostic detail.</note>
+      </trans-unit>
       <trans-unit id="Underline_reassigned_variables">
         <source>Underline reassigned variables</source>
         <target state="translated">Subrayar variables reasignadas</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Unsupported_naming_setting_value_0">
+        <source>'{0}' is not a supported value for this naming setting.</source>
+        <target state="new">'{0}' is not a supported value for this naming setting.</target>
+        <note>{0} is a value from the naming configuration.</note>
       </trans-unit>
       <trans-unit id="Unused_local">
         <source>Unused local</source>
@@ -2801,6 +2996,31 @@ Información adicional: {1}</target>
         <source>Prefer conditional expression over 'if' with returns</source>
         <target state="translated">Preferir expresión condicional sobre "if" con devoluciones</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_update_naming_settings_0">
+        <source>Unable to update Naming settings: {0}</source>
+        <target state="new">Unable to update Naming settings: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Naming_settings_are_stored_in_settings_json">
+        <source>Naming settings are stored in settings.json and synchronized with legacy profiles.</source>
+        <target state="new">Naming settings are stored in settings.json and synchronized with legacy profiles.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_naming_preferences">
+        <source>Reset naming preferences</source>
+        <target state="new">Reset naming preferences</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Reset_naming_preferences_confirmation">
+        <source>Reset all naming preferences to their defaults? This removes your custom naming rules, symbol specifications, and styles.</source>
+        <target state="new">Reset all naming preferences to their defaults? This removes your custom naming rules, symbol specifications, and styles.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="All_files_filter">
+        <source>All files (*.*)|*.*</source>
+        <target state="new">All files (*.*)|*.*</target>
+        <note>(*.*)|*.* is a Windows file filter pattern and should not be localized.</note>
       </trans-unit>
     </body>
   </file>
