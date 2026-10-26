@@ -7,16 +7,15 @@ using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
 
@@ -70,12 +69,14 @@ internal sealed class InheritanceMarginViewMarginProvider : IWpfTextViewMarginPr
     public IWpfTextViewMargin? CreateMargin(IWpfTextViewHost wpfTextViewHost, IWpfTextViewMargin marginContainer)
     {
         var textView = wpfTextViewHost.TextView;
-        // Use the content type to figure out the language since the view can be created before its buffer is associated with a workspace document.
-        var languageServices = _workspace.Services.SolutionServices.GetProjectServices(textView.TextDataModel.ContentType);
-        Contract.ThrowIfNull(languageServices);
-
         var tagAggregator = _tagAggregatorFactoryService.CreateTagAggregator<InheritanceMarginTag>(textView);
         var editorFormatMap = _editorFormatMapService.GetEditorFormatMap(textView);
+
+        var document = wpfTextViewHost.TextView.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (document == null)
+        {
+            return null;
+        }
 
         var listener = _listenerProvider.GetListener(FeatureAttribute.InheritanceMargin);
         return new InheritanceMarginViewMargin(
@@ -90,6 +91,6 @@ internal sealed class InheritanceMarginViewMarginProvider : IWpfTextViewMarginPr
             editorFormatMap,
             _globalOptions,
             listener,
-            languageServices.Language);
+            document.Project.Language);
     }
 }
