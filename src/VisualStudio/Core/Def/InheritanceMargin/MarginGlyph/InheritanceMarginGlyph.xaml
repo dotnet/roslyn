@@ -46,6 +46,7 @@
                                  CornerRadius="{x:Static styles:CornerRadii.M}"
                                  Padding="0"
                                  Background="{DynamicResource {x:Static styles:ShellColors.ControlSolidFillDefaultBrushKey}}"
+                                 BorderBrush="{DynamicResource {x:Static styles:ShellColors.CardStrokeDefaultSolidBrushKey}}"
                                  Cursor="Arrow"
                                  IsKeyboardFocusWithinChanged="InheritanceMargin_OnIsKeyboardFocusWithinChanged"
                                  MouseLeave="InheritanceMargin_OnMouseLeave"
@@ -55,9 +56,9 @@
                 <ctrls:ToolTip DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}"
                               Style="{StaticResource InheritanceToolTipStyle}" />
               </ctrls:DropDownButton.ToolTip>
-              <ctrls:DropDownButton.ContextMenu>
+              <ctrls:DropDownButton.DropDown>
                 <local:InheritanceMarginContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}" />
-              </ctrls:DropDownButton.ContextMenu>
+              </ctrls:DropDownButton.DropDown>
               <img:CrispImage img:CrispImage.ScaleFactor="{Binding ScaleFactor, Mode=OneTime}"
                              Height="{x:Static styles:Sizes.IconS}"
                              HorizontalAlignment="Center"

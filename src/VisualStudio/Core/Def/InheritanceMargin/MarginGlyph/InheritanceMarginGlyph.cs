@@ -9,14 +9,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,6 +33,8 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
     private readonly IWpfTextView _textView;
     private readonly IAsynchronousOperationListener _listener;
     private ShellControls.Popup? _hoverPopup;
+    private Window? _hostWindow;
+    private bool _ownerDeactivated;
     private bool _openMenuWhenHoverOpens;
 
     private ShellControls.DropDownButton HoverButton
@@ -46,7 +46,7 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
         }
     }
 
-    private InheritanceMarginContextMenu InheritanceMenu => (InheritanceMarginContextMenu)HoverButton.ContextMenu;
+    private InheritanceMarginContextMenu InheritanceMenu => (InheritanceMarginContextMenu)HoverButton.DropDown;
 
     public InheritanceMarginGlyph(
         Workspace workspace,
@@ -78,16 +78,12 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
         Contract.ThrowIfNull(_hoverPopup);
         var button = HoverButton;
         // Callback coordinates already include device scaling and editor zoom.
-        var image = (FrameworkElement)button.Content;
-        var translation = (TranslateTransform)image.RenderTransform;
-        var imageOrigin = image.TranslatePoint(default, _hoverPopup.Child);
-        imageOrigin.Y -= translation.Y;
+        var imageOrigin = ((FrameworkElement)button.Content).TranslatePoint(default, _hoverPopup.Child);
         var scaleX = popupSize.Width / _hoverPopup.Child.RenderSize.Width;
         var scaleY = popupSize.Height / _hoverPopup.Child.RenderSize.Height;
         var position = new Point(
             -Math.Round(imageOrigin.X * scaleX, MidpointRounding.AwayFromZero),
             -Math.Round(imageOrigin.Y * scaleY, MidpointRounding.AwayFromZero));
-        var preferredTop = position.Y;
         var buttonOrigin = button.TranslatePoint(default, _hoverPopup.Child);
         var view = _textView.VisualElement;
         if (PresentationSource.FromVisual(view) is not null && view.RenderSize.Height > 0)
@@ -101,54 +97,34 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
             position.Y += Math.Min(Math.Max(buttonTop, minimumTop), maximumTop) - buttonTop;
         }
 
-        // Keep the image anchored to the resting glyph when the frame is moved inside the viewport.
-        var imageOffset = position.Y == preferredTop ? 0 : -position.Y / scaleY - imageOrigin.Y;
-        if (translation.Y != imageOffset)
-            translation.Y = imageOffset;
-        if (imageOffset == 0)
-        {
-            image.Clip = null;
-        }
-        else
-        {
-            var visibleImage = new Rect(
-                0,
-                buttonOrigin.Y + button.BorderThickness.Top - imageOrigin.Y - imageOffset,
-                image.ActualWidth,
-                Math.Max(0, button.ActualHeight - button.BorderThickness.Top - button.BorderThickness.Bottom));
-            visibleImage.Intersect(new Rect(image.RenderSize));
-            image.Clip = new RectangleGeometry(visibleImage);
-        }
-
         return [new CustomPopupPlacement(position, PopupPrimaryAxis.None)];
     }
 
     private void OpenHoverPopup(bool openMenu = false)
     {
+        if (_ownerDeactivated)
+            return;
+
+        if (_hostWindow is null)
+        {
+            _hostWindow = Window.GetWindow(_textView.VisualElement) ?? Window.GetWindow(this);
+            if (_hostWindow is not null)
+            {
+                _hostWindow.Activated += HostWindow_OnActivated;
+                _hostWindow.Deactivated += HostWindow_OnDeactivated;
+            }
+        }
+
         if (_hoverPopup is null)
         {
             _hoverPopup = (ShellControls.Popup)((DataTemplate)Resources["HoverPopupTemplate"]).LoadContent();
             _hoverPopup.PlacementTarget = this;
             _hoverPopup.CustomPopupPlacementCallback = PlaceHoverPopup;
             TextOptions.SetTextFormattingMode(HoverButton, TextOptions.GetTextFormattingMode(this));
-            ((FrameworkElement)HoverButton.Content).RenderTransform = new TranslateTransform();
-            HoverButton.DropDown = InheritanceMenu;
             // The menu has its own compiled XAML; connect its events after loading the template.
             InheritanceMenu.AddHandler(MenuItem.ClickEvent, new RoutedEventHandler(TargetMenuItem_OnClick));
             InheritanceMenu.Closed += ContextMenu_OnClose;
             InheritanceMenu.Opened += ContextMenu_OnOpen;
-            GlyphImage.Style = new Style(typeof(CrispImage))
-            {
-                Triggers =
-                {
-                    new DataTrigger
-                    {
-                        Binding = new Binding(nameof(_hoverPopup.IsOpen)) { Source = _hoverPopup },
-                        Value = true,
-                        Setters = { new Setter(OpacityProperty, 0.0) },
-                    },
-                },
-            };
             ((Grid)Content).Children.Add(_hoverPopup);
         }
 
@@ -174,6 +150,16 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
         }
     }
 
+    private void HostWindow_OnActivated(object? sender, EventArgs e)
+        => _ownerDeactivated = false;
+
+    private void HostWindow_OnDeactivated(object? sender, EventArgs e)
+    {
+        _ownerDeactivated = true;
+        InheritanceMenu.IsOpen = false;
+        CloseHoverPopup();
+    }
+
     private void InheritanceMargin_OnMouseEnter(object sender, MouseEventArgs e)
     {
         OpenHoverPopup();
@@ -181,7 +167,7 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
 
     private void InheritanceMargin_OnMouseDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.ChangedButton is MouseButton.Left or MouseButton.Right)
+        if (e.ChangedButton == MouseButton.Left)
         {
             OpenHoverPopup(openMenu: true);
             e.Handled = true;
@@ -212,6 +198,12 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
         if (_hoverPopup is null)
             return;
 
+        if (_ownerDeactivated)
+        {
+            CloseHoverPopup();
+            return;
+        }
+
         if (!InheritanceMenu.IsOpen
             && !IsKeyboardFocusWithin
             && !HoverButton.IsKeyboardFocusWithin
@@ -234,8 +226,11 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
 
     private void ContextMenu_OnClose(object sender, RoutedEventArgs e)
     {
-        if (IsKeyboardFocusWithin || HoverButton.IsKeyboardFocusWithin || InheritanceMenu.IsKeyboardFocusWithin || Keyboard.IsKeyDown(Key.Escape))
+        if (!_ownerDeactivated
+            && (IsKeyboardFocusWithin || HoverButton.IsKeyboardFocusWithin || InheritanceMenu.IsKeyboardFocusWithin || Keyboard.IsKeyDown(Key.Escape)))
+        {
             ResetFocus();
+        }
 
         CloseHoverPopupIfInactive();
     }
@@ -270,6 +265,15 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
             InheritanceMenu.IsOpen = false;
             CloseHoverPopup();
         }
+
+        if (_hostWindow is not null)
+        {
+            _hostWindow.Activated -= HostWindow_OnActivated;
+            _hostWindow.Deactivated -= HostWindow_OnDeactivated;
+            _hostWindow = null;
+        }
+
+        _ownerDeactivated = false;
     }
 
     private void CloseHoverPopup()

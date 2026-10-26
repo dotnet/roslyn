@@ -18,6 +18,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers;
@@ -82,8 +83,6 @@ public sealed class InheritanceMarginGlyphTests
     [InlineData("keyboard", 3.8)]
     [InlineData("left-click", 1.0)]
     [InlineData("left-click", 3.8)]
-    [InlineData("right-click", 1.0)]
-    [InlineData("right-click", 3.8)]
     public async Task FirstInteractionCreatesAndReusesHoverControls(string interaction, double zoom)
     {
         using var workspace = CreateWorkspace();
@@ -97,7 +96,7 @@ public sealed class InheritanceMarginGlyphTests
         var popup = GetHoverPopup(glyph);
         var surface = Assert.IsType<Border>(popup.Child);
         var button = GetHoverButton(glyph);
-        var menu = Assert.IsType<InheritanceMarginContextMenu>(button.ContextMenu);
+        var menu = Assert.IsType<InheritanceMarginContextMenu>(button.DropDown);
         var image = Assert.IsAssignableFrom<Image>(button.Content);
         var toolTip = Assert.IsType<ShellControls.ToolTip>(button.ToolTip);
         try
@@ -107,7 +106,7 @@ public sealed class InheritanceMarginGlyphTests
             Assert.Equal(interaction.EndsWith("click", StringComparison.Ordinal), menu.IsOpen);
             Assert.Equal(AutomationProperties.GetName(glyph), AutomationProperties.GetName(button));
             Assert.Equal(ScreenBounds((UIElement)glyph.FindName("GlyphImage")), ScreenBounds(image));
-            Assert.Equal(0, ((FrameworkElement)glyph.FindName("GlyphImage")).Opacity);
+            Assert.Equal(1, ((FrameworkElement)glyph.FindName("GlyphImage")).Opacity);
 
             menu.IsOpen = false;
             popup.IsOpen = false;
@@ -121,7 +120,7 @@ public sealed class InheritanceMarginGlyphTests
             Assert.Same(popup, GetHoverPopup(glyph));
             Assert.Same(surface, popup.Child);
             Assert.Same(button, GetHoverButton(glyph));
-            Assert.Same(menu, button.ContextMenu);
+            Assert.Same(menu, button.DropDown);
             Assert.Same(image, button.Content);
             Assert.Same(toolTip, button.ToolTip);
 
@@ -149,9 +148,7 @@ public sealed class InheritanceMarginGlyphTests
                     });
                     break;
                 case "left-click":
-                case "right-click":
-                    var mouseButton = interaction == "left-click" ? MouseButton.Left : MouseButton.Right;
-                    var mouseEvent = new MouseButtonEventArgs(Mouse.PrimaryDevice, timestamp: 0, mouseButton)
+                    var mouseEvent = new MouseButtonEventArgs(Mouse.PrimaryDevice, timestamp: 0, MouseButton.Left)
                     {
                         RoutedEvent = Mouse.MouseDownEvent,
                     };
@@ -164,20 +161,18 @@ public sealed class InheritanceMarginGlyphTests
         }
     }
 
-    [WpfTheory]
-    [InlineData(MouseButton.Left)]
-    [InlineData(MouseButton.Right)]
-    public async Task UnloadingBeforeFirstPopupOpensCancelsMenu(MouseButton mouseButton)
+    [WpfFact]
+    public async Task UnloadingBeforeFirstPopupOpensCancelsMenu()
     {
         using var workspace = CreateWorkspace();
         using var host = new GlyphHost(await CreateGlyphAsync(workspace));
         var glyph = host.Glyph;
-        glyph.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, timestamp: 0, mouseButton)
+        glyph.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, timestamp: 0, MouseButton.Left)
         {
             RoutedEvent = Mouse.MouseDownEvent,
         });
         var popup = GetHoverPopup(glyph);
-        var menu = (InheritanceMarginContextMenu)GetHoverButton(glyph).ContextMenu;
+        var menu = (InheritanceMarginContextMenu)GetHoverButton(glyph).DropDown;
         try
         {
             glyph.RaiseEvent(new RoutedEventArgs(FrameworkElement.UnloadedEvent));
@@ -466,7 +461,7 @@ public sealed class InheritanceMarginGlyphTests
     [InlineData(3.8, false, true)]
     [InlineData(3.8, true, false)]
     [InlineData(3.8, true, true)]
-    public async Task HoverStaysWithinEditorViewport(double zoom, bool bottom, bool clipped)
+    public async Task ViewportClampingKeepsHoverImageCentered(double zoom, bool bottom, bool clipped)
     {
         using var workspace = CreateWorkspace();
         var glyph = await CreateGlyphAsync(workspace, zoom * 100);
@@ -507,7 +502,6 @@ public sealed class InheritanceMarginGlyphTests
             restingImage.Source = source;
             restingImage.Visibility = Visibility.Visible;
             window.UpdateLayout();
-            var restingImageBounds = ScreenBounds((UIElement)glyph.FindName("GlyphImage"));
             popup = await OpenHoverPopupAsync(glyph);
             var button = GetHoverButton(glyph);
             var hoverImage = (Image)button.Content;
@@ -518,15 +512,15 @@ public sealed class InheritanceMarginGlyphTests
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
             popup.IsOpen = false;
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
-            restingImageBounds = ScreenBounds(restingImage);
             popup = await OpenHoverPopupAsync(glyph);
             var viewBounds = ScreenBounds(view.VisualElement);
             var buttonBounds = ScreenBounds(button);
-            Assert.True(restingImageBounds.Width > 0 && restingImageBounds.Height > 0);
+            Assert.True(restingImage.ActualWidth > 0 && restingImage.ActualHeight > 0);
             Assert.True(hoverImage.RenderSize.Width > 0 && hoverImage.RenderSize.Height > 0);
             Assert.True(buttonBounds.Top >= viewBounds.Top - 1, "The hover button must not cover the navigation UI above the editor.");
             Assert.True(buttonBounds.Bottom <= viewBounds.Bottom + 1, "The hover button must not cover UI below the editor.");
-            Assert.Equal(restingImageBounds, ScreenBounds((UIElement)button.Content));
+            var imageBounds = ScreenBounds(hoverImage);
+            Assert.InRange(Math.Abs(imageBounds.Top + imageBounds.Height / 2 - buttonBounds.Top - buttonBounds.Height / 2), 0, 1);
             var frame = (FrameworkElement)popup.Child;
             var opacity = hoverImage.Opacity;
             hoverImage.Opacity = 0;
@@ -591,6 +585,7 @@ public sealed class InheritanceMarginGlyphTests
                 Content = new Border { Width = ShellStyles.Sizes.IconS, Height = ShellStyles.Sizes.IconS, Background = Brushes.Black },
             };
             lightbulb.SetResourceReference(Control.BackgroundProperty, ShellStyles.ShellColors.ControlSolidFillDefaultBrushKey);
+            lightbulb.SetResourceReference(Control.BorderBrushProperty, ShellStyles.ShellColors.CardStrokeDefaultSolidBrushKey);
             var lightbulbHost = new Border
             {
                 Width = ShellStyles.Sizes.ControlMinWidth,
@@ -619,7 +614,7 @@ public sealed class InheritanceMarginGlyphTests
                 Assert.Equal(ScreenBounds(lightbulb).Size, ScreenBounds(button).Size);
                 Assert.InRange(Math.Abs(ScreenBounds(lightbulb).Top - ScreenBounds(button).Top), 0, 1);
                 Assert.Equal(ScreenBounds(image), ScreenBounds(hoverImage));
-                Assert.All(RenderPixels(glyph), value => Assert.Equal(0, value));
+                Assert.Contains(RenderPixels(glyph), value => value != 0);
                 Assert.NotNull(glyph.InputHitTest(new Point(glyph.ActualWidth / 2, glyph.ActualHeight / 2)));
                 var actualPixels = RenderPixels((FrameworkElement)popup.Child);
                 var expectedPixels = RenderPixels((FrameworkElement)lightbulbPopup.Child);
@@ -669,6 +664,9 @@ public sealed class InheritanceMarginGlyphTests
             ? Brushes.White
             : new SolidColorBrush(Color.FromArgb(32, 0, 0, 0));
         element.Resources[ShellStyles.ShellColors.ControlStrokeSecondaryBrushKey] = new SolidColorBrush(Color.FromArgb(48, 0, 0, 0));
+        element.Resources[ShellStyles.ShellColors.CardStrokeDefaultSolidBrushKey] = theme == "HighContrast"
+            ? Brushes.White
+            : new SolidColorBrush(Color.FromRgb(128, 128, 128));
         element.Resources[ShellStyles.ShellColors.TextFillPrimaryBrushKey] = Brushes.Black;
     }
 
@@ -689,7 +687,7 @@ public sealed class InheritanceMarginGlyphTests
         var glyph = host.Glyph;
         var popup = await OpenHoverPopupAsync(glyph);
         var button = GetHoverButton(glyph);
-        var menu = (InheritanceMarginContextMenu)button.ContextMenu;
+        var menu = (InheritanceMarginContextMenu)button.DropDown;
 
         try
         {
@@ -762,7 +760,7 @@ public sealed class InheritanceMarginGlyphTests
         using var workspace = CreateWorkspace();
         using var host = new GlyphHost(await CreateGlyphAsync(workspace));
         await OpenHoverPopupAsync(host.Glyph);
-        var menu = (InheritanceMarginContextMenu)GetHoverButton(host.Glyph).ContextMenu;
+        var menu = (InheritanceMarginContextMenu)GetHoverButton(host.Glyph).DropDown;
 
         Assert.Null(menu.ItemContainerGenerator.ContainerFromIndex(0));
     }
@@ -775,7 +773,7 @@ public sealed class InheritanceMarginGlyphTests
         var glyph = host.Glyph;
         var popup = await OpenHoverPopupAsync(glyph);
         var button = GetHoverButton(glyph);
-        var menu = (InheritanceMarginContextMenu)button.ContextMenu;
+        var menu = (InheritanceMarginContextMenu)button.DropDown;
 
         try
         {
@@ -851,7 +849,7 @@ public sealed class InheritanceMarginGlyphTests
         var glyph = host.Glyph;
         var popup = await OpenHoverPopupAsync(glyph);
         var button = GetHoverButton(glyph);
-        var menu = (InheritanceMarginContextMenu)button.ContextMenu;
+        var menu = (InheritanceMarginContextMenu)button.DropDown;
 
         try
         {
@@ -883,6 +881,169 @@ public sealed class InheritanceMarginGlyphTests
 
     private static ShellControls.DropDownButton GetHoverButton(InheritanceMarginGlyph glyph)
         => Assert.IsType<ShellControls.DropDownButton>(Assert.IsType<Border>(GetHoverPopup(glyph).Child).Child);
+
+    [WpfTheory]
+    [InlineData(MouseButton.Right)]
+    [InlineData(MouseButton.Middle)]
+    public async Task SecondaryMouseButtonsAreNotActionClicks(MouseButton mouseButton)
+    {
+        using var workspace = CreateWorkspace();
+        using var host = new GlyphHost(await CreateGlyphAsync(workspace));
+        var e = new MouseButtonEventArgs(Mouse.PrimaryDevice, timestamp: 0, mouseButton)
+        {
+            RoutedEvent = Mouse.MouseDownEvent,
+        };
+        host.Glyph.RaiseEvent(e);
+        Assert.False(e.Handled);
+        Assert.Empty(Assert.IsType<Grid>(host.Glyph.Content).Children.OfType<ShellControls.Popup>());
+    }
+
+    [WpfFact]
+    public async Task HoverKeepsRestingGlyphVisibleThroughPopupTransitions()
+    {
+        using var workspace = CreateWorkspace();
+        using var host = new GlyphHost(await CreateGlyphAsync(workspace), onScreen: true);
+        var image = (Image)host.Glyph.FindName("GlyphImage");
+        var popup = await OpenHoverPopupAsync(host.Glyph);
+        try
+        {
+            Assert.Equal(1, image.Opacity);
+            Assert.True(image.IsVisible);
+            popup.IsOpen = false;
+            Assert.Equal(1, image.Opacity);
+            Assert.True(image.IsVisible);
+            popup.IsOpen = true;
+            Assert.Equal(1, image.Opacity);
+            Assert.True(image.IsVisible);
+        }
+        finally
+        {
+            popup.IsOpen = false;
+        }
+    }
+
+    [WpfTheory]
+    [InlineData("Light")]
+    [InlineData("Dark")]
+    [InlineData("HighContrast")]
+    public async Task MarginHoverHasOpaqueBorder(string theme)
+    {
+        using var workspace = CreateWorkspace();
+        using var host = new GlyphHost(await CreateGlyphAsync(workspace), onScreen: true);
+        SetThemeResources(host.Glyph, theme);
+        var popup = await OpenHoverPopupAsync(host.Glyph);
+        try
+        {
+            var button = GetHoverButton(host.Glyph);
+            SetThemeResources(button, theme);
+            SetThemeResources((FrameworkElement)popup.Child, theme);
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            Assert.Equal(255, Assert.IsType<SolidColorBrush>(button.BorderBrush).Color.A);
+            var surface = (FrameworkElement)popup.Child;
+            var pixels = RenderPixels(surface);
+            var row = (int)Math.Floor(surface.ActualHeight / 2);
+            Assert.Equal(255, pixels[(row * (int)Math.Ceiling(surface.ActualWidth)) * 4 + 3]);
+        }
+        finally
+        {
+            popup.IsOpen = false;
+        }
+    }
+
+    [WpfTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task OwnerDeactivationClosesHoverAndMenuWithoutReactivation(bool expand)
+    {
+        using var workspace = CreateWorkspace();
+        var view = workspace.Documents.Single().GetTextView();
+        var (margin, canvas, _) = await CreateMarginAsync(workspace, zoom: 1);
+        var owner = CreateMarginWindow(view, canvas, zoom: 1);
+        owner.Left = 400;
+        owner.Top = 240;
+        var other = new Window { Width = 160, Height = 120, Left = 1200, Top = 240 };
+        ShellControls.Popup? popup = null;
+        try
+        {
+            owner.Show();
+            owner.Activate();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var glyph = Assert.Single(canvas.Children.OfType<InheritanceMarginGlyph>());
+            popup = await OpenHoverPopupAsync(glyph);
+            var menu = (InheritanceMarginContextMenu)GetHoverButton(glyph).DropDown;
+            if (expand)
+            {
+                GetHoverButton(glyph).ShowDropDown();
+                await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+                Assert.True(menu.IsOpen);
+            }
+
+            other.Show();
+            other.Activate();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            Assert.True(other.IsActive);
+            Assert.False(menu.IsOpen);
+            Assert.False(popup.IsOpen);
+            glyph.RaiseEvent(new MouseEventArgs(Mouse.PrimaryDevice, timestamp: 0) { RoutedEvent = Mouse.MouseEnterEvent });
+            Assert.False(popup.IsOpen);
+
+            owner.Activate();
+            await OpenHoverPopupAsync(glyph);
+            Assert.True(popup.IsOpen);
+        }
+        finally
+        {
+            if (popup is not null)
+                popup.IsOpen = false;
+            other.Close();
+            owner.Close();
+            margin.Dispose();
+        }
+    }
+
+    [WpfTheory]
+    [InlineData(1.0)]
+    [InlineData(1.25)]
+    [InlineData(3.8)]
+    public async Task GlobalUsingGlyphAndHoverImageStayCenteredTogether(double zoom)
+    {
+        using var workspace = EditorTestWorkspace.Create(XElement.Parse("""
+            <Workspace>
+              <Project Language="C#" CommonReferences="true">
+                <Document FilePath="C.cs">class C { }</Document>
+                <Document FilePath="GlobalUsings.cs">global using System;</Document>
+              </Project>
+            </Workspace>
+            """), composition: GoToTestHelpers.Composition);
+        var view = workspace.Documents.First().GetTextView();
+        var (margin, canvas, _) = await CreateMarginAsync(workspace, zoom, targetLine: 0);
+        var window = CreateMarginWindow(view, canvas, zoom);
+        window.Left = 400;
+        window.Top = 240;
+        ShellControls.Popup? popup = null;
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var glyph = Assert.Single(canvas.Children.OfType<InheritanceMarginGlyph>());
+            Assert.Equal("Global 'using' directives", AutomationProperties.GetName(glyph));
+            var restingBounds = ScreenBounds((UIElement)glyph.FindName("GlyphImage"));
+            popup = await OpenHoverPopupAsync(glyph);
+            var button = GetHoverButton(glyph);
+            var imageBounds = ScreenBounds((UIElement)button.Content);
+            var buttonBounds = ScreenBounds(button);
+            Assert.Equal(restingBounds, imageBounds);
+            Assert.InRange(Math.Abs(imageBounds.Top + imageBounds.Height / 2 - buttonBounds.Top - buttonBounds.Height / 2), 0, 1);
+            Assert.True(buttonBounds.Top >= ScreenBounds(view.VisualElement).Top - 1);
+        }
+        finally
+        {
+            if (popup is not null)
+                popup.IsOpen = false;
+            window.Close();
+            margin.Dispose();
+        }
+    }
 
     [WpfTheory]
     [InlineData(1.0)]
@@ -989,19 +1150,55 @@ public sealed class InheritanceMarginGlyphTests
         }
     }
 
-    private static async Task<(IWpfTextViewMargin Margin, Canvas Canvas, Mock<ITagAggregator<InheritanceMarginTag>> Aggregator)> CreateMarginAsync(EditorTestWorkspace workspace, double zoom)
+    [WpfTheory]
+    [InlineData(1.0)]
+    [InlineData(1.25)]
+    [InlineData(3.8)]
+    public async Task ResizingViewportKeepsBottomGlyphInsideHoverInset(double zoom)
     {
+        using var workspace = EditorTestWorkspace.CreateCSharp(
+            "interface I { }\r\n" + string.Concat(Enumerable.Repeat("\r\n", 40)) + "class C : I { }",
+            composition: GoToTestHelpers.Composition);
         var view = workspace.Documents.Single().GetTextView();
+        var target = view.TextSnapshot.GetLineFromLineNumber(view.TextSnapshot.LineCount - 1).Start;
+        var (margin, canvas, _) = await CreateMarginAsync(workspace, zoom, targetLine: target.GetContainingLine().LineNumber);
+        var window = CreateMarginWindow(view, canvas, zoom);
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            view.DisplayTextLineContainingBufferPosition(target, 0, ViewRelativePosition.Bottom);
+            window.UpdateLayout();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var glyph = Assert.Single(canvas.Children.OfType<InheritanceMarginGlyph>());
+            window.Height -= 4 * zoom;
+            window.UpdateLayout();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            Assert.Same(glyph, Assert.Single(canvas.Children.OfType<InheritanceMarginGlyph>()));
+            var inset = (ShellStyles.Sizes.ControlMinHeight - glyph.Height) / 2;
+            Assert.True(Canvas.GetTop(glyph) + glyph.Height + inset <= view.ViewportHeight + 0.01);
+        }
+        finally
+        {
+            window.Close();
+            margin.Dispose();
+        }
+    }
+
+    private static async Task<(IWpfTextViewMargin Margin, Canvas Canvas, Mock<ITagAggregator<InheritanceMarginTag>> Aggregator)> CreateMarginAsync(EditorTestWorkspace workspace, double zoom, int targetLine = 1)
+    {
+        var view = workspace.Documents.First().GetTextView();
         view.ZoomLevel = zoom * 100;
         var provider = workspace.ExportProvider;
-        var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.Single().Id);
+        var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
         var syntax = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
         var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
         var items = await service.GetInheritanceMemberItemsAsync(document, syntax.FullSpan, includeGlobalImports: true, frozenPartialSemantics: true, CancellationToken.None);
-        var tag = new InheritanceMarginTag(1, items.Where(item => item.LineNumber == 1).ToImmutableArray());
-        var glyphSpan = view.TextSnapshot.GetLineFromLineNumber(1).Extent;
+        var tag = new InheritanceMarginTag(targetLine, items.Where(item => item.LineNumber == targetLine).ToImmutableArray());
+        var glyphSpan = new SnapshotSpan(view.TextSnapshot.GetLineFromLineNumber(targetLine).Start, length: 0);
         var mappedTag = new MappingTagSpan<InheritanceMarginTag>(view.BufferGraph.CreateMappingSpan(glyphSpan, SpanTrackingMode.EdgeInclusive), tag);
-        var aggregator = new Mock<ITagAggregator<InheritanceMarginTag>>();
+        var aggregator = new Mock<ITagAggregator<InheritanceMarginTag>>(MockBehavior.Strict);
+        aggregator.Setup(a => a.Dispose());
         aggregator.Setup(a => a.GetTags(It.IsAny<IMappingSpan>()))
             .Returns((IMappingSpan requested) => requested.GetSpans(view.TextSnapshot).Any(span => span.IntersectsWith(glyphSpan))
                 ? new[] { mappedTag }
@@ -1010,7 +1207,8 @@ public sealed class InheritanceMarginGlyphTests
             workspace, view, provider.GetExportedValue<IThreadingContext>(), new MockStreamingFindUsagesPresenter(() => { }),
             provider.GetExportedValue<IUIThreadOperationExecutor>(),
             provider.GetExportedValue<IClassificationFormatMapService>().GetClassificationFormatMap("tooltip"),
-            provider.GetExportedValue<ClassificationTypeMap>(), aggregator.Object,
+            provider.GetExportedValue<ClassificationTypeMap>(),
+            aggregator.Object,
             provider.GetExportedValue<IEditorFormatMapService>().GetEditorFormatMap(view),
             provider.GetExportedValue<IGlobalOptionService>(),
             provider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.InheritanceMargin),

@@ -91,7 +91,7 @@ internal sealed class InheritanceGlyphFactory : IGlyphFactory
             inheritanceMarginTag,
             _textView,
             _listener);
-        Canvas.SetTop(glyph, (line.TextHeight - Sizes.IconS) / 2);
+        Canvas.SetTop(glyph, InheritanceGlyphManager.GetGlyphTop(_textView, line, Sizes.IconS) - (line.TextTop - _textView.ViewportTop));
         return glyph;
     }
 }

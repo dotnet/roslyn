@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
 using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Shell.Styles;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -167,9 +168,16 @@ internal sealed partial class InheritanceGlyphManager : IDisposable
 
     private void SetTop(ITextViewLine line, InheritanceMarginGlyph glyph)
     {
-        var top = line.TextTop - _textView.ViewportTop + (line.TextHeight - _heightAndWidthOfTheGlyph) / 2;
+        var top = GetGlyphTop(_textView, line, _heightAndWidthOfTheGlyph);
         if (Canvas.GetTop(glyph) != top)
             Canvas.SetTop(glyph, top);
+    }
+
+    internal static double GetGlyphTop(IWpfTextView textView, ITextViewLine line, double glyphHeight)
+    {
+        var top = line.TextTop - textView.ViewportTop + (line.TextHeight - glyphHeight) / 2;
+        var inset = (Sizes.ControlMinHeight - glyphHeight) / 2;
+        return Math.Min(Math.Max(top, inset), Math.Max(inset, textView.ViewportHeight - glyphHeight - inset));
     }
 
     private static ITextViewLine? GetStartingLine(IList<ITextViewLine> lines, Span span)
