@@ -27,7 +27,7 @@ parameters:
   default: false
 - name: testMachineLab
   type: string
-  default: Roslyn
+  default: Roslyn-AMD64
 - name: testMachineHoldStrategy
   type: string
   default: None
