@@ -115,6 +115,37 @@ public class TaskExecutionTests
 	}
 
 	[Fact]
+	public void WriteTask_LogsOutputPathAndException_OnRuntimeIOFailure()
+	{
+		string root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+		string outputPath = Path.Combine(root, "test.lscache");
+		Directory.CreateDirectory(outputPath);
+		try
+		{
+			var engine = new BuildEngineStub();
+			var task = new WriteProjectDataSliceTask
+			{
+				BuildEngine = engine,
+				ProjectFilePath = Path.Combine(root, "App.csproj"),
+				OutputPath = outputPath,
+				CommandLineArguments = ["/noconfig"],
+			};
+
+			Assert.True(task.Execute());
+			Assert.False(task.Succeeded);
+			string message = Assert.Single(engine.Warnings).Message!;
+			Assert.Contains(outputPath, message);
+			Assert.Contains(task.ProjectFilePath, message);
+			Assert.Contains(nameof(UnauthorizedAccessException), message);
+			Assert.Contains(nameof(ProjectDataWriter), message);
+		}
+		finally
+		{
+			Directory.Delete(root, recursive: true);
+		}
+	}
+
+	[Fact]
 	public void UnsupportedMarkerTask_TreatsCacheRootResolutionFailureAsRecoverable()
 	{
 		MethodInfo? method = typeof(WriteUnsupportedProjectDataMarkerTask).GetMethod(

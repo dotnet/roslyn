@@ -543,7 +543,33 @@ internal static class ProjectDataWriter
 			using (var stream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize: 4096))
 				stream.Write(content, 0, length);
 
-			ReplaceOrMove(tempPath, outputPath);
+			try
+			{
+				ReplaceOrMove(tempPath, outputPath);
+			}
+			catch (IOException ex) when (ex is not FileNotFoundException)
+			{
+				// Directory links can put paths with the same textual root on different volumes.
+				// Stage beside the destination so replacement stays atomic even in that case.
+				// https://github.com/microsoft/vscode-dotnettools/issues/3715
+				string adjacentTempPath = Path.Combine(outputDir ?? ".", Path.GetFileName(tempPath));
+				if (string.Equals(Path.GetFullPath(tempPath), Path.GetFullPath(adjacentTempPath),
+					RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+				{
+					throw;
+				}
+
+				try
+				{
+					File.Copy(tempPath, adjacentTempPath);
+					ReplaceOrMove(adjacentTempPath, outputPath);
+				}
+				finally
+				{
+					try { File.Delete(adjacentTempPath); }
+					catch (Exception cleanupException) when (cleanupException is IOException or UnauthorizedAccessException) { }
+				}
+			}
 		}
 		finally
 		{
@@ -557,7 +583,8 @@ internal static class ProjectDataWriter
 	/// (the project's intermediate output directory) so transient <c>.tmp</c> files never appear next
 	/// to committed source. Falls back to the output directory when no temp directory is requested,
 	/// when it is on a different volume (<see cref="File.Replace(string, string, string)"/> requires
-	/// the temp file and the destination to share a volume), or when it cannot be created.
+	/// the temp file and the destination to share a volume), or when it cannot be created. Directory
+	/// links can hide volume boundaries; failed replacements retry with a side-file beside the output.
 	/// </summary>
 	private static string ResolveTempDirectory(string? tempDirectory, string outputPath, string? outputDir)
 	{
@@ -592,7 +619,7 @@ internal static class ProjectDataWriter
 	{
 		try
 		{
-			File.Replace(tempPath, outputPath, null);
+			File.Replace(tempPath, outputPath, null, ignoreMetadataErrors: true);
 		}
 		catch (FileNotFoundException)
 		{
@@ -604,7 +631,7 @@ internal static class ProjectDataWriter
 			{
 				try
 				{
-					File.Replace(tempPath, outputPath, null);
+					File.Replace(tempPath, outputPath, null, ignoreMetadataErrors: true);
 				}
 				catch (FileNotFoundException)
 				{
