@@ -1857,16 +1857,16 @@ class C
 
             verifier.VerifyIL("C.Repro", @"
 {
-  // Code size       21 (0x15)
+  // Code size       23 (0x17)
   .maxstack  2
   .locals init (NotASpan V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  dup
-  IL_0003:  initobj    ""NotASpan""
-  IL_0009:  dup
-  IL_000a:  call       ""int NotASpan.Length.get""
-  IL_000f:  call       ""int NotASpan.this[int].get""
-  IL_0014:  ret
+  IL_0002:  initobj    ""NotASpan""
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       ""int NotASpan.Length.get""
+  IL_0011:  call       ""int NotASpan.this[int].get""
+  IL_0016:  ret
 }
 ");
         }
@@ -1886,21 +1886,21 @@ class C
 
             verifier.VerifyIL("C.Repro", @"
 {
-  // Code size       29 (0x1d)
+  // Code size       31 (0x1f)
   .maxstack  3
   .locals init (System.Span<byte> V_0)
-  IL_0000:  ldc.i4.0
-  IL_0001:  newarr     ""byte""
-  IL_0006:  newobj     ""System.Span<byte>..ctor(byte[])""
-  IL_000b:  stloc.0
-  IL_000c:  ldloca.s   V_0
-  IL_000e:  dup
-  IL_000f:  call       ""int System.Span<byte>.Length.get""
-  IL_0014:  ldc.i4.1
-  IL_0015:  sub
-  IL_0016:  call       ""ref byte System.Span<byte>.this[int].get""
-  IL_001b:  ldind.u1
-  IL_001c:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  newarr     ""byte""
+  IL_0008:  call       ""System.Span<byte>..ctor(byte[])""
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""int System.Span<byte>.Length.get""
+  IL_0016:  ldc.i4.1
+  IL_0017:  sub
+  IL_0018:  call       ""ref byte System.Span<byte>.this[int].get""
+  IL_001d:  ldind.u1
+  IL_001e:  ret
 }
 ");
         }
@@ -5101,6 +5101,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -5113,13 +5119,19 @@ class Program
         _ = f[GetIndex()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
     public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetIndex:3 length:4 get:5 final:5
-GetIndex:3 length:3 get:3 final:5
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -5145,31 +5157,8 @@ GetIndex:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       38 (0x26)
-  .maxstack  3
-  .locals init (S1& V_0,
-            S1 V_1,
-            System.Index V_2)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
-  IL_000c:  call       ""System.Index Program.GetIndex()""
-  IL_0011:  stloc.2
-  IL_0012:  ldloca.s   V_2
-  IL_0014:  ldloc.0
-  IL_0015:  call       ""readonly int S1.Length.get""
-  IL_001a:  call       ""int System.Index.GetOffset(int)""
-  IL_001f:  call       ""readonly int S1.this[int].get""
-  IL_0024:  pop
-  IL_0025:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Fact]
@@ -5240,26 +5229,23 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       37 (0x25)
+  // Code size       36 (0x24)
   .maxstack  3
-  .locals init (S1& V_0,
-            S1 V_1,
-            System.Index V_2)
+  .locals init (S1 V_0,
+            System.Index V_1)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  call       ""System.Index Program.GetIndex()""
-  IL_0010:  stloc.2
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldloc.0
-  IL_0014:  call       ""readonly int S1.Length.get""
-  IL_0019:  call       ""int System.Index.GetOffset(int)""
-  IL_001e:  call       ""readonly int S1.this[int].get""
-  IL_0023:  pop
-  IL_0024:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Index Program.GetIndex()""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""readonly int S1.Length.get""
+  IL_0018:  call       ""int System.Index.GetOffset(int)""
+  IL_001d:  call       ""readonly int S1.this[int].get""
+  IL_0022:  pop
+  IL_0023:  ret
 }
 ");
         }
@@ -5291,6 +5277,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -5303,6 +5295,11 @@ class Program
         f[GetIndex()] += GetValue();
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        f[GetIndex()] += GetValue();
+    }
+
     public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
     public static int GetValue() { System.Console.Write($""GetValue:{Program.F.F1} ""); Program.F.F1++; return 1; }
 }
@@ -5310,7 +5307,8 @@ class Program
             var comp1 = CreateCompilation([text1, TestSources.Index], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
-GetIndex:3 length:3 get:3 GetValue:6 set:3 final:8
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
+GetIndex:3 length:4 get:5 GetValue:6 set:7 final:8
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -5344,39 +5342,8 @@ GetIndex:3 length:3 get:3 GetValue:6 set:3 final:8
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       53 (0x35)
-  .maxstack  4
-  .locals init (S1& V_0,
-                int V_1,
-                S1 V_2,
-                System.Index V_3)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.2
-  IL_0008:  ldloca.s   V_2
-  IL_000a:  stloc.0
-  IL_000b:  call       ""System.Index Program.GetIndex()""
-  IL_0010:  stloc.3
-  IL_0011:  ldloca.s   V_3
-  IL_0013:  ldloc.0
-  IL_0014:  call       ""readonly int S1.Length.get""
-  IL_0019:  call       ""int System.Index.GetOffset(int)""
-  IL_001e:  stloc.1
-  IL_001f:  ldloc.0
-  IL_0020:  ldloc.1
-  IL_0021:  ldloc.0
-  IL_0022:  ldloc.1
-  IL_0023:  call       ""readonly int S1.this[int].get""
-  IL_0028:  call       ""int Program.GetValue()""
-  IL_002d:  add
-  IL_002e:  call       ""readonly void S1.this[int].set""
-  IL_0033:  nop
-  IL_0034:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Fact]
@@ -5455,25 +5422,22 @@ class Program
 {
   // Code size       52 (0x34)
   .maxstack  4
-  .locals init (S1& V_0,
+  .locals init (S1 V_0,
                 int V_1,
-                S1 V_2,
-                System.Index V_3)
+                System.Index V_2)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_2
-  IL_0009:  stloc.0
-  IL_000a:  call       ""System.Index Program.GetIndex()""
-  IL_000f:  stloc.3
-  IL_0010:  ldloca.s   V_3
-  IL_0012:  ldloc.0
-  IL_0013:  call       ""readonly int S1.Length.get""
-  IL_0018:  call       ""int System.Index.GetOffset(int)""
-  IL_001d:  stloc.1
-  IL_001e:  ldloc.0
-  IL_001f:  ldloc.1
-  IL_0020:  ldloc.0
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Index Program.GetIndex()""
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""readonly int S1.Length.get""
+  IL_0016:  call       ""int System.Index.GetOffset(int)""
+  IL_001b:  stloc.1
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldloc.1
+  IL_001f:  ldloca.s   V_0
   IL_0021:  ldloc.1
   IL_0022:  call       ""readonly int S1.this[int].get""
   IL_0027:  call       ""int Program.GetValue()""
@@ -5519,6 +5483,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -5531,13 +5501,19 @@ class Program
         _ = f[GetIndex()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
     public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetIndex:3 length:4 get:5 final:5
-GetIndex:3 length:3 get:3 final:5
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -5567,35 +5543,8 @@ GetIndex:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       45 (0x2d)
-  .maxstack  2
-  .locals init (S1& V_0,
-                S1 V_1,
-                int V_2,
-                System.Index V_3)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  stloc.0
-  IL_000b:  call       ""System.Index Program.GetIndex()""
-  IL_0010:  stloc.3
-  IL_0011:  ldloca.s   V_3
-  IL_0013:  ldloc.0
-  IL_0014:  call       ""readonly int S1.Length.get""
-  IL_0019:  call       ""int System.Index.GetOffset(int)""
-  IL_001e:  stloc.2
-  IL_001f:  ldloc.0
-  IL_0020:  ldobj      ""S1""
-  IL_0025:  ldloc.2
-  IL_0026:  call       ""int E.get_Item(S1, int)""
-  IL_002b:  pop
-  IL_002c:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Fact]
@@ -5675,30 +5624,26 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       44 (0x2c)
+  // Code size       37 (0x25)
   .maxstack  2
-  .locals init (S1& V_0,
-                S1 V_1,
-                int V_2,
-                System.Index V_3)
+  .locals init (S1 V_0,
+                int V_1,
+                System.Index V_2)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  call       ""System.Index Program.GetIndex()""
-  IL_000f:  stloc.3
-  IL_0010:  ldloca.s   V_3
-  IL_0012:  ldloc.0
-  IL_0013:  call       ""readonly int S1.Length.get""
-  IL_0018:  call       ""int System.Index.GetOffset(int)""
-  IL_001d:  stloc.2
-  IL_001e:  ldloc.0
-  IL_001f:  ldobj      ""S1""
-  IL_0024:  ldloc.2
-  IL_0025:  call       ""int E.get_Item(S1, int)""
-  IL_002a:  pop
-  IL_002b:  ret
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Index Program.GetIndex()""
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  call       ""readonly int S1.Length.get""
+  IL_0016:  call       ""int System.Index.GetOffset(int)""
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.0
+  IL_001d:  ldloc.1
+  IL_001e:  call       ""int E.get_Item(S1, int)""
+  IL_0023:  pop
+  IL_0024:  ret
 }
 ");
         }
@@ -5738,6 +5683,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -5750,13 +5701,19 @@ class Program
         _ = f[GetIndex()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
     public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetIndex:3 length:4 get:5 final:5
-GetIndex:3 length:3 get:3 final:5
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -5782,31 +5739,8 @@ GetIndex:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       38 (0x26)
-  .maxstack  3
-  .locals init (S1& V_0,
-                S1 V_1,
-                System.Index V_2)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
-  IL_000c:  call       ""System.Index Program.GetIndex()""
-  IL_0011:  stloc.2
-  IL_0012:  ldloca.s   V_2
-  IL_0014:  ldloc.0
-  IL_0015:  call       ""readonly int S1.Length.get""
-  IL_001a:  call       ""int System.Index.GetOffset(int)""
-  IL_001f:  call       ""int E.get_Item(" + modifier + @"S1, int)""
-  IL_0024:  pop
-  IL_0025:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Theory]
@@ -5887,26 +5821,23 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       37 (0x25)
+  // Code size       36 (0x24)
   .maxstack  3
-  .locals init (S1& V_0,
-                S1 V_1,
-                System.Index V_2)
+  .locals init (S1 V_0,
+                System.Index V_1)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  call       ""System.Index Program.GetIndex()""
-  IL_0010:  stloc.2
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldloc.0
-  IL_0014:  call       ""readonly int S1.Length.get""
-  IL_0019:  call       ""int System.Index.GetOffset(int)""
-  IL_001e:  call       ""int E.get_Item(" + modifier + @"S1, int)""
-  IL_0023:  pop
-  IL_0024:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Index Program.GetIndex()""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""readonly int S1.Length.get""
+  IL_0018:  call       ""int System.Index.GetOffset(int)""
+  IL_001d:  call       ""int E.get_Item(" + modifier + @"S1, int)""
+  IL_0022:  pop
+  IL_0023:  ret
 }
 ");
         }
@@ -5945,6 +5876,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -5957,13 +5894,19 @@ class Program
         _ = f[GetIndex()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
     public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetIndex:3 length:4 get:5 final:5
-GetIndex:3 length:3 get:3 final:5
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -5990,32 +5933,8 @@ GetIndex:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       43 (0x2b)
-  .maxstack  3
-  .locals init (S1& V_0,
-                S1 V_1,
-                System.Index V_2)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
-  IL_000c:  call       ""System.Index Program.GetIndex()""
-  IL_0011:  stloc.2
-  IL_0012:  ldloca.s   V_2
-  IL_0014:  ldloc.0
-  IL_0015:  ldobj      ""S1""
-  IL_001a:  call       ""int E.get_Length(S1)""
-  IL_001f:  call       ""int System.Index.GetOffset(int)""
-  IL_0024:  call       ""readonly int S1.this[int].get""
-  IL_0029:  pop
-  IL_002a:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Fact]
@@ -6095,27 +6014,23 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       35 (0x23)
   .maxstack  3
-  .locals init (S1& V_0,
-                S1 V_1,
-                System.Index V_2)
+  .locals init (S1 V_0,
+                System.Index V_1)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  call       ""System.Index Program.GetIndex()""
-  IL_0010:  stloc.2
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldloc.0
-  IL_0014:  ldobj      ""S1""
-  IL_0019:  call       ""int E.get_Length(S1)""
-  IL_001e:  call       ""int System.Index.GetOffset(int)""
-  IL_0023:  call       ""readonly int S1.this[int].get""
-  IL_0028:  pop
-  IL_0029:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Index Program.GetIndex()""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloc.0
+  IL_0012:  call       ""int E.get_Length(S1)""
+  IL_0017:  call       ""int System.Index.GetOffset(int)""
+  IL_001c:  call       ""readonly int S1.this[int].get""
+  IL_0021:  pop
+  IL_0022:  ret
 }
 ");
         }
@@ -6155,6 +6070,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -6167,13 +6088,19 @@ class Program
         _ = f[GetIndex()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
     public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetIndex:3 length:4 get:5 final:5
-GetIndex:3 length:3 get:3 final:5
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -6199,31 +6126,8 @@ GetIndex:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       38 (0x26)
-  .maxstack  3
-  .locals init (S1& V_0,
-                S1 V_1,
-                System.Index V_2)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
-  IL_000c:  call       ""System.Index Program.GetIndex()""
-  IL_0011:  stloc.2
-  IL_0012:  ldloca.s   V_2
-  IL_0014:  ldloc.0
-  IL_0015:  call       ""int E.get_Length(" + modifier + @"S1)""
-  IL_001a:  call       ""int System.Index.GetOffset(int)""
-  IL_001f:  call       ""readonly int S1.this[int].get""
-  IL_0024:  pop
-  IL_0025:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Theory]
@@ -6304,26 +6208,23 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       37 (0x25)
+  // Code size       36 (0x24)
   .maxstack  3
-  .locals init (S1& V_0,
-                S1 V_1,
-                System.Index V_2)
+  .locals init (S1 V_0,
+                System.Index V_1)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  call       ""System.Index Program.GetIndex()""
-  IL_0010:  stloc.2
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldloc.0
-  IL_0014:  call       ""int E.get_Length(" + modifier + @"S1)""
-  IL_0019:  call       ""int System.Index.GetOffset(int)""
-  IL_001e:  call       ""readonly int S1.this[int].get""
-  IL_0023:  pop
-  IL_0024:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Index Program.GetIndex()""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0018:  call       ""int System.Index.GetOffset(int)""
+  IL_001d:  call       ""readonly int S1.this[int].get""
+  IL_0022:  pop
+  IL_0023:  ret
 }
 ");
         }
@@ -6362,6 +6263,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -6374,13 +6281,19 @@ class Program
         _ = f[GetIndex()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
     public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetIndex:3 length:4 get:5 final:5
-GetIndex:3 length:3 get:3 final:5
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -6411,36 +6324,8 @@ GetIndex:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       50 (0x32)
-  .maxstack  2
-  .locals init (S1& V_0,
-                S1 V_1,
-                int V_2,
-                System.Index V_3)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  stloc.0
-  IL_000b:  call       ""System.Index Program.GetIndex()""
-  IL_0010:  stloc.3
-  IL_0011:  ldloca.s   V_3
-  IL_0013:  ldloc.0
-  IL_0014:  ldobj      ""S1""
-  IL_0019:  call       ""int E.get_Length(S1)""
-  IL_001e:  call       ""int System.Index.GetOffset(int)""
-  IL_0023:  stloc.2
-  IL_0024:  ldloc.0
-  IL_0025:  ldobj      ""S1""
-  IL_002a:  ldloc.2
-  IL_002b:  call       ""int E.get_Item(S1, int)""
-  IL_0030:  pop
-  IL_0031:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Fact]
@@ -6520,31 +6405,26 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       49 (0x31)
+  // Code size       36 (0x24)
   .maxstack  2
-  .locals init (S1& V_0,
-            S1 V_1,
-            int V_2,
-            System.Index V_3)
+  .locals init (S1 V_0,
+                int V_1,
+                System.Index V_2)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  call       ""System.Index Program.GetIndex()""
-  IL_000f:  stloc.3
-  IL_0010:  ldloca.s   V_3
-  IL_0012:  ldloc.0
-  IL_0013:  ldobj      ""S1""
-  IL_0018:  call       ""int E.get_Length(S1)""
-  IL_001d:  call       ""int System.Index.GetOffset(int)""
-  IL_0022:  stloc.2
-  IL_0023:  ldloc.0
-  IL_0024:  ldobj      ""S1""
-  IL_0029:  ldloc.2
-  IL_002a:  call       ""int E.get_Item(S1, int)""
-  IL_002f:  pop
-  IL_0030:  ret
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Index Program.GetIndex()""
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  call       ""int E.get_Length(S1)""
+  IL_0015:  call       ""int System.Index.GetOffset(int)""
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldloc.1
+  IL_001d:  call       ""int E.get_Item(S1, int)""
+  IL_0022:  pop
+  IL_0023:  ret
 }
 ");
         }
@@ -6584,6 +6464,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -6596,13 +6482,19 @@ class Program
         _ = f[GetIndex()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetIndex()];
+    }
+
     public static System.Index GetIndex() { System.Console.Write($""GetIndex:{Program.F.F1} ""); Program.F.F1++; return ^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetIndex:3 length:4 get:5 final:5
-GetIndex:3 length:3 get:3 final:5
+GetIndex:3 length:4 get:5 final:5
+GetIndex:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -6628,31 +6520,8 @@ GetIndex:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       38 (0x26)
-  .maxstack  3
-  .locals init (S1& V_0,
-                S1 V_1,
-                System.Index V_2)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.1
-  IL_0008:  ldloca.s   V_1
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
-  IL_000c:  call       ""System.Index Program.GetIndex()""
-  IL_0011:  stloc.2
-  IL_0012:  ldloca.s   V_2
-  IL_0014:  ldloc.0
-  IL_0015:  call       ""int E.get_Length(" + modifier + @"S1)""
-  IL_001a:  call       ""int System.Index.GetOffset(int)""
-  IL_001f:  call       ""int E.get_Item(" + modifier + @"S1, int)""
-  IL_0024:  pop
-  IL_0025:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Theory]
@@ -6733,26 +6602,23 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       37 (0x25)
+  // Code size       36 (0x24)
   .maxstack  3
-  .locals init (S1& V_0,
-                S1 V_1,
-                System.Index V_2)
+  .locals init (S1 V_0,
+                System.Index V_1)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  call       ""System.Index Program.GetIndex()""
-  IL_0010:  stloc.2
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldloc.0
-  IL_0014:  call       ""int E.get_Length(" + modifier + @"S1)""
-  IL_0019:  call       ""int System.Index.GetOffset(int)""
-  IL_001e:  call       ""int E.get_Item(" + modifier + @"S1, int)""
-  IL_0023:  pop
-  IL_0024:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       ""System.Index Program.GetIndex()""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0018:  call       ""int System.Index.GetOffset(int)""
+  IL_001d:  call       ""int E.get_Item(" + modifier + @"S1, int)""
+  IL_0022:  pop
+  IL_0023:  ret
 }
 ");
         }
@@ -6784,6 +6650,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -6796,13 +6668,19 @@ class Program
         _ = f[GetRange()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
     public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetRange:3 length:4 get:5 final:5
-GetRange:3 length:3 get:3 final:5
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -6846,49 +6724,8 @@ GetRange:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       71 (0x47)
-  .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                S1 V_4,
-                System.Index V_5)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldloca.s   V_4
-  IL_000b:  call       ""System.Range Program.GetRange()""
-  IL_0010:  stloc.0
-  IL_0011:  dup
-  IL_0012:  call       ""readonly int S1.Length.get""
-  IL_0017:  stloc.1
-  IL_0018:  ldloca.s   V_0
-  IL_001a:  call       ""System.Index System.Range.Start.get""
-  IL_001f:  stloc.s    V_5
-  IL_0021:  ldloca.s   V_5
-  IL_0023:  ldloc.1
-  IL_0024:  call       ""int System.Index.GetOffset(int)""
-  IL_0029:  stloc.2
-  IL_002a:  ldloca.s   V_0
-  IL_002c:  call       ""System.Index System.Range.End.get""
-  IL_0031:  stloc.s    V_5
-  IL_0033:  ldloca.s   V_5
-  IL_0035:  ldloc.1
-  IL_0036:  call       ""int System.Index.GetOffset(int)""
-  IL_003b:  ldloc.2
-  IL_003c:  sub
-  IL_003d:  stloc.3
-  IL_003e:  ldloc.2
-  IL_003f:  ldloc.3
-  IL_0040:  call       ""readonly int S1.Slice(int, int)""
-  IL_0045:  pop
-  IL_0046:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Fact]
@@ -6956,44 +6793,44 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       70 (0x46)
+  // Code size       72 (0x48)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                S1 V_4,
-                System.Index V_5)
+  .locals init (S1 V_0,
+            System.Range V_1,
+            int V_2,
+            int V_3,
+            int V_4,
+            System.Index V_5)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  call       ""System.Range Program.GetRange()""
-  IL_000f:  stloc.0
-  IL_0010:  dup
-  IL_0011:  call       ""readonly int S1.Length.get""
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  call       ""System.Index System.Range.Start.get""
-  IL_001e:  stloc.s    V_5
-  IL_0020:  ldloca.s   V_5
-  IL_0022:  ldloc.1
-  IL_0023:  call       ""int System.Index.GetOffset(int)""
-  IL_0028:  stloc.2
-  IL_0029:  ldloca.s   V_0
-  IL_002b:  call       ""System.Index System.Range.End.get""
-  IL_0030:  stloc.s    V_5
-  IL_0032:  ldloca.s   V_5
-  IL_0034:  ldloc.1
-  IL_0035:  call       ""int System.Index.GetOffset(int)""
-  IL_003a:  ldloc.2
-  IL_003b:  sub
-  IL_003c:  stloc.3
-  IL_003d:  ldloc.2
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""readonly int S1.Length.get""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""int System.Index.GetOffset(int)""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""System.Index System.Range.End.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int System.Index.GetOffset(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloca.s   V_0
   IL_003e:  ldloc.3
-  IL_003f:  call       ""readonly int S1.Slice(int, int)""
-  IL_0044:  pop
-  IL_0045:  ret
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""readonly int S1.Slice(int, int)""
+  IL_0046:  pop
+  IL_0047:  ret
 }
 ");
         }
@@ -7032,6 +6869,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -7044,13 +6887,19 @@ class Program
         _ = f[GetRange()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
     public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetRange:3 length:4 get:5 final:5
-GetRange:3 length:3 get:3 final:5
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -7095,50 +6944,8 @@ GetRange:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       76 (0x4c)
-  .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                S1 V_4,
-                System.Index V_5)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldloca.s   V_4
-  IL_000b:  call       ""System.Range Program.GetRange()""
-  IL_0010:  stloc.0
-  IL_0011:  dup
-  IL_0012:  call       ""readonly int S1.Length.get""
-  IL_0017:  stloc.1
-  IL_0018:  ldloca.s   V_0
-  IL_001a:  call       ""System.Index System.Range.Start.get""
-  IL_001f:  stloc.s    V_5
-  IL_0021:  ldloca.s   V_5
-  IL_0023:  ldloc.1
-  IL_0024:  call       ""int System.Index.GetOffset(int)""
-  IL_0029:  stloc.2
-  IL_002a:  ldloca.s   V_0
-  IL_002c:  call       ""System.Index System.Range.End.get""
-  IL_0031:  stloc.s    V_5
-  IL_0033:  ldloca.s   V_5
-  IL_0035:  ldloc.1
-  IL_0036:  call       ""int System.Index.GetOffset(int)""
-  IL_003b:  ldloc.2
-  IL_003c:  sub
-  IL_003d:  stloc.3
-  IL_003e:  ldobj      ""S1""
-  IL_0043:  ldloc.2
-  IL_0044:  ldloc.3
-  IL_0045:  call       ""int E.Slice(S1, int, int)""
-  IL_004a:  pop
-  IL_004b:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Fact]
@@ -7215,45 +7022,44 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       75 (0x4b)
+  // Code size       71 (0x47)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
+  .locals init (S1 V_0,
+                System.Range V_1,
                 int V_2,
                 int V_3,
-                S1 V_4,
+                int V_4,
                 System.Index V_5)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  call       ""System.Range Program.GetRange()""
-  IL_000f:  stloc.0
-  IL_0010:  dup
-  IL_0011:  call       ""readonly int S1.Length.get""
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  call       ""System.Index System.Range.Start.get""
-  IL_001e:  stloc.s    V_5
-  IL_0020:  ldloca.s   V_5
-  IL_0022:  ldloc.1
-  IL_0023:  call       ""int System.Index.GetOffset(int)""
-  IL_0028:  stloc.2
-  IL_0029:  ldloca.s   V_0
-  IL_002b:  call       ""System.Index System.Range.End.get""
-  IL_0030:  stloc.s    V_5
-  IL_0032:  ldloca.s   V_5
-  IL_0034:  ldloc.1
-  IL_0035:  call       ""int System.Index.GetOffset(int)""
-  IL_003a:  ldloc.2
-  IL_003b:  sub
-  IL_003c:  stloc.3
-  IL_003d:  ldobj      ""S1""
-  IL_0042:  ldloc.2
-  IL_0043:  ldloc.3
-  IL_0044:  call       ""int E.Slice(S1, int, int)""
-  IL_0049:  pop
-  IL_004a:  ret
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""readonly int S1.Length.get""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""int System.Index.GetOffset(int)""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""System.Index System.Range.End.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int System.Index.GetOffset(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloc.0
+  IL_003d:  ldloc.3
+  IL_003e:  ldloc.s    V_4
+  IL_0040:  call       ""int E.Slice(S1, int, int)""
+  IL_0045:  pop
+  IL_0046:  ret
 }
 ");
         }
@@ -7293,6 +7099,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -7305,13 +7117,19 @@ class Program
         _ = f[GetRange()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
     public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetRange:3 length:4 get:5 final:5
-GetRange:3 length:3 get:3 final:5
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -7355,49 +7173,8 @@ GetRange:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       71 (0x47)
-  .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                S1 V_4,
-                System.Index V_5)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldloca.s   V_4
-  IL_000b:  call       ""System.Range Program.GetRange()""
-  IL_0010:  stloc.0
-  IL_0011:  dup
-  IL_0012:  call       ""readonly int S1.Length.get""
-  IL_0017:  stloc.1
-  IL_0018:  ldloca.s   V_0
-  IL_001a:  call       ""System.Index System.Range.Start.get""
-  IL_001f:  stloc.s    V_5
-  IL_0021:  ldloca.s   V_5
-  IL_0023:  ldloc.1
-  IL_0024:  call       ""int System.Index.GetOffset(int)""
-  IL_0029:  stloc.2
-  IL_002a:  ldloca.s   V_0
-  IL_002c:  call       ""System.Index System.Range.End.get""
-  IL_0031:  stloc.s    V_5
-  IL_0033:  ldloca.s   V_5
-  IL_0035:  ldloc.1
-  IL_0036:  call       ""int System.Index.GetOffset(int)""
-  IL_003b:  ldloc.2
-  IL_003c:  sub
-  IL_003d:  stloc.3
-  IL_003e:  ldloc.2
-  IL_003f:  ldloc.3
-  IL_0040:  call       ""int E.Slice(" + modifier + @"S1, int, int)""
-  IL_0045:  pop
-  IL_0046:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Theory]
@@ -7475,44 +7252,44 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       70 (0x46)
+  // Code size       72 (0x48)
   .maxstack  3
-  .locals init (System.Range V_0,
-            int V_1,
-            int V_2,
-            int V_3,
-            S1 V_4,
-            System.Index V_5)
+  .locals init (S1 V_0,
+                System.Range V_1,
+                int V_2,
+                int V_3,
+                int V_4,
+                System.Index V_5)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  call       ""System.Range Program.GetRange()""
-  IL_000f:  stloc.0
-  IL_0010:  dup
-  IL_0011:  call       ""readonly int S1.Length.get""
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  call       ""System.Index System.Range.Start.get""
-  IL_001e:  stloc.s    V_5
-  IL_0020:  ldloca.s   V_5
-  IL_0022:  ldloc.1
-  IL_0023:  call       ""int System.Index.GetOffset(int)""
-  IL_0028:  stloc.2
-  IL_0029:  ldloca.s   V_0
-  IL_002b:  call       ""System.Index System.Range.End.get""
-  IL_0030:  stloc.s    V_5
-  IL_0032:  ldloca.s   V_5
-  IL_0034:  ldloc.1
-  IL_0035:  call       ""int System.Index.GetOffset(int)""
-  IL_003a:  ldloc.2
-  IL_003b:  sub
-  IL_003c:  stloc.3
-  IL_003d:  ldloc.2
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""readonly int S1.Length.get""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""int System.Index.GetOffset(int)""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""System.Index System.Range.End.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int System.Index.GetOffset(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloca.s   V_0
   IL_003e:  ldloc.3
-  IL_003f:  call       ""int E.Slice(" + modifier + @"S1, int, int)""
-  IL_0044:  pop
-  IL_0045:  ret
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""int E.Slice(" + modifier + @"S1, int, int)""
+  IL_0046:  pop
+  IL_0047:  ret
 }
 ");
         }
@@ -7551,6 +7328,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -7563,13 +7346,19 @@ class Program
         _ = f[GetRange()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
     public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetRange:3 length:4 get:5 final:5
-GetRange:3 length:3 get:3 final:5
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -7614,50 +7403,8 @@ GetRange:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       76 (0x4c)
-  .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                S1 V_4,
-                System.Index V_5)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldloca.s   V_4
-  IL_000b:  call       ""System.Range Program.GetRange()""
-  IL_0010:  stloc.0
-  IL_0011:  dup
-  IL_0012:  ldobj      ""S1""
-  IL_0017:  call       ""int E.get_Length(S1)""
-  IL_001c:  stloc.1
-  IL_001d:  ldloca.s   V_0
-  IL_001f:  call       ""System.Index System.Range.Start.get""
-  IL_0024:  stloc.s    V_5
-  IL_0026:  ldloca.s   V_5
-  IL_0028:  ldloc.1
-  IL_0029:  call       ""int System.Index.GetOffset(int)""
-  IL_002e:  stloc.2
-  IL_002f:  ldloca.s   V_0
-  IL_0031:  call       ""System.Index System.Range.End.get""
-  IL_0036:  stloc.s    V_5
-  IL_0038:  ldloca.s   V_5
-  IL_003a:  ldloc.1
-  IL_003b:  call       ""int System.Index.GetOffset(int)""
-  IL_0040:  ldloc.2
-  IL_0041:  sub
-  IL_0042:  stloc.3
-  IL_0043:  ldloc.2
-  IL_0044:  ldloc.3
-  IL_0045:  call       ""readonly int S1.Slice(int, int)""
-  IL_004a:  pop
-  IL_004b:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Fact]
@@ -7734,45 +7481,44 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       75 (0x4b)
+  // Code size       71 (0x47)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                S1 V_4,
-                System.Index V_5)
+  .locals init (S1 V_0,
+            System.Range V_1,
+            int V_2,
+            int V_3,
+            int V_4,
+            System.Index V_5)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  call       ""System.Range Program.GetRange()""
-  IL_000f:  stloc.0
-  IL_0010:  dup
-  IL_0011:  ldobj      ""S1""
-  IL_0016:  call       ""int E.get_Length(S1)""
-  IL_001b:  stloc.1
-  IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""System.Index System.Range.Start.get""
-  IL_0023:  stloc.s    V_5
-  IL_0025:  ldloca.s   V_5
-  IL_0027:  ldloc.1
-  IL_0028:  call       ""int System.Index.GetOffset(int)""
-  IL_002d:  stloc.2
-  IL_002e:  ldloca.s   V_0
-  IL_0030:  call       ""System.Index System.Range.End.get""
-  IL_0035:  stloc.s    V_5
-  IL_0037:  ldloca.s   V_5
-  IL_0039:  ldloc.1
-  IL_003a:  call       ""int System.Index.GetOffset(int)""
-  IL_003f:  ldloc.2
-  IL_0040:  sub
-  IL_0041:  stloc.3
-  IL_0042:  ldloc.2
-  IL_0043:  ldloc.3
-  IL_0044:  call       ""readonly int S1.Slice(int, int)""
-  IL_0049:  pop
-  IL_004a:  ret
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloc.0
+  IL_000e:  call       ""int E.get_Length(S1)""
+  IL_0013:  stloc.2
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""System.Index System.Range.Start.get""
+  IL_001b:  stloc.s    V_5
+  IL_001d:  ldloca.s   V_5
+  IL_001f:  ldloc.2
+  IL_0020:  call       ""int System.Index.GetOffset(int)""
+  IL_0025:  stloc.3
+  IL_0026:  ldloca.s   V_1
+  IL_0028:  call       ""System.Index System.Range.End.get""
+  IL_002d:  stloc.s    V_5
+  IL_002f:  ldloca.s   V_5
+  IL_0031:  ldloc.2
+  IL_0032:  call       ""int System.Index.GetOffset(int)""
+  IL_0037:  ldloc.3
+  IL_0038:  sub
+  IL_0039:  stloc.s    V_4
+  IL_003b:  ldloca.s   V_0
+  IL_003d:  ldloc.3
+  IL_003e:  ldloc.s    V_4
+  IL_0040:  call       ""readonly int S1.Slice(int, int)""
+  IL_0045:  pop
+  IL_0046:  ret
 }
 ");
         }
@@ -7812,6 +7558,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -7824,13 +7576,19 @@ class Program
         _ = f[GetRange()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
     public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetRange:3 length:4 get:5 final:5
-GetRange:3 length:3 get:3 final:5
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -7874,49 +7632,8 @@ GetRange:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       71 (0x47)
-  .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                S1 V_4,
-                System.Index V_5)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldloca.s   V_4
-  IL_000b:  call       ""System.Range Program.GetRange()""
-  IL_0010:  stloc.0
-  IL_0011:  dup
-  IL_0012:  call       ""int E.get_Length(" + modifier + @"S1)""
-  IL_0017:  stloc.1
-  IL_0018:  ldloca.s   V_0
-  IL_001a:  call       ""System.Index System.Range.Start.get""
-  IL_001f:  stloc.s    V_5
-  IL_0021:  ldloca.s   V_5
-  IL_0023:  ldloc.1
-  IL_0024:  call       ""int System.Index.GetOffset(int)""
-  IL_0029:  stloc.2
-  IL_002a:  ldloca.s   V_0
-  IL_002c:  call       ""System.Index System.Range.End.get""
-  IL_0031:  stloc.s    V_5
-  IL_0033:  ldloca.s   V_5
-  IL_0035:  ldloc.1
-  IL_0036:  call       ""int System.Index.GetOffset(int)""
-  IL_003b:  ldloc.2
-  IL_003c:  sub
-  IL_003d:  stloc.3
-  IL_003e:  ldloc.2
-  IL_003f:  ldloc.3
-  IL_0040:  call       ""readonly int S1.Slice(int, int)""
-  IL_0045:  pop
-  IL_0046:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Theory]
@@ -7994,44 +7711,44 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       70 (0x46)
+  // Code size       72 (0x48)
   .maxstack  3
-  .locals init (System.Range V_0,
-            int V_1,
+  .locals init (S1 V_0,
+            System.Range V_1,
             int V_2,
             int V_3,
-            S1 V_4,
+            int V_4,
             System.Index V_5)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  call       ""System.Range Program.GetRange()""
-  IL_000f:  stloc.0
-  IL_0010:  dup
-  IL_0011:  call       ""int E.get_Length(" + modifier + @"S1)""
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  call       ""System.Index System.Range.Start.get""
-  IL_001e:  stloc.s    V_5
-  IL_0020:  ldloca.s   V_5
-  IL_0022:  ldloc.1
-  IL_0023:  call       ""int System.Index.GetOffset(int)""
-  IL_0028:  stloc.2
-  IL_0029:  ldloca.s   V_0
-  IL_002b:  call       ""System.Index System.Range.End.get""
-  IL_0030:  stloc.s    V_5
-  IL_0032:  ldloca.s   V_5
-  IL_0034:  ldloc.1
-  IL_0035:  call       ""int System.Index.GetOffset(int)""
-  IL_003a:  ldloc.2
-  IL_003b:  sub
-  IL_003c:  stloc.3
-  IL_003d:  ldloc.2
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""int System.Index.GetOffset(int)""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""System.Index System.Range.End.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int System.Index.GetOffset(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloca.s   V_0
   IL_003e:  ldloc.3
-  IL_003f:  call       ""readonly int S1.Slice(int, int)""
-  IL_0044:  pop
-  IL_0045:  ret
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""readonly int S1.Slice(int, int)""
+  IL_0046:  pop
+  IL_0047:  ret
 }
 ");
         }
@@ -8070,6 +7787,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -8082,13 +7805,19 @@ class Program
         _ = f[GetRange()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
     public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetRange:3 length:4 get:5 final:5
-GetRange:3 length:3 get:3 final:5
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -8134,51 +7863,8 @@ GetRange:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       81 (0x51)
-  .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                S1 V_4,
-                System.Index V_5)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldloca.s   V_4
-  IL_000b:  call       ""System.Range Program.GetRange()""
-  IL_0010:  stloc.0
-  IL_0011:  dup
-  IL_0012:  ldobj      ""S1""
-  IL_0017:  call       ""int E.get_Length(S1)""
-  IL_001c:  stloc.1
-  IL_001d:  ldloca.s   V_0
-  IL_001f:  call       ""System.Index System.Range.Start.get""
-  IL_0024:  stloc.s    V_5
-  IL_0026:  ldloca.s   V_5
-  IL_0028:  ldloc.1
-  IL_0029:  call       ""int System.Index.GetOffset(int)""
-  IL_002e:  stloc.2
-  IL_002f:  ldloca.s   V_0
-  IL_0031:  call       ""System.Index System.Range.End.get""
-  IL_0036:  stloc.s    V_5
-  IL_0038:  ldloca.s   V_5
-  IL_003a:  ldloc.1
-  IL_003b:  call       ""int System.Index.GetOffset(int)""
-  IL_0040:  ldloc.2
-  IL_0041:  sub
-  IL_0042:  stloc.3
-  IL_0043:  ldobj      ""S1""
-  IL_0048:  ldloc.2
-  IL_0049:  ldloc.3
-  IL_004a:  call       ""int E.Slice(S1, int, int)""
-  IL_004f:  pop
-  IL_0050:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Fact]
@@ -8255,46 +7941,41 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       80 (0x50)
+  // Code size       66 (0x42)
   .maxstack  3
   .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                S1 V_4,
-                System.Index V_5)
+            int V_1,
+            int V_2,
+            int V_3,
+            System.Index V_4)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  call       ""System.Range Program.GetRange()""
-  IL_000f:  stloc.0
-  IL_0010:  dup
-  IL_0011:  ldobj      ""S1""
-  IL_0016:  call       ""int E.get_Length(S1)""
-  IL_001b:  stloc.1
-  IL_001c:  ldloca.s   V_0
-  IL_001e:  call       ""System.Index System.Range.Start.get""
-  IL_0023:  stloc.s    V_5
-  IL_0025:  ldloca.s   V_5
-  IL_0027:  ldloc.1
-  IL_0028:  call       ""int System.Index.GetOffset(int)""
-  IL_002d:  stloc.2
-  IL_002e:  ldloca.s   V_0
-  IL_0030:  call       ""System.Index System.Range.End.get""
-  IL_0035:  stloc.s    V_5
-  IL_0037:  ldloca.s   V_5
-  IL_0039:  ldloc.1
-  IL_003a:  call       ""int System.Index.GetOffset(int)""
-  IL_003f:  ldloc.2
-  IL_0040:  sub
-  IL_0041:  stloc.3
-  IL_0042:  ldobj      ""S1""
-  IL_0047:  ldloc.2
-  IL_0048:  ldloc.3
-  IL_0049:  call       ""int E.Slice(S1, int, int)""
-  IL_004e:  pop
-  IL_004f:  ret
+  IL_0006:  call       ""System.Range Program.GetRange()""
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  call       ""int E.get_Length(S1)""
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       ""System.Index System.Range.Start.get""
+  IL_001a:  stloc.s    V_4
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  ldloc.1
+  IL_001f:  call       ""int System.Index.GetOffset(int)""
+  IL_0024:  stloc.2
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       ""System.Index System.Range.End.get""
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  ldloc.1
+  IL_0031:  call       ""int System.Index.GetOffset(int)""
+  IL_0036:  ldloc.2
+  IL_0037:  sub
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.2
+  IL_003a:  ldloc.3
+  IL_003b:  call       ""int E.Slice(S1, int, int)""
+  IL_0040:  pop
+  IL_0041:  ret
 }
 ");
         }
@@ -8334,6 +8015,12 @@ class Program
         F = new S1 { F1 = 3 };
         Test3(in F);
         System.Console.Write($""final:{F.F1}"");
+
+        System.Console.WriteLine();
+
+        F = new S1 { F1 = 3 };
+        Test4(ref F);
+        System.Console.Write($""final:{F.F1}"");
     }
 
     static void Test2(ref S1 f)
@@ -8346,13 +8033,19 @@ class Program
         _ = f[GetRange()];
     }
 
+    static void Test4(ref readonly S1 f)
+    {
+        _ = f[GetRange()];
+    }
+
     public static System.Range GetRange() { System.Console.Write($""GetRange:{Program.F.F1} ""); Program.F.F1++; return 1..^1; }
 }
 ";
             var comp1 = CreateCompilation([text1, TestSources.Index, TestSources.Range], options: TestOptions.DebugExe);
             var verifier = CompileAndVerify(comp1, expectedOutput: @"
 GetRange:3 length:4 get:5 final:5
-GetRange:3 length:3 get:3 final:5
+GetRange:3 length:4 get:5 final:5
+GetRange:3 length:4 get:5 final:5
 ").VerifyDiagnostics();
 
             var expectedIL = @"
@@ -8396,49 +8089,8 @@ GetRange:3 length:3 get:3 final:5
 ";
 
             verifier.VerifyIL("Program.Test2", expectedIL);
-            verifier.VerifyIL("Program.Test3", @"
-{
-  // Code size       71 (0x47)
-  .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
-                int V_2,
-                int V_3,
-                S1 V_4,
-                System.Index V_5)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      ""S1""
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldloca.s   V_4
-  IL_000b:  call       ""System.Range Program.GetRange()""
-  IL_0010:  stloc.0
-  IL_0011:  dup
-  IL_0012:  call       ""int E.get_Length(" + modifier + @"S1)""
-  IL_0017:  stloc.1
-  IL_0018:  ldloca.s   V_0
-  IL_001a:  call       ""System.Index System.Range.Start.get""
-  IL_001f:  stloc.s    V_5
-  IL_0021:  ldloca.s   V_5
-  IL_0023:  ldloc.1
-  IL_0024:  call       ""int System.Index.GetOffset(int)""
-  IL_0029:  stloc.2
-  IL_002a:  ldloca.s   V_0
-  IL_002c:  call       ""System.Index System.Range.End.get""
-  IL_0031:  stloc.s    V_5
-  IL_0033:  ldloca.s   V_5
-  IL_0035:  ldloc.1
-  IL_0036:  call       ""int System.Index.GetOffset(int)""
-  IL_003b:  ldloc.2
-  IL_003c:  sub
-  IL_003d:  stloc.3
-  IL_003e:  ldloc.2
-  IL_003f:  ldloc.3
-  IL_0040:  call       ""int E.Slice(" + modifier + @"S1, int, int)""
-  IL_0045:  pop
-  IL_0046:  ret
-}
-");
+            verifier.VerifyIL("Program.Test3", expectedIL);
+            verifier.VerifyIL("Program.Test4", expectedIL);
         }
 
         [Theory]
@@ -8516,44 +8168,44 @@ class Program
 
             verifier.VerifyIL("Program.Test2", @"
 {
-  // Code size       70 (0x46)
+  // Code size       72 (0x48)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
+  .locals init (S1 V_0,
+                System.Range V_1,
                 int V_2,
                 int V_3,
-                S1 V_4,
+                int V_4,
                 System.Index V_5)
   IL_0000:  nop
   IL_0001:  call       ""S1 Program.GetTarget()""
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  call       ""System.Range Program.GetRange()""
-  IL_000f:  stloc.0
-  IL_0010:  dup
-  IL_0011:  call       ""int E.get_Length(" + modifier + @"S1)""
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  call       ""System.Index System.Range.Start.get""
-  IL_001e:  stloc.s    V_5
-  IL_0020:  ldloca.s   V_5
-  IL_0022:  ldloc.1
-  IL_0023:  call       ""int System.Index.GetOffset(int)""
-  IL_0028:  stloc.2
-  IL_0029:  ldloca.s   V_0
-  IL_002b:  call       ""System.Index System.Range.End.get""
-  IL_0030:  stloc.s    V_5
-  IL_0032:  ldloca.s   V_5
-  IL_0034:  ldloc.1
-  IL_0035:  call       ""int System.Index.GetOffset(int)""
-  IL_003a:  ldloc.2
-  IL_003b:  sub
-  IL_003c:  stloc.3
-  IL_003d:  ldloc.2
+  IL_0006:  stloc.0
+  IL_0007:  call       ""System.Range Program.GetRange()""
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""int E.get_Length(" + modifier + @"S1)""
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       ""System.Index System.Range.Start.get""
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       ""int System.Index.GetOffset(int)""
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       ""System.Index System.Range.End.get""
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       ""int System.Index.GetOffset(int)""
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloca.s   V_0
   IL_003e:  ldloc.3
-  IL_003f:  call       ""int E.Slice(" + modifier + @"S1, int, int)""
-  IL_0044:  pop
-  IL_0045:  ret
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       ""int E.Slice(" + modifier + @"S1, int, int)""
+  IL_0046:  pop
+  IL_0047:  ret
 }
 ");
         }
