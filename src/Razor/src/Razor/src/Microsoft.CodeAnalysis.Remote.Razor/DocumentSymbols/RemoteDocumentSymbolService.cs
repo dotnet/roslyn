@@ -50,7 +50,8 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
             implementationDocument,
             implementationSymbols,
             declarationDocument,
-            declarationSymbols);
+            declarationSymbols,
+            cancellationToken);
 
         async ValueTask<SumType<DocumentSymbol[], SymbolInformation[]>> GetCSharpSymbolsAsync(
             RazorCSharpDocument csharpDocument,
@@ -70,23 +71,28 @@ internal sealed class RemoteDocumentSymbolService(in ServiceArgs args) : RazorDo
             // convert things back to DocumentSymbol before remapping it.
             if (csharpSymbols.TryGetFirst(out var roslynDocumentSymbols))
             {
-                csharpSymbols = ConvertDocumentSymbols(roslynDocumentSymbols);
+                csharpSymbols = ConvertDocumentSymbols(roslynDocumentSymbols, cancellationToken);
             }
 
             return csharpSymbols;
         }
     }
 
-    private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols)
+    private static DocumentSymbol[] ConvertDocumentSymbols(DocumentSymbol[] roslynDocumentSymbols, CancellationToken cancellationToken)
     {
+        // Avoid copying the rest of the symbol tree once its request has been canceled.
+        cancellationToken.ThrowIfCancellationRequested();
+
         var converted = new DocumentSymbol[roslynDocumentSymbols.Length];
         for (var i = 0; i < roslynDocumentSymbols.Length; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var symbol = roslynDocumentSymbols[i];
             converted[i] = new DocumentSymbol
             {
                 Children = symbol.Children is { } children
-                    ? ConvertDocumentSymbols(children)
+                    ? ConvertDocumentSymbols(children, cancellationToken)
                     : null,
 #pragma warning disable CS0618 // Type or member is obsolete
                 Deprecated = symbol.Deprecated,
