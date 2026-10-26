@@ -49,7 +49,7 @@ parameters:
   default: ''
 
 stages:
-- template: /eng/pipelines/test-gates/roslyn-vs-integration/1es-stage.yml@${{parameters.roslynRepositoryAlias}}
+- template: /eng/pipelines/test-gates/roslyn-vs-integration/stage.yml@${{parameters.roslynRepositoryAlias}}
   parameters:
     testStageFilter: ${{ parameters.testStageFilter }}
     prNumber: ${{ parameters.prNumber }}

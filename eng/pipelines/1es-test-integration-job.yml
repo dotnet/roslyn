@@ -238,44 +238,12 @@ stages:
         Set-Location '[WorkingDirectory]\Roslyn'
         & .\eng\build.ps1 -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine /p:BuildDependencyVsix=true
         if ($LASTEXITCODE -ne 0) { throw "Building Roslyn failed with exit code $LASTEXITCODE." }
-    postTestExecutionJobs:
-    - job: Publish
-      displayName: Publish test diagnostics
-      dependsOn: TestExecution
-      condition: always()
-      pool:
-        vmImage: windows-latest
-      steps:
-      - checkout: none
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Test Results Directory
-        inputs:
-          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\TestResults\${{ parameters.configuration }}'
-          ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
-          publishLocation: Container
-        continueOnError: true
-        condition: always()
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Logs
-        inputs:
-          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\log\${{ parameters.configuration }}'
-          ArtifactName: '$(System.JobAttempt)-Logs ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
-          publishLocation: Container
-        continueOnError: true
-        condition: always()
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Screenshots and Test Attachments (Old Tests)
-        inputs:
-          PathtoPublish: '$(Build.SourcesDirectory)\artifacts\bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\${{ parameters.configuration }}\net472\TestResults'
-          ArtifactName: '$(System.JobAttempt)-Screenshots ${{ parameters.configuration }} OOP64_${{ parameters.oop64bit }} LspEditor_${{ parameters.lspEditor }} $(Build.BuildNumber)'
-          publishLocation: Container
-        continueOnError: true
-        condition: always()
     postDeployAndRunTestsOperations:
-    # Preserve dumps, logs, screenshots, and attachments even when tests fail.
+    # Publish worker diagnostics through CloudTest attachments, including when tests fail.
+    # Copy-Files.ps1 requires a non-null exclusion list even when nothing is excluded.
     - operation: executePowerShellScript
       displayName: Collect Roslyn test diagnostics
       scriptPath: C:\DartLab\Scripts\FileSystem\Copy-Files.ps1
-      scriptParameters: -CopyDirectory '[WorkingDirectory]\Roslyn\artifacts' -IncludeFilePatterns @('TestResults\**', 'log\**', 'bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\${{ parameters.configuration }}\net472\TestResults\**') -DestinationDirectory '[LoggingDirectory]' -Subdirectory 'Roslyn'
+      scriptParameters: -CopyDirectory '[WorkingDirectory]\Roslyn\artifacts' -IncludeFilePatterns @('TestResults\**', 'log\**', 'bin\Microsoft.VisualStudio.LanguageServices.IntegrationTests\${{ parameters.configuration }}\net472\TestResults\**') -ExcludeFilePatterns @('') -DestinationDirectory '[LoggingDirectory]' -Subdirectory 'Roslyn'
       continueOnError: true
       timeout: '0:0:20:0'
