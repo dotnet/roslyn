@@ -115,7 +115,9 @@ internal sealed class InheritanceMarginViewMargin : IWpfTextViewMargin
         IList<ITextViewLine> lines = _refreshAllGlyphs ? _textView.TextViewLines : e.NewOrReformattedLines;
         foreach (var line in lines)
         {
-            _glyphManager.RemoveGlyphs(line.Extent);
+            if (_refreshAllGlyphs)
+                _glyphManager.RemoveGlyphs(line.Extent);
+
             RefreshGlyphsOver(line);
         }
 

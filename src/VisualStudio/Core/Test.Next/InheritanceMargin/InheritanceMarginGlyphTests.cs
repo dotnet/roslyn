@@ -24,13 +24,18 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
+using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
 using ShellControls = Microsoft.VisualStudio.Shell.Controls;
@@ -449,13 +454,19 @@ public sealed class InheritanceMarginGlyphTests
     }
 
     [WpfTheory]
-    [InlineData(1.0, false)]
-    [InlineData(1.0, true)]
-    [InlineData(1.25, false)]
-    [InlineData(1.25, true)]
-    [InlineData(3.8, false)]
-    [InlineData(3.8, true)]
-    public async Task HoverStaysWithinEditorViewport(double zoom, bool bottom)
+    [InlineData(1.0, false, false)]
+    [InlineData(1.0, false, true)]
+    [InlineData(1.0, true, false)]
+    [InlineData(1.0, true, true)]
+    [InlineData(1.25, false, false)]
+    [InlineData(1.25, false, true)]
+    [InlineData(1.25, true, false)]
+    [InlineData(1.25, true, true)]
+    [InlineData(3.8, false, false)]
+    [InlineData(3.8, false, true)]
+    [InlineData(3.8, true, false)]
+    [InlineData(3.8, true, true)]
+    public async Task HoverStaysWithinEditorViewport(double zoom, bool bottom, bool clipped)
     {
         using var workspace = CreateWorkspace();
         var glyph = await CreateGlyphAsync(workspace, zoom * 100);
@@ -467,7 +478,7 @@ public sealed class InheritanceMarginGlyphTests
         var margin = new Canvas { ClipToBounds = true };
         margin.Children.Add(glyph);
         Canvas.SetLeft(glyph, 8);
-        Canvas.SetTop(glyph, bottom ? 180 - 8 * zoom : -8 * zoom);
+        Canvas.SetTop(glyph, bottom ? 180 - (clipped ? 8 : 16) * zoom : clipped ? -8 * zoom : 0);
         var grid = new Grid();
         grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(36) });
         grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(180) });
@@ -491,15 +502,40 @@ public sealed class InheritanceMarginGlyphTests
         {
             window.Show();
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var restingImage = (Image)glyph.FindName("GlyphImage");
+            var source = new DrawingImage(new GeometryDrawing(Brushes.Black, null, new RectangleGeometry(new Rect(0, 0, 16, 16))));
+            restingImage.Source = source;
+            restingImage.Visibility = Visibility.Visible;
+            window.UpdateLayout();
+            var restingImageBounds = ScreenBounds((UIElement)glyph.FindName("GlyphImage"));
             popup = await OpenHoverPopupAsync(glyph);
             var button = GetHoverButton(glyph);
+            var hoverImage = (Image)button.Content;
+            hoverImage.Source = source;
+            hoverImage.Visibility = Visibility.Visible;
             SetThemeResources(button, "Light");
             SetThemeResources((FrameworkElement)popup.Child, "Light");
             await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            popup.IsOpen = false;
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            restingImageBounds = ScreenBounds(restingImage);
+            popup = await OpenHoverPopupAsync(glyph);
             var viewBounds = ScreenBounds(view.VisualElement);
             var buttonBounds = ScreenBounds(button);
+            Assert.True(restingImageBounds.Width > 0 && restingImageBounds.Height > 0);
+            Assert.True(hoverImage.RenderSize.Width > 0 && hoverImage.RenderSize.Height > 0);
             Assert.True(buttonBounds.Top >= viewBounds.Top - 1, "The hover button must not cover the navigation UI above the editor.");
             Assert.True(buttonBounds.Bottom <= viewBounds.Bottom + 1, "The hover button must not cover UI below the editor.");
+            Assert.Equal(restingImageBounds, ScreenBounds((UIElement)button.Content));
+            var frame = (FrameworkElement)popup.Child;
+            var opacity = hoverImage.Opacity;
+            hoverImage.Opacity = 0;
+            var emptyFrame = RenderPixels(frame);
+            hoverImage.Opacity = opacity;
+            var renderedFrame = RenderPixels(frame);
+            var stride = (int)Math.Ceiling(frame.ActualWidth) * 4;
+            Assert.Equal(emptyFrame.Take(stride), renderedFrame.Take(stride));
+            Assert.Equal(emptyFrame.Skip(emptyFrame.Length - stride), renderedFrame.Skip(renderedFrame.Length - stride));
         }
         finally
         {
@@ -566,7 +602,6 @@ public sealed class InheritanceMarginGlyphTests
                 FocusOnOpen = false,
                 PlacementTarget = glyph,
                 Placement = System.Windows.Controls.Primitives.PlacementMode.Center,
-                VerticalOffset = 5,
                 Child = lightbulbHost,
             };
             SetThemeResources(lightbulb, theme);
@@ -582,6 +617,7 @@ public sealed class InheritanceMarginGlyphTests
                 Assert.IsType<SolidColorBrush>(lightbulb.Background);
                 Assert.IsType<SolidColorBrush>(lightbulb.BorderBrush);
                 Assert.Equal(ScreenBounds(lightbulb).Size, ScreenBounds(button).Size);
+                Assert.InRange(Math.Abs(ScreenBounds(lightbulb).Top - ScreenBounds(button).Top), 0, 1);
                 Assert.Equal(ScreenBounds(image), ScreenBounds(hoverImage));
                 Assert.All(RenderPixels(glyph), value => Assert.Equal(0, value));
                 Assert.NotNull(glyph.InputHitTest(new Point(glyph.ActualWidth / 2, glyph.ActualHeight / 2)));
@@ -847,6 +883,160 @@ public sealed class InheritanceMarginGlyphTests
 
     private static ShellControls.DropDownButton GetHoverButton(InheritanceMarginGlyph glyph)
         => Assert.IsType<ShellControls.DropDownButton>(Assert.IsType<Border>(GetHoverPopup(glyph).Child).Child);
+
+    [WpfTheory]
+    [InlineData(1.0)]
+    [InlineData(1.25)]
+    [InlineData(3.8)]
+    public async Task MarginGlyphIsCenteredOnTextLine(double zoom)
+    {
+        using var workspace = CreateWorkspace();
+        var view = workspace.Documents.Single().GetTextView();
+        var (margin, canvas, _) = await CreateMarginAsync(workspace, zoom);
+        var window = CreateMarginWindow(view, canvas, zoom);
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var glyph = Assert.Single(canvas.Children.OfType<InheritanceMarginGlyph>());
+            var line = view.GetTextViewLineContainingBufferPosition(view.TextSnapshot.GetLineFromLineNumber(1).Start);
+            var center = line.TextTop - view.ViewportTop + line.TextHeight / 2;
+            Assert.Equal(center - glyph.Height / 2, Canvas.GetTop(glyph), precision: 5);
+            var expectedCenter = canvas.PointToScreen(new Point(0, center));
+            var actualCenter = glyph.PointToScreen(new Point(0, glyph.ActualHeight / 2));
+            Assert.InRange(Math.Abs(expectedCenter.Y - actualCenter.Y), 0, 1);
+        }
+        finally
+        {
+            window.Close();
+            margin.Dispose();
+        }
+    }
+
+    [WpfFact]
+    public async Task ReformattingLinePreservesHoverUntilTagsChange()
+    {
+        using var workspace = CreateWorkspace();
+        var view = workspace.Documents.Single().GetTextView();
+        var (margin, canvas, aggregator) = await CreateMarginAsync(workspace, zoom: 1);
+        var window = CreateMarginWindow(view, canvas, zoom: 1);
+        ShellControls.Popup? popup = null;
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            var glyph = Assert.Single(canvas.Children.OfType<InheritanceMarginGlyph>());
+            popup = await OpenHoverPopupAsync(glyph);
+            var reformatted = 0;
+            view.LayoutChanged += (_, e) => reformatted += e.NewOrReformattedLines.Count;
+            view.Options.SetOptionValue(DefaultTextViewOptions.WordWrapStyleId, WordWrapStyles.WordWrap);
+            window.UpdateLayout();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            Assert.True(reformatted > 0, "The test must reformat actual editor lines.");
+            Assert.Same(glyph, Assert.Single(canvas.Children.OfType<InheritanceMarginGlyph>()));
+            Assert.True(popup.IsOpen);
+
+            var span = view.TextSnapshot.GetLineFromLineNumber(1).Extent;
+            var mapping = view.BufferGraph.CreateMappingSpan(span, SpanTrackingMode.EdgeInclusive);
+            aggregator.Raise(a => a.BatchedTagsChanged += null, new BatchedTagsChangedEventArgs([mapping]));
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            Assert.NotSame(glyph, Assert.Single(canvas.Children.OfType<InheritanceMarginGlyph>()));
+            Assert.False(popup.IsOpen);
+        }
+        finally
+        {
+            if (popup is not null)
+                popup.IsOpen = false;
+            window.Close();
+            margin.Dispose();
+        }
+    }
+
+    [WpfTheory]
+    [InlineData(1.0)]
+    [InlineData(3.8)]
+    public async Task IndicatorMarginGlyphIsCenteredOnTextLine(double zoom)
+    {
+        using var workspace = CreateWorkspace();
+        var view = workspace.Documents.Single().GetTextView();
+        var provider = workspace.ExportProvider;
+        var options = provider.GetExportedValue<IGlobalOptionService>();
+        var originalOption = options.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin);
+        var (margin, canvas, aggregator) = await CreateMarginAsync(workspace, zoom);
+        var window = CreateMarginWindow(view, canvas, zoom);
+        try
+        {
+            window.Show();
+            await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+            options.SetGlobalOption(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin, true);
+            var span = view.TextSnapshot.GetLineFromLineNumber(1).Extent;
+            var tag = Assert.Single(aggregator.Object.GetTags(view.BufferGraph.CreateMappingSpan(span, SpanTrackingMode.EdgeInclusive))).Tag;
+            var factory = new InheritanceGlyphFactory(
+                workspace, provider.GetExportedValue<IThreadingContext>(), new MockStreamingFindUsagesPresenter(() => { }),
+                provider.GetExportedValue<ClassificationTypeMap>(),
+                provider.GetExportedValue<IClassificationFormatMapService>().GetClassificationFormatMap("tooltip"),
+                provider.GetExportedValue<IUIThreadOperationExecutor>(), view, options,
+                provider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.InheritanceMargin));
+            var line = (Microsoft.VisualStudio.Text.Formatting.IWpfTextViewLine)view.GetTextViewLineContainingBufferPosition(span.Start);
+            var glyph = Assert.IsType<InheritanceMarginGlyph>(factory.GenerateGlyph(line, tag));
+            Assert.Equal((line.TextHeight - ShellStyles.Sizes.IconS) / 2, Canvas.GetTop(glyph));
+        }
+        finally
+        {
+            window.Close();
+            margin.Dispose();
+            options.SetGlobalOption(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin, originalOption);
+        }
+    }
+
+    private static async Task<(IWpfTextViewMargin Margin, Canvas Canvas, Mock<ITagAggregator<InheritanceMarginTag>> Aggregator)> CreateMarginAsync(EditorTestWorkspace workspace, double zoom)
+    {
+        var view = workspace.Documents.Single().GetTextView();
+        view.ZoomLevel = zoom * 100;
+        var provider = workspace.ExportProvider;
+        var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.Single().Id);
+        var syntax = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
+        var service = document.GetRequiredLanguageService<IInheritanceMarginService>();
+        var items = await service.GetInheritanceMemberItemsAsync(document, syntax.FullSpan, includeGlobalImports: true, frozenPartialSemantics: true, CancellationToken.None);
+        var tag = new InheritanceMarginTag(1, items.Where(item => item.LineNumber == 1).ToImmutableArray());
+        var glyphSpan = view.TextSnapshot.GetLineFromLineNumber(1).Extent;
+        var mappedTag = new MappingTagSpan<InheritanceMarginTag>(view.BufferGraph.CreateMappingSpan(glyphSpan, SpanTrackingMode.EdgeInclusive), tag);
+        var aggregator = new Mock<ITagAggregator<InheritanceMarginTag>>();
+        aggregator.Setup(a => a.GetTags(It.IsAny<IMappingSpan>()))
+            .Returns((IMappingSpan requested) => requested.GetSpans(view.TextSnapshot).Any(span => span.IntersectsWith(glyphSpan))
+                ? new[] { mappedTag }
+                : Array.Empty<IMappingTagSpan<InheritanceMarginTag>>());
+        IWpfTextViewMargin margin = new InheritanceMarginViewMargin(
+            workspace, view, provider.GetExportedValue<IThreadingContext>(), new MockStreamingFindUsagesPresenter(() => { }),
+            provider.GetExportedValue<IUIThreadOperationExecutor>(),
+            provider.GetExportedValue<IClassificationFormatMapService>().GetClassificationFormatMap("tooltip"),
+            provider.GetExportedValue<ClassificationTypeMap>(), aggregator.Object,
+            provider.GetExportedValue<IEditorFormatMapService>().GetEditorFormatMap(view),
+            provider.GetExportedValue<IGlobalOptionService>(),
+            provider.GetExportedValue<IAsynchronousOperationListenerProvider>().GetListener(FeatureAttribute.InheritanceMargin),
+            LanguageNames.CSharp);
+        return (margin, (Canvas)margin.VisualElement, aggregator);
+    }
+
+    private static Window CreateMarginWindow(IWpfTextView view, Canvas canvas, double zoom)
+    {
+        canvas.LayoutTransform = new ScaleTransform(zoom, zoom);
+        var grid = new Grid { Background = Brushes.White };
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition());
+        grid.Children.Add(canvas);
+        grid.Children.Add(view.VisualElement);
+        Grid.SetColumn(view.VisualElement, 1);
+        return new Window
+        {
+            Content = grid,
+            Width = 760,
+            Height = 400,
+            Left = -10000,
+            Top = -10000,
+            ShowActivated = false,
+        };
+    }
 
     private static EditorTestWorkspace CreateWorkspace(bool nested = false)
     {

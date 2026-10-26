@@ -78,23 +78,46 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
         Contract.ThrowIfNull(_hoverPopup);
         var button = HoverButton;
         // Callback coordinates already include device scaling and editor zoom.
-        var imageOrigin = ((FrameworkElement)button.Content).TranslatePoint(default, _hoverPopup.Child);
+        var image = (FrameworkElement)button.Content;
+        var translation = (TranslateTransform)image.RenderTransform;
+        var imageOrigin = image.TranslatePoint(default, _hoverPopup.Child);
+        imageOrigin.Y -= translation.Y;
         var scaleX = popupSize.Width / _hoverPopup.Child.RenderSize.Width;
         var scaleY = popupSize.Height / _hoverPopup.Child.RenderSize.Height;
         var position = new Point(
             -Math.Round(imageOrigin.X * scaleX, MidpointRounding.AwayFromZero),
             -Math.Round(imageOrigin.Y * scaleY, MidpointRounding.AwayFromZero));
+        var preferredTop = position.Y;
+        var buttonOrigin = button.TranslatePoint(default, _hoverPopup.Child);
         var view = _textView.VisualElement;
         if (PresentationSource.FromVisual(view) is not null && view.RenderSize.Height > 0)
         {
             var anchor = GlyphImage.PointToScreen(default);
             var viewTop = view.PointToScreen(default).Y;
             var viewBottom = view.PointToScreen(new Point(0, view.RenderSize.Height)).Y;
-            var buttonOrigin = button.TranslatePoint(default, _hoverPopup.Child);
             var buttonTop = position.Y + buttonOrigin.Y * scaleY;
             var minimumTop = viewTop - anchor.Y;
             var maximumTop = Math.Max(minimumTop, viewBottom - anchor.Y - button.ActualHeight * scaleY);
             position.Y += Math.Min(Math.Max(buttonTop, minimumTop), maximumTop) - buttonTop;
+        }
+
+        // Keep the image anchored to the resting glyph when the frame is moved inside the viewport.
+        var imageOffset = position.Y == preferredTop ? 0 : -position.Y / scaleY - imageOrigin.Y;
+        if (translation.Y != imageOffset)
+            translation.Y = imageOffset;
+        if (imageOffset == 0)
+        {
+            image.Clip = null;
+        }
+        else
+        {
+            var visibleImage = new Rect(
+                0,
+                buttonOrigin.Y + button.BorderThickness.Top - imageOrigin.Y - imageOffset,
+                image.ActualWidth,
+                Math.Max(0, button.ActualHeight - button.BorderThickness.Top - button.BorderThickness.Bottom));
+            visibleImage.Intersect(new Rect(image.RenderSize));
+            image.Clip = new RectangleGeometry(visibleImage);
         }
 
         return [new CustomPopupPlacement(position, PopupPrimaryAxis.None)];
@@ -108,6 +131,7 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
             _hoverPopup.PlacementTarget = this;
             _hoverPopup.CustomPopupPlacementCallback = PlaceHoverPopup;
             TextOptions.SetTextFormattingMode(HoverButton, TextOptions.GetTextFormattingMode(this));
+            ((FrameworkElement)HoverButton.Content).RenderTransform = new TranslateTransform();
             HoverButton.DropDown = InheritanceMenu;
             // The menu has its own compiled XAML; connect its events after loading the template.
             InheritanceMenu.AddHandler(MenuItem.ClickEvent, new RoutedEventHandler(TargetMenuItem_OnClick));

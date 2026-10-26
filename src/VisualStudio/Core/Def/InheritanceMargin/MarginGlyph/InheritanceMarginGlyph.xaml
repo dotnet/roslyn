@@ -38,7 +38,8 @@
                   Opened="HoverPopup_OnOpened"
                   Placement="Custom">
         <ctrls:Popup.Child>
-          <Border Height="{x:Static styles:Sizes.ControlMinHeight}"
+          <Border ClipToBounds="True"
+                  Height="{x:Static styles:Sizes.ControlMinHeight}"
                   MouseLeave="InheritanceMargin_OnMouseLeave"
                   Width="{x:Static styles:Sizes.ControlMinWidth}">
             <ctrls:DropDownButton AutomationProperties.Name="{Binding AutomationName, Mode=OneTime}"

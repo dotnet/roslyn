@@ -94,6 +94,16 @@ internal sealed partial class InheritanceGlyphManager : IDisposable
         var lines = _textView.TextViewLines;
         if (lines.IntersectsBufferSpan(span) && GetStartingLine(lines, span) is IWpfTextViewLine line)
         {
+            // Tag changes invalidate glyphs separately; a layout change must not replace an open hover.
+            foreach (var existing in _glyphDataTree.GetIntervalsThatIntersectWith(span.Start, span.Length))
+            {
+                if (existing.SnapshotSpan == span)
+                {
+                    SetTop(line, existing.Glyph);
+                    return;
+                }
+            }
+
             var glyph = CreateNewGlyph(tag);
             SetTop(line, glyph);
             _glyphDataTree.AddIntervalInPlace(new GlyphData(span, glyph));
@@ -123,8 +133,8 @@ internal sealed partial class InheritanceGlyphManager : IDisposable
     }
 
     /// <summary>
-    /// Remove the glyphs that are no long visible or covered by the <paramref name="newOrReformattedLines"/>.
-    /// Refresh all the other the existing glyphs with the <paramref name="snapshot"/>.
+    /// Remove glyphs that are no longer visible and reposition glyphs on reformatted or translated lines.
+    /// Refresh the existing glyph spans with the <paramref name="snapshot"/>.
     /// It should only be called by UI thread because UI elements are manipulated by this method.
     /// </summary>
     public void SetSnapshotAndUpdate(ITextSnapshot snapshot, IList<ITextViewLine> newOrReformattedLines, IList<ITextViewLine> translatedLines)
@@ -138,16 +148,14 @@ internal sealed partial class InheritanceGlyphManager : IDisposable
             foreach (var (span, glyph) in allGlyphData)
             {
                 var newSpan = span.TranslateTo(snapshot, SpanTrackingMode.EdgeInclusive);
-                if (!_textView.TextViewLines.IntersectsBufferSpan(newSpan) || GetStartingLine(newOrReformattedLines, newSpan) != null)
+                if (!_textView.TextViewLines.IntersectsBufferSpan(newSpan))
                 {
-                    //Either visual is no longer visible or it crosses a line
-                    //that was reformatted.
                     _glyphsContainer.Children.Remove(glyph);
                 }
                 else
                 {
                     _glyphDataTree.AddIntervalInPlace(new GlyphData(newSpan, glyph));
-                    var line = GetStartingLine(translatedLines, newSpan);
+                    var line = GetStartingLine(newOrReformattedLines, newSpan) ?? GetStartingLine(translatedLines, newSpan);
                     if (line != null)
                     {
                         SetTop(line, glyph);
@@ -158,7 +166,11 @@ internal sealed partial class InheritanceGlyphManager : IDisposable
     }
 
     private void SetTop(ITextViewLine line, InheritanceMarginGlyph glyph)
-        => Canvas.SetTop(glyph, line.TextTop - _textView.ViewportTop);
+    {
+        var top = line.TextTop - _textView.ViewportTop + (line.TextHeight - _heightAndWidthOfTheGlyph) / 2;
+        if (Canvas.GetTop(glyph) != top)
+            Canvas.SetTop(glyph, top);
+    }
 
     private static ITextViewLine? GetStartingLine(IList<ITextViewLine> lines, Span span)
     {

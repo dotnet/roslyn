@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Windows;
+using System.Windows.Controls;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin.MarginGlyph;
+using Microsoft.VisualStudio.Shell.Styles;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
@@ -79,7 +81,7 @@ internal sealed class InheritanceGlyphFactory : IGlyphFactory
 
         var membersOnLine = inheritanceMarginTag.MembersOnLine;
         Contract.ThrowIfTrue(membersOnLine.IsEmpty);
-        return new InheritanceMarginGlyph(
+        var glyph = new InheritanceMarginGlyph(
             _workspace,
             _threadingContext,
             _streamingFindUsagesPresenter,
@@ -89,5 +91,7 @@ internal sealed class InheritanceGlyphFactory : IGlyphFactory
             inheritanceMarginTag,
             _textView,
             _listener);
+        Canvas.SetTop(glyph, (line.TextHeight - Sizes.IconS) / 2);
+        return glyph;
     }
 }
