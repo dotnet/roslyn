@@ -72,7 +72,7 @@ extends:
   parameters:
     dartLabTemplatesRepositoryAlias: DartLab
     testStages:
-    - template: /eng/pipelines/test-gates/staging/stages.yml@self
+    - template: /eng/pipelines/test-gates/staging/1es-stages.yml@self
       parameters:
         prNumber: ${{ parameters.prNumber }}
         sha: ${{ parameters.sha }}

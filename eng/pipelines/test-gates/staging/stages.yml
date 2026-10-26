@@ -26,18 +26,12 @@ parameters:
 - name: testsCommitFromVisualStudioBuild
   type: boolean
   default: false
-- name: testMachineLab
+- name: testMachineCleanUpStrategy
   type: string
-  default: Roslyn
-- name: testMachineHoldStrategy
+  default: delete
+- name: testMachineRetention
   type: string
-  default: None
-  values:
-  - None
-  - Completion
-  - Execution
-  - Failure
-  - Timeout
+  default: 1:0:0:0
 - name: dartLabTemplatesRepositoryAlias
   type: string
   default: DartLabTemplates
@@ -60,7 +54,7 @@ stages:
     skipCustomRoslynDeploy: ${{ parameters.skipCustomRoslynDeploy }}
     testsCommitHash: ${{ parameters.testsCommitHash }}
     testsCommitFromVisualStudioBuild: ${{ parameters.testsCommitFromVisualStudioBuild }}
-    testMachineLab: ${{ parameters.testMachineLab }}
-    testMachineHoldStrategy: ${{ parameters.testMachineHoldStrategy }}
+    testMachineCleanUpStrategy: ${{ parameters.testMachineCleanUpStrategy }}
+    testMachineRetention: ${{ parameters.testMachineRetention }}
     dartLabTemplatesRepositoryAlias: ${{ parameters.dartLabTemplatesRepositoryAlias }}
     roslynRepositoryAlias: ${{ parameters.roslynRepositoryAlias }}
