@@ -385,6 +385,7 @@
     <Field Name="CSharpCode" Type="CSharpCodeBlockSyntax" />
   </Node>
   <AbstractNode Name="BaseRazorDirectiveSyntax" Base="CSharpRazorBlockSyntax">
+    <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" />
   </AbstractNode>
   <Node Name="RazorDirectiveSyntax" Base="BaseRazorDirectiveSyntax">
     <Kind Name="RazorDirective" />
@@ -394,7 +395,7 @@
     <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
       <Kind Name="RazorDirectiveBody" />
     </Field>
-    <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" />
+    <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" Override="true" />
   </Node>
   <Node Name="RazorUsingDirectiveSyntax" Base="BaseRazorDirectiveSyntax">
     <Kind Name="RazorUsingDirective" />
@@ -404,7 +405,17 @@
     <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
       <Kind Name="RazorDirectiveBody" />
     </Field>
-    <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" />
+    <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" Override="true" />
+  </Node>
+  <Node Name="RazorDocumentationDirectiveSyntax" Base="BaseRazorDirectiveSyntax">
+    <Kind Name="RazorDocumentationDirective" />
+    <Field Name="Transition" Type="CSharpTransitionSyntax" Override="true">
+      <Kind Name="CSharpTransition" />
+    </Field>
+    <Field Name="Body" Type="CSharpSyntaxNode" Override="true">
+      <Kind Name="RazorDirectiveBody" />
+    </Field>
+    <Field Name="DirectiveDescriptor" Type="DirectiveDescriptor" Optional="true" Override="true" />
   </Node>
   <Node Name="RazorDirectiveBodySyntax" Base="CSharpSyntaxNode">
     <Kind Name="RazorDirectiveBody" />

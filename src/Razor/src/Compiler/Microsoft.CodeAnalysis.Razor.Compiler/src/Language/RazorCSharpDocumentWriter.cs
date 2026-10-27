@@ -148,7 +148,9 @@ internal static class RazorCSharpDocumentWriter
 
                 if (checksum.Length > 0)
                 {
-                    writer.WriteLine($"#pragma checksum \"{filePath}\" \"{algorithmId}\" \"{checksum}\"");
+                    writer.Write("#pragma checksum \"")
+                        .WriteFilePath(filePath, ensurePathBackslashes: false)
+                        .WriteLine($"\" \"{algorithmId}\" \"{checksum}\"");
                 }
             }
 

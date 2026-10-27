@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 
 internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services)
 {
-    private sealed class DebuggerService(ImmutableArray<string> capabilities) : IManagedHotReloadService
+    private sealed class DebuggerService(ImmutableArray<string> capabilities) : IManagedHotReloadState
     {
         private readonly ImmutableArray<string> _capabilities = capabilities;
 
@@ -25,7 +25,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
         public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
             => ValueTask.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
-        public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<string>> GetUpdateCapabilitiesAsync(CancellationToken cancellationToken)
             => ValueTask.FromResult(_capabilities);
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)

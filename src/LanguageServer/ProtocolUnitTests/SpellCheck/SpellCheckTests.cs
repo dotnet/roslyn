@@ -207,8 +207,9 @@ class {|Identifier:A{{v}}|}
 
             await InsertTextAsync(testLspServer, document, sourceText.Length, "// comment");
 
-            var (_, lspSolution) = await testLspServer.GetManager().GetLspSolutionInfoAsync(CancellationToken.None).ConfigureAwait(false);
-            document = lspSolution!.Projects.Single().Documents.Single();
+            var context = await testLspServer.CaptureLspSolutionContextAsync().ConfigureAwait(false);
+            Assert.NotNull(context);
+            document = context.Value.Solution.Projects.Single().Documents.Single();
             results = await RunGetDocumentSpellCheckSpansAsync(testLspServer, document.GetURI(), results.Single().ResultId);
 
             MarkupTestFile.GetSpans(
@@ -513,8 +514,9 @@ class {|Identifier:A{{v}}|}
             var results2 = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer, previousResults: CreateParamsFromPreviousReports(results));
 
             Assert.Equal(2, results2.Length);
-            var (_, lspSolution) = await testLspServer.GetManager().GetLspSolutionInfoAsync(CancellationToken.None).ConfigureAwait(false);
-            document = lspSolution!.Projects.Single().Documents.First();
+            var context = await testLspServer.CaptureLspSolutionContextAsync().ConfigureAwait(false);
+            Assert.NotNull(context);
+            document = context.Value.Solution.Projects.Single().Documents.First();
             sourceText = await document.GetTextAsync();
 
             MarkupTestFile.GetSpans(

@@ -1,0 +1,1 @@
+﻿TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/DuplicateDocumentation.cshtml(2,1): Error RZ2001: The 'documentation' directive may only occur once per document.

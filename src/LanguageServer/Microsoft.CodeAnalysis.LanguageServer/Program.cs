@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Daemon;
 using Microsoft.CodeAnalysis.LanguageServer.Logging;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
@@ -52,11 +51,6 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
     {
         Contract.ThrowIfNull(serverConfiguration.ServerPipeName, "Server must be started with either --stdio or --pipe option.");
     }
-
-    serverConfiguration = serverConfiguration with
-    {
-        TelemetryLevel = TelemetryLevelResolver.Resolve(serverConfiguration.TelemetryLevel),
-    };
 
     if (serverConfiguration.UseStdIo)
     {
@@ -146,6 +140,14 @@ static async Task<int> RunAsync(ServerConfiguration serverConfiguration, Cancell
         RoslynLog.RoslynTelemetry.Current,
         serverConfiguration.SessionId,
         isDefaultSession: true);
+
+    // Memory is sampled on the process-level session: in daemon mode every server shares this process's memory.
+    using var memoryTelemetry = telemetryService is null
+        ? null
+        : new ProcessMemoryTelemetry(
+            telemetryService.Telemetry,
+            () => connectionManager.ActiveConnections,
+            ProcessMemoryTelemetry.DefaultSampleInterval);
 
     var exitReason = "Faulted";
     // VS telemetry reads block properties on completion, after the final count and exit reason are known.

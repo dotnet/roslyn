@@ -98,8 +98,6 @@ internal sealed class HtmlRequestInvoker(
         var textDocument = request switch
         {
             ITextDocumentParams textDocumentParams => textDocumentParams.TextDocument,
-            // VSInternalDiagnosticParams doesn't implement the interface because the TextDocument property is nullable
-            VSInternalDiagnosticParams vsInternalDiagnosticParams => vsInternalDiagnosticParams.TextDocument,
             VSCodeActionParams vsCodeActionParams => vsCodeActionParams.TextDocument,
             _ => null
         };

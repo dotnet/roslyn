@@ -1428,6 +1428,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ThreeState.False;
             }
 
+            // Using and by-value foreach locals are mutable receivers despite not being assignable.
+            if (receiver is BoundLocal { LocalSymbol: { RefKind: RefKind.None } local } && (local.IsUsing || local.IsForEach))
+            {
+                return ThreeState.False;
+            }
+
+            if (receiver is BoundConditionalOperator { IsRef: true } conditional)
+            {
+                return (ReceiverIsSubjectToCloning(conditional.Consequence, method) == ThreeState.True ||
+                        ReceiverIsSubjectToCloning(conditional.Alternative, method) == ThreeState.True).ToThreeState();
+            }
+
             var valueKind = method.IsEffectivelyReadOnly
                 ? BindValueKind.RefersToLocation
                 : BindValueKind.RefersToLocation | BindValueKind.Assignable;

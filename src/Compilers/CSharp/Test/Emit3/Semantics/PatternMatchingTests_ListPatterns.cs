@@ -3230,7 +3230,7 @@ public class C
 }
 """;
         var comp = CreateCompilationWithIndexAndRangeAndSpan(source, options: TestOptions.ReleaseExe);
-        CompileAndVerify(comp, expectedOutput: @"
+        var verifier = CompileAndVerify(comp, expectedOutput: @"
 2
 3
 4
@@ -3239,6 +3239,65 @@ public class C
 3
 4
 1
+");
+        // No throw injected
+        verifier.VerifyIL("C.M2", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0035
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.2
+  IL_0009:  bge.s      IL_0011
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  beq.s      IL_002f
+  IL_000f:  br.s       IL_0035
+  IL_0011:  ldarg.0
+  IL_0012:  ldc.i4.0
+  IL_0013:  ldelem.i4
+  IL_0014:  ldc.i4.1
+  IL_0015:  bne.un.s   IL_001d
+  IL_0017:  ldarg.0
+  IL_0018:  ldc.i4.1
+  IL_0019:  ldelem.i4
+  IL_001a:  ldc.i4.2
+  IL_001b:  beq.s      IL_0037
+  IL_001d:  ldarg.0
+  IL_001e:  ldloc.0
+  IL_001f:  ldc.i4.2
+  IL_0020:  sub
+  IL_0021:  ldelem.i4
+  IL_0022:  ldc.i4.2
+  IL_0023:  bne.un.s   IL_0035
+  IL_0025:  ldarg.0
+  IL_0026:  ldloc.0
+  IL_0027:  ldc.i4.1
+  IL_0028:  sub
+  IL_0029:  ldelem.i4
+  IL_002a:  ldc.i4.1
+  IL_002b:  beq.s      IL_0039
+  IL_002d:  br.s       IL_0035
+  IL_002f:  ldarg.0
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldelem.i4
+  IL_0032:  ldc.i4.1
+  IL_0033:  beq.s      IL_003b
+  IL_0035:  ldc.i4.1
+  IL_0036:  ret
+  IL_0037:  ldc.i4.2
+  IL_0038:  ret
+  IL_0039:  ldc.i4.3
+  IL_003a:  ret
+  IL_003b:  ldc.i4.4
+  IL_003c:  ret
+}
 ");
     }
 
@@ -9813,6 +9872,174 @@ class C
   IL_0019:  ret
   IL_001a:  ldc.i4.0
   IL_001b:  ret
+}
+""");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+    public void SwitchStatementExhaustiveness_01()
+    {
+        var source = """
+class C
+{
+    static int M(int[] x)
+    {
+        switch (x)
+        {
+            case [.., >= 0]: return 1;
+            case [< 0, ..]: return 2;
+            case []: return 3;
+            case [_, _, ..]: return 4;
+            case null: return -1;
+        }
+    }
+
+    static void Main()
+    {
+        System.Console.Write(M(null));
+        System.Console.Write(M(new int[] { }));
+        System.Console.Write(M(new int[] { 5 }));
+        System.Console.Write(M(new int[] { -5 }));
+        System.Console.Write(M(new int[] { 7, -5 }));
+        System.Console.Write(M(new int[] { -5, 7 }));
+    }
+}
+""";
+
+        var comp = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        comp.VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(comp, expectedOutput: "-131241");
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("C.M", """
+{
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_0027
+  IL_0003:  ldarg.0
+  IL_0004:  ldlen
+  IL_0005:  conv.i4
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldc.i4.1
+  IL_0009:  blt.s      IL_0023
+  IL_000b:  ldarg.0
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  sub
+  IL_000f:  ldelem.i4
+  IL_0010:  ldc.i4.0
+  IL_0011:  bge.s      IL_001f
+  IL_0013:  ldarg.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldelem.i4
+  IL_0016:  ldc.i4.0
+  IL_0017:  blt.s      IL_0021
+  IL_0019:  ldloc.0
+  IL_001a:  ldc.i4.2
+  IL_001b:  bge.s      IL_0025
+  IL_001d:  br.s       IL_0029
+  IL_001f:  ldc.i4.1
+  IL_0020:  ret
+  IL_0021:  ldc.i4.2
+  IL_0022:  ret
+  IL_0023:  ldc.i4.3
+  IL_0024:  ret
+  IL_0025:  ldc.i4.4
+  IL_0026:  ret
+  IL_0027:  ldc.i4.m1
+  IL_0028:  ret
+  IL_0029:  newobj     "System.InvalidOperationException..ctor()"
+  IL_002e:  throw
+}
+""");
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85809")]
+    public void SwitchStatementExhaustiveness_02()
+    {
+        var source = """
+class C
+{
+    static int M(S x)
+    {
+        switch (x)
+        {
+            case [.., >= 0]: return 1;
+            case [< 0, ..]: return 2;
+            case []: return 3;
+            case [_, _, ..]: return 4;
+        }
+    }
+
+    static void Main()
+    {
+        System.Console.Write(M(new int[] { }));
+        System.Console.Write(M(new int[] { 5 }));
+        System.Console.Write(M(new int[] { -5 }));
+        System.Console.Write(M(new int[] { 7, -5 }));
+        System.Console.Write(M(new int[] { -5, 7 }));
+    }
+}
+
+struct S
+{
+    public int[] A;
+
+    public static implicit operator S(int[] a) => new S() {A = a};
+    public int Length => A.Length;
+    public int this[int i] => A[i];
+}
+""";
+
+        var comp = CreateCompilationWithIndexAndRange(source, options: TestOptions.ReleaseExe);
+        comp.VerifyDiagnostics();
+
+        var verifier = CompileAndVerify(comp, expectedOutput: "31241");
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("C.M", """
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "int S.Length.get"
+  IL_0007:  stloc.0
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  blt.s      IL_002e
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  ldloc.0
+  IL_000f:  ldc.i4.1
+  IL_0010:  sub
+  IL_0011:  call       "int S.this[int].get"
+  IL_0016:  ldc.i4.0
+  IL_0017:  bge.s      IL_002a
+  IL_0019:  ldarga.s   V_0
+  IL_001b:  ldc.i4.0
+  IL_001c:  call       "int S.this[int].get"
+  IL_0021:  ldc.i4.0
+  IL_0022:  blt.s      IL_002c
+  IL_0024:  ldloc.0
+  IL_0025:  ldc.i4.2
+  IL_0026:  bge.s      IL_0030
+  IL_0028:  br.s       IL_0032
+  IL_002a:  ldc.i4.1
+  IL_002b:  ret
+  IL_002c:  ldc.i4.2
+  IL_002d:  ret
+  IL_002e:  ldc.i4.3
+  IL_002f:  ret
+  IL_0030:  ldc.i4.4
+  IL_0031:  ret
+  IL_0032:  newobj     "System.InvalidOperationException..ctor()"
+  IL_0037:  throw
 }
 """);
     }

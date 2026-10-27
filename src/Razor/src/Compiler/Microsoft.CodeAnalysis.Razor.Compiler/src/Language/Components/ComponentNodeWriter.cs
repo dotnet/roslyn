@@ -85,7 +85,8 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
             throw new ArgumentNullException(nameof(node));
         }
 
-        var parameters = GetTypeInferenceMethodParameters(node);
+        using var _ = ListPool<TypeInferenceMethodParameter>.GetPooledObject(out var parameters);
+        GetTypeInferenceMethodParameters(node, parameters);
 
         // This is really similar to the code in WriteComponentAttribute and WriteComponentChildContent - except simpler because
         // attributes and child contents look like variables.
@@ -120,7 +121,7 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         writer.Write(" ");
         writer.Write(node.MethodName);
         writer.Write("<");
-        writer.Write(string.Join(", ", node.Component.Component.GetTypeParameters().Select(serializeTypeParameter)));
+        writeTypeParameters(writer, node, includeAttributes: true);
         writer.Write(">");
 
         writer.Write("(");
@@ -299,7 +300,7 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
             writer.Write("public static void ");
             writer.Write(node.MethodName);
             writer.Write("_CaptureParameters<");
-            writer.Write(string.Join(", ", node.Component.Component.GetTypeParameters().Select(a => a.Name)));
+            writeTypeParameters(writer, node, includeAttributes: false);
             writer.Write(">");
 
             writer.Write("(");
@@ -357,14 +358,23 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
             writer.WriteLine();
         }
 
-        static string serializeTypeParameter(BoundAttributeDescriptor attribute)
+        static void writeTypeParameters(CodeWriter writer, ComponentTypeInferenceMethodIntermediateNode node, bool includeAttributes)
         {
-            if (attribute.Metadata is TypeParameterMetadata { NameWithAttributes: string withAttributes })
+            // Write directly so each inference method doesn't allocate joined parameter lists.
+            var first = true;
+            foreach (var attribute in node.Component.Component.GetTypeParameters())
             {
-                return withAttributes;
-            }
+                if (!first)
+                {
+                    writer.Write(", ");
+                }
 
-            return attribute.Name;
+                first = false;
+
+                writer.Write(includeAttributes && attribute.Metadata is TypeParameterMetadata { NameWithAttributes: string withAttributes }
+                    ? withAttributes
+                    : attribute.Name);
+            }
         }
     }
 
@@ -402,10 +412,8 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         }
     }
 
-    private List<TypeInferenceMethodParameter> GetTypeInferenceMethodParameters(ComponentTypeInferenceMethodIntermediateNode node)
+    private static void GetTypeInferenceMethodParameters(ComponentTypeInferenceMethodIntermediateNode node, List<TypeInferenceMethodParameter> p)
     {
-        var p = new List<TypeInferenceMethodParameter>();
-
         // Preserve order between attributes and splats
         foreach (var child in node.Component.Children)
         {
@@ -477,8 +485,6 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
                 i++;
             }
         }
-
-        return p;
     }
 
     private static void UseCapturedCascadingGenericParameterVariable(ComponentIntermediateNode node, TypeInferenceMethodParameter parameter, TypeInferenceArgName variableName)
@@ -1085,7 +1091,8 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         }
         else
         {
-            var parameters = GetTypeInferenceMethodParameters(node.TypeInferenceNode);
+            using var _ = ListPool<TypeInferenceMethodParameter>.GetPooledObject(out var parameters);
+            GetTypeInferenceMethodParameters(node.TypeInferenceNode, parameters);
 
             // If this component is going to cascade any of its generic types, we have to split its type inference
             // into two parts. First we call an inference method that captures all the parameters in local variables,
@@ -1716,9 +1723,13 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
 
     private static string GetHtmlContent(HtmlContentIntermediateNode node)
     {
-        using var _ = StringBuilderPool.GetPooledObject(out var builder);
+        // Most text nodes already have a single string that the code writer can retain directly.
+        if (node.Children is [HtmlIntermediateToken token])
+        {
+            return token.Content;
+        }
 
-        var htmlTokens = node.Children.OfType<HtmlIntermediateToken>();
+        using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
         foreach (var child in node.Children)
         {
@@ -1782,6 +1793,13 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         // If we only have HTML tokens, we write out a single string literal.
         if (hasHtml && !hasCSharp)
         {
+            // Keep the original string rather than copying it through the pooled builder.
+            if (tokens is [HtmlIntermediateToken singleToken])
+            {
+                writer.WriteStringLiteral(singleToken.Content);
+                return;
+            }
+
             using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
             foreach (var token in tokens)

@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                // unsafe is added only for new code (code that opts into unsafe evolution and uses the keyword to annotate caller-unsafe members)
+                // unsafe is added only for new code (code that opts into unsafe evolution and uses the keyword to annotate requires-unsafe members)
                 if (symbol.RequiresUnsafeContext &&
                     symbol.ContainingModule.MemorySafetyRulesVersion == MemorySafetyRulesVersion.Version2)
                 {

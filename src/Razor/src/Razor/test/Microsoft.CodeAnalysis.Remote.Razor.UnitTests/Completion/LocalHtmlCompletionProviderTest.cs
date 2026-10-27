@@ -659,6 +659,51 @@ public class LocalHtmlCompletionProviderTest
 
     #region Completion Application (round-trip tests)
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/85709")]
+    public void ApplyCompletion_CloseTagInNestedCSharp_PreservesFollowingCode()
+    {
+        var result = ApplyCompletion(
+            markup: """
+                @if (true)
+                {
+                    <div>
+                        <div>
+                            @foreach (var item in items)
+                            {
+                                <div>
+                                    @if (true)
+                                    {
+                                    }
+                                </d$$
+                            }
+                        </div>
+                    </div>
+                }
+                """,
+            itemLabel: "/div>");
+
+        Assert.Equal(
+            """
+            @if (true)
+            {
+                <div>
+                    <div>
+                        @foreach (var item in items)
+                        {
+                            <div>
+                                @if (true)
+                                {
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            """,
+            result);
+    }
+
     [Theory]
     [InlineData("<div></d$$>", "/div>", "<div></div>")]
     [InlineData("<table></t$$", "/table>", "<table></table>")]

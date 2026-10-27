@@ -1,0 +1,1 @@
+﻿TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/IdentifierInRazor11.cshtml(1,2): Warning RZ1048: The '@documentation' syntax will be treated as a directive in Razor 12.0. Use an explicit expression ('@(...)') to preserve the current meaning.

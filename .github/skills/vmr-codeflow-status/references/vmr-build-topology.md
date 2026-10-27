@@ -123,7 +123,7 @@ There are two sources of truth for what VMR build a repo is synced to:
 **2. Backflow PR body (when a PR is open):**
 ```
 - **Date Produced**: February 4, 2026 11:05:10 AM UTC
-- **Build**: [20260203.11](...) ([300217](https://maestro.dot.net/channel/8298/.../build/300217))
+- **Build**: [20260203.11](<azdo-build-url>) ([300217](<maestro-channel-url>))
 ```
 
 **Comparing against aka.ms build date:**

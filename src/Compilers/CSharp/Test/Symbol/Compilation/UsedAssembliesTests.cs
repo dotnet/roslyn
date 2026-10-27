@@ -3845,14 +3845,14 @@ public class C2
             void verifyDiagnostics(MetadataReference reference0, MetadataReference reference1, string source, params DiagnosticDescription[] diagnostics)
             {
                 var references = new[] { reference0, reference1 };
-                Compilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, references: references, options: TestOptions.UnsafeDebugDll);
+                Compilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, references: references, options: TestOptions.UnsafeDebugDll);
                 comp.VerifyDiagnostics(diagnostics);
             }
 
             void verify(MetadataReference reference0, MetadataReference reference1, string source)
             {
                 var references = new[] { reference0, reference1 };
-                AssertUsedAssemblyReferences(source, references, references, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll);
+                AssertUsedAssemblyReferences(source, references, references, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll);
             }
         }
 

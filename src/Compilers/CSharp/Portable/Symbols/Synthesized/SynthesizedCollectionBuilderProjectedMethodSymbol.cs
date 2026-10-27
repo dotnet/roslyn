@@ -64,9 +64,9 @@ internal sealed class SynthesizedCollectionBuilderProjectedMethodSymbol(
     internal override UnmanagedCallersOnlyAttributeData? GetUnmanagedCallersOnlyAttributeData(bool forceComplete) => null;
 
     /// <summary>
-    /// Similarly to <see cref="ObsoleteAttributeData"/>, we report caller-unsafe errors on the <see cref="UnderlyingMethod"/> instead.
+    /// Similarly to <see cref="ObsoleteAttributeData"/>, we report requires-unsafe errors on the <see cref="UnderlyingMethod"/> instead.
     /// </summary>
-    internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => CallerUnsafeMode.None;
+    internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => RequiresUnsafeMode.None;
 
     // Note: it is very intentional that we return empty arrays for Type arguments/parameters.  Consider a
     // hypothetical signature like:

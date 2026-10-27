@@ -555,6 +555,7 @@
         <Icon guid="ImageCatalogGuid" id="SortAscending" />
         <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>SelectionPatternAvailable</CommandFlag>
         <Strings>
           <LocCanonicalName>DocumentOutlineSortByName</LocCanonicalName>
           <ButtonText>Sort By Name</ButtonText>
@@ -568,6 +569,7 @@
         <Icon guid="ImageCatalogGuid" id="SortByNamespace" />
         <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>SelectionPatternAvailable</CommandFlag>
         <Strings>
           <LocCanonicalName>DocumentOutlineSortByOrder</LocCanonicalName>
           <ButtonText>Sort By Order</ButtonText>
@@ -581,6 +583,7 @@
         <Icon guid="ImageCatalogGuid" id="SortByType" />
         <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>IconIsMoniker</CommandFlag>
+        <CommandFlag>SelectionPatternAvailable</CommandFlag>
         <Strings>
           <LocCanonicalName>DocumentOutlineSortByType</LocCanonicalName>
           <ButtonText>Sort By Type</ButtonText>

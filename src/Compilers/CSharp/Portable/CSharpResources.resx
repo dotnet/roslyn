@@ -1074,6 +1074,10 @@
   <data name="ERR_IllegalUnsafe" xml:space="preserve">
     <value>Unsafe code may only appear if compiling with /unsafe</value>
   </data>
+  <data name="ERR_IllegalUnsafeModifier" xml:space="preserve">
+    <value>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</value>
+    <comment>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</comment>
+  </data>
   <data name="ERR_AmbigMember" xml:space="preserve">
     <value>Ambiguity between '{0}' and '{1}'</value>
   </data>
@@ -4738,7 +4742,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
+-unsafe[+|-]                  Allow 'unsafe' code and 'safe' modifiers
 -define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
                               form: -d)
 -langversion:?                Display the allowed values for language version
@@ -8159,8 +8163,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'extern' member must be marked 'unsafe' or 'safe'.</value>
     <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
   </data>
-  <data name="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe" xml:space="preserve">
-    <value>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</value>
+  <data name="ERR_LayoutFieldRequiresUnsafeOrSafe" xml:space="preserve">
+    <value>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</value>
     <comment>'unsafe' and 'safe' should not be localized.</comment>
   </data>
   <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
@@ -8303,13 +8307,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsafeMemberOperationCompat" xml:space="preserve">
     <value>'{0}' must be used in an unsafe context because it has pointers in its signature</value>
   </data>
-  <data name="ERR_CallerUnsafeOverridingSafe" xml:space="preserve">
+  <data name="ERR_RequiresUnsafeOverridingSafe" xml:space="preserve">
     <value>Unsafe member '{0}' cannot override safe member '{1}'</value>
   </data>
-  <data name="ERR_CallerUnsafeImplicitlyImplementingSafe" xml:space="preserve">
+  <data name="ERR_RequiresUnsafeImplicitlyImplementingSafe" xml:space="preserve">
     <value>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</value>
   </data>
-  <data name="ERR_CallerUnsafeExplicitlyImplementingSafe" xml:space="preserve">
+  <data name="ERR_RequiresUnsafeExplicitlyImplementingSafe" xml:space="preserve">
     <value>Unsafe member '{0}' cannot implement safe member '{1}'</value>
   </data>
   <data name="ERR_UnsafeConstructorConstraint" xml:space="preserve">

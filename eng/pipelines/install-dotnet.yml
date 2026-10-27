@@ -1,0 +1,23 @@
+steps:
+  - pwsh: |
+      $globalJson = Get-Content -LiteralPath (Join-Path "$(Build.SourcesDirectory)" "global.json") -Raw |
+        ConvertFrom-Json
+      $version = $globalJson.sdk.version
+      if ([string]::IsNullOrWhiteSpace($version)) {
+        throw "global.json must specify sdk.version"
+      }
+      Write-Host "##vso[task.setvariable variable=RequiredDotNetSdkVersion;isReadOnly=true]$version"
+    displayName: Read SDK version from global.json
+
+  - task: UseDotNet@2
+    displayName: Install .NET SDK
+    inputs:
+      packageType: sdk
+      useGlobalJson: false
+      version: '$(RequiredDotNetSdkVersion)'
+
+  - task: UseDotNet@2
+    displayName: Install .NET runtime for tests
+    inputs:
+      packageType: runtime
+      version: '10.0.x'
