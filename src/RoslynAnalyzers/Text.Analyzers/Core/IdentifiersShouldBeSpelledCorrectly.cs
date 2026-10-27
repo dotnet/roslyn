@@ -373,8 +373,9 @@ namespace Text.Analyzers
                     reportDiagnostic(GetMisspelledWordDiagnostic(symbol, misspelledWord));
                 }
 
-                // A single digit is what remains of names like 'T1' after the prefix was removed; GetMisspelledWords ignores those too.
-                if (checkForUnmeaningful && symbolName.Length == 1 && !IsWordNumeric(symbolName))
+                // A single digit is what remains of type parameter names like 'T1' after the prefix was removed. Fields ('_1')
+                // and interfaces ('I1') have their prefix removed too, but a bare number is no more meaningful a name there.
+                if (checkForUnmeaningful && symbolName.Length == 1 && !(symbol.Kind == SymbolKind.TypeParameter && IsWordNumeric(symbolName)))
                 {
                     reportDiagnostic(GetUnmeaningfulIdentifierDiagnostic(symbol, symbolName));
                 }
