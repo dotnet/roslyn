@@ -368,14 +368,19 @@ namespace Text.Analyzers
 
             void ReportDiagnosticsForSymbol(ISymbol symbol, string symbolName, Action<Diagnostic> reportDiagnostic, bool checkForUnmeaningful = true)
             {
+                // Only digits remain of type parameter names like 'T1' after the prefix was removed. Fields ('_1') and
+                // interfaces ('I1') have their prefix removed too, but a bare number is no more meaningful a name there.
+                if (symbol.Kind == SymbolKind.TypeParameter && symbolName.All(char.IsDigit))
+                {
+                    return;
+                }
+
                 foreach (var misspelledWord in GetMisspelledWords(symbolName))
                 {
                     reportDiagnostic(GetMisspelledWordDiagnostic(symbol, misspelledWord));
                 }
 
-                // A single digit is what remains of type parameter names like 'T1' after the prefix was removed. Fields ('_1')
-                // and interfaces ('I1') have their prefix removed too, but a bare number is no more meaningful a name there.
-                if (checkForUnmeaningful && symbolName.Length == 1 && !(symbol.Kind == SymbolKind.TypeParameter && IsWordNumeric(symbolName)))
+                if (checkForUnmeaningful && symbolName.Length == 1)
                 {
                     reportDiagnostic(GetUnmeaningfulIdentifierDiagnostic(symbol, symbolName));
                 }
