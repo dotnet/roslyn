@@ -10,7 +10,7 @@ Using the `safe` modifier requires `/unsafe` (`AllowUnsafeBlocks` in MSBuild), j
 
 ## Embedded statements introduce a nested ref-safety context
 
-***Introduced in Visual Studio 2026 version 18.13***
+***Introduced in Visual Studio 2026 version 18.14***
 
 Ref-safety analysis treats an embedded statement without braces as a nested context, just as it treats an explicit block.
 This applies to the bodies of `if`/`else`, `while`, `do`, `for`, `foreach`, `using`, `lock`, and `fixed` statements,
