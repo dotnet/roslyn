@@ -67,7 +67,7 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
             return null;
         }
 
-        if (!await AreAllDerrivedTypesHandledAsync(solution, semanticModel, switchExpression.Arms, namedType, cancellationToken: cancellationToken).ConfigureAwait(false))
+        if (!await AreAllDerivedTypesHandledAsync(solution, semanticModel, switchExpression.Arms, namedType, cancellationToken: cancellationToken).ConfigureAwait(false))
             return null;
 
         if (!namedType.IsAbstract && await IsTypeEverInstantiatedAsync(solution, namedType, cancellationToken).ConfigureAwait(false))
@@ -114,7 +114,7 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         return false;
     }
 
-    private static async Task<bool> AreAllDerrivedTypesHandledAsync(
+    private static async Task<bool> AreAllDerivedTypesHandledAsync(
         Solution solution,
         SemanticModel semanticModel,
         SeparatedSyntaxList<SwitchExpressionArmSyntax> switchArms,
@@ -144,7 +144,7 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
             if (isHandled)
                 continue;
 
-            if (!await AreAllDerrivedTypesHandledAsync(solution, semanticModel, switchArms, derivedClass, false, false, cancellationToken).ConfigureAwait(false))
+            if (!await AreAllDerivedTypesHandledAsync(solution, semanticModel, switchArms, derivedClass, false, false, cancellationToken).ConfigureAwait(false))
                 return false;
         }
 
