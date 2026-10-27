@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +37,8 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         if (switchExpression == null)
             return null;
 
-        var switchedOnType = semanticModel.GetTypeInfo(switchExpression.GoverningExpression, cancellationToken: cancellationToken).Type;
+        var switchedOnTypeInfo = semanticModel.GetTypeInfo(switchExpression.GoverningExpression, cancellationToken: cancellationToken);
+        var switchedOnType = switchedOnTypeInfo.Type;
 
         if (switchedOnType is not INamedTypeSymbol namedType)
             return null;
@@ -60,7 +62,7 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         if (await declaration.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) is not TypeDeclarationSyntax syntax)
             return null;
 
-        if (namedType.NullableAnnotation == NullableAnnotation.Annotated &&
+        if (IsNullableType(semanticModel, switchExpression.GoverningExpression, switchedOnTypeInfo, cancellationToken) &&
             !switchExpression.Arms.Any(arm => arm.Pattern is ConstantPatternSyntax constantPattern && constantPattern.Expression.IsKind(SyntaxKind.NullLiteralExpression)))
         {
             return null;
@@ -73,6 +75,44 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
             return null;
 
         return syntax;
+    }
+
+    private static bool IsNullableType(
+        SemanticModel semanticModel,
+        ExpressionSyntax expression,
+        TypeInfo typeInfo,
+        CancellationToken cancellationToken)
+    {
+        if (typeInfo.Nullability.Annotation == NullableAnnotation.Annotated ||
+            typeInfo.Type?.NullableAnnotation == NullableAnnotation.Annotated ||
+            typeInfo.ConvertedType?.NullableAnnotation == NullableAnnotation.Annotated)
+        {
+            return true;
+        }
+
+        var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
+        if (symbol == null)
+            return false;
+
+        foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+        {
+            var declaration = syntaxReference.GetSyntax(cancellationToken);
+            var typeSyntax = declaration switch
+            {
+                ParameterSyntax parameter => parameter.Type,
+                VariableDeclaratorSyntax variable => (variable.Parent as VariableDeclarationSyntax)?.Type,
+                PropertyDeclarationSyntax property => property.Type,
+                MethodDeclarationSyntax method => method.ReturnType,
+                IndexerDeclarationSyntax indexer => indexer.Type,
+                CatchDeclarationSyntax catchDeclaration => catchDeclaration.Type,
+                _ => null,
+            };
+
+            if (typeSyntax is NullableTypeSyntax)
+                return true;
+        }
+
+        return false;
     }
 
     private static async Task<bool> AreAllDerrivedTypesHandledAsync(
