@@ -5487,13 +5487,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private protected sealed override ITypeSymbol GetIterationTypeCore(int position, ITypeSymbol type, CancellationToken cancellationToken)
+#nullable enable
+        private protected sealed override ITypeSymbol? GetIterationTypeCore(int position, ITypeSymbol type, CancellationToken cancellationToken)
             => GetIterationType(position, type, isAsync: false);
 
-        public ITypeSymbol GetAsyncIterationType(int position, ITypeSymbol type)
+#pragma warning disable IDE0060 // Remove unused parameter
+        public ITypeSymbol? GetAsyncIterationType(int position, ITypeSymbol type, CancellationToken cancellationToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
             => GetIterationType(position, type, isAsync: true);
 
-        private ITypeSymbol GetIterationType(int position, ITypeSymbol type, bool isAsync)
+        private ITypeSymbol? GetIterationType(int position, ITypeSymbol type, bool isAsync)
         {
             position = CheckAndAdjustPosition(position);
 
@@ -5508,11 +5511,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            BoundExpression collectionExpr = new BoundValuePlaceholder(Root, type.EnsureCSharpSymbolOrNull(nameof(type)));
-            return binder.GetEnumeratorInfoAndInferCollectionElementType(Root, Root, ref collectionExpr, isAsync, isSpread: false, BindingDiagnosticBag.Discarded, out var iterationType, builder: out _)
+            return binder.TryGetCollectionIterationType(Root, type.EnsureCSharpSymbolOrNull(nameof(type)), isAsync, out var iterationType)
                 ? iterationType.GetPublicSymbol()
                 : null;
         }
+#nullable disable
 
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)
         {

@@ -753,12 +753,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="type">The type of the collection being iterated over.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The iteration type, or null if <paramref name="type"/> cannot be iterated over asynchronously at <paramref name="position"/>.</returns>
-#pragma warning disable IDE0060 // Remove unused parameter
         public static ITypeSymbol? GetAsyncIterationType(this SemanticModel? semanticModel, int position, ITypeSymbol type, CancellationToken cancellationToken = default)
-#pragma warning restore IDE0060 // Remove unused parameter
         {
             var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetAsyncIterationType(position, type);
+            return csmodel?.GetAsyncIterationType(position, type, cancellationToken);
         }
 
         /// <summary>

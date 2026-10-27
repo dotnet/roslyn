@@ -94,7 +94,7 @@ public class GetIterationTypeTests : CSharpTestBase
         var (model, c) = Compile();
         var iterationType = model.GetIterationType(Source.IndexOf("/*inside*/"), ParameterType(c, "WithExtension"));
 
-        Assert.Equal("System.Char", iterationType?.ToTestDisplayString());
+        Assert.Null(iterationType);
     }
 
     [Theory]
