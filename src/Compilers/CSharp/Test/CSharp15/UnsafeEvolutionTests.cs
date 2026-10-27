@@ -501,6 +501,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
     }
 
+    [Fact]
+    public void RulesOption_FeatureFlag_Deprecated()
+    {
+        CreateCompilation(["", ""],
+            parseOptions: TestOptions.RegularPreview.WithFeature(Feature.UpdatedMemorySafetyRules),
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics(
+                // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+                Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
+    }
+
     [Theory, CombinatorialData]
     public void RulesOption_FeatureFlag(
         [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion langVersion,
@@ -513,7 +524,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 module,
                 expectedDefinition: AttributeDefinition.Synthesized,
                 expectedUpdatedRules: true))
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(
+                // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+                Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
 
         var comp = (CSharpCompilation)verifier.Compilation;
         var expectedOptionVersion = updatedRules == true ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
@@ -530,7 +543,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: updatedRules is not { } updatedRulesValue ? null : TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesValue))
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+            // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+            Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
 
         var expectedOptionVersion = updatedRules == true ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
         Assert.Equal(expectedOptionVersion, comp.Options.MemorySafetyRulesVersion);
@@ -567,16 +582,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Assert.Equal(expectedVersion, compilation.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
             Assert.Same(options, compilation.Options);
 
+            var expectedDiagnostics = new List<DiagnosticDescription>();
             if (expectedUpdatedRules && compilation.LanguageVersion != LanguageVersion.Preview)
             {
-                compilation.VerifyDiagnostics(
+                expectedDiagnostics.Add(
                     // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
                     Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", compilation.LanguageVersion.ToDisplayString(), "preview").WithLocation(1, 1));
             }
-            else
+
+            if (compilation.HasFeature(Feature.UpdatedMemorySafetyRules))
             {
-                compilation.VerifyEmitDiagnostics();
+                expectedDiagnostics.Add(
+                    // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+                    Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
             }
+
+            compilation.VerifyDiagnostics([.. expectedDiagnostics]);
         }
     }
 
@@ -588,7 +609,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)999))
             .VerifyDiagnostics(
             // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '999'. Accepted values are: 1, 2
-            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", "999", "1, 2").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", "999", "1, 2").WithLocation(1, 1),
+            // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+            Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
 
         Assert.Equal((MemorySafetyRulesVersion)999, comp.Options.MemorySafetyRulesVersion);
         Assert.Equal(MemorySafetyRulesVersion.Version1, comp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);

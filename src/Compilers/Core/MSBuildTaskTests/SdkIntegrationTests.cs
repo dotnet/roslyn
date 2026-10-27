@@ -355,6 +355,8 @@ public sealed class SdkIntegrationTests : IDisposable
         var compilation = ReadCompilations(binlogPath).Single();
 
         compilation.VerifyDiagnostics(
+            // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+            TestHelpers.Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1),
             // C.cs(5,9): error CS9362: 'C.M2()' must be used in an unsafe context because it is marked as 'unsafe'
             //         M2();
             TestHelpers.Diagnostic(9362, "M2()").WithArguments("C.M2()").WithLocation(5, 9));

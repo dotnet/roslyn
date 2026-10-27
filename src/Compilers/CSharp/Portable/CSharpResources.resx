@@ -4138,6 +4138,12 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_NoCorrespondingArgument" xml:space="preserve">
     <value>There is no argument given that corresponds to the required parameter '{0}' of '{1}'</value>
   </data>
+  <data name="WRN_DeprecatedFeatureFlag" xml:space="preserve">
+    <value>Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</value>
+  </data>
+  <data name="WRN_DeprecatedFeatureFlag_Title" xml:space="preserve">
+    <value>Feature flag is deprecated</value>
+  </data>
   <data name="WRN_UnimplementedCommandLineSwitch" xml:space="preserve">
     <value>The command line switch '{0}' is not yet implemented and was ignored.</value>
   </data>
