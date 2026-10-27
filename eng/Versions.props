@@ -1,11 +1,11 @@
-<Project>
+﻿<Project>
 
   <Import Project="Version.Details.props" />
 
   <!-- Roslyn version -->
   <PropertyGroup>
     <MajorVersion>5</MajorVersion>
-    <MinorVersion>13</MinorVersion>
+    <MinorVersion>14</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
     <PreReleaseVersionLabel Condition="'$(DotNetSignType)' == 'test'">$(PreReleaseVersionLabel)-test</PreReleaseVersionLabel>
@@ -20,7 +20,7 @@
   <!-- Razor version (used by src/Razor projects and VS insertion) -->
   <PropertyGroup>
     <RazorMajorVersion>11</RazorMajorVersion>
-    <RazorMinorVersion>1</RazorMinorVersion>
+    <RazorMinorVersion>2</RazorMinorVersion>
     <RazorPatchVersion>0</RazorPatchVersion>
     <RazorPreReleaseVersionLabel>preview</RazorPreReleaseVersionLabel>
     <RazorDotNetFinalVersionKind></RazorDotNetFinalVersionKind>
