@@ -835,6 +835,11 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Corregir todo: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_all_diagnostics_in_document">
+        <source>Fix all diagnostics in document</source>
+        <target state="new">Fix all diagnostics in document</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">Corregir error de escritura "{0}"</target>

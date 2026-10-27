@@ -2,18 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using CodeActionRequestPriority = Microsoft.CodeAnalysis.CodeActions.CodeActionRequestPriority;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
@@ -136,6 +142,100 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         var addImport = results.FirstOrDefault(r => r.Title.Contains($"using System.Threading.Tasks"));
         Assert.Equal(1, addImport!.Diagnostics!.Length);
         Assert.Equal(AddImportDiagnosticIds.CS0103, addImport.Diagnostics.Single().Code!.Value);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestCodeActionHelperFiltersRequestedKindsAndSkipsUnrequestedServices(
+        bool mutatingLspWorkspace,
+        bool hasVsLspCapability,
+        [CombinatorialValues("quickfix", "refactor", "refactor.extract", "refactor.inline", "quickfix,refactor.extract")] string requestedKinds)
+    {
+        // Context.Only should restrict both computation and returned action kinds for standard and VS clients.
+        // Select statements offering missing-using fixes and extraction refactorings, or a local variable to inline.
+        var markup = requestedKinds == "refactor.inline"
+            ? "class C { void M() { int {|caret:value|} = 1; System.Console.WriteLine(value); } }"
+            : "class C { void M() { {|caret:int value = 1; Task.Delay(value);|} } }";
+        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var request = CreateCodeActionParams(server.GetLocations("caret").Single());
+        request.Context.Only = requestedKinds.Split(',').Select(kind => new CodeActionKind(kind)).ToArray();
+
+        // Only requested categories get real services. Computing an excluded category fails immediately.
+        var codeFixService = requestedKinds.Contains("quickfix")
+            ? server.TestWorkspace.ExportProvider.GetExportedValue<ICodeFixService>()
+            : new ThrowingCodeFixService();
+        var codeRefactoringService = requestedKinds.Contains("refactor")
+            ? server.TestWorkspace.ExportProvider.GetExportedValue<ICodeRefactoringService>()
+            : new ThrowingCodeRefactoringService();
+
+        // Call discovery directly so the helper, rather than the request handler, must honor Context.Only.
+        var actions = await CodeActionHelpers.GetVSCodeActionsAsync(
+            request, server.GetCurrentSolution().Projects.Single().Documents.Single(),
+            codeFixService, codeRefactoringService, hasVsLspCapability, CancellationToken.None);
+
+        // Require results for every requested category and reject unrelated kinds.
+        // A parent refactor filter also permits its extract and inline children.
+        CodeActionKind?[] expectedKinds = requestedKinds switch
+        {
+            "quickfix" => [CodeActionKind.QuickFix],
+            "refactor" => [CodeActionKind.Refactor, CodeActionKind.RefactorExtract, CodeActionKind.RefactorInline],
+            "refactor.extract" => [CodeActionKind.RefactorExtract],
+            "refactor.inline" => [CodeActionKind.RefactorInline],
+            _ => [CodeActionKind.QuickFix, CodeActionKind.RefactorExtract],
+        };
+        foreach (var requestedKind in request.Context.Only)
+            Assert.Contains(actions, action => action.Kind == requestedKind ||
+                requestedKind == CodeActionKind.Refactor && action.Kind == CodeActionKind.RefactorExtract);
+        Assert.All(actions, action => Assert.Contains(action.Kind, expectedKinds));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestCodeActionHelperSkipsUnsupportedKinds(
+        bool mutatingLspWorkspace,
+        bool hasVsLspCapability,
+        [CombinatorialValues("source.fixAll", "unknown", "refactoring", "quickfix.other")] string requestedKind)
+    {
+        // Source actions and unsupported kinds must not trigger ordinary fix/refactoring computation.
+        // Include a lookalike prefix and an unsupported child kind to verify hierarchical matching boundaries.
+        await using var server = await CreateTestLspServerAsync("class C { {|caret:|} }", mutatingLspWorkspace);
+        var request = CreateCodeActionParams(server.GetLocations("caret").Single());
+        request.Context.Only = [new CodeActionKind(requestedKind)];
+
+        // Both services throw if called, proving these filters can be rejected without computing any actions.
+        var actions = await CodeActionHelpers.GetVSCodeActionsAsync(
+            request, server.GetCurrentSolution().Projects.Single().Documents.Single(),
+            new ThrowingCodeFixService(),
+            new ThrowingCodeRefactoringService(),
+            hasVsLspCapability, CancellationToken.None);
+
+        // No ordinary action matches; source.fixAll is added separately by the request handler.
+        Assert.Empty(actions);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestCodeActionHelperPreservesUnrestrictedFilters(
+        bool mutatingLspWorkspace, bool hasVsLspCapability, bool useEmptyKind)
+    {
+        // Treat omitted, empty-list, and empty-parent filters as equivalent for either client format.
+        var markup = "class C { void M() { {|caret:int value = 1; Task.Delay(value);|} } }";
+        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        var request = CreateCodeActionParams(server.GetLocations("caret").Single());
+        var document = server.GetCurrentSolution().Projects.Single().Documents.Single();
+        var codeFixService = server.TestWorkspace.ExportProvider.GetExportedValue<ICodeFixService>();
+        var codeRefactoringService = server.TestWorkspace.ExportProvider.GetExportedValue<ICodeRefactoringService>();
+
+        // Capture the complete action list with Context.Only omitted as the baseline.
+        var unfiltered = await CodeActionHelpers.GetVSCodeActionsAsync(
+            request, document, codeFixService, codeRefactoringService, hasVsLspCapability, CancellationToken.None);
+
+        // Repeat discovery with either an empty list or the empty parent kind, both meaning "all kinds".
+        request.Context.Only = useEmptyKind ? [CodeActionKind.Empty] : [];
+        var filtered = await CodeActionHelpers.GetVSCodeActionsAsync(
+            request, document, codeFixService, codeRefactoringService, hasVsLspCapability, CancellationToken.None);
+
+        // Require both categories in the baseline, then compare full payloads to catch filtering or metadata changes.
+        Assert.Contains(unfiltered, action => action.Kind == CodeActionKind.QuickFix);
+        Assert.Contains(unfiltered, action => action.Kind == CodeActionKind.RefactorExtract);
+        AssertJsonEquals(unfiltered, filtered);
     }
 
     [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData]
@@ -320,5 +420,38 @@ public sealed class CodeActionsTests(ITestOutputHelper testOutputHelper) : Abstr
         };
 
         return action;
+    }
+
+    private sealed class ThrowingCodeFixService : ICodeFixService
+    {
+        public IAsyncEnumerable<CodeFixCollection> StreamFixesAsync(
+            TextDocument document, TextSpan textSpan, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
+            => throw ExceptionUtilities.Unreachable();
+
+        public Task<CodeFixCollection?> GetMostSevereFixAsync(
+            TextDocument document, TextSpan range, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
+            => throw ExceptionUtilities.Unreachable();
+
+        public Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
+            Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity severity, CancellationToken cancellationToken)
+            => throw ExceptionUtilities.Unreachable();
+
+        public Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(
+            Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity severity,
+            IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+            => throw ExceptionUtilities.Unreachable();
+
+        public CodeFixProvider? GetSuppressionFixer(string language, IEnumerable<string> diagnosticIds)
+            => throw ExceptionUtilities.Unreachable();
+    }
+
+    private sealed class ThrowingCodeRefactoringService : ICodeRefactoringService
+    {
+        public Task<bool> HasRefactoringsAsync(TextDocument document, TextSpan textSpan, CancellationToken cancellationToken)
+            => throw ExceptionUtilities.Unreachable();
+
+        public Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
+            TextDocument document, TextSpan textSpan, CodeActionRequestPriority? priority, CancellationToken cancellationToken)
+            => throw ExceptionUtilities.Unreachable();
     }
 }
