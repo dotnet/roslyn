@@ -62,13 +62,16 @@ internal sealed class ComponentGenericTypePass : ComponentIntermediateNodePassBa
             //
             // Listing all type parameters that exist
             var bindings = new Dictionary<string, Binding>();
-            var componentTypeParameters = node.Component.GetTypeParameters().ToList();
-            var supplyCascadingTypeParameters = componentTypeParameters
-                .Where(p => p.IsCascadingTypeParameterProperty())
-                .Select(p => p.Name)
-                .ToList();
-            foreach (var attribute in componentTypeParameters)
+            using var typeParametersLease = ListPool<BoundAttributeDescriptor>.GetPooledObject(out var componentTypeParameters);
+            using var cascadingTypeParametersLease = ListPool<string>.GetPooledObject(out var supplyCascadingTypeParameters);
+            foreach (var attribute in node.Component.GetTypeParameters())
             {
+                componentTypeParameters.Add(attribute);
+                if (attribute.IsCascadingTypeParameterProperty())
+                {
+                    supplyCascadingTypeParameters.Add(attribute.Name);
+                }
+
                 bindings.Add(attribute.Name, new Binding(attribute));
             }
 
@@ -178,7 +181,10 @@ internal sealed class ComponentGenericTypePass : ComponentIntermediateNodePassBa
             // For any remaining bindings, scan up the hierarchy of ancestor components and try to match them
             // with a cascaded generic parameter that can cover this one
             List<CascadingGenericTypeParameter>? receivesCascadingGenericTypes = null;
-            foreach (var uncoveredBindingKey in bindings.Keys.ToList())
+            using var uncoveredBindingsLease = ListPool<string>.GetPooledObject(out var uncoveredBindingKeys);
+            // Matching ancestors removes bindings, so enumerate a snapshot rather than the live keys.
+            uncoveredBindingKeys.AddRange(bindings.Keys);
+            foreach (var uncoveredBindingKey in uncoveredBindingKeys)
             {
                 foreach (var ancestor in Ancestors)
                 {
@@ -220,11 +226,20 @@ internal sealed class ComponentGenericTypePass : ComponentIntermediateNodePassBa
             //
             // [1] Attributes given as lambda expressions. These are lower priority than ancestor
             //     cascades because in most cases, lambdas don't provide type info
-            foreach (var entryToRemove in bindings.Where(e => e.Value.CoveredByLambda).ToList())
+            using var lambdaBindingsLease = ListPool<string>.GetPooledObject(out var lambdaBindingKeys);
+            foreach (var (key, binding) in bindings)
+            {
+                if (binding.CoveredByLambda)
+                {
+                    lambdaBindingKeys.Add(key);
+                }
+            }
+
+            foreach (var key in lambdaBindingKeys)
             {
                 // Treat this binding as covered, because it's possible that the lambda does provide
                 // enough info for type inference to succeed.
-                bindings.Remove(entryToRemove.Key);
+                bindings.Remove(key);
             }
 
             // [2] Child content parameters, which are nearly always defined as untyped lambdas
@@ -296,7 +311,7 @@ internal sealed class ComponentGenericTypePass : ComponentIntermediateNodePassBa
 
         private static bool ValidateTypeArguments(ComponentIntermediateNode node, Dictionary<string, Binding> bindings)
         {
-            var missing = new List<BoundAttributeDescriptor>();
+            using var _ = ListPool<BoundAttributeDescriptor>.GetPooledObject(out var missing);
             foreach (var (_, binding) in bindings)
             {
                 if (binding.Node == null || string.IsNullOrWhiteSpace(binding.Content?.Content))

@@ -5229,6 +5229,55 @@ class C
         }
 
         [Fact]
+        public void RefDiscardAssignment_36_Used()
+        {
+            var text = @"
+struct S
+{
+    public int Value;
+    public void Increment() => Value++;
+}
+
+class Program
+{
+    static void Main()
+    {
+        S s = default;
+        Test(ref s);
+        System.Console.WriteLine(s.Value);
+    }
+
+    static void Test(ref S s)
+    {
+        (_ = ref s).Increment();
+    }
+}
+";
+
+            CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: "1").VerifyIL("Program.Test", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""void S.Increment()""
+  IL_0007:  nop
+  IL_0008:  ret
+}
+");
+
+            CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: "1").VerifyIL("Program.Test", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""void S.Increment()""
+  IL_0006:  ret
+}
+");
+        }
+
+        [Fact]
         public void RefAssignRefParameter()
         {
             var text = @"

@@ -57,6 +57,9 @@ internal sealed partial class CSharpRemoveUnusedVariableCodeFixProvider() : Abst
             case SyntaxKind.SimpleAssignmentExpression:
                 editor.ReplaceNode(node, ((AssignmentExpressionSyntax)node).Right);
                 return;
+            case SyntaxKind.ExpressionStatement when !blockFacts.IsExecutableBlock(node.Parent) && !node.IsParentKind(SyntaxKind.GlobalStatement):
+                editor.ReplaceNode(node, SyntaxFactory.Block());
+                return;
             default:
                 RemoveNode(editor, node.IsParentKind(SyntaxKind.GlobalStatement) ? node.Parent : node, blockFacts);
                 return;

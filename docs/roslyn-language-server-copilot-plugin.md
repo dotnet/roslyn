@@ -45,6 +45,21 @@ The server is configured to automatically discover and load projects via either 
 
 For how the server chooses which solution or projects to load, and how to control it, see [Automatic project loading](../src/LanguageServer/roslyn-language-server/README.md#automatic-project-loading).
 
+### On-Demand Project Loading
+
+Separately from startup loading, a request for a file that is not yet in a loaded project can trigger on-demand loading. The server searches upward from the file's directory, stopping at the workspace folder, and loads the supported projects in the nearest directory containing project files. It then loads their transitive project references.
+
+On-demand loading is enabled by default when Dev Kit features are not in use. When Dev Kit features are enabled, the language server disables on-demand project loading regardless of this setting. Otherwise, to disable request-triggered project loading, set `dotnet.projects.loadOnDemand` in `.vscode/settings.json`:
+
+```jsonc
+// .vscode/settings.json
+{
+  "dotnet.projects.loadOnDemand": false
+}
+```
+
+Setting `dotnet.defaultSolution` to `"disable"` only disables startup loading; on-demand loading remains available outside Dev Kit mode unless `dotnet.projects.loadOnDemand` is also disabled.
+
 ## Troubleshooting
 
 ### Verify LSP configuration is found
@@ -96,7 +111,7 @@ When the agent opens a workspace containing `.cs` files, it will:
 
 1. **Install and run** the [`roslyn-language-server`](https://www.nuget.org/packages/roslyn-language-server) .NET tool on-the-fly using `dotnet dnx` (which downloads and caches the tool automatically; `--yes` skips confirmation and `--prerelease` allows prerelease versions).
 2. **Communicate over stdio** (`--stdio`) using the Language Server Protocol.
-3. **Automatically discover and load projects** (`--autoLoadProjects`) so that the agent immediately has full semantic understanding of the codebase.
+3. **Discover and load projects at startup** (`--autoLoadProjects`), with additional projects loaded on demand for requests to files not yet in loaded projects.
 
 ### Command-Line Options
 

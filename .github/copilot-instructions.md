@@ -147,6 +147,16 @@ Trivial changes don't need a written plan — go straight to the Definition of D
 - Do not optimize for an arbitrary line-count limit: generated files and mechanical updates can be large. Optimize for reviewer cognitive load, clear intent, and independent validation.
 - If a change cannot be split without making it less correct or harder to validate, explain that constraint in the plan and keep the commits logically separated.
 
+## Pull Request Descriptions
+
+Keep PR descriptions focused on what changed and why. Omit routine validation details
+that CI covers, such as builds, unit tests, formatting, and analyzers. Do not add a
+validation section just to list commands or passing results, or to say that
+documentation-only changes did not need tests.
+
+Include validation information only when it adds useful evidence beyond CI, such as
+manual scenario checks, benchmark results, or known validation limitations.
+
 ## Definition of Done
 
 Work is done only when every applicable step below is complete:
@@ -155,7 +165,8 @@ Work is done only when every applicable step below is complete:
 2. **Lint/analyzers:** Run the smallest existing lint or analyzer command that covers the changed files when applicable.
 3. **Build:** Build the specific affected project or solution filter (`Compilers.slnf`, `Ide.slnf`, `Razor.slnf`, or the project). Documentation-only changes do not require a product build.
 4. **Targeted tests:** Run the affected test project or focused test filter. Add or update tests when behavior changes; explain when no relevant automated test exists.
+   **Regression-test efficacy:** For bug fixes, verify that the regression test fails against the unfixed implementation for the intended reason, then passes with the fix. If the fix was implemented first, use an isolated worktree or safely remove only the fix while retaining the test; preserve unrelated changes and restore the fix afterward. Rebuild the affected code for each run so stale binaries cannot invalidate the comparison. Report the test command and both results. Build failures, unrelated failures, and skipped tests do not establish reproduction. If the test passes without the fix, revise it to reproduce the issue before claiming regression coverage. If this check cannot be performed, explicitly state that regression-test efficacy remains unverified.
 5. **Generated/resource/API updates:** Regenerate Syntax/BoundNodes outputs when their XML changes, run `/t:UpdateXlf` after `.resx` edits, and update `PublicAPI.Unshipped.txt` for public API changes.
 6. **Diff review:** Review the final diff and confirm it matches the approved plan, contains no unrelated edits, and follows nearby patterns.
 7. **Docs:** Run the `update-agent-docs` skill and apply the Doc Update Obligation above.
-8. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed. Do not claim completion while required validation is failing or was silently skipped.
+8. **Final evidence:** Inspect repository status and the final diff, then report the exact validation performed in the session. Follow **Pull Request Descriptions** above when writing the PR body. Do not claim completion while required validation is failing or was silently skipped.

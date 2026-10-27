@@ -21,6 +21,10 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		AppContext.BaseDirectory,
 		"Microsoft.NET.ProjectData.targets");
 
+	private static readonly string SchemaPropsFile = Path.Combine(
+		AppContext.BaseDirectory,
+		"Microsoft.NET.ProjectData.Schema.props");
+
 	/// <summary>
 	/// Safety-net timeout for each spawned <c>dotnet msbuild</c> invocation. If a child MSBuild/restore
 	/// process (or a lingering MSBuild worker node / build server that inherited the redirected stdout/stderr
@@ -47,11 +51,14 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	}
 
 	[Fact]
-	public void TargetsFileShipsAlongsideTaskAssembly()
+	public void MsBuildFilesShipsAlongsideTaskAssembly()
 	{
 		Assert.True(
 			File.Exists(TargetsFile),
 			$"Expected the targets file to be next to the test binary so MSBuild can resolve it. Looked for: {TargetsFile}");
+		Assert.True(
+			File.Exists(SchemaPropsFile),
+			$"Expected the props file to be next to the test binary so MSBuild can resolve it. Looked for: {SchemaPropsFile}");
 	}
 
 	[Fact]
@@ -2919,6 +2926,68 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		Assert.Contains(transitivePackageId, staleResult.Output);
 		Assert.Contains($"current request '{currentPinVersion}'", staleResult.Output);
 		Assert.Contains($"restored request '[{restoredPinVersion}, )'", staleResult.Output);
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task ProjectDataBuild_IgnoresInheritedTransitivePinningWhenCentralManagementIsDisabled(
+		bool restoredPinningEnabled)
+	{
+		File.WriteAllText(
+			Path.Combine(this.workDir, "Directory.Packages.props"),
+			$$"""
+			<Project>
+			  <PropertyGroup>
+			    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+			    <CentralPackageTransitivePinningEnabled>{{restoredPinningEnabled.ToString().ToLowerInvariant()}}</CentralPackageTransitivePinningEnabled>
+			  </PropertyGroup>
+			  <ItemGroup>
+			    <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0" />
+			  </ItemGroup>
+			</Project>
+			""");
+		string projectFile = this.WriteProject(
+			"CentralOptOut.csproj",
+			multiTargeting: false,
+			targetFramework: "net10.0",
+			extraProperties: "<ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>",
+			extraXml:
+			"""
+			<ItemGroup>
+			  <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+			</ItemGroup>
+			""",
+			writeAssetsFile: false);
+		ProcessResult restoreResult = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:Restore",
+				$"/p:RestoreConfigFile={Path.Combine(FindRepoRoot(), "NuGet.config")}",
+			]);
+		Assert.True(restoreResult.ExitCode == 0, restoreResult.Output);
+
+		foreach (bool currentPinningEnabled in new[] { restoredPinningEnabled, !restoredPinningEnabled })
+		{
+			ProcessResult result = await RunDotnetMsbuildAsync(
+				projectFile,
+				extraArgs:
+				[
+					"/t:ProjectDataBuild",
+					"/p:DesignTimeBuild=true",
+					"/p:BuildingProject=false",
+					"/p:SkipCompilerExecution=true",
+					"/p:ProvideCommandLineArgs=true",
+					"/p:EnableProjectDataInProjectFolder=true",
+					"/p:_ProjectDataBuildForce=true",
+					$"/p:CentralPackageTransitivePinningEnabled={currentPinningEnabled}",
+				]);
+			Assert.True(result.ExitCode == 0, result.Output);
+			string content = File.ReadAllText(projectFile + ".lscache");
+			Assert.Contains("microsoft.extensions.logging.abstractions/8.0.2/", content.Replace('\\', '/'));
+			AssertNoUnsupportedMarker(projectFile);
+		}
 	}
 
 	[Theory]

@@ -4634,7 +4634,7 @@ public struct C
             {
                 ILVerifyMessage = """
                     [Main]: Unexpected type on the stack. { Offset = 0x48, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
-                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x38 }
+                    [DisposeAsync]: Return value missing on the stack. { Offset = 0x3f }
                     """
             });
             verifier.VerifyIL("C.Main", """
@@ -4715,7 +4715,7 @@ public struct C
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput), verify: Verification.Fails with { ILVerifyMessage = """
                 [Main]: Unexpected type on the stack. { Offset = 0x49, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
-                [DisposeAsync]: Unexpected type on the stack. { Offset = 0x39, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
+                [DisposeAsync]: Unexpected type on the stack. { Offset = 0x40, Found = Int32, Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<int32>' }
                 """ });
             verifier.VerifyIL("C.Main", """
                 {

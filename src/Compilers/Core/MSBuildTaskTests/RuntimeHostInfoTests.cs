@@ -107,6 +107,7 @@ public sealed class RuntimeHostInfoTests(ITestOutputHelper output) : TestBase
     /// </summary>
     [Fact, WorkItem("https://github.com/dotnet/msbuild/issues/12669")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/85889")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86124")]
     public void DotNetInPath_Symlinked()
     {
         using var tempRoot = new TempRoot();
@@ -224,6 +225,7 @@ file static class TestNativeMethods
     }
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.U1)]
     private static extern bool CreateSymbolicLink(
         string lpSymlinkFileName,
         string lpTargetFileName,

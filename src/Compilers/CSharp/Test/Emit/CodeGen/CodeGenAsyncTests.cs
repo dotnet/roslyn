@@ -5199,8 +5199,8 @@ class Driver
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Goo]: Unexpected type on the stack. { Offset = 0x11, Found = ref 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>' }
-                    [Bar]: Unexpected type on the stack. { Offset = 0x27, Found = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<System.Threading.Tasks.Task`1<object>>' }
+                    [Goo]: Unexpected type on the stack. { Offset = 0x18, Found = ref 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>' }
+                    [Bar]: Unexpected type on the stack. { Offset = 0x2e, Found = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<System.Threading.Tasks.Task`1<object>>' }
                     [<Bar>b__0]: Unexpected type on the stack. { Offset = 0x16, Found = ref 'int32', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>' }
                     """
             });
@@ -5211,14 +5211,17 @@ class Driver
             );
             verifier.VerifyIL("DynamicClass.Goo<T>(T)", """
                 {
-                  // Code size       18 (0x12)
+                  // Code size       25 (0x19)
                   .maxstack  1
-                  IL_0000:  ldc.i4.1
-                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
-                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
-                  IL_000b:  ldarg.1
-                  IL_000c:  box        "T"
-                  IL_0011:  ret
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldobj      "DynamicClass"
+                  IL_0006:  pop
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+                  IL_000d:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0012:  ldarg.1
+                  IL_0013:  box        "T"
+                  IL_0018:  ret
                 }
                 """);
         }
