@@ -22,6 +22,61 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public class TargetTests : TestBase
     {
+        [Theory, CombinatorialData]
+        public void RoslynCompilerCacheSettings(
+            bool? useCache,
+            [CombinatorialValues("", "custom cache path")] string environmentCachePath)
+        {
+            using var reader = XmlReader.Create(new StringReader($"""
+                <Project>
+                    <PropertyGroup>
+                        <UseRoslynCompilerCache>{useCache}</UseRoslynCompilerCache>
+                        <ROSLYN_CACHE_PATH>{environmentCachePath}</ROSLYN_CACHE_PATH>
+                        <Features>existing-feature</Features>
+                        <Deterministic>false</Deterministic>
+                        <DeterministicSourcePaths>false</DeterministicSourcePaths>
+                        <EnableSourceLink>true</EnableSourceLink>
+                        <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
+                    </PropertyGroup>
+                    <Import Project="Microsoft.Managed.Core.targets" />
+                </Project>
+                """));
+
+            var instance = CreateProjectInstance(reader);
+
+            Assert.Equal(useCache == true ? "true" : "false", instance.GetPropertyValue("Deterministic"));
+            Assert.Equal(useCache == true ? "true" : "false", instance.GetPropertyValue("DeterministicSourcePaths"));
+            Assert.Equal(useCache == true ? "false" : "true", instance.GetPropertyValue("EnableSourceLink"));
+            Assert.Equal(useCache == true ? "false" : "true", instance.GetPropertyValue("IncludeSourceRevisionInInformationalVersion"));
+            Assert.Equal("existing-feature", instance.GetPropertyValue("Features"));
+            Assert.Equal(
+                useCache == true && environmentCachePath.Length == 0 ? "use-global-cache" : "",
+                instance.GetPropertyValue("_RoslynCompilerCacheFeature"));
+        }
+
+        [Theory]
+        [InlineData("Microsoft.CSharp.Core.targets")]
+        [InlineData("Microsoft.VisualBasic.Core.targets")]
+        public void RoslynCompilerCacheDesignTimeFeatures(string targets)
+        {
+            using var reader = XmlReader.Create(new StringReader($"""
+                <Project>
+                    <PropertyGroup>
+                        <UseRoslynCompilerCache>true</UseRoslynCompilerCache>
+                        <ROSLYN_CACHE_PATH></ROSLYN_CACHE_PATH>
+                        <Features>existing-feature</Features>
+                    </PropertyGroup>
+                    <Import Project="{targets}" />
+                </Project>
+                """));
+
+            var instance = CreateProjectInstance(reader);
+            var commandLine = instance.GetPropertyValue("CommandLineArgsForDesignTimeEvaluation");
+
+            Assert.Contains("-features:use-global-cache", commandLine);
+            Assert.Contains("-features:existing-feature", commandLine);
+        }
+
         [Fact]
         public void GenerateEditorConfigShouldNotRunWhenNoPropertiesOrMetadata()
         {
