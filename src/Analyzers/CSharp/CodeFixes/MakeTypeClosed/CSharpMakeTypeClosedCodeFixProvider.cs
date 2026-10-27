@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeTypeClosed;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeTypeClosed), Shared]
 [method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds => [
