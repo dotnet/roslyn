@@ -9910,6 +9910,57 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
     }
 
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86208")]
+    public void Member_Constructor_NestedTypeConstraints(
+        bool updatedRules,
+        [CombinatorialValues("class", "struct")] string outerKind,
+        [CombinatorialValues("IEquatable<T>", "IEquatable<T>, new()", "struct, IEquatable<T>")] string constraint)
+    {
+        var source = $$"""
+            using System;
+            public interface IBox<T> { }
+            public {{outerKind}} Outer : IBox<Outer.Inner<int>>
+            {
+                public struct Inner<T> where T : {{constraint}} { }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86208")]
+    public void Member_Constructor_NestedTypeConstraints_UnsafeConstructor(
+        bool updatedRules,
+        [CombinatorialValues("", "where T : new()", "where T : struct")] string constraint)
+    {
+        var source = $$"""
+            using System;
+            public interface IBox<T> {{constraint}} { }
+            public struct Outer : IBox<Outer.Inner<int>>
+            {
+                public struct Inner<T> where T : IEquatable<T>
+                {
+                    public unsafe Inner() { }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+
+        if (updatedRules && constraint != "")
+        {
+            comp.VerifyDiagnostics(
+                // (3,23): error CS9376: An unsafe context is required for constructor 'Outer.Inner<int>.Inner()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'IBox<T>'
+                // public struct Outer : IBox<Outer.Inner<int>>
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "IBox<Outer.Inner<int>>").WithArguments("Outer.Inner<int>.Inner()", "T", "IBox<T>").WithLocation(3, 23));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+    }
+
     [Fact]
     public void Member_Constructor_StructConstraint()
     {
