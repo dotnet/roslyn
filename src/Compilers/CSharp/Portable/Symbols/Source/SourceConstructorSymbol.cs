@@ -297,16 +297,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 || SourcePartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
+        protected override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
+        {
+            if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
+            {
+                if (IsPartialDefinition)
+                {
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                }
+
+                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
+            }
+        }
+
         protected override void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
         {
             if (SourcePartialImplementationPart is { } implementation)
             {
                 PartialConstructorChecks(implementation, diagnostics);
-            }
-
-            if (IsPartialDefinition)
-            {
-                DeclaringCompilation.SymbolDeclaredEvent(this);
             }
         }
 
