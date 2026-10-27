@@ -121,9 +121,10 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
         public override async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsAsync(RequestContext context, CancellationToken cancellationToken)
         {
             Interlocked.Increment(ref provider.DiagnosticsRequestedCount);
-            return [new DiagnosticData(Id, category: "category", context.Document!.Name, DiagnosticSeverity.Error, DiagnosticSeverity.Error,
-                isEnabledByDefault: true, warningLevel: 0, [], ImmutableDictionary<string, string?>.Empty,context.Document!.Project.Id,
-                new DiagnosticDataLocation(new FileLinePositionSpan(context.Document!.FilePath!, new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))))];
+            var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+            return [new DiagnosticData(Id, category: "category", document.Name, DiagnosticSeverity.Error, DiagnosticSeverity.Error,
+                isEnabledByDefault: true, warningLevel: 0, [], ImmutableDictionary<string, string?>.Empty, document.Project.Id,
+                new DiagnosticDataLocation(new FileLinePositionSpan(document.FilePath!, new Text.LinePosition(0, 0), new Text.LinePosition(0, 0))))];
         }
     }
 
@@ -140,7 +141,8 @@ public sealed class DiagnosticsPullCacheTests(ITestOutputHelper testOutputHelper
 
         public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
         {
-            return [new TestDiagnosticSource(context.Document!, this)];
+            var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+            return [new TestDiagnosticSource(document, this)];
         }
 
         public bool IsEnabled(LSP.ClientCapabilities clientCapabilities)

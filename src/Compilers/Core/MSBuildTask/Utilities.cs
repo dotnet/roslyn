@@ -4,6 +4,7 @@
 
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
+using Microsoft.CodeAnalysis.CommandLine;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -109,16 +110,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             string.Equals(parameterValue, "!on", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(parameterValue, "!yes", StringComparison.OrdinalIgnoreCase);
 
-        internal static string GetFullPathNoThrow(string path)
-        {
-            try
-            {
-                path = Path.GetFullPath(path);
-            }
-            catch (Exception e) when (IsIoRelatedException(e)) { }
-            return path;
-        }
-
         internal static bool TryCombine(string path1, string path2, [NotNullWhen(returnValue: true)] out string? combined)
         {
             try
@@ -131,15 +122,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 combined = null;
                 return false;
             }
-        }
-
-        internal static void DeleteNoThrow(string path)
-        {
-            try
-            {
-                File.Delete(path);
-            }
-            catch (Exception e) when (IsIoRelatedException(e)) { }
         }
 
         internal static bool IsIoRelatedException(Exception e) =>

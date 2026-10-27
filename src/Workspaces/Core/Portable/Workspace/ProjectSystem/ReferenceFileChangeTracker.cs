@@ -54,7 +54,7 @@ internal sealed class ReferenceFileChangeTracker : IDisposable
         _fileReferenceChangeContext = new Lazy<IFileChangeContext>(() =>
         {
             var fileReferenceChangeContext = fileChangeWatcher.CreateContext(GetAdditionalWatchedDirectories());
-            fileReferenceChangeContext.FileChanged += (s, e) => _workQueue.AddWork(e);
+            fileReferenceChangeContext.FileChanged += (s, e) => _workQueue.AddWork(e.FilePath);
             return fileReferenceChangeContext;
         });
 

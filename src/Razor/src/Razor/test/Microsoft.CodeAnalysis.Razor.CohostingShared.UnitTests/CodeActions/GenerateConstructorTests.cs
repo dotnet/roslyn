@@ -54,6 +54,52 @@ public class GenerateConstructorTests(ITestOutputHelper testOutputHelper) : Coho
     }
 
     [Fact]
+    public async Task GenerateConstructor_FromCodeBlock_ExistingCodeBlock_UsesEditorConfig()
+    {
+        var input = """
+            @code
+            {
+                private File1 Create(int value)
+                {
+                    return new [||]File1(value);
+                }
+            }
+            """;
+
+        var expected = """
+            @code
+            {
+                private File1 Create(int value)
+                {
+                    return new File1(value);
+                }
+
+                private int value;
+
+                public File1(int value) {
+                    this.value = value;
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateConstructor,
+            codeActionIndex: 0,
+            makeDiagnosticsRequest: true,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_new_line_before_open_brace = none
+                    """)
+            ]);
+    }
+
+    [Fact]
     public async Task GenerateConstructor_ForClassInCodeBlock_WithoutParameter()
     {
         var input = """

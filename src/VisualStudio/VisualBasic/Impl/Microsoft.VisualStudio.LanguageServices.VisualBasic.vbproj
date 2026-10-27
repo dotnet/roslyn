@@ -12,6 +12,7 @@
     <!-- VSIX -->
     <CreateVsixContainer>false</CreateVsixContainer>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <GeneratePkgDefProductVersion>true</GeneratePkgDefProductVersion>
     <DeployExtension>false</DeployExtension>
   </PropertyGroup>
   <ItemGroup>
@@ -21,10 +22,8 @@
     </Content>
   </ItemGroup>
   <ItemGroup Label="PkgDef">
-    <PkgDefInstalledProduct Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}" Name="Microsoft Visual Basic" DisplayName="#113" ProductDetails="#114" />
     <!-- Cannot load in background until the VisualBasicPackage constructor has no more UI dependencies -->
-    <PkgDefPackageRegistration Include="{574fc912-f74f-4b4e-92c3-f695c208a2bb}" Name="VisualBasicPackage" Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.VisualBasicPackage" AllowsBackgroundLoad="false" />
-    <None Include="PackageRegistration.pkgdef" PkgDefEntry="FileContent" />
+    <Content Include="Microsoft.VisualStudio.LanguageServices.VisualBasic.Extra.pkgdef" IncludeInVSIX="true" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />

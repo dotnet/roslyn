@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
@@ -29,15 +30,15 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynDocumentSymbolParams request) => request.TextDocument;
 
-    public Task<SumType<DocumentSymbol[], SymbolInformation[]>> HandleRequestAsync(
+    public async Task<SumType<DocumentSymbol[], SymbolInformation[]>> HandleRequestAsync(
         RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.GetRequiredDocument();
+        var document = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
         var clientCapabilities = context.GetRequiredClientCapabilities();
         var useHierarchicalSymbols = clientCapabilities.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true || request.UseHierarchicalSymbols;
         var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
 
-        return GetDocumentSymbolsAsync(document, useHierarchicalSymbols, supportsVSExtensions, cancellationToken);
+        return await GetDocumentSymbolsAsync(document, useHierarchicalSymbols, supportsVSExtensions, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(
@@ -47,10 +48,22 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
 
         if (useHierarchicalSymbols)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var solutionExplorerSymbolTreeItemProvider = document.Project.Services.GetRequiredService<ISolutionExplorerSymbolTreeItemProvider>();
+            if (document.SupportsSyntaxTree)
+            {
+                var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var solutionExplorerSymbolTreeItemProvider = document.Project.Services.GetRequiredService<ISolutionExplorerSymbolTreeItemProvider>();
 
-            return GetDocumentSymbolsFromSolutionExplorer(document.Id, root, text, solutionExplorerSymbolTreeItemProvider, cancellationToken);
+                return GetDocumentSymbolsFromSolutionExplorer(document.Id, root, text, solutionExplorerSymbolTreeItemProvider, cancellationToken);
+            }
+
+            // Languages without a Roslyn syntax tree (e.g. F#) cannot use ISolutionExplorerSymbolTreeItemProvider.
+            // Fall back to whatever hierarchical data their navigation bar provider exposes, if any.
+            var navBarItemService = document.Project.Services.GetService<INavigationBarItemService>();
+            if (navBarItemService == null)
+                return Array.Empty<DocumentSymbol>();
+
+            var navBarItems = await navBarItemService.GetItemsAsync(document, supportsCodeGeneration: false, frozenPartialSemantics: false, cancellationToken).ConfigureAwait(false);
+            return GetDocumentSymbolsFromNavigationBarItems(navBarItems, text);
         }
         else
         {
@@ -61,12 +74,13 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
                 return Array.Empty<DocumentSymbol>();
 
             using var _ = ArrayBuilder<SymbolInformation>.GetInstance(out var symbols);
+            var documentUri = document.GetURI();
             foreach (var item in navBarItems)
             {
-                symbols.AddIfNotNull(GetSymbolInformation(item, document, text, containerName: null, supportsVSExtensions));
+                symbols.AddIfNotNull(GetSymbolInformation(item, documentUri, text, containerName: null, supportsVSExtensions));
 
                 foreach (var childItem in item.ChildItems)
-                    symbols.AddIfNotNull(GetSymbolInformation(childItem, document, text, item.Text, supportsVSExtensions));
+                    symbols.AddIfNotNull(GetSymbolInformation(childItem, documentUri, text, item.Text, supportsVSExtensions));
             }
 
             return symbols.ToArray();
@@ -117,11 +131,40 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         };
     }
 
+    private static RoslynDocumentSymbol[] GetDocumentSymbolsFromNavigationBarItems(ImmutableArray<RoslynNavigationBarItem> items, SourceText text)
+    {
+        using var _ = ArrayBuilder<RoslynDocumentSymbol>.GetInstance(out var symbols);
+        foreach (var item in items)
+        {
+            if (item is RoslynNavigationBarItem.SymbolItem symbolItem && symbolItem.Location.InDocumentInfo != null)
+                symbols.Add(ConvertToDocumentSymbol(symbolItem, text));
+        }
+
+        return symbols.ToArray();
+    }
+
+    private static RoslynDocumentSymbol ConvertToDocumentSymbol(RoslynNavigationBarItem.SymbolItem item, SourceText text)
+    {
+        var (spans, navigationSpan) = item.Location.InDocumentInfo!.Value;
+        var fullSpan = spans[0];
+
+        return new RoslynDocumentSymbol
+        {
+            Name = GetDocumentSymbolName(item.Text),
+            Detail = item.Name,
+            Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
+            Glyph = (int)item.Glyph,
+            Range = ProtocolConversions.TextSpanToRange(fullSpan, text),
+            SelectionRange = ProtocolConversions.TextSpanToRange(navigationSpan, text),
+            Children = GetDocumentSymbolsFromNavigationBarItems(item.ChildItems, text),
+        };
+    }
+
     /// <summary>
     /// Get a symbol information from a specified nav bar item.
     /// </summary>
     private static SymbolInformation? GetSymbolInformation(
-        RoslynNavigationBarItem item, Document document, SourceText text, string? containerName, bool supportsVSExtensions)
+        RoslynNavigationBarItem item, DocumentUri documentUri, SourceText text, string? containerName, bool supportsVSExtensions)
     {
         if (item is not RoslynNavigationBarItem.SymbolItem symbolItem || symbolItem.Location.InDocumentInfo == null)
             return null;
@@ -130,7 +173,7 @@ internal sealed class DocumentSymbolsHandler() : ILspServiceDocumentRequestHandl
         var kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph);
         var location = new LSP.Location()
         {
-            DocumentUri = document.GetURI(),
+            DocumentUri = documentUri,
             Range = ProtocolConversions.TextSpanToRange(symbolItem.Location.InDocumentInfo.Value.navigationSpan, text),
         };
 

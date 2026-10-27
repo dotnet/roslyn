@@ -613,11 +613,6 @@
         <target state="translated">보조 어셈블리 출력으로 내보낼 때 프라이빗 멤버를 포함해서는 안 됩니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="EmbeddingPdbUnexpectedWhenEmittingMetadata">
-        <source>Embedding PDB is not allowed when emitting metadata.</source>
-        <target state="translated">메타데이터를 내보낼 때 PDB를 포함할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="CannotTargetNetModuleWhenEmittingRefAssembly">
         <source>Cannot target net module when emitting ref assembly.</source>
         <target state="translated">참조 어셈블리를 내보낼 때 NET 모듈을 대상으로 지정할 수 없습니다.</target>

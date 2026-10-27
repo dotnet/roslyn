@@ -321,10 +321,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool UseUpdatedEscapeRules { get; }
 
-        /// <summary>
-        /// <see cref="CSharpCompilationOptions.UseUpdatedMemorySafetyRules"/>
-        /// </summary>
-        internal abstract bool UseUpdatedMemorySafetyRules { get; }
+        internal abstract MemorySafetyRulesVersion MemorySafetyRulesVersion { get; }
+
+        internal bool UseUpdatedMemorySafetyRules => MemorySafetyRulesVersion == MemorySafetyRulesVersion.Version2;
 
         /// <summary>
         /// Default char set for contained types, or null if not specified.

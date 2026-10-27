@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
 {
-    private readonly SolutionServices _services;
+    private readonly IDisposable? _faultLoggerRegistration;
     private readonly SolutionAssetStorage _assetStorage;
     private readonly HubClient _hubClient;
     private readonly ServiceBrokerClient _serviceBrokerClient;
@@ -35,9 +35,12 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
         IRemoteServiceCallbackDispatcherProvider callbackDispatcherProvider)
     {
         // use the hub client logger for unexpected exceptions from devenv as well, so we have complete information in the log:
-        services.GetService<IWorkspaceTelemetryService>()?.RegisterUnexpectedExceptionLogger(hubClient.Logger);
+        if (services.GetService<IWorkspaceTelemetryService>() is not null)
+        {
+            _faultLoggerRegistration = RoslynTelemetry.Current.AddEventSink(
+                new TraceSourceFaultEventSink(hubClient.Logger));
+        }
 
-        _services = services;
         _serviceBrokerClient = serviceBrokerClient;
         _hubClient = hubClient;
         _callbackDispatcherProvider = callbackDispatcherProvider;
@@ -140,7 +143,7 @@ internal sealed partial class ServiceHubRemoteHostClient : RemoteHostClient
 
     public override void Dispose()
     {
-        _services.GetService<IWorkspaceTelemetryService>()?.UnregisterUnexpectedExceptionLogger(_hubClient.Logger);
+        _faultLoggerRegistration?.Dispose();
         _hubClient.Dispose();
 
         _serviceBrokerClient.Dispose();

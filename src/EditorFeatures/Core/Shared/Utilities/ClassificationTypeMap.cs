@@ -45,7 +45,12 @@ internal sealed class ClassificationTypeMap : AbstractClassificationTypeMap
             Contract.ThrowIfNull(rawValue);
             var value = string.Intern(rawValue);
 
-            _identityMap.Add(value, registryService.GetClassificationType(ClassificationLayer.Semantic, value));
+            var classificationType = registryService.GetClassificationType(ClassificationLayer.Semantic, value);
+
+            if (classificationType is not null)
+            {
+                _identityMap.Add(value, classificationType);
+            }
         }
     }
 
@@ -57,10 +62,12 @@ internal sealed class ClassificationTypeMap : AbstractClassificationTypeMap
             FatalError.ReportAndCatch(new Exception($"classification type doesn't exist for {name}"));
         }
 
-        return type ?? GetClassificationTypeWorker(ClassificationTypeNames.Text);
+        type ??= GetClassificationTypeWorker(ClassificationTypeNames.Text);
+        Contract.ThrowIfNull(type, "We expect to always be able to get a Text classification type.");
+        return type;
     }
 
-    private IClassificationType GetClassificationTypeWorker(string name)
+    private IClassificationType? GetClassificationTypeWorker(string name)
     {
         return _identityMap.TryGetValue(name, out var result)
             ? result

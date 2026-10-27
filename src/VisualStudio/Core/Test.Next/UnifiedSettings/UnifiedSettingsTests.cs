@@ -4,14 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
-using System.IO.Hashing;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -144,7 +140,6 @@ public sealed class UnifiedSettingsTests
         Assert.Equal(2, propertyToCategory.Count);
         Assert.Equal("C#", propertyToCategory["languages.csharp"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["languages.csharp.intellisense"]!.Title);
-        await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
     [Fact]
@@ -158,7 +153,6 @@ public sealed class UnifiedSettingsTests
         }
 
         VerifyProperties(jsonDocument!, "languages.csharp.intellisense", s_csharpIntellisenseExpectedSettings);
-        await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.csharpPackageRegistration.pkgdef");
     }
 
     #endregion
@@ -254,7 +248,6 @@ public sealed class UnifiedSettingsTests
         Assert.Equal(2, propertyToCategory.Count);
         Assert.Equal("Visual Basic", propertyToCategory["languages.basic"]!.Title);
         Assert.Equal("IntelliSense", propertyToCategory["languages.basic.intellisense"]!.Title);
-        await VerifyTagAsync(jsonDocument.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
     [Fact]
@@ -268,7 +261,6 @@ public sealed class UnifiedSettingsTests
         }
 
         VerifyProperties(jsonDocument!, "languages.basic.intellisense", s_visualBasicIntellisenseExpectedSettings);
-        await VerifyTagAsync(jsonDocument!.ToString(), "Roslyn.VisualStudio.Next.UnitTests.visualBasicPackageRegistration.pkgdef");
     }
 
     private static void VerifyProperties(JsonNode jsonDocument, string prefix, ImmutableArray<(IOption2, UnifiedSettingBase)> expectedOptionToSettings)
@@ -289,32 +281,7 @@ public sealed class UnifiedSettingsTests
 
     #endregion
 
-    [Fact]
-    public async Task VerifyRoslynSettings()
-    {
-        using var registrationFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream("Roslyn.VisualStudio.Next.UnitTests.roslynSettings.registration.json");
-        using var streamReader = new StreamReader(registrationFileStream);
-        await VerifyTagAsync(streamReader.ReadToEnd(), "Roslyn.VisualStudio.Next.UnitTests.roslynPackageRegistration.pkgdef");
-    }
-
     #region Helpers
-
-    private static async Task VerifyTagAsync(string registrationFile, string pkgdefFileName)
-    {
-        using var pkgDefFileStream = typeof(UnifiedSettingsTests).GetTypeInfo().Assembly.GetManifestResourceStream(pkgdefFileName);
-        using var streamReader = new StreamReader(pkgDefFileStream);
-        var pkgdefFile = await streamReader.ReadToEndAsync();
-
-        var fileBytes = Encoding.ASCII.GetBytes(registrationFile);
-        var expectedTags = BitConverter.ToInt64([.. XxHash128.Hash(fileBytes).Take(8)], 0).ToString("X16");
-        var regex = new Regex("""
-                              "CacheTag"=qword:\w{16}
-                              """);
-        var match = regex.Match(pkgdefFile, 0).Value;
-        var actualTag = match[^16..];
-        // Please change the CacheTag value in pkddefFile when you modify the registration file.
-        Assert.Equal(expectedTags, actualTag);
-    }
 
     private static UnifiedSettingsOption<bool> CreateBooleanOption(
         IOption2 onboardedOption,

@@ -17,6 +17,7 @@ pr:
     - release/*
     - features/*
     - demos/*
+    - dev/*
   paths:
     exclude:
       - docs/*
@@ -142,6 +143,7 @@ stages:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
       jobName: Build_Windows_Debug
+      warnAsError: true
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       poolParameters: ${{ parameters.vs2026PreviewPool }}
@@ -154,6 +156,7 @@ stages:
   - template: eng/pipelines/build-windows-job.yml
     parameters:
       jobName: Build_Windows_Release
+      warnAsError: true
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       poolParameters: ${{ parameters.vs2026PreviewPool }}
@@ -202,17 +205,21 @@ stages:
         platform:
           name: 'Managed'
           container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9'
+          buildArguments: --warnAsError
 
 - stage: Windows_Debug_Tests
   dependsOn: Windows_Debug_Build
   variables:
+  # Use the producer's artifact name even when only the test job is retried.
+  - name: testArtifactName
+    value: $[stageDependencies.Windows_Debug_Build.Build_Windows_Debug.outputs['SetTestArtifactName.testArtifactName']]
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       jobName: Submit_Windows_Debug_Helix_Tests
-      testArtifactName: Transport_Artifacts_Windows_Debug
+      testArtifactName: $(testArtifactName)
       configuration: Debug
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -250,7 +257,7 @@ stages:
       parameters:
         testRunName: 'Test Windows CoreClr Debug Single Machine'
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
-        testArtifactName: Transport_Artifacts_Windows_Debug
+        testArtifactName: $(testArtifactName)
         configuration: Debug
         poolParameters: ${{ parameters.vs2026PreviewPool }}
         testArguments: -testCoreClr
@@ -262,13 +269,15 @@ stages:
 - stage: Windows_Release_Tests
   dependsOn: Windows_Release_Build
   variables:
+  - name: testArtifactName
+    value: $[stageDependencies.Windows_Release_Build.Build_Windows_Release.outputs['SetTestArtifactName.testArtifactName']]
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
       jobName: Submit_Windows_Release_Helix_Tests
-      testArtifactName: Transport_Artifacts_Windows_Release
+      testArtifactName: $(testArtifactName)
       configuration: Release
       helixApiAccessToken: $(HelixApiAccessToken)
       poolParameters: ${{ parameters.windowsPool }}
@@ -299,6 +308,8 @@ stages:
 - stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
   variables:
+  - name: testArtifactName
+    value: $[stageDependencies.Unix_Build.Build_Unix_Debug.outputs['SetTestArtifactName.testArtifactName']]
   - ${{ if ne(variables['System.TeamProject'], 'public') }}:
     - group: DotNet-HelixApi-Access
   jobs:
@@ -306,7 +317,7 @@ stages:
     parameters:
       testRunName: 'Test Linux Debug'
       jobName: Test_Linux_Debug
-      testArtifactName: Transport_Artifacts_Unix_Debug
+      testArtifactName: $(testArtifactName)
       configuration: Debug
       testArguments: --testCoreClr
       poolParameters: ${{ parameters.ubuntuPool }}
@@ -315,7 +326,7 @@ stages:
     parameters:
       testRunName: 'Test Linux Debug Spanish Single Machine'
       jobName: Test_Linux_Debug_Spanish_Single_Machine
-      testArtifactName: Transport_Artifacts_Unix_Debug
+      testArtifactName: $(testArtifactName)
       configuration: Debug
       testArguments: --testCoreClr
       poolParameters: ${{ parameters.ubuntuPool }}
@@ -325,15 +336,16 @@ stages:
   - stage: MacOS_Debug_CoreClr
     dependsOn: MacOS_Build
     variables:
+    - name: testArtifactName
+      value: $[stageDependencies.MacOS_Build.Build_macOS_Debug.outputs['SetTestArtifactName.testArtifactName']]
     - ${{ if ne(variables['System.TeamProject'], 'public') }}:
       - group: DotNet-HelixApi-Access
     jobs:
     # https://github.com/dotnet/runtime/issues/97186
     - template: eng/pipelines/test-unix-job.yml
       parameters:
-        testRunName: 'Test macOS Debug'
         jobName: Test_macOS_Debug
-        testArtifactName: Transport_Artifacts_macOS_Debug
+        testArtifactName: $(testArtifactName)
         configuration: Debug
         testArguments: --testCoreClr
         helixQueueName: $(HelixMacOsQueueName)
@@ -385,18 +397,18 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -binaryLogName Restore.binlog
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -warnAsError -restore -binaryLogName Restore.binlog
         displayName: Restore
 
       # We additionally restore during the build because the Microsoft.DotNet.Build.Tasks.Feed package only restores when we pass `-publish`. See https://github.com/dotnet/arcade/blob/37ccfd66358af6a37a0ec385ec31d1d71bdd8723/src/Microsoft.DotNet.Arcade.Sdk/tools/Tools.proj#L61-L66
       # Passing `-publish` during the restore step above fails due to no items needing published.
-      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -restore -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
+      - powershell: eng/build.ps1 -configuration Release -prepareMachine -ci -warnAsError -restore -build -pack -publish -sign -binaryLogName Build.binlog /p:DotnetPublishUsingPipelines=true /p:ContinuousIntegrationBuildCorrectness=true
         displayName: Build
 
       - script: $(Build.SourcesDirectory)\artifacts\bin\BuildBoss\Release\net472\BuildBoss.exe  -r "$(Build.SourcesDirectory)/" -c Release -p Roslyn.slnx --check-package-install
         displayName: Validate Build Artifacts
 
-      - powershell: eng/validate-rules-missing-documentation.ps1 -ci
+      - powershell: eng/validate-rules-missing-documentation.ps1 -ci -warnAsError
         displayName: Validate rules missing documentation
 
       - task: DotNetCoreCLI@2
@@ -419,6 +431,9 @@ stages:
 
       - powershell: eng/validate-benchmarks.ps1 -configuration Release -ci
         displayName: Validate Benchmarks
+
+      - powershell: eng/validate-roslyn-sdk-samples.ps1 -configuration Release -ci -warnAsError
+        displayName: Validate Roslyn SDK Samples
 
       - script: dotnet build-server shutdown
         displayName: Shutdown Build Server
@@ -444,10 +459,10 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - powershell: eng/make-bootstrap.ps1 -output $(bootstrapDir) -ci
+      - powershell: eng/make-bootstrap.ps1 -output $(bootstrapDir) -ci -warnAsError
         displayName: Build Bootstrap Compiler
 
-      - powershell: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir) -ci
+      - powershell: eng/test-determinism.ps1 -configuration Debug -bootstrapDir $(bootstrapDir) -ci -warnAsError
         displayName: Build - Validate determinism
 
       - template: eng/pipelines/publish-logs.yml
@@ -504,7 +519,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-windows-task.yml
 
-      - script: .\eng\test-rebuild.cmd -ci -configuration Release -bootstrap
+      - script: .\eng\test-rebuild.cmd -ci -warnAsError -configuration Release -bootstrap
         displayName: Run BuildValidator
 
       - task: PublishBuildArtifacts@1
@@ -515,6 +530,11 @@ stages:
           publishLocation: Container
         continueOnError: true
         condition: failed()
+
+      - script: dotnet build-server shutdown
+        displayName: Shutdown Build Server
+        continueOnError: true
+        condition: always()
 
       - template: eng/pipelines/publish-logs.yml
         parameters:
@@ -532,7 +552,7 @@ stages:
     steps:
       - template: eng/pipelines/checkout-unix-task.yml
 
-      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
+      - script: ./eng/build.sh --solution Roslyn.slnx --restore --build --configuration Debug --prepareMachine --ci --warnAsError --binaryLog --runanalyzers
         displayName: Build with analyzers
 
       - template: eng/pipelines/publish-logs.yml

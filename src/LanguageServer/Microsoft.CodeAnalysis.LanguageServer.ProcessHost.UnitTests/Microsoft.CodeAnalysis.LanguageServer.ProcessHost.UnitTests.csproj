@@ -26,7 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing" />
+    <!-- Provision packages used by the materialized RunTests test projects without consuming them in this project. -->
+    <PackageReference Include="MSTest.TestAdapter" ExcludeAssets="all" PrivateAssets="all" />
+    <PackageReference Include="MSTest.TestFramework" ExcludeAssets="all" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

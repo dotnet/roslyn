@@ -1277,6 +1277,7 @@ Microsoft.CodeAnalysis.IModuleSymbol
 Microsoft.CodeAnalysis.IModuleSymbol.GetMetadata
 Microsoft.CodeAnalysis.IModuleSymbol.GetModuleNamespace(Microsoft.CodeAnalysis.INamespaceSymbol)
 Microsoft.CodeAnalysis.IModuleSymbol.get_GlobalNamespace
+Microsoft.CodeAnalysis.IModuleSymbol.get_MemorySafetyRulesVersion
 Microsoft.CodeAnalysis.IModuleSymbol.get_ReferencedAssemblies
 Microsoft.CodeAnalysis.IModuleSymbol.get_ReferencedAssemblySymbols
 Microsoft.CodeAnalysis.INamedTypeSymbol
@@ -1636,6 +1637,10 @@ Microsoft.CodeAnalysis.LocationKind.None
 Microsoft.CodeAnalysis.LocationKind.SourceFile
 Microsoft.CodeAnalysis.LocationKind.XmlFile
 Microsoft.CodeAnalysis.LocationKind.value__
+Microsoft.CodeAnalysis.MemorySafetyRulesVersion
+Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version1
+Microsoft.CodeAnalysis.MemorySafetyRulesVersion.Version2
+Microsoft.CodeAnalysis.MemorySafetyRulesVersion.value__
 Microsoft.CodeAnalysis.Metadata
 Microsoft.CodeAnalysis.Metadata.CommonCopy
 Microsoft.CodeAnalysis.Metadata.Copy

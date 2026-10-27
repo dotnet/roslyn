@@ -4,6 +4,7 @@
 
 namespace Roslyn.LanguageServer.Protocol;
 
+using System;
 using System.Text.Json.Serialization;
 
 /// <summary>
@@ -12,7 +13,7 @@ using System.Text.Json.Serialization;
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentRangeFormattingParams">Language Server Protocol specification</see> for additional information.
 /// </para>
 /// </summary>
-internal sealed class DocumentRangeFormattingParams : ITextDocumentParams
+internal sealed class DocumentRangeFormattingParams : ITextDocumentParams, IWorkDoneProgressParams
 {
     /// <summary>
     /// Gets or sets the identifier for the text document to be formatted.
@@ -46,4 +47,9 @@ internal sealed class DocumentRangeFormattingParams : ITextDocumentParams
         get;
         set;
     }
+
+    /// <inheritdoc/>
+    [JsonPropertyName(Methods.WorkDoneTokenName)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
 }

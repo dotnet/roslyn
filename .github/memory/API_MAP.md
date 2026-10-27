@@ -13,6 +13,7 @@ Repo-wide entry points and the formal public-API tracking rules. Layer-specific 
 | Command | Purpose |
 |---------|---------|
 | `build.sh` / `Build.cmd` | Full solution build (Arcade). |
+| `dotnet restore <project-or-solution>` | Restores dependencies and, on the first restore in a clone, validates checkout line endings and Windows long-path support. A successful validation is cached at `artifacts/developer-settings-validated.txt`. |
 | `dotnet build Compilers.slnf` | Compiler-only build. |
 | `dotnet build Ide.slnf` | IDE-only build. |
 | `dotnet build Razor.slnf` | Razor compiler & tooling-only build. |

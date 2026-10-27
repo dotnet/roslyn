@@ -18,5 +18,3 @@
                 CSharpCode - (269:11,0 [3] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (269:11,0 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - }\n
                 MarkupBlock -  - <p>Item3</p>
-            CSharpCode - (297:15,7 [236] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (297:15,7 [236] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public TItem1 Item1 { get; set; }\n    [Parameter] public List<TItem2> Items2 { get; set; }\n    [Parameter] public TItem3 Item3 { get; set; }\n    [Parameter] public RenderFragment<TItem2> ChildContent { get; set; }\n

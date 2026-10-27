@@ -24,8 +24,6 @@ namespace Microsoft.AspNetCore.Razor.Language;
 /// </summary>
 internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 {
-    private TagHelperResolver _resolver;
-
     /// <summary>
     /// Entry point: resolves all unresolved <see cref="UnresolvedElementIntermediateNode"/> nodes
     /// in the IR tree. For each, matches against tag helper bindings and either converts to a
@@ -50,7 +48,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         // Choose resolver based on file kind and language version. Component features
         // (MarkupElementIntermediateNode, RZ10012 diagnostics) require Version_3_0+ because
         // the ComponentDocumentClassifierPass is only registered at that version.
-        _resolver = (codeDocument.FileKind.IsComponent() || codeDocument.FileKind.IsComponentImport())
+        TagHelperResolver resolver = (codeDocument.FileKind.IsComponent() || codeDocument.FileKind.IsComponentImport())
             && parserOptions.LanguageVersion >= RazorLanguageVersion.Version_3_0
             ? new ComponentTagHelperResolver()
             : new LegacyTagHelperResolver();
@@ -58,7 +56,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         if (tagHelperContext == null || tagHelperContext.TagHelpers is [])
         {
             // No tag helpers discovered - unwrap all UnresolvedElement nodes to their fallback.
-            UnwrapAllElements(documentNode, documentNode);
+            UnwrapAllElements(documentNode, resolver, documentNode);
 
             // Still need to set referenced tag helpers for downstream phases.
             return codeDocument.WithReferencedTagHelpers([]);
@@ -69,7 +67,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         using var usedHelpers = new TagHelperCollection.Builder();
         var sourceDocument = codeDocument.Source;
-        var context = new ResolutionContext(sourceDocument, documentNode);
+        var context = new ResolutionContext(sourceDocument, documentNode, resolver);
         ResolveElements(documentNode, binder, prefix, usedHelpers, in context);
 
         // Add tag helper descriptor validation diagnostics (e.g. RZ3003).
@@ -95,11 +93,16 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     {
         public readonly RazorSourceDocument SourceDocument;
         public readonly DocumentIntermediateNode DocumentNode;
+        public readonly TagHelperResolver Resolver;
 
-        public ResolutionContext(RazorSourceDocument sourceDocument, DocumentIntermediateNode documentNode)
+        public ResolutionContext(
+            RazorSourceDocument sourceDocument,
+            DocumentIntermediateNode documentNode,
+            TagHelperResolver resolver)
         {
             SourceDocument = sourceDocument;
             DocumentNode = documentNode;
+            Resolver = resolver;
         }
     }
 
@@ -160,7 +163,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         {
             TryAddMalformedEndTagDiagnostic(elementNode, tagName, binder, attributes, parent, tagHelperParent, prefix);
 
-            _resolver.ConvertToPlainElement(parent, index, elementNode);
+            context.Resolver.ConvertToPlainElement(parent, index, elementNode);
             return null;
         }
 
@@ -264,7 +267,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         // Add resolver-specific diagnostics (e.g. RZ10012 for component-like elements,
         // case mismatch between start/end tags).
-        _resolver.AddMatchedElementDiagnostics(tagHelperNode, elementNode, binding, in context);
+        context.Resolver.AddMatchedElementDiagnostics(tagHelperNode, elementNode, binding, in context);
 
         // Check if resolved tag name is a void element (handles prefixed elements like th:input).
         var isResolvedVoidElement = elementNode.IsVoidElement || Legacy.ParserHelpers.VoidElements.Contains(resolvedTagName);
@@ -281,7 +284,7 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
 
         // Build body and attributes.
         var bodyNode = new TagHelperBodyIntermediateNode();
-        _resolver.BuildTagHelper(tagHelperNode, bodyNode, elementNode, binding, context.SourceDocument, in context);
+        context.Resolver.BuildTagHelper(tagHelperNode, bodyNode, elementNode, binding, context.SourceDocument, in context);
 
         return (tagHelperNode, bodyNode);
     }
@@ -445,12 +448,12 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         bool emitDiagnostics = true)
     {
         var childCountBefore = parent.Children.Count;
-        _resolver.ConvertToPlainElement(parent, index, elementNode);
+        context.Resolver.ConvertToPlainElement(parent, index, elementNode);
         var resultCount = parent.Children.Count - childCountBefore + 1; // +1 because the original was removed
 
         if (emitDiagnostics && resultCount > 0)
         {
-            _resolver.AddUnmatchedElementDiagnostic(parent.Children[index], elementNode, context.DocumentNode);
+            context.Resolver.AddUnmatchedElementDiagnostic(parent.Children[index], elementNode, context.DocumentNode);
         }
 
         for (var j = index + resultCount - 1; j >= index; j--)
@@ -785,7 +788,10 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
     /// resolved by tag helper matching. Converts each to a plain element using the resolver.
     /// Recursively processes the tree to handle nested elements.
     /// </summary>
-    private void UnwrapAllElements(IntermediateNode node, DocumentIntermediateNode documentNode = null)
+    private static void UnwrapAllElements(
+        IntermediateNode node,
+        TagHelperResolver resolver,
+        DocumentIntermediateNode documentNode = null)
     {
         if (node is DocumentIntermediateNode doc)
         {
@@ -795,17 +801,17 @@ internal partial class DefaultTagHelperResolutionPhase : RazorEnginePhaseBase
         for (var i = node.Children.Count - 1; i >= 0; i--)
         {
             var child = node.Children[i];
-            UnwrapAllElements(child, documentNode);
+            UnwrapAllElements(child, resolver, documentNode);
 
             if (child is UnresolvedElementIntermediateNode elementNode)
             {
                 var countBefore = node.Children.Count;
-                _resolver.ConvertToPlainElement(node, i, elementNode);
+                resolver.ConvertToPlainElement(node, i, elementNode);
                 var resultCount = node.Children.Count - countBefore + 1;
 
                 if (resultCount > 0)
                 {
-                    _resolver.AddUnmatchedElementDiagnostic(node.Children[i], elementNode, documentNode);
+                    resolver.AddUnmatchedElementDiagnostic(node.Children[i], elementNode, documentNode);
                 }
             }
         }

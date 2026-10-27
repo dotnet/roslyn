@@ -68,7 +68,7 @@ public partial struct SyntaxValueProvider
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = syntaxTreesProvider
-            .Where(static (info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases))
+            .Where(static (info, _) => (info.Info & SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases) == SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases)
             .Select((info, cancellationToken) => getGlobalAliasesInCompilationUnit(syntaxHelper, info.Tree.GetRoot(cancellationToken)))
             .WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
@@ -100,7 +100,7 @@ public partial struct SyntaxValueProvider
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
         var syntaxTreeAndGlobalAliasesProvider = syntaxTreesProvider
-            .Where(static (info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsAttributeList))
+            .Where(static (info, _) => (info.Info & SourceGeneratorSyntaxTreeInfo.ContainsAttributeList) == SourceGeneratorSyntaxTreeInfo.ContainsAttributeList)
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 

@@ -27,8 +27,9 @@ public sealed record RazorLanguageVersion : IComparable<RazorLanguageVersion>
     public static readonly RazorLanguageVersion Version_9_0 = new(9, 0);
     public static readonly RazorLanguageVersion Version_10_0 = new(10, 0); // Didn't ship anywhere
     public static readonly RazorLanguageVersion Version_11_0 = new(11, 0);
-    public static readonly RazorLanguageVersion Latest = Version_9_0;
-    public static readonly RazorLanguageVersion Preview = Version_11_0;
+    public static readonly RazorLanguageVersion Version_12_0 = new(12, 0);
+    public static readonly RazorLanguageVersion Latest = Version_11_0;
+    public static readonly RazorLanguageVersion Preview = Version_12_0;
     public static readonly RazorLanguageVersion Experimental = new(1337, 1337);
 
     private static readonly FrozenDictionary<string, RazorLanguageVersion> s_knownVersions = BuildKnownVersions();
@@ -58,6 +59,7 @@ public sealed record RazorLanguageVersion : IComparable<RazorLanguageVersion>
             ["9.0"] = Version_9_0,
             ["10.0"] = Version_10_0,
             ["11.0"] = Version_11_0,
+            ["12.0"] = Version_12_0,
             ["latest"] = Latest,
             ["preview"] = Preview,
             ["experimental"] = Experimental,
