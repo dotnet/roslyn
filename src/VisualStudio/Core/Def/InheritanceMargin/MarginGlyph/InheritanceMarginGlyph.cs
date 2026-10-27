@@ -195,6 +195,12 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
 
     private void CloseHoverPopupIfInactive()
     {
+        if (_hoverPopup is not null)
+            CloseHoverPopupIfInactive(Mouse.GetPosition(HoverButton));
+    }
+
+    internal void CloseHoverPopupIfInactive(Point pointerPosition)
+    {
         if (_hoverPopup is null)
             return;
 
@@ -208,20 +214,18 @@ internal sealed partial class InheritanceMarginGlyph : UserControl
             && !IsKeyboardFocusWithin
             && !HoverButton.IsKeyboardFocusWithin
             && !IsMouseOver
-            && !IsMouseOverHoverButton())
+            && !IsMouseOverHoverButton(pointerPosition))
         {
             CloseHoverPopup();
         }
     }
 
-    private bool IsMouseOverHoverButton()
+    private bool IsMouseOverHoverButton(Point position)
     {
         if (_hoverPopup is not { IsOpen: true })
             return false;
 
-        var position = Mouse.GetPosition(HoverButton);
-        return position.X >= 0 && position.Y >= 0
-            && position.X < HoverButton.ActualWidth && position.Y < HoverButton.ActualHeight;
+        return HoverButton.InputHitTest(position) is not null;
     }
 
     private void ContextMenu_OnClose(object sender, RoutedEventArgs e)

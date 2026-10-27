@@ -883,6 +883,82 @@ public sealed class InheritanceMarginGlyphTests
         => Assert.IsType<ShellControls.DropDownButton>(Assert.IsType<Border>(GetHoverPopup(glyph).Child).Child);
 
     [WpfTheory]
+    [InlineData(-1, -1, 1.0)]
+    [InlineData(-1, 1, 1.0)]
+    [InlineData(1, -1, 1.0)]
+    [InlineData(1, 1, 1.0)]
+    [InlineData(-1, -1, 1.25)]
+    [InlineData(-1, 1, 1.25)]
+    [InlineData(1, -1, 1.25)]
+    [InlineData(1, 1, 1.25)]
+    [InlineData(-1, -1, 3.8)]
+    [InlineData(-1, 1, 3.8)]
+    [InlineData(1, -1, 3.8)]
+    [InlineData(1, 1, 3.8)]
+    public async Task LeavingThroughRoundedCornerDismissesHover(int horizontal, int vertical, double zoom)
+    {
+        using var workspace = CreateWorkspace();
+        using var host = new GlyphHost(await CreateGlyphAsync(workspace, zoom * 100), zoom);
+        SetThemeResources(host.Glyph, "Light");
+        var popup = await OpenHoverPopupAsync(host.Glyph);
+        var button = GetHoverButton(host.Glyph);
+        SetThemeResources(button, "Light");
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+        try
+        {
+            var corner = new Point(
+                horizontal < 0 ? 0.5 : button.ActualWidth - 0.5,
+                vertical < 0 ? 0.5 : button.ActualHeight - 0.5);
+            Assert.Null(button.InputHitTest(corner));
+            Assert.False(host.Glyph.IsKeyboardFocusWithin);
+            Assert.False(button.IsKeyboardFocusWithin);
+
+            host.Glyph.CloseHoverPopupIfInactive(corner);
+
+            Assert.False(popup.IsOpen);
+        }
+        finally
+        {
+            popup.IsOpen = false;
+        }
+    }
+
+    [WpfTheory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PointerHitTestingKeepsHoveredButtonOrOpenMenu(bool openMenu)
+    {
+        using var workspace = CreateWorkspace();
+        using var host = new GlyphHost(await CreateGlyphAsync(workspace));
+        SetThemeResources(host.Glyph, "Light");
+        var popup = await OpenHoverPopupAsync(host.Glyph);
+        var button = GetHoverButton(host.Glyph);
+        SetThemeResources(button, "Light");
+        await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+        var menu = (InheritanceMarginContextMenu)button.DropDown;
+        try
+        {
+            if (openMenu)
+            {
+                button.ShowDropDown();
+                await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+                Assert.True(menu.IsOpen);
+            }
+
+            var pointer = openMenu ? new Point(0.5, 0.5) : new Point(button.ActualWidth / 2, button.ActualHeight / 2);
+            host.Glyph.CloseHoverPopupIfInactive(pointer);
+
+            Assert.True(popup.IsOpen);
+            Assert.Equal(openMenu, menu.IsOpen);
+        }
+        finally
+        {
+            menu.IsOpen = false;
+            popup.IsOpen = false;
+        }
+    }
+
+    [WpfTheory]
     [InlineData(MouseButton.Right)]
     [InlineData(MouseButton.Middle)]
     public async Task SecondaryMouseButtonsAreNotActionClicks(MouseButton mouseButton)
