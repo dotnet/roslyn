@@ -37,11 +37,9 @@ public class LsCacheRoundTripEquivalenceTests
 	[InlineData("StartupHookSupport", "false")]
 	[InlineData("Optimize", "true")]
 	[InlineData("DebugSymbols", "false")]
-	[InlineData("Configuration", "Debug")]
 	[InlineData("IntermediateOutputPath", "obj/Debug/net10.0/")]
-	[InlineData("HotReloadBrowserToolsAssetPrefix", "/_framework")]
-	[InlineData("StaticWebAssetsEnabled", "true")]
-	[InlineData("JSModulesEnabled", "true")]
+	[InlineData("HotReloadBrowserToolsEnabled", "true")]
+	[InlineData("HotReloadBrowserToolsEnabled", "false")]
 	[InlineData("WebAssemblyHotReloadCapabilities", "Baseline;AddMethodToExistingType")]
 	public async Task FullRoundTrip_PreservesHotReloadProperties(string name, string value)
 	{
