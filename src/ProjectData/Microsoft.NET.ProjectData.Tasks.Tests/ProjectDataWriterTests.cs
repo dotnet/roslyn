@@ -162,7 +162,7 @@ public class ProjectDataWriterTests
 	{
 		string content = Build();
 
-		Assert.StartsWith("version=2.2", content);
+		Assert.StartsWith("version=2.3", content);
 		Assert.Contains("aka.ms/lscache", content);
 		Assert.Contains("dotnet.projectsystem.cacheInProjectFolder", content);
 	}

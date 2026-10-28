@@ -43,6 +43,9 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
     {
         public List<ServiceRpcDescriptor> RequestedDescriptors { get; } = [];
         public HR.IHotReloadEventListener HotReloadEventListener { get; private set; }
+        public TestHotReloadEventSubscriber EventSubscriber { get; private set; }
+        public TestManagedHotReloadUpdatesProviderRegistration RegistrationService { get; private set; }
+        public List<string> Disposals { get; } = [];
 
         public event EventHandler<BrokeredServicesChangedEventArgs> AvailabilityChanged
         {
@@ -60,34 +63,59 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             if (typeof(T) == typeof(HR.IHotReloadEventSubscriber))
             {
                 HotReloadEventListener = (HR.IHotReloadEventListener)options.ClientRpcTarget;
-                return new ValueTask<T>((T)(object)new TestHotReloadEventSubscriber());
+                EventSubscriber = new TestHotReloadEventSubscriber(Disposals);
+                return new ValueTask<T>((T)(object)EventSubscriber);
             }
 
             if (typeof(T) == typeof(HR.IManagedHotReloadUpdatesProviderRegistration))
             {
-                return new ValueTask<T>((T)(object)new TestManagedHotReloadUpdatesProviderRegistration());
+                RegistrationService = new TestManagedHotReloadUpdatesProviderRegistration(Disposals);
+                return new ValueTask<T>((T)(object)RegistrationService);
             }
 
             return new ValueTask<T>((T)createService(serviceDescriptor, typeof(T)));
         }
     }
 
-    private sealed class TestHotReloadEventSubscriber : HR.IHotReloadEventSubscriber
+    private sealed class TestHotReloadEventSubscriber(List<string> disposals) : HR.IHotReloadEventSubscriber, IDisposable
     {
+        public TestDisposable Subscription { get; } = new(() => disposals.Add("subscription"));
+
         public ValueTask<IDisposable> SubscribeAsync(CancellationToken cancellationToken)
-            => ValueTask.FromResult<IDisposable>(new TestDisposable());
-    }
+            => ValueTask.FromResult<IDisposable>(Subscription);
 
-    private sealed class TestManagedHotReloadUpdatesProviderRegistration : HR.IManagedHotReloadUpdatesProviderRegistration
-    {
-        public ValueTask<IDisposable> RegisterAsync(ServiceMoniker serviceMoniker, CancellationToken cancellationToken)
-            => ValueTask.FromResult<IDisposable>(new TestDisposable());
-    }
-
-    private sealed class TestDisposable : IDisposable
-    {
         public void Dispose()
         {
+            disposals.Add("eventSubscriber");
+            Subscription.Dispose();
+        }
+    }
+
+    private sealed class TestManagedHotReloadUpdatesProviderRegistration(List<string> disposals) : HR.IManagedHotReloadUpdatesProviderRegistration, IDisposable
+    {
+        public TestDisposable Registration { get; } = new(() => disposals.Add("registration"));
+
+        public ValueTask<IDisposable> RegisterAsync(ServiceMoniker serviceMoniker, CancellationToken cancellationToken)
+            => ValueTask.FromResult<IDisposable>(Registration);
+
+        public void Dispose()
+        {
+            disposals.Add("registrationService");
+            Registration.Dispose();
+        }
+    }
+
+    private sealed class TestDisposable(Action onDispose) : IDisposable
+    {
+        public bool IsDisposed { get; private set; }
+
+        public void Dispose()
+        {
+            if (!IsDisposed)
+            {
+                IsDisposed = true;
+                onDispose();
+            }
         }
     }
 
@@ -232,6 +260,7 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
         public TestWorkspace LocalWorkspace => workspace;
         public PdbMatchingSourceTextProvider PdbMatchingSourceTextProvider => sourceTextProvider;
         public HR.IHotReloadEventListener EventListener => serviceBroker.HotReloadEventListener;
+        public TestServiceBroker ServiceBroker => serviceBroker;
         public ManagedHotReloadLanguageService LocalService => brokeredService;
 
         public static async Task<TestContext> CreateAsync()
@@ -260,6 +289,31 @@ public sealed class EditorManagedHotReloadLanguageServiceTests : EditAndContinue
             LocalWorkspace.Dispose();
             PdbMatchingSourceTextProvider.Dispose();
         }
+    }
+
+    [Fact]
+    public async Task InitializeAsync_KeepsProxiesAliveUntilServiceDisposal()
+    {
+        using var context = await TestContext.CreateAsync();
+        var serviceBroker = context.ServiceBroker;
+        var subscription = serviceBroker.EventSubscriber.Subscription;
+        var registration = serviceBroker.RegistrationService.Registration;
+
+        Assert.False(subscription.IsDisposed);
+        Assert.False(registration.IsDisposed);
+        Assert.Empty(serviceBroker.Disposals);
+
+        context.LocalService.Dispose();
+
+        Assert.True(subscription.IsDisposed);
+        Assert.True(registration.IsDisposed);
+        AssertEx.Equal(
+        [
+            "subscription",
+            "eventSubscriber",
+            "registration",
+            "registrationService"
+        ], serviceBroker.Disposals);
     }
 
     [Theory, CombinatorialData]
