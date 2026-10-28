@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -62,6 +63,12 @@ internal sealed class ProjectBuildManager : IDisposable
     private readonly MSB.Evaluation.ProjectCollection _projectCollection;
     private readonly MSBuildDiagnosticLogger _buildLogger = new() { Verbosity = MSB.Framework.LoggerVerbosity.Normal };
     private readonly MSB.Execution.BuildParameters _buildParameters;
+
+    /// <summary>
+    /// Keeps the latest in-memory project XML for each path alive for the lifetime of the project collection.
+    /// Otherwise MSBuild's XML cache can release its strong references and try to load these nonexistent files from disk.
+    /// </summary>
+    private readonly ConcurrentDictionary<string, MSB.Construction.ProjectRootElement> _projectRootElements = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// An object used as a monitor to guard <see cref="_activeBuilds"/> and <see cref="_unloadedProjectsSinceLastCacheReset"/>.
@@ -212,6 +219,7 @@ internal sealed class ProjectBuildManager : IDisposable
             using var xmlReader = XmlReader.Create(content, s_xmlReaderSettings);
             var projectRootElement = MSB.Construction.ProjectRootElement.Create(xmlReader, _projectCollection);
             projectRootElement.FullPath = path;
+            _projectRootElements[path] = projectRootElement;
 
             var mergedGlobalProperties = new Dictionary<string, string>(_projectCollection.GlobalProperties, StringComparer.OrdinalIgnoreCase);
 
@@ -223,8 +231,12 @@ internal sealed class ProjectBuildManager : IDisposable
                 }
             }
 
-            var project = new MSB.Evaluation.Project(projectRootElement, mergedGlobalProperties, toolsVersion: null, _projectCollection);
-            var projectInstance = project.CreateProjectInstance();
+            var projectInstance = MSB.Execution.ProjectInstance.FromProjectRootElement(projectRootElement, new MSB.Definition.ProjectOptions
+            {
+                ProjectCollection = _projectCollection,
+                GlobalProperties = mergedGlobalProperties,
+            });
+
             return (projectInstance, log);
         }
         catch (Exception e)
@@ -253,6 +265,7 @@ internal sealed class ProjectBuildManager : IDisposable
         // unload project so collection will release global strings
         _projectCollection.UnloadAllProjects();
         _projectCollection.Dispose();
+        _projectRootElements.Clear();
         _disposed = true;
     }
 
