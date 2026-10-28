@@ -392,10 +392,7 @@ internal static class CodeActionHelpers
         CodeActionKind[]? requestedKinds,
         CancellationToken cancellationToken)
     {
-        var includeCodeFixes = requestedKinds is not { Length: > 0 } ||
-            requestedKinds.Any(kind => MatchesKind(kind, CodeActionKind.QuickFix));
-        var includeRefactorings = requestedKinds is not { Length: > 0 } ||
-            requestedKinds.Any(kind => MatchesKind(kind, CodeActionKind.Refactor) || MatchesKind(CodeActionKind.Refactor, kind));
+        var (includeCodeFixes, includeRefactorings) = GetIncludedCodeActionTypes(requestedKinds);
         if (!includeCodeFixes && !includeRefactorings)
             return [];
 
@@ -416,6 +413,26 @@ internal static class CodeActionHelpers
         var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
             codeFixes, codeRefactorings, textSpan, currentActionCount: 0);
         return actionSets;
+    }
+
+    private static (bool includeCodeFixes, bool includeRefactorings) GetIncludedCodeActionTypes(CodeActionKind[]? requestedKinds)
+    {
+        if (requestedKinds is not { Length: > 0 })
+            return (true, true);
+
+        var includeCodeFixes = false;
+        var includeRefactorings = false;
+        foreach (var kind in requestedKinds)
+        {
+            includeCodeFixes = includeCodeFixes || MatchesKind(kind, CodeActionKind.QuickFix);
+            includeRefactorings = includeRefactorings ||
+                MatchesKind(kind, CodeActionKind.Refactor) || MatchesKind(CodeActionKind.Refactor, kind);
+
+            if (includeCodeFixes && includeRefactorings)
+                break;
+        }
+
+        return (includeCodeFixes, includeRefactorings);
     }
 
     private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName, SuggestedAction suggestedAction)
