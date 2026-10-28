@@ -158,7 +158,7 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
     public async Task TestDiscovery_DirectorySymlinks()
     {
         // Two links back to an ancestor would make the number of reachable paths grow exponentially with depth.
-        // Each directory is visited once, by its direct path if it has one.
+        // Directory links are not followed, so each directory is visited only by its direct path, and directories reachable only through a link are not visited.
         // tempDir/
         //   a/
         //     linkToShared -> tempDir/shared
@@ -193,16 +193,14 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        AssertSequenceEqualAndStable(
-            [Path.Combine(tempDir.Path, "linkToOther", "Other.cs"), sharedFile.Path, appFile.Path],
-            () => discovery.FindEntryPoints(tempDir.Path));
+        AssertSequenceEqualAndStable([sharedFile.Path, appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
     }
 
     [ConditionalFact(typeof(UnixLikeOnly))]
     public async Task TestDiscovery_DirectorySymlinkTargetsThroughSymlinks()
     {
         // Each link in 'folder' leads back to 'folder' through another link, under a new path each time ('link2/folder', 'link2/link2/folder', ...).
-        // With three such links, the number of those paths grows exponentially with depth, unless the links within link targets are resolved too.
+        // With three such links, the number of those paths would grow exponentially with depth. Directory links are not followed, so only 'folder' itself is visited.
         // tempDir/
         //   folder/
         //     App.cs
