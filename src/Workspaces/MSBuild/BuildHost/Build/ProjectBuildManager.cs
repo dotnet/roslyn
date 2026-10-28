@@ -223,12 +223,8 @@ internal sealed class ProjectBuildManager : IDisposable
                 }
             }
 
-            var projectInstance = MSB.Execution.ProjectInstance.FromProjectRootElement(projectRootElement, new MSB.Definition.ProjectOptions
-            {
-                ProjectCollection = _projectCollection,
-                GlobalProperties = mergedGlobalProperties,
-            });
-
+            var project = new MSB.Evaluation.Project(projectRootElement, mergedGlobalProperties, toolsVersion: null, _projectCollection);
+            var projectInstance = project.CreateProjectInstance();
             return (projectInstance, log);
         }
         catch (Exception e)

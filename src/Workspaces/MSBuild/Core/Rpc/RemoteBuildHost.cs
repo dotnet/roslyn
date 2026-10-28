@@ -77,4 +77,7 @@ internal sealed class RemoteBuildHost
 
     public Task ShutdownAsync(CancellationToken cancellationToken)
         => _client.InvokeAsync(BuildHostTargetObject, nameof(IBuildHost.ShutdownAsync), parameters: [], cancellationToken);
+
+    public Task TestOnly_ForceGarbageCollectionAsync(CancellationToken cancellationToken)
+        => _client.InvokeAsync(BuildHostTargetObject, nameof(IBuildHost.TestOnly_ForceGarbageCollection), parameters: [], cancellationToken);
 }
