@@ -258,13 +258,11 @@ internal static class ProjectDataWriter
 		}
 
 		// Path sections.
-		// Metadata and analyzer refs are pre-processed: shared-framework entries
-		// rooted in an SDK .App.Ref pack or a recognized NuGet ref pack are removed,
-		// and the pack name is added to [frameworkPacks] for the reader to expand via
-		// FrameworkList.xml. Workload-pack entries remain explicit because their
-		// versions do not follow the target framework's version scheme.
+		// Metadata references expand from pack manifests; analyzer selections remain explicit,
+		// using version-independent pack-relative paths.
 		SortedSet<string> frameworkPacks = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-		SortedSet<string> sdkAnalyzerPacks = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		SortedSet<string> frameworkAnalyzerReferences = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		SortedSet<string> sdkAnalyzerPackageReferences = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		SortedSet<string> sdkAnalyzerConfigPolicyLines = BuildSdkAnalyzerConfigPolicy(sdkAnalyzerConfigPolicy, targetFramework);
 		List<KeyValuePair<string, ITaskItem>> preparedMetadataRefs = PrepareMetadataRefs(
 			metadataReferences,
@@ -274,8 +272,8 @@ internal static class ProjectDataWriter
 		List<string> preparedAnalyzerRefs = PrepareAnalyzerRefs(
 			analyzerReferences,
 			resolver,
-			frameworkPacks,
-			sdkAnalyzerPacks,
+			frameworkAnalyzerReferences,
+			sdkAnalyzerPackageReferences,
 			sdkKnownAnalyzerPacks,
 			targetFramework,
 			projectFilePath,
@@ -294,7 +292,8 @@ internal static class ProjectDataWriter
 		EmitSourceFileSection(writer, sourceFiles, resolver, projectFilePath, duplicateItemReporter);
 		WriteFrameworkPacksSection(writer, frameworkPacks);
 		EmitMetadataRefSection(writer, preparedMetadataRefs);
-		WriteSdkAnalyzerPacksSection(writer, sdkAnalyzerPacks);
+		EmitSimplePathSection(writer, CacheFormat.SectionHeader(CacheFormat.Sections.FrameworkAnalyzerReferences), frameworkAnalyzerReferences.ToList());
+		WriteSdkAnalyzerPackageReferencesSection(writer, sdkAnalyzerPackageReferences);
 		EmitSimplePathSectionRequired(writer, CacheFormat.SectionHeader(CacheFormat.Sections.AnalyzerReferences), preparedAnalyzerRefs);
 		WriteSdkAnalyzerConfigPolicySection(writer, sdkAnalyzerConfigPolicyLines);
 		EmitSimplePathSection(writer, CacheFormat.SectionHeader(CacheFormat.Sections.AnalyzerConfigFiles), preparedAnalyzerConfigFiles);
@@ -1000,25 +999,24 @@ internal static class ProjectDataWriter
 		return result;
 	}
 
-	// Converts analyzerReferences string[] to a sorted portable form,
-	// diverting entries rooted in an SDK .App.Ref pack or a recognized NuGet framework ref pack into the
-	// <paramref name="frameworkPacks"/> set (and dropping them from the result).
+	// Recording pack-relative selections keeps SDK versions and installation locations out of the cache
+	// without restoring analyzers that MSBuild removed.
 	internal static List<string> PrepareAnalyzerRefs(
-		ITaskItem[]? items, CachePathResolver resolver, SortedSet<string> frameworkPacks)
-		=> PrepareAnalyzerRefs(items, resolver, frameworkPacks, default);
+		ITaskItem[]? items, CachePathResolver resolver, SortedSet<string> frameworkAnalyzerReferences)
+		=> PrepareAnalyzerRefs(items, resolver, frameworkAnalyzerReferences, default);
 
 	internal static List<string> PrepareAnalyzerRefs(
 		ITaskItem[]? items,
 		CachePathResolver resolver,
-		SortedSet<string> frameworkPacks,
+		SortedSet<string> frameworkAnalyzerReferences,
 		TargetFramework targetFramework)
-		=> PrepareAnalyzerRefs(items, resolver, frameworkPacks, new SortedSet<string>(StringComparer.OrdinalIgnoreCase), sdkKnownAnalyzerPacks: null, targetFramework);
+		=> PrepareAnalyzerRefs(items, resolver, frameworkAnalyzerReferences, new SortedSet<string>(StringComparer.OrdinalIgnoreCase), sdkKnownAnalyzerPacks: null, targetFramework);
 
 	internal static List<string> PrepareAnalyzerRefs(
 		ITaskItem[]? items,
 		CachePathResolver resolver,
-		SortedSet<string> frameworkPacks,
-		SortedSet<string> sdkAnalyzerPacks,
+		SortedSet<string> frameworkAnalyzerReferences,
+		SortedSet<string> sdkAnalyzerPackageReferences,
 		ITaskItem[]? sdkKnownAnalyzerPacks,
 		TargetFramework targetFramework,
 		string projectFilePath = "",
@@ -1037,7 +1035,7 @@ internal static class ProjectDataWriter
 			string? packName = TryExtractRefPackName(portable);
 			if (packName != null)
 			{
-				frameworkPacks.Add(packName);
+				frameworkAnalyzerReferences.Add(GetPackAnalyzerReference(packName, portable));
 				continue;
 			}
 			packName = TryExtractNuGetRefPackName(item, portable, targetFramework);
@@ -1045,19 +1043,28 @@ internal static class ProjectDataWriter
 			{
 				// See PrepareMetadataRefs for rationale: classify by canonical pack name,
 				// not resolution location.
-				frameworkPacks.Add(packName);
+				frameworkAnalyzerReferences.Add(GetPackAnalyzerReference(packName, portable));
 				continue;
 			}
 			string? sdkAnalyzerPackName = TryExtractSdkAnalyzerPackName(item, portable, sdkKnownAnalyzerPacks, targetFramework);
 			if (sdkAnalyzerPackName != null)
 			{
-				sdkAnalyzerPacks.Add(sdkAnalyzerPackName);
+				sdkAnalyzerPackageReferences.Add(GetPackAnalyzerReference(sdkAnalyzerPackName, portable));
 				continue;
 			}
 			AddDistinctPortablePath(result, seenResult, portable, CacheFormat.Sections.AnalyzerReferences, projectFilePath, duplicateItemReporter);
 		}
 		result.Sort(ComparePortablePaths);
 		return result;
+	}
+
+	private static string GetPackAnalyzerReference(string packName, string portablePath)
+	{
+		int analyzerDirectory = portablePath.IndexOf("/analyzers/", StringComparison.OrdinalIgnoreCase);
+		if (analyzerDirectory < 0)
+			throw new InvalidOperationException($"Pack analyzer is not under an analyzers directory: {portablePath}");
+
+		return packName + portablePath.Substring(analyzerDirectory);
 	}
 
 	private static List<string> ToSortedDistinctPortablePaths(
@@ -1132,7 +1139,7 @@ internal static class ProjectDataWriter
 
 	// Emits the [frameworkPacks] section, listing pack names only (no version).
 	// The reader expands each pack via <DOTNET>/packs/<PackName>/<HighestCompat>/data/FrameworkList.xml
-	// into managed metadata references and CS analyzer references.
+	// into managed metadata references only.
 	internal static void WriteFrameworkPacksSection(StringBuilder sb, SortedSet<string> packs)
 	{
 		using var writer = new StringWriter(sb);
@@ -1147,12 +1154,9 @@ internal static class ProjectDataWriter
 		foreach (string name in packs) writer.WriteLine(name);
 	}
 
-	internal static void WriteSdkAnalyzerPacksSection(TextWriter writer, SortedSet<string> packs)
+	internal static void WriteSdkAnalyzerPackageReferencesSection(TextWriter writer, SortedSet<string> references)
 	{
-		if (packs.Count == 0) return;
-		writer.WriteLine();
-		writer.WriteLine(CacheFormat.SectionHeader(CacheFormat.Sections.SdkAnalyzerPacks));
-		foreach (string name in packs) writer.WriteLine(name);
+		EmitSimplePathSection(writer, CacheFormat.SectionHeader(CacheFormat.Sections.SdkAnalyzerPackageReferences), references.ToList());
 	}
 
 	internal static void WriteSdkAnalyzerConfigPolicySection(TextWriter writer, SortedSet<string> policies)

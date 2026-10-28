@@ -761,14 +761,14 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		Assert.True(File.Exists(stampPath), $"Expected user-folder multi-TFM merge stamp at {stampPath}.\n{firstResult.Output}");
 		string[] cacheFiles = Directory.GetFiles(cacheRoot, "*", SearchOption.AllDirectories);
 		string cacheFile = Assert.Single(cacheFiles);
-		Assert.Contains("version=2", File.ReadAllText(cacheFile));
+		Assert.Contains("version=3", File.ReadAllText(cacheFile));
 		File.Delete(cacheFile);
 
 		ProcessResult secondResult = await RunDotnetMsbuildAsync(projectFile, extraArgs: args);
 
 		Assert.True(secondResult.ExitCode == 0, secondResult.Output);
 		string regeneratedCacheFile = Assert.Single(Directory.GetFiles(cacheRoot, "*", SearchOption.AllDirectories));
-		Assert.Contains("version=2", File.ReadAllText(regeneratedCacheFile));
+		Assert.Contains("version=3", File.ReadAllText(regeneratedCacheFile));
 		AssertNoUnsupportedMarker(projectFile);
 	}
 
@@ -1649,8 +1649,8 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		Assert.True(ProjectDataBuildReceipt.TryRead(trimmedReceiptDirectory, trimmedAttemptId, healthyB, out _));
 		Assert.True(File.Exists(healthyA + ".lscache"));
 		Assert.True(File.Exists(healthyB + ".lscache"));
-		Assert.StartsWith("version=2", File.ReadAllText(healthyA + ".lscache"));
-		Assert.StartsWith("version=2", File.ReadAllText(healthyB + ".lscache"));
+		Assert.StartsWith("version=3", File.ReadAllText(healthyA + ".lscache"));
+		Assert.StartsWith("version=3", File.ReadAllText(healthyB + ".lscache"));
 
 		string WriteRestoreProject(string name, string item = "")
 		{
@@ -2073,7 +2073,7 @@ public sealed class TargetsFileSmokeTests : IDisposable
 		await File.WriteAllTextAsync(
 			staleNet472Slice,
 			"""
-            version=2
+            version=3
 
             [project]
             project=Mixed.csproj

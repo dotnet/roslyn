@@ -21,7 +21,7 @@ namespace Microsoft.NET.ProjectData.Tasks.Tests;
 /// </summary>
 public class ForwardCompatTests
 {
-	private const int CurrentMajor = 2;
+	private const int CurrentMajor = 3;
 
 	// --- Reusable fake-future fixture ------------------------------------------------------------
 
@@ -39,7 +39,7 @@ public class ForwardCompatTests
 
 		/// <summary>A self-consistent single-target cache body (headerless, LF-terminated).</summary>
 		public static string SingleTarget(
-			string version = "version=2",
+			string version = "version=3",
 			bool unknownSection = false,
 			bool unknownProperty = false,
 			bool unknownMetadata = false)
@@ -88,7 +88,7 @@ public class ForwardCompatTests
 	[Fact]
 	public void Preserves_Unknown_Section()
 	{
-		string existing = FutureCacheBuilder.SingleTarget(version: "version=2.3", unknownSection: true);
+		string existing = FutureCacheBuilder.SingleTarget(version: "version=3.3", unknownSection: true);
 		string candidate = FutureCacheBuilder.SingleTarget();
 
 		string merged = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
@@ -109,7 +109,7 @@ public class ForwardCompatTests
 	{
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.3",
+			"version=3.3",
 			"",
 			"[project]",
 			"project=Sample.csproj",
@@ -137,7 +137,7 @@ public class ForwardCompatTests
 	{
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.3",
+			"version=3.3",
 			"",
 			"[project]",
 			"project=Sample.csproj",
@@ -157,7 +157,7 @@ public class ForwardCompatTests
 		}) + "\n";
 		string candidate = string.Join("\n", new[]
 		{
-			"version=2",
+			"version=3",
 			"",
 			"[project]",
 			"project=Sample.csproj",
@@ -190,7 +190,7 @@ public class ForwardCompatTests
 	{
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.3",
+			"version=3.3",
 			"",
 			"[project]",
 			"project=Sample.csproj",
@@ -213,7 +213,7 @@ public class ForwardCompatTests
 		}) + "\n";
 		string candidate = string.Join("\n", new[]
 		{
-			"version=2",
+			"version=3",
 			"",
 			"[project]",
 			"project=Sample.csproj",
@@ -244,7 +244,7 @@ public class ForwardCompatTests
 	{
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.3",
+			"version=3.3",
 			"[project]",
 			"language=C#",
 			"",
@@ -262,7 +262,7 @@ public class ForwardCompatTests
 		}) + "\n";
 		string candidate = string.Join("\n", new[]
 		{
-			"version=2",
+			"version=3",
 			"[project]",
 			"language=C#",
 			"",
@@ -297,7 +297,7 @@ public class ForwardCompatTests
 	{
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.1",
+			"version=3.1",
 			"",
 			"[project]",
 			"project=Sample.csproj",
@@ -313,7 +313,7 @@ public class ForwardCompatTests
 		}) + "\n";
 		string candidate = string.Join("\n", new[]
 		{
-			"version=2",
+			"version=3",
 			"",
 			"[project]",
 			"project=Sample.csproj",
@@ -341,7 +341,7 @@ public class ForwardCompatTests
 	{
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.1",
+			"version=3.1",
 			"",
 			"[project]",
 			"project=Sample.csproj",
@@ -355,7 +355,7 @@ public class ForwardCompatTests
 		}) + "\n";
 		string candidate = string.Join("\n", new[]
 		{
-			"version=2",
+			"version=3",
 			"",
 			"[project]",
 			"project=Sample.csproj",
@@ -377,7 +377,7 @@ public class ForwardCompatTests
 	[Fact]
 	public void Preserves_Unknown_Property_In_Sorted_Position()
 	{
-		string existing = FutureCacheBuilder.SingleTarget(version: "version=2.3", unknownProperty: true);
+		string existing = FutureCacheBuilder.SingleTarget(version: "version=3.3", unknownProperty: true);
 		string candidate = FutureCacheBuilder.SingleTarget();
 
 		string merged = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
@@ -395,7 +395,7 @@ public class ForwardCompatTests
 	{
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.1",
+			"version=3.1",
 			"",
 			"[project]",
 			"project=Sample.csproj",
@@ -406,7 +406,7 @@ public class ForwardCompatTests
 			"FutureProp=onward",
 		}) + "\n";
 		// Degenerate candidate: a header-only [project] (LastLineIndex == -1) and no [properties].
-		string candidate = "version=2\n\n[project]\n";
+		string candidate = "version=3\n\n[project]\n";
 
 		string merged = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
 
@@ -421,12 +421,12 @@ public class ForwardCompatTests
 	{
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.1",
+			"version=3.1",
 			"",
 			"[properties]",
 			"FutureProp=onward",
 		}) + "\n";
-		string candidate = "version=2\n";
+		string candidate = "version=3\n";
 
 		string merged = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
 
@@ -436,7 +436,7 @@ public class ForwardCompatTests
 	[Fact]
 	public void Preserves_Unknown_Metadata_On_Matching_Item()
 	{
-		string existing = FutureCacheBuilder.SingleTarget(version: "version=2.3", unknownMetadata: true);
+		string existing = FutureCacheBuilder.SingleTarget(version: "version=3.3", unknownMetadata: true);
 		string candidate = FutureCacheBuilder.SingleTarget();
 
 		string merged = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
@@ -451,7 +451,7 @@ public class ForwardCompatTests
 		// Existing has @futureMeta on a source file the candidate no longer lists.
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.3",
+			"version=3.3",
 			string.Empty,
 			"[project]",
 			"language=C#",
@@ -462,7 +462,7 @@ public class ForwardCompatTests
 		}) + "\n";
 		string candidate = string.Join("\n", new[]
 		{
-			"version=2",
+			"version=3",
 			string.Empty,
 			"[project]",
 			"language=C#",
@@ -490,7 +490,7 @@ public class ForwardCompatTests
 		// mask the fact that env B's build produced nothing and resurrect stale outputs.
 		string existing = string.Join("\n", new[]
 		{
-			"version=2",
+			"version=3",
 			string.Empty,
 			"[project]",
 			"project=Sample.csproj",
@@ -508,7 +508,7 @@ public class ForwardCompatTests
 		}) + "\n";
 		string candidate = string.Join("\n", new[]
 		{
-			"version=2",
+			"version=3",
 			string.Empty,
 			"[project]",
 			"project=Sample.csproj",
@@ -543,7 +543,7 @@ public class ForwardCompatTests
 		// it (resurfacing the exact churn this feature prevents).
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.4",
+			"version=3.4",
 			string.Empty,
 			"[project]",
 			"project=Sample.csproj",
@@ -555,7 +555,7 @@ public class ForwardCompatTests
 		}) + "\n";
 		string candidate = string.Join("\n", new[]
 		{
-			"version=2",
+			"version=3",
 			string.Empty,
 			"[project]",
 			"project=Sample.csproj",
@@ -578,7 +578,7 @@ public class ForwardCompatTests
 		// resurrect (the candidate is authoritative — the reference legitimately has no alias now).
 		string existing = string.Join("\n", new[]
 		{
-			"version=2.4",
+			"version=3.4",
 			string.Empty,
 			"[project]",
 			"project=Sample.csproj",
@@ -590,7 +590,7 @@ public class ForwardCompatTests
 		}) + "\n";
 		string candidate = string.Join("\n", new[]
 		{
-			"version=2",
+			"version=3",
 			string.Empty,
 			"[project]",
 			"project=Sample.csproj",
@@ -608,7 +608,7 @@ public class ForwardCompatTests
 	[Fact]
 	public void Ignores_Unknown_Data_When_Existing_Major_Differs()
 	{
-		string existing = FutureCacheBuilder.SingleTarget(version: "version=3.0", unknownSection: true, unknownProperty: true, unknownMetadata: true);
+		string existing = FutureCacheBuilder.SingleTarget(version: "version=4.0", unknownSection: true, unknownProperty: true, unknownMetadata: true);
 		string candidate = FutureCacheBuilder.SingleTarget();
 
 		string merged = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
@@ -634,41 +634,41 @@ public class ForwardCompatTests
 	{
 		// Existing is a newer minor with no other unknown data; the stamp must be carried forward so
 		// the file does not flip-flop minors as different versions open it.
-		string existing = FutureCacheBuilder.SingleTarget(version: "version=2.5");
-		string candidate = FutureCacheBuilder.SingleTarget(version: "version=2");
+		string existing = FutureCacheBuilder.SingleTarget(version: "version=3.5");
+		string candidate = FutureCacheBuilder.SingleTarget(version: "version=3");
 
 		string merged = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
 
-		Assert.StartsWith("version=2.5\n", merged);
+		Assert.StartsWith("version=3.5\n", merged);
 	}
 
 	[Fact]
 	public void Does_Not_Downgrade_Version_Stamp()
 	{
 		// Existing is an OLDER (or equal) minor: keep the candidate's own stamp.
-		string existing = FutureCacheBuilder.SingleTarget(version: "version=2", unknownSection: true);
-		string candidate = FutureCacheBuilder.SingleTarget(version: "version=2");
+		string existing = FutureCacheBuilder.SingleTarget(version: "version=3", unknownSection: true);
+		string candidate = FutureCacheBuilder.SingleTarget(version: "version=3");
 
 		string merged = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
 
-		Assert.StartsWith("version=2\n", merged);
+		Assert.StartsWith("version=3\n", merged);
 	}
 
 	[Theory]
 	// existing newer minor, same major → gate open (preserve can carry data forward)
-	[InlineData("version=2.4", "version=2", 2, true)]
-	[InlineData("version=2.1", "version=2.0", 2, true)]
+	[InlineData("version=3.4", "version=3", 3, true)]
+	[InlineData("version=3.1", "version=3.0", 3, true)]
 	// same or older minor → gate closed (nothing this writer can't already produce)
-	[InlineData("version=2", "version=2", 2, false)]
-	[InlineData("version=2.0", "version=2", 2, false)]
-	[InlineData("version=2", "version=2.4", 2, false)]
+	[InlineData("version=3", "version=3", 3, false)]
+	[InlineData("version=3.0", "version=3", 3, false)]
+	[InlineData("version=3", "version=3.4", 3, false)]
 	// present-but-unorderable existing minor (multi-part / non-numeric) → gate OPEN, conservatively,
 	// so a newer writer that stamps a non-integer minor never causes us to skip preservation
-	[InlineData("version=2.0.5", "version=2", 2, true)]
-	[InlineData("version=2.3-preview", "version=2", 2, true)]
+	[InlineData("version=3.0.5", "version=3", 3, true)]
+	[InlineData("version=3.3-preview", "version=3", 3, true)]
 	// different / unparseable major → gate closed (incompatible or no header)
-	[InlineData("version=3.0", "version=2", 2, false)]
-	[InlineData("garbage", "version=2", 2, false)]
+	[InlineData("version=4.0", "version=3", 3, false)]
+	[InlineData("garbage", "version=3", 3, false)]
 	public void ExistingHasNewerMinor_MirrorsPreservationGate(string existingVersion, string candidateVersion, int currentMajor, bool expected)
 	{
 		// The byte-level pre-check must agree with PreserveUnknownData's own version gate: it opens
@@ -694,8 +694,8 @@ public class ForwardCompatTests
 	public void ExistingHasNewerMinor_SkipsLeadingCommentLines()
 	{
 		// A leading comment line must not hide the version header from the byte probe.
-		byte[] existing = Encoding.UTF8.GetBytes("# leading comment\nversion=2.4\n");
-		byte[] candidate = Encoding.UTF8.GetBytes(FutureCacheBuilder.SingleTarget(version: "version=2"));
+		byte[] existing = Encoding.UTF8.GetBytes("# leading comment\nversion=3.4\n");
+		byte[] candidate = Encoding.UTF8.GetBytes(FutureCacheBuilder.SingleTarget(version: "version=3"));
 
 		Assert.True(ForwardCompat.ExistingHasNewerMinor(existing, candidate, CurrentMajor));
 	}
@@ -707,8 +707,8 @@ public class ForwardCompatTests
 		// must skip it (like the reader) so a newer-minor legacy file is still recognized for
 		// preservation instead of being treated as an unparseable header (which would drop data).
 		byte[] existing = Encoding.UTF8.GetBytes(
-			"hash=0000000000000000000000000000000000000000000000000000000000000000\nversion=2.4\n");
-		byte[] candidate = Encoding.UTF8.GetBytes(FutureCacheBuilder.SingleTarget(version: "version=2"));
+			"hash=0000000000000000000000000000000000000000000000000000000000000000\nversion=3.4\n");
+		byte[] candidate = Encoding.UTF8.GetBytes(FutureCacheBuilder.SingleTarget(version: "version=3"));
 
 		Assert.True(ForwardCompat.ExistingHasNewerMinor(existing, candidate, CurrentMajor));
 	}
@@ -716,7 +716,7 @@ public class ForwardCompatTests
 	[Fact]
 	public void Preserves_All_Levels_Together_Deterministically()
 	{
-		string existing = FutureCacheBuilder.SingleTarget(version: "version=2.4", unknownSection: true, unknownProperty: true, unknownMetadata: true);
+		string existing = FutureCacheBuilder.SingleTarget(version: "version=3.4", unknownSection: true, unknownProperty: true, unknownMetadata: true);
 		string candidate = FutureCacheBuilder.SingleTarget();
 
 		string first = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
@@ -727,7 +727,7 @@ public class ForwardCompatTests
 		Assert.Contains("[futureSection]", first);
 		Assert.Contains("FutureProp=onward", first);
 		Assert.Contains("Program.cs\n @futureMeta=42", first);
-		Assert.StartsWith("version=2.4\n", first);
+		Assert.StartsWith("version=3.4\n", first);
 	}
 
 	[Fact]
@@ -736,8 +736,8 @@ public class ForwardCompatTests
 		// A newer writer that stamps a non-integer / multi-part minor (e.g. "2.0.5", "2.3-preview")
 		// must not cause an older writer to silently drop its unknown data. The gate treats an
 		// unorderable minor conservatively (preserve), so the future data survives.
-		string existing = FutureCacheBuilder.SingleTarget(version: "version=2.0.5", unknownSection: true, unknownProperty: true);
-		string candidate = FutureCacheBuilder.SingleTarget(version: "version=2");
+		string existing = FutureCacheBuilder.SingleTarget(version: "version=3.0.5", unknownSection: true, unknownProperty: true);
+		string candidate = FutureCacheBuilder.SingleTarget(version: "version=3");
 
 		string merged = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
 
@@ -764,8 +764,8 @@ public class ForwardCompatTests
 			"Program.cs",
 		}.Concat(meta is null ? Array.Empty<string>() : new[] { " " + meta }));
 
-		string existing = "version=2.4\n" + slice("net8.0", "@futureMetaA=8") + "\n---\n" + slice("net9.0", "@futureMetaB=9") + "\n";
-		string candidate = "version=2\n" + slice("net8.0", null) + "\n---\n" + slice("net9.0", null) + "\n";
+		string existing = "version=3.4\n" + slice("net8.0", "@futureMetaA=8") + "\n---\n" + slice("net9.0", "@futureMetaB=9") + "\n";
+		string candidate = "version=3\n" + slice("net8.0", null) + "\n---\n" + slice("net9.0", null) + "\n";
 
 		string merged = ForwardCompat.PreserveUnknownData(existing, candidate, CurrentMajor);
 
@@ -797,7 +797,7 @@ public class ForwardCompatTests
 			Directory.CreateDirectory(dir);
 
 			// On disk: a file a NEWER minor authored, still carrying a legacy hash header.
-			string newer = FutureCacheBuilder.SingleTarget(version: "version=2.4", unknownSection: true, unknownProperty: true, unknownMetadata: true);
+			string newer = FutureCacheBuilder.SingleTarget(version: "version=3.4", unknownSection: true, unknownProperty: true, unknownMetadata: true);
 			File.WriteAllText(outputPath, $"hash={new string('0', 64)}\n{newer}", new UTF8Encoding(false));
 
 			// The current (older) writer regenerates the candidate it knows about.
@@ -807,7 +807,7 @@ public class ForwardCompatTests
 			string result = File.ReadAllText(outputPath);
 
 			Assert.DoesNotContain("hash=", result);
-			Assert.StartsWith("version=2.4\n", result);   // newer minor stamp carried forward
+			Assert.StartsWith("version=3.4\n", result);   // newer minor stamp carried forward
 			Assert.Contains("[futureSection]", result);
 			Assert.Contains("FutureProp=onward", result);
 			Assert.Contains("Program.cs\n @futureMeta=42", result);
@@ -827,7 +827,7 @@ public class ForwardCompatTests
 		try
 		{
 			Directory.CreateDirectory(dir);
-			string newer = FutureCacheBuilder.SingleTarget(version: "version=2.4", unknownSection: true, unknownProperty: true, unknownMetadata: true);
+			string newer = FutureCacheBuilder.SingleTarget(version: "version=3.4", unknownSection: true, unknownProperty: true, unknownMetadata: true);
 			File.WriteAllText(outputPath, $"hash={new string('0', 64)}\n{newer}", new UTF8Encoding(false));
 
 			string candidate = FutureCacheBuilder.SingleTarget();
@@ -853,7 +853,7 @@ public class ForwardCompatTests
 		try
 		{
 			Directory.CreateDirectory(dir);
-			string future = FutureCacheBuilder.SingleTarget(version: "version=3.0", unknownSection: true);
+			string future = FutureCacheBuilder.SingleTarget(version: "version=4.0", unknownSection: true);
 			File.WriteAllText(outputPath, future, new UTF8Encoding(false));
 
 			string candidate = FutureCacheBuilder.SingleTarget();
@@ -907,7 +907,7 @@ public class ForwardCompatTests
 			ProjectDataMerger.Merge(outPath, Path.Combine(dir, "obj", "**", "Sample.csproj.slice"), "net8.0;net9.0");
 			string merged = File.ReadAllText(outPath).Replace("\r\n", "\n");
 
-			string newer = BumpPrimaryVersion(merged, "version=2.4")
+			string newer = BumpPrimaryVersion(merged, "version=3.4")
 				.Replace("AssemblyName=Sample", "AssemblyName=Sample\nFutureProp=onward")
 				.Replace("Program.cs\n", "Program.cs\n @futureMeta=42\n");
 			File.WriteAllText(outPath, newer, new UTF8Encoding(false));
@@ -960,7 +960,7 @@ public class ForwardCompatTests
 			// is only ever authored by a newer-minor writer, which stamps the file accordingly.
 			int net9Index = merged.IndexOf("TargetFramework=net9.0", StringComparison.Ordinal);
 			Assert.True(net9Index >= 0);
-			string newer = BumpPrimaryVersion(merged, "version=2.4") + "\n[futureSection]\nfuture-section-payload\n";
+			string newer = BumpPrimaryVersion(merged, "version=3.4") + "\n[futureSection]\nfuture-section-payload\n";
 			File.WriteAllText(outPath, newer, new UTF8Encoding(false));
 
 			ProjectDataMerger.Merge(outPath, Path.Combine(dir, "obj", "**", "Sample.csproj.slice"), "net8.0;net9.0");
@@ -1022,8 +1022,8 @@ public class ForwardCompatTests
 		// If this fails because you intentionally changed the emittable set: bump the minor in the
 		// cache schema (which flows to CacheFormat.VersionHeader) and update ExpectedMinor +
 		// ExpectedEmittableHash below to the values printed in the failure message.
-		const int ExpectedMinor = 2;
-		const string ExpectedEmittableHash = "4F7E8056D1E53C2805BA30975E889F762D97752B24BD69F77CFFF6233D1604E6";
+		const int ExpectedMinor = 0;
+		const string ExpectedEmittableHash = "85341172C1EA0D5B7447ACC18EBA8441C88FDCE1314BF8A7FF9007F2328A05D2";
 
 		// Metadata is hashed AS item-type:key pairs (not a flattened union) so that reusing an
 		// existing metadata NAME on a different item type — which leaves ProjectItems.AllMetadata

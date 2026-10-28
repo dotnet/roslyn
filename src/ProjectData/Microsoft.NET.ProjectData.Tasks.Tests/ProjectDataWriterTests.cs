@@ -162,7 +162,7 @@ public class ProjectDataWriterTests
 	{
 		string content = Build();
 
-		Assert.StartsWith("version=2.2", content);
+		Assert.StartsWith("version=3", content);
 		Assert.Contains("aka.ms/lscache", content);
 		Assert.Contains("dotnet.projectsystem.cacheInProjectFolder", content);
 	}
@@ -172,7 +172,7 @@ public class ProjectDataWriterTests
 	{
 		string content = Build(writeHeader: false);
 
-		Assert.DoesNotContain("version=2", content);
+		Assert.DoesNotContain("version=3", content);
 		Assert.StartsWith("[project]", content.TrimStart('\r', '\n'));
 	}
 
@@ -689,12 +689,12 @@ public class ProjectDataWriterTests
 		{
 			Directory.CreateDirectory(outputDir);
 
-			ProjectDataWriter.AtomicWriteStreamed(outputPath, writer => writer.Write("version=2\n"), tempDir);
+			ProjectDataWriter.AtomicWriteStreamed(outputPath, writer => writer.Write("version=3\n"), tempDir);
 
 			Assert.True(Directory.Exists(tempDir));
 			Assert.Empty(Directory.GetFiles(outputDir, "*.tmp"));
 			Assert.Empty(Directory.GetFiles(tempDir, "*.tmp"));
-			Assert.Equal("version=2\n", File.ReadAllText(outputPath));
+			Assert.Equal("version=3\n", File.ReadAllText(outputPath));
 		}
 		finally
 		{
@@ -771,7 +771,7 @@ public class ProjectDataWriterTests
 	{
 		string dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 		string outputPath = Path.Combine(dir, "test.lscache");
-		const string ExistingContent = "version=2.1\n[project]\nlanguage=C#\n";
+		const string ExistingContent = "version=3.1\n[project]\nlanguage=C#\n";
 		try
 		{
 			Directory.CreateDirectory(dir);
@@ -781,7 +781,7 @@ public class ProjectDataWriterTests
 
 			ProjectDataWriter.AtomicWriteStreamed(outputPath, writer =>
 			{
-				writer.WriteLine("version=2.2");
+				writer.WriteLine("version=3.2");
 				writer.WriteLine("[project]");
 				writer.WriteLine("language=C#");
 			});
@@ -803,18 +803,18 @@ public class ProjectDataWriterTests
 		try
 		{
 			Directory.CreateDirectory(dir);
-			File.WriteAllText(outputPath, "version=2.1\n[properties]\nAssemblyName=Sample\n", new UTF8Encoding(false));
+			File.WriteAllText(outputPath, "version=3.1\n[properties]\nAssemblyName=Sample\n", new UTF8Encoding(false));
 
 			ProjectDataWriter.AtomicWriteStreamed(outputPath, writer =>
 			{
-				writer.WriteLine("version=2.2");
+				writer.WriteLine("version=3.2");
 				writer.WriteLine("[properties]");
 				writer.WriteLine("AssemblyName=Sample");
 				writer.WriteLine("IsTestProject=true");
 			});
 
 			Assert.Equal(
-				"version=2.2\n[properties]\nAssemblyName=Sample\nIsTestProject=true\n",
+				"version=3.2\n[properties]\nAssemblyName=Sample\nIsTestProject=true\n",
 				File.ReadAllText(outputPath));
 		}
 		finally
@@ -876,11 +876,11 @@ public class ProjectDataWriterTests
 		{
 			ProjectDataWriter.AtomicWriteStreamed(outputPath, writer =>
 			{
-				writer.WriteLine("version=2");
+				writer.WriteLine("version=3");
 				writer.WriteLine("[project]");
 			});
 
-			Assert.Equal("version=2\n[project]\n", File.ReadAllText(outputPath));
+			Assert.Equal("version=3\n[project]\n", File.ReadAllText(outputPath));
 		}
 		finally
 		{
@@ -942,7 +942,7 @@ public class ProjectDataWriterTests
 	{
 		string dir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 		string outputPath = Path.Combine(dir, "test.lscache");
-		string body = "version=2\n[project]\n";
+		string body = "version=3\n[project]\n";
 		try
 		{
 			Directory.CreateDirectory(dir);
@@ -950,7 +950,7 @@ public class ProjectDataWriterTests
 
 			ProjectDataWriter.AtomicWriteStreamed(outputPath, writer =>
 			{
-				writer.WriteLine("version=2");
+				writer.WriteLine("version=3");
 				writer.WriteLine("[project]");
 			});
 
@@ -1317,7 +1317,7 @@ public class ProjectDataWriterTests
 		List<string> prepared = ProjectDataWriter.PrepareAnalyzerRefs(items, resolver, packs);
 
 		Assert.Single(packs);
-		Assert.Contains("Microsoft.NETCore.App.Ref", packs);
+		Assert.Contains("Microsoft.NETCore.App.Ref/analyzers/dotnet/cs/x.dll", packs);
 		Assert.Single(prepared); // only the SDK-folder analyzer survives
 								 // The SDK analyzer path is rewritten via the <NETSDK> sentinel
 								 // (the version segment is dropped — see CachePathResolver.RewriteSdkPath).
@@ -1391,8 +1391,9 @@ public class ProjectDataWriterTests
 				null,
 				targetFramework);
 
-			Assert.Single(frameworkPacks);
+			Assert.Equal(2, frameworkPacks.Count);
 			Assert.Contains("Microsoft.NETCore.App.Ref", frameworkPacks);
+			Assert.Contains("Microsoft.NETCore.App.Ref/analyzers/dotnet/cs/FrameworkAnalyzer.dll", frameworkPacks);
 			Assert.Single(preparedMetadata);
 			Assert.Contains("some.package", preparedMetadata[0].Key, StringComparison.OrdinalIgnoreCase);
 			Assert.Empty(preparedAnalyzers);
@@ -1687,18 +1688,18 @@ public class ProjectDataWriterTests
 			ITaskItem otherItem = MakeItem(otherAnalyzer, nuGetPackageId: "Some.Analyzer", nuGetPackageVersion: "1.0.0");
 
 			var frameworkPacks = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-			var sdkAnalyzerPacks = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+			var sdkAnalyzerPackageReferences = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 			List<string> prepared = ProjectDataWriter.PrepareAnalyzerRefs(
 				[illinkItem, otherItem],
 				resolver,
 				frameworkPacks,
-				sdkAnalyzerPacks,
+				sdkAnalyzerPackageReferences,
 				[MakeSdkKnownAnalyzerPack("Microsoft.NET.ILLink.Tasks", "net10.0", "10.0.7")],
 				new ProjectDataWriter.TargetFramework("net10.0", null, "v10.0"));
 
 			Assert.Empty(frameworkPacks);
-			Assert.Single(sdkAnalyzerPacks);
-			Assert.Contains("Microsoft.NET.ILLink.Tasks", sdkAnalyzerPacks);
+			Assert.Single(sdkAnalyzerPackageReferences);
+			Assert.Contains("Microsoft.NET.ILLink.Tasks/analyzers/dotnet/cs/ILLink.RoslynAnalyzer.dll", sdkAnalyzerPackageReferences);
 			Assert.Single(prepared);
 			Assert.Contains("some.analyzer", prepared[0], StringComparison.OrdinalIgnoreCase);
 			Assert.DoesNotContain("microsoft.net.illink.tasks", prepared[0], StringComparison.OrdinalIgnoreCase);
@@ -1721,16 +1722,16 @@ public class ProjectDataWriterTests
 			ITaskItem analyzerItem = MakeItem(analyzer, nuGetPackageId: "Some.Analyzer", nuGetPackageVersion: "1.0.0");
 
 			var frameworkPacks = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
-			var sdkAnalyzerPacks = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+			var sdkAnalyzerPackageReferences = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 			List<string> prepared = ProjectDataWriter.PrepareAnalyzerRefs(
 				[analyzerItem],
 				resolver,
 				frameworkPacks,
-				sdkAnalyzerPacks,
+				sdkAnalyzerPackageReferences,
 				[MakeSdkKnownAnalyzerPack("Microsoft.NET.ILLink.Tasks", "net10.0", "10.0.7")],
 				new ProjectDataWriter.TargetFramework("net10.0", null, "v10.0"));
 
-			Assert.Empty(sdkAnalyzerPacks);
+			Assert.Empty(sdkAnalyzerPackageReferences);
 			Assert.Single(prepared);
 			Assert.Contains("some.analyzer", prepared[0], StringComparison.OrdinalIgnoreCase);
 		}
@@ -1741,7 +1742,7 @@ public class ProjectDataWriterTests
 	}
 
 	[Fact]
-	public void BuildContent_SdkAnalyzerPacksAppearsBeforeAnalyzerReferences_AndPackEntriesAreFiltered()
+	public void BuildContent_SdkAnalyzerPackageReferencesAppearBeforeAnalyzerReferences_AndPackEntriesAreFiltered()
 	{
 		string projectDir = Path.Combine(Path.GetTempPath(), "lscache-sdk-apacks-" + Guid.NewGuid().ToString("N"));
 		Directory.CreateDirectory(projectDir);
@@ -1775,12 +1776,12 @@ public class ProjectDataWriterTests
 				capabilities: null,
 				sdkKnownAnalyzerPacks: [MakeSdkKnownAnalyzerPack("Microsoft.NET.ILLink.Tasks", "net10.0", "10.0.7")]);
 
-			int packsIdx = content.IndexOf("[sdkAnalyzerPacks]");
+			int packagesIdx = content.IndexOf("[sdkAnalyzerPackageReferences]");
 			int analyzerIdx = content.IndexOf("[analyzerReferences]");
-			Assert.True(packsIdx > 0, "[sdkAnalyzerPacks] section expected");
-			Assert.True(analyzerIdx > packsIdx, "[sdkAnalyzerPacks] must precede [analyzerReferences]");
+			Assert.True(packagesIdx > 0, "[sdkAnalyzerPackageReferences] section expected");
+			Assert.True(analyzerIdx > packagesIdx, "[sdkAnalyzerPackageReferences] must precede [analyzerReferences]");
 			Assert.Contains("Microsoft.NET.ILLink.Tasks", content);
-			Assert.DoesNotContain("ILLink.RoslynAnalyzer.dll", content);
+			Assert.Contains("ILLink.RoslynAnalyzer.dll", content);
 			Assert.DoesNotContain("10.0.8/analyzers", content);
 			Assert.Contains("Some.Analyzer.dll", content);
 		}
@@ -2146,7 +2147,7 @@ public class ProjectDataWriterTests
 	}
 
 	[Fact]
-	public void PrepareRefs_SharedPackBetweenMetadataAndAnalyzersIsDeduplicated()
+	public void PrepareRefs_MetadataPackAndAnalyzerSelectionsAreSeparate()
 	{
 		string projectDir = Path.Combine(Path.GetTempPath(), "proj");
 		(CachePathResolver resolver, string dotnetRoot) = MakeSyntheticResolver(projectDir);
@@ -2154,10 +2155,12 @@ public class ProjectDataWriterTests
 		ITaskItem[] analyzers = [MakeItem(Path.Combine(dotnetRoot, "packs", "Microsoft.NETCore.App.Ref", "10.0.7", "analyzers", "dotnet", "cs", "x.dll"))];
 
 		var packs = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+		var selections = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
 		ProjectDataWriter.PrepareMetadataRefs(meta, resolver, packs);
-		ProjectDataWriter.PrepareAnalyzerRefs(analyzers, resolver, packs);
+		ProjectDataWriter.PrepareAnalyzerRefs(analyzers, resolver, selections);
 
 		Assert.Single(packs);
+		Assert.Equal("Microsoft.NETCore.App.Ref/analyzers/dotnet/cs/x.dll", Assert.Single(selections));
 	}
 
 	[Fact]

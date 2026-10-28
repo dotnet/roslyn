@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -28,6 +28,52 @@ public sealed class DotnetRootEnvCollection
 [Collection(DotnetRootEnvCollection.Name)]
 public class LsCacheRoundTripEquivalenceTests
 {
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task FullRoundTrip_RemovedFrameworkAnalyzers_StayRemoved(bool keepOne)
+	{
+		using TempPack pack = TempPack.Create(
+			"Test.Selection.App.Ref", "10.0.7",
+			managed: ["System.Sample.dll"],
+			analyzers: ["Kept.dll", "Microsoft.Extensions.Logging.Generators.dll"]);
+		string projectFile = Path.Combine(pack.Root, "App.csproj");
+		string packDirectory = Path.Combine(pack.DotNetRoot, "packs", "Test.Selection.App.Ref", "10.0.7");
+		string kept = Path.Combine(packDirectory, "analyzers", "dotnet", "cs", "Kept.dll");
+		string replacement = Path.Combine(pack.Root, "Microsoft.Gen.Logging.dll");
+		string? previous = Environment.GetEnvironmentVariable("DOTNET_ROOT");
+		try
+		{
+			Environment.SetEnvironmentVariable("DOTNET_ROOT", pack.DotNetRoot);
+			string content = ProjectDataWriter.BuildContent(
+				projectFile, writeHeader: true, isPrimary: true, lastDtbSucceeded: true,
+				sliceDimensions: [MakeKvp("TargetFramework", "net10.0")],
+				properties: null, commandLineArguments: null, sourceFiles: null,
+				metadataReferences: [MakeItem(Path.Combine(packDirectory, "ref", "net10.0", "System.Sample.dll"))],
+				analyzerReferences: keepOne ? [MakeItem(kept), MakeItem(replacement)] : [MakeItem(replacement)],
+				analyzerConfigFiles: null, additionalFiles: null);
+			ProductDataFromProjectDataAssembly.CachePathResolver resolver = new(
+				null, null, [pack.DotNetRoot], [], null);
+			using StringReader reader = new(content);
+			var slices = await ProductDataFromProjectDataAssembly.CacheFileReader.ReadFromAsync(
+				reader, resolver, pack.Root, projectFile, null, null, TestContext.Current.CancellationToken);
+
+			var slice = Assert.Single(slices);
+			Assert.Equal(keepOne ? 2 : 1, slice.AnalyzerReferences.Length);
+			Assert.Contains(replacement, slice.AnalyzerReferences);
+			Assert.DoesNotContain(slice.AnalyzerReferences, path => path.EndsWith("Microsoft.Extensions.Logging.Generators.dll", StringComparison.Ordinal));
+			if (keepOne)
+				Assert.Contains(kept, slice.AnalyzerReferences);
+			Assert.Single(slice.MetadataReferences);
+			Assert.DoesNotContain("10.0.7", content);
+			Assert.DoesNotContain(pack.DotNetRoot.Replace('\\', '/'), content);
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("DOTNET_ROOT", previous);
+		}
+	}
+
 	[Fact]
 	public async Task FullRoundTrip_FrameworkPackEntries_AreReconstructedAfterRead()
 	{
@@ -70,13 +116,13 @@ public class LsCacheRoundTripEquivalenceTests
 				analyzerReferences: analyzerRefs,
 				analyzerConfigFiles: null, additionalFiles: null, projectReferences: null);
 
-			// Sanity: writer produced version=2 + a [frameworkPacks] section, and dropped pack DLLs.
-			Assert.Contains("version=2", content);
+			// Sanity: writer produced version=3 + a [frameworkPacks] section, and dropped pack DLLs.
+			Assert.Contains("version=3", content);
 			Assert.Contains("[frameworkPacks]", content);
 			Assert.Contains("Test.Equivalence.App.Ref", content);
 			Assert.DoesNotContain("System.Sample.dll", content);
 			Assert.DoesNotContain("Other.dll", content);
-			Assert.DoesNotContain("Sample.Analyzer.dll", content);
+			Assert.Contains("Sample.Analyzer.dll", content);
 
 			// Round-trip read against an isolated resolver that only sees the synthetic
 			// dotnet root — never the host install. This is critical on dev / CI machines
@@ -105,6 +151,147 @@ public class LsCacheRoundTripEquivalenceTests
 			// Materialized analyzer refs: the pack analyzer.
 			Assert.Single(slice.AnalyzerReferences);
 			Assert.EndsWith("Sample.Analyzer.dll", slice.AnalyzerReferences[0]);
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("DOTNET_ROOT", previous);
+		}
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task FullRoundTrip_SdkAnalyzerPack_PreservesSelection(bool keepOne)
+	{
+		using TempNuGetPack pack = TempNuGetPack.Create(
+			"Microsoft.NET.ILLink.Tasks", "10.0.7", "net10.0",
+			managed: [], analyzers: ["Kept.dll", "Removed.dll"]);
+		string projectFile = Path.Combine(pack.Root, "App.csproj");
+		string analyzer = Path.Combine(pack.NuGetRoot, "microsoft.net.illink.tasks", "10.0.7", "analyzers", "dotnet", "cs", "Kept.dll");
+		var knownPack = new Mock<ITaskItem>();
+		knownPack.Setup(item => item.ItemSpec).Returns("Microsoft.NET.ILLink.Tasks");
+		knownPack.Setup(item => item.GetMetadata("PackageId")).Returns("Microsoft.NET.ILLink.Tasks");
+		knownPack.Setup(item => item.GetMetadata("TargetFramework")).Returns("net10.0");
+		string? previous = Environment.GetEnvironmentVariable("NUGET_PACKAGES");
+		try
+		{
+			Environment.SetEnvironmentVariable("NUGET_PACKAGES", pack.NuGetRoot);
+			string content = ProjectDataWriter.BuildContent(
+				projectFile, writeHeader: true, isPrimary: true, lastDtbSucceeded: true,
+				sliceDimensions: [MakeKvp("TargetFramework", "net10.0")],
+				properties: null, commandLineArguments: null, sourceFiles: null, metadataReferences: null,
+				analyzerReferences: keepOne ? [MakeItem(analyzer, "Microsoft.NET.ILLink.Tasks", "10.0.7")] : [],
+				analyzerConfigFiles: null, additionalFiles: null, sdkKnownAnalyzerPacks: [knownPack.Object]);
+			ProductDataFromProjectDataAssembly.CachePathResolver resolver = new(
+				null, pack.SdkPath, [], [pack.NuGetRoot], null);
+			using StringReader reader = new(content);
+			var slices = await ProductDataFromProjectDataAssembly.CacheFileReader.ReadFromAsync(
+				reader, resolver, pack.Root, projectFile, null, null, TestContext.Current.CancellationToken);
+
+			var slice = Assert.Single(slices);
+			Assert.Equal(keepOne ? 1 : 0, slice.AnalyzerReferences.Length);
+			if (keepOne)
+				Assert.Equal(analyzer, slice.AnalyzerReferences[0], ignoreCase: OperatingSystem.IsWindows());
+			Assert.DoesNotContain("10.0.7", content);
+			Assert.DoesNotContain(pack.NuGetRoot.Replace('\\', '/'), content);
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("NUGET_PACKAGES", previous);
+		}
+	}
+
+	[Fact]
+	public async Task FullRoundTrip_MergedSlices_PreserveDifferentAnalyzerSelections()
+	{
+		using TempPack pack = TempPack.Create(
+			"Test.Selection.App.Ref", "10.0.7", managed: ["System.Sample.dll"], analyzers: ["First.dll", "Second.dll"]);
+		string projectFile = Path.Combine(pack.Root, "App.csproj");
+		string packDirectory = Path.Combine(pack.DotNetRoot, "packs", "Test.Selection.App.Ref", "10.0.7");
+		string? previous = Environment.GetEnvironmentVariable("DOTNET_ROOT");
+		try
+		{
+			Environment.SetEnvironmentVariable("DOTNET_ROOT", pack.DotNetRoot);
+			List<string> slicePaths = [];
+			foreach ((string tfm, string[] analyzers) in new[]
+			{
+				("net10.0", new[] { "First.dll", "Second.dll" }),
+				("net10.0-windows", new[] { "Second.dll" }),
+				("net10.0-linux", Array.Empty<string>()),
+			})
+			{
+				string content = ProjectDataWriter.BuildContent(
+					projectFile, writeHeader: false, isPrimary: false, lastDtbSucceeded: true,
+					sliceDimensions: [MakeKvp("TargetFramework", tfm)],
+					properties: null, commandLineArguments: null, sourceFiles: null,
+					metadataReferences: [MakeItem(Path.Combine(packDirectory, "ref", "net10.0", "System.Sample.dll"))],
+					analyzerReferences: analyzers.Select(name => MakeItem(Path.Combine(packDirectory, "analyzers", "dotnet", "cs", name))).ToArray(),
+					analyzerConfigFiles: null, additionalFiles: null);
+				string slicePath = Path.Combine(pack.Root, tfm + ".slice");
+				File.WriteAllText(slicePath, content);
+				slicePaths.Add(slicePath);
+			}
+
+			string cachePath = projectFile + ".lscache";
+			Assert.Equal(3, ProjectDataMerger.Merge(cachePath, slicePaths));
+			ProductDataFromProjectDataAssembly.CachePathResolver resolver = new(null, null, [pack.DotNetRoot], [], null);
+			var slices = await ProductDataFromProjectDataAssembly.CacheFileReader.ReadProjectCacheAsync(
+				projectFile, true, resolver, TestContext.Current.CancellationToken);
+			var snapshots = ProductDataFromProjectDataAssembly.ProjectDataSnapshotFactory.CreateSnapshots(slices);
+			Assert.Equal(3, snapshots.Length);
+			foreach (var snapshot in snapshots)
+			{
+				string tfm = snapshot.Dimensions["TargetFramework"];
+				var selected = snapshot.ItemsByType["AnalyzerReference"];
+				Assert.Equal(tfm == "net10.0" ? 2 : tfm == "net10.0-windows" ? 1 : 0, selected.Length);
+				if (tfm == "net10.0-windows")
+					Assert.EndsWith("Second.dll", Assert.Single(selected).ItemSpec);
+			}
+		}
+		finally
+		{
+			Environment.SetEnvironmentVariable("DOTNET_ROOT", previous);
+		}
+	}
+
+	[Fact]
+	public async Task FullRoundTrip_MergedCommonAnalyzerSelection_ResolvesPerTargetFramework()
+	{
+		using TempPack pack = TempPack.Create(
+			"Test.Selection.App.Ref", "10.0.7", managed: [], analyzers: ["Common.dll"]);
+		string projectFile = Path.Combine(pack.Root, "App.csproj");
+		string? previous = Environment.GetEnvironmentVariable("DOTNET_ROOT");
+		try
+		{
+			Environment.SetEnvironmentVariable("DOTNET_ROOT", pack.DotNetRoot);
+			List<string> slicePaths = [];
+			foreach (int major in new[] { 10, 11 })
+			{
+				string analyzer = Path.Combine(pack.DotNetRoot, "packs", "Test.Selection.App.Ref", $"{major}.0.7", "analyzers", "dotnet", "cs", "Common.dll");
+				Directory.CreateDirectory(Path.GetDirectoryName(analyzer)!);
+				File.WriteAllText(analyzer, string.Empty);
+				string content = ProjectDataWriter.BuildContent(
+					projectFile, writeHeader: false, isPrimary: false, lastDtbSucceeded: true,
+					sliceDimensions: [MakeKvp("TargetFramework", $"net{major}.0")],
+					properties: null, commandLineArguments: null, sourceFiles: null, metadataReferences: null,
+					analyzerReferences: [MakeItem(analyzer)], analyzerConfigFiles: null, additionalFiles: null);
+				string slicePath = Path.Combine(pack.Root, $"{major}.slice");
+				File.WriteAllText(slicePath, content);
+				slicePaths.Add(slicePath);
+			}
+
+			Assert.Equal(2, ProjectDataMerger.Merge(projectFile + ".lscache", slicePaths));
+			ProductDataFromProjectDataAssembly.CachePathResolver resolver = new(null, null, [pack.DotNetRoot], [], null);
+			var slices = await ProductDataFromProjectDataAssembly.CacheFileReader.ReadProjectCacheAsync(
+				projectFile, true, resolver, TestContext.Current.CancellationToken);
+			var snapshots = ProductDataFromProjectDataAssembly.ProjectDataSnapshotFactory.CreateSnapshots(slices);
+			Assert.Equal(2, snapshots.Length);
+			foreach (var snapshot in snapshots)
+			{
+				string version = snapshot.Dimensions["TargetFramework"] == "net10.0" ? "10.0.7" : "11.0.7";
+				string selected = Assert.Single(snapshot.ItemsByType["AnalyzerReference"]).ItemSpec;
+				Assert.Contains(Path.Combine("Test.Selection.App.Ref", version), selected);
+			}
 		}
 		finally
 		{

@@ -66,7 +66,7 @@ public class ProjectDataMergerTests
 			Assert.True(File.Exists(outPath));
 			string content = File.ReadAllText(outPath).Replace("\r\n", "\n");
 			string[] lines = content.Split('\n');
-			Assert.Equal("version=2.2", lines[0]);
+			Assert.Equal("version=3", lines[0]);
 			Assert.DoesNotContain("hash=", content);
 			Assert.Contains("# This file caches", content);
 			Assert.DoesNotContain("TargetFramework=net8.0", content);
@@ -198,7 +198,7 @@ public class ProjectDataMergerTests
 				outPath,
 				"""
                 hash=0000000000000000000000000000000000000000000000000000000000000000
-                version=2
+                version=3
 
                 # Existing committed cache.
 
@@ -255,12 +255,12 @@ public class ProjectDataMergerTests
 			File.WriteAllText(net10Slice, "[project]\nlanguage=C#\nlastDtbSucceeded\n[sliceDimensions]\nTargetFramework=net10.0\n[commandLineArguments]\n/langversion:preview\n");
 			string outPath = Path.Combine(dir, "out.lscache");
 
-			// The existing merged cache is a FUTURE major (version=3): its grammar may differ from this
+			// The existing merged cache is a FUTURE major (version=4): its grammar may differ from this
 			// writer's, so its slices must NOT be parsed-and-re-emitted under the current version= header.
 			File.WriteAllText(
 				outPath,
 				"""
-                version=3
+                version=4
 
                 [project]
                 project=Sample.csproj
@@ -283,9 +283,9 @@ public class ProjectDataMergerTests
 
 			Assert.Equal(1, count);
 			string content = File.ReadAllText(outPath).Replace("\r\n", "\n");
-			Assert.StartsWith("version=2", content);
+			Assert.StartsWith("version=3", content);
 			Assert.Contains("/langversion:preview", content);
-			// The incompatible-major slice content must be gone — not re-emitted under version=2.
+			// The incompatible-major slice content must be gone — not re-emitted under version=3.
 			Assert.DoesNotContain("future_major_payload.dll", content);
 			Assert.DoesNotContain("TargetFramework=net472", content);
 		}
@@ -754,16 +754,18 @@ public class ProjectDataMergerTests
 	}
 
 	[Fact]
-	public void Merge_SdkAnalyzerSections_ArePropagatedAndDeduplicated()
+	public void Merge_AnalyzerSelectionsRemainPerTfm_WhileConfigPolicyIsShared()
 	{
 		string dir = MakeTempDir();
 		try
 		{
 			string sliceA = "[project]\nlanguage=C#\n[sliceDimensions]\nTargetFramework=net10.0\n" +
-				"[sdkAnalyzerPacks]\nMicrosoft.NET.ILLink.Tasks\n" +
+				"[frameworkAnalyzerReferences]\nMicrosoft.NETCore.App.Ref/analyzers/dotnet/cs/Common.dll\n" +
+				"[sdkAnalyzerPackageReferences]\nMicrosoft.NET.ILLink.Tasks/analyzers/dotnet/cs/\n Common.dll\n" +
 				"[sdkAnalyzerConfigPolicy]\nMicrosoft.NET.Sdk/analyzers\n";
 			string sliceB = "[project]\nlanguage=C#\n[sliceDimensions]\nTargetFramework=net11.0\n" +
-				"[sdkAnalyzerPacks]\nMicrosoft.NET.ILLink.Tasks\nAnother.Sdk.AnalyzerPack\n" +
+				"[frameworkAnalyzerReferences]\nMicrosoft.NETCore.App.Ref/analyzers/dotnet/cs/Common.dll\n" +
+				"[sdkAnalyzerPackageReferences]\nMicrosoft.NET.ILLink.Tasks/analyzers/dotnet/cs/\n Common.dll\nAnother.Sdk.AnalyzerPack/analyzers/dotnet/cs/Other.dll\n" +
 				"[sdkAnalyzerConfigPolicy]\nMicrosoft.NET.Sdk/analyzers\nMicrosoft.NET.Sdk/codestyle/cs\n";
 
 			File.WriteAllText(Path.Combine(CreateSliceDir(dir, "net10.0"), "Sample.csproj.slice"), sliceA);
@@ -777,7 +779,10 @@ public class ProjectDataMergerTests
 			string sharedPart = content.Substring(0, firstSep);
 			string perTfmPart = content.Substring(firstSep);
 
-			Assert.Contains("[sdkAnalyzerPacks]\nMicrosoft.NET.ILLink.Tasks\n", sharedPart);
+			Assert.DoesNotContain("[sdkAnalyzerPackageReferences]", sharedPart);
+			Assert.DoesNotContain("[frameworkAnalyzerReferences]", sharedPart);
+			Assert.Equal(2, CountOccurrences(perTfmPart, "Microsoft.NET.ILLink.Tasks/analyzers/dotnet/cs/\n Common.dll"));
+			Assert.Equal(2, CountOccurrences(perTfmPart, "Microsoft.NETCore.App.Ref/analyzers/dotnet/cs/Common.dll"));
 			Assert.DoesNotContain("Another.Sdk.AnalyzerPack", sharedPart);
 			Assert.Contains("Another.Sdk.AnalyzerPack", perTfmPart);
 			Assert.Contains("[sdkAnalyzerConfigPolicy]\nMicrosoft.NET.Sdk/analyzers\n", sharedPart);
