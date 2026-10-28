@@ -61,15 +61,19 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         if (await declaration.GetSyntaxAsync(cancellationToken).ConfigureAwait(false) is not TypeDeclarationSyntax syntax)
             return null;
 
+        // If the type is nullable we should assume the type can be null
+        // Thus we also want to check if the null arm is present because if not it won't actually be exhaustive
         if (IsNullableType(semanticModel, switchExpression.GoverningExpression, switchedOnTypeInfo, cancellationToken) &&
             !switchExpression.Arms.Any(arm => arm.Pattern is ConstantPatternSyntax constantPattern && constantPattern.Expression.IsKind(SyntaxKind.NullLiteralExpression)))
         {
             return null;
         }
 
+        // When all types arent handled already by the user adding the closed modifier won't actually fix the diagnostic
         if (!await AreAllDerivedTypesHandledAsync(solution, semanticModel, switchExpression.Arms, namedType, cancellationToken: cancellationToken).ConfigureAwait(false))
             return null;
 
+        // If the type is ever instantiated it cant be closed because closed types can't be instantiated
         if (!namedType.IsAbstract && await IsTypeEverInstantiatedAsync(solution, namedType, cancellationToken).ConfigureAwait(false))
             return null;
 
