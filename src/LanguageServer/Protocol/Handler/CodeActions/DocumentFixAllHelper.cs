@@ -12,18 +12,23 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Extensions;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
+using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 
 internal static class DocumentFixAllHelper
 {
-    public static async Task<Document> GetChangedDocumentAsync(
+    public static async Task<Solution> GetChangedSolutionAsync(
         Document document, ICodeFixService codeFixService, DiagnosticSeverity minimumSeverity,
-        Action<string> log, CancellationToken cancellationToken)
+        ResourceOperationKind[] resourceOperations, Action<string> log, CancellationToken cancellationToken)
     {
-        var services = document.Project.Solution.Services;
+        var originalSolution = document.Project.Solution;
+        var solution = originalSolution;
+        var services = solution.Services;
         var diagnosticService = services.GetRequiredService<IDiagnosticAnalyzerService>();
         var fixAllService = services.GetRequiredService<IFixAllGetFixesService>();
         var extensionManager = services.GetRequiredService<IExtensionManager>();
@@ -65,26 +70,42 @@ internal static class DocumentFixAllHelper
             if (operations.IsEmpty)
                 continue;
 
-            // Only a single ApplyChangesOperation can be converted into the document edit returned by this action.
+            // Only a single ApplyChangesOperation can be converted into the workspace edit returned by this action.
             if (operations.Length != 1 || operations[0] is not ApplyChangesOperation applyChanges)
             {
                 log($"Skipping document Fix All for '{diagnosticId}': unsupported code action operations.");
                 continue;
             }
 
-            // Discard the whole candidate if it changes other files or project/solution state.
-            var changedDocument = await GetDocumentOnlyChangeAsync(
-                document, applyChanges.ChangedSolution, cancellationToken).ConfigureAwait(false);
-            if (changedDocument is null)
+            // Reject the whole candidate if any required change cannot be represented by the client.
+            var candidate = applyChanges.ChangedSolution;
+            if (!CodeActionResolveHelper.CanApplyFixAllChanges(solution, candidate, resourceOperations))
             {
-                log($"Skipping document Fix All for '{diagnosticId}': changes are not confined to the requested document.");
+                log($"Skipping document Fix All for '{diagnosticId}': unsupported workspace changes.");
                 continue;
             }
+
+            var normalized = await NormalizeLinkedDocumentChangesAsync(solution, candidate, cancellationToken).ConfigureAwait(false);
+            if (normalized is null)
+            {
+                log($"Skipping document Fix All for '{diagnosticId}': conflicting linked document changes.");
+                continue;
+            }
+
+            if (!CodeActionResolveHelper.CanApplyFixAllChanges(originalSolution, normalized, resourceOperations))
+            {
+                log($"Skipping document Fix All for '{diagnosticId}': unsupported accumulated workspace changes.");
+                continue;
+            }
+
+            solution = normalized;
+            if (solution.GetDocument(document.Id) is not { } changedDocument)
+                break;
 
             document = changedDocument;
         }
 
-        return document;
+        return solution;
     }
 
     private static CodeAction? GetFirstAction(System.Collections.Generic.IEnumerable<CodeAction> actions)
@@ -106,75 +127,47 @@ internal static class DocumentFixAllHelper
         return null;
     }
 
-    private static async Task<Document?> GetDocumentOnlyChangeAsync(
-        Document document, Solution changedSolution, CancellationToken cancellationToken)
+    private static async Task<Solution?> NormalizeLinkedDocumentChangesAsync(
+        Solution solution, Solution changedSolution, CancellationToken cancellationToken)
     {
-        var solution = document.Project.Solution;
-        var changes = changedSolution.GetChanges(solution);
-
-        // Reject solution-wide changes and explicit edits to generated documents.
-        if (changedSolution.Id != solution.Id ||
-            changedSolution.FilePath != solution.FilePath ||
-            !changedSolution.ProjectIds.SequenceEqual(solution.ProjectIds) ||
-            !changedSolution.AnalyzerReferences.SequenceEqual(solution.AnalyzerReferences) ||
-            changes.GetExplicitlyChangedSourceGeneratedDocuments().Any())
-        {
-            return null;
-        }
-
-        // Linked contexts share a physical file, so their text edits must agree.
-        var allowedIds = document.GetLinkedDocumentIds().Add(document.Id);
-        SourceText? changedText = null;
-        foreach (var projectChange in changes.GetProjectChanges())
+        using var _1 = PooledDictionary<DocumentUri, SourceText>.GetInstance(out var textsByUri);
+        using var _2 = PooledDictionary<DocumentId, SourceText>.GetInstance(out var textsById);
+        foreach (var projectChange in changedSolution.GetChanges(solution).GetProjectChanges())
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var oldProject = projectChange.OldProject;
-            var newProject = projectChange.NewProject;
-
-            // Preserve project configuration, source document membership, and additional/analyzer-config documents.
-            if (oldProject.State.Attributes != newProject.State.Attributes ||
-                !Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
-                !Equals(oldProject.ParseOptions, newProject.ParseOptions) ||
-                !oldProject.ProjectReferences.SequenceEqual(newProject.ProjectReferences) ||
-                !oldProject.MetadataReferences.SequenceEqual(newProject.MetadataReferences) ||
-                !oldProject.AnalyzerReferences.SequenceEqual(newProject.AnalyzerReferences) ||
-                !oldProject.DocumentIds.SequenceEqual(newProject.DocumentIds) ||
-                projectChange.GetAddedAdditionalDocuments().Any() ||
-                projectChange.GetRemovedAdditionalDocuments().Any() ||
-                projectChange.GetChangedAdditionalDocuments().Any() ||
-                projectChange.GetAddedAnalyzerConfigDocuments().Any() ||
-                projectChange.GetRemovedAnalyzerConfigDocuments().Any() ||
-                projectChange.GetChangedAnalyzerConfigDocuments().Any())
+            var changedIds = projectChange.GetChangedDocuments().Concat(projectChange.GetAddedDocuments())
+                .Concat(projectChange.GetChangedAdditionalDocuments()).Concat(projectChange.GetAddedAdditionalDocuments())
+                .Concat(projectChange.GetChangedAnalyzerConfigDocuments()).Concat(projectChange.GetAddedAnalyzerConfigDocuments());
+            foreach (var id in changedIds)
             {
-                return null;
-            }
-
-            // Validate each changed source document's identity and metadata before accepting its text.
-            foreach (var id in projectChange.GetChangedDocuments())
-            {
-                if (!allowedIds.Contains(id))
-                    return null;
-
-                var updated = newProject.GetRequiredDocument(id);
-                if (updated.HasInfoChanged(oldProject.GetRequiredDocument(id)))
-                    return null;
+                var updated = changedSolution.GetRequiredTextDocument(id);
+                var text = await updated.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                if (solution.GetTextDocument(id) is { } original &&
+                    text.ContentEquals(await original.GetValueTextAsync(cancellationToken).ConfigureAwait(false)))
+                {
+                    continue;
+                }
 
                 // Different text for linked contexts cannot be represented by one physical-file edit.
-                var text = await updated.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                if (changedText is not null && !changedText.ContentEquals(text))
+                var uri = updated.FilePath is null ? updated.CreateUriForDocumentWithoutFilePath() : updated.GetURI();
+                if (textsByUri.TryGetValue(uri, out var previousText) && !previousText.ContentEquals(text))
                     return null;
 
-                changedText = text;
+                textsByUri[uri] = text;
+                foreach (var linkedId in changedSolution.GetDocumentIdsWithFilePath(uri.GetDocumentFilePathFromUri()).Add(id))
+                {
+                    if (textsById.TryGetValue(linkedId, out previousText) && !previousText.ContentEquals(text))
+                        return null;
+
+                    textsById[linkedId] = text;
+                }
             }
         }
 
-        if (changedText is null)
-            return document;
+        // Keep every physical file's contexts consistent before computing diagnostics for the next ID.
+        foreach (var pair in textsById)
+            changedSolution = changedSolution.WithTextDocumentText(pair.Key, pair.Value);
 
-        // Keep linked contexts consistent for subsequent diagnostics, with one physical-file edit at resolve.
-        foreach (var id in allowedIds)
-            solution = solution.WithDocumentText(id, changedText);
-
-        return solution.GetRequiredDocument(document.Id);
+        return changedSolution;
     }
 }

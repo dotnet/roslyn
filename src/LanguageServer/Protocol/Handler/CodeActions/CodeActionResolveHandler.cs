@@ -66,10 +66,12 @@ internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.
             // current document and severity setting.
             var sourceDocument = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
             var minimumSeverity = _globalOptions.GetOption(LspOptionsStorage.FixAllMinimumSeverity);
-            var changedDocument = await DocumentFixAllHelper.GetChangedDocumentAsync(
-                sourceDocument, _codeFixService, minimumSeverity, context.TraceDebug, cancellationToken).ConfigureAwait(false);
+            var changedSolution = await DocumentFixAllHelper.GetChangedSolutionAsync(
+                sourceDocument, _codeFixService, minimumSeverity,
+                context.GetRequiredClientCapabilities().Workspace?.WorkspaceEdit?.ResourceOperations ?? [],
+                context.TraceDebug, cancellationToken).ConfigureAwait(false);
             codeAction.Edit = await CodeActionResolveHelper.GetCodeActionResolveEditsAsync(
-                context, data, [new ApplyChangesOperation(changedDocument.Project.Solution)], cancellationToken).ConfigureAwait(false);
+                context, data, [new ApplyChangesOperation(changedSolution)], cancellationToken).ConfigureAwait(false);
             return codeAction;
         }
 

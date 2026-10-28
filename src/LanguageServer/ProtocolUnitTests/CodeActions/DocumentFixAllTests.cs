@@ -361,63 +361,213 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task FixAllRejectsFixesThatChangeOtherDocuments(bool mutatingLspWorkspace)
+    public async Task ResolvePreservesChangesAcrossDocumentsAndDiagnosticIds(bool mutatingLspWorkspace)
     {
-        var source = "// warning\n{|caret:|}class C { }";
+        var source = "// alpha beta\n{|caret:|}class C { }";
         var otherSource = "class Other { }";
-        var expected = "// warning\nclass C { }";
+        var expected = "// fixed fixed\nclass C { }";
+        var expectedOther = "class Changed { }";
 
-        // Mix a valid local fix with an edit to another existing document.
+        // The first diagnostic changes a sibling; the second must preserve that edit while fixing the requested file.
         await using var server = await CreateTestLspServerAsync([source, otherSource], mutatingLspWorkspace);
-        var fixer = new TestFixer(["FA0001"], async (document, diagnostics, cancellationToken) =>
+        var fixer = new TestFixer(["FA0001", "FA0002"], async (document, diagnostics, cancellationToken) =>
         {
             var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
             var otherId = document.Project.DocumentIds.Single(id => id != document.Id);
-            return solution.WithDocumentText(otherId, SourceText.From("class Changed { }"));
+            return diagnostics[0].Id == "FA0001"
+                ? solution.WithDocumentText(otherId, SourceText.From(expectedOther))
+                : solution;
         });
-        var document = GetDocumentWithReference(server, new TestReference(
-            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
-        // Capture rejection logging while attempting to apply the mixed candidate.
-        var logs = new List<string>();
-        var changed = await ChangeAsync(document, server, log: logs.Add);
+        await AddReferenceAsync(server, new TestReference(
+            [new MarkerAnalyzer(new("FA0001", "alpha"), new("FA0002", "beta"))], [fixer]));
+        var documents = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.ToArray();
 
-        // Reject the entire candidate, discarding even its valid local edit and preserving the solution structure.
-        Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
-        Assert.Equal(otherSource, (await changed.Project.GetDocument(document.Project.DocumentIds.Last())!.GetTextAsync()).ToString());
+        // Resolve through LSP so both files must appear in one workspace edit without a command.
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+        var operations = GetEditOperations(await ResolveAsync(server, action));
 
-        // The rejected candidate must be logged against the diagnostic ID.
-        Assert.Single(logs, message => message.Contains("FA0001", StringComparison.Ordinal));
-        Assert.Equal(document.Project.DocumentIds, changed.Project.DocumentIds);
+        Assert.Equal(2, operations.Length);
+        Assert.Equal(expected, ApplyDocumentEdit(operations, await documents[0].GetTextAsync(), documents[0].GetURI()));
+        Assert.Equal(expectedOther, ApplyDocumentEdit(operations, await documents[1].GetTextAsync(), documents[1].GetURI()));
+        Assert.Equal(["FA0001", "FA0002"], fixer.Invocations);
     }
 
     [Theory, CombinatorialData]
-    public async Task FixAllRejectsFixesThatAddDocuments(bool mutatingLspWorkspace)
+    public async Task ResolveIncludesAdditionalAndAnalyzerConfigDocumentChanges(bool mutatingLspWorkspace)
     {
         var source = "// warning\n{|caret:|}class C { }";
-        var otherSource = "class Other { }";
-        var expected = "// warning\nclass C { }";
+        var additionalSource = "Before";
+        var configSource = "root = true\n";
+        var expected = "// fixed\nclass C { }";
+        var expectedAdditional = "After";
+        var expectedConfig = "root = true\n# Updated\n";
 
-        // Keep an existing sibling so rejection must preserve its text as well as project membership.
-        await using var server = await CreateTestLspServerAsync([source, otherSource], mutatingLspWorkspace);
+        // Include non-source files that the same fix needs to update.
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        var document = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        var additional = document.Project.AddAdditionalDocument(
+            "Notes.txt", SourceText.From(additionalSource), filePath: TestHelpers.GetRootedPath("Notes.txt"));
+        var config = additional.Project.AddAnalyzerConfigDocument(
+            ".editorconfig", SourceText.From(configSource), filePath: TestHelpers.GetRootedPath(".editorconfig"));
+        await server.TestWorkspace.ChangeSolutionAsync(config.Project.Solution);
         var fixer = new TestFixer(["FA0001"], async (document, diagnostics, cancellationToken) =>
         {
-            // Mix a valid local fix with a new document that document Fix All must not create.
             var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
-            return solution.AddDocument(DocumentId.CreateNewId(document.Project.Id), "Added.cs", SourceText.From("class Added { }"));
+            return solution.WithAdditionalDocumentText(additional.Id, SourceText.From(expectedAdditional))
+                .WithAnalyzerConfigDocumentText(config.Id, SourceText.From(expectedConfig));
+        });
+        await AddReferenceAsync(server, new TestReference(
+            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
+
+        // All three text updates must survive conversion into the resolved workspace edit.
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+        var operations = GetEditOperations(await ResolveAsync(server, action));
+
+        Assert.Equal(3, operations.Length);
+        Assert.Equal(expected, ApplyDocumentEdit(operations, await document.GetTextAsync(), document.GetURI()));
+        Assert.Equal(expectedAdditional, ApplyDocumentEdit(operations, await additional.GetTextAsync(), additional.GetURI()));
+        Assert.Equal(expectedConfig, ApplyDocumentEdit(operations, await config.GetTextAsync(), config.GetURI()));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task ResolveCreatesDocumentsOnlyWhenSupported(bool mutatingLspWorkspace, bool supportsCreate)
+    {
+        var source = "// warning\n{|caret:|}class C { }";
+        var expected = "// fixed\nclass C { }";
+        var expectedAdded = "class Added { }";
+        var addedPath = TestHelpers.GetRootedPath("Added.cs");
+
+        // Advertise file creation independently of ordinary text-edit support.
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace,
+            initializationOptions: ResourceOperationOptions(ResourceOperationKind.Create, supportsCreate));
+        var fixer = new TestFixer(["FA0001"], async (document, diagnostics, cancellationToken) =>
+        {
+            var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
+            return solution.AddDocument(DocumentId.CreateNewId(document.Project.Id), "Added.cs",
+                SourceText.From(expectedAdded), filePath: addedPath);
+        });
+        await AddReferenceAsync(server, new TestReference(
+            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
+        var document = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+        var operations = GetEditOperations(await ResolveAsync(server, action));
+        if (!supportsCreate)
+        {
+            // Reject the whole fix, including its otherwise-supported edit to the requested document.
+            Assert.Empty(operations);
+            return;
+        }
+
+        // Create the new file before supplying its contents, and include the original file's fix.
+        Assert.Equal(3, operations.Length);
+        var create = Assert.IsType<CreateFile>(operations[0]);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(addedPath), create.DocumentUri);
+        Assert.Equal(expectedAdded, ApplyDocumentEdit(operations, SourceText.From(""), create.DocumentUri));
+        Assert.Equal(expected, ApplyDocumentEdit(operations, await document.GetTextAsync(), document.GetURI()));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task ResolveRenamesDocumentsOnlyWhenSupported(bool mutatingLspWorkspace, bool supportsRename)
+    {
+        var source = "// warning\n{|caret:|}class C { }";
+        var expected = "// fixed\nclass C { }";
+        var renamedPath = TestHelpers.GetRootedPath("Renamed.cs");
+
+        // Combine a text edit with a physical rename, not just a change to the document's display name.
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace,
+            initializationOptions: ResourceOperationOptions(ResourceOperationKind.Rename, supportsRename));
+        var fixer = new TestFixer(["FA0001"], async (document, diagnostics, cancellationToken) =>
+        {
+            var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
+            return solution.WithDocumentName(document.Id, "Renamed.cs").WithDocumentFilePath(document.Id, renamedPath);
+        });
+        await AddReferenceAsync(server, new TestReference(
+            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
+        var document = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+        var operations = GetEditOperations(await ResolveAsync(server, action));
+        if (!supportsRename)
+        {
+            Assert.Empty(operations);
+            return;
+        }
+
+        // Apply text at the old URI before renaming the file.
+        Assert.Equal(2, operations.Length);
+        Assert.IsType<TextDocumentEdit>(operations[0]);
+        Assert.Equal(expected, ApplyDocumentEdit(operations, await document.GetTextAsync(), document.GetURI()));
+        var rename = Assert.IsType<RenameFile>(operations[1]);
+        Assert.Equal(document.GetURI(), rename.OldDocumentUri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(renamedPath), rename.NewDocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task ResolveDeletesRequestedDocumentOnlyWhenSupported(bool mutatingLspWorkspace, bool supportsDelete)
+    {
+        var source = "// alpha beta\n{|caret:|}class C { }";
+
+        // A supported deletion ends aggregation because the requested document no longer exists.
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace,
+            initializationOptions: ResourceOperationOptions(ResourceOperationKind.Delete, supportsDelete));
+        var fixer = new TestFixer(["FA0001", "FA0002"], (document, _, _) =>
+            Task.FromResult(document.Project.Solution.RemoveDocument(document.Id)));
+        await AddReferenceAsync(server, new TestReference(
+            [new MarkerAnalyzer(new("FA0001", "alpha"), new("FA0002", "beta"))], [fixer]));
+        var document = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+        var operations = GetEditOperations(await ResolveAsync(server, action));
+        if (!supportsDelete)
+        {
+            Assert.Empty(operations);
+            return;
+        }
+
+        // Emit the deletion without trying to fix the remaining diagnostic in a removed document.
+        Assert.Equal(document.GetURI(), Assert.IsType<DeleteFile>(Assert.Single(operations)).DocumentUri);
+        Assert.Equal(["FA0001"], fixer.Invocations);
+    }
+
+    [Theory, CombinatorialData]
+    public Task FixAllRejectsReferenceChangesWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
+        => VerifyRejectedProjectChangeAsync(mutatingLspWorkspace, project => project.WithMetadataReferences([]));
+
+    [Theory, CombinatorialData]
+    public Task FixAllRejectsProjectOptionChangesWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
+        => VerifyRejectedProjectChangeAsync(mutatingLspWorkspace, project =>
+            project.WithCompilationOptions(project.CompilationOptions!.WithConcurrentBuild(!project.CompilationOptions.ConcurrentBuild)));
+
+    private async Task VerifyRejectedProjectChangeAsync(bool mutatingLspWorkspace, Func<Project, Project> changeProject)
+    {
+        var source = "// alpha beta\n{|caret:|}class C { }";
+        var otherSource = "class Other { }";
+        var expected = "// fixed beta\nclass C { }";
+        var expectedOther = "class Changed { }";
+
+        // Accept an initial cross-file fix, then encounter a fix requiring unsupported project state.
+        await using var server = await CreateTestLspServerAsync([source, otherSource], mutatingLspWorkspace);
+        var fixer = new TestFixer(["FA0001", "FA0002"], async (document, diagnostics, cancellationToken) =>
+        {
+            var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
+            if (diagnostics[0].Id == "FA0002")
+                return changeProject(solution.GetRequiredProject(document.Project.Id)).Solution;
+
+            var otherId = document.Project.DocumentIds.Single(id => id != document.Id);
+            return solution.WithDocumentText(otherId, SourceText.From(expectedOther));
         });
         var document = GetDocumentWithReference(server, new TestReference(
-            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
-        // Capture rejection logging while attempting to apply the mixed candidate.
+            [new MarkerAnalyzer(new("FA0001", "alpha"), new("FA0002", "beta"))], [fixer]));
         var logs = new List<string>();
         var changed = await ChangeAsync(document, server, log: logs.Add);
 
-        // Reject the entire candidate rather than retaining its local edit or the new document.
+        // Keep the accepted fix, but discard both the later text edit and its unsupported project change.
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
-        Assert.Equal(otherSource, (await changed.Project.GetDocument(document.Project.DocumentIds.Last())!.GetTextAsync()).ToString());
-
-        // The rejected candidate must be logged against the diagnostic ID.
-        Assert.Single(logs, message => message.Contains("FA0001", StringComparison.Ordinal));
-        Assert.Equal(document.Project.DocumentIds, changed.Project.DocumentIds);
+        Assert.Equal(expectedOther, (await changed.Project.Documents.Last().GetTextAsync()).ToString());
+        Assert.Equal(document.Project.CompilationOptions, changed.Project.CompilationOptions);
+        Assert.Equal(document.Project.MetadataReferences, changed.Project.MetadataReferences);
+        Assert.Single(logs, message => message.Contains("FA0002", StringComparison.Ordinal));
     }
 
     [Theory, CombinatorialData]
@@ -546,7 +696,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
         var resolved = await ResolveAsync(server, action);
 
-        // Generating a throwing stub is allowed when the edit remains confined to the requested document.
+        // Generating a throwing stub is supported by an unattended workspace edit.
         Assert.Equal(expected.ReplaceLineEndings("\n"),
             ApplySingleDocumentEdit(resolved, await server.GetDocumentTextAsync(uri), uri).ReplaceLineEndings("\n"));
     }
@@ -586,6 +736,46 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(expected,
             ApplySingleDocumentEdit(resolved, await server.GetDocumentTextAsync(server.GetLocations("caret").Single().DocumentUri),
                 server.GetLocations("caret").Single().DocumentUri).ReplaceLineEndings("\n"));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FixAllPropagatesLinkedChangesBeforeLaterFixes(bool mutatingLspWorkspace)
+    {
+        var source = "// alpha beta\n{|caret:|}class C { }";
+        var otherSource = "class Other { }";
+        var expected = "// fixed fixed\nclass C { }";
+        var expectedOther = "class Changed { }";
+        var otherPath = TestHelpers.GetRootedPath("Other.cs");
+
+        // Share both the requested file and a sibling between project contexts.
+        await using var server = await CreateLinkedDocumentTestLspServerAsync(source, mutatingLspWorkspace);
+        var solution = server.TestWorkspace.CurrentSolution;
+        foreach (var projectId in solution.ProjectIds)
+            solution = solution.AddDocument(DocumentId.CreateNewId(projectId), "Other.cs", SourceText.From(otherSource), filePath: otherPath);
+        await server.TestWorkspace.ChangeSolutionAsync(solution);
+        var observedOtherTexts = new List<string>();
+        var fixer = new TestFixer(["FA0001", "FA0002"], async (document, diagnostics, cancellationToken) =>
+        {
+            var changed = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
+            var otherIds = document.Project.Solution.GetDocumentIdsWithFilePath(otherPath);
+            if (diagnostics[0].Id == "FA0001")
+                return changed.WithDocumentText(otherIds[0], SourceText.From(expectedOther));
+
+            // The later fix must observe the earlier edit in every context, not only in the final LSP merge.
+            foreach (var id in otherIds)
+                observedOtherTexts.Add((await document.Project.Solution.GetRequiredDocument(id).GetTextAsync(cancellationToken)).ToString());
+            return changed;
+        });
+        var document = GetDocumentWithReference(server, new TestReference(
+            [new MarkerAnalyzer(new("FA0001", "alpha"), new("FA0002", "beta"))], [fixer]));
+
+        var result = await ChangeAsync(document, server);
+
+        Assert.Equal(expected, (await result.GetTextAsync()).ToString().ReplaceLineEndings("\n"));
+        Assert.NotEmpty(observedOtherTexts);
+        Assert.All(observedOtherTexts, text => Assert.Equal(expectedOther, text));
+        foreach (var id in result.Project.Solution.GetDocumentIdsWithFilePath(otherPath))
+            Assert.Equal(expectedOther, (await result.Project.Solution.GetRequiredDocument(id).GetTextAsync()).ToString());
     }
 
     [Theory, CombinatorialData]
@@ -656,7 +846,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task FixAllChangesOnlyTheRequestedDocument(bool mutatingLspWorkspace)
+    public async Task FixAllDiscoversDiagnosticsOnlyInTheRequestedDocument(bool mutatingLspWorkspace)
     {
         var source = "// warning\n{|caret:|}class C { }";
         var otherSource = "// warning\nclass Other { }";
@@ -703,17 +893,47 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     private static Task AddReferenceAsync(TestLspServer server, TestReference reference)
         => server.TestWorkspace.ChangeSolutionAsync(WithReference(server.TestWorkspace.CurrentSolution, reference));
 
-    private static Task<Document> ChangeAsync(
+    private static async Task<Document> ChangeAsync(
         Document document, TestLspServer server, DiagnosticSeverity severity = DiagnosticSeverity.Warning,
         Action<string>? log = null)
-        => DocumentFixAllHelper.GetChangedDocumentAsync(
-            document, server.TestWorkspace.GetService<ICodeFixService>(), severity, log ?? (_ => { }), CancellationToken.None);
+    {
+        var solution = await DocumentFixAllHelper.GetChangedSolutionAsync(
+            document, server.TestWorkspace.GetService<ICodeFixService>(), severity, [], log ?? (_ => { }), CancellationToken.None);
+        return solution.GetRequiredDocument(document.Id);
+    }
 
     private static async Task<LSP.CodeAction> ResolveAsync(TestLspServer server, LSP.CodeAction action)
     {
         var resolved = await server.ExecuteRequestAsync<LSP.CodeAction, LSP.CodeAction>(Methods.CodeActionResolveName, action, CancellationToken.None);
         Assert.NotNull(resolved);
         return resolved;
+    }
+
+    private static InitializationOptions ResourceOperationOptions(ResourceOperationKind operation, bool supported)
+        => new()
+        {
+            ClientCapabilities = new ClientCapabilities
+            {
+                Workspace = new WorkspaceClientCapabilities
+                {
+                    WorkspaceEdit = new WorkspaceEditSetting { ResourceOperations = supported ? [operation] : [] }
+                }
+            }
+        };
+
+    private static object[] GetEditOperations(LSP.CodeAction action)
+    {
+        Assert.Null(action.Command);
+        Assert.NotNull(action.Edit);
+        return action.Edit.DocumentChanges!.Value.Match(
+            edits => edits.Cast<object>().ToArray(),
+            edits => edits.Select(edit => edit.Value!).ToArray());
+    }
+
+    private static string ApplyDocumentEdit(object[] operations, SourceText originalText, DocumentUri uri)
+    {
+        var edit = Assert.Single(operations.OfType<TextDocumentEdit>(), edit => edit.TextDocument.DocumentUri == uri);
+        return ApplyTextEdits(edit.Edits.Select(edit => (TextEdit)edit.Value!).ToArray(), originalText);
     }
 
     private static string ApplySingleDocumentEdit(LSP.CodeAction action, SourceText originalText, DocumentUri uri)
