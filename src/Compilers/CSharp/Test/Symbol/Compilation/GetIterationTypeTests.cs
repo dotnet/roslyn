@@ -17,6 +17,9 @@ public class GetIterationTypeTests : CSharpTestBase
         using System;
         using System.Collections;
         using System.Collections.Generic;
+        using System.Runtime.CompilerServices;
+        using System.Threading;
+        using System.Threading.Tasks;
 
         class C
         {
@@ -31,7 +34,13 @@ public class GetIterationTypeTests : CSharpTestBase
                 Pattern Pattern,
                 int NotIterable,
                 IAsyncEnumerable<int> Async,
-                WithExtension WithExtension)
+                IAsyncEnumerable<string?> NullableAsync,
+                ConfiguredCancelableAsyncEnumerable<string> ConfiguredAsync,
+                AsyncPattern AsyncPattern,
+                AsyncPatternWithToken AsyncPatternWithToken,
+                AsyncTaskPattern AsyncTaskPattern,
+                WithExtension WithExtension,
+                WithAsyncExtension WithAsyncExtension)
             {
                 /*outside*/
             }
@@ -39,13 +48,20 @@ public class GetIterationTypeTests : CSharpTestBase
 
         class Pattern { public PatternEnumerator GetEnumerator() => null!; }
         class PatternEnumerator { public long Current => 0; public bool MoveNext() => false; }
+        class AsyncPattern { public AsyncPatternEnumerator GetAsyncEnumerator() => null!; }
+        class AsyncPatternWithToken { public AsyncPatternEnumerator GetAsyncEnumerator(CancellationToken token = default) => null!; }
+        class AsyncPatternEnumerator { public long Current => 0; public ValueTask<bool> MoveNextAsync() => default; }
+        class AsyncTaskPattern { public AsyncTaskEnumerator GetAsyncEnumerator() => null!; }
+        class AsyncTaskEnumerator { public short Current => 0; public Task<bool> MoveNextAsync() => null!; }
         class WithExtension { }
+        class WithAsyncExtension { }
 
         namespace N
         {
             static class Extensions
             {
                 public static IEnumerator<char> GetEnumerator(this WithExtension w) => null!;
+                public static IAsyncEnumerator<char> GetAsyncEnumerator(this WithAsyncExtension w) => null!;
             }
 
             class D
@@ -99,14 +115,29 @@ public class GetIterationTypeTests : CSharpTestBase
 
     [Theory]
     [InlineData("Async", "System.Int32")]
+    [InlineData("NullableAsync", "System.String?")]
+    [InlineData("ConfiguredAsync", "System.String!")]
+    [InlineData("AsyncPattern", "System.Int64")]
+    [InlineData("AsyncPatternWithToken", "System.Int64")]
+    [InlineData("AsyncTaskPattern", "System.Int16")]
     [InlineData("List", null)]
     [InlineData("NotIterable", null)]
+    [InlineData("WithAsyncExtension", null)]
     public void GetAsyncIterationType(string member, string? expected)
     {
         var (model, c) = Compile();
         var iterationType = model.GetAsyncIterationType(Source.IndexOf("/*outside*/"), ParameterType(c, member));
 
-        Assert.Equal(expected, iterationType?.ToTestDisplayString());
+        Assert.Equal(expected, iterationType?.ToTestDisplayString(includeNonNullable: true));
+    }
+
+    [Fact]
+    public void GetAsyncIterationType_ExtensionGetAsyncEnumeratorInScope()
+    {
+        var (model, c) = Compile();
+        var iterationType = model.GetAsyncIterationType(Source.IndexOf("/*inside*/"), ParameterType(c, "WithAsyncExtension"));
+
+        Assert.Null(iterationType);
     }
 
     [Fact]
