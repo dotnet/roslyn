@@ -29,8 +29,6 @@ public sealed class DotnetRootEnvCollection
 public class LsCacheRoundTripEquivalenceTests
 {
 	[Theory]
-	[InlineData("TargetFrameworkMoniker", ".NETCoreApp,Version=v10.0")]
-	[InlineData("NETCoreSdkVersion", "10.0.100")]
 	[InlineData("EnableHotReloadInRuntimeConfigDevFile", "false")]
 	[InlineData("HotReloadAutoRestart", "true")]
 	[InlineData("MetadataUpdaterSupport", "false")]

@@ -14,8 +14,6 @@
       { "name": "TargetPath", "description": "Full path to the primary build output assembly." }
     ],
     "optional": [
-      { "name": "TargetFrameworkMoniker", "description": "Full framework name used to determine Hot Reload support." },
-      { "name": "NETCoreSdkVersion", "description": "SDK version used to evaluate the project." },
       { "name": "EnableHotReloadInRuntimeConfigDevFile", "description": "Whether to enable Hot Reload in the development runtime configuration." },
       { "name": "HotReloadAutoRestart", "description": "Whether the project opts into automatic Hot Reload restarts." },
       { "name": "MetadataUpdaterSupport", "description": "Whether the runtime supports metadata updates." },

@@ -1023,7 +1023,7 @@ public class ForwardCompatTests
 		// cache schema (which flows to CacheFormat.VersionHeader) and update ExpectedMinor +
 		// ExpectedEmittableHash below to the values printed in the failure message.
 		const int ExpectedMinor = 3;
-		const string ExpectedEmittableHash = "5777C028431F0B257CE5FC8D1EAEC582339355CFD99B3E4B2F713D8E1FCF1377";
+		const string ExpectedEmittableHash = "F9C01A15B365CB4F1D2F238713FDB62C85B29BB1DB124BA33FACF54CF6636405";
 
 		// Metadata is hashed AS item-type:key pairs (not a flattened union) so that reusing an
 		// existing metadata NAME on a different item type — which leaves ProjectItems.AllMetadata
