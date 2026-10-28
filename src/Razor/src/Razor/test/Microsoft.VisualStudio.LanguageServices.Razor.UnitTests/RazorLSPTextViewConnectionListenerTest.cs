@@ -19,23 +19,15 @@ namespace Microsoft.VisualStudio.Razor;
 public class RazorLSPTextViewConnectionListenerTest(ITestOutputHelper testOutput) : ToolingTestBase(testOutput)
 {
     [UITheory]
-    [InlineData(false, false, false, false)]
-    [InlineData(false, false, false, true)]
-    [InlineData(false, false, true, false)]
-    [InlineData(false, false, true, true)]
-    [InlineData(false, true, false, false)]
-    [InlineData(false, true, false, true)]
-    [InlineData(false, true, true, false)]
-    [InlineData(false, true, true, true)]
-    [InlineData(true, false, false, false)]
-    [InlineData(true, false, false, true)]
-    [InlineData(true, false, true, false)]
-    [InlineData(true, false, true, true)]
-    [InlineData(true, true, false, false)]
-    [InlineData(true, true, false, true)]
-    [InlineData(true, true, true, false)]
-    [InlineData(true, true, true, true)]
-    public void SubjectBuffersConnected_AdaptersAreOptional(bool hasViewAdapter, bool hasBufferAdapter, bool isRemoteClient, bool isRazorBuffer)
+    [InlineData(false, false, false)]
+    [InlineData(false, false, true)]
+    [InlineData(false, true, false)]
+    [InlineData(false, true, true)]
+    [InlineData(true, false, false)]
+    [InlineData(true, false, true)]
+    [InlineData(true, true, false)]
+    [InlineData(true, true, true)]
+    public void SubjectBuffersConnected_AdaptersAreOptional(bool hasViewAdapter, bool hasBufferAdapter, bool isRazorBuffer)
     {
         var textBuffer = VsMocks.CreateTextBuffer(isRazorBuffer ? VsMocks.ContentTypes.RazorLSP : VsMocks.ContentTypes.NonRazor);
         var dataBuffer = isRazorBuffer ? textBuffer : VsMocks.CreateTextBuffer(VsMocks.ContentTypes.RazorLSP);
@@ -59,10 +51,6 @@ public class RazorLSPTextViewConnectionListenerTest(ITestOutputHelper testOutput
             .Returns(hasBufferAdapter ? vsBuffer.Object : null);
         editorAdaptersFactory.Setup(f => f.GetViewAdapter(textView))
             .Returns(hasViewAdapter ? vsTextView.Object : null);
-
-        var editorFeatureDetector = new StrictMock<ILspEditorFeatureDetector>();
-        editorFeatureDetector.Setup(d => d.IsRemoteClient())
-            .Returns(isRemoteClient);
 
         var viewOptions = CreateEditorOptions();
         var bufferOptions = CreateEditorOptions();
@@ -93,7 +81,6 @@ public class RazorLSPTextViewConnectionListenerTest(ITestOutputHelper testOutput
         var listener = new RazorLSPTextViewConnectionListener(
             serviceProvider,
             editorAdaptersFactory.Object,
-            editorFeatureDetector.Object,
             editorOptionsFactory.Object,
             editorSettingsManager.Object,
             JoinableTaskContext,
@@ -102,9 +89,8 @@ public class RazorLSPTextViewConnectionListenerTest(ITestOutputHelper testOutput
         listener.SubjectBuffersConnected(textView, ConnectionReason.TextViewLifetime, [dataBuffer]);
 
         vsTextView.Verify(v => v.AddCommandFilter(It.IsAny<IOleCommandTarget>(), out next), hasViewAdapter ? Times.Once() : Times.Never());
-        vsBuffer.Verify(b => b.SetLanguageServiceID(ref languageServiceId), hasBufferAdapter && !isRemoteClient ? Times.Once() : Times.Never());
-        editorAdaptersFactory.Verify(f => f.GetBufferAdapter(dataBuffer), isRemoteClient ? Times.Never() : Times.Once());
-        editorFeatureDetector.Verify(d => d.IsRemoteClient(), Times.Once());
+        vsBuffer.Verify(b => b.SetLanguageServiceID(ref languageServiceId), hasBufferAdapter ? Times.Once() : Times.Never());
+        editorAdaptersFactory.Verify(f => f.GetBufferAdapter(dataBuffer), Times.Once());
         editorOptionsFactory.Verify(f => f.GetOptions(textView), isRazorBuffer ? Times.Once() : Times.Never());
         editorOptionsFactory.Verify(f => f.GetOptions(textBuffer), isRazorBuffer ? Times.Once() : Times.Never());
         viewOptions.Verify(o => o.SetOptionValue(DefaultTextViewOptions.WordWrapStyleName, WordWrapStyles.None), isRazorBuffer ? Times.Once() : Times.Never());

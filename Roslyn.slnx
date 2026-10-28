@@ -446,8 +446,6 @@
     <Project Path="src/VisualStudio/CSharp/Impl/Microsoft.VisualStudio.LanguageServices.CSharp.csproj" />
     <Project Path="src/VisualStudio/CSharp/Test/Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.csproj" />
     <Project Path="src/VisualStudio/DevKit/Impl/Microsoft.VisualStudio.LanguageServices.DevKit.csproj" />
-    <Project Path="src/VisualStudio/LiveShare/Impl/Microsoft.VisualStudio.LanguageServices.LiveShare.csproj" />
-    <Project Path="src/VisualStudio/LiveShare/Test/Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests.csproj" />
     <Project Path="src/VisualStudio/Setup.Dependencies/Roslyn.VisualStudio.Setup.Dependencies.csproj" />
     <Project Path="src/VisualStudio/Setup.ServiceHub/arm64/Roslyn.VisualStudio.ServiceHub.Setup.arm64.csproj" />
     <Project Path="src/VisualStudio/Setup.ServiceHub/x64/Roslyn.VisualStudio.ServiceHub.Setup.x64.csproj" />

@@ -212,8 +212,6 @@
       "src\\VisualStudio\\IntegrationTest\\Harness\\XUnit\\Microsoft.VisualStudio.Extensibility.Testing.Xunit.csproj",
       "src\\VisualStudio\\IntegrationTest\\Harness\\SourceGeneratorUnitTests\\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.UnitTests.csproj",
       "src\\VisualStudio\\IntegrationTest\\Harness\\SourceGenerator\\Microsoft.VisualStudio.Extensibility.Testing.SourceGenerator.csproj",
-      "src\\VisualStudio\\LiveShare\\Impl\\Microsoft.VisualStudio.LanguageServices.LiveShare.csproj",
-      "src\\VisualStudio\\LiveShare\\Test\\Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests.csproj",
       "src\\VisualStudio\\Setup.Dependencies\\Roslyn.VisualStudio.Setup.Dependencies.csproj",
       "src\\VisualStudio\\Setup.ServiceHub\\arm64\\Roslyn.VisualStudio.ServiceHub.Setup.arm64.csproj",
       "src\\VisualStudio\\Setup.ServiceHub\\x64\\Roslyn.VisualStudio.ServiceHub.Setup.x64.csproj",

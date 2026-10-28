@@ -16,14 +16,12 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
 {
     private readonly TrackingLSPDocumentManager _lspDocumentManager;
     private readonly ITextDocumentFactoryService _textDocumentFactory;
-    private readonly ILspEditorFeatureDetector _lspEditorFeatureDetector;
     private readonly IFileToContentTypeService _fileToContentTypeService;
 
     [ImportingConstructor]
     public RazorContentTypeChangeListener(
         ITextDocumentFactoryService textDocumentFactory,
         LSPDocumentManager lspDocumentManager,
-        ILspEditorFeatureDetector lspEditorFeatureDetector,
         IFileToContentTypeService fileToContentTypeService)
     {
         if (textDocumentFactory is null)
@@ -34,11 +32,6 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
         if (lspDocumentManager is null)
         {
             throw new ArgumentNullException(nameof(lspDocumentManager));
-        }
-
-        if (lspEditorFeatureDetector is null)
-        {
-            throw new ArgumentNullException(nameof(lspEditorFeatureDetector));
         }
 
         if (fileToContentTypeService is null)
@@ -54,7 +47,6 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
         _lspDocumentManager = tracking;
 
         _textDocumentFactory = textDocumentFactory;
-        _lspEditorFeatureDetector = lspEditorFeatureDetector;
         _fileToContentTypeService = fileToContentTypeService;
     }
 
@@ -93,15 +85,11 @@ internal class RazorContentTypeChangeListener : ITextBufferContentTypeListener
             throw new ArgumentNullException(nameof(textBuffer));
         }
 
-        if (!_lspEditorFeatureDetector.IsRemoteClient())
-        {
-            // Renames on open files don't dispose buffer state so we need to separately monitor the buffer for document renames to ensure
-            // we can tell the lsp document manager when state changes.
-            MonitorDocumentForRenames(textBuffer);
+        // Renames on open files don't dispose buffer state so we need to separately monitor the buffer for document renames to ensure
+        // we can tell the lsp document manager when state changes.
+        MonitorDocumentForRenames(textBuffer);
 
-            // Only need to track documents on a host because we don't do any extra work on remote clients.
-            _lspDocumentManager.TrackDocument(textBuffer);
-        }
+        _lspDocumentManager.TrackDocument(textBuffer);
     }
 
     // Internal for testing

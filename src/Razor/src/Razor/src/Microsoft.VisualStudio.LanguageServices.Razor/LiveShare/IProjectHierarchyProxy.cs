@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.VisualStudio.Razor.LiveShare;
 
-// This type must be a public interface in order to to be implemented as an RPC proxy by live share.
+// Retained for compatibility with the published RPC interface.
 public interface IProjectHierarchyProxy
 {
     Task<Uri?> GetProjectPathAsync(Uri documentFilePath, CancellationToken cancellationToken);
