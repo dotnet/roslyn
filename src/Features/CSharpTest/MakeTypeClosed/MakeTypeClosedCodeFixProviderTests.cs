@@ -126,55 +126,72 @@ public sealed class MakeTypeClosedCodeFixProviderTests(ITestOutputHelper logger)
             }
             """);
 
-    [Fact]
-    public Task NullableTypeWithNullArm()
-        => TestInRegularAndScriptAsync(
-            """
-            abstract class Shape;
-            class Circle : Shape;
-            class Square : Shape;
-            class C
-            {
-                int M(Shape? s) => s [|switch|]
-                {
-                    Circle c => 1,
-                    Square q => 2,
-                    null => 0,
-                };
-            }
-            """,
-            """
-            closed class Shape;
-            class Circle : Shape;
-            class Square : Shape;
-            class C
-            {
-                int M(Shape? s) => s switch
-                {
-                    Circle c => 1,
-                    Square q => 2,
-                    null => 0,
-                };
-            }
-            """);
+    [Theory]
+    [InlineData("", "", "s")]
+    [InlineData("", "Shape? local = s;", "local")]
+    [InlineData("Shape? _shape;", "", "_shape")]
+    [InlineData("Shape? Current => null;", "", "Current")]
+    [InlineData("Shape? GetShape() => null;", "", "GetShape()")]
+    [InlineData("", "Shape?[] values = new Shape?[1];", "values[0]")]
+    public Task NullableTypeWithNullArm(string members, string setup, string expression)
+        => TestNullableSwitchAsync(members, setup, expression, includeNullArm: true);
 
-    [Fact]
-    public Task MissingNullableTypeWithoutNullArm()
-        => TestMissingInRegularAndScriptAsync(
-            """
-            abstract class Shape;
+    [Theory]
+    [InlineData("", "", "s")]
+    [InlineData("", "Shape? local = s;", "local")]
+    [InlineData("Shape? _shape;", "", "_shape")]
+    [InlineData("Shape? Current => null;", "", "Current")]
+    [InlineData("Shape? GetShape() => null;", "", "GetShape()")]
+    [InlineData("", "Shape?[] values = new Shape?[1];", "values[0]")]
+    public Task MissingNullableTypeWithoutNullArm(string members, string setup, string expression)
+        => TestNullableSwitchAsync(members, setup, expression, includeNullArm: false);
+
+    private Task TestNullableSwitchAsync(string members, string setup, string expression, bool includeNullArm)
+    {
+        var testCode = CreateNullableSwitchTestCode(members, setup, expression, includeNullArm, isFixed: false, markSwitch: true);
+        if (!includeNullArm)
+            return TestMissingInRegularAndScriptAsync(testCode);
+
+        var fixedCode = CreateNullableSwitchTestCode(members, setup, expression, includeNullArm, isFixed: true, markSwitch: false);
+        return TestInRegularAndScriptAsync(testCode, fixedCode);
+    }
+
+    private static string CreateNullableSwitchTestCode(
+        string members,
+        string setup,
+        string expression,
+        bool includeNullArm,
+        bool isFixed,
+        bool markSwitch)
+    {
+        var classModifier = isFixed ? "closed" : "abstract";
+        var switchKeyword = markSwitch ? "[|switch|]" : "switch";
+        var indentedMembers = members.Length == 0 ? "" : "    " + members;
+        var indentedSetup = setup.Length == 0 ? "" : "            " + setup;
+        var nullArm = includeNullArm ? "null => 0," : "";
+
+        return $$"""
+            #nullable enable
+            {{classModifier}} class Shape;
             class Circle : Shape;
             class Square : Shape;
 
             class C
             {
-                int M(Shape? s) => s [|switch|]
+            {{indentedMembers}}
+                int M(Shape? s)
                 {
-                    Circle c => 1,
-                    Square q => 2,
-                };
+            {{indentedSetup}}
+                    return {{expression}} {{switchKeyword}}
+                    {
+                        Circle c => 1,
+                        Square q => 2,
+                        {{nullArm}}
+                    };
+                }
             }
-            """);
+            """;
+    }
 
     [Fact]
     public Task NestedDerivedTypesHandledViaIntermediate()

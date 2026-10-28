@@ -86,36 +86,22 @@ internal sealed class CSharpMakeTypeClosedCodeFixProvider() : SyntaxEditorBasedC
         TypeInfo typeInfo,
         CancellationToken cancellationToken)
     {
-        if (typeInfo.Nullability.Annotation == NullableAnnotation.Annotated ||
-            typeInfo.Type?.NullableAnnotation == NullableAnnotation.Annotated ||
-            typeInfo.ConvertedType?.NullableAnnotation == NullableAnnotation.Annotated)
-        {
-            return true;
-        }
-
         var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).Symbol;
-        if (symbol == null)
-            return false;
 
-        foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+        // because we cant directly check if the switched on type is nullable we have to check if the symbol is nullable instead,
+        // this is because the type can be a non-nullable reference type but the symbol can still be nullable
+        return symbol switch
         {
-            var declaration = syntaxReference.GetSyntax(cancellationToken);
-            var typeSyntax = declaration switch
-            {
-                ParameterSyntax parameter => parameter.Type,
-                VariableDeclaratorSyntax variable => (variable.Parent as VariableDeclarationSyntax)?.Type,
-                PropertyDeclarationSyntax property => property.Type,
-                MethodDeclarationSyntax method => method.ReturnType,
-                IndexerDeclarationSyntax indexer => indexer.Type,
-                CatchDeclarationSyntax catchDeclaration => catchDeclaration.Type,
-                _ => null,
-            };
-
-            if (typeSyntax is NullableTypeSyntax)
-                return true;
-        }
-
-        return false;
+            IParameterSymbol parameter => parameter.NullableAnnotation == NullableAnnotation.Annotated,
+            ILocalSymbol local => local.NullableAnnotation == NullableAnnotation.Annotated,
+            IFieldSymbol field => field.NullableAnnotation == NullableAnnotation.Annotated,
+            IPropertySymbol property => property.NullableAnnotation == NullableAnnotation.Annotated,
+            IMethodSymbol method => method.ReturnNullableAnnotation == NullableAnnotation.Annotated,
+            // If the symbol is null we can check if the type is nullable instead, this is because the symbol can be null in some cases, probably not applicable on switches though but just to be safe we check both the symbol and the type
+            _ => typeInfo.Nullability.Annotation == NullableAnnotation.Annotated ||
+                typeInfo.Type?.NullableAnnotation == NullableAnnotation.Annotated ||
+                typeInfo.ConvertedType?.NullableAnnotation == NullableAnnotation.Annotated,
+        };
     }
 
     private static async Task<bool> AreAllDerivedTypesHandledAsync(
