@@ -463,6 +463,206 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             additionalExpectedFiles:
                 [(FileUri("DifferentName.razor"), "")]);
 
+    // Legacy documents keep inline and @functions C# in one generated document. These cases protect
+    // that path while component renames also handle a separate declaration document.
+    [Fact]
+    public Task Legacy_UsingTypeAlias_RenameAliasFromUsing()
+        => VerifyRenamesAsync(
+            input: """
+                @using Ali$$as = System.String
+
+                @((Alias)null)
+
+                @functions {
+                    private Alias _value;
+                }
+                """,
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = System.String
+
+                @((DifferentAlias)null)
+
+                @functions {
+                    private DifferentAlias _value;
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            documentFilePath: FilePath("Index.cshtml"));
+
+    [Fact]
+    public Task Legacy_UsingTypeAlias_RenameAliasFromInlineExpression()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = System.String
+
+                @((Ali$$as)null)
+
+                @functions {
+                    private Alias _value;
+                }
+                """,
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = System.String
+
+                @((DifferentAlias)null)
+
+                @functions {
+                    private DifferentAlias _value;
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            documentFilePath: FilePath("Index.cshtml"));
+
+    [Fact]
+    public Task Legacy_UsingTypeAlias_RenameAliasFromDeclaration()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = System.String
+
+                @((Alias)null)
+
+                @functions {
+                    private Ali$$as _value;
+                }
+                """,
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = System.String
+
+                @((DifferentAlias)null)
+
+                @functions {
+                    private DifferentAlias _value;
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            documentFilePath: FilePath("Index.cshtml"));
+
+    [Fact]
+    public Task Legacy_UsingNamespaceAlias_RenameAlias()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = System.Text
+
+                @((Ali$$as.StringBuilder)null)
+
+                @functions {
+                    private Alias.StringBuilder _value;
+                }
+                """,
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = System.Text
+
+                @((DifferentAlias.StringBuilder)null)
+
+                @functions {
+                    private DifferentAlias.StringBuilder _value;
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            documentFilePath: FilePath("Index.cshtml"));
+
+    [Fact]
+    public Task Legacy_UsingAliasAndNamespace_RenameNamespace()
+        => VerifyRenamesAsync(
+            input: """
+                @using My.F$$oo
+                @using Alias = My.Foo.Widget
+
+                @((Widget)null)
+                @((Alias)null)
+
+                @functions {
+                    private Widget _value;
+                    private Alias _aliasedValue;
+                }
+                """,
+            newName: "DifferentName",
+            expected: """
+                @using Alias = My.DifferentName.Widget
+                @using My.DifferentName
+
+                @((Widget)null)
+                @((Alias)null)
+
+                @functions {
+                    private Widget _value;
+                    private Alias _aliasedValue;
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            documentFilePath: FilePath("Index.cshtml"),
+            additionalFiles: [(FilePath("Widget.cs"), """
+                namespace My.Foo;
+
+                public class Widget
+                {
+                }
+                """)],
+            additionalExpectedFiles: [(FileUri("Widget.cs"), """
+                namespace My.DifferentName;
+
+                public class Widget
+                {
+                }
+                """)]);
+
+    [Fact]
+    public Task Legacy_UsingAliasAndNamespace_MultipleUsingGroups_RenameNamespace()
+        => VerifyRenamesAsync(
+            input: """
+                @using System
+
+                <p></p>
+
+                @using My.F$$oo
+                @using Alias = My.Foo.Widget
+
+                @((Widget)null)
+                @((Alias)null)
+
+                @functions {
+                    private Widget _value;
+                    private Alias _aliasedValue;
+                }
+                """,
+            newName: "DifferentName",
+            expected: """
+                @using System
+                @using My.DifferentName
+
+                <p></p>
+
+                @using Alias = My.DifferentName.Widget
+
+                @((Widget)null)
+                @((Alias)null)
+
+                @functions {
+                    private Widget _value;
+                    private Alias _aliasedValue;
+                }
+                """,
+            fileKind: RazorFileKind.Legacy,
+            documentFilePath: FilePath("Index.cshtml"),
+            additionalFiles: [(FilePath("Widget.cs"), """
+                namespace My.Foo;
+
+                public class Widget
+                {
+                }
+                """)],
+            additionalExpectedFiles: [(FileUri("Widget.cs"), """
+                namespace My.DifferentName;
+
+                public class Widget
+                {
+                }
+                """)]);
+
     [Theory]
     [InlineData("My.$$Foo.Component")]
     [InlineData("My.F$$oo.Component")]

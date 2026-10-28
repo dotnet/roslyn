@@ -83,7 +83,7 @@ internal partial class RazorEditService
         {
             Debug.Assert(remainingUsings.IsEmpty, "Should not have no first block but still have remaining usings");
             var span = FindFirstTopLevelSpotForUsing(codeDocument);
-            var newText = GetUsingsText(usingDirectives: [], addedUsings, removedUsings: []);
+            var newText = GetUsingsText(usingDirectives: [], addedUsings, removedUsings: [], ref edits);
             edits.Add(new RazorTextChange()
             {
                 Span = span,
@@ -139,7 +139,7 @@ internal partial class RazorEditService
                 if (comparand < 0)
                 {
                     // Current namespace goes before new namespace
-                    builder.AppendLine(currentDirective.GetContent());
+                    builder.AppendLine(GetUsingDirectiveContent(currentDirective, ref edits));
                     remainingExisting = remainingExisting[1..];
                 }
                 else if (comparand > 0)
@@ -156,7 +156,7 @@ internal partial class RazorEditService
 
             foreach (var directive in remainingExisting)
             {
-                builder.AppendLine(directive.GetContent());
+                builder.AppendLine(GetUsingDirectiveContent(directive, ref edits));
             }
 
             foreach (var @namespace in remainingNew)
@@ -169,11 +169,7 @@ internal partial class RazorEditService
 
             endPosition = AdjustPositionToEndOfLine(endPosition, codeDocument.Source.Text);
 
-            edits.Add(new RazorTextChange()
-            {
-                Span = RazorTextSpan.FromBounds(startPosition, endPosition),
-                NewText = builder.ToString()
-            });
+            AddUsingBlockEdit(ref edits, TextSpan.FromBounds(startPosition, endPosition), builder.ToString());
         }
     }
 
@@ -213,17 +209,21 @@ internal partial class RazorEditService
 
         endPosition = AdjustPositionToEndOfLine(endPosition, codeDocument.Source.Text);
 
-        var newText = GetUsingsText(firstBlockOfUsings, addedUsings, removedUsings);
-        edits.Add(new RazorTextChange()
-        {
-            Span = RazorTextSpan.FromBounds(startPosition, endPosition),
-            NewText = newText
-        });
+        var newText = GetUsingsText(firstBlockOfUsings, addedUsings, removedUsings, ref edits);
+        AddUsingBlockEdit(ref edits, TextSpan.FromBounds(startPosition, endPosition), newText);
 
+        // New imports are already in the first block. Leave other directives in place, including aliases
+        // with identifier edits mapped directly rather than represented in removedUsings.
         foreach (var node in remainingUsings)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            AddRemoveEdit(ref edits, node, codeDocument.Source.Text);
+
+            RazorSyntaxFacts.TryGetNamespaceFromDirective(node, out var @namespace);
+            @namespace.AssumeNotNull();
+            if (removedUsings.Contains(@namespace))
+            {
+                AddRemoveEdit(ref edits, node, codeDocument.Source.Text);
+            }
         }
     }
 
@@ -266,7 +266,11 @@ internal partial class RazorEditService
     private static string GetUsingsText(string @namespace)
         => $"@using {@namespace}";
 
-    private static string GetUsingsText(ImmutableArray<RazorUsingDirectiveSyntax> usingDirectives, ImmutableArray<string> newUsings, ImmutableArray<string> removedUsings)
+    private static string GetUsingsText(
+        ImmutableArray<RazorUsingDirectiveSyntax> usingDirectives,
+        ImmutableArray<string> newUsings,
+        ImmutableArray<string> removedUsings,
+        ref PooledArrayBuilder<RazorTextChange> mappedEdits)
     {
         using var _ = StringBuilderPool.GetPooledObject(out var builder);
 
@@ -294,12 +298,12 @@ internal partial class RazorEditService
 
         foreach (var (@namespace, directive) in sortedUsingsAndDirectives)
         {
-            AddIfNotRemoved(@namespace, directive);
+            AddIfNotRemoved(@namespace, directive, ref mappedEdits);
         }
 
         return builder.ToString();
 
-        void AddIfNotRemoved(string @namespace, RazorUsingDirectiveSyntax? directive)
+        void AddIfNotRemoved(string @namespace, RazorUsingDirectiveSyntax? directive, ref PooledArrayBuilder<RazorTextChange> mappedEdits)
         {
             if (directive is not null)
             {
@@ -308,7 +312,7 @@ internal partial class RazorEditService
                     return;
                 }
 
-                builder.Append(directive.GetContent());
+                builder.Append(GetUsingDirectiveContent(directive, ref mappedEdits));
             }
             else
             {
@@ -317,6 +321,47 @@ internal partial class RazorEditService
 
             builder.AppendLine();
         }
+    }
+
+    private static string GetUsingDirectiveContent(RazorUsingDirectiveSyntax directive, ref PooledArrayBuilder<RazorTextChange> mappedEdits)
+    {
+        // When rebuilding the using block, include any edits already mapped to this directive so
+        // those changes aren't lost. To apply them to the directive's text, convert their positions
+        // from offsets in the whole Razor document to offsets from the start of the directive.
+        using var changes = new PooledArrayBuilder<TextChange>();
+        foreach (var edit in mappedEdits)
+        {
+            if (directive.Span.Contains(edit.Span.ToTextSpan()))
+            {
+                changes.Add(new TextChange(new TextSpan(edit.Span.Start - directive.SpanStart, edit.Span.Length), edit.NewText ?? ""));
+            }
+        }
+
+        // Keep the original text and formatting, changing only the mapped identifiers. Leave the
+        // pooled edits untouched here; AddUsingBlockEdit removes them after the whole block is rendered.
+        var content = directive.GetContent();
+        return changes.Count == 0
+            ? content
+            : SourceText.From(content).WithChanges(changes.ToImmutableAndClear()).ToString();
+    }
+
+    private static void AddUsingBlockEdit(ref PooledArrayBuilder<RazorTextChange> edits, TextSpan span, string newText)
+    {
+        // If there are mapped edits within this span, the replacement already includes them. Remove their
+        // originals so they cannot overlap the block edit or be discarded by normalization.
+        for (var i = edits.Count - 1; i >= 0; i--)
+        {
+            if (span.Contains(edits[i].Span.ToTextSpan()))
+            {
+                edits.RemoveAt(i);
+            }
+        }
+
+        edits.Add(new RazorTextChange
+        {
+            Span = new RazorTextSpan { Start = span.Start, Length = span.Length },
+            NewText = newText
+        });
     }
 
     private static (ImmutableArray<RazorUsingDirectiveSyntax> firstBlockOfUsings, ImmutableArray<RazorUsingDirectiveSyntax> remainingUsings) GetGroupedUsings(RazorCodeDocument codeDocument, CancellationToken cancellationToken)

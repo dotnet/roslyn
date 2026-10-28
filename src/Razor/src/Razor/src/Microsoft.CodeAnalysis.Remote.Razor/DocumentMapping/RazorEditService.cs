@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Legacy;
 using Microsoft.AspNetCore.Razor.Language.Syntax;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Utilities;
@@ -308,8 +309,8 @@ internal sealed partial class RazorEditService(
     }
 
     /// <summary>
-    /// For all edits that are not mapped to using directives, map them directly to the Razor document.
-    /// Edits that don't map are skipped, and using directive changes are handled separately
+    /// Map edits directly to the Razor document, including identifier edits within using aliases.
+    /// Edits that don't map are skipped, and other using directive changes are handled separately
     /// by <see cref="AddUsingsChanges"/>. The original unmappable C# edits are returned unchanged via
     /// <paramref name="skippedEdits"/>.
     /// </summary>
@@ -354,8 +355,24 @@ internal sealed partial class RazorEditService(
 
             if (RazorSyntaxFacts.IsInUsingDirective(node))
             {
-                skipped.Add(csharpEdit);
-                continue;
+                // Normally, skip using edits here so AddUsingsChanges can compare the old and new C# imports
+                // and add or remove the corresponding Razor @using directives. Mapping the raw C# edits could
+                // insert C# syntax such as semicolons, or remove only the mapped text and leave a stray '@'.
+                //
+                // In an @using alias, map single-identifier edits directly, whether they change the alias
+                // name or a namespace/type identifier in its target. This keeps edits from both generated
+                // documents tied to their original Razor spans before the using block is rendered, and
+                // preserves formatting and unrelated directives for identifier-only renames.
+                var isIdentifierEditInUsingAlias =
+                    node.FirstAncestorOrSelf<CSharpStatementLiteralSyntax>()?.ChunkGenerator is AddImportChunkGenerator import &&
+                    import.ParsedNamespace.Contains('=') &&
+                    CSharp.SyntaxFacts.IsValidIdentifier(mappedEdit.NewText) &&
+                    CSharp.SyntaxFacts.IsValidIdentifier(codeDocument.Source.Text.ToString(mappedSpan));
+                if (!isIdentifierEditInUsingAlias)
+                {
+                    skipped.Add(csharpEdit);
+                    continue;
+                }
             }
 
             edits.Add(mappedEdit);
