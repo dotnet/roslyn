@@ -23,27 +23,6 @@ internal sealed class MethodTypeParameterSymbolReferenceFinder : AbstractTypePar
     protected override bool CanFind(ITypeParameterSymbol symbol)
         => symbol.TypeParameterKind == TypeParameterKind.Method;
 
-    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-        ITypeParameterSymbol symbol,
-        Solution solution,
-        FindReferencesSearchOptions options,
-        CancellationToken cancellationToken)
-    {
-        var method = (IMethodSymbol)symbol.ContainingSymbol;
-        var ordinal = method.TypeParameters.IndexOf(symbol);
-
-        if (ordinal >= 0)
-        {
-            if (method.PartialDefinitionPart != null && ordinal < method.PartialDefinitionPart.TypeParameters.Length)
-                return [method.PartialDefinitionPart.TypeParameters[ordinal]];
-
-            if (method.PartialImplementationPart != null && ordinal < method.PartialImplementationPart.TypeParameters.Length)
-                return [method.PartialImplementationPart.TypeParameters[ordinal]];
-        }
-
-        return [];
-    }
-
     protected sealed override Task DetermineDocumentsToSearchAsync<TData>(
         ITypeParameterSymbol symbol,
         HashSet<string>? globalAliases,

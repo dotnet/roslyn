@@ -45,15 +45,6 @@ internal sealed class InheritanceMarginTaggerProvider(TaggerHost taggerHost)
     /// </summary>
     protected override bool SupportsFrozenPartialSemantics => true;
 
-    protected override bool CanCreateTagger(ITextView textView, ITextBuffer buffer)
-    {
-        // Match criterion InheritanceMarginViewMarginProvider uses to determine whether
-        //  the margin is created for the view.
-        var document = textView.TextBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-        return document != null;
-    }
-
     protected override ITaggerEventSource CreateEventSource(ITextView textView, ITextBuffer subjectBuffer)
     {
         // Note: Also generate tags when InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,

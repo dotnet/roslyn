@@ -6,7 +6,6 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor.Cohost;
@@ -77,27 +76,16 @@ internal sealed class CohostOnAutoInsertEndpoint(
     protected override TextDocumentIdentifier? GetRazorTextDocumentIdentifier(VSInternalDocumentOnAutoInsertParams request)
         => request.TextDocument;
 
-    protected override Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(VSInternalDocumentOnAutoInsertParams request, TextDocument razorDocument, CancellationToken cancellationToken)
-    {
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
-        return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
-    }
-
-    private async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+    protected override async Task<VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
         VSInternalDocumentOnAutoInsertParams request,
         TextDocument razorDocument,
-        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
         CancellationToken cancellationToken)
     {
         _logger.LogDebug($"Resolving auto-insertion for {razorDocument.FilePath}");
 
         var clientSettings = _clientSettingsManager.GetClientSettings();
-        var razorFormattingOptions = RazorFormattingOptions.From(
-            request.Options,
-            codeBlockBraceOnNextLine: clientSettings.AdvancedSettings.CodeBlockBraceOnNextLine,
-            attributeIndentStyle: clientSettings.AdvancedSettings.AttributeIndentStyle,
-            csharpSyntaxFormattingOptions);
-        var resolvedCSharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetResolvedCSharpSyntaxFormattingOptions(razorFormattingOptions);
+        var razorFormattingOptions = razorDocument.GetRazorFormattingOptions(clientSettings, request.Options, cancellationToken);
+        var resolvedCSharpSyntaxFormattingOptions = razorFormattingOptions.GetResolvedCSharpSyntaxFormattingOptions();
         razorFormattingOptions = razorFormattingOptions with
         {
             CSharpSyntaxFormattingOptions = resolvedCSharpSyntaxFormattingOptions

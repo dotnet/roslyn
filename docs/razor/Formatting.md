@@ -25,10 +25,9 @@ Check that log first when formatting seems to be a no-op.
 ## The formatter changes code in ways I don't want
 
 Razor's formatter delegates HTML formatting to your IDE's HTML formatter and C# formatting to
-Roslyn. That means Razor can produce results you don't expect or that don't match your
-language-specific settings. For example, we do not currently support `.editorconfig` (see
-[dotnet/razor#4406](https://github.com/dotnet/razor/issues/4406)), so settings there may not
-affect Razor formatting.
+Roslyn. C# formatting options are read from `.editorconfig` sections matching the `.razor`
+or `.cshtml` file, not the generated C# file. HTML formatting still depends on your IDE's
+HTML formatter settings.
 
 If the formatter changes your code incorrectly, open an issue and include:
 
@@ -41,6 +40,27 @@ repro if you can — smaller repros help us diagnose and fix the issue faster.
 
 Also enable formatting logging and attach the logs to the issue; those logs contain useful
 diagnostic information we need to investigate formatting bugs.
+
+## Configure Razor formatting with editorconfig
+
+The IDE and `dotnet format` read these Razor-specific options from `.editorconfig`:
+
+```editorconfig
+[*.{razor,cshtml}]
+razor_code_block_brace_on_next_line = false
+# Valid attribute indent styles: align_with_first, indent_by_one, indent_by_two
+razor_attribute_indent_style = align_with_first
+razor_ignore_indentation_in_script_or_style_blocks_with_complex_razor = true
+```
+
+These are the default values. `razor_attribute_indent_style` also accepts `indent_by_one`
+and `indent_by_two`, which indent continuation attributes by one or two levels relative
+to the tag instead of aligning them with its first attribute. The other options accept
+`true` or `false`.
+
+Valid values override your IDE preferences for the matching files. Missing or invalid
+values leave the IDE preference unchanged; `dotnet format` uses the defaults above.
+Editor triggers such as format-on-type and format-on-paste remain IDE settings.
 
 ## Turn on Formatting Logging
 

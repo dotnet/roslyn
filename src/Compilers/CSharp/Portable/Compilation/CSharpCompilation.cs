@@ -264,6 +264,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool FeatureDisableLengthBasedSwitch => HasFeature(CodeAnalysis.Feature.DisableLengthBasedSwitch);
 
+        internal bool UseUpdatedMemorySafetyRules =>
+            Options.UseUpdatedMemorySafetyRules ||
+            (Options.MemorySafetyRulesVersion == MemorySafetyRulesVersion.Version1 && HasFeature(CodeAnalysis.Feature.UpdatedMemorySafetyRules));
+
         /// <summary>
         /// Returns true if nullable analysis is enabled in the text span represented by the syntax node.
         /// </summary>
@@ -3099,10 +3103,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                  new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNullableReferenceTypes.RequiredVersion())), Location.None));
                 }
 
-                if (Options.UseUpdatedMemorySafetyRules && !this.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution))
+                if (UseUpdatedMemorySafetyRules && !this.IsFeatureEnabled(MessageID.IDS_FeatureUnsafeEvolution))
                 {
                     builder.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_CompilationOptionNotAvailable,
-                        nameof(Options.MemorySafetyRulesVersion), (int)Options.MemorySafetyRulesVersion, LanguageVersion.ToDisplayString(),
+                        nameof(Options.MemorySafetyRulesVersion), (int)MemorySafetyRulesVersion.Version2, LanguageVersion.ToDisplayString(),
                         new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureUnsafeEvolution.RequiredVersion())), Location.None));
                 }
 

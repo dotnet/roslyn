@@ -30,7 +30,10 @@ internal static class Extensions
         {
             if (item.ReferenceOutputAssemblyIsTrue())
             {
-                yield return new(project.GetAbsolutePath(item.EvaluatedInclude), item.GetAliases());
+                yield return new(
+                    project.GetAbsolutePath(item.EvaluatedInclude),
+                    item.GetAliases(),
+                    EmbedInteropTypes: Conversions.ToBool(item.GetMetadataValue(MetadataNames.EmbedInteropTypes)));
             }
         }
     }

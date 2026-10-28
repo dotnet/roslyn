@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.PassByCopy:
-                    EmitExpression(((BoundPassByCopy)expression).Expression, used);
+                    EmitPassByCopyExpression((BoundPassByCopy)expression, used);
                     break;
 
                 case BoundKind.Parameter:
@@ -160,10 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.ThisReference:
-                    if (used) // unused this has no side-effects
-                    {
-                        EmitThisReferenceExpression((BoundThisReference)expression);
-                    }
+                    EmitThisReferenceExpression((BoundThisReference)expression, used);
                     break;
 
                 case BoundKind.PreviousSubmissionReference:
@@ -361,6 +358,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // node should have been lowered:
                     throw ExceptionUtilities.UnexpectedValue(expression.Kind);
             }
+        }
+
+        private void EmitPassByCopyExpression(BoundPassByCopy passByCopy, bool used)
+        {
+            BoundExpression expression = passByCopy.Expression;
+
+            if (!used && IsRef(expression))
+            {
+                EmitExpression(expression, used: true);
+                _builder.EmitOpCode(ILOpCode.Pop);
+                return;
+            }
+
+            EmitExpression(expression, used);
         }
 
         private void EmitThrowExpression(BoundThrowExpression node, bool used)
@@ -772,11 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitPointerIndirectionOperator(BoundPointerIndirectionOperator expression, bool used)
         {
             EmitExpression(expression.Operand, used: true);
-            if (!expression.RefersToLocation)
-            {
-                EmitLoadIndirect(expression.Type, expression.Syntax);
-            }
-
+            EmitLoadIndirect(expression.Type, expression.Syntax);
             EmitPopIfUnused(used);
         }
 
@@ -787,11 +794,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // unused dup is noop
                 if (used)
                 {
+                    if (!expression.IsAlive)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
                     _builder.EmitOpCode(ILOpCode.Dup);
                 }
             }
             else
             {
+                if (!expression.IsAlive)
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
+
                 _builder.EmitOpCode(ILOpCode.Dup);
 
                 // must read in case if it is a null ref
@@ -809,15 +826,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitDelegateCreation(expression, receiver, expression.IsExtensionMethod, meth, expression.Type, used);
         }
 
-        private void EmitThisReferenceExpression(BoundThisReference thisRef)
+        private void EmitThisReferenceExpression(BoundThisReference thisRef, bool used)
         {
             var thisType = thisRef.Type;
             Debug.Assert(thisType.TypeKind != TypeKind.TypeParameter);
 
-            _builder.EmitOpCode(ILOpCode.Ldarg_0);
-            if (thisType.IsValueType)
+            if (used || thisType.IsValueType)
             {
-                EmitLoadIndirect(thisType, thisRef.Syntax);
+                if (!used && thisType.IsDisplayClassType())
+                {
+                    // Cannot be a null ref
+                    return;
+                }
+
+                _builder.EmitOpCode(ILOpCode.Ldarg_0);
+                if (thisType.IsValueType)
+                {
+                    EmitLoadIndirect(thisType, thisRef.Syntax);
+                }
+
+                EmitPopIfUnused(used);
             }
         }
 
@@ -1146,9 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Otherwise, accessing an unused instance field on a struct is a noop. Just emit an unused receiver.
                 BoundExpression receiver;
                 if (!field.IsVolatile && !field.IsStatic && (receiver = fieldAccess.ReceiverOpt).Type.IsVerifierValue() && field.RefKind == RefKind.None &&
-                    (receiver is BoundPointerIndirectionOperator pointerIndirection ?
-                         !pointerIndirection.RefersToLocation :
-                         (!IsRef(receiver) || isDereferencedWhenEmittedAsNotUsedExpression(receiver))))
+                    (!IsRef(receiver) || isDereferencedWhenEmittedAsNotUsedExpression(receiver)))
                 {
                     EmitExpression(receiver, used: false);
                     return;
@@ -1176,6 +1202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     case BoundKind.FieldAccess:
                     case BoundKind.RefValueOperator:
                     case BoundKind.Dup:
+                    case BoundKind.ThisReference when receiver.Type.IsValueType:
                         return true;
 
                     case BoundKind.Call:
@@ -2333,6 +2360,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.RefValueOperator:
                     return true;
+
+                case BoundKind.ThisReference:
+                    return receiver.Type.IsValueType;
             }
 
             return false;
@@ -3000,6 +3030,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         var left = (BoundDup)assignmentTarget;
 
+                        if (!left.IsAlive)
+                        {
+                            throw ExceptionUtilities.Unreachable();
+                        }
+
                         var temp = EmitAddress(left, AddressKind.Writeable, used: true);
                         Debug.Assert(temp == null, "taking ref of Dup should not create a temp");
 
@@ -3236,6 +3271,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Dup:
                     Debug.Assert(((BoundDup)expression).RefKind != RefKind.None);
+
+                    if (!((BoundDup)expression).IsAlive)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 

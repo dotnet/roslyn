@@ -104,6 +104,7 @@
     "Microsoft.AspNetCore.Razor.Utilities.Shared": "arcade",
     "Microsoft.AspNetCore.Razor.Utilities.Shared.Test": "arcade",
     "Microsoft.CodeAnalysis.Razor.Compiler": "arcade",
+    "Microsoft.CodeAnalysis.Razor.DotNetFormat": "arcade",
     "Microsoft.CodeAnalysis.Razor.Tooling.Internal": "arcade",
     "Microsoft.CodeAnalysis.Razor.Workspaces": "arcade",
     "Microsoft.CodeAnalysis.Remote.Razor": "arcade",
@@ -122,7 +123,7 @@
       "NonShipping"
     ],
     "vsBranch": "main",
-    "insertionCreateDraftPR": false,
-    "insertionTitlePrefix": "[Main 18.13]"
+    "insertionCreateDraftPR": true,
+    "insertionTitlePrefix": "[Main 18.14]"
   }
 }

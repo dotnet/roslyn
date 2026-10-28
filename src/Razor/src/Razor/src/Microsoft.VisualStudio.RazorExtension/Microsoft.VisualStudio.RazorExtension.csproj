@@ -50,11 +50,6 @@
       <InstallRoot>MSBuild</InstallRoot>
       <VSIXSubPath>Microsoft\VisualStudio\Razor\</VSIXSubPath>
     </Content>
-    <Content Include="$(PkgMicrosoft_NET_Sdk_Razor)\targets\Rules\*.xaml">
-      <IncludeInVsix>true</IncludeInVsix>
-      <InstallRoot>MSBuild</InstallRoot>
-      <VSIXSubPath>Microsoft\VisualStudio\Razor\Rules\</VSIXSubPath>
-    </Content>
     <VSCTCompile Include="RazorContextMenu.vsct">
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
@@ -210,7 +205,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Sdk.Razor" IncludeAssets="None" PrivateAssets="All" GeneratePathProperty="true" />
     <PackageReference Include="System.Resources.Extensions" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" />
     <!-- Manually upgrade to address CG alert. When the VS packages

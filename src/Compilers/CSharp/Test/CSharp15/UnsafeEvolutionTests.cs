@@ -430,7 +430,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     }
 
     [Fact]
-    public void RulesOption_Valid()
+    public void RulesOption_Valid_Version1()
     {
         var verifier = CompileAndVerify("",
             options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1),
@@ -440,10 +440,34 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUpdatedRules: false))
             .VerifyDiagnostics();
 
-        Assert.Equal(MemorySafetyRulesVersion.Version1, ((CSharpCompilationOptions)verifier.Compilation.Options).MemorySafetyRulesVersion);
-        Assert.False(((CSharpCompilationOptions)verifier.Compilation.Options).UseUpdatedMemorySafetyRules);
+        verify(verifier.Compilation);
 
-        verifier = CompileAndVerify("",
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.Regular15,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1))
+            .VerifyEmitDiagnostics());
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1))
+            .VerifyEmitDiagnostics());
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version1))
+            .VerifyEmitDiagnostics());
+
+        static void verify(Compilation comp)
+        {
+            var csharpComp = (CSharpCompilation)comp;
+            Assert.Equal(MemorySafetyRulesVersion.Version1, csharpComp.Options.MemorySafetyRulesVersion);
+            Assert.Equal(MemorySafetyRulesVersion.Version1, csharpComp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+            Assert.False(csharpComp.Options.UseUpdatedMemorySafetyRules);
+        }
+    }
+
+    [Fact]
+    public void RulesOption_Valid_Version2()
+    {
+        var verifier = CompileAndVerify("",
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(),
             symbolValidator: module => VerifyMemorySafetyRulesAttribute(
                 module,
@@ -451,8 +475,124 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 expectedUpdatedRules: true))
             .VerifyDiagnostics();
 
-        Assert.Equal(MemorySafetyRulesVersion.Version2, ((CSharpCompilationOptions)verifier.Compilation.Options).MemorySafetyRulesVersion);
-        Assert.True(((CSharpCompilationOptions)verifier.Compilation.Options).UseUpdatedMemorySafetyRules);
+        verify(verifier.Compilation);
+
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.Regular15,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2))
+            .VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1)));
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2))
+            .VerifyEmitDiagnostics());
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion(MemorySafetyRulesVersion.Version2))
+            .VerifyEmitDiagnostics());
+
+        static void verify(Compilation comp)
+        {
+            var csharpComp = (CSharpCompilation)comp;
+            Assert.Equal(MemorySafetyRulesVersion.Version2, csharpComp.Options.MemorySafetyRulesVersion);
+            Assert.Equal(MemorySafetyRulesVersion.Version2, csharpComp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+            Assert.True(csharpComp.Options.UseUpdatedMemorySafetyRules);
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesOption_FeatureFlag(
+        [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion langVersion,
+        bool? updatedRules)
+    {
+        var verifier = CompileAndVerify("",
+            parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion).WithFeature(Feature.UpdatedMemorySafetyRules),
+            options: updatedRules is not { } updatedRulesValue ? null : TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesValue),
+            symbolValidator: module => VerifyMemorySafetyRulesAttribute(
+                module,
+                expectedDefinition: AttributeDefinition.Synthesized,
+                expectedUpdatedRules: true))
+            .VerifyDiagnostics();
+
+        var comp = (CSharpCompilation)verifier.Compilation;
+        var expectedOptionVersion = updatedRules == true ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
+        Assert.Equal(expectedOptionVersion, comp.Options.MemorySafetyRulesVersion);
+        Assert.Equal(MemorySafetyRulesVersion.Version2, comp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+        Assert.Equal(updatedRules == true, comp.Options.UseUpdatedMemorySafetyRules);
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesOption_FeatureFlag_LangVersion(bool? updatedRules)
+    {
+        var comp = CreateCompilation("",
+            parseOptions: TestOptions.Regular15.WithFeature(Feature.UpdatedMemorySafetyRules),
+            options: updatedRules is not { } updatedRulesValue ? null : TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesValue))
+            .VerifyDiagnostics(
+            // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
+
+        var expectedOptionVersion = updatedRules == true ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
+        Assert.Equal(expectedOptionVersion, comp.Options.MemorySafetyRulesVersion);
+        Assert.Equal(MemorySafetyRulesVersion.Version2, comp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+        Assert.Equal(updatedRules == true, comp.Options.UseUpdatedMemorySafetyRules);
+    }
+
+    [Theory, CombinatorialData]
+    public void RulesOption_FeatureFlag_SyntaxTreeUpdates(
+        bool updatedRules,
+        [CombinatorialValues(LanguageVersion.CSharp15, LanguageVersion.Preview)] LanguageVersion langVersion)
+    {
+        var options = TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules);
+        var parseOptions = TestOptions.Regular.WithLanguageVersion(langVersion);
+        var comp = CreateCompilation("",
+            parseOptions: parseOptions.WithFeature(Feature.UpdatedMemorySafetyRules),
+            options: options);
+        var flaggedTree = comp.SyntaxTrees.Single();
+        var unflaggedTree = CSharpSyntaxTree.ParseText("", parseOptions);
+
+        var removed = comp.RemoveAllSyntaxTrees();
+        verify(removed, updatedRules);
+        verify(comp.RemoveSyntaxTrees(flaggedTree), updatedRules);
+        verify(comp.ReplaceSyntaxTree(flaggedTree, unflaggedTree), updatedRules);
+        verify(removed.AddSyntaxTrees(unflaggedTree), updatedRules);
+        verify(removed.AddSyntaxTrees(flaggedTree), expectedUpdatedRules: true);
+        verify(comp.WithOptions(options), expectedUpdatedRules: true);
+        verify(comp.Clone(), expectedUpdatedRules: true);
+        verify(comp, expectedUpdatedRules: true);
+
+        void verify(CSharpCompilation compilation, bool expectedUpdatedRules)
+        {
+            var expectedVersion = expectedUpdatedRules ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
+            Assert.Equal(expectedVersion, compilation.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+            Assert.Same(options, compilation.Options);
+
+            if (expectedUpdatedRules && compilation.LanguageVersion != LanguageVersion.Preview)
+            {
+                compilation.VerifyDiagnostics(
+                    // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
+                    Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", compilation.LanguageVersion.ToDisplayString(), "preview").WithLocation(1, 1));
+            }
+            else
+            {
+                compilation.VerifyEmitDiagnostics();
+            }
+        }
+    }
+
+    [Fact]
+    public void RulesOption_FeatureFlag_InvalidVersion()
+    {
+        var comp = CreateCompilation("",
+            parseOptions: TestOptions.RegularPreview.WithFeature(Feature.UpdatedMemorySafetyRules),
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)999))
+            .VerifyDiagnostics(
+            // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '999'. Accepted values are: 1, 2
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", "999", "1, 2").WithLocation(1, 1));
+
+        Assert.Equal((MemorySafetyRulesVersion)999, comp.Options.MemorySafetyRulesVersion);
+        Assert.Equal(MemorySafetyRulesVersion.Version1, comp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
+        Assert.False(comp.Options.UseUpdatedMemorySafetyRules);
     }
 
     [Theory]
@@ -462,13 +602,30 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
     [InlineData(20)]
     public void RulesOption_Invalid(int value)
     {
-        var comp = CreateCompilation("",
-            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)value))
-            .VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", value, $"{(int)MemorySafetyRulesVersion.Version1}, {(int)MemorySafetyRulesVersion.Version2}").WithLocation(1, 1));
+        var expectedDiagnostics = new[]
+        {
+            // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '0'. Accepted values are: 1, 2
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", value, $"{(int)MemorySafetyRulesVersion.Version1}, {(int)MemorySafetyRulesVersion.Version2}").WithLocation(1, 1),
+        };
 
-        Assert.Equal((MemorySafetyRulesVersion)value, comp.Options.MemorySafetyRulesVersion);
-        Assert.False(comp.Options.UseUpdatedMemorySafetyRules);
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.Regular15,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)value))
+            .VerifyDiagnostics(expectedDiagnostics));
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularNext,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)value))
+            .VerifyDiagnostics(expectedDiagnostics));
+        verify(CreateCompilation("",
+            parseOptions: TestOptions.RegularPreview,
+            options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)value))
+            .VerifyDiagnostics(expectedDiagnostics));
+
+        void verify(Compilation comp)
+        {
+            Assert.Equal((MemorySafetyRulesVersion)value, ((CSharpCompilation)comp).Options.MemorySafetyRulesVersion);
+            Assert.False(((CSharpCompilation)comp).Options.UseUpdatedMemorySafetyRules);
+        }
     }
 
     [Fact]
@@ -10716,6 +10873,57 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 // (2,16): error CS9376: An unsafe context is required for constructor 'U.U()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'D<T>'
                 // public union U(D<U>)
                 Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "D<U>").WithArguments("U.U()", "T", "D<T>").WithLocation(2, 16));
+        }
+        else
+        {
+            comp.VerifyEmitDiagnostics();
+        }
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86208")]
+    public void Member_Constructor_NestedTypeConstraints(
+        bool updatedRules,
+        [CombinatorialValues("class", "struct")] string outerKind,
+        [CombinatorialValues("IEquatable<T>", "IEquatable<T>, new()", "struct, IEquatable<T>")] string constraint)
+    {
+        var source = $$"""
+            using System;
+            public interface IBox<T> { }
+            public {{outerKind}} Outer : IBox<Outer.Inner<int>>
+            {
+                public struct Inner<T> where T : {{constraint}} { }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86208")]
+    public void Member_Constructor_NestedTypeConstraints_UnsafeConstructor(
+        bool updatedRules,
+        [CombinatorialValues("", "where T : new()", "where T : struct")] string constraint)
+    {
+        var source = $$"""
+            using System;
+            public interface IBox<T> {{constraint}} { }
+            public struct Outer : IBox<Outer.Inner<int>>
+            {
+                public struct Inner<T> where T : IEquatable<T>
+                {
+                    public unsafe Inner() { }
+                }
+            }
+            """;
+
+        var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules));
+
+        if (updatedRules && constraint != "")
+        {
+            comp.VerifyDiagnostics(
+                // (3,23): error CS9376: An unsafe context is required for constructor 'Outer.Inner<int>.Inner()' marked as 'unsafe' to satisfy the 'new()' constraint of type parameter 'T' in 'IBox<T>'
+                // public struct Outer : IBox<Outer.Inner<int>>
+                Diagnostic(ErrorCode.ERR_UnsafeConstructorConstraint, "IBox<Outer.Inner<int>>").WithArguments("Outer.Inner<int>.Inner()", "T", "IBox<T>").WithLocation(3, 23));
         }
         else
         {

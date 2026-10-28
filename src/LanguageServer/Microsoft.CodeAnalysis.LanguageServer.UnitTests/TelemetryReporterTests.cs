@@ -140,6 +140,23 @@ public sealed class TelemetryReporterTests(ITestOutputHelper testOutputHelper) :
         Assert.Equal(expected, LanguageServerTelemetry.IsStandaloneTelemetryEnabled(telemetryLevel));
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TestCreateSessionReturnsNullWhenTelemetryIsOff(bool isDefaultSession)
+    {
+        var serverConfiguration = ServerConfigurationWithoutDevKit with { TelemetryLevel = "off" };
+
+        using var service = LanguageServerTelemetry.CreateSession(
+            serverConfiguration,
+            LoggerFactory,
+            new RoslynTelemetry(),
+            sessionId: null,
+            isDefaultSession);
+
+        Assert.Null(service);
+    }
+
     [Fact]
     public void TestDevKitSessionPreservesVSCodeSettings()
     {

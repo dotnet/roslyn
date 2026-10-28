@@ -54,19 +54,9 @@ klawisz [Tab], aby przechodzić pomiędzy elementami, klawisz [Enter], aby zako�
         <target state="translated">Edytor Razor korzysta z generatora źródła Razor, który wymaga, aby pliki *.razor i *.cshtml były plikami AdditionalFiles w projekcie. Wygląda na to, że {0} pochodzi z folderu „{1}”, który zawiera dokumenty usługi Razor, ale ten plik nie jest plikiem AdditionalFile, więc środowisko edycji będzie ograniczone. Dla tego projektu nie będą rejestrowane żadne inne wiadomości.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">Nieprawidłowe przesunięcie.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">Słowo kluczowe {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Usługi języka dla składni Razor nie zostały prawidłowo skonfigurowane — brak usługi językowej "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">
