@@ -2807,6 +2807,11 @@
         <target state="translated">型宣言のパラメーター リストがない場合、基本型に引数を渡すことはできません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedCloseBraceBeforeTypeMember">
+        <source>'}' closes the type, but more type members follow.</source>
+        <target state="new">'}' closes the type, but more type members follow.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
         <target state="translated">予期しないパラメーター リストです。</target>

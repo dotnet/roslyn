@@ -2807,6 +2807,11 @@
         <target state="translated">Невозможно передать аргументы базовому типу без списка параметров в объявлении типа.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnexpectedCloseBraceBeforeTypeMember">
+        <source>'}' closes the type, but more type members follow.</source>
+        <target state="new">'}' closes the type, but more type members follow.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnexpectedParameterList">
         <source>Unexpected parameter list.</source>
         <target state="translated">Неожиданный список параметров.</target>

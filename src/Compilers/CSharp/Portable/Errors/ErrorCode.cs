@@ -2512,6 +2512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_BadCompilationOptionValueAccepted = 9400,
         ERR_IllegalUnsafeModifier = 9401,
+        ERR_UnexpectedCloseBraceBeforeTypeMember = 9402,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
