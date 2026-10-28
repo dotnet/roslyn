@@ -10,8 +10,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1647,6 +1649,107 @@ public sealed class FormattingEngineTriviaTests : CSharpFormattingTestBase
                 }
             }
             """);
+
+    [Theory]
+    [InlineData(false, "\n", "\n")]
+    [InlineData(false, "\n", "\r\n")]
+    [InlineData(false, "\r\n", "\n")]
+    [InlineData(false, "\r\n", "\r\n")]
+    [InlineData(true, "\n", "\n")]
+    [InlineData(true, "\n", "\r\n")]
+    [InlineData(true, "\r\n", "\n")]
+    [InlineData(true, "\r\n", "\r\n")]
+    public Task PreserveCommentWhitespaceNewLines(bool useTabs, string sourceNewLine, string preferredNewLine)
+    {
+        var indentation = useTabs ? "\t" : "    ";
+        var code = string.Join(sourceNewLine,
+            "class C",
+            "{",
+            indentation + "void M()",
+            indentation + "{",
+            indentation + indentation + "// first",
+            indentation + indentation + "M();",
+            "",
+            indentation + indentation + "// second",
+            indentation + indentation + "M();",
+            indentation + "}",
+            "}");
+
+        return AssertNoFormattingChangesAsync(code, new OptionsCollection(LanguageNames.CSharp)
+        {
+            { FormattingOptions2.UseTabs, useTabs },
+            { FormattingOptions2.NewLine, preferredNewLine },
+        });
+    }
+
+    [Fact]
+    public Task PreserveCommentWhitespaceNewLinesWithDefaultOptions()
+        => AssertNoFormattingChangesAsync(
+            "class C\n{\n\t// comment\n\tvoid M()\n\t{\n\t}\n}",
+            new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.UseTabs, true },
+            });
+
+    [Fact]
+    public Task PreserveCommentWhitespaceMixedNewLines()
+        => AssertNoFormattingChangesAsync(
+            "class C\n{\r\n\t// first\n\t// second\r\n\tvoid M()\n\t{\r\n\t}\n}",
+            new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.UseTabs, true },
+                { FormattingOptions2.NewLine, "\r\n" },
+            });
+
+    [Theory]
+    [InlineData("\n \t\t", "\r\n\t\t")]
+    [InlineData(" \n\t\t", "\r\n\t\t")]
+    [InlineData("\n\t\t ", "\r\n\t\t")]
+    [InlineData("\n \n\t\t", "\r\n\r\n\t\t")]
+    public Task FormatCommentWhitespaceWithDifferentNewLines(string whitespace, string expectedWhitespace)
+    {
+        var prefix = "class C\n{\n\tvoid M()\n\t{";
+        var suffix = "// comment\n\t\tM();\n\t}\n}";
+        return AssertFormatAsync(prefix + expectedWhitespace + suffix, prefix + whitespace + suffix,
+            new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.UseTabs, true },
+                { FormattingOptions2.NewLine, "\r\n" },
+            });
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("/* comment */")]
+    public Task InsertNewLinesWithDifferentNewLines(string comment)
+        => AssertFormatAsync(
+            $"class C\n{{\n\tvoid M()\n\t{{\n\t\tM();{comment}\r\n\t}}\r\n}}\n",
+            $"class C\n{{\n\tvoid M()\n\t{{\n\t\tM();{comment}}}}}\n",
+            new OptionsCollection(LanguageNames.CSharp)
+            {
+                { FormattingOptions2.UseTabs, true },
+                { FormattingOptions2.NewLine, "\r\n" },
+            });
+
+    [Fact]
+    public void FormatElasticCommentWhitespaceWithDifferentNewLines()
+    {
+        using var workspace = new AdhocWorkspace();
+        var code = "class C\n{\n\t// comment\n\tvoid M()\n\t{\n\t}\n}";
+        var root = SyntaxFactory.ParseCompilationUnit(code);
+        root = root.ReplaceTrivia(
+            root.DescendantTrivia().Where(trivia => trivia.IsKind(SyntaxKind.EndOfLineTrivia)),
+            (original, _) => SyntaxFactory.ElasticEndOfLine(original.ToFullString()));
+        var options = new CSharpSyntaxFormattingOptions
+        {
+            LineFormatting = new() { UseTabs = true, NewLine = "\r\n" },
+        };
+        var expected = "class C\n{\r\n\t// comment\r\n\tvoid M()\n\t{\n\t}\n}";
+
+        var changes = Formatter.GetFormattedTextChanges(root, workspace.Services.SolutionServices, options, CancellationToken.None);
+        Assert.Equal(expected, SourceText.From(code).WithChanges(changes).ToString());
+        Assert.Equal(expected, Formatter.Format(root, workspace.Services.SolutionServices, options, CancellationToken.None).ToFullString());
+    }
 
     [Fact]
     public void NewLineOptions_LineFeedOnly()
