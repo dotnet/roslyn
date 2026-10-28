@@ -33,6 +33,8 @@ internal sealed partial class RazorEditService(
     RemoteSnapshotManager snapshotManager,
     ITelemetryReporter telemetryReporter) : IRazorEditService
 {
+    private readonly record struct GeneratedDocumentChanges(ImmutableArray<RazorTextChange> Changes, SyntaxTree SyntaxTree, bool DeclarationDocument);
+
     private readonly IDocumentMappingService _documentMappingService = documentMappingService;
     private readonly IClientSettingsManager _clientSettingsManager = clientSettingsManager;
     private readonly RemoteSnapshotManager _snapshotManager = snapshotManager;
@@ -51,10 +53,8 @@ internal sealed partial class RazorEditService(
 
         return await MapCSharpEditsAsync(
             snapshot.TextDocument,
-            textChanges,
+            [new(textChanges, originalCSharpSyntaxTree, declarationDocument)],
             codeDocument,
-            originalCSharpSyntaxTree,
-            declarationDocument,
             includeCSharpLanguageFeatureEdits,
             directlyMappedEditFilter,
             cancellationToken).ConfigureAwait(false);
@@ -62,36 +62,57 @@ internal sealed partial class RazorEditService(
 
     private async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
         TextDocument razorDocument,
-        ImmutableArray<RazorTextChange> textChanges,
+        ImmutableArray<GeneratedDocumentChanges> documentChanges,
         RazorCodeDocument codeDocument,
-        SyntaxTree originalCSharpSyntaxTree,
-        bool declarationDocument,
         bool includeCSharpLanguageFeatureEdits,
         Func<RazorTextChange, bool>? directlyMappedEditFilter,
         CancellationToken cancellationToken)
     {
         using var edits = new PooledArrayBuilder<RazorTextChange>();
-        AddDirectlyMappedEdits(ref edits.AsRef(), declarationDocument, textChanges, codeDocument, directlyMappedEditFilter, cancellationToken, out var skippedEdits);
+        using var addedUsings = new PooledArrayBuilder<string>();
+        using var removedUsings = new PooledArrayBuilder<string>();
 
-        if (includeCSharpLanguageFeatureEdits && skippedEdits.Length != 0)
+        foreach (var (textChanges, originalCSharpSyntaxTree, declarationDocument) in documentChanges)
         {
-            // If there was something that didn't map, and the caller wants us to, we need to process the generated C# document
-            // that Roslyn wanted to produce, and look for changes that we can translate into their Razor equivalents.
+            AddDirectlyMappedEdits(ref edits.AsRef(), declarationDocument, textChanges, codeDocument, directlyMappedEditFilter, cancellationToken, out var skippedEdits);
+            if (!includeCSharpLanguageFeatureEdits || skippedEdits.Length == 0)
+            {
+                continue;
+            }
+
             var originalCSharpSourceText = await originalCSharpSyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var originalCSharpSyntaxRoot = await originalCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            // Important note: We're only applying the skipped edits to this file, and we're not applying the directly mapped edits to the Razor file
-            // so the changes here are NOT complete. This isn't important for the scenario we're supporting, which is added or removed C# language
-            // features that are outside of the mapped area, but if that changes, it's important to note.
+            // This temporary C# text contains only skipped edits, not the complete requested change.
+            // That's enough to find added or removed language features outside the mapped regions.
+            // In particular, don't reintroduce edits rejected by the caller's directly-mapped edit filter.
             var newCSharpSourceText = originalCSharpSourceText.WithChanges(skippedEdits.Select(static c => c.ToTextChange()));
             var newCSharpSyntaxTree = originalCSharpSyntaxTree.WithChangedText(newCSharpSourceText);
             var newCSharpSyntaxRoot = await newCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
+            // Collect using changes from each generated document so they can be applied together below.
+            var oldUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(originalCSharpSyntaxRoot, originalCSharpSourceText);
+            var newUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(newCSharpSyntaxRoot, newCSharpSourceText);
+            addedUsings.AddRange(Delta.Compute(oldUsings, newUsings));
+            removedUsings.AddRange(Delta.Compute(newUsings, oldUsings));
+
             var clientSettings = _clientSettingsManager.GetClientSettings();
             var options = razorDocument.GetRazorFormattingOptions(clientSettings, cancellationToken);
-            AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, options, cancellationToken);
+            AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, options);
         }
 
+        // The impl and decl documents can produce identical edits to a using directive. Remove
+        // duplicates before applying them to its text, since SourceText.WithChanges rejects overlapping edits.
+        var mappedEdits = NormalizeEdits(edits.ToImmutableOrderedByAndClear(static e => e.Span.Start), cancellationToken);
+        edits.AddRange(mappedEdits);
+        AddUsingsChanges(
+            ref edits.AsRef(),
+            codeDocument,
+            addedUsings.ToImmutable().Distinct(),
+            removedUsings.ToImmutable().Distinct(),
+            cancellationToken);
+
+        // Normalize again to account for the using-block replacements added above.
         return NormalizeEdits(edits.ToImmutableOrderedByAndClear(static e => e.Span.Start), cancellationToken);
     }
 
@@ -102,17 +123,8 @@ internal sealed partial class RazorEditService(
         SourceText originalCSharpSourceText,
         RoslynSyntaxNode newCSharpSyntaxRoot,
         SourceText newCSharpSourceText,
-        RazorFormattingOptions options,
-        CancellationToken cancellationToken)
+        RazorFormattingOptions options)
     {
-        var oldUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(originalCSharpSyntaxRoot, originalCSharpSourceText);
-        var newUsings = UsingDirectiveHelper.FindUsingDirectiveStrings(newCSharpSyntaxRoot, newCSharpSourceText);
-
-        var addedUsings = Delta.Compute(oldUsings, newUsings);
-        var removedUsings = Delta.Compute(newUsings, oldUsings);
-
-        AddUsingsChanges(ref edits, codeDocument, addedUsings, removedUsings, cancellationToken);
-
         var oldMembers = FindMembers(originalCSharpSyntaxRoot, originalCSharpSourceText, codeDocument.FileKind);
         var newMembers = FindMembers(newCSharpSyntaxRoot, newCSharpSourceText, codeDocument.FileKind);
         var addedMembers = Delta.Compute(oldMembers, newMembers);
@@ -417,10 +429,8 @@ internal sealed partial class RazorEditService(
         {
             return instance.MapCSharpEditsAsync(
                 razorDocument,
-                textChanges,
+                [new(textChanges, originalCSharpSyntaxTree, declarationDocument)],
                 codeDocument,
-                originalCSharpSyntaxTree,
-                declarationDocument,
                 includeCSharpLanguageFeatureEdits,
                 directlyMappedEditFilter,
                 cancellationToken);

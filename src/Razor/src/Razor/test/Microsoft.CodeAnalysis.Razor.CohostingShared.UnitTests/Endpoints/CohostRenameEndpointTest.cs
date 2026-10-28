@@ -463,6 +463,62 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             additionalExpectedFiles:
                 [(FileUri("DifferentName.razor"), "")]);
 
+    [Fact]
+    public Task Component_UsingNamespace_RenameTargetAcrossDocuments()
+        => VerifyRenamesAsync(
+            input: """
+                @using My.Foo
+
+                <Comp$$onent />
+                @((Component)null)
+
+                @code {
+                    private Component? _component;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using My.Foo
+
+                <DifferentName />
+                @((DifferentName)null)
+
+                @code {
+                    private DifferentName? _component;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("DifferentName.razor"), "@namespace My.Foo")]);
+
+    [Fact]
+    public Task Component_UsingNamespace_RenameNamespaceAcrossDocuments()
+        => VerifyRenamesAsync(
+            input: """
+                @using My.F$$oo
+
+                <Component />
+                <My.Foo.Component />
+                @((Component)null)
+
+                @code {
+                    private Component? _component;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using My.DifferentName
+
+                <Component />
+                <My.DifferentName.Component />
+                @((Component)null)
+
+                @code {
+                    private Component? _component;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.DifferentName")]);
+
     // Legacy documents keep inline and @functions C# in one generated document. These cases protect
     // that path while component renames also handle a separate declaration document.
     [Fact]
@@ -662,6 +718,84 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 {
                 }
                 """)]);
+
+    [Fact]
+    public Task Component_UsingAliasAndNamespace_MultipleUsingGroups_RenameNamespace()
+        => VerifyRenamesAsync(
+            input: """
+                @using System
+
+                <p></p>
+
+                @using My.Foo
+                @using Alias = My.Foo.Component
+
+                <My.F$$oo.Component />
+                <Component />
+                @((Component)null)
+                @((Alias)null)
+
+                @code {
+                    private Component? _component;
+                    private Alias? _aliasedComponent;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using System
+                @using My.DifferentName
+
+                <p></p>
+
+                @using Alias = My.DifferentName.Component
+
+                <My.DifferentName.Component />
+                <Component />
+                @((Component)null)
+                @((Alias)null)
+
+                @code {
+                    private Component? _component;
+                    private Alias? _aliasedComponent;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.DifferentName")]);
+
+    [Fact]
+    public Task Component_UsingAliasAndNamespace_RenameNamespace()
+        => VerifyRenamesAsync(
+            input: """
+                @using My.Foo
+                @using Alias = My.Foo.Component
+
+                <My.F$$oo.Component />
+                <Component />
+                @((Component)null)
+                @((Alias)null)
+
+                @code {
+                    private Component? _component;
+                    private Alias? _aliasedComponent;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentName",
+            expected: """
+                @using Alias = My.DifferentName.Component
+                @using My.DifferentName
+
+                <My.DifferentName.Component />
+                <Component />
+                @((Component)null)
+                @((Alias)null)
+
+                @code {
+                    private Component? _component;
+                    private Alias? _aliasedComponent;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.DifferentName")]);
 
     [Theory]
     [InlineData("My.$$Foo.Component")]
