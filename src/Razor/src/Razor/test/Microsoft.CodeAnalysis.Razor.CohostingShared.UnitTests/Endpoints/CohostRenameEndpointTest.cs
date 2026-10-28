@@ -519,6 +519,99 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 """,
             additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.DifferentName")]);
 
+    [Fact]
+    public Task CSharp_UsingTypeAlias_RenameAliasFromUsingAcrossDocuments()
+        // Framework aliases exercise the split-document issue without component binding.
+        => VerifyRenamesAsync(
+            input: """
+                @using Ali$$as = System.String
+
+                @((Alias)null)
+
+                @code {
+                    private Alias? _value;
+                }
+                """,
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = System.String
+
+                @((DifferentAlias)null)
+
+                @code {
+                    private DifferentAlias? _value;
+                }
+                """);
+
+    [Fact]
+    public Task CSharp_UsingTypeAlias_RenameAliasFromInlineExpressionAcrossDocuments()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = System.String
+
+                @((Ali$$as)null)
+
+                @code {
+                    private Alias? _value;
+                }
+                """,
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = System.String
+
+                @((DifferentAlias)null)
+
+                @code {
+                    private DifferentAlias? _value;
+                }
+                """);
+
+    [Fact]
+    public Task CSharp_UsingTypeAlias_RenameAliasFromDeclarationAcrossDocuments()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = System.String
+
+                @((Alias)null)
+
+                @code {
+                    private Ali$$as? _value;
+                }
+                """,
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = System.String
+
+                @((DifferentAlias)null)
+
+                @code {
+                    private DifferentAlias? _value;
+                }
+                """);
+
+    [Fact]
+    public Task CSharp_UsingNamespaceAlias_RenameAliasAcrossDocuments()
+        => VerifyRenamesAsync(
+            input: """
+                @using Alias = System.Text
+
+                @((Ali$$as.StringBuilder)null)
+
+                @code {
+                    private Alias.StringBuilder? _value;
+                }
+                """,
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = System.Text
+
+                @((DifferentAlias.StringBuilder)null)
+
+                @code {
+                    private DifferentAlias.StringBuilder? _value;
+                }
+                """);
+
     // Legacy documents keep inline and @functions C# in one generated document. These cases protect
     // that path while component renames also handle a separate declaration document.
     [Fact]
@@ -796,6 +889,39 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 }
                 """,
             additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.DifferentName")]);
+
+    [Fact]
+    public Task Component_UsingAliasAndNamespace_RenameAliasAcrossDocuments()
+        => VerifyRenamesAsync(
+            input: """
+                @using My.Foo
+                @using Alias = My.Foo.Component
+
+                <Component />
+                @((Component)null)
+                @((Ali$$as)null)
+
+                @code {
+                    private Component? _component;
+                    private Alias? _aliasedComponent;
+                }
+                """,
+            additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
+            newName: "DifferentAlias",
+            expected: """
+                @using DifferentAlias = My.Foo.Component
+                @using My.Foo
+
+                <Component />
+                @((Component)null)
+                @((DifferentAlias)null)
+
+                @code {
+                    private Component? _component;
+                    private DifferentAlias? _aliasedComponent;
+                }
+                """,
+            additionalExpectedFiles: [(FileUri("Component.razor"), "@namespace My.Foo")]);
 
     [Theory]
     [InlineData("My.$$Foo.Component")]

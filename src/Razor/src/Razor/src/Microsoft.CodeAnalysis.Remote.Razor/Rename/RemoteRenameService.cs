@@ -14,9 +14,11 @@ using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Razor;
+using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Workspaces;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Remote.Razor.Rename;
@@ -90,9 +92,64 @@ internal sealed class RemoteRenameService(in ServiceArgs args) : RazorDocumentSe
             return NoFurtherHandling;
         }
 
+        // There is a special case here for using aliases. In C#, these are document-local and so a
+        // single Razor @using alias is emitted into both impl and decl documents, creating separate
+        // alias symbols. Roslyn renames only the selected symbol, so references in the other document
+        // would be left unchanged even though they share the same Razor source declaration. We need to
+        // do a second rename for the corresponding alias in the other document, so their edits can be
+        // combined before mapping.
+        var otherEdit = await TryGetOtherAliasRenameEditAsync(snapshot, codeDocument, generatedDocument, positionInfo, newName, cancellationToken).ConfigureAwait(false);
+        csharpEdit = csharpEdit.Concat(otherEdit);
+
         await _razorEditService.MapWorkspaceEditAsync(snapshot.TextDocument.Project.Solution, csharpEdit, cancellationToken).ConfigureAwait(false);
 
         return Results(csharpEdit.Concat(razorEdit.Edit));
+    }
+
+    private async Task<WorkspaceEdit?> TryGetOtherAliasRenameEditAsync(
+        RemoteDocumentSnapshot snapshot,
+        RazorCodeDocument codeDocument,
+        Document generatedDocument,
+        DocumentPositionInfo positionInfo,
+        string newName,
+        CancellationToken cancellationToken)
+    {
+        var generatedText = await generatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+        var renameInfo = await SymbolicRenameInfo.GetRenameInfoAsync(generatedDocument, generatedText.GetRequiredAbsoluteIndex(positionInfo.Position), cancellationToken).ConfigureAwait(false);
+        if (renameInfo.Symbol is not IAliasSymbol alias)
+        {
+            return null;
+        }
+
+        // A global using alias may be declared in another C# document. Only pair aliases declared
+        // in this generated document, since another document's declaration offsets cannot be mapped
+        // through this generated document.
+        var syntaxTree = await generatedDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+        if (alias.Locations is not [var location, ..] || location.SourceTree != syntaxTree)
+        {
+            return null;
+        }
+
+        // Locate the shared Razor declaration, then map it into the other generated C# document.
+        var csharpDocument = codeDocument.GetRequiredCSharpDocument(positionInfo.InDeclDocument);
+        if (!DocumentMappingService.TryMapToRazorDocumentPosition(csharpDocument, location.SourceSpan.Start, out _, out var aliasIndex))
+        {
+            return null;
+        }
+
+        var otherCSharpDocument = codeDocument.GetCSharpDocument(!positionInfo.InDeclDocument);
+        if (otherCSharpDocument is null)
+        {
+            return null;
+        }
+
+        if (!DocumentMappingService.TryMapToCSharpDocumentPosition(otherCSharpDocument, aliasIndex, out var otherPosition, out _))
+        {
+            return null;
+        }
+
+        var otherDocument = await snapshot.GetGeneratedDocumentAsync(!positionInfo.InDeclDocument, cancellationToken).ConfigureAwait(false);
+        return await RenameHandler.GetRenameEditAsync(otherDocument, otherPosition, newName, allowRenamesInRazorSourceGeneratedDocuments: true, cancellationToken).ConfigureAwait(false);
     }
 
     public ValueTask<RemoteResponse<LspRange?>> GetPrepareRenameRangeAsync(
