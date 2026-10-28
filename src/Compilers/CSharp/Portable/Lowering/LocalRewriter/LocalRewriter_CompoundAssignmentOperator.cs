@@ -293,7 +293,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(rewrittenReceiver.Type is { });
 
             RefKind refKind;
-            bool isKnownToReferToTempIfReferenceType = false;
 
             if (propertyOrEvent.IsExtensionBlockMember())
             {
@@ -320,18 +319,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenReceiver.Type.IsReferenceType)
                 {
                     refKind = RefKind.None;
-                    isKnownToReferToTempIfReferenceType = true;
                 }
                 else
                 {
                     refKind = variableRepresentsLocation ? RefKind.Ref : RefKind.None;
-
-                    isKnownToReferToTempIfReferenceType = !variableRepresentsLocation || rewrittenReceiver.Type.IsValueType ||
-                                                          !CodeGenerator.HasHome(rewrittenReceiver,
-                                                                                CodeGenerator.AddressKind.Constrained,
-                                                                                _factory.CurrentFunction,
-                                                                                peVerifyCompatEnabled: false,
-                                                                                stackLocalsOpt: null);
+                    refKind = AdjustReadonlyReceiverCaptureRefKind(rewrittenReceiver, refKind);
                 }
             }
 
@@ -354,8 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var receiverTemp = _factory.StoreToTemp(
                     rewrittenReceiver,
                     out assignmentToTemp,
-                    refKind: refKind is RefKind.RefReadOnlyParameter ? RefKind.In : refKind,
-                    isKnownToReferToTempIfReferenceType: isKnownToReferToTempIfReferenceType);
+                    refKind: refKind is RefKind.RefReadOnlyParameter ? RefKind.In : refKind);
 
                 capturedReceiver = receiverTemp;
             }
