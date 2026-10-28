@@ -35,6 +35,11 @@ internal sealed class CodeActionResolveHelper
 
     public static async Task<LSP.WorkspaceEdit> GetCodeActionResolveEditsAsync(Solution solution, CodeActionResolveData data, ImmutableArray<CodeActionOperation> operations, ResourceOperationKind[] resourceOperations, Action<string> logFunction, CancellationToken cancellationToken)
     {
+        // TO-DO: We currently must execute code actions which add new documents on the server as commands,
+        // since there is no LSP support for adding documents yet. In the future, we should move these actions
+        // to execute on the client.
+        // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1147293/
+
         var textDiffService = solution.Services.GetService<IDocumentTextDifferencingService>();
 
         using var _1 = ArrayBuilder<SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>>.GetInstance(out var textDocumentEdits);
@@ -274,7 +279,13 @@ internal sealed class CodeActionResolveHelper
     {
         foreach (var change in newSolution.GetChanges(solution).GetProjectChanges())
         {
-            // We do not support changes to the project file itself.
+            // Don't apply changes in the presence of any non-document changes for now.  Note though that LSP does
+            // support additional functionality (like create/rename/delete file).  Once VS updates their LSP client
+            // impl to support this, we should add that support here.
+            //
+            // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
+            //
+            // Tracked with: https://github.com/dotnet/roslyn/issues/65303
             if (change.GetAddedProjectReferences().Any() || change.GetRemovedProjectReferences().Any() ||
                 change.GetAddedMetadataReferences().Any() || change.GetRemovedMetadataReferences().Any() ||
                 change.GetAddedAnalyzerReferences().Any() || change.GetRemovedAnalyzerReferences().Any())

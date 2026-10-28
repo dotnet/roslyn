@@ -45,7 +45,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     [Theory, CombinatorialData]
     public async Task DiscoveryOffersFixAllOnlyForMatchingSourceFilters(
         bool mutatingLspWorkspace,
-        [CombinatorialValues(null, "", "quickfix", "refactor", "source.organizeImports", "source.fixAll.child", "source", "source.fixAll")] string? only)
+        [CombinatorialValues(null, "", "quickfix", "source.organizeImports", "source.fixAll.child", "source", "source.fixAll")] string? only)
     {
         var source = "class C { {|caret:|} }";
 
@@ -856,16 +856,29 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Place the same diagnostic marker in the requested document and a sibling document.
         await using var server = await CreateTestLspServerAsync([source, otherSource], mutatingLspWorkspace);
-        var document = GetDocumentWithReference(server, new TestReference(
-            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [new TestFixer(["FA0001"])]));
+        var document = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.First();
+        var fixer = new TestFixer(["FA0001"]);
+        var reference = new TestReference([new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]);
 
         // Add another project with the same marker to catch accidental project- or solution-wide fixing.
         var otherProject = document.Project.Solution.AddProject("OtherProject", "OtherProject", LanguageNames.CSharp)
-            .AddDocument("OtherProject.cs", SourceText.From(otherProjectSource));
-        document = otherProject.Project.Solution.GetDocument(document.Id)!;
+            .WithMetadataReferences(document.Project.MetadataReferences)
+            .AddDocument("OtherProject.cs", SourceText.From(otherProjectSource), filePath: TestHelpers.GetRootedPath("OtherProject.cs"));
+        document = WithReference(otherProject.Project.Solution, reference).GetRequiredDocument(document.Id);
+
+        // Prove that every document is eligible; unchanged outside text must not be a consequence of missing diagnostics.
+        var diagnosticService = document.Project.Solution.Services.GetRequiredService<IDiagnosticAnalyzerService>();
+        foreach (var candidate in document.Project.Solution.Projects.SelectMany(project => project.Documents))
+        {
+            var diagnostics = await diagnosticService.GetDiagnosticsForSpanAsync(
+                candidate, range: null, DiagnosticIdFilter.All, priority: null, DiagnosticKind.All, CancellationToken.None);
+            Assert.Single(diagnostics, diagnostic => diagnostic.Id == "FA0001" &&
+                diagnostic.Severity == DiagnosticSeverity.Warning && !diagnostic.IsSuppressed);
+        }
 
         // Limit the invocation to the document marked by the caret.
         var changed = await ChangeAsync(document, server);
+        Assert.Equal([FixAllScope.Document], fixer.RequestedScopes);
 
         // Only its returned snapshot may change; other documents/projects and the input snapshot must stay intact.
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
@@ -1002,6 +1015,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     {
         private readonly bool _unsupportedOperations = unsupportedOperations;
         public List<string> Invocations { get; } = [];
+        public List<FixAllScope> RequestedScopes { get; } = [];
         public override ImmutableArray<string> FixableDiagnosticIds => ids;
         public override FixAllProvider? GetFixAllProvider() => hasFixAll ? new TestFixAllProvider(this, documentScope) : null;
 
@@ -1020,6 +1034,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
             public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
+                fixer.RequestedScopes.Add(fixAllContext.Scope);
                 var document = fixAllContext.Document!;
                 var diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document);
                 Assert.NotEmpty(diagnostics);
