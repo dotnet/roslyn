@@ -72,29 +72,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         #endregion
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86102")]
-        [InlineData("a b implicit operator", "a implicit operator")]
-        [InlineData("a b explicit operator", "a explicit operator")]
-        [InlineData("class C { a b implicit operator }", "class C { a implicit operator }")]
-        [InlineData("class C { a b explicit operator }", "class C { a explicit operator }")]
-        [InlineData("class C { } a b implicit operator C", "class C { } a implicit operator C")]
-        public void MalformedConversionOperatorDropsText(string text, string expectedTreeText)
-        {
-            var root = SyntaxFactory.ParseCompilationUnit(text);
-
-            Assert.Equal(expectedTreeText, root.ToFullString());
-            Assert.Equal(text.Length - 2, root.FullSpan.Length);
-        }
-
-        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86102")]
+        [InlineData("a b implicit operator")]
+        [InlineData("a b explicit operator")]
+        [InlineData("class C { a b implicit operator }")]
+        [InlineData("class C { a b explicit operator }")]
+        [InlineData("class C { } a b implicit operator C")]
+        [InlineData("a A.B.implicit operator int")]
+        [InlineData("a I<T>.explicit operator int")]
+        [InlineData("a /* before */ b /* after */ implicit operator")]
         [InlineData("b implicit operator")]
         [InlineData("a b implicit")]
         [InlineData("a b operator")]
-        public void MalformedConversionOperatorControlsRoundTrip(string text)
+        public void MalformedConversionOperatorRoundTrips(string text)
         {
             var root = SyntaxFactory.ParseCompilationUnit(text);
 
             Assert.Equal(text, root.ToFullString());
             Assert.Equal(text.Length, root.FullSpan.Length);
+
+            var tree = CSharpSyntaxTree.ParseText(text);
+            Assert.Equal(text, tree.GetRoot().ToFullString());
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86102")]
+        public void MalformedConversionOperatorPreservesTokenPosition()
+        {
+            const string text = "class C { } a b implicit operator C";
+            var position = text.LastIndexOf('C');
+            var token = SyntaxFactory.ParseCompilationUnit(text).FindToken(position);
+
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal(position, token.SpanStart);
+            Assert.Equal("C", token.ValueText);
         }
 
         [Fact]
