@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -85,12 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             _state.DefaultForceComplete(this, cancellationToken);
-        }
-
-        public sealed override bool IsDefinedInSourceTree(SyntaxTree tree, TextSpan? definedWithinSpan, CancellationToken cancellationToken = default)
-        {
-            return IsDefinedInSourceTree(_syntaxRef, tree, definedWithinSpan)
-                || SourcePartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan, cancellationToken) == true;
         }
 
         public abstract override string Name { get; }
