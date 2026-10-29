@@ -301,6 +301,41 @@ namespace Test.AnotherNamespace
     }
 
     [Fact]
+    public void ComponentDiscovery_DisambiguatedGenericArity_LowersSubsequentComponent()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget<TItem> : ComponentBase
+                {
+                }
+
+                public class Widget<TItem, TOther> : ComponentBase
+                {
+                }
+
+                public class Subsequent : ComponentBase
+                {
+                }
+            }
+            """));
+
+        // Explicit type parameters provide a valid control for the ambiguous component case.
+        var result = CompileToCSharp("""
+            @using Components.Library
+
+            <Widget TItem="string" TOther="int" />
+            <Subsequent />
+            """);
+
+        Assert.Empty(result.RazorDiagnostics);
+        Assert.Contains("OpenComponent<global::Components.Library.Subsequent>", result.Code);
+        CompileToAssembly(result);
+    }
+
+    [Fact]
     public void UnusedUsingDirectives_IsDirectiveUsed_ReturnsFalseForUnusedUsing()
     {
         // Arrange
