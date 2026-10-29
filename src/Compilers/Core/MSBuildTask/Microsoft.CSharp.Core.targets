@@ -3,6 +3,10 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="Microsoft.Managed.Core.targets"/>
 
+  <UsingTask TaskName="Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask"
+             AssemblyFile="$(_ProjectDataTaskAssembly)"
+             Condition="'$(_ProjectDataTaskAssembly)' != ''" />
+
   <PropertyGroup>
     <!-- .NETCoreApp < 3.0, .NETStandard < 2.1, or any other target framework -->
     <_MaxSupportedLangVersion Condition="('$(TargetFrameworkIdentifier)' != '.NETCoreApp' OR '$(_TargetFrameworkVersionWithoutV)' &lt; '3.0') AND
@@ -186,6 +190,77 @@
     <ItemGroup>
       <_CoreCompileResourceInputs Remove="@(_CoreCompileResourceInputs)" />
     </ItemGroup>
+
+    <!-- 
+     This section handles the creation of ProjectData cache files. We inline the logic for calling the ProjectData cache writing
+     tasks here to ensure they are always executed after Csc task.
+     When creating those cache files as part of the build, we need to collect compiler arguments from the output of Csc task.
+     This typically could be done via `AfterTargets="CoreCompile"`. However, since CoreCompile is a public build extension point,
+     our task would be skipped because of errors of some other targets, if they also declare AfterTargets="CoreCompile" and
+     execute before us. This is usually fine in regular builds, because those errors must be fixed for the build to succeed.
+     But in design-time-builds, not only there's a higher chance of encountering errors from other targets (due to the different
+     behavior of DTB), but those errors are actually irrelevant to DTB's success and might not even be directly surfaced to the user.
+     -->
+    <CallTarget Targets="$(ProjectDataBuildStateTarget)"
+                Condition="'$(ProjectDataBuildStateTarget)' != ''">
+      <Output TaskParameter="TargetOutputs" ItemName="_ProjectDataBuildState" />
+    </CallTarget>
+
+    <ItemGroup>
+      <_ProjectDataBuildStateEnabled Include="@(_ProjectDataBuildState)"
+                                     Condition="'%(_ProjectDataBuildState._ProjectDataBuildStateOutputKind)' == 'Enabled'" />
+      <_ProjectDataBuildStateIsPrimary Include="@(_ProjectDataBuildState)"
+                                       Condition="'%(_ProjectDataBuildState._ProjectDataBuildStateOutputKind)' == 'IsPrimary'" />
+      <_ProjectDataBuildStateOutputPath Include="@(_ProjectDataBuildState)"
+                                        Condition="'%(_ProjectDataBuildState._ProjectDataBuildStateOutputKind)' == 'OutputPath'" />
+      <_ProjectDataBuildStateTouchPath Include="@(_ProjectDataBuildState)"
+                                       Condition="'%(_ProjectDataBuildState._ProjectDataBuildStateOutputKind)' == 'TouchPath'" />
+      <_ProjectDataBuildSourceFiles Include="@(_ProjectDataBuildState)"
+                               Condition="'%(_ProjectDataBuildState._ProjectDataBuildStateOutputKind)' == 'SourceFile'" />
+      <_ProjectDataBuildSdkAnalyzerConfigPolicy Include="@(_ProjectDataBuildState)"
+                                           Condition="'%(_ProjectDataBuildState._ProjectDataBuildStateOutputKind)' == 'SdkAnalyzerConfigPolicy'" />
+      <_ProjectDataBuildSliceDimensions Include="@(_ProjectDataBuildState)"
+                                   Condition="'%(_ProjectDataBuildState._ProjectDataBuildStateOutputKind)' == 'SliceDimensions'" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <_ProjectDataActiveDuringBuild>@(_ProjectDataBuildStateEnabled)</_ProjectDataActiveDuringBuild>
+      <_ProjectDataBuildIsPrimary>@(_ProjectDataBuildStateIsPrimary)</_ProjectDataBuildIsPrimary>
+      <_ProjectDataBuildOutputPath>@(_ProjectDataBuildStateOutputPath)</_ProjectDataBuildOutputPath>
+      <_ProjectDataBuildTouchPath>@(_ProjectDataBuildStateTouchPath)</_ProjectDataBuildTouchPath>
+
+      <_ProjectDataBuildCoreCompileForced Condition="'$(EnableProjectDataOnBuild)' != 'true'">true</_ProjectDataBuildCoreCompileForced>
+      <_ProjectDataBuildCoreCompileForced Condition="'$(EnableProjectDataOnBuild)' == 'true'">false</_ProjectDataBuildCoreCompileForced>
+    </PropertyGroup>
+
+    <Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask
+      Condition="'$(_ProjectDataActiveDuringBuild)' == 'true'"
+      ProjectFilePath="$(MSBuildProjectFullPath)"
+      OutputPath="$(_ProjectDataBuildOutputPath)"
+      IntermediateOutputPath="$(IntermediateOutputPath)"
+      WriteHeader="$(_ProjectDataBuildIsPrimary)"
+      IsPrimary="$(_ProjectDataBuildIsPrimary)"
+      LastDtbSucceeded="true"
+      CoreCompileForced="$(_ProjectDataBuildCoreCompileForced)"
+      SliceDimensions="@(_ProjectDataBuildSliceDimensions)"
+      Properties="@(_ProjectDataProperties)"
+      CommandLineArguments="@(CscCommandLineArgs)"
+      SourceFiles="@(_ProjectDataBuildSourceFiles)"
+      MetadataReferences="@(ReferencePathWithRefAssemblies)"
+      AnalyzerReferences="@(Analyzer)"
+      SdkKnownAnalyzerPacks="@(_ProjectDataSdkKnownAnalyzerPack)"
+      SdkAnalyzerConfigPolicy="@(_ProjectDataBuildSdkAnalyzerConfigPolicy)"
+      AnalyzerConfigFiles="@(EditorConfigFiles)"
+      AdditionalFiles="@(AdditionalFiles)"
+      EmbeddedResources="@(EmbeddedResource)"
+      ProjectReferences="@(ProjectReference)"
+      Capabilities="@(ProjectCapability)">
+      <Output TaskParameter="Succeeded" PropertyName="_ProjectDataWriteSucceeded" />
+    </Microsoft.NET.ProjectData.Tasks.WriteProjectDataSliceTask>
+    
+    <Touch Files="$(_ProjectDataBuildTouchPath)"
+           AlwaysCreate="true"
+           Condition="'$(_ProjectDataBuildTouchPath)' != ''" />
 
     <CallTarget Targets="$(TargetsTriggeredByCompilation)" Condition="'$(TargetsTriggeredByCompilation)' != ''" />
   </Target>
