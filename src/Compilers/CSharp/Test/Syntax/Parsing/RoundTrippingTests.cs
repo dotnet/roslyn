@@ -71,6 +71,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         #endregion
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86102")]
+        [InlineData("a b implicit operator", "a implicit operator")]
+        [InlineData("a b explicit operator", "a explicit operator")]
+        [InlineData("class C { a b implicit operator }", "class C { a implicit operator }")]
+        [InlineData("class C { a b explicit operator }", "class C { a explicit operator }")]
+        [InlineData("class C { } a b implicit operator C", "class C { } a implicit operator C")]
+        public void MalformedConversionOperatorDropsText(string text, string expectedTreeText)
+        {
+            var root = SyntaxFactory.ParseCompilationUnit(text);
+
+            Assert.Equal(expectedTreeText, root.ToFullString());
+            Assert.Equal(text.Length - 2, root.FullSpan.Length);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86102")]
+        [InlineData("b implicit operator")]
+        [InlineData("a b implicit")]
+        [InlineData("a b operator")]
+        public void MalformedConversionOperatorControlsRoundTrip(string text)
+        {
+            var root = SyntaxFactory.ParseCompilationUnit(text);
+
+            Assert.Equal(text, root.ToFullString());
+            Assert.Equal(text.Length, root.FullSpan.Length);
+        }
+
         [Fact]
         public void AutoPropInitializers()
         {
