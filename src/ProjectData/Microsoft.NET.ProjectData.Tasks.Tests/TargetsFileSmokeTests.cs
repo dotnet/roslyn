@@ -161,6 +161,154 @@ public sealed class TargetsFileSmokeTests : IDisposable
 	}
 
 	[Fact]
+	public async Task ProjectDataBuild_PersistsWebAssemblyHotReloadCapabilities()
+	{
+		string projectFile = this.WriteProject(
+			"App.csproj",
+			multiTargeting: false,
+			extraProperties: "<WebAssemblyHotReloadCapabilities>Baseline;AddMethodToExistingType</WebAssemblyHotReloadCapabilities>");
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:ProjectDataBuild",
+				"/p:DesignTimeBuild=true",
+				"/p:BuildingProject=false",
+				"/p:SkipCompilerExecution=true",
+				"/p:EnableProjectDataInProjectFolder=true",
+			]);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		string content = File.ReadAllText(projectFile + ".lscache").Replace("\r\n", "\n");
+		Assert.Contains("\nWebAssemblyHotReloadCapabilities=Baseline;AddMethodToExistingType\n", content);
+	}
+
+	[Theory]
+	[InlineData("", "Debug", true, "true", "true", true)]
+	[InlineData("", "dEbUg", true, "TrUe", "TRUE", true)]
+	[InlineData("", "Release", true, "true", "true", false)]
+	[InlineData("false", "Debug", true, "true", "true", false)]
+	[InlineData("true", "Release", true, "true", "true", true)]
+	[InlineData("TRUE", "Release", true, "true", "true", true)]
+	[InlineData("true", "Debug", false, "true", "true", false)]
+	[InlineData("true", "Debug", true, "false", "true", false)]
+	[InlineData("true", "Debug", true, "true", "false", false)]
+	[InlineData("", "Debug", false, "true", "true", false)]
+	[InlineData("", "Debug", true, "", "true", false)]
+	[InlineData("", "Debug", true, "true", "", false)]
+	public async Task ProjectDataBuild_ComputesHotReloadBrowserToolsEnabled(
+		string enableHotReload,
+		string configuration,
+		bool hasAssetPrefix,
+		string staticWebAssetsEnabled,
+		string jsModulesEnabled,
+		bool expected)
+	{
+		string projectFile = this.WriteProject("App.csproj", multiTargeting: false);
+		string assetPrefix = hasAssetPrefix ? "Microsoft.NET.Sdk.WebAssembly.HotReload" : string.Empty;
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:ProjectDataBuild",
+				"/p:DesignTimeBuild=true",
+				"/p:BuildingProject=false",
+				"/p:SkipCompilerExecution=true",
+				"/p:EnableProjectDataInProjectFolder=true",
+				$"/p:EnableHotReloadInRuntimeConfigDevFile={enableHotReload}",
+				$"/p:Configuration={configuration}",
+				$"/p:HotReloadBrowserToolsAssetPrefix={assetPrefix}",
+				$"/p:StaticWebAssetsEnabled={staticWebAssetsEnabled}",
+				$"/p:JSModulesEnabled={jsModulesEnabled}",
+			]);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		string content = File.ReadAllText(projectFile + ".lscache").Replace("\r\n", "\n");
+		Assert.Contains($"\nHotReloadBrowserToolsEnabled={(expected ? "true" : "false")}\n", content);
+		Assert.DoesNotContain("\nConfiguration=", content);
+		Assert.DoesNotContain("\nHotReloadBrowserToolsAssetPrefix=", content);
+		Assert.DoesNotContain("\nStaticWebAssetsEnabled=", content);
+		Assert.DoesNotContain("\nJSModulesEnabled=", content);
+	}
+
+	[Theory]
+	[InlineData("true", "false")]
+	[InlineData("false", "true")]
+	public async Task ProjectDataBuild_PreservesExplicitHotReloadBrowserToolsEnabled(string value, string enableHotReload)
+	{
+		string projectFile = this.WriteProject(
+			"App.csproj",
+			multiTargeting: false,
+			extraProperties: """
+				<HotReloadBrowserToolsAssetPrefix>Microsoft.NET.Sdk.WebAssembly.HotReload</HotReloadBrowserToolsAssetPrefix>
+				<StaticWebAssetsEnabled>true</StaticWebAssetsEnabled>
+				<JSModulesEnabled>true</JSModulesEnabled>
+				""");
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:ProjectDataBuild",
+				"/p:DesignTimeBuild=true",
+				"/p:BuildingProject=false",
+				"/p:SkipCompilerExecution=true",
+				"/p:EnableProjectDataInProjectFolder=true",
+				$"/p:HotReloadBrowserToolsEnabled={value}",
+				$"/p:EnableHotReloadInRuntimeConfigDevFile={enableHotReload}",
+			]);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		string content = File.ReadAllText(projectFile + ".lscache").Replace("\r\n", "\n");
+		Assert.Contains($"\nHotReloadBrowserToolsEnabled={value}\n", content);
+	}
+
+	[Theory]
+	[InlineData(false, false)]
+	[InlineData(false, true)]
+	[InlineData(true, false)]
+	[InlineData(true, true)]
+	public async Task ProjectDataBuild_PersistsHotReloadBrowserToolsEnabled_InAllWriterModes(bool multiTargeting, bool inProjectFolder)
+	{
+		string projectFile = this.WriteProject(
+			"App.csproj",
+			multiTargeting: multiTargeting,
+			extraProperties: """
+				<HotReloadBrowserToolsAssetPrefix>Microsoft.NET.Sdk.WebAssembly.HotReload</HotReloadBrowserToolsAssetPrefix>
+				<StaticWebAssetsEnabled>true</StaticWebAssetsEnabled>
+				<JSModulesEnabled>true</JSModulesEnabled>
+				""");
+
+		ProcessResult result = await RunDotnetMsbuildAsync(
+			projectFile,
+			extraArgs:
+			[
+				"/t:ProjectDataBuild",
+				"/p:DesignTimeBuild=true",
+				"/p:BuildingProject=false",
+				"/p:SkipCompilerExecution=true",
+				$"/p:EnableProjectDataInProjectFolder={inProjectFolder}",
+			]);
+
+		Assert.True(result.ExitCode == 0, result.Output);
+		string cacheFile = inProjectFolder
+			? projectFile + ".lscache"
+			: Assert.Single(Directory.GetFiles(GetTestCacheRoot(projectFile), "*", SearchOption.AllDirectories));
+		string content = File.ReadAllText(cacheFile).Replace("\r\n", "\n");
+		Assert.Contains("\nHotReloadBrowserToolsEnabled=true\n", content);
+		if (multiTargeting)
+		{
+			foreach (string targetFramework in new[] { "net8.0", "net9.0" })
+			{
+				string sliceFile = Path.Combine(this.workDir, "obj", "Debug", targetFramework, "App.csproj.slice");
+				Assert.Contains("\nHotReloadBrowserToolsEnabled=true\n", File.ReadAllText(sliceFile).Replace("\r\n", "\n"));
+			}
+		}
+	}
+
+	[Fact]
 	public async Task ProjectDataBuild_AfterSdkImport_IncludesGeneratedAssemblyInfoInCache()
 	{
 		string projectFile = this.WriteProject(

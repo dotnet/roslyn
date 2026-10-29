@@ -443,6 +443,22 @@
     </_ProjectDataSdkKnownAnalyzerPack>
   </ItemGroup>
 
+  <Target Name="_ProjectDataPrepareProperties">
+    <PropertyGroup>
+      <_IsDebugConfiguration>false</_IsDebugConfiguration>
+      <_IsDebugConfiguration Condition="'$(Configuration)' == 'Debug'">true</_IsDebugConfiguration>
+    </PropertyGroup>
+    <ItemGroup>
+      <_ProjectDataProperties Update="HotReloadBrowserToolsEnabled" Condition="'%(_ProjectDataProperties.Value)' == ''">
+        <Value>false</Value>
+        <Value Condition="$([MSBuild]::ValueOrDefault('$(EnableHotReloadInRuntimeConfigDevFile)', '$(_IsDebugConfiguration)')) and
+                          '$(HotReloadBrowserToolsAssetPrefix)' != '' and
+                          '$(StaticWebAssetsEnabled)' == 'true' and
+                          '$(JSModulesEnabled)' == 'true'">true</Value>
+      </_ProjectDataProperties>
+    </ItemGroup>
+  </Target>
+
   <Target Name="_ProjectDataPrepareSdkAnalyzerConfigPolicy">
     <ItemGroup>
       <!-- Preserve all compiler inputs, including SDK-generated AssemblyInfo files. They contain semantic assembly attributes such as
@@ -508,7 +524,7 @@
   -->
   <Target Name="_WriteProjectDataSlice"
           AfterTargets="CoreCompile"
-          DependsOnTargets="_ProjectDataPrepareSdkAnalyzerConfigPolicy"
+          DependsOnTargets="_ProjectDataPrepareProperties;_ProjectDataPrepareSdkAnalyzerConfigPolicy"
           Condition="'$(_ProjectDataCanWriteOutput)' == 'true' and
                      ('$(_ProjectDataBuildActive)' == 'true' or '$(EnableProjectDataOnBuild)' == 'true') and
                      '$(TargetFrameworks)' != '' and
@@ -554,7 +570,7 @@
   -->
   <Target Name="_WriteProjectData"
           AfterTargets="CoreCompile"
-          DependsOnTargets="_ProjectDataPrepareSdkAnalyzerConfigPolicy"
+          DependsOnTargets="_ProjectDataPrepareProperties;_ProjectDataPrepareSdkAnalyzerConfigPolicy"
           Condition="'$(_ProjectDataCanWriteOutput)' == 'true' and
                      ('$(_ProjectDataBuildActive)' == 'true' or '$(EnableProjectDataOnBuild)' == 'true') and
                      '$(TargetFrameworks)' == '' and
@@ -592,7 +608,7 @@
   -->
   <Target Name="_WriteProjectDataUserFolder"
           AfterTargets="CoreCompile"
-          DependsOnTargets="_ProjectDataPrepareSdkAnalyzerConfigPolicy"
+          DependsOnTargets="_ProjectDataPrepareProperties;_ProjectDataPrepareSdkAnalyzerConfigPolicy"
           Condition="'$(_ProjectDataCanWriteOutput)' == 'true' and
                      ('$(_ProjectDataBuildActive)' == 'true' or '$(EnableProjectDataOnBuild)' == 'true') and
                      '$(TargetFrameworks)' == '' and
