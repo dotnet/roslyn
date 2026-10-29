@@ -499,6 +499,17 @@ internal sealed partial class CodeFixService : ICodeFixService
                 if (!await MatchesPriorityAsync(fixer).ConfigureAwait(false))
                     continue;
 
+                if (fixAllForInSpan)
+                {
+                    Contract.ThrowIfNull(extensionManager);
+
+                    // Unsupported providers must not claim equivalence keys before a document-capable provider can register fixes.
+                    var fixAllProviderInfo = extensionManager.PerformFunction(
+                        fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
+                    if (fixAllProviderInfo is null || !fixAllProviderInfo.SupportedScopes.Contains(FixAllScope.Document))
+                        continue;
+                }
+
                 foreach (var (span, diagnostics) in fixerToRangesAndDiagnostics[fixer])
                 {
                     // Log an individual telemetry event for slow codefix computations to
