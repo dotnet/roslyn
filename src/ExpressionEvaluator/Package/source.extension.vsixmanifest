@@ -23,14 +23,14 @@
     </InstallationTarget>
   </Installation>
   <Dependencies>
-    <Dependency Version="[|VisualStudioSetup;GetVsixVersion|,]" DisplayName="Roslyn Language Services" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
+    <Dependency Version="[|Roslyn.VisualStudio.Setup;GetVsixVersion|,]" DisplayName="Roslyn Language Services" Id="0b5e8ddb-f12d-4131-a71d-77acc26a798f" />
   </Dependencies>
   <Assets>
-    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="BasicExpressionCompiler" Path="|BasicExpressionCompiler;VsdConfigOutputGroup|" />
-    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="BasicResultProvider.Portable" Path="|BasicResultProvider.Portable;VsdConfigOutputGroup|" />
-    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="CSharpExpressionCompiler" Path="|CSharpExpressionCompiler;VsdConfigOutputGroup|" />
-    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="CSharpResultProvider.Portable" Path="|CSharpResultProvider.Portable;VsdConfigOutputGroup|" />
-    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="FunctionResolver" Path="|FunctionResolver;VsdConfigOutputGroup|" />
+    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler" Path="|Microsoft.CodeAnalysis.VisualBasic.ExpressionCompiler;VsdConfigOutputGroup|" />
+    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="Microsoft.CodeAnalysis.VisualBasic.ResultProvider" Path="|Microsoft.CodeAnalysis.VisualBasic.ResultProvider;VsdConfigOutputGroup|" />
+    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="Microsoft.CodeAnalysis.CSharp.ExpressionCompiler" Path="|Microsoft.CodeAnalysis.CSharp.ExpressionCompiler;VsdConfigOutputGroup|" />
+    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="Microsoft.CodeAnalysis.CSharp.ResultProvider" Path="|Microsoft.CodeAnalysis.CSharp.ResultProvider;VsdConfigOutputGroup|" />
+    <Asset Type="DebuggerEngineExtension" d:Source="Project" d:ProjectName="Microsoft.CodeAnalysis.FunctionResolver" Path="|Microsoft.CodeAnalysis.FunctionResolver;VsdConfigOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;AssemblyRedirectsPkgdefOutputGroup|" />
   </Assets>
   <Prerequisites>
