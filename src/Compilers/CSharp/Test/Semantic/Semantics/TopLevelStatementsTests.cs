@@ -9937,11 +9937,15 @@ public class C
             var expectedDiagnostics = ImmutableArray.CreateBuilder<DiagnosticDescription>();
             if (outputKind == OutputKind.DynamicallyLinkedLibrary)
             {
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // _ = Main();
                 expectedDiagnostics.Add(Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, $"_ = {name}();"));
             }
 
             if (name == "Main")
             {
+                // (3,13): warning CS7022: The entry point of the program is global code; ignoring 'Main()' entry point.
+                // static Task Main()
                 expectedDiagnostics.Add(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
             }
 
@@ -9964,7 +9968,10 @@ public class C
 
             Assert.True(model.TryGetSpeculativeSemanticModel(localFunction.SpanStart, newLocalFunction, out var speculativeModel));
             Assert.Equal(SpecialType.System_Void, ((ITypeSymbol)speculativeModel.GetSymbolInfo(newLocalFunction.ReturnType).Symbol).SpecialType);
-            compilation.VerifyEmitDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
+            compilation.VerifyEmitDiagnostics(
+                // (2,13): warning CS7022: The entry point of the program is global code; ignoring 'Main()' entry point.
+                // static void Main() { }
+                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
         }
 
         [Fact]
