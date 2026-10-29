@@ -749,7 +749,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
             comp.VerifyEmitDiagnostics(
                 // (14,9): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         S* s, // 1
@@ -985,34 +985,30 @@ class C
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("C.M2", @"
 {
-  // Code size       13 (0xd)
+  // Code size       11 (0xb)
   .maxstack  1
   .locals init (pinned S2& V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""ref S2 C.Prop2.get""
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  pop
-  IL_0009:  ldc.i4.0
-  IL_000a:  conv.u
-  IL_000b:  stloc.0
-  IL_000c:  ret
+  IL_0007:  ldc.i4.0
+  IL_0008:  conv.u
+  IL_0009:  stloc.0
+  IL_000a:  ret
 }
 ");
             verifier.VerifyIL("C.M4", @"
 {
-  // Code size       13 (0xd)
+  // Code size       11 (0xb)
   .maxstack  1
   .locals init (pinned C& V_0)
   IL_0000:  ldarg.0
   IL_0001:  call       ""ref C C.Prop3.get""
   IL_0006:  stloc.0
-  IL_0007:  ldloc.0
-  IL_0008:  pop
-  IL_0009:  ldc.i4.0
-  IL_000a:  conv.u
-  IL_000b:  stloc.0
-  IL_000c:  ret
+  IL_0007:  ldc.i4.0
+  IL_0008:  conv.u
+  IL_0009:  stloc.0
+  IL_000a:  ret
 }
 ");
         }
@@ -1047,7 +1043,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
             comp.VerifyEmitDiagnostics(
                 // (13,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //     void M(void* p)
@@ -1303,7 +1299,7 @@ unsafe class C2
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
             comp.VerifyEmitDiagnostics(
                 // (15,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         var x = &s; // 1

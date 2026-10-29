@@ -222,6 +222,11 @@
         <target state="translated">引數 {0} 可能無法以語言版本 {1} 中的 'ref' 關鍵字傳遞。若要將 'ref' 引數傳遞至 'in' 參數，請升級為語言版本 {2} 或更新版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadAwaitInFixed">
+        <source>Cannot await in context of a 'fixed' statement</source>
+        <target state="translated">無法在 'fixed' 陳述式中等候</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">運算子 '{0}' 無法套用到型別為 '{1}' 的運算元，而 '{2}' 不是 UTF-8 位元組標記法</target>
@@ -241,6 +246,11 @@
         <source>No overload for method '{0}' takes {1} 'with(...)' element arguments</source>
         <target state="translated">方法 '{0}' 多載不會採用 {1} 'with(...)' 元素引數</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadCompilationOptionValueAccepted">
+        <source>Invalid '{0}' value: '{1}'. Accepted values are: {2}</source>
+        <target state="translated">無效的 '{0}' 值： '{1}'。接受的值為： {2}</target>
+        <note>{2} is a comma-separated list.</note>
       </trans-unit>
       <trans-unit id="ERR_BadCompoundAssignmentOpArgs">
         <source>Overloaded compound assignment operator '{0}' takes one parameter</source>
@@ -392,17 +402,17 @@
         <target state="translated">沒有明確傳回型別的匿名方法上不允許 AsyncMethodBuilder 屬性。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeExplicitlyImplementingSafe">
+      <trans-unit id="ERR_RequiresUnsafeExplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implement safe member '{1}'</source>
         <target state="translated">不安全的成員 '{0}' 無法實作安全成員 '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeImplicitlyImplementingSafe">
+      <trans-unit id="ERR_RequiresUnsafeImplicitlyImplementingSafe">
         <source>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</source>
         <target state="translated">不安全的成員 '{0}' 無法隱含地實作安全成員 '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_CallerUnsafeOverridingSafe">
+      <trans-unit id="ERR_RequiresUnsafeOverridingSafe">
         <source>Unsafe member '{0}' cannot override safe member '{1}'</source>
         <target state="translated">不安全的成員 '{0}' 無法覆寫安全成員 '{1}'</target>
         <note />
@@ -723,8 +733,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_DesignatorBeneathPatternCombinator">
-        <source>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</source>
-        <target state="translated">不可在 'not' 或 'or' 模式中宣告變數，也不可在涉及比對執行個體或其基礎值的聯集比對中宣告變數。</target>
+        <source>A variable may not be declared within a 'not' or 'or' pattern.</source>
+        <target state="translated">不得在 'not' 或 'or' 模式中宣告變數。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DiscardPatternInSwitchStatement">
@@ -841,11 +851,6 @@
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">不允許明確應用 'System.Runtime.CompilerServices.NullableAttribute'。</target>
         <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe">
-        <source>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</source>
-        <target state="translated">明確或延伸配置類型中的欄位必須標示為 'unsafe' 或 'safe'。</target>
-        <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_ExplicitParamArrayOrCollection">
         <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
@@ -1032,6 +1037,11 @@
         <target state="translated">C# 14.0 中無法使用功能 '{0}'。請使用語言版本 {1} 或更高版本。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion15">
+        <source>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</source>
+        <target state="translated">C# 15.0 中無法使用功能 '{0}'。請使用語言版本 {1} 或更高版本。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">C# 8.0 中無法使用功能 '{0}'。請使用 {1} 或更新的語言版本。</target>
@@ -1171,6 +1181,11 @@
         <source>The suppression operator is not allowed in this context</source>
         <target state="translated">此內容不允許隱藏項目運算子</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_IllegalUnsafeModifier">
+        <source>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</source>
+        <target state="new">Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</target>
+        <note>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</note>
       </trans-unit>
       <trans-unit id="ERR_ImplicitConversionOperatorCantBeChecked">
         <source>An 'implicit' user-defined conversion operator cannot be declared checked</source>
@@ -1526,6 +1541,11 @@
         <source>Cannot specify 'unsafe' or 'safe' modifiers on both property or indexer '{0}' and its accessor. Remove one of them.</source>
         <target state="translated">無法同時在屬性或索引子 '{0}' 和其存取子上同時指定 'unsafe' 或 'safe' 修飾元。請移除其中一個。</target>
         <note />
+      </trans-unit>
+      <trans-unit id="ERR_LayoutFieldRequiresUnsafeOrSafe">
+        <source>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</source>
+        <target state="new">Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</target>
+        <note>'unsafe' and 'safe' should not be localized.</note>
       </trans-unit>
       <trans-unit id="ERR_MemberProviderInUnionDeclaration">
         <source>A 'union' declaration cannot use a union member provider interface.</source>
@@ -2842,6 +2862,11 @@
         <target state="translated">此作業只能在不安全的內容中使用</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsafeUnassignedAddressOf">
+        <source>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</source>
+        <target state="new">The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
         <target state="translated">SkipLocalsInit 內沒有初始設定式的 stackalloc 運算式只能在不安全的內容中使用</target>
@@ -2960,6 +2985,11 @@
       <trans-unit id="HDN_RedundantPatternStackGuard_Title">
         <source>The pattern is too complex to analyze for redundancy.</source>
         <target state="translated">此模式過於複雜，無法分析是否存在冗餘。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ICoalesceOperationIsNotCSharpCoalesceOperation">
+        <source>{0} is not a valid C# coalesce operation</source>
+        <target state="translated">{0} 不是有效的 C# 合併作業</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_ArrayAccess">
@@ -4255,7 +4285,7 @@
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
+-unsafe[+|-]                  Allow 'unsafe' code and 'safe' modifiers
 -define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
                               form: -d)
 -langversion:?                Display the allowed values for language version
@@ -4268,6 +4298,9 @@
 -nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
                               Specify nullable context option enable|disable|warnings|annotations.
+-memorysafetyrulesversion:&lt;n&gt;  Set memory safety rules version as
+                              `1` (legacy),
+                              `2` (updated: unsafe members require unsafe context at use site)
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -4328,7 +4361,7 @@
                               assembly by all dependencies, and annotate foreign assembly
                               accessibility errors with what assembly they came from.
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                              Visual C# 編譯器選項
 
                        - OUTPUT FILES -
@@ -11434,11 +11467,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
       <trans-unit id="ERR_BadAwaitInStaticVariableInitializer">
         <source>The 'await' operator cannot be used in a static script variable initializer.</source>
         <target state="translated">await' 運算子不可用於靜態指令碼變數初始設定式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_AwaitInUnsafeContext">
-        <source>Cannot await in an unsafe context</source>
-        <target state="translated">無法在不安全的內容中等候</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncLacksBody">

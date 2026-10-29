@@ -1,0 +1,11 @@
+﻿[0000] OpenComponent<global::Test.Grid<
+#nullable restore
+#line (1,14)-(1,29) "x:\dir\subdir\Test\TestComponent.cshtml"
+WeatherForecast
+
+#line default
+#line hidden
+#nullable disable
+            >>()
+[0001] AddComponentParameter("Items", Array.Empty<WeatherForecast>())
+[0002] AddAttribute("ColumnsTemplate", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { global::__Blazor.Test.TestComponent.TypeInference.CreateColumn_0(__builder2, 3, default(WeatherForecast)!, 4, "Date", 5, "Date", 6, "d", 7, "10rem"); } ))

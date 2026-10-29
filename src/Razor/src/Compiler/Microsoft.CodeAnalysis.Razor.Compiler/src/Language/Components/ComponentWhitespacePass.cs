@@ -8,8 +8,13 @@ using Microsoft.AspNetCore.Razor.Language.Intermediate;
 
 namespace Microsoft.AspNetCore.Razor.Language.Components;
 
-internal sealed class ComponentWhitespacePass : ComponentIntermediateNodePassBase, IRazorDirectiveClassifierPass
+internal sealed class ComponentWhitespacePass : ComponentIntermediateNodePassBase, IRazorOptimizationPass
 {
+    // Ordered into the optimization phase (early, before markup lowering) rather than as a directive-
+    // classifier pass: a classifier pass runs ahead of the markup split and would trim the markup method
+    // bodies the split routes to the impl half, leaving the split nothing to route.
+    public override int Order => -500;
+
     protected override void ExecuteCore(
         RazorCodeDocument codeDocument,
         DocumentIntermediateNode documentNode,

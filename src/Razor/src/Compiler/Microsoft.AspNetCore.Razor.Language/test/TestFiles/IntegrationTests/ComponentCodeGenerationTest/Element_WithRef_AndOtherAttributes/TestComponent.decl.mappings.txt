@@ -1,0 +1,15 @@
+﻿Source Location: (72:2,7 [164] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+        private ElementReference _element;
+
+        [Parameter] public int Min { get; set; }
+        public void Foo() { System.GC.KeepAlive(_element); }
+    |
+Generated Location: (557:18,0 [164] )
+|
+        private ElementReference _element;
+
+        [Parameter] public int Min { get; set; }
+        public void Foo() { System.GC.KeepAlive(_element); }
+    |
+

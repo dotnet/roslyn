@@ -1,0 +1,18 @@
+﻿<UserControl x:Class="MSBuildWorkspaceTester.Views.DocumentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             xmlns:b="clr-namespace:MSBuildWorkspaceTester.Behaviors"
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <TextBox FontFamily="Consolas"
+                 FontSize="14.0"
+                 Text="{Binding SourceText.Result, Mode=OneWay}"
+                 IsReadOnly="True"
+                 IsReadOnlyCaretVisible="False"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto" />
+    </Grid>
+</UserControl>

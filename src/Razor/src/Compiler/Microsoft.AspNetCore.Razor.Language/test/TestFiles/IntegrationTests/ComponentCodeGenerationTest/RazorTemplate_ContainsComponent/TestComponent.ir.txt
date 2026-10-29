@@ -17,5 +17,3 @@
                                     LazyIntermediateToken - (73:1,69 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - person.Name
                 CSharpCode - (93:1,89 [3] x:\dir\subdir\Test\TestComponent.cshtml)
                     LazyIntermediateToken - (93:1,89 [3] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ;\n
-            CSharpCode - (106:3,7 [76] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (106:3,7 [76] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    class Person\n    {\n        public string Name { get; set; }\n    }\n

@@ -72,17 +72,6 @@ Value
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public TParam ParentValue { get; set; } = default;
-
-    public void UpdateValue(TParam value) { ParentValue = value; }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

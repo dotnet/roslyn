@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.VisualStudio.Razor.IntegrationTests;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -21,26 +20,6 @@ namespace Microsoft.VisualStudio.Extensibility.Testing;
 
 internal partial class SolutionExplorerInProcess
 {
-    public Task AddProjectAsync(string projectName, string projectTemplate, string languageName, CancellationToken cancellationToken)
-        => AddProjectAsync(projectName, projectTemplate, groupId: null, templateId: null, languageName, cancellationToken);
-
-    public async Task AddProjectAsync(string projectName, string projectTemplate, string? groupId, string? templateId, string languageName, CancellationToken cancellationToken)
-    {
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var projectPath = Path.Combine(await GetDirectoryNameAsync(cancellationToken), projectName);
-        var projectTemplatePath = await GetProjectTemplatePathAsync(projectTemplate, ConvertLanguageName(languageName), cancellationToken);
-        var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution6>(cancellationToken);
-
-        var args = new List<object>();
-        if (groupId is not null)
-            args.Add($"$groupid$={groupId}");
-        if (groupId is not null)
-            args.Add($"$templateid$={templateId}");
-
-        ErrorHandler.ThrowOnFailure(solution.AddNewProjectFromTemplate(projectTemplatePath, args.Any() ? args.ToArray() : null, null, projectPath, projectName, null, out _));
-    }
-
     public async Task CloseSolutionAndWaitAsync(CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -210,39 +189,6 @@ internal partial class SolutionExplorerInProcess
         var solution = await GetRequiredGlobalServiceAsync<SVsSolution, IVsSolution>(cancellationToken);
         ErrorHandler.ThrowOnFailure(solution.CreateSolution(solutionPath, solutionFileName, (uint)__VSCREATESOLUTIONFLAGS.CSF_SILENT));
         ErrorHandler.ThrowOnFailure(solution.SaveSolutionElement((uint)__VSSLNSAVEOPTIONS.SLNSAVEOPT_ForceSave, null, 0));
-    }
-
-    private async Task<string> GetProjectTemplatePathAsync(string projectTemplate, string languageName, CancellationToken cancellationToken)
-    {
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
-        var solution = (EnvDTE80.Solution2)dte.Solution;
-
-        if (string.Equals(languageName, "csharp", StringComparison.OrdinalIgnoreCase)
-            && GetCSharpProjectTemplates().TryGetValue(projectTemplate, out var csharpProjectTemplate))
-        {
-            return solution.GetProjectTemplate(csharpProjectTemplate, languageName);
-        }
-
-        throw new NotImplementedException();
-
-        static ImmutableDictionary<string, string> GetCSharpProjectTemplates()
-        {
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder[WellKnownProjectTemplates.BlazorProject] = "BlazorTemplate";
-            return builder.ToImmutable();
-        }
-    }
-
-    private static string ConvertLanguageName(string languageName)
-    {
-        return languageName switch
-        {
-            LanguageNames.CSharp => "CSharp",
-            LanguageNames.Razor => "CSharp",
-            _ => throw new ArgumentException($"'{languageName}' is not supported.", nameof(languageName)),
-        };
     }
 
     public async Task<string> GetAbsolutePathForProjectRelativeFilePathAsync(string projectName, string relativeFilePath, CancellationToken cancellationToken)

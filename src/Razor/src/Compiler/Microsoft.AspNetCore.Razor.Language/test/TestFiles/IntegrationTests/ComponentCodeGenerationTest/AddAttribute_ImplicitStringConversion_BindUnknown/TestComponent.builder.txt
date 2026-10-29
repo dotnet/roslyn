@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddAttribute("Value", (object)( c ))
+[0002] AddAttribute("ValueChanged", (object)(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => c = __value, c)))

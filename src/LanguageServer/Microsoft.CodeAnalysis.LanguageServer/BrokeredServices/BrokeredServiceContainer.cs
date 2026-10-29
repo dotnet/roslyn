@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.BrokeredServices;
 internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 {
     public BrokeredServiceContainer(TraceSource traceSource)
-        : base(ImmutableDictionary<ServiceMoniker, ServiceRegistration>.Empty, isClientOfExclusiveServer: false, joinableTaskFactory: null, traceSource)
+        : base(services: [], isClientOfExclusiveServer: false, joinableTaskFactory: null, traceSource)
     {
     }
 
@@ -38,11 +38,10 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 
     internal static async Task<BrokeredServiceContainer> CreateAsync(
         ExportProvider exportProvider,
-        ImmutableArray<IServiceBrokerInitializer> serviceBrokerInitializers,
-        ILoggerFactory loggerFactory,
+        TraceSource traceSource,
         CancellationToken cancellationToken)
     {
-        var container = new BrokeredServiceContainer(BrokeredServiceTraceListener.CreateTraceSource(loggerFactory));
+        var container = new BrokeredServiceContainer(traceSource);
 
         container.ProfferIntrinsicService(
             FrameworkServices.Authorization,
@@ -54,12 +53,6 @@ internal sealed class BrokeredServiceContainer : GlobalBrokeredServiceContainer
 
         // Register local mef services.
         await mefServiceBroker.RegisterAndProfferServicesAsync(cancellationToken);
-
-        // Register and proffer all services that come from service broker manual initialization
-        var servicesToRegister = serviceBrokerInitializers.SelectMany(s => s.ServicesToRegister).ToDictionary(a => a.Key, a => a.Value);
-        container.RegisterServices(servicesToRegister);
-        foreach (var onInitialized in serviceBrokerInitializers)
-            onInitialized.Proffer(container);
 
         // Register the desired remote services
         container.RegisterServices(Descriptors.RemoteServicesToRegister);

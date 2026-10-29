@@ -116,6 +116,7 @@ internal sealed class RpcClient
     public void Shutdown()
     {
         _shutdownTokenSource.Cancel();
+        _stream.Dispose();
     }
 
     public Task InvokeAsync(int targetObject, string methodName, List<object?> parameters, CancellationToken cancellationToken)

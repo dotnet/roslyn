@@ -274,7 +274,7 @@ namespace GenerateDocumentationAndConfigFiles
                 string path = Path.Combine(args.BinDirectory, assemblyName, args.Configuration, args.Tfm, assembly);
                 if (!File.Exists(path))
                 {
-                    await Console.Error.WriteLineAsync($"'{path}' does not exist").ConfigureAwait(false);
+                    await Console.Error.WriteLineAsync($"'{path}' does not exist".AsMemory(), cancellationToken).ConfigureAwait(false);
                     return 1;
                 }
 
@@ -375,13 +375,13 @@ namespace GenerateDocumentationAndConfigFiles
                 }
                 catch (TimeoutException)
                 {
-                    await Console.Out.WriteLineAsync($"Failed to create analyzer rules missing documentation file. Http response timed out").ConfigureAwait(false);
+                    await Console.Out.WriteLineAsync($"Failed to create analyzer rules missing documentation file. Http response timed out".AsMemory(), cancellationToken).ConfigureAwait(false);
                 }
             }
 
             if (fileNamesWithValidationFailures.Count > 0)
             {
-                await Console.Error.WriteLineAsync("One or more auto-generated documentation files were either edited manually, or not updated. Please revert changes made to the following files (if manually edited) and run `dotnet msbuild /t:pack` at the root of the repo to automatically update them:").ConfigureAwait(false);
+                await Console.Error.WriteLineAsync("One or more auto-generated documentation files were either edited manually, or not updated. Please revert changes made to the following files (if manually edited) and run `dotnet msbuild /t:pack` at the root of the repo to automatically update them:".AsMemory(), cancellationToken).ConfigureAwait(false);
                 fileNamesWithValidationFailures.ForEach(fileName => Console.Error.WriteLine($"    {fileName}"));
                 return 1;
             }
@@ -818,8 +818,8 @@ namespace GenerateDocumentationAndConfigFiles
                         // However, we consider "missing" entries as invalid. This is to force updating the file when new rules are added.
                         if (!actualContent.Contains(line))
                         {
-                            await Console.Error.WriteLineAsync($"Missing entry in {fileWithPath}").ConfigureAwait(false);
-                            await Console.Error.WriteLineAsync(line).ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync($"Missing entry in {fileWithPath}".AsMemory(), cancellationToken).ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync(line.AsMemory(), cancellationToken).ConfigureAwait(false);
                             // The file is missing an entry. Mark it as invalid and break the loop as there is no need to continue validating.
                             fileNamesWithValidationFailures.Add(fileWithPath);
                             break;
@@ -874,7 +874,7 @@ namespace GenerateDocumentationAndConfigFiles
                     var assemblyPath = GetAssemblyPath(assembly);
                     if (!File.Exists(assemblyPath))
                     {
-                        await Console.Error.WriteLineAsync($"'{assemblyPath}' does not exist").ConfigureAwait(false);
+                        await Console.Error.WriteLineAsync($"'{assemblyPath}' does not exist".AsMemory(), cancellationToken).ConfigureAwait(false);
                         return false;
                     }
 
@@ -886,7 +886,7 @@ namespace GenerateDocumentationAndConfigFiles
                     catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
                     {
-                        await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                        await Console.Error.WriteLineAsync(ex.Message.AsMemory(), cancellationToken).ConfigureAwait(false);
                         return false;
                     }
                 }
@@ -912,7 +912,7 @@ namespace GenerateDocumentationAndConfigFiles
                     {
                         var existingFile = shippedFileExists ? shippedFile : unshippedFile;
                         var nonExistingFile = shippedFileExists ? unshippedFile : shippedFile;
-                        await Console.Error.WriteLineAsync($"Expected both '{shippedFile}' and '{unshippedFile}' to exist or not exist, but '{existingFile}' exists and '{nonExistingFile}' does not exist.").ConfigureAwait(false);
+                        await Console.Error.WriteLineAsync($"Expected both '{shippedFile}' and '{unshippedFile}' to exist or not exist, but '{existingFile}' exists and '{nonExistingFile}' does not exist.".AsMemory(), cancellationToken).ConfigureAwait(false);
                         return false;
                     }
 
@@ -922,7 +922,7 @@ namespace GenerateDocumentationAndConfigFiles
 
                         if (args.ReleaseTrackingOptOut)
                         {
-                            await Console.Error.WriteLineAsync($"'{shippedFile}' exists but was not expected").ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync($"'{shippedFile}' exists but was not expected".AsMemory(), cancellationToken).ConfigureAwait(false);
                             return false;
                         }
 
@@ -951,7 +951,7 @@ namespace GenerateDocumentationAndConfigFiles
                         catch (Exception ex)
 #pragma warning restore CA1031 // Do not catch general exception types
                         {
-                            await Console.Error.WriteLineAsync(ex.Message).ConfigureAwait(false);
+                            await Console.Error.WriteLineAsync(ex.Message.AsMemory(), cancellationToken).ConfigureAwait(false);
                             return false;
                         }
                     }
@@ -959,7 +959,7 @@ namespace GenerateDocumentationAndConfigFiles
 
                 if (!args.ReleaseTrackingOptOut && !sawShippedFile)
                 {
-                    await Console.Error.WriteLineAsync($"Could not find any 'AnalyzerReleases.Shipped.md' file").ConfigureAwait(false);
+                    await Console.Error.WriteLineAsync($"Could not find any 'AnalyzerReleases.Shipped.md' file".AsMemory(), cancellationToken).ConfigureAwait(false);
                     return false;
                 }
 

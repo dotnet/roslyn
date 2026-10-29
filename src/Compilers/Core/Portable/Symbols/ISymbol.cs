@@ -50,11 +50,11 @@ namespace Microsoft.CodeAnalysis
         /// <description>The metadata name of explicit interface names have spaces removed, compared to
         /// the name property.</description>
         /// </item>
-        /// <item>
-        /// <description>The length of names is limited to not exceed metadata restrictions.</description>
-        /// </item>
         /// </list>
         /// </summary>
+        /// <remarks>
+        /// Metadata length restrictions are not enforced by this property.
+        /// </remarks>
         string MetadataName { get; }
 
         /// <summary>
@@ -159,13 +159,13 @@ namespace Microsoft.CodeAnalysis
         bool IsImplicitlyDeclared { get; }
 
         /// <summary>
-        /// Whether this symbol is considered requires-<see langword="unsafe"/> under the updated memory safety rules,
-        /// i.e., the symbol requires an <see langword="unsafe"/> context at its use site.
-        /// This can be either a symbol compiled with the updated memory safety rules which has <see langword="unsafe"/> in its signature,
-        /// or a symbol compiled with the legacy memory safety rules which has pointers in its signature.
+        /// Whether this symbol is considered requires-unsafe, i.e., the symbol requires an <see langword="unsafe"/> context at its use site.
+        /// The value of this property depends on the containing module's <see cref="IModuleSymbol.MemorySafetyRulesVersion"/>.
+        /// Under <see cref="MemorySafetyRulesVersion.Version1"/>, symbols with pointers in their signature are considered requires-unsafe.
+        /// Under <see cref="MemorySafetyRulesVersion.Version2"/>, symbols marked <see langword="unsafe"/> are considered requires-unsafe.
         /// </summary>
         [Experimental(RoslynExperiments.PreviewLanguageFeatureApi, UrlFormat = "https://github.com/dotnet/roslyn/issues/82789")]
-        bool RequiresUnsafe { get; }
+        bool RequiresUnsafeContext { get; }
 
         /// <summary>
         /// Returns true if this symbol can be referenced by its name in code.
@@ -216,7 +216,9 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Gets a <see cref="Accessibility"/> indicating the declared accessibility for the symbol.
-        /// Returns NotApplicable if no accessibility is declared.
+        /// Includes the language's default accessibility when no accessibility modifier is specified.
+        /// Returns <see cref="Accessibility.NotApplicable"/> for symbols that do not have accessibility,
+        /// such as parameters and local variables.
         /// </summary>
         Accessibility DeclaredAccessibility { get; }
 

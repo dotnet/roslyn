@@ -1,0 +1,8 @@
+﻿[0000] OpenComponent<global::Test.Slot>()
+[0001] AddComponentParameter(nameof(global::Test.Slot. Content ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Test.SlotContent>("hello"))
+[0002] AddMarkupContent("\r\n")
+[0003] OpenComponent<global::Test.Slot>()
+[0004] AddComponentParameter(nameof(global::Test.Slot. Content ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Test.SlotContent>("new Test.SlotContent()"))
+[0005] AddMarkupContent("\r\n")
+[0006] OpenComponent<global::Test.Slot>()
+[0007] AddComponentParameter(nameof(global::Test.Slot. Content ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Test.SlotContent>( content ))

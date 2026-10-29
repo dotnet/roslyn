@@ -13,6 +13,7 @@ Repo-wide entry points and the formal public-API tracking rules. Layer-specific 
 | Command | Purpose |
 |---------|---------|
 | `build.sh` / `Build.cmd` | Full solution build (Arcade). |
+| `dotnet restore <project-or-solution>` | Restores dependencies and, on the first restore in a clone, validates checkout line endings and Windows long-path support. A successful validation is cached at `artifacts/developer-settings-validated.txt`. |
 | `dotnet build Compilers.slnf` | Compiler-only build. |
 | `dotnet build Ide.slnf` | IDE-only build. |
 | `dotnet build Razor.slnf` | Razor compiler & tooling-only build. |
@@ -20,6 +21,7 @@ Repo-wide entry points and the formal public-API tracking rules. Layer-specific 
 | `dotnet test <test.csproj>` | Run a specific test project. |
 | `dotnet run --file eng/generate-compiler-code.cs` | Regenerate Syntax/BoundNodes code. |
 | `pwsh eng/validate-benchmarks.ps1 -configuration Release -ci` | Validate benchmark projects with BenchmarkDotNet Dry jobs; custom multi-job Razor harnesses use their explicit validation mode. Used by the correctness artifacts CI job. |
+| `artifacts/bin/BuildBoss/<config>/net472/BuildBoss.exe -r <repo>/ -c <config> -p Roslyn.slnx` | Validate solutions, project files and build artifacts. Used by the correctness artifacts CI job and the bootstrap build. See `src/Tools/BuildBoss/README.md` for available checks and options. |
 | `dotnet msbuild <proj> /t:UpdateXlf` | Refresh `.xlf` after `.resx` changes. |
 
 Solution filters: `Roslyn.slnx` (full), `Compilers.slnf`, `Ide.slnf`, `Razor.slnf`.

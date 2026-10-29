@@ -20,4 +20,17 @@ public sealed class NamespaceDeclarationIntermediateNode : IntermediateNode
         formatter.WriteContent(Name);
         formatter.WriteProperty(nameof(Name), Name);
     }
+
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new NamespaceDeclarationIntermediateNode
+        {
+            Name = Name,
+            IsPrimaryNamespace = IsPrimaryNamespace,
+            IsGenericTyped = IsGenericTyped,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
 }

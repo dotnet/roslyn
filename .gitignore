@@ -20,6 +20,7 @@ BenchmarkDotNet.Artifacts/
 [Bb]inaries/
 [Bb]in/
 [Oo]bj/
+src/VisualStudio/EditorConfig/Templates/ModifiedTemplates/
 .dotnet/
 .tools/
 .packages/
@@ -190,6 +191,9 @@ Desktop.ini
 
 # Recycle Bin used on file shares
 $RECYCLE.BIN/
+
+# Tooling generating a deviceid file on MacOS
+Library/
 
 # Mac desktop service store files
 .DS_Store

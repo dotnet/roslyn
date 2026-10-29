@@ -8,10 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
-using Microsoft.AspNetCore.Razor.Test.Common.ProjectSystem;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
+using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Settings;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
@@ -24,13 +24,13 @@ namespace Microsoft.AspNetCore.Razor.LanguageServer.Test.Mapping;
 
 public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpointTestBase(testOutput)
 {
-    private IRazorEditService? _razorEditService;
+    private RazorEditService? _razorEditService;
 
     protected override async Task InitializeAsync()
     {
         await base.InitializeAsync();
 
-        _razorEditService = OOPExportProvider.GetExportedValue<IRazorEditService>();
+        _razorEditService = Assert.IsType<RazorEditService>(OOPExportProvider.GetExportedValue<IRazorEditService>());
     }
 
     [Fact]
@@ -761,6 +761,91 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                     }
                 }
                 """);
+    }
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public Task NewMethod_NoCodeBlock_EditorConfig_BraceOnNextLine()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath(".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_code_block_brace_on_next_line = true
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86135")]
+    public async Task NewMethod_NoCodeBlock_EditorConfig_BraceOnSameLine()
+    {
+        ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().AdvancedSettings with { CodeBlockBraceOnNextLine = true });
+
+        await TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                <div></div>
+                """,
+            newCSharpSource: """
+                class MyComponent : ComponentBase
+                {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            expectedRazorSource: """
+                <div></div>
+                @code {
+                    private int UnmappedMethod()
+                    {
+                        return 5;
+                    }
+                }
+                """,
+            additionalFiles:
+            [
+                (FilePath(".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_code_block_brace_on_next_line = false
+                    """)
+            ]);
     }
 
     [Fact]
@@ -2156,7 +2241,8 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         TestCode razorSource,
         string newCSharpSource,
         string expectedRazorSource,
-        RazorFileKind? fileKind = null)
+        RazorFileKind? fileKind = null,
+        (string fileName, string contents)[]? additionalFiles = null)
     {
         var csharpSpans = csharpSource.NamedSpans;
         var razorSpans = razorSource.NamedSpans;
@@ -2164,8 +2250,8 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         AssertEx.SetEqual(csharpSpans.Keys.OrderAsArray(), razorSpans.Keys.OrderAsArray());
 
         var razorPath = fileKind == RazorFileKind.Legacy
-            ? @"C:\path\to\document.cshtml"
-            : @"C:\path\to\document.razor";
+            ? FilePath("document.cshtml")
+            : FilePath("document.razor");
         var csharpPath = razorPath + ".g.cs";
         var csharpSourceText = SourceText.From(csharpSource.Text);
         var razorSourceText = SourceText.From(razorSource.Text);
@@ -2200,7 +2286,7 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
         var changes = GetChanges(csharpSource.Text, newCSharpSource);
         Assert.NotEmpty(changes);
 
-        var document = CreateProjectAndRazorDocument(razorSource.Text, fileKind, documentFilePath: razorPath);
+        var document = CreateProjectAndRazorDocument(razorSource.Text, fileKind, documentFilePath: razorPath, additionalFiles: additionalFiles);
 
         var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
         var codeDocument = await snapshotManager.GetSnapshot(document).GetGeneratedOutputAsync(DisposalToken);
@@ -2210,17 +2296,22 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
             csharpSource.Text,
             sourceMappings.OrderByAsArray(s => s.GeneratedSpan.AbsoluteIndex));
 
-        codeDocument = codeDocument.WithCSharpDocument(csharpDocument);
-        var snapshot = TestDocumentSnapshot.Create(razorPath, codeDocument);
+        codeDocument = codeDocument.WithImplCSharpDocument(csharpDocument);
+        var originalCSharpSyntaxTree = CSharpSyntaxTree.ParseText(csharpDocument.Text, cancellationToken: DisposalToken);
 
-        var responseTextChanges = await _razorEditService.AssumeNotNull().MapCSharpEditsAsync(
-            changes,
-            snapshot,
+        var responseTextChanges = await _razorEditService.AssumeNotNull().GetTestAccessor().MapCSharpEditsAsync(
+            document,
+            changes.SelectAsArray(static c => c.ToRazorTextChange()),
+            codeDocument,
+            originalCSharpSyntaxTree,
+            declarationDocument: false,
+            includeCSharpLanguageFeatureEdits: true,
+            directlyMappedEditFilter: null,
             CancellationToken.None);
 
         Assert.NotEmpty(responseTextChanges);
 
-        var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges);
+        var newRazorSourceText = razorSourceText.WithChanges(responseTextChanges.SelectAsArray(static c => c.ToTextChange()));
         AssertEx.EqualOrDiff(expectedRazorSource, newRazorSourceText.ToString());
     }
 

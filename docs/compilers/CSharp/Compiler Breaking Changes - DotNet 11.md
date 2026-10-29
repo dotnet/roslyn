@@ -290,3 +290,39 @@ To fix the violations, use the `unsafe` block or expression, for example:
 ```cs
 int b = unsafe(c[null]);
 ```
+
+## `closed` is a contextual keyword in type declaration contexts
+
+***Introduced in Visual Studio 2026 version 18.10***
+
+In C# 15, a type or alias declaration named `closed` without an `@` escape produces CS9380. In member declaration contexts, `closed` is treated as a modifier, so code that previously used `closed` as a type name may now be parsed as an incomplete declaration and produce CS1519.
+
+To continue using `closed` as an identifier, escape its declaration and references with `@`.
+
+```cs
+class @closed { }
+
+class C
+{
+    closed oldField;      // C# 14: field of type 'closed'; C# 15: parsed as an incomplete declaration
+    @closed currentField; // field of type 'closed'
+}
+```
+
+## `union` is a contextual keyword in type declaration contexts
+
+***Introduced in Visual Studio 2026 version 18.10***
+
+In C# 15, `union` followed by a type name can be parsed as a union declaration. Code that previously used `union` as a type name in a declaration may therefore produce CS9370 instead of declaring a field.
+
+To continue using `union` as an identifier, escape it with `@`.
+
+```cs
+class @union { }
+
+class C
+{
+    union OldField;      // C# 14: field of type 'union'; C# 15: union declaration
+    @union CurrentField; // field of type 'union'
+}
+```

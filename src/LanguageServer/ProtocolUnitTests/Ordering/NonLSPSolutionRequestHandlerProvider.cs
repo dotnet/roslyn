@@ -29,7 +29,9 @@ internal sealed class NonLSPSolutionRequestHandler : ILspServiceRequestHandler<T
 
     public async Task<TestResponse> HandleRequestAsync(TestRequest request, RequestContext context, CancellationToken cancellationToken)
     {
-        Assert.Null(context.Solution);
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await context.GetRequiredWorkspaceAsync(cancellationToken).ConfigureAwait(false));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false));
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => await context.GetTextDocumentAsync(cancellationToken).ConfigureAwait(false));
 
         return new TestResponse();
     }

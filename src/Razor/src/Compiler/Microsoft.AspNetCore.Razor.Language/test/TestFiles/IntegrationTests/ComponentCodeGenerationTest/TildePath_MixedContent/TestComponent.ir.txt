@@ -1,0 +1,17 @@
+﻿Document - 
+    NamespaceDeclaration -  - Test
+        UsingDirective - (3:1,1 [20] ) - global::System
+        UsingDirective - (26:2,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (69:3,1 [25] ) - global::System.Linq
+        UsingDirective - (97:4,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (136:5,1 [45] ) - global::Microsoft.AspNetCore.Components
+        ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
+            MethodDeclaration -  - protected override - void - BuildRenderTree
+                CSharpCode - (2:0,2 [17] x:\dir\subdir\Test\TestComponent.cshtml)
+                    LazyIntermediateToken - (2:0,2 [17] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp -  var path = "x"; 
+                MarkupElement - (22:1,0 [23] x:\dir\subdir\Test\TestComponent.cshtml) - img
+                    HtmlAttribute - (26:1,4 [16] x:\dir\subdir\Test\TestComponent.cshtml) -  src=" - "
+                        HtmlAttributeValue - (32:1,10 [2] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (32:1,10 [2] x:\dir\subdir\Test\TestComponent.cshtml) - Html - ~/
+                        CSharpExpressionAttributeValue - (34:1,12 [7] x:\dir\subdir\Test\TestComponent.cshtml) - 
+                            LazyIntermediateToken - (36:1,14 [4] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - path

@@ -34,6 +34,22 @@ public sealed class HtmlAttributeIntermediateNode : IntermediateNode
         visitor.VisitHtmlAttribute(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new HtmlAttributeIntermediateNode
+        {
+            AttributeName = AttributeName,
+            AttributeNameExpression = (CSharpExpressionIntermediateNode)AttributeNameExpression?.Clone(),
+            Prefix = Prefix,
+            Suffix = Suffix,
+            EventUpdatesAttributeName = EventUpdatesAttributeName,
+            OriginalAttributeName = OriginalAttributeName,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(AttributeName);

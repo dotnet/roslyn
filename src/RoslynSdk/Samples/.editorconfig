@@ -1,0 +1,11 @@
+[*.{cs,vb}]
+
+# Samples consume public Roslyn APIs and cannot use the internal alternatives required by the main repo.
+dotnet_diagnostic.RS0030.severity = none
+
+# Samples do not use the repository-internal MEF construction convention.
+dotnet_diagnostic.RS0033.severity = none
+dotnet_diagnostic.RS0034.severity = none
+
+# Samples preserve unused parameters to demonstrate extensibility points.
+dotnet_diagnostic.IDE0060.severity = none

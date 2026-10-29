@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent. Item ), "Hello")
+[0002] AddComponentParameter("MyEvent", "MyEventHandler")

@@ -1,0 +1,29 @@
+﻿Document - 
+    RazorCompiledItemAttribute - 
+    NamespaceDeclaration -  - AspNetCoreGeneratedDocument
+        UsingDirective - (1:0,1 [20] ) - global::System
+        UsingDirective - (24:1,1 [40] ) - global::System.Collections.Generic
+        UsingDirective - (67:2,1 [25] ) - global::System.Linq
+        UsingDirective - (95:3,1 [36] ) - global::System.Threading.Tasks
+        UsingDirective - (134:4,1 [38] ) - global::Microsoft.AspNetCore.Mvc
+        UsingDirective - (175:5,1 [48] ) - global::Microsoft.AspNetCore.Mvc.Rendering
+        UsingDirective - (226:6,1 [51] ) - global::Microsoft.AspNetCore.Mvc.ViewFeatures
+        Documentation - 
+        RazorSourceChecksumAttribute - 
+        RazorCompiledItemMetadataAttribute - 
+        CreateNewOnMetadataUpdateAttribute - 
+        ClassDeclaration -  - internal sealed - TestFiles_IntegrationTests_DocumentationDirectiveCodeGenerationTest_Legacy_MissingOpeningBrace - global::Microsoft.AspNetCore.Mvc.Razor.RazorPage<dynamic> - 
+            MethodDeclaration -  - public async override - global::System.Threading.Tasks.Task - ExecuteAsync
+                MalformedDirective - (0:0,0 [15] MissingOpeningBrace.cshtml) - documentation
+                HtmlContent - (15:0,15 [19] MissingOpeningBrace.cshtml)
+                    LazyIntermediateToken - (15:0,15 [5] MissingOpeningBrace.cshtml) - Html - foo\n
+                    LazyIntermediateToken - (20:1,0 [2] MissingOpeningBrace.cshtml) - Html - <p
+                    LazyIntermediateToken - (22:1,2 [1] MissingOpeningBrace.cshtml) - Html - >
+                    LazyIntermediateToken - (23:1,3 [5] MissingOpeningBrace.cshtml) - Html - After
+                    LazyIntermediateToken - (28:1,8 [4] MissingOpeningBrace.cshtml) - Html - </p>
+                    LazyIntermediateToken - (32:1,12 [2] MissingOpeningBrace.cshtml) - Html - \n
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 
+            Inject - 

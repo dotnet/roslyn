@@ -70,16 +70,6 @@ y
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (4,8)-(7,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    string x = "a";
-    string y = "b";
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

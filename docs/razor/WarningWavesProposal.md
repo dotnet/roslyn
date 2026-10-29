@@ -1,6 +1,6 @@
 # Proposal: Warning Levels for Razor
 
-> **Status:** The infrastructure described here was implemented in [dotnet/razor#13016](https://github.com/dotnet/razor/pull/13016) and ships in Razor 18.7. The shipped feature is named **warning levels** (`RazorWarningLevel`) rather than warning waves. No new warnings have been classified at non-default levels yet — that work is layered on top of this infrastructure as warnings are introduced.
+> **Status:** The infrastructure described here was implemented in [dotnet/razor#13016](https://github.com/dotnet/razor/pull/13016) and ships in Razor 18.7. The shipped feature is named **warning levels** (`RazorWarningLevel`) rather than warning waves. Warnings classified at non-default levels are tracked in [Razor warning levels](warning-levels.md).
 
 ## Summary
 
@@ -40,7 +40,7 @@ Each warning is tagged with an integer **warning level**. The compiler reports a
 
 **Default behaviour.** When `RazorWarningLevel` is not set, the compiler uses `RazorLanguageVersion.GetDefaultWarningLevel()`, which currently returns the language version's major number. So a project on Razor 11 implicitly gets `RazorWarningLevel = 11` and therefore sees every level <= 11.
 
-**Existing warnings are unaffected.** All warnings that exist today were authored without specifying a level, so they default to level `0` and continue to be reported regardless of the configured `RazorWarningLevel`. No project sees a behavior change until new warnings are added at higher levels.
+**Existing level-0 warnings are unaffected.** Warnings authored without specifying a level default to level `0` and continue to be reported regardless of the configured `RazorWarningLevel`. Warning-wave diagnostics use non-zero levels and are filtered as described above.
 
 ### Configuration
 
@@ -148,12 +148,11 @@ The infrastructure landed in [#13016](https://github.com/dotnet/razor/pull/13016
 - ✅ `CodeRenderingContext.GetDiagnostics()` filters warnings by level.
 - ✅ `RZ3601` reported for invalid `RazorWarningLevel` values.
 - ✅ `RazorLanguageVersion.GetDefaultWarningLevel()` defines the default (currently `Major`).
+- ✅ Non-zero-level warnings are catalogued in [Razor warning levels](warning-levels.md).
 
 Still to do (follow-up work):
 
-- Author the first batch of non-zero-level warnings.
 - IDE/tooling integration so live diagnostics also respect the configured level.
-- User-facing documentation listing each warning and the level at which it was introduced.
 
 ## Open Questions
 

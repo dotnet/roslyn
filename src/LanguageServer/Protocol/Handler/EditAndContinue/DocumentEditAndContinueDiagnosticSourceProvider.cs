@@ -20,9 +20,10 @@ internal sealed class DocumentEditAndContinueDiagnosticSourceProvider(IEditAndCo
 {
     public bool IsDocument => true;
     public string Name => PullDiagnosticCategories.EditAndContinue;
+    public bool HasInterFileDependencies => true;
 
     public bool IsEnabled(ClientCapabilities capabilities) => true;
 
     public async ValueTask<ImmutableArray<IDiagnosticSource>> CreateDiagnosticSourcesAsync(RequestContext context, CancellationToken cancellationToken)
-        => [EditAndContinueDiagnosticSource.CreateOpenDocumentSource(context.GetRequiredDocument(), sessionTracker)];
+        => [EditAndContinueDiagnosticSource.CreateOpenDocumentSource(await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false), sessionTracker)];
 }

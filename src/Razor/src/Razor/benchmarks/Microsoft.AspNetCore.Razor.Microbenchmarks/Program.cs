@@ -67,7 +67,7 @@ internal class Program
         if (validate)
         {
             return config.AddJob(Job.Dry
-                .WithToolchain(InProcessNoEmitToolchain.Instance)
+                .WithToolchain(InProcessNoEmitToolchain.Default)
                 .DontEnforcePowerPlan());
         }
 

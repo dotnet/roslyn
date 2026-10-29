@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public ConstantValue ToConstantValue(int value) => ConstantValue.Create(value);
 
-            string INumericTC<int>.ToString(int value) => value.ToString();
+            string INumericTC<int>.ToString(int value) => value.ToString(CultureInfo.InvariantCulture);
 
             public int Random(Random random)
             {

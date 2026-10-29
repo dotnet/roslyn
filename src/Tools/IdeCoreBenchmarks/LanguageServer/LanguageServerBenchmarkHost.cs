@@ -18,20 +18,19 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
     {
     }
 
-    internal async Task<TestServer> CreateSingleServerAsync()
-        => Wrap(await CreateLanguageServerAsync(serverConfiguration: ServerConfigurationWithoutDevKit));
-
     internal Task WarmCompositionCacheAsync()
         => WarmCompositionCacheCoreAsync();
 
     internal async Task<BenchmarkTestDaemon> CreateDaemonAsync()
     {
         var daemon = await CreateDaemonServerAsync();
-        return new(() => CreateClientAsync(daemon), daemon.DisposeAsync);
+        return new(
+            () => CreateClientAsync(daemon),
+            daemon.DisposeAsync);
     }
 
     private static TestServer Wrap(TestLspServer server)
-        => new(server.OpenProjectsAsync, server.DisposeAsync);
+        => new(server.OpenProjectsAsync, server.OpenSolutionAsync, server.DisposeAsync);
 
     private static async Task<TestServer> CreateClientAsync(TestDaemon daemon)
         => Wrap(await daemon.CreateClientAsync());
@@ -39,18 +38,24 @@ internal sealed class LanguageServerBenchmarkHost : AbstractLanguageServerMefHos
     internal sealed class TestServer : IAsyncDisposable
     {
         private readonly Func<ImmutableArray<string>, CancellationToken, Task> _openProjectsAsync;
+        private readonly Func<string, CancellationToken, Task> _openSolutionAsync;
         private readonly Func<ValueTask> _disposeAsync;
 
         internal TestServer(
             Func<ImmutableArray<string>, CancellationToken, Task> openProjectsAsync,
+            Func<string, CancellationToken, Task> openSolutionAsync,
             Func<ValueTask> disposeAsync)
         {
             _openProjectsAsync = openProjectsAsync;
+            _openSolutionAsync = openSolutionAsync;
             _disposeAsync = disposeAsync;
         }
 
         internal Task OpenProjectsAsync(ImmutableArray<string> projectFilePaths, CancellationToken cancellationToken)
             => _openProjectsAsync(projectFilePaths, cancellationToken);
+
+        internal Task OpenSolutionAsync(string solutionFilePath, CancellationToken cancellationToken)
+            => _openSolutionAsync(solutionFilePath, cancellationToken);
 
         public ValueTask DisposeAsync()
             => _disposeAsync();

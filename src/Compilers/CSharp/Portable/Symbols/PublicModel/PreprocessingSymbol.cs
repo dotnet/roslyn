@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
 
         bool ISymbol.IsImplicitlyDeclared => false;
 
-        bool ISymbol.RequiresUnsafe => false;
+        bool ISymbol.RequiresUnsafeContext => false;
 
         bool ISymbol.CanBeReferencedByName => SyntaxFacts.IsValidIdentifier(_name) && !SyntaxFacts.ContainsDroppedIdentifierCharacters(_name);
 

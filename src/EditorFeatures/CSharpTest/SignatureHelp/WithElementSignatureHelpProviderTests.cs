@@ -4,7 +4,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -24,7 +24,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
     {
         var markup = $$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersion.CSharp15.ToDisplayString()}}">
                     <Document><![CDATA[
             using System.Collections.Generic;
 
@@ -51,7 +51,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
     {
         var markup = $$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersion.CSharp15.ToDisplayString()}}">
                     <Document><![CDATA[
             using System;
             using System.Collections.Generic;
@@ -75,7 +75,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
     {
         var markup = $$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersion.CSharp15.ToDisplayString()}}">
                     <Document><![CDATA[
             using System;
             using System.Collections.Generic;
@@ -103,7 +103,7 @@ public sealed class WithElementSignatureHelpProviderTests : AbstractCSharpSignat
     {
         var markup = $$"""
             <Workspace>
-                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersionExtensions.CSharpNext}}">
+                <Project Language="C#" CommonReferences="true" LanguageVersion="{{LanguageVersion.CSharp15.ToDisplayString()}}">
                     <Document><![CDATA[
             using System;
             using System.Collections;

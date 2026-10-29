@@ -64,13 +64,13 @@ internal sealed class EditSession
 
     /// <summary>
     /// Gets the capabilities of the runtime with respect to applying code changes.
-    /// Retrieved lazily from <see cref="DebuggingSession.DebuggerService"/> since they are only needed when changes are detected in the solution.
+    /// Retrieved lazily from project system since they are only needed when changes are detected in the solution.
     /// </summary>
     internal readonly AsyncLazy<EditAndContinueCapabilities> Capabilities;
 
     /// <summary>
     /// Map of base active statements.
-    /// Calculated lazily based on info retrieved from <see cref="DebuggingSession.DebuggerService"/> since it is only needed when changes are detected in the solution.
+    /// Calculated lazily based on info retrieved from project system since it is only needed when changes are detected in the solution.
     /// </summary>
     internal readonly AsyncLazy<ActiveStatementsMap> BaseActiveStatements;
 
@@ -85,8 +85,11 @@ internal sealed class EditSession
     /// </summary>
     internal readonly bool InBreakState;
 
+    internal readonly IManagedHotReloadState DebuggerService;
+
     internal EditSession(
         DebuggingSession debuggingSession,
+        IManagedHotReloadState debuggerService,
         ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>> nonRemappableRegions,
         EditSessionTelemetry telemetry,
         AsyncLazy<ActiveStatementsMap>? lazyActiveStatementMap,
@@ -95,6 +98,7 @@ internal sealed class EditSession
         DebuggingSession = debuggingSession;
         NonRemappableRegions = nonRemappableRegions;
         Telemetry = telemetry;
+        DebuggerService = debuggerService;
         InBreakState = inBreakState;
 
         telemetry.SetBreakState(inBreakState);
@@ -154,7 +158,7 @@ internal sealed class EditSession
     /// <returns>Non-null diagnostic id if the module blocks EnC operation.</returns>
     public async Task<string?> ReportModuleDiagnosticsAsync(Guid mvid, Project oldProject, Project newProject, ImmutableArray<DocumentAnalysisResults> documentAnalyses, ArrayBuilder<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
-        var availability = await DebuggingSession.DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
+        var availability = await DebuggerService.GetAvailabilityAsync(mvid, cancellationToken).ConfigureAwait(false);
         if (availability.Status is ManagedHotReloadAvailabilityStatus.ModuleNotLoaded or ManagedHotReloadAvailabilityStatus.Available)
         {
             return null;
@@ -228,7 +232,7 @@ internal sealed class EditSession
     {
         try
         {
-            var capabilities = await DebuggingSession.DebuggerService.GetCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
+            var capabilities = await DebuggerService.GetUpdateCapabilitiesAsync(cancellationToken).ConfigureAwait(false);
             return EditAndContinueCapabilitiesParser.Parse(capabilities);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -242,7 +246,7 @@ internal sealed class EditSession
         try
         {
             // Last committed solution reflects the state of the source that is in sync with the binaries that are loaded in the debuggee.
-            var debugInfos = await DebuggingSession.DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
+            var debugInfos = await DebuggerService.GetActiveStatementsAsync(cancellationToken).ConfigureAwait(false);
             return ActiveStatementsMap.Create(debugInfos, NonRemappableRegions);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))

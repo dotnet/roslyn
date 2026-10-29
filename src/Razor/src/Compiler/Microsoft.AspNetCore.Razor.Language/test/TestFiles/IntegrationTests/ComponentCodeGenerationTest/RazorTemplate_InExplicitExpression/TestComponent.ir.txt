@@ -14,5 +14,3 @@
                             CSharpExpression - (34:0,34 [11] x:\dir\subdir\Test\TestComponent.cshtml)
                                 LazyIntermediateToken - (34:0,34 [11] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - person.Name
                     LazyIntermediateToken - (51:0,51 [1] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - )
-            CSharpCode - (62:1,7 [138] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (62:1,7 [138] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    class Person\n    {\n        public string Name { get; set; }\n    }\n\n    object RenderPerson(RenderFragment<Person> p) => null;\n

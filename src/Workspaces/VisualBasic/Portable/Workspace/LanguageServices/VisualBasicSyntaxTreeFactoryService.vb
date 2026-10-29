@@ -10,15 +10,13 @@ Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-    <ExportLanguageService(GetType(ISyntaxTreeFactoryService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicSyntaxTreeFactoryService
         Inherits AbstractSyntaxTreeFactoryService
 
         Private Shared ReadOnly _parseOptionsWithLatestLanguageVersion As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)
 
-        <ImportingConstructor>
-        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
-        Public Sub New()
+        Public Sub New(syntaxTreeCache As ISyntaxTreeCacheService)
+            MyBase.New(syntaxTreeCache)
         End Sub
 
         Public Overloads Overrides Function GetDefaultParseOptions() As ParseOptions
@@ -61,11 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return _parseOptionsWithLatestLanguageVersion
         End Function
 
-        Public Overrides Function ParseSyntaxTree(filePath As String, options As ParseOptions, text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
-            If options Is Nothing Then
-                options = GetDefaultParseOptions()
-            End If
-
+        Protected Overrides Function ParseSyntaxTreeCore(filePath As String, options As ParseOptions, text As SourceText, cancellationToken As CancellationToken) As SyntaxTree
             Return SyntaxFactory.ParseSyntaxTree(text, options, filePath, cancellationToken)
         End Function
 
@@ -75,6 +69,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New ParsedSyntaxTree(text, DirectCast(root, VisualBasicSyntaxNode), DirectCast(options, VisualBasicParseOptions), filePath, encoding, checksumAlgorithm)
+        End Function
+    End Class
+
+    <ExportLanguageServiceFactory(GetType(ISyntaxTreeFactoryService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicSyntaxTreeFactoryServiceFactory
+        Implements ILanguageServiceFactory
+
+        <ImportingConstructor>
+        <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+        Public Sub New()
+        End Sub
+
+        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+            Return New VisualBasicSyntaxTreeFactoryService(languageServices.WorkspaceServices.GetService(Of ISyntaxTreeCacheService)())
         End Function
     End Class
 End Namespace

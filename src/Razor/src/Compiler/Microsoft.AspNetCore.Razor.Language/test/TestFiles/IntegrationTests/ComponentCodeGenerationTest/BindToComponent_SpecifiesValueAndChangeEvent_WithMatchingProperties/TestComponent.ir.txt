@@ -17,5 +17,3 @@
                     ComponentAttribute - (58:0,58 [9] x:\dir\subdir\Test\TestComponent.cshtml) - bind-Value - Value - AttributeStructure.DoubleQuotes
                         HtmlContent - (58:0,58 [9] x:\dir\subdir\Test\TestComponent.cshtml)
                             LazyIntermediateToken - (58:0,58 [9] x:\dir\subdir\Test\TestComponent.cshtml) - Html - OnChanged
-            CSharpCode - (80:1,7 [50] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (80:1,7 [50] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public int ParentValue { get; set; } = 42;\n

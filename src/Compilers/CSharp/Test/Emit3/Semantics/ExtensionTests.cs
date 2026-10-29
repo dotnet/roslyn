@@ -2405,11 +2405,11 @@ public static class Extensions
 """;
         var comp = CreateCompilation(src, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (5,13): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,13): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         int this[int i] { get => 42; set { } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(5, 13));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(5, 13));
 
-        comp = CreateCompilation(src, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, parseOptions: TestOptions.Regular15);
         comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(src);
@@ -6166,7 +6166,7 @@ public static class Extensions
         IL_0012: call string Extensions::'<M>g__local|1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
         IL_0017: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         string '<M>g__local|1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
         ) cil managed 
@@ -7561,7 +7561,7 @@ public class C<T>(string val)
         IL_0033: call class C`1<!!1> Extensions::'<M>g__local|1_0'<!!T, !!U, int32, !!T, !!U>(!!0, !!1, !!2, !!3, !!4, valuetype Extensions/'<>c__DisplayClass1_0`2'<!!0, !!1>&)
         IL_0038: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         class C`1<!!U> '<M>g__local|1_0'<T, U, X, Y, Z> (
             !!T t2,
             !!U u2,
@@ -9335,7 +9335,7 @@ public static class Extensions
         IL_0012: call string Extensions::'<M>g__local|1_0'(valuetype Extensions/'<>c__DisplayClass1_0'&)
         IL_0017: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         string '<M>g__local|1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
         ) cil managed 
@@ -9556,7 +9556,7 @@ public static class Extensions
         IL_0012: call string Extensions::'<M>g__local|3_0'(valuetype Extensions/'<>c__DisplayClass3_0'&)
         IL_0017: ret
     } // end of method Extensions::M
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         string '<M>g__local|1_0' (
             valuetype Extensions/'<>c__DisplayClass1_0'& ''
         ) cil managed 
@@ -9580,7 +9580,7 @@ public static class Extensions
         IL_0018: call string [mscorlib]System.String::Concat(string, string)
         IL_001d: ret
     } // end of method Extensions::'<M>g__local|1_0'
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         string '<M>g__local|3_0' (
             valuetype Extensions/'<>c__DisplayClass3_0'& ''
         ) cil managed 
@@ -11326,7 +11326,7 @@ class C1
         IL_000a: pop
         IL_000b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         class [mscorlib]System.Func`1<!!V> '<M2>g__local|1_0'<T, U, V> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11489,7 +11489,7 @@ class C1
         IL_0005: callvirt instance void [mscorlib]System.Action::Invoke()
         IL_000a: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         class [mscorlib]System.Action '<M2>g__local|1_0'<T> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11648,7 +11648,7 @@ class C1
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         class [mscorlib]System.Action '<M2>g__local|1_0' () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11811,7 +11811,7 @@ public static class Extensions
         IL_0016: stsfld class [mscorlib]System.Action class Extensions/'<>O__1_0`1'<!!T>::'<0>__local'
         IL_001b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M2>g__local|1_0'<T> () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -11967,7 +11967,7 @@ public static class Extensions
         IL_0016: stsfld class [mscorlib]System.Action Extensions/'<>O'::'<0>__local'
         IL_001b: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M2>g__local|1_0' () cil managed 
     {
         .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = (
@@ -12135,7 +12135,7 @@ public static class Extensions
         IL_001a: call void Extensions::'<M2>g__local|1_0'<!!T, !!U, int64>(object, !!0, !!1, !!2)
         IL_001f: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M2>g__local|1_0'<T, U, V> (
             object d,
             !!T t,
@@ -12328,7 +12328,7 @@ public static class Extensions
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M2>g__local|1_0'<T> (
             object d,
             !!T t
@@ -12505,7 +12505,7 @@ public static class Extensions
         .maxstack 8
         IL_0000: ret
     } // end of method Extensions::M2
-    .method assembly hidebysig static 
+    .method private hidebysig static 
         void '<M2>g__local|1_0' (
             object d
         ) cil managed 
@@ -20037,7 +20037,7 @@ unsafe static class E
     }
 }
 """;
-        var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugExe);
+        var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugExe);
         comp.VerifyEmitDiagnostics(
             // (1,7): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // D d = object.M;
@@ -27552,9 +27552,9 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (13,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (13,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[int i] => i;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(13, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(13, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("0"), verify: Verification.Skipped).VerifyDiagnostics();
@@ -27592,9 +27592,9 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (10,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (10,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(10, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(10, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.Skipped).VerifyDiagnostics();
@@ -27715,9 +27715,9 @@ static class E
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (13,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (13,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[System.Range r] => throw null;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(13, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(13, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         comp.VerifyEmitDiagnostics();
@@ -27782,9 +27782,9 @@ static class E
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (12,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (12,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[int i]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(12, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(12, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("0True"), verify: Verification.Skipped).VerifyDiagnostics();
@@ -27812,9 +27812,9 @@ static class E
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (12,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (12,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(12, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(12, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.Skipped).VerifyDiagnostics();
@@ -27895,9 +27895,9 @@ static class E
 
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (13,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (13,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[System.Range r] { get { System.Console.WriteLine(r); return 0; } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(13, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(13, 20));
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.Skipped).VerifyDiagnostics();

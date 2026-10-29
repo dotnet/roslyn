@@ -38,7 +38,9 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
         Assert.Equal(0, await CleanShutdownAsync(third));
     }
 
-    [Theory, CombinatorialData]
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false, Skip = "https://github.com/dotnet/roslyn/issues/86037")]
     public async Task OneThinClientKilled_OnlyThatConnectionTornDown(bool useNamedPipe)
     {
         await using var daemon = CreateDaemon();
@@ -198,6 +200,11 @@ public sealed class DaemonServerLifecycleTests(ITestOutputHelper testOutputHelpe
         firstDaemonProcess.Kill(entireProcessTree: true);
         await firstDaemonProcess.WaitForExitAsync();
         Assert.True(firstDaemonProcess.HasExited);
+
+        // Wait for the first thin client to observe the lost daemon and release its connection. Otherwise, the next
+        // client can briefly observe and connect to the dying daemon before its pipe and server mutex disappear.
+        Assert.NotEqual(0, await WaitForThinClientExitAsync(first));
+        Assert.False(daemon.IsRunning);
 
         // With the stale daemon gone, the next client launches a brand-new daemon (a different process).
         await using var second = await daemon.CreateClientAsync(useNamedPipe: true);

@@ -21,5 +21,3 @@
                             LazyIntermediateToken - (99:1,55 [13] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - ParentBgColor
                         HtmlAttributeValue - (112:1,68 [1] x:\dir\subdir\Test\TestComponent.cshtml) - 
                             LazyIntermediateToken - (112:1,68 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - ;
-            CSharpCode - (126:2,7 [130] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (126:2,7 [130] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentBgColor { get; set; } = "#FFFFFF";\n\n    public void OnComponentHover(MouseEventArgs e)\n    {\n    }\n

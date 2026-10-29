@@ -30,8 +30,6 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
         private readonly ConcurrentDictionary<ProjectId, (VersionStamp semanticVersion, SymbolTreeInfo info)> _projectIdToInfo = [];
         private readonly ConcurrentDictionary<PortableExecutableReference, MetadataInfo> _peReferenceToInfo = [];
 
-        private readonly CancellationTokenSource _tokenSource = new();
-
         private readonly Workspace _workspace;
         private readonly AsyncBatchingWorkQueue<ProjectId> _workQueue;
 
@@ -48,14 +46,13 @@ internal sealed partial class SymbolTreeInfoCacheServiceFactory
                 EntireProjectWorkerBackOff,
                 ProcessProjectsAsync,
                 EqualityComparer<ProjectId>.Default,
-                listener,
-                _tokenSource.Token);
+                listener);
 
             _scheduler = workspace.Kind == WorkspaceKind.RemoteWorkspace ? TaskScheduler.Default : s_exclusiveScheduler;
         }
 
         void IDisposable.Dispose()
-            => _tokenSource.Cancel();
+            => _workQueue.Dispose();
 
         private Task CreateWorkAsync(Func<Task> createWorkAsync, CancellationToken cancellationToken)
             => Task.Factory.StartNew(createWorkAsync, cancellationToken, TaskCreationOptions.None, _scheduler).Unwrap();

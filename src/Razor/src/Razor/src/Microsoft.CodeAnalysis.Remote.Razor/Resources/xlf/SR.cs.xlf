@@ -12,6 +12,31 @@
         <target state="translated">Direktiva @addTagHelper je nepotřebná.</target>
         <note>@addTagHelper is a keyword</note>
       </trans-unit>
+      <trans-unit id="Baseline_Newly_Available">
+        <source>🆕 Newly available across major browsers{0}</source>
+        <target state="translated">🆕 Nově dostupné v hlavních prohlížečích{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Since">
+        <source> (Baseline since {0})</source>
+        <target state="translated"> (Standardní hodnoty od {0})</target>
+        <note>{0} is the year the feature reached baseline status (e.g., "2015")</note>
+      </trans-unit>
+      <trans-unit id="Baseline_Widely_Available">
+        <source>✅ Widely available across major browsers{0}</source>
+        <target state="translated">✅ Široce dostupné v hlavních prohlížečích{0}</target>
+        <note>{0} is " (Baseline since YYYY)" or empty</note>
+      </trans-unit>
+      <trans-unit id="Blazor_directive_attributes">
+        <source>Blazor directive attributes</source>
+        <target state="translated">Atributy direktivy Blazor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ComponentCompletionWithRequiredAttributesLabel">
+        <source>{0} (and req'd attributes...)</source>
+        <target state="translated">{0} (a požadované atributy...)</target>
+        <note>The term "req'd" is an abbreviation for "required"</note>
+      </trans-unit>
       <trans-unit id="Couldnt_get_a_source_generator_run_result">
         <source>Couldn't get a source generator run result for project '{0}'.</source>
         <target state="translated">Nepodařilo se získat výsledek spuštění generátoru zdroje pro projekt {0}.</target>
@@ -27,6 +52,18 @@
         <target state="translated">Vytvořit komponentu ze značky</target>
         <note />
       </trans-unit>
+      <trans-unit id="Directive">
+        <source>directive</source>
+        <target state="translated">direktiva</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DirectiveSnippetDescription">
+        <source>Insert a directive code snippet
+[Tab] to navigate between elements, [Enter] to complete</source>
+        <target state="translated">Vložení fragmentu kódu direktivy
+[Tab] pro navigaci mezi elementy, [Enter] pro dokončení</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Document_does_not_belong_to_this_project">
         <source>Document does not belong to this project.</source>
         <target state="translated">Dokument nepatří do tohoto projektu.</target>
@@ -35,6 +72,11 @@
       <trans-unit id="Document_is_not_a_Razor_document">
         <source>Document is not a Razor document.</source>
         <target state="translated">Dokument není dokument Razor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Escape_documentation_comment_terminator">
+        <source>Escape documentation comment terminator</source>
+        <target state="new">Escape documentation comment terminator</target>
         <note />
       </trans-unit>
       <trans-unit id="ExtractTo_CodeBehind_Title">
@@ -66,6 +108,16 @@
         <source>Generator run result did not contain a code document for '{0}'.</source>
         <target state="translated">Výsledek spuštění generátoru neobsahoval dokument kódu pro {0}.</target>
         <note />
+      </trans-unit>
+      <trans-unit id="KeywordDescription">
+        <source>{0} Keyword</source>
+        <target state="translated">Klíčové slovo {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MDN_Reference">
+        <source>MDN Reference</source>
+        <target state="translated">Referenční informace k MDN</target>
+        <note>Link text for MDN documentation URL in HTML completion tooltips</note>
       </trans-unit>
       <trans-unit id="Project_does_not_belong_to_this_solution">
         <source>Project does not belong to this solution.</source>
@@ -102,6 +154,11 @@
         <target state="translated">Na generátor zdroje Razor se odkazuje z {0}, ale očekáváme {1} pro projekt {2}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ReTrigger_Completions_Title">
+        <source>"Re-trigger completions..."</source>
+        <target state="translated">Aktivovat znovu dokončení…</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Remove_unnecessary_directives">
         <source>Remove unnecessary directives</source>
         <target state="translated">Odebrat nepotřebné direktivy</target>
@@ -127,6 +184,11 @@
         <target state="translated">Došlo k pokusu navštívit RazorMetaCode jiný než '{' or '}'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unknown_mapping_behavior">
+        <source>Unknown mapping behavior</source>
+        <target state="translated">Neznámé chování mapování</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unsupported_type_0">
         <source>Unsupported type: '{0}'.</source>
         <target state="translated">Nepodporovaný typ: {0}</target>
@@ -137,10 +199,20 @@
         <target state="translated">Neotestováno</target>
         <note />
       </trans-unit>
+      <trans-unit id="Use_explicit_expression">
+        <source>Use explicit expression</source>
+        <target state="new">Use explicit expression</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_attributes">
         <source>Wrap attributes</source>
         <target state="translated">Zalamovat atributy</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Wrap_in_summary">
+        <source>Wrap in &lt;summary&gt;</source>
+        <target state="new">Wrap in &lt;summary&gt;</target>
+        <note>&lt;summary&gt; is an XML documentation tag and should not be translated.</note>
       </trans-unit>
     </body>
   </file>

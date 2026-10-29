@@ -11,9 +11,6 @@ internal readonly record struct RemoteDocumentHighlight(
     [property: DataMember(Order = 0)] LinePositionSpan Span,
     [property: DataMember(Order = 1)] DocumentHighlightKind Kind)
 {
-    public static RemoteDocumentHighlight FromLspDocumentHighlight(LspDocumentHighlight highlight)
-        => new(highlight.Range.ToLinePositionSpan(), highlight.Kind);
-
     public static LspDocumentHighlight ToLspDocumentHighlight(RemoteDocumentHighlight highlight)
         => new()
         {

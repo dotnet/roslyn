@@ -1,0 +1,3 @@
+﻿[0000] OpenComponent<global::Test.TestComponent>()
+[0001] AddComponentParameter(nameof(global::Test.TestComponent. P2 ), "abc")
+[0002] AddComponentParameter(nameof(global::Test.TestComponent. P1 ), "def")

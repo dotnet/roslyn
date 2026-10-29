@@ -15,6 +15,9 @@ internal interface INewDocumentFormattingService : ILanguageService
     /// Formats a new document that is being added to a project from the Add New Item dialog.
     /// </summary>
     /// <param name="document">The document to format.</param>
-    /// <param name="hintDocument">An optional additional document that can be used to inform the formatting operation.</param>
+    /// <param name="hintDocument">
+    /// An optional additional document that can be used to inform the formatting operation. If it is generated, the
+    /// first regular document in <paramref name="document"/>'s project is used instead.
+    /// </param>
     Task<Document> FormatNewDocumentAsync(Document document, Document? hintDocument, CodeCleanupOptions options, CancellationToken cancellationToken);
 }

@@ -42,19 +42,6 @@ _element
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(8,5) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-        private ElementReference _element;
-
-        [Parameter] public int Min { get; set; }
-        public void Foo() { System.GC.KeepAlive(_element); }
-    
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

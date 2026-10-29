@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // v = NullableContext. 3 bits.
             // s = DeclaredRequiredMembers. 2 bits
             // p = HasPrimaryConstructor. 1 bit.
-            private int _flags;
+            private volatile int _flags;
 
             private const int SpecialTypeOffset = 0;
             private const int SpecialTypeSize = 6;
@@ -127,12 +127,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void SetFieldDefinitionsNoted()
             {
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 ThreadSafeFlagOperations.Set(ref _flags, FieldDefinitionsNotedBit);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             public void SetFlattenedMembersIsSorted()
             {
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 ThreadSafeFlagOperations.Set(ref _flags, (FlattenedMembersIsSortedBit));
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             private static bool BitsAreUnsetOrSame(int bits, int mask)
@@ -144,7 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 int bitsToSet = ((int)managedKind & ManagedKindMask) << ManagedKindOffset;
                 Debug.Assert(BitsAreUnsetOrSame(_flags, bitsToSet));
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 ThreadSafeFlagOperations.Set(ref _flags, bitsToSet);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             public bool TryGetNullableContext(out byte? value)
@@ -154,7 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public bool SetNullableContext(byte? value)
             {
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 return ThreadSafeFlagOperations.Set(ref _flags, (((int)value.ToNullableContextFlags() & NullableContextMask) << NullableContextOffset));
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             public bool TryGetHasDeclaredRequiredMembers(out bool value)
@@ -173,7 +181,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public bool SetHasDeclaredRequiredMembers(bool value)
             {
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 return ThreadSafeFlagOperations.Set(ref _flags, HasDeclaredMembersBitSet | (value ? HasDeclaredMembersBit : 0));
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             public readonly bool HasPrimaryConstructor => (_flags & HasPrimaryConstructorBit) != 0;
@@ -362,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out modifierErrors);
 
-            this.CheckUnsafeModifier(mods, diagnostics);
+            this.CheckUnsafeOptionForModifiers(mods, diagnostics);
 
             if (!modifierErrors &&
                 (mods & DeclarationModifiers.Abstract) != 0 &&
@@ -3824,15 +3834,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>? builder = null;
 
+                bool reportMultipleUnits = declaration.Declarations.Count(static d => d.IsSimpleProgram) > 1;
+
                 foreach (var singleDecl in declaration.Declarations)
                 {
                     if (singleDecl.IsSimpleProgram)
                     {
-                        if (builder is null)
-                        {
-                            builder = ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
-                        }
-                        else
+                        builder ??= ArrayBuilder<SynthesizedSimpleProgramEntryPointSymbol>.GetInstance();
+
+                        if (reportMultipleUnits)
                         {
                             Binder.Error(diagnostics, ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, singleDecl.NameLocation);
                         }
@@ -5034,19 +5044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     foreach (var typeSyntax in typesBuilder)
                     {
                         var parameterType = signatureBinder.BindType(typeSyntax, diagnostics, suppressUseSiteDiagnostics: false);
-
-                        // Check that conversion to object is possible
-
-                        var useSiteInfo = signatureBinder.GetNewCompoundUseSiteInfo(diagnostics);
-                        Conversion c = compilation.Conversions.ClassifyImplicitConversionFromType(parameterType.Type, compilation.GetSpecialType(SpecialType.System_Object), ref useSiteInfo);
-                        diagnostics.Add(typeSyntax, useSiteInfo);
-
-                        if (!SynthesizedUnionCtor.IsValidParameterTypeConversion(c) && !parameterType.Type.IsErrorType())
-                        {
-                            diagnostics.Add(ErrorCode.ERR_NoImplicitConversionToObject, typeSyntax, parameterType.Type);
-                        }
-
-                        var ctor = new SynthesizedUnionCtor(this, typeSyntax.Location, parameterType, memberOffset: --memberOffset);
+                        var ctor = new SynthesizedUnionCtor(this, typeSyntax, parameterType, memberOffset: --memberOffset);
                         members.Add(ctor);
                     }
 

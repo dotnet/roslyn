@@ -52,7 +52,7 @@ internal sealed partial class ProjectSystemProjectFactory : IDisposable
     private readonly Action<Project> _onProjectRemoved;
 
     /// <summary>
-    /// A set of documents that were added by <see cref="ProjectSystemProject.AddSourceTextContainer"/>, and aren't otherwise
+    /// A set of documents that were added by <see cref="ProjectSystemProject.AddVirtualDocument"/>, and aren't otherwise
     /// tracked for opening/closing.
     /// </summary>
     public ImmutableHashSet<DocumentId> DocumentsNotFromFiles { get; private set; } = [];
@@ -79,8 +79,7 @@ internal sealed partial class ProjectSystemProjectFactory : IDisposable
         Workspace workspace,
         IFileChangeWatcher fileChangeWatcher,
         Func<bool, ImmutableArray<string>, Task> onDocumentsAddedMaybeAsync,
-        Action<Project> onProjectRemoved,
-        CancellationToken cancellationToken)
+        Action<Project> onProjectRemoved)
     {
         Workspace = workspace;
         FileChangeWatcher = fileChangeWatcher;
@@ -90,8 +89,8 @@ internal sealed partial class ProjectSystemProjectFactory : IDisposable
 
         WorkspaceListener = this.SolutionServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
 
-        PortableExecutableReferenceFileChangeTracker = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingMetadataReferencesForFileAsync, cancellationToken);
-        AnalyzerReferenceFileChangeTracker = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingAnalyzerReferenceForFileAsync, cancellationToken);
+        PortableExecutableReferenceFileChangeTracker = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingMetadataReferencesForFileAsync);
+        AnalyzerReferenceFileChangeTracker = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingAnalyzerReferenceForFileAsync);
     }
 
     public FileTextLoader CreateFileTextLoader(string fullPath)

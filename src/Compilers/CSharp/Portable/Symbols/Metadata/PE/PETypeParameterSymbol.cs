@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private readonly GenericParameterAttributes _flags;
         private ThreeState _lazyHasIsUnmanagedConstraint;
-        private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
+        private volatile TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
         private ImmutableArray<TypeWithAnnotations> _lazyDeclaredConstraintTypes;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
 
@@ -702,7 +702,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 diagnostics.Free();
 
                 _lazyCachedConstraintsUseSiteInfo.InterlockedInitializeFromSentinel(primaryDependency, useSiteInfo);
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 Interlocked.CompareExchange(ref _lazyBounds, bounds, TypeParameterBounds.Unset);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
 
             Debug.Assert(_lazyCachedConstraintsUseSiteInfo.IsInitialized);

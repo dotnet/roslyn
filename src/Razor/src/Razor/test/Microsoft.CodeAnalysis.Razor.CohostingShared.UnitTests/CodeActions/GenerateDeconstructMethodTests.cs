@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
@@ -44,6 +44,51 @@ public class GenerateDeconstructMethodTests(ITestOutputHelper testOutputHelper) 
             expected,
             PredefinedCodeFixProviderNames.GenerateDeconstructMethod,
             makeDiagnosticsRequest: true);
+    }
+
+    [Fact]
+    public async Task GenerateDeconstructMethod_FromCodeBlock_ExistingCodeBlock_UsesEditorConfig()
+    {
+        var input = """
+            @code
+            {
+                private void M()
+                {
+                    (int x, int y) = [||]this;
+                }
+            }
+            """;
+
+        var expected = """
+            @using System
+            @code
+            {
+                private void M()
+                {
+                    (int x, int y) = this;
+                }
+
+                private void Deconstruct (out int x, out int y)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            """;
+
+        await VerifyCodeActionAsync(
+            input,
+            expected,
+            PredefinedCodeFixProviderNames.GenerateDeconstructMethod,
+            makeDiagnosticsRequest: true,
+            additionalFiles:
+            [
+                (".editorconfig", """
+                    root = true
+
+                    [*.razor]
+                    csharp_space_between_method_declaration_name_and_open_parenthesis = true
+                    """)
+            ]);
     }
 
     [Fact]

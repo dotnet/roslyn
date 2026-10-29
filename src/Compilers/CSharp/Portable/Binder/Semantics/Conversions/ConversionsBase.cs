@@ -2052,14 +2052,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!IsNumericType(source) || !IsNumericType(destination))
             {
-                return ConversionKind.UnsetConversionKind;
+                return ConversionKind.NoConversion;
             }
 
             if (source.SpecialType == destination.SpecialType)
             {
                 // Notice that there is no implicit numeric conversion from a type to itself. That's an
                 // identity conversion.
-                return ConversionKind.UnsetConversionKind;
+                return ConversionKind.NoConversion;
             }
 
             var conversionKind = ConversionEasyOut.ClassifyConversion(source, destination);

@@ -66,6 +66,13 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
 
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+        var containingInvocation = expression.FirstAncestorOrSelf<TInvocationExpressionSyntax>();
+        if (containingInvocation is not null && HasMissingRequiredArguments(
+                document, syntaxFacts, semanticModel, containingInvocation, cancellationToken))
+        {
+            return;
+        }
+
         var expressionType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
         if (expressionType is null or IErrorTypeSymbol)
             return;
@@ -144,6 +151,41 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         // sense to introduce.
         var invalidNode = expression.FirstAncestorOrSelf<SyntaxNode>(node => syntaxFacts.IsAttributeArgument(node) || syntaxFacts.IsParameter(node));
         return invalidNode is null;
+    }
+
+    private static bool HasMissingRequiredArguments(
+        Document document,
+        ISyntaxFactsService syntaxFacts,
+        SemanticModel semanticModel,
+        TInvocationExpressionSyntax invocation,
+        CancellationToken cancellationToken)
+    {
+        if (semanticModel.GetSymbolInfo(invocation, cancellationToken).GetAnySymbol() is not IMethodSymbol method)
+            return false;
+
+        var argumentList = syntaxFacts.GetArgumentListOfInvocationExpression(invocation);
+        if (argumentList is null)
+            return false;
+
+        var semanticFacts = document.GetRequiredLanguageService<ISemanticFactsService>();
+        var arguments = syntaxFacts.GetArgumentsOfArgumentList(argumentList);
+        var suppliedParameters = BitVector.Create(method.Parameters.Length);
+
+        foreach (var argument in arguments)
+        {
+            var argumentParameter = semanticFacts.FindParameterForArgument(
+                semanticModel, argument, allowUncertainCandidates: true, allowParams: true, cancellationToken);
+            if (argumentParameter is not null)
+                suppliedParameters[argumentParameter.Ordinal] = true;
+        }
+
+        foreach (var parameter in method.Parameters)
+        {
+            if (!parameter.IsOptional && !parameter.IsParams && !suppliedParameters[parameter.Ordinal])
+                return true;
+        }
+
+        return false;
     }
 
     /// <summary>

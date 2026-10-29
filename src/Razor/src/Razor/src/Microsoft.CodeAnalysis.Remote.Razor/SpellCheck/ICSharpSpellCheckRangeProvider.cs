@@ -10,5 +10,5 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.SpellCheck;
 
 internal interface ICSharpSpellCheckRangeProvider
 {
-    Task<ImmutableArray<SpellCheckRange>> GetCSharpSpellCheckRangesAsync(RemoteDocumentContext documentContext, CancellationToken cancellationToken);
+    Task<ImmutableArray<SpellCheckRange>> GetCSharpSpellCheckRangesAsync(RemoteDocumentSnapshot documentSnapshot, CancellationToken cancellationToken);
 }

@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
@@ -27,10 +26,9 @@ namespace Microsoft.CodeAnalysis.Copilot;
 [Export(typeof(IWpfTextViewCreationListener))]
 [ContentType(ContentTypeNames.RoslynContentType)]
 [TextViewRole(PredefinedTextViewRoles.Document)]
-internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationListener
+internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationListener, IDisposable
 {
     private readonly IGlobalOptionService _globalOptions;
-    private readonly IThreadingContext _threadingContext;
     private readonly Lazy<SuggestionServiceBase> _suggestionServiceBase;
     private readonly IAsynchronousOperationListener _listener;
 
@@ -42,21 +40,20 @@ internal sealed class CopilotWpfTextViewCreationListener : IWpfTextViewCreationL
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public CopilotWpfTextViewCreationListener(
         IGlobalOptionService globalOptions,
-        IThreadingContext threadingContext,
         Lazy<SuggestionServiceBase> suggestionServiceBase,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
         _globalOptions = globalOptions;
-        _threadingContext = threadingContext;
         _suggestionServiceBase = suggestionServiceBase;
         _listener = listenerProvider.GetListener(FeatureAttribute.CopilotChangeAnalysis);
 
         _completionWorkQueue = new AsyncBatchingWorkQueue<(bool accepted, ProposalBase proposal)>(
             DelayTimeSpan.Idle,
             ProcessCompletionEventsAsync,
-            _listener,
-            _threadingContext.DisposalToken);
+            _listener);
     }
+
+    public void Dispose() => _completionWorkQueue.Dispose();
 
     public void TextViewCreated(IWpfTextView textView)
     {

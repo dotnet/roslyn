@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -90,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // build anonymous type field descriptor
                 fieldSyntaxNodes[i] = (nameToken.Kind() == SyntaxKind.IdentifierToken) ? (CSharpSyntaxNode)nameToken.Parent! : fieldInitializer;
                 fields[i] = new AnonymousTypeField(
-                    fieldName == null ? "$" + i.ToString() : fieldName,
+                    fieldName == null ? "$" + i.ToString(CultureInfo.InvariantCulture) : fieldName,
                     fieldSyntaxNodes[i].Location,
                     TypeWithAnnotations.Create(fieldType),
                     RefKind.None,

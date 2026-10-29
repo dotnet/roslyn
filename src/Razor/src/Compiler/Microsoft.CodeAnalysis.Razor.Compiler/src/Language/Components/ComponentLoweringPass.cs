@@ -70,7 +70,8 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
                 var tagHelper = GetTagHelperOrAddDiagnostic(node, usings);
                 if (tagHelper == null)
                 {
-                    break;
+                    // An ambiguous tag must not prevent unrelated components from being lowered.
+                    continue;
                 }
 
                 reference.Replace(RewriteAsComponent(node, tagHelper));
@@ -650,6 +651,16 @@ internal sealed class ComponentLoweringPass : ComponentIntermediateNodePassBase,
         public override void VisitTagHelperHtmlAttribute(TagHelperHtmlAttributeIntermediateNode node)
         {
             var attribute = new ComponentAttributeIntermediateNode(node);
+
+            if (!node.IsDirectiveAttributeCandidate &&
+                !_component.Component.AcceptsUnmatchedAttributes())
+            {
+                attribute.AddDiagnostic(ComponentDiagnosticFactory.Create_UnknownComponentParameter(
+                    node.AttributeNameSpan,
+                    _component.TagName,
+                    node.AttributeName));
+            }
+
             _children.Add(attribute);
 
             // Since we don't support complex content, we can rewrite the inside of this

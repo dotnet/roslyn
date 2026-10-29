@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 
 [Export(typeof(IProjectCodeModelFactory))]
 [Export(typeof(ProjectCodeModelFactory))]
-internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
+internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory, IDisposable
 {
     private readonly ConcurrentDictionary<ProjectId, ProjectCodeModel> _projectCodeModels = [];
 
@@ -57,11 +57,12 @@ internal sealed class ProjectCodeModelFactory : IProjectCodeModelFactory
         _workspaceChangeEventsToFireEventsFor = new AsyncBatchingWorkQueue<WorkspaceChangeEventArgs>(
             DelayTimeSpan.Idle,
             ProcessNextWorkspaceChangeEventBatchAsync,
-            Listener,
-            threadingContext.DisposalToken);
+            Listener);
 
         _ = _visualStudioWorkspace.RegisterWorkspaceChangedHandler(OnWorkspaceChanged);
     }
+
+    public void Dispose() => _workspaceChangeEventsToFireEventsFor.Dispose();
 
     internal IAsynchronousOperationListener Listener { get; }
 

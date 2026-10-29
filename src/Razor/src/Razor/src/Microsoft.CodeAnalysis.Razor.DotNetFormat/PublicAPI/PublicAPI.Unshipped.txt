@@ -1,0 +1,3 @@
+﻿#nullable enable
+Microsoft.CodeAnalysis.Razor.Formatting.RazorFormatter
+static Microsoft.CodeAnalysis.Razor.Formatting.RazorFormatter.TryFormatAsync(Microsoft.CodeAnalysis.Project! project, Microsoft.CodeAnalysis.DocumentId! documentId, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Text.SourceText?>!

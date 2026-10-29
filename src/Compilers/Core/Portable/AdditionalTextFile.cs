@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Text;
@@ -58,5 +59,8 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="GetText(CancellationToken)"/> has not been called.
         /// </summary>
         internal IList<DiagnosticInfo> Diagnostics => _diagnostics;
+
+        internal Stream OpenRead()
+            => _compiler.FileSystem.OpenFile(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
     }
 }

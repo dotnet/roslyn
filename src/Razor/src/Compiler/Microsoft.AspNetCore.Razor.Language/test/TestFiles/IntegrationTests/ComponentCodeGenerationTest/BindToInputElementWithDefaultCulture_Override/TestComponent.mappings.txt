@@ -13,12 +13,3 @@ Source Location: (131:1,102 [26] x:\dir\subdir\Test\TestComponent.cshtml)
 Generated Location: (1266:38,0 [26] )
 |CultureInfo.CurrentCulture|
 
-Source Location: (170:2,7 [44] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-    public int ParentValue { get; set; }
-|
-Generated Location: (1808:51,0 [44] )
-|
-    public int ParentValue { get; set; }
-|
-

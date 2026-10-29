@@ -1,11 +1,11 @@
-<Project>
+﻿<Project>
 
   <Import Project="Version.Details.props" />
 
   <!-- Roslyn version -->
   <PropertyGroup>
     <MajorVersion>5</MajorVersion>
-    <MinorVersion>11</MinorVersion>
+    <MinorVersion>14</MinorVersion>
     <PatchVersion>0</PatchVersion>
     <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
     <PreReleaseVersionLabel Condition="'$(DotNetSignType)' == 'test'">$(PreReleaseVersionLabel)-test</PreReleaseVersionLabel>
@@ -20,7 +20,7 @@
   <!-- Razor version (used by src/Razor projects and VS insertion) -->
   <PropertyGroup>
     <RazorMajorVersion>11</RazorMajorVersion>
-    <RazorMinorVersion>1</RazorMinorVersion>
+    <RazorMinorVersion>2</RazorMinorVersion>
     <RazorPatchVersion>0</RazorPatchVersion>
     <RazorPreReleaseVersionLabel>preview</RazorPreReleaseVersionLabel>
     <RazorDotNetFinalVersionKind></RazorDotNetFinalVersionKind>
@@ -28,13 +28,27 @@
     <RazorAssemblyVersion>$(RazorMajorVersion).$(RazorMinorVersion).0.0</RazorAssemblyVersion>
   </PropertyGroup>
 
+  <!-- Visual Studio train version (used to version VS components that ship out-of-band from Roslyn/Razor) -->
+  <PropertyGroup>
+    <VsMajorVersion>$([MSBuild]::Add($(MajorVersion), 13))</VsMajorVersion>
+    <VsMinorVersion>$(MinorVersion)</VsMinorVersion>
+  </PropertyGroup>
+
   <!-- Razor tooling version -->
   <PropertyGroup>
-    <RazorVsixVersionPrefix>18.11.1</RazorVsixVersionPrefix>
-    <RazorAddinMajorVersion>18.11</RazorAddinMajorVersion>
+    <RazorVsixPatchVersion>1</RazorVsixPatchVersion>
+    <RazorVsixVersionPrefix>$(VsMajorVersion).$(VsMinorVersion).$(RazorVsixPatchVersion)</RazorVsixVersionPrefix>
+    <RazorAddinMajorVersion>$(VsMajorVersion).$(VsMinorVersion)</RazorAddinMajorVersion>
     <RazorAddinVersion>$(RazorAddinMajorVersion)</RazorAddinVersion>
     <RazorAddinVersion Condition="'$(OfficialBuildId)' != ''">$(RazorAddinVersion).$(OfficialBuildId)</RazorAddinVersion>
     <RazorAddinVersion Condition="'$(OfficialBuildId)' == ''">$(RazorAddinVersion).42424242.42</RazorAddinVersion>
+  </PropertyGroup>
+
+  <!-- EditorConfig components version -->
+  <PropertyGroup>
+    <EditorConfigPatchVersion>0</EditorConfigPatchVersion>
+    <EditorConfigVersionPrefix>$(VsMajorVersion).$(VsMinorVersion).$(EditorConfigPatchVersion)</EditorConfigVersionPrefix>
+    <EditorConfigAssemblyVersion>$(VsMajorVersion).$(VsMinorVersion).0.0</EditorConfigAssemblyVersion>
   </PropertyGroup>
 
   <!--
@@ -48,8 +62,8 @@
     <SystemMemoryVersion>4.6.3</SystemMemoryVersion>
     <SystemNumericsVectorsVersion>4.6.1</SystemNumericsVectorsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.1.2</SystemRuntimeCompilerServicesUnsafeVersion>
-    <SystemSecurityCryptographyPkcsVersion>10.0.8</SystemSecurityCryptographyPkcsVersion>
-    <SystemSecurityCryptographyXmlVersion>10.0.8</SystemSecurityCryptographyXmlVersion>
+    <SystemSecurityCryptographyPkcsVersion>10.0.13</SystemSecurityCryptographyPkcsVersion>
+    <SystemSecurityCryptographyXmlVersion>10.0.13</SystemSecurityCryptographyXmlVersion>
     <SystemThreadingTasksExtensionsVersion>4.6.3</SystemThreadingTasksExtensionsVersion>
     <SystemValueTupleVersion>4.6.2</SystemValueTupleVersion>
   </PropertyGroup>
@@ -59,8 +73,8 @@
     <SystemMemoryVersion>4.6.3</SystemMemoryVersion>
     <SystemNumericsVectorsVersion>4.6.1</SystemNumericsVectorsVersion>
     <SystemRuntimeCompilerServicesUnsafeVersion>6.1.2</SystemRuntimeCompilerServicesUnsafeVersion>
-    <SystemSecurityCryptographyPkcsVersion>10.0.8</SystemSecurityCryptographyPkcsVersion>
-    <SystemSecurityCryptographyXmlVersion>10.0.8</SystemSecurityCryptographyXmlVersion>
+    <SystemSecurityCryptographyPkcsVersion>10.0.13</SystemSecurityCryptographyPkcsVersion>
+    <SystemSecurityCryptographyXmlVersion>10.0.13</SystemSecurityCryptographyXmlVersion>
     <SystemThreadingTasksExtensionsVersion>4.6.3</SystemThreadingTasksExtensionsVersion>
     <SystemValueTupleVersion>4.6.2</SystemValueTupleVersion>
   </PropertyGroup>
@@ -109,7 +123,7 @@
         <!-- Versions for tests and general utility execution. -->
         <!-- This version is for utility and executable assemblies. The version here should not overlap with any of the surface
             area versions. -->
-        <MicrosoftCodeAnalysisVersionForAnalyzerTests>4.12.0</MicrosoftCodeAnalysisVersionForAnalyzerTests>
+        <MicrosoftCodeAnalysisVersionForAnalyzerTests>$(MicrosoftCodeAnalysisPackageVersion)</MicrosoftCodeAnalysisVersionForAnalyzerTests>
         <MicrosoftCodeAnalysisVersionForAnalyzerExecution>4.12.0</MicrosoftCodeAnalysisVersionForAnalyzerExecution>
       </PropertyGroup>
     </When>
@@ -137,7 +151,7 @@
   <!-- Arcade features -->
   <PropertyGroup>
     <UsingToolVSSDK Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</UsingToolVSSDK>
-    <UsingToolPdbConverter>false</UsingToolPdbConverter>
+    <UsingToolPdbConverter>true</UsingToolPdbConverter>
     <UsingToolSymbolUploader>true</UsingToolSymbolUploader>
     <UsingToolNuGetRepack>true</UsingToolNuGetRepack>
     <!-- Avoid attempting IBC on platforms where ngen won't work, or the IBC tooling won't work -->

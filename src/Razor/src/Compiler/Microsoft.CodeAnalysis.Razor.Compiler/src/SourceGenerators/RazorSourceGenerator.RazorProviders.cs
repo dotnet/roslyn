@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
+using Microsoft.AspNetCore.Razor.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -145,9 +146,12 @@ namespace Microsoft.NET.Sdk.Razor.SourceGenerators
 
             options.TryGetValue("build_metadata.AdditionalFiles.CssScope", out var cssScope);
 
+            // FilePath is the logical path for Razor processing, not the document identity.
+            // Preserve the full URI in AdditionalText.Path and RelativePhysicalPath so source mappings,
+            // host-output lookup, and generated hint names still distinguish revisions.
             var projectItem = new SourceGeneratorProjectItem(
                 basePath: "/",
-                filePath: '/' + relativePath
+                filePath: '/' + FileUtilities.AdjustToUsableFilePath(relativePath)
                     .Replace(Path.DirectorySeparatorChar, '/')
                     .Replace("//", "/"),
                 relativePhysicalPath: relativePath,

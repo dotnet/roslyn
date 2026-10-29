@@ -66,5 +66,3 @@
                             FormName - (368:7,57 [1] x:\dir\subdir\Test\TestComponent.cshtml)
                                 HtmlContent - (368:7,57 [1] x:\dir\subdir\Test\TestComponent.cshtml)
                                     LazyIntermediateToken - (368:7,57 [1] x:\dir\subdir\Test\TestComponent.cshtml) - Html - 4
-            CSharpCode - (405:9,7 [68] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (405:9,7 [68] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    [Parameter] public RenderFragment ChildContent { get; set; }\n

@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceType = explicitInterfaceType;
             _name = name;
 
-            this.CheckUnsafeModifier(declarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(declarationModifiers, diagnostics,
+                syntax is BaseMethodDeclarationSyntax methodSyntax ? methodSyntax.Modifiers : default(SyntaxTokenList));
 
             if (isCompoundAssignmentOrIncrementAssignment)
             {
@@ -229,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var result = ModifierUtils.MakeAndCheckNonTypeMemberModifiers(
-                isOrdinaryMethod: false, isForInterfaceMember: inInterface,
+                isForInterfaceMember: inInterface,
                 syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, modifierErrors: out _, hasExplicitAccessModifier: out _);
 
             if (inInterface)

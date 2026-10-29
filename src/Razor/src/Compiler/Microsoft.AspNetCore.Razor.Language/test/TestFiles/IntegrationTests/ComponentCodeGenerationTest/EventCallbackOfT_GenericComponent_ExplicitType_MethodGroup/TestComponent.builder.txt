@@ -1,0 +1,10 @@
+﻿[0000] OpenComponent<global::Test.MyComponent<
+#nullable restore
+#line (1,17)-(1,23) "x:\dir\subdir\Test\TestComponent.cshtml"
+MyType
+
+#line default
+#line hidden
+#nullable disable
+            >>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent<MyType>. OnClick ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::Microsoft.AspNetCore.Components.EventCallback<MyType>>(global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<MyType>(this, Increment )))

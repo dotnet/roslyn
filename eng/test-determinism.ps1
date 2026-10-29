@@ -4,6 +4,7 @@ param([string]$configuration = "Debug",
       [string]$altRootDrive = "q:",
       [string]$bootstrapDir = "",
       [switch]$ci = $false,
+      [switch]$warnAsError = $false,
       [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -15,6 +16,7 @@ function Print-Usage() {
   Write-Host "  -msbuildEngine <value>    Msbuild engine to use to run build ('dotnet', 'vs', or unspecified)."
   Write-Host "  -bootstrapDir             Directory containing the bootstrap compiler"
   Write-Host "  -altRootDrive             The drive we build on (via subst) for verifying pathmap implementation"
+  Write-Host "  -warnAsError              Treat all warnings as errors (default: false)"
 }
 
 if ($help) {
@@ -28,11 +30,12 @@ $script:skipList = @(
   # Added to work around https://github.com/dotnet/roslyn/issues/48417
   "Microsoft.CodeAnalysis.EditorFeatures2.UnitTests.dll",
 
-  # Work around XLF issues https://github.com/dotnet/roslyn/issues/58840
-  "Roslyn.VisualStudio.DiagnosticsWindow.dll.key",
-
   # Work around the same XLF ResXFileRef determinism issue in Razor's VSIX package resources.
   "Microsoft.VisualStudio.RazorExtension.dll.key",
+
+  # The Syntax Visualizer VSPackage.resx uses ResXFileRef, making its debug-determinism
+  # diagnostic key path-dependent even though the DLL is deterministic.
+  "Roslyn.SyntaxVisualizer.Extension.dll.key",
 
   # Work around resx issues https://github.com/dotnet/roslyn/issues/77544
   "Text.Analyzers.dll.key",
@@ -74,7 +77,7 @@ function Run-Build([string]$rootDir, [string]$logFileName) {
      /p:Features="debug-determinism" `
      /p:DeployExtension=false `
      /p:RepoRoot=$rootDir `
-     /p:TreatWarningsAsErrors=true `
+     /p:TreatWarningsAsErrors=$warnAsError `
      /p:BootstrapBuildPath=$bootstrapDir `
      /p:DeterministicSourcePaths=true `
      /p:RunAnalyzers=false `
@@ -299,7 +302,7 @@ try {
   if ($bootstrapDir -eq "") {
     Write-Host "Building bootstrap compiler"
     $bootstrapDir = Join-Path $ArtifactsDir (Join-Path "bootstrap" "determinism")
-    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci -force
+    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci -force -warnAsError:$warnAsError
     Test-LastExitCode
   }
 
@@ -315,4 +318,3 @@ catch {
 finally {
   Pop-Location
 }
-

@@ -83,13 +83,11 @@ internal sealed class CohostRangeFormattingEndpoint(
         var sourceText = await razorDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
         var htmlChanges = htmlEdits.SelectAsArray(sourceText.GetTextChange);
 
-        var csharpSyntaxFormattingOptions = CSharpFormatter.GetCSharpSyntaxFormattingOptions(razorDocument.Project.Solution.Services, csharpSyntaxFormattingOptions: null);
-        var options = RazorFormattingOptions.From(
-            request.Options,
-            _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine,
-            _clientSettingsManager.GetClientSettings().AdvancedSettings.AttributeIndentStyle,
-            csharpSyntaxFormattingOptions,
-            fromPaste);
+        var clientSettings = _clientSettingsManager.GetClientSettings();
+        var options = razorDocument.GetRazorFormattingOptions(clientSettings, request.Options, cancellationToken) with
+        {
+            FromPaste = fromPaste,
+        };
 
         _logger.LogDebug($"Calling OOP with the {htmlChanges.Length} html edits, so it can fill in the rest");
         var remoteResult = await _remoteServiceInvoker.TryInvokeAsync<IRemoteFormattingService, ImmutableArray<TextChange>>(

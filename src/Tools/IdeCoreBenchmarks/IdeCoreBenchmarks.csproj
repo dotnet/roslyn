@@ -21,11 +21,32 @@
     <ExcludeFromBuild Condition="'$(DotNetBuildTests)' == 'false'">true</ExcludeFromBuild>
   </PropertyGroup>
 
+  <!-- The VS DiagnosticsHub adapter requires BenchmarkDotNet 0.15.x, which does not recognize a .NET 11 host.
+       Imports.targets assigns the shared major-roll-forward template after this project is evaluated, so override it just before generation. -->
+  <Target Name="UseIdeCoreBenchmarksRuntimeConfig" BeforeTargets="_GenerateRuntimeConfigurationFilesInputCache" Condition="'$(TargetFramework)' == '$(NetRoslyn)'">
+    <PropertyGroup>
+      <UserRuntimeConfig></UserRuntimeConfig>
+      <RollForward>LatestPatch</RollForward>
+    </PropertyGroup>
+  </Target>
+
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" />
-    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" />
+    <!-- Keep these overrides aligned with the BenchmarkDotNet 0.15 dependency of the VS DiagnosticsHub adapter. -->
+    <PackageReference Include="BenchmarkDotNet" VersionOverride="0.15.8" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" VersionOverride="0.15.8" />
     <PackageReference Include="Microsoft.VisualStudio.DiagnosticsHub.BenchmarkDotNetDiagnosers" />
     <PackageReference Include="Microsoft.VisualStudio.Cache" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- BenchmarkDotNet generates runner projects beneath TargetDir. Give those projects a local package policy
+         so central transitive pinning does not replace this project's BenchmarkDotNet 0.15 override with 0.16. -->
+    <None Include="BenchmarkDotNet.Directory.Packages.props" CopyToOutputDirectory="PreserveNewest" TargetPath="Directory.Packages.props" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+    <!-- Exclude the Index and Range implementations since we inherit ones from M.CA.Workspace -->
+    <PackageReference Include="Microsoft.Bcl.Memory" ExcludeAssets="compile" />
   </ItemGroup>
 
   <ItemGroup>

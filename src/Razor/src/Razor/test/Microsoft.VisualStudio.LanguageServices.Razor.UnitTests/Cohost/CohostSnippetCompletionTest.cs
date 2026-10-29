@@ -5,12 +5,14 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.PooledObjects;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Completion;
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Telemetry;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Xunit;
@@ -80,6 +82,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
             IncompatibleProjectService,
             completionListCache,
             RemoteServiceInvoker,
+            ClientSettingsManager,
             requestInvoker,
             ClientCapabilitiesService,
             snippetCompletionItemProvider,
@@ -98,6 +101,117 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
         Assert.NotNull(resolvedItem);
         Assert.Equal(itemToResolve.Label, resolvedItem.Label);
         Assert.Equal("ResolvedSnippetItem", resolvedItem.InsertText);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/85988")]
+    [InlineData(RazorFileKind.Component, "<$$div></div>", true)]
+    [InlineData(RazorFileKind.Component, "$$", false)]
+    [InlineData(RazorFileKind.Legacy, "<$$div></div>", true)]
+    [InlineData(RazorFileKind.Legacy, "$$", false)]
+    public async Task SnippetResolve_EditableLiteral(RazorFileKind fileKind, string text, bool isStartTagContext)
+    {
+        using var tempRoot = new TempRoot();
+        var snippetFile = tempRoot.CreateFile(extension: ".snippet").WriteAllText(
+            """
+            <CodeSnippets xmlns="http://schemas.microsoft.com/VisualStudio/2005/CodeSnippet">
+              <CodeSnippet Format="1.0.0">
+                <Header>
+                  <Title>Razor field repro</Title>
+                  <Shortcut>div</Shortcut>
+                  <SnippetTypes>
+                    <SnippetType>Expansion</SnippetType>
+                  </SnippetTypes>
+                </Header>
+                <Snippet>
+                  <Declarations>
+                    <Literal>
+                      <ID>message</ID>
+                      <Default>Your changes were saved.</Default>
+                    </Literal>
+                  </Declarations>
+                  <Code Language="HTML"><![CDATA[<div class="alert" role="alert">$message$</div>$end$]]></Code>
+                </Snippet>
+              </CodeSnippet>
+            </CodeSnippets>
+            """);
+
+        var snippetCache = new SnippetCache();
+        snippetCache.Update(SnippetLanguage.Html, [new SnippetInfo("div", "Razor field repro", "", snippetFile.Path, SnippetLanguage.Html)]);
+        var snippetCompletionItemProvider = new SnippetCompletionItemProvider(snippetCache);
+
+        TestCode input = text;
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind);
+        var sourceText = await document.GetTextAsync(DisposalToken);
+
+        const string InvalidLabel = "_INVALID_";
+
+        var response = new RazorVSInternalCompletionList()
+        {
+            Items = [new VSInternalCompletionItem() { Label = InvalidLabel }],
+            IsIncomplete = true
+        };
+
+        var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentCompletionName, response)]);
+
+        var completionListCache = new CompletionListCache();
+        var completionEndpoint = new CohostDocumentCompletionEndpoint(
+            IncompatibleProjectService,
+            RemoteServiceInvoker,
+            ClientSettingsManager,
+            ClientCapabilitiesService,
+            snippetCompletionItemProvider,
+            requestInvoker,
+            completionListCache,
+            NoOpTelemetryReporter.Instance,
+            LoggerFactory);
+
+        var request = new RazorVSInternalCompletionParams()
+        {
+            TextDocument = new TextDocumentIdentifier()
+            {
+                DocumentUri = document.GetURI()
+            },
+            Position = sourceText.GetPosition(input.Position),
+            Context = new VSInternalCompletionContext()
+            {
+                InvokeKind = VSInternalCompletionInvokeKind.Explicit,
+                TriggerKind = CompletionTriggerKind.Invoked
+            }
+        };
+
+        var result = await completionEndpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken);
+
+        Assert.NotNull(result);
+
+        var resolveEndpoint = new CohostDocumentCompletionResolveEndpoint(
+            IncompatibleProjectService,
+            completionListCache,
+            RemoteServiceInvoker,
+            ClientSettingsManager,
+            requestInvoker,
+            ClientCapabilitiesService,
+            snippetCompletionItemProvider,
+            LoggerFactory);
+
+        var itemToResolve = result.Items.Single(item => item.Kind == CompletionItemKind.Snippet);
+
+        // We clone the item first though, to ensure us setting the data doesn't hide a bug in our caching logic, around wrapping" the data.
+        itemToResolve = JsonSerializer.Deserialize<VSInternalCompletionItem>(JsonSerializer.SerializeToElement(itemToResolve, JsonHelpers.JsonSerializerOptions), JsonHelpers.JsonSerializerOptions)!;
+
+        var tdi = resolveEndpoint.GetTestAccessor().GetRazorTextDocumentIdentifier(itemToResolve);
+        Assert.NotNull(tdi);
+        Assert.Equal(document.GetURI(), tdi.DocumentUri);
+
+        var resolvedItem = await resolveEndpoint.GetTestAccessor().HandleRequestAsync(itemToResolve, document, DisposalToken);
+
+        Assert.NotNull(resolvedItem);
+        Assert.Equal(itemToResolve.Label, resolvedItem.Label);
+        Assert.Equal(InsertTextFormat.Snippet, resolvedItem.InsertTextFormat);
+        Assert.True(resolvedItem.VsResolveTextEditOnCommit);
+        Assert.Null(resolvedItem.TextEdit);
+        var expected = """<div class="alert" role="alert">${1:Your changes were saved.}</div>$0""";
+        expected = isStartTagContext ? expected[1..] : expected;
+        Assert.Equal(expected, resolvedItem.InsertText);
     }
 
     [Fact]
@@ -162,6 +276,7 @@ public class CohostSnippetCompletionTest(ITestOutputHelper testOutputHelper) : C
             IncompatibleProjectService,
             completionListCache,
             RemoteServiceInvoker,
+            ClientSettingsManager,
             requestInvoker,
             ClientCapabilitiesService,
             snippetCompletionItemProvider,

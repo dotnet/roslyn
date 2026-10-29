@@ -34,6 +34,21 @@ public class InjectIntermediateNode : ExtensionIntermediateNode
         AcceptExtensionNode<InjectIntermediateNode>(this, visitor);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new InjectIntermediateNode
+        {
+            TypeName = TypeName,
+            TypeSource = TypeSource,
+            MemberName = MemberName,
+            MemberSource = MemberSource,
+            IsMalformed = IsMalformed,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void WriteNode(CodeTarget target, CodeRenderingContext context)
     {
         if (target == null)

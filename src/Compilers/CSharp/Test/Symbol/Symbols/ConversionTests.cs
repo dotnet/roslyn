@@ -7,8 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Basic.Reference.Assemblies;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -765,6 +765,21 @@ public sealed class C
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "C.Test");
             Assert.Equal("System.Int32 C.Test()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void DefaultConversion_AllPropertiesHaveDefaultValues()
+        {
+            var conversion = default(Conversion);
+
+            foreach (var propertyInfo in typeof(Conversion).GetProperties(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var propertyType = propertyInfo.PropertyType;
+                var propertyValue = propertyInfo.GetValue(conversion);
+
+                var defaultValue = propertyType.IsValueType ? Activator.CreateInstance(propertyType) : null;
+                Assert.Equal(defaultValue, propertyValue);
+            }
         }
 
         #region "Diagnostics"

@@ -12,7 +12,9 @@ using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Razor.Cohost;
+#if NETFRAMEWORK
 using Microsoft.CodeAnalysis.Razor.Formatting;
+#endif
 using Microsoft.CodeAnalysis.Razor.Protocol;
 using Microsoft.CodeAnalysis.Razor.Remote;
 using Microsoft.CodeAnalysis.Razor.Settings;
@@ -21,6 +23,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.Formatting;
 
@@ -34,15 +37,22 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         bool inGlobalNamespace = false,
         bool codeBlockBraceOnNextLine = false,
         AttributeIndentStyle attributeIndentStyle = AttributeIndentStyle.AlignWithFirst,
+        bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor = true,
         bool insertSpaces = true,
         int tabSize = 4,
         bool allowDiagnostics = false,
         bool debugAssertsEnabled = true,
         bool validateHtmlFormattedMatchesWebTools = true,
-        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions = null,
-        (string fileName, string contents)[]? additionalFiles = null)
+        (string fileName, string contents)[]? additionalFiles = null,
+        string? documentFilePath = null)
     {
-        var document = CreateProjectAndRazorDocument(input.Text, fileKind, inGlobalNamespace: inGlobalNamespace, additionalFiles: additionalFiles);
+        var document = CreateProjectAndRazorDocument(
+            input.Text,
+            fileKind,
+            documentFilePath,
+            inGlobalNamespace: inGlobalNamespace,
+            additionalFiles: additionalFiles);
+
         if (!allowDiagnostics)
         {
             //TODO: Tests in LanguageServer have extra components that are not present in this project, like Counter, etc.
@@ -51,11 +61,9 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
             //var snapshotManager = OOPExportProvider.GetExportedValue<RemoteSnapshotManager>();
             //var snapshot = snapshotManager.GetSnapshot(document);
             //var codeDocument = await snapshot.GetGeneratedOutputAsync(DisposalToken);
-            //var csharpDocument = codeDocument.GetCSharpDocument();
+            //var csharpDocument = codeDocument.GetImplCSharpDocument();
             //Assert.False(csharpDocument.Diagnostics.Any(), "Error creating document:" + Environment.NewLine + string.Join(Environment.NewLine, csharpDocument.Diagnostics));
         }
-
-        csharpSyntaxFormattingOptions ??= CSharpSyntaxFormattingOptions.Default;
 
         var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
         var accessor = formattingService.GetTestAccessor();
@@ -94,7 +102,16 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
             ? spans.First()
             : default;
 
-        var edits = await GetFormattingEditsAsync(document, htmlEdits, span, codeBlockBraceOnNextLine, attributeIndentStyle, insertSpaces, tabSize, csharpSyntaxFormattingOptions);
+        var edits = await GetFormattingEditsAsync(
+            document,
+            htmlEdits,
+            span,
+            codeBlockBraceOnNextLine,
+            attributeIndentStyle,
+            insertSpaces,
+            tabSize,
+            csharpSyntaxFormattingOptions: null,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor);
 
         if (edits is null)
         {
@@ -109,7 +126,16 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         AssertEx.EqualOrDiff(expected, finalText.ToString());
     }
 
-    private protected async Task<TextEdit[]?> GetFormattingEditsAsync(TextDocument document, TextEdit[]? htmlEdits, TextSpan span, bool codeBlockBraceOnNextLine, AttributeIndentStyle attributeIndentStyle, bool insertSpaces, int tabSize, CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+    private protected async Task<TextEdit[]?> GetFormattingEditsAsync(
+        TextDocument document,
+        TextEdit[]? htmlEdits,
+        TextSpan span,
+        bool codeBlockBraceOnNextLine,
+        AttributeIndentStyle attributeIndentStyle,
+        bool insertSpaces,
+        int tabSize,
+        CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions,
+        bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor)
     {
         var requestInvoker = new TestHtmlRequestInvoker([(Methods.TextDocumentFormattingName, htmlEdits)]);
 
@@ -117,6 +143,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
         {
             CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
             AttributeIndentStyle = attributeIndentStyle,
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = ignoreIndentationInScriptOrStyleBlocksWithComplexRazor,
         });
 
         var edits = await GetFormattingEditsInternalAsync(span, insertSpaces, tabSize, document, requestInvoker, ClientSettingsManager, csharpSyntaxFormattingOptions);
@@ -130,7 +157,7 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
        TextDocument document,
        IHtmlRequestInvoker requestInvoker,
        IClientSettingsManager clientSettingsManager,
-       CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
+       CSharpSyntaxFormattingOptions? csharpSyntaxFormattingOptions)
     {
         if (span.IsEmpty)
         {
@@ -145,7 +172,9 @@ public abstract class DocumentFormattingTestBase(ITestOutputHelper testOutputHel
                 }
             };
 
-            return await endpoint.GetTestAccessor().HandleRequestAsync(request, document, csharpSyntaxFormattingOptions, DisposalToken);
+            return csharpSyntaxFormattingOptions is null
+                ? await endpoint.GetTestAccessor().HandleRequestAsync(request, document, DisposalToken)
+                : await endpoint.GetTestAccessor().HandleRequestAsync(request, document, csharpSyntaxFormattingOptions, DisposalToken);
         }
 
         var inputText = await document.GetTextAsync(DisposalToken);

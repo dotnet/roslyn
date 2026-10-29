@@ -40,20 +40,6 @@ ValueChanged
             __builder.CloseElement();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(10,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    public string ParentValue { get; set; } = "hi";
-
-    Task ValueChanged(string value)
-    {
-        return Task.CompletedTask;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

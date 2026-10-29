@@ -17,5 +17,6 @@ public enum TagHelperKind : byte
     Ref,
     Splat,
     FormName,
-    RenderMode // Last component kind. If another is added, update TagHelperKindExtensions.IsAnyComponentKind.
+    RenderMode,
+    AssetPath // Last component kind. If another is added, update TagHelperKindExtensions.IsAnyComponentKind.
 }

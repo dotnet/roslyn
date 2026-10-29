@@ -1335,7 +1335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private ReadOnly Property ISymbol_RequiresUnsafe As Boolean Implements ISymbol.RequiresUnsafe
+        Private ReadOnly Property ISymbol_RequiresUnsafeContext As Boolean Implements ISymbol.RequiresUnsafeContext
             Get
                 Return False
             End Get

@@ -7,6 +7,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer.FileBasedPrograms;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -153,6 +154,81 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         AssertSequenceEqualAndStable([app2File.Path], () => discovery.FindEntryPoints(tempDir.Path));
     }
 
+    [ConditionalFact(typeof(UnixLikeOnly))]
+    public async Task TestDiscovery_DirectorySymlinks()
+    {
+        // Two links back to an ancestor would make the number of reachable paths grow exponentially with depth.
+        // Directory links are not followed, so each directory is visited only by its direct path, and directories reachable only through a link are not visited.
+        // tempDir/
+        //   a/
+        //     linkToShared -> tempDir/shared
+        //   shared/
+        //     Shared.cs
+        //   sub/
+        //     App.cs
+        //     loop1 -> tempDir
+        //     loop2 -> tempDir
+        //   linkToOther -> otherDir
+        // otherDir/
+        //   Other.cs
+
+        var tempDir = _tempRoot.CreateDirectory();
+        var appText = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World");
+            """;
+        var subDir = tempDir.CreateDirectory("sub");
+        var appFile = subDir.CreateFile("App.cs").WriteAllText(appText);
+        Directory.CreateSymbolicLink(Path.Combine(subDir.Path, "loop1"), tempDir.Path);
+        Directory.CreateSymbolicLink(Path.Combine(subDir.Path, "loop2"), tempDir.Path);
+
+        var sharedDir = tempDir.CreateDirectory("shared");
+        var sharedFile = sharedDir.CreateFile("Shared.cs").WriteAllText(appText);
+        Directory.CreateSymbolicLink(Path.Combine(tempDir.CreateDirectory("a").Path, "linkToShared"), sharedDir.Path);
+
+        var otherDir = _tempRoot.CreateDirectory();
+        otherDir.CreateFile("Other.cs").WriteAllText(appText);
+        Directory.CreateSymbolicLink(Path.Combine(tempDir.Path, "linkToOther"), otherDir.Path);
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertSequenceEqualAndStable([sharedFile.Path, appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
+    }
+
+    [ConditionalFact(typeof(UnixLikeOnly))]
+    public async Task TestDiscovery_DirectorySymlinkTargetsThroughSymlinks()
+    {
+        // Each link in 'folder' leads back to 'folder' through another link, under a new path each time ('link2/folder', 'link2/link2/folder', ...).
+        // With three such links, the number of those paths would grow exponentially with depth. Directory links are not followed, so only 'folder' itself is visited.
+        // tempDir/
+        //   folder/
+        //     App.cs
+        //     link1 -> ../link2/folder
+        //     link3 -> ../link5/folder
+        //     link4 -> ../link6/folder
+        //   link2 -> .
+        //   link5 -> .
+        //   link6 -> .
+
+        var tempDir = _tempRoot.CreateDirectory();
+        var folder = tempDir.CreateDirectory("folder");
+        var appFile = folder.CreateFile("App.cs").WriteAllText("""
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World");
+            """);
+        foreach (var (link, rootLink) in new[] { ("link1", "link2"), ("link3", "link5"), ("link4", "link6") })
+        {
+            Directory.CreateSymbolicLink(Path.Combine(tempDir.Path, rootLink), ".");
+            Directory.CreateSymbolicLink(Path.Combine(folder.Path, link), Path.Combine("..", rootLink, "folder"));
+        }
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertSequenceEqualAndStable([appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
+    }
+
     [Fact]
     public async Task TestDiscovery_DotPrefixedFolders()
     {
@@ -276,9 +352,44 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         DeferDeleteCacheDirectory(testLspServer, tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        await discovery.FindAndLoadEntryPointsAsync();
+        await discovery.FindAndLoadEntryPointsAsync(CancellationToken.None);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
         var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
+        Assert.Equal(WorkspaceKind.Host, workspace.Kind);
+        Assert.NotNull(document);
+    }
+
+    [Fact]
+    public async Task TestDiscovery_WorkspaceFoldersChangedRefreshes()
+    {
+        var removedWorkspace = _tempRoot.CreateDirectory();
+        var addedWorkspace = _tempRoot.CreateDirectory();
+
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace: false, new InitializationOptions
+        {
+            ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer,
+            OptionUpdater = options => options.SetGlobalOption(LanguageServerProjectSystemOptionsStorage.EnableFileBasedPrograms, true),
+            WorkspaceFolders =
+            [
+                new() { DocumentUri = CreateAbsoluteDocumentUri(removedWorkspace.Path), Name = "removed" }
+            ]
+        });
+        DeferDeleteCacheDirectory(testLspServer, removedWorkspace.Path);
+        DeferDeleteCacheDirectory(testLspServer, addedWorkspace.Path);
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        var appText = "#!/usr/bin/env dotnet";
+        var removedApp = removedWorkspace.CreateFile("Removed.cs").WriteAllText(appText);
+        var addedApp = addedWorkspace.CreateFile("Added.cs").WriteAllText(appText);
+        var workspaceFolderTracker = testLspServer.GetRequiredLspService<IWorkspaceFolderTracker>();
+        workspaceFolderTracker.Update(
+            [new() { DocumentUri = CreateAbsoluteDocumentUri(addedWorkspace.Path), Name = "added" }],
+            [new() { DocumentUri = CreateAbsoluteDocumentUri(removedWorkspace.Path), Name = "removed" }]);
+
+        await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
+
+        AssertDocumentNotPersisted(testLspServer, CreateAbsoluteDocumentUri(removedApp.Path));
+        var (workspace, document) = await GetRequiredLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(addedApp.Path), testLspServer);
         Assert.Equal(WorkspaceKind.Host, workspace.Kind);
         Assert.NotNull(document);
     }
@@ -309,11 +420,9 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         DeferDeleteCacheDirectory(testLspServer, tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        await discovery.FindAndLoadEntryPointsAsync();
+        await discovery.FindAndLoadEntryPointsAsync(CancellationToken.None);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        AssertDocumentNotPersisted(testLspServer, CreateAbsoluteDocumentUri(appFile.Path));
     }
 
     [Fact]
@@ -333,11 +442,9 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
 
         var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
-        await discovery.FindAndLoadEntryPointsAsync();
+        await discovery.FindAndLoadEntryPointsAsync(CancellationToken.None);
         await testLspServer.TestWorkspace.GetService<AsynchronousOperationListenerProvider>().GetWaiter(FeatureAttribute.Workspace).ExpeditedWaitAsync();
-        var (workspace, document) = await GetLspWorkspaceAndDocumentAsync(CreateAbsoluteDocumentUri(appFile.Path), testLspServer);
-        Assert.Null(workspace);
-        Assert.Null(document);
+        AssertDocumentNotPersisted(testLspServer, CreateAbsoluteDocumentUri(appFile.Path));
     }
 
     [Fact]
@@ -378,10 +485,17 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         return testLspServer;
     }
 
+    private static void AssertDocumentNotPersisted(TestLspServer testLspServer, DocumentUri documentUri)
+    {
+        var workspaceFactory = testLspServer.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        Assert.Empty(workspaceFactory.HostWorkspace.CurrentSolution.GetDocumentIds(documentUri));
+        Assert.Empty(workspaceFactory.MiscellaneousFilesWorkspaceProjectFactory.Workspace.CurrentSolution.GetDocumentIds(documentUri));
+    }
+
     private static async Task<(Workspace? workspace, Document? document)> GetLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)
     {
-        var (workspace, _, document) = await testLspServer.GetManager().GetLspDocumentInfoAsync(CreateTextDocumentIdentifier(uri), CancellationToken.None).ConfigureAwait(false);
-        return (workspace, document as Document);
+        var context = await testLspServer.CaptureLspDocumentContextAsync(CreateTextDocumentIdentifier(uri)).ConfigureAwait(false);
+        return (context?.Workspace, context?.Document as Document);
     }
 
     private static async Task<(Workspace workspace, Document document)> GetRequiredLspWorkspaceAndDocumentAsync(DocumentUri uri, TestLspServer testLspServer)

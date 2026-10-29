@@ -2052,6 +2052,57 @@ ref scoped int c;
             EOF();
         }
 
+        [Fact]
+        public void RefBeforeTopLevelFieldModifier()
+        {
+            const string source = "ref public int F;";
+            UsingTree(
+                source,
+                // (1,5): error CS1031: Type expected
+                // ref public int F;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "public").WithLocation(1, 5));
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.IncompleteMember);
+                {
+                    N(SyntaxKind.RefType);
+                    {
+                        N(SyntaxKind.RefKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                }
+                N(SyntaxKind.FieldDeclaration);
+                {
+                    N(SyntaxKind.PublicKeyword);
+                    N(SyntaxKind.VariableDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.IntKeyword);
+                        }
+                        N(SyntaxKind.VariableDeclarator);
+                        {
+                            N(SyntaxKind.IdentifierToken, "F");
+                        }
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,5): error CS1031: Type expected
+                // ref public int F;
+                Diagnostic(ErrorCode.ERR_TypeExpected, "public").WithLocation(1, 5),
+                // (1,16): error CS9348: A compilation unit cannot directly contain members such as fields, methods or properties
+                // ref public int F;
+                Diagnostic(ErrorCode.ERR_CompilationUnitUnexpected, "F").WithLocation(1, 16));
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]

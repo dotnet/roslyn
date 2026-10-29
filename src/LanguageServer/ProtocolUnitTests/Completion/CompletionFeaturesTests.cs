@@ -544,8 +544,9 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
         Assert.NotNull(completionResult.ItemDefaults.CommitCharacters);
 
         var actualItem = completionResult.Items.First(i => i.Label == "ObsoleteType");
+        var expectedSortText = $"{Array.IndexOf(completionResult.Items, actualItem):D4}";
         Assert.Null(actualItem.LabelDetails);
-        Assert.Equal("0000", actualItem.SortText);
+        Assert.Equal(expectedSortText, actualItem.SortText);
         Assert.Equal(CompletionItemKind.Class, actualItem.Kind);
         Assert.Equal([CompletionItemTag.Deprecated], actualItem.Tags);
         Assert.Null(actualItem.FilterText);
@@ -562,7 +563,7 @@ public sealed class CompletionFeaturesTests : AbstractLanguageServerProtocolTest
 
         var resolvedItem = await testLspServer.ExecuteRequestAsync<LSP.CompletionItem, LSP.CompletionItem>(LSP.Methods.TextDocumentCompletionResolveName, actualItem, CancellationToken.None).ConfigureAwait(false);
         Assert.Null(resolvedItem.LabelDetails);
-        Assert.Equal("0000", actualItem.SortText);
+        Assert.Equal(expectedSortText, resolvedItem.SortText);
         Assert.Equal(CompletionItemKind.Class, resolvedItem.Kind);
         Assert.Equal([CompletionItemTag.Deprecated], resolvedItem.Tags);
 

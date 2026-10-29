@@ -81,9 +81,7 @@ internal static class CompilationExtensions
         }
 
         var conversion = compilation.ClassifyConversion(source: stringType, destination: type);
-#pragma warning disable RSEXPERIMENTAL006 // Conversion.IsUnion is a preview language feature API.
         return conversion.IsImplicit && conversion.IsUnion;
-#pragma warning restore RSEXPERIMENTAL006
     }
 
     /// <summary>

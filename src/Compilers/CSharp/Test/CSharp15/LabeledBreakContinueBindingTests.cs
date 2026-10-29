@@ -1205,7 +1205,7 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
     #region Language version gating
 
     [Fact]
-    public void Break_CSharp14_FeatureInPreview()
+    public void Break_CSharp14_FeatureNotAvailable()
     {
         var source = """
             class C
@@ -1218,13 +1218,13 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             }
             """;
         CreateCompilation(source, parseOptions: s_optionsCSharp14).VerifyDiagnostics(
-            // (6,19): error CS8652: The feature 'labeled break and continue' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (6,19): error CS9327: Feature 'labeled break and continue' is not available in C# 14.0. Please use language version 15.0 or greater.
             //             break outer;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "outer").WithArguments("labeled break and continue").WithLocation(6, 19));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "outer").WithArguments("labeled break and continue", "15.0").WithLocation(6, 19));
     }
 
     [Fact]
-    public void Continue_CSharp14_FeatureInPreview()
+    public void Continue_CSharp14_FeatureNotAvailable()
     {
         var source = """
             class C
@@ -1243,9 +1243,9 @@ public sealed class LabeledBreakContinueBindingTests : CSharpTestBase
             // (7,37): warning CS0162: Unreachable code detected
             //             for (int j = 0; j < 10; j++)
             Diagnostic(ErrorCode.WRN_UnreachableCode, "j").WithLocation(7, 37),
-            // (8,26): error CS8652: The feature 'labeled break and continue' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (8,26): error CS9327: Feature 'labeled break and continue' is not available in C# 14.0. Please use language version 15.0 or greater.
             //                 continue outer;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "outer").WithArguments("labeled break and continue").WithLocation(8, 26));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "outer").WithArguments("labeled break and continue", "15.0").WithLocation(8, 26));
     }
 
     #endregion

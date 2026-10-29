@@ -9,5 +9,3 @@
         ClassDeclaration -  - public partial - TestComponent - global::Microsoft.AspNetCore.Components.ComponentBase - 
             MethodDeclaration -  - protected override - void - BuildRenderTree
                 MarkupBlock -  - <input @onCLICK="OnClick">
-            CSharpCode - (81:2,7 [47] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (81:2,7 [47] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    void OnClick(MouseEventArgs e) {\n    }\n

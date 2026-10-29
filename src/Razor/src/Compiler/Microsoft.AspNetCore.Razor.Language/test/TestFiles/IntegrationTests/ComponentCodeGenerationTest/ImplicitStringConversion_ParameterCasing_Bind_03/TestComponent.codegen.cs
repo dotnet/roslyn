@@ -31,16 +31,6 @@ s
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(6,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private string s = "abc";
-    private void Changed(string s) { }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

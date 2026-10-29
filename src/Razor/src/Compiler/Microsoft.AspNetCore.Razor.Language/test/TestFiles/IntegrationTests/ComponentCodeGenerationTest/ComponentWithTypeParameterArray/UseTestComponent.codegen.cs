@@ -62,18 +62,6 @@ __builder2.AddContent(6, context[0].description
             );
         }
         #pragma warning restore 1998
-#nullable restore
-#line (6,8)-(11,1) "x:\dir\subdir\Test\UseTestComponent.cshtml"
-
-    static Tag tag = new Tag() { description = "A description."};
-    Tag[] items1 = new [] { tag };
-    List<Tag[]> items2 = new List<Tag[]>() { new [] { tag } };
-    Tag[] items3() => new [] { tag };
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.UseTestComponent

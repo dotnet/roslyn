@@ -31,7 +31,8 @@ internal sealed class NonMutatingRequestHandler : ILspServiceRequestHandler<Test
     {
         var response = new TestResponse();
 
-        response.ContextHasSolution = context.Solution != null;
+        _ = await context.GetRequiredSolutionAsync(cancellationToken).ConfigureAwait(false);
+        response.ContextHasSolution = true;
         response.StartTime = DateTime.UtcNow;
 
         await Task.Delay(Delay, cancellationToken).ConfigureAwait(false);

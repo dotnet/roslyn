@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -24,6 +23,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Threading;
+using Microsoft.CodeAnalysis.Workspaces.AnalyzerRedirecting;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Workspaces.ProjectSystem.ProjectSystemProjectFactory;
 
@@ -115,7 +115,6 @@ internal sealed partial class ProjectSystemProject
     private readonly BatchingDocumentCollection _analyzerConfigFiles;
 
     private readonly AsyncBatchingWorkQueue<string> _fileChangesToProcess;
-    private readonly CancellationTokenSource _asynchronousFileChangeProcessingCancellationTokenSource = new();
 
     public ProjectId Id { get; }
     public string Language { get; }
@@ -164,8 +163,7 @@ internal sealed partial class ProjectSystemProject
             TimeSpan.FromMilliseconds(200), // 200 chosen with absolutely no evidence whatsoever
             ProcessFileChangesAsync,
             StringComparer.Ordinal,
-            _projectSystemProjectFactory.WorkspaceListener,
-            _asynchronousFileChangeProcessingCancellationTokenSource.Token);
+            _projectSystemProjectFactory.WorkspaceListener);
 
         _assemblyName = assemblyName;
         _compilationOptions = compilationOptions;
@@ -826,23 +824,25 @@ internal sealed partial class ProjectSystemProject
         => _sourceFiles.AddFile(fullPath, sourceCodeKind, folders);
 
     /// <summary>
-    /// Adds a source file to the project from a text container (eg, a Visual Studio Text buffer)
+    /// Adds a source file to the project from a text container (eg, a Visual Studio Text buffer or LSP virtual file)
     /// </summary>
     /// <param name="textContainer">The text container that contains this file.</param>
     /// <param name="fullPath">The file path of the document.</param>
+    /// <param name="openDocument">Whether to open the document in the editor if applicable.</param>
     /// <param name="sourceCodeKind">The kind of the source code.</param>
     /// <param name="folders">The names of the logical nested folders the document is contained in.</param>
     /// <param name="designTimeOnly">Whether the document is used only for design time (eg. completion) or also included in a compilation.</param>
     /// <param name="documentServiceProvider">A <see cref="IDocumentServiceProvider"/> associated with this document</param>
-    public DocumentId AddSourceTextContainer(
+    public DocumentId AddVirtualDocument(
         SourceTextContainer textContainer,
         string fullPath,
+        bool openDocument,
         SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
         ImmutableArray<string> folders = default,
         bool designTimeOnly = false,
         IDocumentServiceProvider? documentServiceProvider = null)
     {
-        return _sourceFiles.AddTextContainer(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, documentServiceProvider);
+        return _sourceFiles.AddVirtualDocument(textContainer, fullPath, sourceCodeKind, folders, designTimeOnly, openDocument, documentServiceProvider);
     }
 
     public bool ContainsSourceFile(string fullPath)
@@ -851,8 +851,8 @@ internal sealed partial class ProjectSystemProject
     public void RemoveSourceFile(string fullPath)
         => _sourceFiles.RemoveFile(fullPath);
 
-    public void RemoveSourceTextContainer(SourceTextContainer textContainer)
-        => _sourceFiles.RemoveTextContainer(textContainer);
+    public void RemoveVirtualDocument(DocumentId documentId)
+        => _sourceFiles.RemoveVirtualDocument(documentId);
 
     #endregion
 
@@ -998,34 +998,8 @@ internal sealed partial class ProjectSystemProject
     }
 
     private string? TryRedirectAnalyzerAssembly(string fullPath)
-    {
-        string? redirectedPath = null;
-
-        foreach (var redirector in _hostInfo.AnalyzerAssemblyRedirectors)
-        {
-            try
-            {
-                if (redirector.RedirectPath(fullPath) is { } currentlyRedirectedPath)
-                {
-                    if (redirectedPath == null)
-                    {
-                        redirectedPath = currentlyRedirectedPath;
-                        CodeAnalysisEventSource.Log.AnanlyzerReferenceRedirected(redirector.GetType().Name, fullPath, redirectedPath, DisplayName);
-                    }
-                    else if (redirectedPath != currentlyRedirectedPath)
-                    {
-                        throw new InvalidOperationException($"Multiple redirectors disagree on the path to redirect '{fullPath}' to ('{redirectedPath}' vs '{currentlyRedirectedPath}').");
-                    }
-                }
-            }
-            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.General))
-            {
-                // Ignore if the external redirector throws.
-            }
-        }
-
-        return redirectedPath;
-    }
+        => AnalyzerAssemblyRedirectorUtilities.TryRedirectAnalyzerAssembly(
+            fullPath, _hostInfo.AnalyzerAssemblyRedirectors, logProjectName: DisplayName);
 
     private static readonly string s_csharpCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "cs");
     private static readonly string s_visualBasicCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "vb");
@@ -1044,9 +1018,9 @@ internal sealed partial class ProjectSystemProject
 
     #endregion
 
-    private void DocumentFileChangeContext_FileChanged(object? sender, string fullFilePath)
+    private void DocumentFileChangeContext_FileChanged(object? sender, FileChangedEventArgs e)
     {
-        _fileChangesToProcess.AddWork(fullFilePath);
+        _fileChangesToProcess.AddWork(e.FilePath);
     }
 
     private async ValueTask ProcessFileChangesAsync(ImmutableSegmentedList<string> filePaths, CancellationToken cancellationToken)
@@ -1223,7 +1197,7 @@ internal sealed partial class ProjectSystemProject
                 throw new InvalidOperationException("The project has already been removed.");
             }
 
-            _asynchronousFileChangeProcessingCancellationTokenSource.Cancel();
+            _fileChangesToProcess.Dispose();
         }
 
         _documentFileChangeContext.FileChanged -= DocumentFileChangeContext_FileChanged;

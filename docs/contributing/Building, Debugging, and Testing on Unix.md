@@ -12,13 +12,19 @@ Particularly for developers who aren't experienced with .NET Core development on
 1. Install [VS Code](https://code.visualstudio.com/Download)
     - After you install VS Code, install the [C# extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp)
     - Important tip: You can look up editor commands by name by hitting *Ctrl+Shift+P*, or by hitting *Ctrl+P* and typing a `>` character. This will help you get familiar with editor commands mentioned below. On a Mac, use *⌘* instead of *Ctrl*.
-1. Install the [.NET 10.0 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) which matches the `sdk.version` property in [global.json](../../global.json#L3)
+1. Install the [.NET SDK](https://dotnet.microsoft.com/en-us/download/dotnet) which matches the `sdk.version` property in [global.json](../../global.json)
 3. You can build from VS Code by running the *Run Build Task* command, then selecting an appropriate task such as *build* or *build current project* (the latter builds the containing project for the current file you're viewing in the editor).
 4. You can run tests from VS Code by opening a test class in the editor, then using the *Run Tests in Context* and *Debug Tests in Context* editor commands. You may want to bind these commands to keyboard shortcuts that match their Visual Studio equivalents (**Ctrl+R, T** for *Run Tests in Context* and **Ctrl+R, Ctrl+T** for *Debug Tests in Context*).
 5. You can launch a new VS Code instance with the language server from your current code by running the "launch vscode with language server" task.
 
 ## Running Tests
-The unit tests can be executed by running `./build.sh --test`.
+After building, the unit tests can be executed by running `./test.sh`, which runs the already-built test assemblies via `src/Tools/RunTests`.
+
+For a combined build and test run, use `./build.sh --test`, `./build.sh --testSet:compiler`, `./build.sh --testKind:ioperation`, or `./build.sh --testFramework:core` (single-hyphen spellings are also accepted). Each test option independently requests testing. These shortcuts forward the build configuration and any supplied set, kind, and framework values to RunTests; RunTests selects and validates the tests. For example, `./build.sh --configuration Release --testSet:compiler --testFramework:core --testKind:usedassemblies` builds and tests Release compiler binaries with used-assembly validation. Direct calls to `./eng/build.sh` use already-built binaries unless `--build` is also specified.
+
+Repeat `--testFramework:<name>` to forward multiple framework selections, for example `--testFramework:core --testFramework:desktop`; do not combine them into a comma-separated value. RunTests determines which frameworks are supported on the current platform.
+
+Pass other test options to `test.sh`. For example, `./test.sh --testFramework:core --testConfiguration Release --testSet:compiler` tests the Release compiler binaries. Use `--testKind:ioperation`, `--testKind:runtimeasync --testFramework:core`, or `--testKind:usedassemblies` for additional validation, and `--env:KEY=VALUE` to set an environment variable in test processes. Runtime-async validation requires Core-only selection; the default selection includes desktop and is rejected. Run `./test.sh --help` for all options.
 
 To run all tests in a single project, it's recommended to use the `dotnet test path/to/project` command.
 
@@ -111,3 +117,9 @@ Make sure to install the following via `apt install`
 - lldb
 - cmake
 - xrdp
+
+
+## Troubleshooting
+
+See the [Troubleshooting section](Building,%20Debugging,%20and%20Testing%20on%20Windows.md#troubleshooting)
+in the Windows doc, which is not Windows-specific (use `rm -rf` in place of `Remove-Item`).

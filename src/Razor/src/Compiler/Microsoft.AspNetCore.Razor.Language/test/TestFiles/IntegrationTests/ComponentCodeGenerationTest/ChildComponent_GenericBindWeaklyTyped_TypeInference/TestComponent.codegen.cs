@@ -36,15 +36,6 @@ Value
             , 3, global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, __value => Value = __value, Value));
         }
         #pragma warning restore 1998
-#nullable restore
-#line (2,8)-(4,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    string Value;
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 namespace __Blazor.Test.TestComponent

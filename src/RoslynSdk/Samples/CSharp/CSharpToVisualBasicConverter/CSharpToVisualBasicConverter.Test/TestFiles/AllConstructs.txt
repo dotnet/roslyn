@@ -1,0 +1,707 @@
+﻿' '#error Error message' could not be converted to a StatementSyntax
+' '#warning Warning message' could not be converted to a StatementSyntax
+' '#pragma warning disable 414, 3021' could not be converted to a StatementSyntax
+' '#pragma warning restore 3021' could not be converted to a StatementSyntax
+' '#line 6' could not be converted to a StatementSyntax
+' '#line 2 "test.cs"' could not be converted to a StatementSyntax
+' '#line default' could not be converted to a StatementSyntax
+' '#line hidden' could not be converted to a StatementSyntax
+' '#define foo' could not be converted to a StatementSyntax
+#If foo
+#Else
+#End If
+' '#undef foo' could not be converted to a StatementSyntax
+' 'extern alias Foo;' could not be converted to a ImportsStatementSyntax
+
+Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Linq.Expressions
+Imports System.Text
+Imports M = System.Math
+#If DEBUG OrElse TRACE
+using System.Diagnostics;
+#ElseIf SILVERLIGHT
+using System.Diagnostics;
+#Else
+Imports System.Diagnostics
+#End If
+#Region
+#Region
+Imports ConsoleApplication2.Test
+#End Region
+Imports X = int1
+Imports X = ABC.X(Of Integer)
+
+<Assembly:System.Copyright("(C) 2009")>
+<Module:System.Copyright("\n\t\u0123(C) 2009" + "\u0123")>
+Class TopLevelType
+    Implements IDisposable
+
+    ''' <summary>
+    ''' This is the dispose implementation.
+    ''' </summary>
+    Public Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+
+    ''' <summary>
+    ''' This is a function with a parameter
+    ''' </summary>
+    ''' <param name="s">s is a string</param>
+    ''' <returns></returns>
+    Public Function F1(s As String) As [boolean]
+    End Function
+End Class
+
+Namespace My
+
+    Interface CoContra(Of Out T, In K)
+
+    End Interface
+
+    Delegate Sub CoContra2(Of Out T, In K)()
+
+    Public unsafe Partial Class A
+        Inherits C
+        Implements I
+
+        <Obsolete>
+        Public Sub New(<Obsolete> foo As Integer)
+            MyBase.New(1)
+L
+#If DEBUG
+      Console.WriteLine(export.iefSupplied.command);
+#End If
+            Const local As Integer? = Integer.MaxValue
+            Const local0 As Guid? = New Guid(r.ToString())
+            Dim привет = local
+            Dim мир = local
+            Dim local3 = 0, local4 = 1
+            local3 = "'local4=1' could not be converted to a ExpressionSyntax"
+            Dim local5 = If(TryCast(Nothing, Action), Nothing)
+            Dim local6 = TypeOf local5 Is Action
+            Dim u = 1u
+            Dim U = 1U
+            Dim hex As Long = &HBADC0DE, Hex As Long = &HDEADBEEF, l As Long = -1L, L As Long = 1L, l2 As Long = 2l
+            Dim ul As ULong = 1ul, Ul As ULong = 1Ul, uL As ULong = 1uL, UL As ULong = 1UL, lu As ULong = 1lu, Lu As ULong = 1Lu, lU As ULong = 1lU, LU As ULong = 1LU
+            Dim bool As Boolean
+            Dim [byte] As Byte
+            Dim [char] As Char = "c"c, f As Char = "\u0066"c, hexchar As Char = "\x0130"c, hexchar2 As Char = DirectCast(&HBAD, Char)
+            Dim e As String = "\U00000065"
+            Dim [decimal] As Decimal = 1.44M
+            Dim dynamic As dynamic
+            Dim [double] As Double = M.PI
+            Dim float As Single = 1.2f
+            Dim int As Integer = If(local, -1)
+            Dim [long] As Long
+            Dim [object] As Object
+            Dim [sbyte] As SByte
+            Dim [short] As Short
+            Dim [string] As String = """/*"
+            Dim uint As UInteger
+            Dim [ulong] As ULong
+            Dim [ushort] As UShort
+            Dim dynamic As dynamic = local5
+            Dim add = 0
+            Dim ascending = 0
+            Dim descending = 0
+            Dim from = 0
+            Dim [get] = 0
+            Dim [global] = 0
+            Dim group = 0
+            Dim into = 0
+            Dim join = 0
+            Dim [let] = 0
+            Dim orderby = 0
+            Dim [partial] = 0
+            Dim remove = 0
+            Dim [select] = 0
+            Dim [set] = 0
+            Dim value = 0
+            Dim var = 0
+            Dim where = 0
+            Dim yield = 0
+            If i > 0
+                Return
+            ElseIf i = 0
+                Throw New Exception()
+            End If
+
+            Dim o1 = New MyObject()
+            Dim o2 = New MyObject(var)
+            Dim o3 = New MyObject With {.A = i}
+            Dim o4 = New MyObject(dynamic) With {.A = 0, .B = 0, .C = 0}
+            Dim o5 = New With {.A = 0}
+            Dim dictionaryInitializer = New Dictionary(Of Integer, String) From {{1, ""}, {2, "a"}}
+            Dim a As Single() = New Single() {0f, 1.1f}
+            Dim arrayTypeInference As Integer() = {0, 1}
+            Select i
+                Case 1
+                    GoTo 2
+                Case 2
+                    GoTo Else
+                    Exit Select
+                Case Else
+                    Return
+            End Select
+
+            While i < 10
+                i = i + 1
+            End While
+
+            Do
+                i = i + 1
+            Loop While i < 10
+
+            Dim j As Integer = 0
+
+            While j < 100
+                Console.WriteLine(j)
+                j = j + 1
+            End While
+
+            For Each i In Items()
+                If i = 7
+                    Return
+                Else
+                    Continue For
+                End If
+            Next
+
+            Checked("'i=i+1' could not be converted to a ExpressionSyntax")
+            Unchecked("'i=i+1' could not be converted to a ExpressionSyntax")
+            SyncLock sync
+                process()
+            End SyncLock
+
+            Using v = BeginScope()
+                Using a As A = New A()
+                    Using BeginScope()
+                        Return
+                    End Using
+                End Using
+            End Using
+
+            Return Me.items(3)
+            Return
+            intref = 1
+            Dim p As Integer = Nothing
+            Try
+                Throw Nothing
+            Catch av As System.AccessViolationException
+                Throw av
+            Catch As Exception
+                Throw
+            Finally
+                Try
+                Catch
+                End Try
+            End Try
+
+            Dim anonymous = {"'A=1' could not be converted to a ExpressionSyntax", "'B=2' could not be converted to a ExpressionSyntax", "'C=3' could not be converted to a ExpressionSyntax"}
+            Dim query = From c In customers Let d = c Where d IsNot Nothing Join c1 In customers On c1.GetHashCode() Equals c.GetHashCode() Group Join c1 In customers On c1.GetHashCode() Equals c.GetHashCode() Into e = Group Group c By c.Country Into g = Group
+        End Sub
+
+        Sub Finalize()
+        End Sub
+
+        Private ReadOnly f1 As Integer
+
+        <Obsolete>
+        <NonExisting>
+        <NonExisting(var, 5)>
+        <CLSCompliant(False)>
+        <Obsolete, System.NonSerialized, NonSerialized, CLSCompliant(True OrElse False And True)>
+        Private volatile f2 As Integer
+
+        <Obsolete>
+        <Obsolete>
+        Public Sub Handler(value As Object)
+        End Sub
+
+        Public Function m(Of T)(t As T) As Integer
+            MyBase.m(t)
+            Return 1
+        End Function
+
+        Public Property P As String
+            Get
+                Return "A"
+            End Get
+
+            Set
+            End Set
+        End Property
+
+        Public MustOverride ReadOnly Property P As String
+
+        Public MustOverride Property Item(index As Integer) As Integer
+            Protected Friend Get
+            End Get
+
+            Friend Protected Set
+            End Set
+        End Property
+
+        <Obsolete>
+        <Obsolete>
+        <Obsolete>
+        Public ReadOnly Event E As [Event]
+
+        <Test>
+        Public Event E1 As Action
+            <Obsolete>
+            AddHandler
+                value = value
+            End AddHandler
+
+            <Obsolete>
+            <Obsolete>
+            RemoveHandler
+            End RemoveHandler
+        End Event
+
+        Public Shared Operator +(first As A, second As A) As A
+            Dim handler As [Delegate] = New [Delegate](Handler)
+            Return first.Add(second)
+        End Operator
+
+        <Obsolete>
+        Public Shared Operator IsTrue(a As A) As <Obsolete> Boolean
+            Return True
+        End Operator
+
+        Public Shared Operator IsFalse(a As A) As Boolean
+            Return False
+        End Operator
+
+        Class C
+
+        End Class
+    End Class
+
+    Public Structure S
+        Implements I
+
+        Public Sub New()
+        End Sub
+
+        Private f1 As Integer
+
+        <Obsolete>
+        Private volatile f2 As Integer
+
+        Public MustOverride Function m(Of T)(t As T) As Integer
+            Return 1
+        End Function
+
+        Public Property P As String
+            Get
+                Dim value As Integer = 0
+                Return "A"
+            End Get
+
+            Set
+            End Set
+        End Property
+
+        Public MustOverride ReadOnly Property P As String
+
+        Public MustOverride WriteOnly Property P1 As String
+
+        Public MustOverride Property P2 As String
+
+        Public MustOverride Property Item(index As Integer) As Integer
+            Get
+            End Get
+
+            Friend Protected Set
+            End Set
+        End Property
+
+        Public Event E As [Event]
+
+        Public Shared Operator +(first As A, second As A) As A
+            Return first.Add(second)
+        End Operator
+
+        fixed field As Integer
+
+        Class C
+
+        End Class
+    End Structure
+
+    Public Interface I
+
+        Sub A(value As Integer)
+
+        Function B(value As Integer) As Integer
+
+        Property Value As String
+
+        ReadOnly Property Value1 As String
+
+        WriteOnly Property Value2 As String
+
+    End Interface
+
+    <Flags>
+    Public Enum E
+        A
+        B = A
+        C = 2 + A
+    End Enum
+
+    Public Delegate Sub [Delegate](P As Object)
+
+    Namespace Test
+
+        Public Class Список
+
+            Public Shared Function Power(number As Integer, exponent As Integer) As IEnumerable
+                Dim Список As Список = New Список()
+                Список.Main()
+                Dim counter As Integer = 0
+                Dim אתר As Integer = 0
+                While "'"'counter=counter+1' could not be converted to a ExpressionSyntax"="'counter=counter+1' could not be converted to a ExpressionSyntax"+1' could not be converted to a ExpressionSyntax" < "'"'exponent=exponent-1' could not be converted to a ExpressionSyntax"="'exponent=exponent-1' could not be converted to a ExpressionSyntax"-1' could not be converted to a ExpressionSyntax"
+                    result = result * number + +"'"'number=number+1' could not be converted to a ExpressionSyntax"="'number=number+1' could not be converted to a ExpressionSyntax"+1' could not be converted to a ExpressionSyntax" + number
+                    Return result
+                End While
+            End Function
+
+            Shared Sub Main()
+                For Each i In Power(2, 8)
+                    Console.Write("{0} ", i)
+                Next
+
+            End Sub
+        End Class
+    End Namespace
+End Namespace
+
+Namespace ConsoleApplication1
+    Namespace RecursiveGenericBaseType
+
+        Class A(Of T)
+            Inherits B(Of A(Of T), A(Of T))
+
+            Protected Overridable Function M() As A(Of T)
+            End Function
+
+            Protected MustOverride Function N() As B(Of A(Of T), A(Of T))
+            End Function
+
+            Shared Function O() As B(Of A(Of T), A(Of T))
+            End Function
+        End Class
+
+        NotOverridable Class B(Of T1, T2)
+            Inherits A(Of B(Of T1, T2))
+
+            Protected Overrides Function M() As A(Of T)
+            End Function
+
+            Protected NotOverridable Overrides Function N() As B(Of A(Of T), A(Of T))
+            End Function
+
+            Overloads Shared Function O() As A(Of T)
+            End Function
+        End Class
+    End Namespace
+
+    Namespace Boo
+
+        Public Class Bar(Of T)
+
+            Public f As T
+
+            Public Class Foo(Of U)
+                Implements IEnumerable(Of T)
+
+                Public Sub Method(Of K, V)(k As K, t As T, u As U)
+                    Dim a As A(Of Integer)
+                End Sub
+            End Class
+        End Class
+    End Namespace
+
+    Class Test
+
+        Sub Bar3()
+            Dim x = New Boo.Bar(Of Integer).Foo(Of Object)()
+            x.Method(Of String, String)(" ", 5, New Object())
+            Dim q = From i In New Integer() {1, 2, 3, 4} Where i > 5 Select i
+        End Sub
+
+        Public Shared Narrowing Operator CType(s As String) As Test
+            Return New ConsoleApplication1.Test()
+        End Operator
+
+        Public Shared Narrowing Operator CType(s As String) As Test
+            Return New Test()
+        End Operator
+
+        Public foo As Integer = 5
+
+        Sub Bar2()
+            foo = 6
+            Me.Foo = 5.[GetType]()
+            Dim t As Test = "sss"
+        End Sub
+
+        Public Event MyEvent As EventHandler
+
+        Sub Blah()
+            Dim i As Integer = 5
+            Dim j As Integer? = 6
+            Dim e As Expression(Of Func(Of Integer)) = Function() i
+            Dim e2 As Expression(Of Func(Of Boolean, Action)) = Function(b) Function()
+                Return
+            End Function
+            Dim f As Func(Of Boolean, Boolean) = Function(a As Boolean)
+                Return Not a
+            End Function
+            Dim a As Action = Blah
+        End Sub
+
+        Public Property Foo As Type
+            <Obsolete("Name", [error]:=False)>
+            Get
+                Return GetType(IEnumerable(Of))
+            End Get
+
+            Set
+                Dim t = GetType(System.Int32)
+                t.ToString()
+                t = value
+            End Set
+        End Property
+
+        Public Sub Constants()
+            Dim i As Integer = 1 + 2 + 3 + 5
+            Dim s As System.[String] = "a" + DirectCast("a", System.[String]) + "a" + "a" + "a" + "A"
+        End Sub
+
+        Public Sub ConstructedType()
+            Dim i As List(Of Integer) = Nothing
+            Dim c As Integer = i.Count
+        End Sub
+    End Class
+End Namespace
+
+Namespace Comments.XmlComments.UndocumentedKeywords
+
+    ''' <summary>
+    ''' Whatever 
+    ''' </summary>
+    ''' <!-- c --> 
+    ''' <![CDATA[c]]>  //
+    ''' <c></c> /* */
+    ''' <code></code>
+    ''' <example></example>
+    ''' <exception cref="bla"></exception>
+    ''' <include file=''path='[@name=""]'/> 
+    ''' <permission cref=" "></permission>
+    ''' <remarks></remarks>
+    ''' <see cref=""/> 
+    ''' <seealso cref=" "/> 
+    ''' <value></value>
+    ''' <typeparam name="T"></typeparam>
+    Class C(Of T)
+
+        Sub M(Of U)(t As T, u As U)
+            ' comment
+            ' *** / */
+            ' //
+             */
+            's*/
+            'comment
+            ' /***/
+            's*/
+            Dim intValue As Integer = 0
+            intValue = intValue + 1
+            Dim strValue As String = "hello"
+            's*/
+            Dim c As [MyClass] = New [MyClass]()
+            Dim verbatimStr As String = "\\\\"
+            Dim verbatimStr2 As String = <text>line 1
+line2</text>.Value
+        End Sub
+    End Class
+
+    '''
+    '''  <summary>
+    '''  Whatever 
+    '''  </summary>
+    '''  <!-- c --> 
+    '''  <![CDATA[c]]>  //
+    '''  <c></c> 
+    '''  <code></code>
+    '''  <example></example>
+    '''  <exception cref="bla"></exception>
+    '''  <include file=''path='[@name=""]'/> 
+    '''  <permission cref=" "></permission>
+    '''  <remarks></remarks>
+    '''  <see cref=""/> 
+    '''  <seealso cref=" "/> 
+    '''  <value></value>
+    '''  <typeparam name="T"></typeparam>
+    Class A
+
+    End Class
+
+    Class B
+
+    End Class
+
+    Class yield
+
+        Sub Foo(Of U)(__arglist)
+            Dim c As C(Of U) = Nothing
+            c.M(Of Integer)(5, Nothing)
+            Dim tr As TypedReference = MakeRef(c)
+            Dim t As Type = RefType(tr)
+            Dim j As Integer = RefValue(tr, Integer)
+            Params(a:=t, b:=t)
+        End Sub
+
+        Sub Params(ByRef a As dynamic, ByRef b As dynamic, ParamArray c As dynamic())
+        End Sub
+
+        Sub Params(ByRef Optional a As dynamic = 2, ByRef Optional c As dynamic = Nothing, ParamArray c As dynamic()())
+        End Sub
+
+        Public Overrides Function ToString() As String
+            Return MyBase.ToString()
+        End Function
+
+        Public Partial Sub OnError()
+
+        Public Partial Sub method()
+            Dim a As Integer?() = New Integer?() {}
+            Dim var As Integer() = {1, 2, 3, 4, 5}
+            Dim i As Integer = a(i)
+            Dim f As Foo(Of T) = New Foo(Of Integer)()
+            f.method()
+            i = i + i - i * i / i Mod i And i Or i Xor i
+            Dim b As Boolean = True And False Or True Xor False
+            b = Not b
+            i = Not i
+            b = i < i AndAlso i > i
+            Dim ii As Integer? = 5
+            Dim f As Integer = If(True, 1, 0)
+            i = i + 1
+            i = i - 1
+            b = True AndAlso False OrElse True
+            ' 'i<<5' could not be converted to a StatementSyntax
+            
+            ' 'i>>5' could not be converted to a StatementSyntax
+            
+            b = i = i AndAlso i <> i AndAlso i <= i AndAlso i >= i
+            i += 5.0
+            i -= i
+            i *= i
+            i /= i
+            i = i Mod i
+            i = i AndAlso i
+            i = i OrElse i
+            i = i Xor i
+            i = i << i
+            i = i >> i
+            Dim s As Object = Function(x) x + 1
+            Dim point As Point
+            Dim p As Point = AddressOf point
+            p.x = 10
+            Dim br As BinaryReader = Nothing
+        End Sub
+
+        Structure Point
+
+            Public X As Integer
+
+            Public Y As Integer
+        End Structure
+    End Class
+
+    Class Bugs
+
+        Dim [Next] As Integer
+
+        Sub RedundantBreakStatements(i As Integer)
+            Select i
+                Case 0
+                    If True
+                        Exit Select
+                    Else
+                        Exit Select
+                    End If
+
+                    
+                Case 1
+                    Console.WriteLine(a)
+                    Exit Select
+                    Console.WriteLine(b)
+                    
+                Case Else
+                    Console.WriteLine(c)
+                    Exit Select
+                    Console.WriteLine(d)
+                    
+            End Select
+        End Sub
+
+        Sub HexadecimalConstants()
+            Console.WriteLine(&H0)
+            Console.WriteLine(&H1)
+            Console.WriteLine(&H10)
+            Console.WriteLine(&HFFFFFFFF)
+            Console.WriteLine(&HFFFFFFFF)
+        End Sub
+
+        Sub NestedIfElse()
+            If a < b
+                Console.WriteLine("a < b")
+            ElseIf c < d
+                Console.WriteLine("c < d")
+            ElseIf e < f
+                Console.WriteLine("e < f")
+            Else
+                Console.WriteLine("else")
+            End If
+        End Sub
+    End Class
+
+    MustInherit Class AbstractClass
+
+        Protected MustOverride Sub AbstractMethod()
+    End Class
+
+    Class Constructors
+
+        Public Sub New()
+            MyClass.New()
+        End Sub
+
+        Public Sub New()
+            MyClass.New(a)
+        End Sub
+
+        Public Sub New()
+            MyClass.New(a, b)
+        End Sub
+
+        Public Sub New()
+            MyBase.New()
+        End Sub
+
+        Public Sub New()
+            MyBase.New(a)
+        End Sub
+
+        Public Sub New()
+            MyBase.New(a, b)
+        End Sub
+    End Class
+End Namespace
+

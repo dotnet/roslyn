@@ -6,8 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.Win32.SafeHandles;
 
 namespace Roslyn.Utilities
 {

@@ -18,8 +18,6 @@
                             IntermediateToken -  - CSharp - global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.CreateInferredEventCallback(this, 
                             IntermediateToken -  - CSharp - __value => Value = __value
                             IntermediateToken -  - CSharp - , Value)
-            CSharpCode - (52:1,7 [21] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (52:1,7 [21] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    string Value;\n
     NamespaceDeclaration -  - __Blazor.Test.TestComponent
         ClassDeclaration -  - internal static - TypeInference -  - 
             ComponentTypeInferenceMethod -  - __Blazor.Test.TestComponent.TypeInference - CreateMyComponent_0

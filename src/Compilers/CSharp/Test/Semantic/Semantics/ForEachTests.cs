@@ -4325,5 +4325,37 @@ class C2 : C {}
                 Diagnostic(ErrorCode.ERR_AssignReadonlyNotField, "items").WithArguments("method", "Current.get").WithLocation(4, 21)
             );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84398")]
+        public void ForEachOverNullableOfErrorType()
+        {
+            // This compilation has no core library at all, so 'Undefined?' binds to a constructed
+            // error type over the missing 'System.Nullable<T>'.
+            var libSource = """
+                public class C
+                {
+                    public Undefined? F;
+                }
+                """;
+            var libComp = CreateEmptyCompilation(libSource, assemblyName: "lib");
+
+            // The referencing compilation does have a core library, so 'System.Nullable<T>.Value' is
+            // available even though the original definition of the type of 'C.F' is an error type.
+            var source = """
+                class D
+                {
+                    void M(C c)
+                    {
+                        foreach (var x in c.F)
+                        {
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, references: [libComp.ToMetadataReference()]).VerifyDiagnostics(
+                // (5,29): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //         foreach (var x in c.F)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "F").WithArguments("System.Nullable`1").WithLocation(5, 29));
+        }
     }
 }

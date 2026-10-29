@@ -38,18 +38,6 @@ Increment
             __builder.CloseComponent();
         }
         #pragma warning restore 1998
-#nullable restore
-#line (3,8)-(8,1) "x:\dir\subdir\Test\TestComponent.cshtml"
-
-    private int counter;
-    private void Increment(EventArgs e) {
-        counter++;
-    }
-
-#line default
-#line hidden
-#nullable disable
-
     }
 }
 #pragma warning restore 1591

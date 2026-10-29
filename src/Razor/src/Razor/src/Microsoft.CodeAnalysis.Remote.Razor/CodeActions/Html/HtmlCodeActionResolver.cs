@@ -5,8 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Composition;
 using Microsoft.CodeAnalysis.Razor.CodeActions;
-using Microsoft.CodeAnalysis.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Razor.Protocol;
+using Microsoft.CodeAnalysis.Remote.Razor.DocumentMapping;
 using Microsoft.CodeAnalysis.Remote.Razor.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.CodeActions;
@@ -19,18 +19,12 @@ internal sealed class HtmlCodeActionResolver(IRazorEditService razorEditService)
 
     public string Action => LanguageServerConstants.CodeActions.Default;
 
-    Task<CodeAction> IHtmlCodeActionResolver.ResolveAsync(
-        RemoteDocumentContext documentContext,
-        CodeAction codeAction,
-        CancellationToken cancellationToken)
-        => ResolveAsync(documentContext, codeAction, cancellationToken);
-
     public async Task<CodeAction> ResolveAsync(
-        RemoteDocumentContext documentContext,
+        RemoteDocumentSnapshot documentSnapshot,
         CodeAction codeAction,
         CancellationToken cancellationToken)
     {
-        await HtmlCodeActionHelpers.MapAndFixHtmlCodeActionEditAsync(_razorEditService, documentContext.Snapshot, codeAction, cancellationToken).ConfigureAwait(false);
+        await HtmlCodeActionHelpers.MapAndFixHtmlCodeActionEditAsync(_razorEditService, documentSnapshot, codeAction, cancellationToken).ConfigureAwait(false);
 
         return codeAction;
     }

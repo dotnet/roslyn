@@ -90,9 +90,23 @@ public static class ModelDirective
             var visitor = new Visitor();
             var modelType = GetModelType(documentNode, visitor);
 
-            if (visitor.Class?.BaseType is BaseTypeWithModel { ModelType: not null } existingBaseType)
+            if (visitor.Class?.BaseType is not BaseTypeWithModel existingBaseType)
+            {
+                return;
+            }
+
+            if (existingBaseType.ModelType is not null)
             {
                 existingBaseType.ModelType = modelType;
+                return;
+            }
+
+            if (documentNode.DocumentKind == MvcViewDocumentClassifierPass.MvcViewDocumentKind &&
+                modelType.Source is SourceSpan modelSource &&
+                existingBaseType.BaseType.Source is not null)
+            {
+                documentNode.AddDiagnostic(
+                    RazorExtensionsDiagnosticFactory.CreateModelDirective_ModelTypeNotApplied(modelSource));
             }
         }
     }

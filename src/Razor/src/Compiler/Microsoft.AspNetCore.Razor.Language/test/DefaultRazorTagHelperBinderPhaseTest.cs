@@ -987,7 +987,7 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
     }
 
     [Fact]
-    public void ComponentDirectiveVisitor_AddsErrorOnLegacyTagHelperDirectives()
+    public void ComponentDirectiveVisitor_IgnoresLegacyTagHelperDirectives()
     {
         // Arrange
         var currentNamespace = "SomeProject";
@@ -1013,15 +1013,12 @@ public class DefaultRazorTagHelperContextDiscoveryPhaseTest : RazorProjectEngine
         visitor.Visit(tree);
         var results = visitor.GetResults();
 
-        // Assert
+        // Assert: the component visitor ignores the legacy @tagHelperPrefix -- it applies no prefix and
+        // still resolves the component. The RZ9978 diagnostic for tag-helper directives in a component is
+        // emitted during IR lowering, not by this visitor.
         Assert.Null(visitor.TagHelperPrefix);
         var result = Assert.Single(results);
         Assert.Same(componentDescriptor, result);
-        var erroredNode = tree.Root.DescendantNodes().FirstOrDefault(n => n is CSharpStatementLiteralSyntax);
-        Assert.NotNull(erroredNode);
-        var directiveChunkGenerator = (TagHelperPrefixDirectiveChunkGenerator)erroredNode.GetChunkGenerator();
-        var diagnostic = Assert.Single(directiveChunkGenerator.Diagnostics);
-        Assert.Equal("RZ9978", diagnostic.Id);
     }
 
     [Fact]

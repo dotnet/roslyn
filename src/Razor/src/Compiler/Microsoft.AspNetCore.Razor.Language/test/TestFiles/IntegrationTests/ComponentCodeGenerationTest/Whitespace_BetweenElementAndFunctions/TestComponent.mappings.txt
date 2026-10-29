@@ -3,12 +3,3 @@
 Generated Location: (831:23,0 [3] )
 |Foo|
 
-Source Location: (31:1,11 [29] x:\dir\subdir\Test\TestComponent.cshtml)
-|
-        int Foo = 18;
-    |
-Generated Location: (1071:34,0 [29] )
-|
-        int Foo = 18;
-    |
-

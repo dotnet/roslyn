@@ -31,6 +31,7 @@ internal sealed class GoToDefinitionHandler : AbstractGoToDefinitionHandler
     {
     }
 
+<<<<<<< HEAD
     public override async Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
     {
         if (context.Document is { } document &&
@@ -162,4 +163,11 @@ internal sealed class GoToDefinitionHandler : AbstractGoToDefinitionHandler
             return end;
         }
     }
+||||||| 331e174a56b
+    public override Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        => GetDefinitionAsync(request, forSymbolType: false, context, cancellationToken);
+=======
+    public override Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        => GetDefinitionAsync(request, LSP.Methods.TextDocumentDefinitionName, forSymbolType: false, context, cancellationToken);
+>>>>>>> upstream/main
 }

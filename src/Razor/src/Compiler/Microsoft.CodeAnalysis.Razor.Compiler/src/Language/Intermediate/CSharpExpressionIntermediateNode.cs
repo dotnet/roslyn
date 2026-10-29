@@ -21,6 +21,16 @@ public sealed class CSharpExpressionIntermediateNode : IntermediateNode
         visitor.VisitCSharpExpression(this);
     }
 
+    protected override IntermediateNode CloneNode()
+    {
+        var clone = new CSharpExpressionIntermediateNode
+        {
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
+        return clone;
+    }
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteChildren(Children);

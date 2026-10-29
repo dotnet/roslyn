@@ -46,6 +46,8 @@ variables:
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
+    settings:
+      networkIsolationPolicy: Permissive, CFSClean, CFSClean2, CFSClean3
     sdl:
       enableAllTools: false
     pool:
@@ -59,7 +61,7 @@ extends:
     stages:
 
     - stage: build
-      displayName: Build and Test
+      displayName: Build
 
       jobs:
       - job: PRValidationBuild
@@ -177,7 +179,7 @@ extends:
           displayName: Setup branch for insertion validation
           inputs:
             filePath: 'eng\setup-pr-validation.ps1'
-            arguments: "-sourceBranchName $(SourceBranchName) -prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
+            arguments: "-prNumber ${{ parameters.PRNumber }} -commitSHA ${{ parameters.CommitSHA }} -enforceLatestCommit ${{ iif(parameters.EnforceLatestCommit, '1', '0') }}"
           condition: succeeded()
 
         - task: Powershell@2
@@ -227,14 +229,6 @@ extends:
         # Authenticate to DevDiv feeds
         - task: NuGetAuthenticate@1
 
-        # Needed because the build fails the NuGet Tools restore without it
-        - task: UseDotNet@2
-          displayName: 'Use .NET Core sdk'
-          inputs:
-            packageType: sdk
-            useGlobalJson: true
-            workingDirectory: '$(Build.SourcesDirectory)'
-
         - task: MicroBuildSigningPlugin@4
           inputs:
             signType: test
@@ -254,7 +248,6 @@ extends:
                        -binaryLog
                        -configuration $(BuildConfiguration)
                        -officialBuildId $(OriginalBuildNumber)
-                       -officialSkipTests $(SkipTests)
                        -officialSkipApplyOptimizationData ${{ parameters.SkipApplyOptimizationData }}
                        -officialSourceBranchName $(SourceBranchName)
                        -officialIbcDrop $(IbcDrop)
@@ -266,6 +259,7 @@ extends:
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
                        /p:PreReleaseVersionLabel=pr-validation
+                       /p:DotNetBuildTests=false
           condition: succeeded()
 
         - template: /eng/common/templates-official/steps/generate-sbom.yml@self
@@ -276,15 +270,6 @@ extends:
             filePath: 'eng\publish-assets.ps1'
             arguments: '-configuration $(BuildConfiguration) -prValidation'
           condition: succeeded()
-
-        - task: PublishTestResults@2
-          displayName: Publish xUnit Test Results
-          inputs:
-            testRunner: XUnit
-            testResultsFiles: '$(Build.SourcesDirectory)\artifacts\TestResults\$(BuildConfiguration)\*.xml'
-            mergeTestResults: true
-            testRunTitle: 'Unit Tests'
-          condition: and(succeededOrFailed(), ne(variables['SkipTests'], 'true'))
 
         # We need to reset the BuildNumber before we pass off to Arcade
         - powershell: Write-Host "##vso[build.updatebuildnumber]$(OriginalBuildNumber)"
@@ -298,7 +283,7 @@ extends:
           dependsOn:
           - PRValidationBuild
           pool:
-            name: VSEngSS-MicroBuild2022-1ES
+            name: VSEng-MicroBuildVSStable
 
     - stage: publish
       displayName: Publish
@@ -308,7 +293,7 @@ extends:
       - job: publishDarc
         displayName: Publish using darc
         pool:
-          name: VSEngSS-MicroBuild2022-1ES
+          name: VSEng-MicroBuildVSStable
         steps:
         - checkout: none
         # Make BarBuildId available.
@@ -318,7 +303,7 @@ extends:
             $versionEndpoint = 'https://maestro.dot.net/api/assets/darc-version?api-version=2019-01-16'
             $darcVersion = $(Invoke-WebRequest -Uri $versionEndpoint -UseBasicParsing).Content
             $arcadeServicesSource = 'https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json'
-            & dotnet tool update microsoft.dotnet.darc --version "$darcVersion" --add-source "$arcadeServicesSource" --tool-path $(Agent.ToolsDirectory)\darc -v n
+            & dotnet tool update microsoft.dotnet.darc --version "$darcVersion" --source "$arcadeServicesSource" --tool-path $(Agent.ToolsDirectory)\darc -v n
           displayName: Install darc tool
 
         - task: AzureCLI@2
@@ -343,7 +328,7 @@ extends:
           OriginalBuildNumber: $[stageDependencies.build.PRValidationBuild.outputs['SetOriginalBuildNumber.OutputOriginalBuildNumber']]
         displayName: Insert to VS
         pool:
-          name: VSEngSS-MicroBuild2022-1ES
+          name: VSEng-MicroBuildVSStable
         steps:
         - download: current
           artifact: VSSetup

@@ -14,7 +14,8 @@ public enum MetadataKind : byte
     Bind,
     Component,
     EventHandler,
-    ViewComponent
+    ViewComponent,
+    AssetPath
 }
 
 public abstract record MetadataObject

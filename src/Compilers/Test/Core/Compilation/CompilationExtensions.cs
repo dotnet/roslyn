@@ -61,7 +61,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var peStream = new MemoryStream();
 
-            if (pdbStream == null && compilation.Options.OptimizationLevel == OptimizationLevel.Debug && options?.DebugInformationFormat != DebugInformationFormat.Embedded)
+            if (pdbStream == null &&
+                compilation.Options.OptimizationLevel == OptimizationLevel.Debug &&
+                options?.EmitMetadataOnly != true &&
+                options?.DebugInformationFormat != DebugInformationFormat.Embedded)
             {
                 if (MonoHelpers.IsRunningOnMono() || PathUtilities.IsUnixLikePlatform)
                 {

@@ -30,7 +30,7 @@ internal sealed class TextDocumentItem
     [JsonIgnore]
     public Uri Uri
     {
-        get => DocumentUri.GetRequiredParsedUri();
+        get => DocumentUri.GetRequiredLegacySystemUri();
         set => DocumentUri = new DocumentUri(value);
     }
 

@@ -1,0 +1,4 @@
+﻿[0000] OpenElement("form")
+[0001] AddAttribute("method", "post")
+[0002] AddAttribute("onsubmit", global::Microsoft.AspNetCore.Components.EventCallback.Factory.Create<global::System.EventArgs>(this, () => { } ))
+[0003] AddAttribute("@formname", "y")

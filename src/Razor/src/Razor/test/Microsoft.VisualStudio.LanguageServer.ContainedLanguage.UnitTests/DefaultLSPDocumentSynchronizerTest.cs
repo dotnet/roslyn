@@ -387,7 +387,7 @@ public class DefaultLSPDocumentSynchronizerTest : ToolingTestBase
     private static void NotifyBufferVersionUpdated(ITextBuffer textBuffer, long hostDocumentSyncVersion)
     {
         textBuffer.SetHostDocumentSyncVersion(hostDocumentSyncVersion);
-        var edit = textBuffer.CreateEdit();
+        using var edit = textBuffer.CreateEdit();
 
         // Content doesn't matter, we're just trying to create an edit that notifies listeners of a changed event.
         edit.Insert(0, "Test");

@@ -170,7 +170,7 @@ internal sealed partial class VisualStudioRuleSetManager
             _ruleSetManager.StopTrackingRuleSetFile(this);
         }
 
-        private void IncludeUpdated(object sender, string fileChanged)
+        private void IncludeUpdated(object sender, FileChangedEventArgs e)
         {
             // The file change service is going to notify us of updates on the foreground thread.
             // This is going to cause us to drop our existing subscriptions and create new ones.

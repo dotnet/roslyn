@@ -16,6 +16,15 @@ namespace Microsoft.AspNetCore.Razor.Language;
 
 public static class RazorCodeDocumentExtensions
 {
+    /// <summary>
+    /// Returns the implementation C# document for <paramref name="codeDocument"/> -- the generated code
+    /// containing the render method and, for a non-component document, the complete class. A component
+    /// that split has its declaration surface in a separate declaration document; the implementation
+    /// document is the code the source generator emits as the document's primary output.
+    /// </summary>
+    public static RazorCSharpDocument GetCSharpDocument(this RazorCodeDocument codeDocument)
+        => codeDocument.GetRequiredCSharpDocument(declarationDocument: false);
+
     public static bool TryComputeClassName(this RazorCodeDocument codeDocument, [NotNullWhen(true)] out string? className)
     {
         var filePath = codeDocument.Source.RelativePath ?? codeDocument.Source.FilePath;

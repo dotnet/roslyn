@@ -40,7 +40,7 @@ public class CSharpQuickInfo : AbstractEditorTest
             quickInfo);
     }
 
-    [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85764"), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
     public async Task QuickInfo_Documentation()
     {
         await SetUpEditorAsync("""
@@ -58,7 +58,7 @@ public class CSharpQuickInfo : AbstractEditorTest
         Assert.Equal("class Program\r\nHello!", quickInfo);
     }
 
-    [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85764"), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
     public async Task International()
     {
         await SetUpEditorAsync("""
@@ -82,7 +82,7 @@ public class CSharpQuickInfo : AbstractEditorTest
             """, quickInfo);
     }
 
-    [IdeFact, Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/85764"), Trait(Traits.Editor, Traits.Editors.LanguageServerProtocol)]
     public async Task SectionOrdering()
     {
         await SetUpEditorAsync("""

@@ -3,4 +3,4 @@
 
 namespace Microsoft.CodeAnalysis.Razor.Protocol.InlayHints;
 
-internal record class InlayHintDataWrapper(TextDocumentIdentifier TextDocument, object? OriginalData, Position OriginalPosition);
+internal record class InlayHintDataWrapper(TextDocumentIdentifier TextDocument, object? OriginalData, Position OriginalPosition, bool InDeclDocument);

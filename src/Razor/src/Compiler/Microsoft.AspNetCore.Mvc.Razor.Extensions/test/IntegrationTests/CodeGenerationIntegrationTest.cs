@@ -34,21 +34,6 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
     protected override RazorConfiguration Configuration => _configuration;
 
-    protected override void ConfigureProjectEngine(RazorProjectEngineBuilder builder)
-    {
-        base.ConfigureProjectEngine(builder);
-
-        // Register the UTF-8 WriteLiteral feature with a pre-computed support map.
-        var supportMap = new DefaultUtf8WriteLiteralFeature.Utf8SupportMap(
-            ImmutableSortedDictionary<string, string>.Empty,
-            ImmutableSortedDictionary.CreateRange(StringComparer.Ordinal, new[]
-            {
-                new KeyValuePair<string, bool>("MyUtf8PageBase", true),
-                new KeyValuePair<string, bool>("MyPageBase", false),
-            }));
-        builder.Features.Add(new DefaultUtf8WriteLiteralFeature { SupportMap = supportMap });
-    }
-
     #region Runtime
 
     [ConditionalFact(typeof(IsEnglishLocal))]
@@ -62,7 +47,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
 
         var diagnostics = compiled.Compilation.GetDiagnostics().Where(d => d.Severity >= DiagnosticSeverity.Warning);
@@ -80,10 +65,10 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
 
-        var diagnotics = compiled.CodeDocument.GetCSharpDocument().Diagnostics;
+        var diagnotics = compiled.CodeDocument.GetImplCSharpDocument().Diagnostics;
         Assert.Equal("RZ1014", Assert.Single(diagnotics).Id);
     }
 
@@ -106,11 +91,11 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
 
         // We expect this test to generate a bunch of errors.
-        Assert.NotEmpty(compiled.CodeDocument.GetCSharpDocument().Diagnostics);
+        Assert.NotEmpty(compiled.CodeDocument.GetImplCSharpDocument().Diagnostics);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/razor/issues/7421")]
@@ -125,7 +110,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         // Assert
         AssertSyntaxTreeMatchesBaseline(compiled.CodeDocument);
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -159,7 +144,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -194,7 +179,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -214,7 +199,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
 
         var diagnostics = compiled.Compilation.GetDiagnostics().Where(d => d.Severity >= DiagnosticSeverity.Warning);
@@ -232,10 +217,10 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
 
-        var diagnotics = compiled.CodeDocument.GetCSharpDocument().Diagnostics;
+        var diagnotics = compiled.CodeDocument.GetImplCSharpDocument().Diagnostics;
         Assert.Equal("RZ1016", Assert.Single(diagnotics).Id);
     }
 
@@ -250,7 +235,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -265,7 +250,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -290,7 +275,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -305,7 +290,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -329,7 +314,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
     }
@@ -363,7 +348,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
     }
@@ -398,7 +383,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
     }
@@ -415,7 +400,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
 
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -439,7 +424,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -461,7 +446,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -476,7 +461,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertSourceMappingsMatchBaseline(compiled.CodeDocument);
         AssertLinePragmas(compiled.CodeDocument);
     }
@@ -499,7 +484,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -514,7 +499,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -529,7 +514,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -560,7 +545,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -608,7 +593,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
     }
 
@@ -623,10 +608,10 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         AssertDocumentNodeMatchesBaseline(compiled.CodeDocument.GetDocumentNode());
-        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetCSharpDocument());
+        AssertCSharpDocumentMatchesBaseline(compiled.CodeDocument.GetImplCSharpDocument());
         AssertLinePragmas(compiled.CodeDocument);
 
-        var diagnotics = compiled.CodeDocument.GetCSharpDocument().Diagnostics;
+        var diagnotics = compiled.CodeDocument.GetImplCSharpDocument().Diagnostics;
         Assert.Equal("RZ3906", Assert.Single(diagnotics).Id);
     }
 
@@ -668,7 +653,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
+        var csharp = generated.CodeDocument.GetImplCSharpDocument();
         AssertDocumentNodeMatchesBaseline(intermediate);
         AssertCSharpDocumentMatchesBaseline(csharp);
         CompileToAssembly(generated);
@@ -711,7 +696,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
+        var csharp = generated.CodeDocument.GetImplCSharpDocument();
         AssertDocumentNodeMatchesBaseline(intermediate);
         AssertCSharpDocumentMatchesBaseline(csharp);
         CompileToAssembly(generated);
@@ -753,7 +738,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
+        var csharp = generated.CodeDocument.GetImplCSharpDocument();
         AssertDocumentNodeMatchesBaseline(intermediate);
         AssertCSharpDocumentMatchesBaseline(csharp);
         CompileToAssembly(generated);
@@ -791,7 +776,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
+        var csharp = generated.CodeDocument.GetImplCSharpDocument();
         AssertDocumentNodeMatchesBaseline(intermediate);
         AssertCSharpDocumentMatchesBaseline(csharp);
         CompileToAssembly(generated);
@@ -829,7 +814,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
+        var csharp = generated.CodeDocument.GetImplCSharpDocument();
         AssertDocumentNodeMatchesBaseline(intermediate);
         AssertCSharpDocumentMatchesBaseline(csharp);
         CompileToAssembly(generated);
@@ -867,7 +852,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
+        var csharp = generated.CodeDocument.GetImplCSharpDocument();
         AssertDocumentNodeMatchesBaseline(intermediate);
         AssertCSharpDocumentMatchesBaseline(csharp);
         var compiledAssembly = CompileToAssembly(generated, throwOnFailure: false);
@@ -910,7 +895,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
+        var csharp = generated.CodeDocument.GetImplCSharpDocument();
         AssertDocumentNodeMatchesBaseline(intermediate);
         AssertCSharpDocumentMatchesBaseline(csharp);
         CompileToAssembly(generated);
@@ -934,7 +919,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
+        var csharp = generated.CodeDocument.GetImplCSharpDocument();
         AssertDocumentNodeMatchesBaseline(intermediate);
         AssertCSharpDocumentMatchesBaseline(csharp);
         CompileToAssembly(generated);
@@ -954,87 +939,11 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
 
         // Assert
         var intermediate = generated.CodeDocument.GetDocumentNode();
-        var csharp = generated.CodeDocument.GetCSharpDocument();
+        var csharp = generated.CodeDocument.GetImplCSharpDocument();
         AssertDocumentNodeMatchesBaseline(intermediate);
         AssertCSharpDocumentMatchesBaseline(csharp);
         AssertSourceMappingsMatchBaseline(generated.CodeDocument);
         CompileToAssembly(generated, throwOnFailure: false, ignoreRazorDiagnostics: true);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
-    public void Utf8HtmlLiterals_AutoDetectedFromInherits()
-    {
-        // Arrange
-        _configuration = new(RazorLanguageVersion.Preview, "MVC-3.0", Extensions: []);
-
-        AddCSharpSyntaxTree("""
-
-            using System;
-            using System.Threading.Tasks;
-            using Microsoft.AspNetCore.Mvc.Razor;
-
-            public abstract class MyUtf8PageBase : RazorPage
-            {
-                public void WriteLiteral(ReadOnlySpan<byte> value)
-                {
-                    WriteLiteral(System.Text.Encoding.UTF8.GetString(value));
-                }
-            }
-
-            """);
-
-        // Act
-        var generated = CompileToCSharp("""
-            @inherits MyUtf8PageBase
-
-            <html>
-            <body>
-                <h1>Hello World</h1>
-                <p>This is UTF-8 encoded HTML content.</p>
-            </body>
-            </html>
-            """);
-
-        // Assert
-        CompileToAssembly(generated);
-
-        var generatedCode = generated.CodeDocument.GetCSharpDocument().Text.ToString();
-        Assert.Contains("u8)", generatedCode);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/razor/issues/8429")]
-    public void Utf8HtmlLiterals_WithoutOverload_UsesStringLiterals()
-    {
-        // Arrange
-        _configuration = new(RazorLanguageVersion.Preview, "MVC-3.0", Extensions: []);
-
-        AddCSharpSyntaxTree("""
-
-            using System.Threading.Tasks;
-            using Microsoft.AspNetCore.Mvc.Razor;
-
-            public abstract class MyPageBase : RazorPage
-            {
-            }
-
-            """);
-
-        // Act
-        var generated = CompileToCSharp("""
-            @inherits MyPageBase
-
-            <html>
-            <body>
-                <h1>Hello World</h1>
-            </body>
-            </html>
-            """);
-
-        // Assert
-        CompileToAssembly(generated);
-
-        var generatedCode = generated.CodeDocument.GetCSharpDocument().Text.ToString();
-        Assert.DoesNotContain("u8)", generatedCode);
     }
 
     #endregion
@@ -1081,7 +990,7 @@ public class CodeGenerationIntegrationTest : IntegrationTestBase
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument.GetDocumentNode(), testName: testName);
         AssertHtmlDocumentMatchesBaseline(RazorHtmlWriter.GetHtmlDocument(generated.CodeDocument), testName: testName);
-        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetCSharpDocument(), testName: testName);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument.GetImplCSharpDocument(), testName: testName);
         AssertLinePragmas(generated.CodeDocument);
         AssertSourceMappingsMatchBaseline(generated.CodeDocument, testName: testName);
         var compiledAssembly = CompileToAssembly(generated, throwOnFailure: false);

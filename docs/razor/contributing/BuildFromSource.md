@@ -119,16 +119,16 @@ source ./activate.sh
 
 ## Running tests on command-line
 
-Tests are not run by default. Use the `-test` option to run tests in addition to building.
+Tests are not run by default. After building, run the tests with the test script, which runs the already-built test assemblies via `src/Tools/RunTests`.
 
 On Windows:
 
 ```ps1
-.\build.cmd -test
+.\Test.cmd
 ```
 
 On macOS/Linux:
 
 ```bash
-./build.sh --test
+./test.sh
 ```

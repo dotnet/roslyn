@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.HotReload.Api;
 
 internal sealed class HotReloadService
 {
-    private sealed class DebuggerService(Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider) : IManagedHotReloadService
+    private sealed class DebuggerService(Func<ValueTask<ImmutableArray<string>>> capabilitiesProvider) : IManagedHotReloadState
     {
         public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
             => ValueTask.FromResult(ImmutableArray<ManagedActiveStatementDebugInfo>.Empty);
@@ -22,7 +22,7 @@ internal sealed class HotReloadService
         public ValueTask<ManagedHotReloadAvailability> GetAvailabilityAsync(Guid module, CancellationToken cancellationToken)
             => ValueTask.FromResult(new ManagedHotReloadAvailability(ManagedHotReloadAvailabilityStatus.Available));
 
-        public ValueTask<ImmutableArray<string>> GetCapabilitiesAsync(CancellationToken cancellationToken)
+        public ValueTask<ImmutableArray<string>> GetUpdateCapabilitiesAsync(CancellationToken cancellationToken)
             => capabilitiesProvider();
 
         public ValueTask PrepareModuleForUpdateAsync(Guid module, CancellationToken cancellationToken)
@@ -124,6 +124,11 @@ internal sealed class HotReloadService
         /// Projects whose dependencies need to be deployed to their output directory, if not already present.
         /// </summary>
         public required ImmutableArray<ProjectId> ProjectsToRedeploy { get; init; }
+
+        /// <summary>
+        /// True if <see cref="CommitUpdate"/> or <see cref="DiscardUpdate"/> is expected to be called to complete the update.
+        /// </summary>
+        public required bool HasPendingUpdates { get; init; }
     }
 
     private static readonly ActiveStatementSpanProvider s_solutionActiveStatementSpanProvider =
@@ -227,6 +232,7 @@ internal sealed class HotReloadService
             ProjectsToRestart = results.ProjectsToRestart,
             ProjectsToRebuild = results.ProjectsToRebuild,
             ProjectsToRedeploy = results.ProjectsToRedeploy,
+            HasPendingUpdates = results.SolutionAction == SolutionAction.PendingUpdate,
         };
     }
 

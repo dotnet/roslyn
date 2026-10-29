@@ -1,0 +1,9 @@
+﻿Source Location: (155:6,7 [51] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    private readonly MyClass<string> c = new();
+|
+Generated Location: (557:18,0 [51] )
+|
+    private readonly MyClass<string> c = new();
+|
+

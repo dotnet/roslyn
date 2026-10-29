@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -106,6 +107,9 @@ System.Console.WriteLine();
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // System.Console.Write("1");
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(2, 1),
                 // (3,1): error CS8802: Only one compilation unit can have top-level statements.
                 // System.Console.Write("2");
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(3, 1)
@@ -114,6 +118,9 @@ System.Console.WriteLine();
             comp = CreateCompilation(new[] { text1, text2, text3 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // System.Console.Write("1");
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(2, 1),
                 // (3,1): error CS8802: Only one compilation unit can have top-level statements.
                 // System.Console.Write("2");
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(3, 1),
@@ -279,6 +286,9 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'local(); .
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
                 // (1,1): error CS8802: Only one compilation unit can have top-level statements.
+                // local();
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "local").WithLocation(1, 1),
+                // (1,1): error CS8802: Only one compilation unit can have top-level statements.
                 // void local() => System.Console.WriteLine(2);
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(1, 1),
                 // (1,1): error CS0103: The name 'local' does not exist in the current context
@@ -293,6 +303,9 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'local(); .
 
             comp = CreateCompilation(new[] { text2, text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
+                // (1,1): error CS8802: Only one compilation unit can have top-level statements.
+                // void local() => System.Console.WriteLine(2);
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(1, 1),
                 // (1,1): error CS8802: Only one compilation unit can have top-level statements.
                 // local();
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "local").WithLocation(1, 1),
@@ -370,14 +383,12 @@ IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 
 
                 Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)((IBlockOperation)operation2.Parent).Parent));
 
-                var isInvalid = comp.SyntaxTrees[1] == tree2 ? ", IsInvalid" : "";
-
                 model2.VerifyOperationTree(unit2,
 @"
-IMethodBodyOperation (OperationKind.MethodBody, Type: null" + isInvalid + @") (Syntax: 'void local( ... iteLine(2);')
+IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'void local( ... iteLine(2);')
   BlockBody: 
-    IBlockOperation (1 statements) (OperationKind.Block, Type: null" + isInvalid + @", IsImplicit) (Syntax: 'void local( ... iteLine(2);')
-      ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null" + isInvalid + @") (Syntax: 'void local( ... iteLine(2);')
+    IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'void local( ... iteLine(2);')
+      ILocalFunctionOperation (Symbol: void local()) (OperationKind.LocalFunction, Type: null, IsInvalid) (Syntax: 'void local( ... iteLine(2);')
         IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '=> System.C ... riteLine(2)')
           IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null, IsImplicit) (Syntax: 'System.Cons ... riteLine(2)')
             Expression: 
@@ -435,6 +446,9 @@ void local() => System.Console.WriteLine(i);
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // var i = 1;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "var").WithLocation(2, 1),
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // void local() => System.Console.WriteLine(i);
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(2, 1),
                 // (2,5): warning CS0219: The variable 'i' is assigned but its value is never used
@@ -455,6 +469,9 @@ void local() => System.Console.WriteLine(i);
 
             comp = CreateCompilation(new[] { text2, text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // void local() => System.Console.WriteLine(i);
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(2, 1),
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // var i = 1;
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "var").WithLocation(2, 1),
@@ -860,6 +877,9 @@ System.Console.Write(x);
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // string x = "1";
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "string").WithLocation(2, 1),
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // int x = 1;
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "int").WithLocation(2, 1)
@@ -1347,6 +1367,9 @@ System.Console.Write(y);
 
             comp.VerifyDiagnostics(
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // const string x = y;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "const").WithLocation(2, 1),
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // const string y = x;
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "const").WithLocation(2, 1),
                 // (2,18): error CS0103: The name 'y' does not exist in the current context
@@ -1360,6 +1383,9 @@ System.Console.Write(y);
             comp = CreateCompilation(new[] { "System.Console.WriteLine();", text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
+                // (1,1): error CS8802: Only one compilation unit can have top-level statements.
+                // System.Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(1, 1),
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // const string x = y;
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "const").WithLocation(2, 1),
@@ -1391,6 +1417,9 @@ System.Console.Write(y);
 
             comp.VerifyDiagnostics(
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // var x = y;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "var").WithLocation(2, 1),
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // var y = x;
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "var").WithLocation(2, 1),
                 // (2,9): error CS0103: The name 'y' does not exist in the current context
@@ -1404,6 +1433,9 @@ System.Console.Write(y);
             comp = CreateCompilation(new[] { "System.Console.WriteLine();", text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
+                // (1,1): error CS8802: Only one compilation unit can have top-level statements.
+                // System.Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(1, 1),
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // var x = y;
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "var").WithLocation(2, 1),
@@ -1490,6 +1522,9 @@ void local()
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // string x = "x";
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "string").WithLocation(2, 1),
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // void local()
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(2, 1),
                 // (2,6): warning CS8321: The local function 'local' is declared but never used
@@ -1508,6 +1543,9 @@ void local()
 
             comp = CreateCompilation(new[] { text2, text1 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // void local()
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(2, 1),
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // string x = "x";
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "string").WithLocation(2, 1),
@@ -2931,6 +2969,9 @@ void local()
 
             comp.VerifyDiagnostics(
                 // (3,1): error CS8802: Only one compilation unit can have top-level statements.
+                // alias1 x = "1";
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "alias1").WithLocation(3, 1),
+                // (3,1): error CS8802: Only one compilation unit can have top-level statements.
                 // void local()
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(3, 1),
                 // (3,6): warning CS8321: The local function 'local' is declared but never used
@@ -2964,6 +3005,9 @@ void local()
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias2").WithArguments("alias2").WithLocation(4, 1)
                 );
             model1.GetDiagnostics().Verify(
+                // (3,1): error CS8802: Only one compilation unit can have top-level statements.
+                // alias1 x = "1";
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "alias1").WithLocation(3, 1),
                 // (4,1): error CS0246: The type or namespace name 'alias2' could not be found (are you missing a using directive or an assembly reference?)
                 // alias2 y = "1";
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "alias2").WithArguments("alias2").WithLocation(4, 1),
@@ -4529,6 +4573,9 @@ void local2()
 
             comp.VerifyDiagnostics(
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // local1(1);
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "local1").WithLocation(2, 1),
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // void local1(byte y)
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "void").WithLocation(2, 1),
                 // (5,1): error CS0103: The name 'local2' does not exist in the current context
@@ -4974,6 +5021,9 @@ goto label1;
             var comp = CreateCompilation(new[] { text1, text2 }, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
 
             comp.VerifyDiagnostics(
+                // (2,1): error CS8802: Only one compilation unit can have top-level statements.
+                // goto label1;
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "goto").WithLocation(2, 1),
                 // (2,1): error CS8802: Only one compilation unit can have top-level statements.
                 // label1: System.Console.Write(2);
                 Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "label1").WithLocation(2, 1)
@@ -10206,6 +10256,45 @@ partial class Program
                 // public static int operator +(int operand1, int operand2) => 0;
                 Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(3, 28)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83691")]
+        public void MultipleTopLevelStatements_ReportedInEveryFile()
+        {
+            var comp = CreateCompilation([("System.Console.Write(1);", "Program.cs"), ("System.Console.Write(2);", "Startup.cs")],
+                                         options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            comp.VerifyDiagnostics(
+                // (1,1): error CS8802: Only one compilation unit can have top-level statements.
+                // System.Console.Write(1);
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(1, 1),
+                // (1,1): error CS8802: Only one compilation unit can have top-level statements.
+                // System.Console.Write(2);
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(1, 1)
+                );
+
+            AssertEx.Equal(["Program.cs", "Startup.cs"], comp.GetDiagnostics().Select(d => d.Location.SourceTree.FilePath));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/83691")]
+        public void MultipleTopLevelStatements_SourceGeneratedFile()
+        {
+            var comp = CreateCompilation(("System.Console.Write(1);", "Program.cs"), options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+
+            var generator = new SingleFileTestGenerator("System.Console.Write(2);", "Generated.cs");
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: DefaultParseOptions);
+            driver.RunGeneratorsAndUpdateCompilation(comp, out var outputCompilation, out _);
+
+            outputCompilation.VerifyDiagnostics(
+                // (1,1): error CS8802: Only one compilation unit can have top-level statements.
+                // System.Console.Write(1);
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(1, 1),
+                // (1,1): error CS8802: Only one compilation unit can have top-level statements.
+                // System.Console.Write(2);
+                Diagnostic(ErrorCode.ERR_SimpleProgramMultipleUnitsWithTopLevelStatements, "System").WithLocation(1, 1)
+                );
+
+            AssertEx.Equal(outputCompilation.SyntaxTrees, outputCompilation.GetDiagnostics().Select(d => d.Location.SourceTree));
         }
     }
 }

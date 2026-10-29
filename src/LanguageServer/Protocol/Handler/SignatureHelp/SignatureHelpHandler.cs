@@ -31,7 +31,7 @@ internal sealed class SignatureHelpHandler(SignatureHelpService signatureHelpSer
 
     public async Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        var document = context.Document;
+        var document = await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false);
         if (document == null)
             return null;
 

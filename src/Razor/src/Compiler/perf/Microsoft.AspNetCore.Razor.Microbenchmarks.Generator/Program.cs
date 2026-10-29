@@ -21,7 +21,7 @@ Job baseJob = Job.Default;
 baseJob = baseJob
         .WithIterationCount(1)
         .RunOncePerIteration()
-        .WithToolchain(new BenchmarkDotNet.Toolchains.InProcess.Emit.InProcessEmitToolchain(TimeSpan.FromHours(1.0), logOutput: true));
+        .WithToolchain(BenchmarkDotNet.Toolchains.InProcess.Emit.InProcessEmitToolchain.Default);
 #endif
 
 var config = ManualConfig.CreateMinimumViable()
@@ -32,7 +32,7 @@ var config = ManualConfig.CreateMinimumViable()
 config = validate
     ? config.AddJob(Job.Dry
         .WithId("Validation")
-        .WithToolchain(InProcessNoEmitToolchain.Instance))
+        .WithToolchain(InProcessNoEmitToolchain.Default))
     : config
         .AddJob(baseJob.WithCustomBuildConfiguration("Release").WithId("Current"))
         .AddJob(baseJob.WithCustomBuildConfiguration("Release_Nuget").WithId("Baseline").WithBaseline(true));

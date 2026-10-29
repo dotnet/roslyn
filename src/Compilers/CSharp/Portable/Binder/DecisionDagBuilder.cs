@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
@@ -369,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out TestInputOutputInfo output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            Debug.Assert(pattern.UnionMatchingMode == UnionMatchingMode.None);
+            Debug.Assert(!pattern.IsUnionMatching);
             Debug.Assert(input.UnionValue is null ?
                 (pattern.HasErrors || pattern.InputType.Equals(input.DagTemp.Type, TypeCompareKind.AllIgnoreOptions) || pattern.InputType.IsErrorType()) :
                 (pattern.InputType.SpecialType == SpecialType.System_Object));
@@ -2843,7 +2844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            return name + ".Item" + (t.Index + 1).ToString();
+                            return name + ".Item" + (t.Index + 1).ToString(CultureInfo.InvariantCulture);
                         }
                     }
 

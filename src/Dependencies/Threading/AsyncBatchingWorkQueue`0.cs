@@ -18,7 +18,7 @@ internal sealed class AsyncBatchingWorkQueue(
     TimeSpan delay,
     Func<CancellationToken, ValueTask> processBatchAsync,
     IAsynchronousOperationListener asyncListener,
-    CancellationToken cancellationToken) : AsyncBatchingWorkQueue<VoidResult>(delay, Convert(processBatchAsync), EqualityComparer<VoidResult>.Default, asyncListener, cancellationToken)
+    CancellationToken cancellationToken = default) : AsyncBatchingWorkQueue<VoidResult>(delay, Convert(processBatchAsync), EqualityComparer<VoidResult>.Default, asyncListener, cancellationToken)
 {
     private static Func<ImmutableSegmentedList<VoidResult>, CancellationToken, ValueTask> Convert(Func<CancellationToken, ValueTask> processBatchAsync)
         => (items, ct) => processBatchAsync(ct);

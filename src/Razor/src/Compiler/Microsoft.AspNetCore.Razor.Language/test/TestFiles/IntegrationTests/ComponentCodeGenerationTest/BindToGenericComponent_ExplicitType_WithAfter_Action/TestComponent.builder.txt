@@ -1,0 +1,11 @@
+﻿[0000] OpenComponent<global::Test.MyComponent<
+#nullable restore
+#line (1,22)-(1,25) "x:\dir\subdir\Test\TestComponent.cshtml"
+int
+
+#line default
+#line hidden
+#nullable disable
+            >>()
+[0001] AddComponentParameter(nameof(global::Test.MyComponent<int>. Value ), global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<int>( ParentValue ))
+[0002] AddComponentParameter(nameof(global::Test.MyComponent<int>.ValueChanged), (global::System.Action<int>)( __value => { ParentValue = __value; global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.InvokeSynchronousDelegate( Update ); }))

@@ -1,0 +1,19 @@
+﻿Source Location: (8:1,1 [250] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    public class RenderModeContainer
+    {
+        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer;
+    }
+
+    RenderModeContainer? Container => null;
+|
+Generated Location: (557:18,0 [250] )
+|
+    public class RenderModeContainer
+    {
+        public Microsoft.AspNetCore.Components.IComponentRenderMode RenderMode => Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer;
+    }
+
+    RenderModeContainer? Container => null;
+|
+

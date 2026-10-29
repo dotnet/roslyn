@@ -222,7 +222,7 @@ public sealed class VoidKeywordRecommenderTests : KeywordRecommenderTests
             """
             union U(int) {
                $$
-            """, CSharpNextParseOptions, CSharpNextScriptParseOptions);
+            """, CSharp15ParseOptions, CSharp15ScriptParseOptions);
 
     [Fact]
     public Task TestInsideInterface()

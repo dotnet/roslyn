@@ -268,6 +268,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         CSharp14 = 1400,
 
         /// <summary>
+        /// C# language version 15.0
+        /// <br/>
+        /// Features:
+        /// <list type="bullet">
+        /// <item><description>Collection expression arguments</description></item>
+        /// <item><description>Unions</description></item>
+        /// <item><description>Non-virtual static members in interfaces</description></item>
+        /// <item><description>Closed class hierarchies</description></item>
+        /// <item><description>Labeled <see langword="break"/> and <see langword="continue"/></description></item>
+        /// <item><description>Extension indexers</description></item>
+        /// </list>
+        /// </summary>
+        CSharp15 = 1500,
+
+        /// <summary>
         /// The latest major supported version.
         /// </summary>
         LatestMajor = int.MaxValue - 2,
@@ -311,6 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp12:
                 case LanguageVersion.CSharp13:
                 case LanguageVersion.CSharp14:
+                case LanguageVersion.CSharp15:
                 case LanguageVersion.Preview:
                     return true;
             }
@@ -356,6 +372,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_FeatureNotAvailableInVersion13;
                 case LanguageVersion.CSharp14:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion14;
+                case LanguageVersion.CSharp15:
+                    return ErrorCode.ERR_FeatureNotAvailableInVersion15;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
@@ -431,6 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "13.0";
                 case LanguageVersion.CSharp14:
                     return "14.0";
+                case LanguageVersion.CSharp15:
+                    return "15.0";
                 case LanguageVersion.Default:
                     return "default";
                 case LanguageVersion.Latest:
@@ -557,6 +577,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = LanguageVersion.CSharp14;
                     return true;
 
+                case "15":
+                case "15.0":
+                    result = LanguageVersion.CSharp15;
+                    return true;
+
                 default:
                     result = LanguageVersion.Default;
                     return false;
@@ -573,13 +598,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.Latest:
                 case LanguageVersion.Default:
                 case LanguageVersion.LatestMajor:
-                    return LanguageVersion.CSharp14;
+                    return LanguageVersion.CSharp15;
                 default:
                     return version;
             }
         }
 
-        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp14;
+        internal static LanguageVersion CurrentVersion => LanguageVersion.CSharp15;
 
         /// <summary>Inference of tuple element names was added in C# 7.1</summary>
         internal static bool DisallowInferredTupleElementNames(this LanguageVersion self)

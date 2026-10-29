@@ -1,0 +1,5 @@
+﻿[0000] OpenComponent<global::Test.MyComponent>()
+[0001] AddAttribute("Header", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.AddContent(2, "Hi!"); } ))
+[0002] AddContent("Hi!")
+[0003] AddAttribute("Footer", (global::Microsoft.AspNetCore.Components.RenderFragment)((__builder2) => { __builder2.AddContent(4, "bye!" ); } ))
+[0004] AddContent("bye!")

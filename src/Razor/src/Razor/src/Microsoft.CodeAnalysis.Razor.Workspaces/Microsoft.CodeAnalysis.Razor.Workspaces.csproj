@@ -9,6 +9,8 @@
     <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsPackable Condition="'$(OS)' != 'Windows_NT'">false</IsPackable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- Allows shared code to use LSP types when compiled into Razor Workspaces. -->
+    <DefineConstants>$(DefineConstants);LSP</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,15 +26,12 @@
   </ItemGroup>
 
   <Import Project="..\..\..\Shared\Microsoft.AspNetCore.Razor.SharedUtilities\Microsoft.AspNetCore.Razor.SharedUtilities.projitems" Label="Shared" />
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.Workspaces.Shared\Microsoft.CodeAnalysis.Razor.Workspaces.Shared.projitems" Label="Shared" />
 
   <ItemGroup Label="String Resources">
     <EmbeddedResource Update="Resources\SR.resx">
       <GenerateSource>true</GenerateSource>
       <Namespace>$(ProjectName).Resources</Namespace>
-    </EmbeddedResource>
-
-    <EmbeddedResource Update="Resources\HtmlDescriptions.resx">
-      <LogicalName>Microsoft.CodeAnalysis.Razor.Workspaces.Resources.HtmlDescriptions.resources</LogicalName>
     </EmbeddedResource>
 
     <Using Include="$(ProjectName).Resources" />

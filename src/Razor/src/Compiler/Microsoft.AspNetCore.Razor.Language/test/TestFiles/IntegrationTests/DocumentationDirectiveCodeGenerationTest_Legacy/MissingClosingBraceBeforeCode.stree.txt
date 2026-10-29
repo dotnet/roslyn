@@ -1,0 +1,68 @@
+﻿RazorDocument - [0..115)::115 - [@documentation {<summary>Missing brace</summary>LF@functions { /* note */ public int Value => 42; }LF<p>After</p>LF]
+    MarkupBlock - [0..115)::115
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..50)::50
+            RazorDocumentationDirective - [0..50)::50 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring} [RZ1006(15:0,15 [1] TestFiles/IntegrationTests/DocumentationDirectiveCodeGenerationTest_Legacy/MissingClosingBraceBeforeCode.cshtml)]
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..50)::49
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..50)::36
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [15..16)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [16..50)::34
+                            CSharpStatementLiteral - [16..50)::34 - [<summary>Missing brace</summary>LF] - Gen<Stmt>
+                                Text;[<summary>Missing brace</summary>LF];
+                        RazorMetaCode - [50..50)::0 - Gen<None>
+                            RightBrace;[<Missing>];
+        CSharpCodeBlock - [50..101)::51
+            RazorDirective - [50..99)::49 - Directive:{functions;CodeBlock;Unrestricted}
+                CSharpTransition - [50..51)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [51..99)::48
+                    RazorMetaCode - [51..60)::9 - Gen<None>
+                        Identifier;[functions];
+                    CSharpCodeBlock - [60..99)::39
+                        UnclassifiedTextLiteral - [60..61)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+                        RazorMetaCode - [61..62)::1 - Gen<None>
+                            LeftBrace;[{];
+                        CSharpCodeBlock - [62..98)::36
+                            CSharpStatementLiteral - [62..98)::36 - [ /* note */ public int Value => 42; ] - Gen<Stmt>
+                                Whitespace;[ ];
+                                CSharpComment;[/* note */];
+                                Whitespace;[ ];
+                                Keyword;[public];
+                                Whitespace;[ ];
+                                Keyword;[int];
+                                Whitespace;[ ];
+                                Identifier;[Value];
+                                Whitespace;[ ];
+                                CSharpOperator;[=>];
+                                Whitespace;[ ];
+                                NumericLiteral;[42];
+                                Semicolon;[;];
+                                Whitespace;[ ];
+                        RazorMetaCode - [98..99)::1 - Gen<None>
+                            RightBrace;[}];
+            RazorMetaCode - [99..101)::2 - Gen<None>
+                NewLine;[LF];
+        MarkupElement - [101..113)::12
+            MarkupStartTag - [101..104)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [104..109)::5 - [After] - Gen<Markup>
+                Text;[After];
+            MarkupEndTag - [109..113)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+        MarkupTextLiteral - [113..115)::2 - [LF] - Gen<Markup>
+            NewLine;[LF];
+    EndOfFile;[];

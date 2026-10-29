@@ -24,5 +24,3 @@
                             IntermediateToken -  - CSharp - ParentValue
                             IntermediateToken -  - CSharp - , culture: CultureInfo.InvariantCulture
                             IntermediateToken -  - CSharp - )
-            CSharpCode - (152:2,7 [55] x:\dir\subdir\Test\TestComponent.cshtml)
-                LazyIntermediateToken - (152:2,7 [55] x:\dir\subdir\Test\TestComponent.cshtml) - CSharp - \n    public string ParentValue { get; set; } = "hi";\n

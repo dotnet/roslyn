@@ -1,0 +1,5 @@
+﻿[0000] OpenElement("link")
+[0001] AddAttribute("href", Assets[@"a.css"])
+[0002] AddMarkupContent("\r\n")
+[0003] OpenElement("script")
+[0004] AddAttribute("src", Assets[@"b.js"])

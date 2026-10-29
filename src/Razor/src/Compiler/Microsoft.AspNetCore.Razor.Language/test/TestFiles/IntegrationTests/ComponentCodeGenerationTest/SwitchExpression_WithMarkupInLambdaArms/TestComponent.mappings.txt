@@ -3,18 +3,14 @@
 Generated Location: (320:11,0 [37] )
 |using Microsoft.AspNetCore.Components|
 
-Source Location: (49:2,7 [194] x:\dir\subdir\Test\TestComponent.cshtml)
+Source Location: (102:4,0 [141] x:\dir\subdir\Test\TestComponent.cshtml)
 |
-    public enum SampleType { Alpha, Beta, Gamma }
-
     private static RenderFragment RenderBadge(SampleType type) => type switch
     {
         SampleType.Alpha => (__builder) =>
         {|
-Generated Location: (880:28,0 [194] )
+Generated Location: (880:28,0 [141] )
 |
-    public enum SampleType { Alpha, Beta, Gamma }
-
     private static RenderFragment RenderBadge(SampleType type) => type switch
     {
         SampleType.Alpha => (__builder) =>
@@ -23,7 +19,7 @@ Generated Location: (880:28,0 [194] )
 Source Location: (243:8,9 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 |
 |
-Generated Location: (1210:42,0 [2] )
+Generated Location: (1157:40,0 [2] )
 |
 |
 
@@ -31,7 +27,7 @@ Source Location: (277:10,0 [50] x:\dir\subdir\Test\TestComponent.cshtml)
 |        },
         _ => (__builder) =>
         {|
-Generated Location: (1409:51,0 [50] )
+Generated Location: (1356:49,0 [50] )
 |        },
         _ => (__builder) =>
         {|
@@ -39,7 +35,7 @@ Generated Location: (1409:51,0 [50] )
 Source Location: (327:12,9 [2] x:\dir\subdir\Test\TestComponent.cshtml)
 |
 |
-Generated Location: (1596:61,0 [2] )
+Generated Location: (1543:59,0 [2] )
 |
 |
 
@@ -47,7 +43,7 @@ Source Location: (363:14,0 [19] x:\dir\subdir\Test\TestComponent.cshtml)
 |        }
     };
 |
-Generated Location: (1796:70,0 [19] )
+Generated Location: (1743:68,0 [19] )
 |        }
     };
 |

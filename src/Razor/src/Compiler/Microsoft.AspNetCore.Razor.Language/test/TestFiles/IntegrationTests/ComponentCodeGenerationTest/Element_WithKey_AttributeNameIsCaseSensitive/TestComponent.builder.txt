@@ -1,0 +1,1 @@
+﻿[0000] AddMarkupContent("<elem attributebefore=\"before\" @KEY=\"someObject\" attributeafter=\"after\">Hello</elem>")

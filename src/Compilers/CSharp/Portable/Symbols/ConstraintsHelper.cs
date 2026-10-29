@@ -1117,7 +1117,7 @@ hasRelatedInterfaces:
             [MethodImpl(MethodImplOptions.NoInlining)]
             static bool errorIfNotSatisfiesConstructorConstraint(Symbol containingSymbol, TypeParameterSymbol typeParameter, TypeWithAnnotations typeArgument, ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder)
             {
-                var error = SatisfiesConstructorConstraint(typeArgument.Type);
+                var error = GetConstructorConstraintError(typeArgument.Type);
 
                 switch (error)
                 {
@@ -1476,12 +1476,12 @@ hasRelatedInterfaces:
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private static ConstructorConstraintError SatisfiesConstructorConstraint(TypeSymbol typeArgument)
+        private static ConstructorConstraintError GetConstructorConstraintError(TypeSymbol typeArgument)
         {
             switch (typeArgument.TypeKind)
             {
                 case TypeKind.Struct:
-                    return SatisfiesPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: true);
+                    return GetPublicParameterlessConstructorError((NamedTypeSymbol)typeArgument, synthesizedIfMissing: true);
 
                 case TypeKind.Enum:
                 case TypeKind.Dynamic:
@@ -1493,7 +1493,7 @@ hasRelatedInterfaces:
                         return ConstructorConstraintError.NoPublicParameterlessConstructorOrAbstractType;
                     }
 
-                    return SatisfiesPublicParameterlessConstructor((NamedTypeSymbol)typeArgument, synthesizedIfMissing: false);
+                    return GetPublicParameterlessConstructorError((NamedTypeSymbol)typeArgument, synthesizedIfMissing: false);
 
                 case TypeKind.TypeParameter:
                     {
@@ -1510,7 +1510,7 @@ hasRelatedInterfaces:
             }
         }
 
-        private static ConstructorConstraintError SatisfiesPublicParameterlessConstructor(NamedTypeSymbol type, bool synthesizedIfMissing)
+        private static ConstructorConstraintError GetPublicParameterlessConstructorError(NamedTypeSymbol type, bool synthesizedIfMissing)
         {
             Debug.Assert(type.TypeKind is TypeKind.Class or TypeKind.Struct);
 

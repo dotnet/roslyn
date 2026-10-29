@@ -5199,8 +5199,8 @@ class Driver
             var verifier = CompileAndVerify(comp, expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput("0"), verify: Verification.Fails with
             {
                 ILVerifyMessage = """
-                    [Goo]: Unexpected type on the stack. { Offset = 0x11, Found = ref 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>' }
-                    [Bar]: Unexpected type on the stack. { Offset = 0x27, Found = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<System.Threading.Tasks.Task`1<object>>' }
+                    [Goo]: Unexpected type on the stack. { Offset = 0x18, Found = ref 'T', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>' }
+                    [Bar]: Unexpected type on the stack. { Offset = 0x2e, Found = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<System.Threading.Tasks.Task`1<object>>' }
                     [<Bar>b__0]: Unexpected type on the stack. { Offset = 0x16, Found = ref 'int32', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<object>' }
                     """
             });
@@ -5211,14 +5211,17 @@ class Driver
             );
             verifier.VerifyIL("DynamicClass.Goo<T>(T)", """
                 {
-                  // Code size       18 (0x12)
+                  // Code size       25 (0x19)
                   .maxstack  1
-                  IL_0000:  ldc.i4.1
-                  IL_0001:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
-                  IL_0006:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
-                  IL_000b:  ldarg.1
-                  IL_000c:  box        "T"
-                  IL_0011:  ret
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldobj      "DynamicClass"
+                  IL_0006:  pop
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  call       "System.Threading.Tasks.Task System.Threading.Tasks.Task.Delay(int)"
+                  IL_000d:  call       "void System.Runtime.CompilerServices.AsyncHelpers.Await(System.Threading.Tasks.Task)"
+                  IL_0012:  ldarg.1
+                  IL_0013:  box        "T"
+                  IL_0018:  ret
                 }
                 """);
         }
@@ -6004,6 +6007,151 @@ class Driver
                   IL_004f:  ret
                 }
                 """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        public void IsPatternExpressionInAsyncMethod_DoesNotAffectHoistedLocals()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                await M(new StringCollection("", new('a', 10), new('a', 20), new('a', 30)));
+                Console.WriteLine("done");
+
+                static void Print(bool value)
+                {
+                    Console.WriteLine(value);
+                }
+
+                static async Task M(StringCollection values)
+                {
+                    await Task.Yield();
+                    foreach (var value in values)
+                    {
+                        Print(value.Length is 10 or 20 or 30);
+                        await Task.Delay(1).ConfigureAwait(false);
+                    }
+                }
+
+                // A mutable value-type enumerator that must be hoisted into the async state machine.
+                readonly struct StringCollection
+                {
+                    private readonly string[] _values;
+
+                    public StringCollection(params string[] values)
+                    {
+                        _values = values;
+                    }
+
+                    public Enumerator GetEnumerator() => new Enumerator(_values);
+
+                    public struct Enumerator
+                    {
+                        private readonly string[] _values;
+                        private int _index;
+
+                        public Enumerator(string[] values)
+                        {
+                            _values = values;
+                            _index = -1;
+                        }
+
+                        public string Current => _values[_index];
+
+                        public bool MoveNext() => ++_index < _values.Length;
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                False
+                True
+                True
+                True
+                done
+                """;
+
+            var compilation = CreateCompilationWithTasksExtensions(
+                [source, IAsyncDisposableDefinition],
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            compilation = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                compilation,
+                expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = $"""
+                        {ReturnValueMissing("<Main>$", "0x4b")}
+                        {ReturnValueMissing("<<Main>$>g__M|0_1", "0x72")}
+                        """,
+                }).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72753"), WorkItem("https://github.com/dotnet/roslyn/issues/80052")]
+        public void IsPatternExpressionInAwaitUsing()
+        {
+            var source = """
+                using System;
+                using System.Threading.Tasks;
+
+                await using (await GetResourceAsync())
+                {
+                    Exception exception = await GetExceptionAsync();
+                    Console.Write(exception is OperationCanceledException or CustomException { Message: "" });
+                }
+
+                static async Task<Resource> GetResourceAsync()
+                {
+                    await Task.Yield();
+                    return new Resource();
+                }
+
+                static async Task<Exception> GetExceptionAsync()
+                {
+                    await Task.Yield();
+                    return new CustomException("");
+                }
+
+                sealed class Resource : IAsyncDisposable
+                {
+                    public ValueTask DisposeAsync()
+                    {
+                        Console.Write("Disposed");
+                        return default;
+                    }
+                }
+
+                sealed class CustomException : Exception
+                {
+                    public CustomException(string message)
+                        : base(message)
+                    {
+                    }
+                }
+                """;
+
+            var expectedOutput = "TrueDisposed";
+
+            var compilation = CreateCompilationWithTasksExtensions(
+                [source, IAsyncDisposableDefinition],
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            compilation = CreateRuntimeAsyncCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(
+                compilation,
+                expectedOutput: RuntimeAsyncTestHelpers.ExpectedOutput(expectedOutput),
+                verify: Verification.Fails with
+                {
+                    ILVerifyMessage = $$"""
+                        {{ReturnValueMissing("<Main>$", "0x71")}}
+                        [<<Main>$>g__GetResourceAsync|0_0]: Unexpected type on the stack. { Offset = 0x29, Found = ref 'Resource', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<Resource>' }
+                        [<<Main>$>g__GetExceptionAsync|0_1]: Unexpected type on the stack. { Offset = 0x2e, Found = ref 'CustomException', Expected = ref '[System.Runtime]System.Threading.Tasks.Task`1<System.Exception>' }
+                        """,
+                }).VerifyDiagnostics();
         }
 
         [Fact]

@@ -72,6 +72,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ReaderWriterLockSlimExtensions.cs" Link="Utilities\ReaderWriterLockSlimExtensions.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Symbols\LanguageNames.cs" Link="Compiler\LanguageNames.cs" />
     <Compile Include="..\..\..\Compilers\Shared\NamedPipeUtil.cs" Link="Utilities\NamedPipeUtil.cs" />
+    <Compile Include="..\..\Core\Portable\Utilities\StandardHandleInheritance.cs" Link="Utilities\StandardHandleInheritance.cs" />
 
   </ItemGroup>
   <ItemGroup>

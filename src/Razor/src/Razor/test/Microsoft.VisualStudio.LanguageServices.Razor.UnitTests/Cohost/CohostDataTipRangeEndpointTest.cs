@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
 using Xunit;
 using Xunit.Abstractions;
@@ -23,6 +24,18 @@ public sealed class CohostDataTipRangeEndpointTest(ITestOutputHelper testOutputH
     }
 
     [Fact]
+    public async Task Handle_CSharpInHtml_DataTipRange_FirstExpression_Legacy()
+    {
+        var input = """
+            @{
+                {|expression:{|hover:a$$aa|}|}.bbb.ccc;
+            }
+            """;
+
+        await VerifyDataTipRangeAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task Handle_CSharpInHtml_DataTipRange_SecondExpression()
     {
         var input = """
@@ -35,6 +48,18 @@ public sealed class CohostDataTipRangeEndpointTest(ITestOutputHelper testOutputH
     }
 
     [Fact]
+    public async Task Handle_CSharpInHtml_DataTipRange_SecondExpression_Legacy()
+    {
+        var input = """
+            @{
+                {|expression:{|hover:aaa.b$$bb|}|}.ccc;
+            }
+            """;
+
+        await VerifyDataTipRangeAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    [Fact]
     public async Task Handle_CSharpInHtml_DataTipRange_LastExpression()
     {
         var input = """
@@ -44,6 +69,18 @@ public sealed class CohostDataTipRangeEndpointTest(ITestOutputHelper testOutputH
             """;
 
         await VerifyDataTipRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task Handle_CSharpInHtml_DataTipRange_LastExpression_Legacy()
+    {
+        var input = """
+            @{
+                {|expression:{|hover:aaa.bbb.c$$cc|}|};
+            }
+            """;
+
+        await VerifyDataTipRangeAsync(input, fileKind: RazorFileKind.Legacy);
     }
 
     [Fact]
@@ -61,9 +98,56 @@ public sealed class CohostDataTipRangeEndpointTest(ITestOutputHelper testOutputH
         await VerifyDataTipRangeAsync(input, VSInternalDataTipTags.LinqExpression);
     }
 
-    private async Task VerifyDataTipRangeAsync(TestCode input, VSInternalDataTipTags dataTipTags = 0)
+    [Fact]
+    public async Task Handle_CSharpInHtml_DataTipRange_LinqExpression_Legacy()
     {
-        var document = CreateProjectAndRazorDocument(input.Text);
+        var input = """
+            @using System.Linq;
+
+            @{
+                int[] args;
+                var v = {|expression:{|hover:args.Se$$lect|}(a => a.ToString())|}.Where(a => a.Length >= 0);
+            }
+            """;
+
+        await VerifyDataTipRangeAsync(input, VSInternalDataTipTags.LinqExpression, RazorFileKind.Legacy);
+    }
+
+    [Fact]
+    public async Task Handle_CodeBlock_DataTipRange()
+    {
+        var input = """
+            @code
+            {
+                private void M()
+                {
+                    {|expression:{|hover:aaa.b$$bb|}|}.ccc;
+                }
+            }
+            """;
+
+        await VerifyDataTipRangeAsync(input);
+    }
+
+    [Fact]
+    public async Task Handle_FunctionsBlock_DataTipRange_Legacy()
+    {
+        var input = """
+            @functions
+            {
+                private void M()
+                {
+                    {|expression:{|hover:aaa.b$$bb|}|}.ccc;
+                }
+            }
+            """;
+
+        await VerifyDataTipRangeAsync(input, fileKind: RazorFileKind.Legacy);
+    }
+
+    private async Task VerifyDataTipRangeAsync(TestCode input, VSInternalDataTipTags dataTipTags = 0, RazorFileKind? fileKind = null)
+    {
+        var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind);
         var inputText = await document.GetTextAsync(DisposalToken);
         var position = inputText.GetPosition(input.Position);
 

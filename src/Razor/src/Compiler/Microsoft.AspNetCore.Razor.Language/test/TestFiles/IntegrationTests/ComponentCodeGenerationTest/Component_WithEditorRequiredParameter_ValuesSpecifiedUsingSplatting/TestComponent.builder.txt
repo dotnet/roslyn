@@ -1,0 +1,2 @@
+﻿[0000] OpenComponent<global::Test.ComponentWithEditorRequiredParameters>()
+[0001] AddMultipleAttributes(global::Microsoft.AspNetCore.Components.CompilerServices.RuntimeHelpers.TypeCheck<global::System.Collections.Generic.IEnumerable<global::System.Collections.Generic.KeyValuePair<string, object>>>( new Dictionary<string, object>() ))

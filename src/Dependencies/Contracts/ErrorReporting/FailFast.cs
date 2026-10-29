@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         [Conditional("DEBUG")]
         internal static void DumpStackTrace(Exception? exception = null, string? message = null)
         {
+#pragma warning disable RS0030 // Do not used banned APIs
             Console.WriteLine("Dumping info before call to failfast");
             if (message is object)
             {
@@ -83,6 +84,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             Console.WriteLine(stackTrace.ToString());
 
             Console.Out.Flush();
+#pragma warning restore RS0030 // Do not used banned APIs
         }
 
         /// <summary>

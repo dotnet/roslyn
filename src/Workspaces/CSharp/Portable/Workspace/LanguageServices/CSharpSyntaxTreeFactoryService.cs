@@ -15,14 +15,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp;
 
-[ExportLanguageService(typeof(ISyntaxTreeFactoryService), LanguageNames.CSharp), Shared]
 internal sealed partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTreeFactoryService
 {
     private static readonly CSharpParseOptions _parseOptionWithLatestLanguageVersion = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpSyntaxTreeFactoryService()
+    public CSharpSyntaxTreeFactoryService(ISyntaxTreeCacheService syntaxTreeCache)
+        : base(syntaxTreeCache)
     {
     }
 
@@ -61,9 +59,19 @@ internal sealed partial class CSharpSyntaxTreeFactoryService : AbstractSyntaxTre
         return new ParsedSyntaxTree(text, (CSharpSyntaxNode)root, (CSharpParseOptions)options, filePath, encoding, checksumAlgorithm);
     }
 
-    public override SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken)
+    protected override SyntaxTree ParseSyntaxTreeCore(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken)
+        => SyntaxFactory.ParseSyntaxTree(text, options, filePath, cancellationToken: cancellationToken);
+}
+
+[ExportLanguageServiceFactory(typeof(ISyntaxTreeFactoryService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpSyntaxTreeFactoryServiceFactory : ILanguageServiceFactory
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpSyntaxTreeFactoryServiceFactory()
     {
-        options ??= GetDefaultParseOptions();
-        return SyntaxFactory.ParseSyntaxTree(text, options, filePath, cancellationToken: cancellationToken);
     }
+
+    public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
+        => new CSharpSyntaxTreeFactoryService(languageServices.WorkspaceServices.GetService<ISyntaxTreeCacheService>());
 }

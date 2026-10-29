@@ -41,6 +41,36 @@ The current design does **not** attempt to provide:
 
 The experiment is only compiled into the relevant server-side code on `.NET 8+`.
 
+### MSBuild opt-in
+
+Set `UseRoslynCompilerCache=true` in the project or in a `Directory.Build.props` file:
+
+```xml
+<Project>
+  <PropertyGroup>
+    <UseRoslynCompilerCache>true</UseRoslynCompilerCache>
+  </PropertyGroup>
+</Project>
+```
+
+It can also be enabled for an invocation with `dotnet build -p:UseRoslynCompilerCache=true` or as an environment variable.
+The C# and Visual Basic compiler targets then:
+
+- enable the `use-global-cache` feature, preserving other `Features` and explicit cache-location feature flags
+- set `Deterministic=true`, enabling `/deterministic+` so equivalent compilations can produce matching cache keys
+- set `DeterministicSourcePaths=true`, using the existing `SourceRoot` mapping to produce stable `PathMap` values across worktrees
+- set `EnableSourceLink=false`, preventing revision-specific Source Link data from affecting cache reuse
+- set `IncludeSourceRevisionInInformationalVersion=false`, preventing the SDK from appending the commit ID to the generated `AssemblyInformationalVersion` attribute
+
+Source-control discovery remains enabled so the SDK can discover the checkout root.
+Projects without SDK source-control discovery must supply appropriate `SourceRoot` items.
+The opt-in does not remove revision information supplied by custom repository versioning.
+
+The default cache location can still be overridden with `ROSLYN_CACHE_PATH`
+or an explicit `use-global-cache=<path>` feature flag. Explicit feature flags take precedence.
+
+### Low-level enablement
+
 At runtime, the cache is enabled when the compiler request carries the `use-global-cache` feature flag. If that feature flag is absent, the server behaves exactly as it did before and no compilation outputs are cached.
 
 The feature flag can be used in either of these forms:
@@ -51,10 +81,12 @@ The feature flag can be used in either of these forms:
 When the feature flag is present without an explicit path, the current implementation uses:
 
 ```text
-<temp>/roslyn-cache
+<LocalApplicationData>/roslyn-cache
 ```
 
-There are currently two ways to get the feature onto the request:
+Here `LocalApplicationData` is `Environment.SpecialFolder.LocalApplicationData` (`%LOCALAPPDATA%` on Windows).
+
+Without the MSBuild opt-in, there are two ways to get the feature onto the request:
 
 1. Pass the feature explicitly, for example via `/features:use-global-cache` or MSBuild's `Features` property.
 2. Set `ROSLYN_CACHE_PATH` in the client environment before invoking the compiler or build. Roslyn normalizes that value into the same feature flag when constructing the compiler-server request.
@@ -65,8 +97,9 @@ If both are supplied, the explicit feature flag wins over `ROSLYN_CACHE_PATH`.
 
 Useful cache reuse across worktrees generally requires the build to normalize machine-specific source paths.
 Use `PathMap` to map the local checkout root to a stable path that will be identical in every worktree that should share cache entries.
+`UseRoslynCompilerCache` sets this up through deterministic source-root mapping.
 
-The simplest setup is to put this in a `Directory.Build.props` file at the source root:
+For manual configuration without the MSBuild opt-in, put this in a `Directory.Build.props` file at the source root:
 
 ```xml
 <Project>
@@ -156,6 +189,8 @@ Cache entries are written using a staging directory and then published with a di
 
 Per-entry synchronization is used so that multiple writers racing on the same key do not all try to publish the same result concurrently. If another process is already populating an entry, the current request simply continues with normal compilation behavior.
 
+Cache-entry mutexes coordinate processes of the same user across sessions on the same machine. If different users share a cache directory, their writes can race. The default cache directory is per-user. If you override the cache directory location, use a separate directory for each user to avoid cross-user races.
+
 ## Diagnostics
 
 While the experiment is active, the compiler server logs notable cache events, including:
@@ -170,6 +205,28 @@ While the experiment is active, the compiler server logs notable cache events, i
 When `ROSLYN_CACHE_PATH` is used, the client also logs that it normalized the environment variable into the feature flag sent to the server.
 
 On a miss, Roslyn may also log diffs against recent prior key files for the same output name. This is intended to help explain why two apparently similar builds did not reuse the same cached result.
+
+### Telemetry
+
+When the compilation runs on the server through the MSBuild `Csc`/`Vbc` task and the cache is enabled, the server also produces a structured telemetry event that the task forwards to the host via [`IBuildEngine5.LogTelemetry`](https://learn.microsoft.com/dotnet/api/microsoft.build.framework.ibuildengine5.logtelemetry). This is separate from the diagnostic log above and is intended for aggregate analysis.
+
+The event name is `roslyn/compilercache`. Host telemetry pipelines prefix it:
+
+- Visual Studio: `vs/roslyn/compilercache`
+- dotnet CLI: `dotnet/cli/msbuild/roslyn/compilercache`
+
+The event carries these properties:
+
+| Property | Meaning |
+|----------|---------|
+| `cachestatus` | `hit` or `miss` (always present) |
+| `storeresult` | `none`, `stored`, `skippedrace`, `skippedexists`, or `failed` (always present) |
+| `compileresult` | `succeeded` or `failed`; omitted on a cache hit |
+| `language` | the compiler language (`C#` / `Visual Basic`) (always present) |
+| `keycomputems` | milliseconds spent computing the deterministic key (always present) |
+| `restorems` | milliseconds spent attempting to restore a cached result (always present) |
+| `storems` | milliseconds spent storing the result; omitted when no store was attempted (a hit, or a miss whose compilation failed) |
+| `compilems` | milliseconds spent compiling and emitting on a miss; omitted on a hit |
 
 ## Cache management
 

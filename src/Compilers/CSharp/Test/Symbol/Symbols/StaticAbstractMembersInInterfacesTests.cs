@@ -822,15 +822,9 @@ partial interface I3
                 // (9,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial sealed static I2();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(9, 5),
-                // (9,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial sealed static I2();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(9, 5),
                 // (9,27): error CS0106: The modifier 'sealed' is not valid for this item
                 //     partial sealed static I2();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "I2").WithArguments("sealed").WithLocation(9, 27),
-                // (14,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial static I2() {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(14, 5),
                 // (14,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I2() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(14, 5),
@@ -840,12 +834,6 @@ partial interface I3
                 // (19,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial static I3();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(19, 5),
-                // (19,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial static I3();
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(19, 5),
-                // (24,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
-                //     partial sealed static I3() {}
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(24, 5),
                 // (24,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', 'event', an instance constructor name, or a method or property return type.
                 //     partial sealed static I3() {}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(24, 5),

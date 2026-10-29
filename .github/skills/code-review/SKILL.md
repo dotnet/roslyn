@@ -19,6 +19,12 @@ Use this skill when:
 
 ## Review Process
 
+### Review Progress Updates
+
+1. Print your plan before beginning
+2. After each step of your plan, print a quick result and your next step
+3. Print something at least every few minutes so humans can audit activity
+
 ### Step 0: Gather Code Context (No PR Narrative Yet)
 
 Before analyzing anything, collect as much relevant **code** context as you can. **Critically, do NOT read the PR description, linked issues, or existing review comments yet.** You must form your own independent assessment of what the code does, why it might be needed, what problems it has, and whether the approach is sound — before being exposed to the author's framing. Reading the author's narrative first anchors your judgment and makes you less likely to find real problems.
@@ -80,6 +86,8 @@ If the PR is a pure or targeted revert of an earlier commit, adjust the review s
    - **Never assert that something "does not exist," "is deprecated," or "is unavailable" based on training data alone.** Your knowledge has a cutoff date. When uncertain, ask rather than assert.
 9. **Ensure code suggestions are valid.** Any code you suggest must be syntactically correct and complete. Ensure any suggestion would result in working code.
 10. **Label in-scope vs. follow-up.** Distinguish between issues the PR should fix and out-of-scope improvements. Be explicit when a suggestion is a follow-up rather than a blocker.
+11. **Enforce reviewable scope.** Verify that the PR addresses one coherent concern. Flag unrelated cleanup, behavior changes mixed with broad refactoring, or independently mergeable/revertible work combined into one diff. Judge size by reviewer cognitive load and validation boundaries, not an arbitrary line count; generated files and mechanical updates may legitimately be large.
+12. **Check test coverage and validation outcomes.** Verify appropriate regression tests for behavior changes and use CI results for routine validation. Treat missing regression coverage or known, unexplained validation gaps beyond CI as merge-blocking. Do not require a routine validation checklist in the PR description. Do not demand product builds or tests for documentation-only changes.
 
 ### Step 4: Documentation Freshness Check (sub-agent)
 
@@ -87,8 +95,8 @@ Code changes frequently outdate the agent knowledge base, but it's easy to miss 
 
 Launch a sub-agent (e.g., the `explore` or `task` agent) with the PR diff and list of changed files, and instruct it to verify whether the change should have updated — but didn't — any of the repo's living documentation:
 
-- **Knowledge base** (`.github/memory/`): `FILE_MAP.md` (files added/moved/renamed), `API_MAP.md`, `ARCHITECTURE.md`, `CONVENTIONS.md` (new patterns), `KNOWN_ISSUES.md` (repo-wide surprising behavior/workarounds), `TESTING_STRATEGY.md` (repo-wide test layout), and `INDEX.md` (if memory files were added/removed/renamed).
-- **Per-layer memory files**: `.github/memory/known-issues/{compiler,ide,razor}.md` (layer-specific quirks/workarounds) and `.github/memory/testing/{compiler,ide,razor}.md` (layer-specific test base classes/conventions) for the area the change touches.
+- **Knowledge base** (`.github/memory/`): `FILE_MAP.md` (files added/moved/renamed), `API_MAP.md`, `ARCHITECTURE.md`, `CONVENTIONS.md` (new patterns), `TESTING_STRATEGY.md` (repo-wide test layout), and `INDEX.md` (if memory files were added/removed/renamed).
+- **Per-layer memory files**: `.github/memory/testing/{compiler,ide,razor}.md` (layer-specific test base classes/conventions) for the area the change touches.
 - **Path-scoped instruction files** (`.github/instructions/{Compiler,IDE,Razor}.instructions.md`): layer-specific directory detail, key files/APIs, diagnostic IDs, and coding conventions for the area the change touches.
 - **Entry points**: `.github/copilot-instructions.md` and `AGENTS.md` when build/test/orientation guidance changes.
 
@@ -181,6 +189,10 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 ### Scope & Focus
 
 - **Require large or mixed PRs to be split into focused changes.** Each PR should address one concern. Mixed concerns make review harder and increase regression risk.
+
+- **Use concrete split signals.** Request a split when changes can be reviewed, validated, merged, or reverted independently; touch unrelated ownership areas; or combine preparatory refactoring with a behavior change. Do not request a split solely because generated or mechanical files make the line count large.
+
+- **Check the Definition of Done evidence.** Confirm the author identifies the relevant format/lint, affected build, targeted tests, generated/resource/API work, and documentation freshness work. Missing evidence must be supplied or explicitly justified before approval.
 
 - **Defer tangential improvements to follow-up PRs.** Police scope creep by asking contributors to separate concerns. Even good ideas should wait if they're not part of the PR's core purpose.
 
@@ -282,6 +294,7 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Always add regression tests for bug fixes and behavior changes.** Prefer adding test cases to existing test files rather than creating new files.
 
+- **Require evidence that regression tests detect the bug.** For bug fixes, check the fail-before/pass-after evidence required by the [Definition of Done](../../copilot-instructions.md#definition-of-done). A test that already passes without the fix does not establish regression coverage for that bug. If the check was not performed, flag regression-test efficacy as unverified.
 
 - **Test all relevant `LangVersion` boundaries.** When testing language-version-specific behavior, include: the version *before* the feature (a specific version string that disallows it), the version *after* (using `TestOptions.RegularNext` or a specific version that allows it), and the *preview* version (which always rolls forward with nightly builds). Similarily for IDE features, completions and refactorings may be gated on language version, so test the same boundaries.
 
@@ -298,7 +311,11 @@ Before reviewing individual lines of code, evaluate the PR as a whole. Consider 
 
 - **Suppress expected unrelated warnings in tests with `#pragma`.** When test code intentionally triggers unrelated warnings (e.g., CS0649 for unassigned fields), suppress them with `#pragma warning disable` to keep test output clean.
 
-- **Every code path in the changed function should have dedicated test coverage.** Include both positive and negative outcomes. If logic is copied from another place, mention the source.
+- **Assess coverage by observable behavior and regression risk, not by
+  implementation branch count.** Prefer scenario-level tests through production
+  entry points. Request distinct positive, negative, or boundary cases only when
+  they represent materially different behavior worth protecting. If logic is
+  copied from another place, mention the source.
 
 - **Verify that test assertions are strong enough to detect regressions.** Use `SequenceEqual` when order matters, `SetEqual` when it doesn't, but be aware that `SetEqual` may not flag duplicate entries.
 

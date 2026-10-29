@@ -9,5 +9,5 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.FoldingRanges;
 
 internal interface IFoldingRangeService
 {
-    ImmutableArray<FoldingRange> GetFoldingRanges(RazorCodeDocument codeDocument, FoldingRange[] csharpRanges, ImmutableArray<FoldingRange> htmlRanges, CancellationToken cancellationToken);
+    ImmutableArray<FoldingRange> GetFoldingRanges(RazorCodeDocument codeDocument, FoldingRange[] csharpRanges, FoldingRange[]? declCSharpRanges, ImmutableArray<FoldingRange> htmlRanges, CancellationToken cancellationToken);
 }

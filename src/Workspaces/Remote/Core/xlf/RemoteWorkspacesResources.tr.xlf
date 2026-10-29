@@ -32,11 +32,6 @@
         <target state="translated">Copilot değişiklik analizi</target>
         <note />
       </trans-unit>
-      <trans-unit id="FeatureName_CopilotProposalAdjuster">
-        <source>Copilot proposal adjuster</source>
-        <target state="translated">Copilot teklif ayarlayıcısı</target>
-        <note />
-      </trans-unit>
       <trans-unit id="FeatureName_DependentTypeFinder">
         <source>Dependent type finder</source>
         <target state="translated">Bağımlı tür bulucu</target>

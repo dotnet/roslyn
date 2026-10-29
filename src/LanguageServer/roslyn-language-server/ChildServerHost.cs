@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -23,6 +23,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Client;
 /// </summary>
 internal static class ChildServerHost
 {
+    private static readonly TimeSpan s_outputDrainTimeout = TimeSpan.FromSeconds(5);
+
     public static async Task<int> RunAsync(
         ServerExecutable executable,
         ThinClientArguments arguments)
@@ -57,15 +59,26 @@ internal static class ChildServerHost
         // or the editor's pipe (pipe transport). Our stdin -> the server's stdin carries the editor's LSP requests
         // in stdio mode; the server's stdout/stderr -> ours carries LSP responses (stdio mode) and diagnostics.
         _ = ForwardEditorInputAsync(process, forwardingCancellationSource.Token);
-        var stdoutTask = ProcessUtilities.ForwardStreamAsync(process.StandardOutput.BaseStream, Console.OpenStandardOutput(), CancellationToken.None);
-        var stderrTask = ProcessUtilities.ForwardStreamAsync(process.StandardError.BaseStream, Console.OpenStandardError(), CancellationToken.None);
+        var stdoutTask = ProcessUtilities.ForwardStreamAsync(process.StandardOutput.BaseStream, Console.OpenStandardOutput(), forwardingCancellationSource.Token);
+        var stderrTask = ProcessUtilities.ForwardStreamAsync(process.StandardError.BaseStream, Console.OpenStandardError(), forwardingCancellationSource.Token);
 
         await process.WaitForExitAsync().ConfigureAwait(false);
 
-        // The editor-input copy may still be blocked after the child exits, so cancel it before returning to stop it
-        // touching the child's stdin. Leave the output forwarders uncancelled so they drain remaining output to EOF.
-        forwardingCancellationSource.Cancel();
-        await Task.WhenAll(stdoutTask, stderrTask).ConfigureAwait(false);
+        // Normally the output pipes reach EOF as soon as the server exits. Bound the drain in case another process
+        // inherited a pipe handle and keeps it open, then cancel all forwarding so the thin client can exit.
+        var outputTask = Task.WhenAll(stdoutTask, stderrTask);
+
+        try
+        {
+            await outputTask.WaitAsync(s_outputDrainTimeout).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+        }
+        finally
+        {
+            forwardingCancellationSource.Cancel();
+        }
 
         return InterpretExit(process);
     }

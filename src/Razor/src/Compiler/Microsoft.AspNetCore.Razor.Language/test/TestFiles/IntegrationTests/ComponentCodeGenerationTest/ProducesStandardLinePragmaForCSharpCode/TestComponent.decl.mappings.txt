@@ -1,0 +1,11 @@
+﻿Source Location: (224:10,7 [65] x:\dir\subdir\Test\TestComponent.cshtml)
+|
+    [Parameter]
+    public int IncrementAmount { get; set; }
+|
+Generated Location: (559:18,0 [65] )
+|
+    [Parameter]
+    public int IncrementAmount { get; set; }
+|
+

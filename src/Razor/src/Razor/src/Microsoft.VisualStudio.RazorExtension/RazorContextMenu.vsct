@@ -12,8 +12,12 @@
     <GuidSymbol name="guidSyntaxVisualizerMenuCmdSet" value="{a3a603a2-2b17-4ce2-bd21-cbb8ccc084ec}">
       <IDSymbol name="cmdidRazorSyntaxVisualizer" value="0x0101" />
       <IDSymbol name="menuidToolWindowToolbar" value="0x0102" />
+      <IDSymbol name="menuidShowGenerated" value="0x0103" />
+      <IDSymbol name="menuidShowTagHelpers" value="0x0104" />
 
       <IDSymbol name="grpidRazorSyntaxVisualizer" value="0x1000" />
+      <IDSymbol name="grpidShowGenerated" value="0x1001" />
+      <IDSymbol name="grpidShowTagHelpers" value="0x1002" />
 
       <!-- Top level commands in the tool window -->
       <IDSymbol name="cmdidShowGeneratedCode" value="0x0111" />
@@ -22,6 +26,7 @@
       <IDSymbol name="cmdIdShowInScopeTagHelpers" value="0x0114" />
       <IDSymbol name="cmdIdShowReferencedTagHelpers" value="0x0115" />
       <IDSymbol name="cmdidShowFormattingDocument" value="0x0116" />
+      <IDSymbol name="cmdidShowGeneratedDeclarationCode" value="0x0117" />
     </GuidSymbol>
 
     <!-- Command set GUID for Razor nested file commands -->
@@ -56,6 +61,14 @@
         <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="menuidToolWindowToolbar"/>
       </Group>
 
+      <Group guid="guidSyntaxVisualizerMenuCmdSet" id="grpidShowGenerated" priority="0x0100">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="menuidShowGenerated"/>
+      </Group>
+
+      <Group guid="guidSyntaxVisualizerMenuCmdSet" id="grpidShowTagHelpers" priority="0x0100">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="menuidShowTagHelpers"/>
+      </Group>
+
       <!-- Nested file group parented to Solution Explorer item context menu -->
       <Group guid="guidRazorNestedFilesCmdSet" id="grpidRazorNestedFiles" priority="0x0310">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_CTXT_ITEMNODE"/>
@@ -75,6 +88,20 @@
           <ButtonText>Razor Syntax Visualizer</ButtonText>
         </Strings>
       </Menu>
+
+      <Menu guid="guidSyntaxVisualizerMenuCmdSet" id="menuidShowGenerated" priority="0x0200" type="Menu">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+        <Strings>
+          <ButtonText>Show Generated File</ButtonText>
+        </Strings>
+      </Menu>
+
+      <Menu guid="guidSyntaxVisualizerMenuCmdSet" id="menuidShowTagHelpers" priority="0x0300" type="Menu">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+        <Strings>
+          <ButtonText>Show Tag Helpers</ButtonText>
+        </Strings>
+      </Menu>
     </Menus>
 
     <Buttons>
@@ -88,43 +115,50 @@
         </Strings>
       </Button>
 
-      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedCode" priority="0x202" type="Button">
-        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedCode" priority="0x0100" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidShowGenerated" />
         <Strings>
           <ButtonText>Show Generated C#</ButtonText>
         </Strings>
       </Button>
 
-      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedHtml" priority="0x202" type="Button">
-        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedDeclarationCode" priority="0x0101" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidShowGenerated" />
+        <Strings>
+          <ButtonText>Show Generated C# Declaration</ButtonText>
+        </Strings>
+      </Button>
+
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowGeneratedHtml" priority="0x0102" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidShowGenerated" />
         <Strings>
           <ButtonText>Show Generated HTML</ButtonText>
         </Strings>
       </Button>
 
-      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowFormattingDocument" priority="0x202" type="Button">
-        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdidShowFormattingDocument" priority="0x0103" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidShowGenerated" />
         <Strings>
           <ButtonText>Show Formatting Document</ButtonText>
         </Strings>
       </Button>
 
-      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdIdShowAllTagHelpers" priority="0x203" type="Button">
-        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdIdShowAllTagHelpers" priority="0x0100" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidShowTagHelpers" />
         <Strings>
           <ButtonText>Show All Tag Helpers</ButtonText>
         </Strings>
       </Button>
 
-      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdIdShowInScopeTagHelpers" priority="0x204" type="Button">
-        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdIdShowInScopeTagHelpers" priority="0x0101" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidShowTagHelpers" />
         <Strings>
           <ButtonText>Show In Scope Tag Helpers</ButtonText>
         </Strings>
       </Button>
 
-      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdIdShowReferencedTagHelpers" priority="0x205" type="Button">
-        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidRazorSyntaxVisualizer" />
+      <Button guid="guidSyntaxVisualizerMenuCmdSet" id="cmdIdShowReferencedTagHelpers" priority="0x0102" type="Button">
+        <Parent guid="guidSyntaxVisualizerMenuCmdSet" id="grpidShowTagHelpers" />
         <Strings>
           <ButtonText>Show Referenced Tag Helpers</ButtonText>
         </Strings>

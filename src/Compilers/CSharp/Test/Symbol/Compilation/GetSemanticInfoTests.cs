@@ -5975,8 +5975,9 @@ class C
         }
 
         [Fact]
-        [WorkItem(34984, "https://github.com/dotnet/roslyn/issues/34984")]
-        public void ConversionIsExplicit_UnsetConversionKind()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/34984")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35918")]
+        public void ForeachStatementInfo_ErrorCollectionType_NoConversions()
         {
             var source =
 @"class C1
@@ -5991,8 +5992,14 @@ class C2
         foreach (string item in c.Items)
         {
         }
+    }
 }";
             var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (10,35): error CS1061: 'C1' does not contain a definition for 'Items' and no accessible extension method 'Items' accepting a first argument of type 'C1' could be found (are you missing a using directive or an assembly reference?)
+                //         foreach (string item in c.Items)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Items").WithArguments("C1", "Items").WithLocation(10, 35));
+
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -6000,9 +6007,8 @@ class C2
             var foreachSyntaxNode = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             var foreachSymbolInfo = model.GetForEachStatementInfo(foreachSyntaxNode);
 
-            Assert.Equal(Conversion.UnsetConversion, foreachSymbolInfo.CurrentConversion);
-            Assert.True(foreachSymbolInfo.CurrentConversion.Exists);
-            Assert.False(foreachSymbolInfo.CurrentConversion.IsImplicit);
+            Assert.Equal(Conversion.NoConversion, foreachSymbolInfo.CurrentConversion);
+            Assert.Equal(Conversion.NoConversion, foreachSymbolInfo.ElementConversion);
         }
 
         [Fact, WorkItem(29933, "https://github.com/dotnet/roslyn/issues/29933")]

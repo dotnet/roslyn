@@ -54,6 +54,10 @@ internal abstract partial class SyntaxSerializer(StringBuilder builder) : Syntax
                 WriteRazorDirective(razorDirective);
                 break;
 
+            case RazorDocumentationDirectiveSyntax documentationDirective:
+                WriteRazorDirective(documentationDirective);
+                break;
+
             case MarkupTagHelperElementSyntax tagHelperElement:
                 WriteTagHelperElement(tagHelperElement);
                 break;
@@ -108,7 +112,7 @@ internal abstract partial class SyntaxSerializer(StringBuilder builder) : Syntax
         WriteValue($"[{span.Start}..{span.End}){Separator}Width: {span.End - span.Start}");
     }
 
-    private void WriteRazorDirective(RazorDirectiveSyntax node)
+    private void WriteRazorDirective(BaseRazorDirectiveSyntax node)
     {
         if (node.DirectiveDescriptor is not { } descriptor)
         {
@@ -118,7 +122,7 @@ internal abstract partial class SyntaxSerializer(StringBuilder builder) : Syntax
         WriteSeparator();
         WriteValue($"Directive:{{{descriptor.Directive};{descriptor.Kind};{descriptor.Usage}}}");
 
-        if (node.GetDiagnostics() is { Length: > 0} diagnostics)
+        if (node.GetDiagnostics() is { Length: > 0 } diagnostics)
         {
             WriteValue($" [{GetDiagnosticsText(diagnostics)}]");
         }

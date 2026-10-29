@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.FTL_BadChecksumAlgorithm
                 or ErrorCode.ERR_BadAwaitArgIntrinsic
                 or ErrorCode.ERR_BadAwaitAsIdentifier
-                or ErrorCode.ERR_AwaitInUnsafeContext
+                or ErrorCode.ERR_BadAwaitInFixed
                 or ErrorCode.ERR_UnsafeAsyncArgType
                 or ErrorCode.ERR_VarargsAsync
                 or ErrorCode.ERR_BadAwaitArgVoidCall
@@ -2539,6 +2539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterpolatedStringHandlerArgumentDisallowed
                 or ErrorCode.ERR_MemberNameSameAsExtendedType
                 or ErrorCode.ERR_FeatureNotAvailableInVersion14
+                or ErrorCode.ERR_FeatureNotAvailableInVersion15
                 or ErrorCode.ERR_UnsupportedFeatureInRuntimeAsync
                 or ErrorCode.ERR_ExtensionBlockCollision
                 or ErrorCode.ERR_MethodImplAttributeAsyncCannotBeUsed
@@ -2570,12 +2571,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_RuntimeDoesNotSupportExtendedLayoutTypes
                 or ErrorCode.ERR_NoAwaitOnAsyncEnumerable
                 or ErrorCode.ERR_UnsafeOperation
+                or ErrorCode.ERR_UnsafeUnassignedAddressOf
                 or ErrorCode.ERR_UnsafeUninitializedStackAlloc
                 or ErrorCode.ERR_UnsafeMemberOperation
                 or ErrorCode.ERR_UnsafeMemberOperationCompat
-                or ErrorCode.ERR_CallerUnsafeOverridingSafe
-                or ErrorCode.ERR_CallerUnsafeImplicitlyImplementingSafe
-                or ErrorCode.ERR_CallerUnsafeExplicitlyImplementingSafe
+                or ErrorCode.ERR_RequiresUnsafeOverridingSafe
+                or ErrorCode.ERR_RequiresUnsafeImplicitlyImplementingSafe
+                or ErrorCode.ERR_RequiresUnsafeExplicitlyImplementingSafe
                 or ErrorCode.ERR_ExpressionTreeContainsUnionConversion
                 or ErrorCode.ERR_UnionDeclarationNeedsCaseTypes
                 or ErrorCode.ERR_NoImplicitConversionToObject
@@ -2597,10 +2599,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_SafeModifierCannotBeUsedWithUnsafe
                 or ErrorCode.ERR_ExternMemberRequiresUnsafeOrSafe
                 or ErrorCode.ERR_PartialMemberSafeDifference
-                or ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe
+                or ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe
                 or ErrorCode.ERR_NoBreakId
                 or ErrorCode.ERR_NoContinueId
                 or ErrorCode.ERR_ClosedBadDerivedTypesProperty
+                or ErrorCode.ERR_BadCompilationOptionValueAccepted
+                or ErrorCode.ERR_IllegalUnsafeModifier
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

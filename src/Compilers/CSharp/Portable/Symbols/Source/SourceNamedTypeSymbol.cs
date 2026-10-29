@@ -1879,14 +1879,15 @@ next:;
         {
             base.AfterMembersChecks(diagnostics);
 
-            bool hasExplicitOrExtendedLayout = Layout.Kind == LayoutKind.Explicit || Layout.Kind == LayoutKind.Extended;
-            bool fieldsNeedSafeOrUnsafe = ContainingModule.UseUpdatedMemorySafetyRules && hasExplicitOrExtendedLayout;
+            var layout = Layout;
+            bool fieldsNeedSafeOrUnsafe = ContainingModule.UseUpdatedMemorySafetyRules &&
+                (layout.Kind == LayoutKind.Explicit || layout.Kind == LayoutKind.Extended || layout.PackingSize != 0 || layout.Size != 0);
             var fields = GetFieldsToEmit();
             foreach (var field in fields)
             {
                 if (fieldsNeedSafeOrUnsafe && !field.IsStatic && !field.IsConst && !fieldHasUnsafeOrSafeModifier(field))
                 {
-                    diagnostics.Add(ErrorCode.ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe, field.GetFirstLocation());
+                    diagnostics.Add(ErrorCode.ERR_LayoutFieldRequiresUnsafeOrSafe, field.GetFirstLocation());
                 }
             }
 

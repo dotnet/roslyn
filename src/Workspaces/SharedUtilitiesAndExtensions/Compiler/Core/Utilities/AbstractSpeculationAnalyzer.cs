@@ -50,7 +50,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     private SemanticModel? _lazySpeculativeSemanticModel;
 
     private static readonly SymbolEquivalenceComparer s_includeNullabilityComparer =
-        SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false);
+        SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false, distinguishPartialParts: true);
 
     private static readonly SymbolEquivalenceComparer s_arrayAndReadOnlySpanCompareEqually = s_includeNullabilityComparer.With(arrayAndReadOnlySpanCompareEqually: true);
 

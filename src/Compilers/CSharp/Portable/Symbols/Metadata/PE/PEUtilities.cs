@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Globalization;
 using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
@@ -15,5 +16,16 @@ internal static class PEUtilities
             ?  // '{0}' requires compiler feature '{1}', which is not supported by this version of the C# compiler.
                new CSDiagnosticInfo(ErrorCode.ERR_UnsupportedCompilerFeature, symbol, disallowedFeature)
             : null;
+    }
+
+    internal static DiagnosticInfo? DeriveUnrecognizedMemorySafetyRulesAttributeDiagnostic(Symbol symbol)
+    {
+        return symbol.ContainingModule.MemorySafetyRulesVersion.IsValid()
+            ? null
+            : new CSDiagnosticInfo(
+                ErrorCode.ERR_UnrecognizedAttributeVersion,
+                symbol,
+                WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute),
+                ((int)MemorySafetyRulesVersion.Version2).ToString(CultureInfo.InvariantCulture));
     }
 }

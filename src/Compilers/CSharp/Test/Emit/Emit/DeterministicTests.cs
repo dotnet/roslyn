@@ -119,6 +119,128 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Assert.NotEqual(mvid3, mvid7);
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86096")]
+        public void AnonymousDelegateNames(
+            [CombinatorialValues("int", "int*")] string parameterType,
+            [CombinatorialValues("string o = null", "params int[] rest")] string lastParameter,
+            bool useMethodGroups)
+        {
+            var small = useMethodGroups ? "M1" : $"({parameterType} a, {lastParameter}) => 0";
+            var large = useMethodGroups ? "M2" : $"({parameterType} a, {parameterType} b, {lastParameter}) => 0";
+            var source = $$"""
+                public unsafe class Outer
+                {
+                    public static partial class P { }
+                    public static class Q
+                    {
+                        public static System.Delegate B() => {{small}};
+                    }
+                    public static partial class P
+                    {
+                        public static System.Delegate A() => {{large}};
+                        public static System.Delegate C() => {{small}};
+                    }
+                    private static int M1({{parameterType}} a, {{lastParameter}}) => 0;
+                    private static int M2({{parameterType}} a, {{parameterType}} b, {{lastParameter}}) => 0;
+                }
+                """;
+
+            ImmutableArray<byte> expectedImage = default;
+            foreach (bool concurrentBuild in new[] { false, true })
+            {
+                // P's first partial declaration precedes Q, so a single-threaded build compiles
+                // P.A and P.C before Q.B, even though Q.B's delegate use comes first in source.
+                var compilation = CreateCompilation(source, assemblyName: "AnonymousDelegates",
+                    options: TestOptions.UnsafeReleaseDll.WithDeterministic(true).WithConcurrentBuild(concurrentBuild));
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var delegates = module.GlobalNamespace.GetTypeMembers()
+                        .Where(type => type.Name.StartsWith("<>f__AnonymousDelegate", StringComparison.Ordinal))
+                        .ToArray();
+
+                    AssertEx.Equal(
+                        parameterType == "int"
+                            ? new[] { "<>f__AnonymousDelegate0`3", "<>f__AnonymousDelegate1`4" }
+                            : new[] { "<>f__AnonymousDelegate0", "<>f__AnonymousDelegate1" },
+                        delegates.Select(type => type.MetadataName));
+                    AssertEx.Equal(new[] { 2, 3 }, delegates.Select(type => type.DelegateInvokeMethod.ParameterCount));
+                }, verify: Verification.Skipped);
+                verifier.VerifyDiagnostics();
+                var image = verifier.EmittedAssemblyData;
+
+                if (expectedImage.IsDefault)
+                {
+                    expectedImage = image;
+                }
+                else
+                {
+                    AssertEx.Equal(expectedImage, image);
+                }
+            }
+        }
+
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86096")]
+        public void SynthesizedDelegateNames(bool useDynamic, bool returnsVoid)
+        {
+            var returnType = useDynamic ? (returnsVoid ? "void" : "object") : "System.Delegate";
+            var parameters = useDynamic ? "dynamic receiver, int value, int other" : "";
+            var body = returnsVoid ? "{ }" : "0";
+            var small = useDynamic ? "receiver.M(ref value)" : $"(ref int value) => {body}";
+            var large = useDynamic ? "receiver.M(ref value, other)" : $"(ref int value, int other) => {body}";
+            var source = $$"""
+                public class Outer
+                {
+                    public static partial class P { }
+                    public static class Q
+                    {
+                        public static {{returnType}} B({{parameters}}) => {{small}};
+                    }
+                    public static partial class P
+                    {
+                        public static {{returnType}} A({{parameters}}) => {{large}};
+                        public static {{returnType}} C({{parameters}}) => {{small}};
+                    }
+                }
+                """;
+
+            ImmutableArray<byte> expectedImage = default;
+            foreach (bool concurrentBuild in new[] { false, true })
+            {
+                // A single-threaded build visits P before Q because of P's first declaration.
+                // Its larger delegate is created first, but emitted names must follow signatures.
+                var compilation = CreateCompilation(source, assemblyName: "SynthesizedDelegates",
+                    targetFramework: TargetFramework.StandardAndCSharp,
+                    options: TestOptions.ReleaseDll.WithDeterministic(true).WithConcurrentBuild(concurrentBuild));
+                var verifier = CompileAndVerify(compilation, symbolValidator: module =>
+                {
+                    var delegates = module.GlobalNamespace.GetTypeMembers()
+                        .Where(type => type.TypeKind == TypeKind.Delegate)
+                        .ToArray();
+                    var name = (returnsVoid ? "<>A" : "<>F") + (useDynamic ? "{00000040}" : "{00000001}");
+                    var parameterCount = useDynamic ? 3 : 1;
+                    var arity = parameterCount + (returnsVoid ? 0 : 1);
+
+                    AssertEx.Equal(new[] { $"{name}`{arity}", $"{name}`{arity + 1}" },
+                        delegates.Select(type => type.MetadataName));
+                    AssertEx.Equal(new[] { parameterCount, parameterCount + 1 },
+                        delegates.Select(type => type.DelegateInvokeMethod.ParameterCount));
+                });
+                verifier.VerifyDiagnostics();
+                var image = verifier.EmittedAssemblyData;
+
+                if (expectedImage.IsDefault)
+                {
+                    expectedImage = image;
+                }
+                else
+                {
+                    AssertEx.Equal(expectedImage, image);
+                }
+            }
+        }
+
         [Fact]
         public void PlatformChangeGuid()
         {

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Initialized in two steps. Hold a copy if accessing during initialization.
         private ImmutableArray<ImmutableArray<TypeWithAnnotations>> _lazyTypeParameterConstraintTypes;
         private ImmutableArray<TypeParameterConstraintKind> _lazyTypeParameterConstraintKinds;
-        private TypeWithAnnotations.Boxed? _lazyReturnType;
+        private volatile TypeWithAnnotations.Boxed? _lazyReturnType;
         private ImmutableArray<CustomModifier> _lazyRefCustomModifiers;
 
         // Lock for initializing lazy fields and registering their diagnostics
@@ -50,13 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             _declarationModifiers =
                 DeclarationModifiers.Private |
-                syntax.Modifiers.ToDeclarationModifiers(isForTypeDeclaration: false, diagnostics: _declarationDiagnostics);
+                syntax.Modifiers.ToDeclarationModifiers(allowsPartialModifier: false, diagnostics: _declarationDiagnostics);
 
             var diagnostics = BindingDiagnosticBag.GetInstance();
             Debug.Assert(diagnostics.DiagnosticBag is { });
             Debug.Assert(diagnostics.DependenciesBag is { });
 
-            this.CheckUnsafeModifier(_declarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(_declarationModifiers, diagnostics, syntax.Modifiers);
 
             if ((_declarationModifiers & DeclarationModifiers.Safe) != 0)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Syntax.Modifiers.GetModifierLocation(SyntaxKind.ExternKeyword, Syntax.Identifier.GetLocation()));
             }
 
-            if (GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit)
+            if (GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit)
             {
                 compilation.EnsureRequiresUnsafeAttributeExists(addTo,
                     Syntax.Modifiers.GetModifierLocation(SyntaxKind.UnsafeKeyword, Syntax.Identifier.GetLocation()),
@@ -332,7 +332,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
                 _declarationDependencies.AddAll(diagnostics.DependenciesBag);
                 diagnostics.Free();
+#pragma warning disable CS0420 // A reference to a volatile field will not be treated as volatile
                 Interlocked.CompareExchange(ref _lazyReturnType, new TypeWithAnnotations.Boxed(returnType), null);
+#pragma warning restore CS0420 // A reference to a volatile field will not be treated as volatile
             }
         }
 
@@ -419,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool HasUnsafeModifier => (_declarationModifiers & DeclarationModifiers.Unsafe) != 0;
         internal override bool HasSafeModifier => (_declarationModifiers & DeclarationModifiers.Safe) != 0;
-        internal override bool CanBeCallerUnsafe => true;
+        internal override bool CanRequireUnsafe => true;
 
         internal bool IsExpressionBodied => Syntax is { Body: null, ExpressionBody: object _ };
 

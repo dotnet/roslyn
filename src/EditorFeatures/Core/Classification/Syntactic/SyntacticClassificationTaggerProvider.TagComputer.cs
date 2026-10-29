@@ -45,8 +45,6 @@ internal partial class SyntacticClassificationTaggerProvider
         private readonly ITextBuffer _subjectBuffer;
         private readonly ITaggerEventSource _taggerEventSource;
 
-        private readonly CancellationTokenSource _disposalCancellationSource = new();
-
         /// <summary>
         /// Work queue we use to batch up notifications about changes that will cause
         /// us to classify.  This ensures that if we hear a flurry of changes, we don't
@@ -97,8 +95,7 @@ internal partial class SyntacticClassificationTaggerProvider
                 DelayTimeSpan.NearImmediate,
                 ProcessChangesAsync,
                 equalityComparer: null,
-                taggerProvider._listener,
-                _disposalCancellationSource.Token);
+                taggerProvider._listener);
 
             _lineCache = new ClassifiedLineCache(taggerProvider.ThreadingContext);
 
@@ -170,7 +167,7 @@ internal partial class SyntacticClassificationTaggerProvider
             if (_taggerReferenceCount == 0)
             {
                 // stop any bg work we're doing.
-                _disposalCancellationSource.Cancel();
+                _workQueue.Dispose();
 
                 _taggerEventSource.Changed -= OnEventSourceChanged;
                 _taggerEventSource.Disconnect();

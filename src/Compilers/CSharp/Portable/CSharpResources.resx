@@ -1074,6 +1074,10 @@
   <data name="ERR_IllegalUnsafe" xml:space="preserve">
     <value>Unsafe code may only appear if compiling with /unsafe</value>
   </data>
+  <data name="ERR_IllegalUnsafeModifier" xml:space="preserve">
+    <value>Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.</value>
+    <comment>'Unsafe', 'safe', and '/unsafe' refer to C# keywords and a compiler option.</comment>
+  </data>
   <data name="ERR_AmbigMember" xml:space="preserve">
     <value>Ambiguity between '{0}' and '{1}'</value>
   </data>
@@ -3831,8 +3835,8 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAwaitInStaticVariableInitializer" xml:space="preserve">
     <value>The 'await' operator cannot be used in a static script variable initializer.</value>
   </data>
-  <data name="ERR_AwaitInUnsafeContext" xml:space="preserve">
-    <value>Cannot await in an unsafe context</value>
+  <data name="ERR_BadAwaitInFixed" xml:space="preserve">
+    <value>Cannot await in context of a 'fixed' statement</value>
   </data>
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
     <value>The 'async' modifier can only be used in methods that have a body.</value>
@@ -4336,6 +4340,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadCompilationOptionValue" xml:space="preserve">
     <value>Invalid '{0}' value: '{1}'.</value>
   </data>
+  <data name="ERR_BadCompilationOptionValueAccepted" xml:space="preserve">
+    <value>Invalid '{0}' value: '{1}'. Accepted values are: {2}</value>
+    <comment>{2} is a comma-separated list.</comment>
+  </data>
   <data name="ERR_BadAppConfigPath" xml:space="preserve">
     <value>AppConfigPath must be absolute.</value>
   </data>
@@ -4734,7 +4742,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                        - LANGUAGE -
 -checked[+|-]                 Generate overflow checks
--unsafe[+|-]                  Allow 'unsafe' code
+-unsafe[+|-]                  Allow 'unsafe' code and 'safe' modifiers
 -define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
                               form: -d)
 -langversion:?                Display the allowed values for language version
@@ -4747,6 +4755,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
                               Specify nullable context option enable|disable|warnings|annotations.
+-memorysafetyrulesversion:&lt;n&gt;  Set memory safety rules version as
+                              `1` (legacy),
+                              `2` (updated: unsafe members require unsafe context at use site)
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public
@@ -5893,6 +5904,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ISpreadOperationIsNotCSharpSpread" xml:space="preserve">
     <value>{0} is not a valid C# spread operation</value>
   </data>
+  <data name="ICoalesceOperationIsNotCSharpCoalesceOperation" xml:space="preserve">
+    <value>{0} is not a valid C# coalesce operation</value>
+  </data>
   <data name="WRN_FilterIsConstantFalse" xml:space="preserve">
     <value>Filter expression is a constant 'false', consider removing the catch clause</value>
   </data>
@@ -6447,7 +6461,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Init-only property or indexer '{0}' can only be assigned in an object initializer, or on 'this' or 'base' in an instance constructor or an 'init' accessor.</value>
   </data>
   <data name="ERR_DesignatorBeneathPatternCombinator" xml:space="preserve">
-    <value>A variable may not be declared within a 'not' or an 'or' pattern or a union matching involving matching against either the instance, or its underlying value.</value>
+    <value>A variable may not be declared within a 'not' or 'or' pattern.</value>
   </data>
   <data name="ERR_DesignatorBeforePropertyPattern" xml:space="preserve">
     <value>A variable designator must come after a property pattern.</value>
@@ -6592,6 +6606,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureNotAvailableInVersion14" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 14.0. Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion15" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 15.0. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
@@ -8149,8 +8166,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'extern' member must be marked 'unsafe' or 'safe'.</value>
     <comment>'safe', 'extern', and 'unsafe' should not be localized.</comment>
   </data>
-  <data name="ERR_ExplicitOrExtendedLayoutFieldRequiresUnsafeOrSafe" xml:space="preserve">
-    <value>Field in an explicit or extended layout type must be marked 'unsafe' or 'safe'.</value>
+  <data name="ERR_LayoutFieldRequiresUnsafeOrSafe" xml:space="preserve">
+    <value>Field in a type with explicit or extended layout, nonzero packing size, or nonzero size must be marked 'unsafe' or 'safe'.</value>
     <comment>'unsafe' and 'safe' should not be localized.</comment>
   </data>
   <data name="ERR_StructLayoutAndExtendedLayout" xml:space="preserve">
@@ -8282,6 +8299,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsafeOperation" xml:space="preserve">
     <value>This operation may only be used in an unsafe context</value>
   </data>
+  <data name="ERR_UnsafeUnassignedAddressOf" xml:space="preserve">
+    <value>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</value>
+  </data>
   <data name="ERR_UnsafeUninitializedStackAlloc" xml:space="preserve">
     <value>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</value>
     <comment>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</comment>
@@ -8293,13 +8313,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnsafeMemberOperationCompat" xml:space="preserve">
     <value>'{0}' must be used in an unsafe context because it has pointers in its signature</value>
   </data>
-  <data name="ERR_CallerUnsafeOverridingSafe" xml:space="preserve">
+  <data name="ERR_RequiresUnsafeOverridingSafe" xml:space="preserve">
     <value>Unsafe member '{0}' cannot override safe member '{1}'</value>
   </data>
-  <data name="ERR_CallerUnsafeImplicitlyImplementingSafe" xml:space="preserve">
+  <data name="ERR_RequiresUnsafeImplicitlyImplementingSafe" xml:space="preserve">
     <value>Unsafe member '{0}' cannot implicitly implement safe member '{1}'</value>
   </data>
-  <data name="ERR_CallerUnsafeExplicitlyImplementingSafe" xml:space="preserve">
+  <data name="ERR_RequiresUnsafeExplicitlyImplementingSafe" xml:space="preserve">
     <value>Unsafe member '{0}' cannot implement safe member '{1}'</value>
   </data>
   <data name="ERR_UnsafeConstructorConstraint" xml:space="preserve">

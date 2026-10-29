@@ -1,12 +1,21 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System.IO.Pipes;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
+using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.Razor;
+using Microsoft.CodeAnalysis.LanguageServer.Telemetry;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Telemetry;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Test.Utilities;
 using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests;
@@ -71,6 +80,115 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         Assert.Equal(2, daemon.GetStartedServers().Length);
     }
 
+    [Fact]
+    public async Task Daemon_EachServerHasAnIsolatedTelemetrySession()
+    {
+        var configuration = DefaultServerConfiguration with { IsDaemon = true, TelemetryLevel = "error" };
+        await using var daemon = await CreateDaemonServerAsync(serverConfiguration: configuration);
+        var daemonClientDisconnected = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var daemonEvents = new RecordingEventSink(onLog: functionId =>
+        {
+            if (functionId == FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected)
+                daemonClientDisconnected.TrySetResult(true);
+        });
+        using var daemonEventRegistration = daemon.DaemonTelemetry.AddEventSink(daemonEvents);
+
+        var first = await daemon.CreateClientAsync(clientInfo: new ClientInfo { Name = "GitHub Copilot CLI" });
+        await using var second = await daemon.CreateClientAsync(clientInfo: new ClientInfo { Name = "Visual Studio Code" });
+
+        var firstTelemetry = first.GetRequiredLspService<RoslynTelemetry>();
+        var secondTelemetry = second.GetRequiredLspService<RoslynTelemetry>();
+        var firstSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(firstTelemetry));
+        var secondSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(secondTelemetry));
+        var rootSession = Assert.IsType<TelemetrySession>(TelemetryReporterWrapper.GetSession(daemon.DaemonTelemetry));
+
+        // Each server has a distinct child session correlated to the shared daemon session.
+        Assert.NotNull(daemon.DaemonSessionId);
+        Assert.NotEqual(firstSession.SessionId, secondSession.SessionId);
+        Assert.False(rootSession.TryGetCommonPropertyValue(LanguageServerTelemetry.ClientNamePropertyName, out _));
+        Assert.Equal("GitHub Copilot CLI", GetClientName(firstSession));
+        Assert.Equal("Visual Studio Code", GetClientName(secondSession));
+        Assert.Equal(
+            daemon.DaemonSessionId,
+            GetDaemonSessionId(firstSession));
+        Assert.Equal(
+            daemon.DaemonSessionId,
+            GetDaemonSessionId(secondSession));
+
+        var firstEvents = new RecordingEventSink();
+        var secondEvents = new RecordingEventSink();
+        var firstHoverTelemetryRecorded = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var firstTelemetryFlushed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var firstFault = new InvalidOperationException("first request");
+        var firstMetrics = new RecordingMetricSink(
+            onMeasurement: measurement =>
+            {
+                if (!IsHoverMeasurement(measurement) ||
+                    measurement.EventName != TelemetryNaming.GetEventName(FunctionId.LSP_RequestCounter))
+                    return;
+
+                // The request counter is emitted last, after the other request measurements.
+                FaultReporter.ReportFault(firstFault, ErrorSeverity.General, forceDump: false);
+                firstHoverTelemetryRecorded.TrySetResult();
+            },
+            onFlush: () => firstTelemetryFlushed.TrySetResult(true));
+        var secondMetrics = new RecordingMetricSink();
+        using var firstEventRegistration = firstTelemetry.AddEventSink(firstEvents);
+        using var secondEventRegistration = secondTelemetry.AddEventSink(secondEvents);
+        using var firstMetricRegistration = firstTelemetry.AddMetricSink(firstMetrics);
+        using var secondMetricRegistration = secondTelemetry.AddMetricSink(secondMetrics);
+
+        var firstDocumentUri = LoadProjectWithDocument(
+            first.GetRequiredLspService<LanguageServerWorkspaceFactory>(),
+            "FirstTelemetryServer");
+        var hover = await first.ExecuteRequestAsync<HoverParams, Hover>(
+            Methods.TextDocumentHoverName,
+            new HoverParams
+            {
+                TextDocument = new TextDocumentIdentifier { DocumentUri = firstDocumentUri },
+                Position = new Position(0, 6),
+            },
+            CancellationToken.None);
+
+        // The RPC response can arrive before the request's telemetry scope is disposed.
+        Assert.NotNull(hover);
+        await firstHoverTelemetryRecorded.Task;
+        Assert.Contains(firstMetrics.Measurements, IsHoverMeasurement);
+        Assert.Contains((firstFault, ErrorSeverity.General, false), firstEvents.Faults);
+        Assert.DoesNotContain(daemonEvents.Faults, fault => fault.Exception == firstFault);
+        Assert.DoesNotContain(secondEvents.Faults, fault => fault.Exception == firstFault);
+
+        var daemonEventsBeforeDisconnect = daemonEvents.Events.Length;
+        await first.DisposeAsync();
+        await Task.WhenAll(firstTelemetryFlushed.Task, daemonClientDisconnected.Task);
+
+        // The second server may record late initialization metrics, but must not receive the first server's hover metrics.
+        Assert.DoesNotContain(secondMetrics.Measurements, IsHoverMeasurement);
+
+        // Disconnecting the first server flushes it, preserves the second, and attributes lifecycle telemetry to the daemon.
+        Assert.Null(TelemetryReporterWrapper.GetSession(firstTelemetry));
+        Assert.Equal(0, secondMetrics.FlushCount);
+        Assert.Equal(daemonEventsBeforeDisconnect + 1, daemonEvents.Events.Length);
+        Assert.Equal(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, daemonEvents.Events[^1]);
+        Assert.DoesNotContain(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, firstEvents.Events);
+        Assert.DoesNotContain(FunctionId.VSCode_LanguageServer_Daemon_Client_Disconnected, secondEvents.Events);
+
+        static bool IsHoverMeasurement(RecordingMetricSink.Measurement measurement)
+            => measurement.Tags.Any(tag => tag.Key == "method" && Equals(tag.Value, Methods.TextDocumentHoverName));
+
+        static string GetDaemonSessionId(TelemetrySession telemetrySession)
+        {
+            Assert.True(telemetrySession.TryGetCommonPropertyValue(LanguageServerTelemetry.DaemonSessionIdPropertyName, out var daemonSessionId));
+            return Assert.IsType<string>(daemonSessionId);
+        }
+
+        static string GetClientName(TelemetrySession telemetrySession)
+        {
+            Assert.True(telemetrySession.TryGetCommonPropertyValue(LanguageServerTelemetry.ClientNamePropertyName, out var clientName));
+            return Assert.IsType<string>(clientName);
+        }
+    }
+
     // Each connected client gets its own server with its own Host workspace. A project loaded into one server's
     // workspace must not be visible to the other server, and each server's registration service must track only
     // its own workspaces.
@@ -104,6 +222,111 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
         Assert.DoesNotContain(factory2.HostWorkspace, registrations1);
         Assert.Contains(factory2.HostWorkspace, registrations2);
         Assert.DoesNotContain(factory1.HostWorkspace, registrations2);
+    }
+
+    [Fact]
+    public async Task Daemon_ClosingSolutionReleasesReferencesOnlyUsedByThatSolution()
+    {
+        var directory = TempRoot.CreateDirectory();
+        var sharedPath = Path.Combine(directory.Path, "Shared.dll");
+        var uniquePath = Path.Combine(directory.Path, "Unique.dll");
+        File.Copy(typeof(object).Assembly.Location, sharedPath);
+        File.Copy(typeof(Enumerable).Assembly.Location, uniquePath);
+
+        await using var daemon = await CreateDaemonServerAsync();
+        await using var closing = await daemon.CreateClientAsync();
+        await using var survivor = await daemon.CreateClientAsync();
+        var closingWorkspace = closing.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        var survivorWorkspace = survivor.GetRequiredLspService<LanguageServerWorkspaceFactory>().HostWorkspace;
+        CreateMetadataLifetimeReferences(closingWorkspace, survivorWorkspace, sharedPath, uniquePath,
+            out var sharedReference,
+            out var uniqueReference);
+
+        ClearProjects(closingWorkspace);
+        uniqueReference.AssertReleased();
+        sharedReference.AssertHeld();
+
+        // Keep reference creation in a separate stack frame so the GC can collect references after this returns.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void CreateMetadataLifetimeReferences(
+            Workspace closingWorkspace,
+            Workspace survivorWorkspace,
+            string sharedPath,
+            string uniquePath,
+            out ObjectReference<PortableExecutableReference> sharedReference,
+            out ObjectReference<PortableExecutableReference> uniqueReference)
+        {
+            var survivorSharedReference = survivorWorkspace.Services.GetRequiredService<IMetadataService>()
+                .GetReference(sharedPath, MetadataReferenceProperties.Assembly);
+            var closingMetadataService = closingWorkspace.Services.GetRequiredService<IMetadataService>();
+            var closingSharedReference = closingMetadataService.GetReference(sharedPath, MetadataReferenceProperties.Assembly);
+            var closingUniqueReference = closingMetadataService.GetReference(uniquePath, MetadataReferenceProperties.Assembly);
+
+            Assert.Same(survivorSharedReference, closingSharedReference);
+
+            AddProjectWithReferences(survivorWorkspace, "Survivor", [survivorSharedReference]);
+            AddProjectWithReferences(closingWorkspace, "Closing", [closingSharedReference, closingUniqueReference]);
+
+            sharedReference = ObjectReference.Create(survivorSharedReference);
+            uniqueReference = ObjectReference.Create(closingUniqueReference);
+        }
+    }
+
+    [Fact]
+    public async Task Daemon_SharesGreenSyntaxTreesAcrossServers()
+    {
+        const string source = "class SharedSyntaxTree { }";
+
+        await using var daemon = await CreateDaemonServerAsync();
+        await using var second = await daemon.CreateClientAsync();
+
+        var secondFactory = second.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+        var secondDocument = LoadProjectWithDocument(
+            secondFactory,
+            projectName: "Second",
+            source,
+            filePath: Path.Combine(Path.GetTempPath(), "second", $"{Guid.NewGuid():N}.cs"));
+
+        SyntaxNode secondRoot;
+        await using (var first = await daemon.CreateClientAsync())
+        {
+            var firstFactory = first.GetRequiredLspService<LanguageServerWorkspaceFactory>();
+            var firstDocument = LoadProjectWithDocument(
+                firstFactory,
+                projectName: "First",
+                source,
+                filePath: Path.Combine(Path.GetTempPath(), "first", $"{Guid.NewGuid():N}.cs"));
+
+            var firstTree = await firstDocument.GetSyntaxTreeAsync(CancellationToken.None);
+            var secondTree = await secondDocument.GetSyntaxTreeAsync(CancellationToken.None);
+            Assert.NotNull(firstTree);
+            Assert.NotNull(secondTree);
+
+            var firstRoot = await firstTree.GetRootAsync(CancellationToken.None);
+            secondRoot = await secondTree.GetRootAsync(CancellationToken.None);
+
+            Assert.NotSame(firstFactory.HostWorkspace, secondFactory.HostWorkspace);
+            Assert.NotSame(firstTree, secondTree);
+            Assert.NotSame(firstRoot, secondRoot);
+            Assert.True(firstRoot.IsIncrementallyIdenticalTo(secondRoot));
+            Assert.NotEqual(firstTree.FilePath, secondTree.FilePath);
+            Assert.NotEqual(firstDocument.Id, secondDocument.Id);
+        }
+
+        await WaitForConditionAsync(() => daemon.GetStartedServers().Length == 1);
+
+        await using var third = await daemon.CreateClientAsync();
+        var thirdDocument = LoadProjectWithDocument(
+            third.GetRequiredLspService<LanguageServerWorkspaceFactory>(),
+            projectName: "Third",
+            source,
+            filePath: Path.Combine(Path.GetTempPath(), "third", $"{Guid.NewGuid():N}.cs"));
+        var thirdTree = await thirdDocument.GetSyntaxTreeAsync(CancellationToken.None);
+        Assert.NotNull(thirdTree);
+        var thirdRoot = await thirdTree.GetRootAsync(CancellationToken.None);
+
+        Assert.NotSame(secondRoot, thirdRoot);
+        Assert.True(secondRoot.IsIncrementallyIdenticalTo(thirdRoot));
     }
 
     // If one client's server faults (e.g. the client process crashes and abruptly drops its connection), the daemon
@@ -290,6 +513,23 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             solution => solution.AddProject(projectName, projectName, LanguageNames.CSharp).Solution,
             WorkspaceChangeKind.ProjectAdded);
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void ClearProjects(Workspace workspace)
+        => workspace.SetCurrentSolution(
+            solution => solution.RemoveProject(solution.Projects.Single().Id),
+            WorkspaceChangeKind.SolutionCleared);
+
+    private static void AddProjectWithReferences(
+        Workspace workspace,
+        string projectName,
+        IReadOnlyList<MetadataReference> references)
+        => workspace.SetCurrentSolution(
+            solution => solution
+                .AddProject(projectName, projectName, LanguageNames.CSharp)
+                .AddMetadataReferences(references)
+                .Solution,
+            WorkspaceChangeKind.ProjectAdded);
+
     private static DocumentUri LoadProjectWithDocument(LanguageServerWorkspaceFactory workspaceFactory, string typeName)
     {
         var filePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid():N}.cs");
@@ -301,5 +541,21 @@ public sealed class LanguageServerDaemonTests(ITestOutputHelper testOutputHelper
             WorkspaceChangeKind.ProjectAdded);
 
         return ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+    }
+
+    private static Document LoadProjectWithDocument(
+        LanguageServerWorkspaceFactory workspaceFactory,
+        string projectName,
+        string source,
+        string filePath)
+    {
+        workspaceFactory.HostWorkspace.SetCurrentSolution(
+            solution => solution
+                .AddProject(projectName, projectName, LanguageNames.CSharp)
+                .AddDocument(Path.GetFileName(filePath), SourceText.From(source), filePath: filePath)
+                .Project.Solution,
+            WorkspaceChangeKind.ProjectAdded);
+
+        return workspaceFactory.HostWorkspace.CurrentSolution.Projects.Single().Documents.Single();
     }
 }

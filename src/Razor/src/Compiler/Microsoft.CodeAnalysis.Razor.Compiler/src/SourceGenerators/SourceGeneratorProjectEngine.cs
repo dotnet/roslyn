@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using Microsoft.AspNetCore.Razor.Language;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.CodeAnalysis.Razor.Compiler.CSharp;
 using System;
 using System.Diagnostics;
@@ -16,6 +17,8 @@ internal sealed class SourceGeneratorProjectEngine
     private readonly IRazorEnginePhase _discoveryPhase;
     private readonly int _discoveryPhaseIndex = -1;
     private readonly int _rewritePhaseIndex = -1;
+    private readonly int _utf8PhaseIndex = -1;
+    private readonly int _csharpLoweringPhaseIndex = -1;
 
     private ReadOnlySpan<IRazorEnginePhase> Phases => _projectEngine.Engine.Phases.AsSpan();
 
@@ -27,11 +30,6 @@ internal sealed class SourceGeneratorProjectEngine
 
         foreach (var phase in Phases)
         {
-            if (_discoveryPhaseIndex >= 0 && _rewritePhaseIndex >= 0)
-            {
-                break;
-            }
-
             switch (phase)
             {
                 case DefaultRazorTagHelperContextDiscoveryPhase:
@@ -42,6 +40,14 @@ internal sealed class SourceGeneratorProjectEngine
                 case DefaultRazorTagHelperRewritePhase:
                     _rewritePhaseIndex = index;
                     break;
+
+                case Utf8WriteLiteralPhase:
+                    _utf8PhaseIndex = index;
+                    break;
+
+                case DefaultRazorCSharpLoweringPhase:
+                    _csharpLoweringPhaseIndex = index;
+                    break;
             }
 
             index++;
@@ -50,7 +56,11 @@ internal sealed class SourceGeneratorProjectEngine
         Debug.Assert(_discoveryPhase is not null);
         Debug.Assert(_discoveryPhaseIndex >= 0);
         Debug.Assert(_rewritePhaseIndex >= 0);
+        Debug.Assert(_utf8PhaseIndex >= 0);
+        Debug.Assert(_csharpLoweringPhaseIndex >= 0);
         Debug.Assert(_discoveryPhaseIndex < _rewritePhaseIndex);
+        Debug.Assert(_rewritePhaseIndex < _utf8PhaseIndex);
+        Debug.Assert(_utf8PhaseIndex < _csharpLoweringPhaseIndex);
     }
 
     public SourceGeneratorRazorCodeDocument ProcessInitialParse(RazorProjectItem projectItem, CancellationToken cancellationToken)
@@ -59,11 +69,18 @@ internal sealed class SourceGeneratorProjectEngine
 
         codeDocument = ExecutePhases(Phases[.._discoveryPhaseIndex], codeDocument, cancellationToken);
 
-        // By this point, DefaultRazorParsingPhase has set the canonical syntax tree (_syntaxTree)
-        // so that discovery and subsequent phases can read it via GetSyntaxTree().
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }
 
+    /// <summary>
+    ///  Runs tag-helper discovery, resolution and rewrite for a document. The generator calls this twice per
+    ///  document: first with <paramref name="checkForIdempotency"/> <see langword="false"/> to do the initial
+    ///  pass, then again with <see langword="true"/>. The second call is an incremental gate -- its inputs
+    ///  include the project-wide tag-helper set, so it re-runs whenever that set changes, but it returns the
+    ///  document unchanged unless the change actually affects this document (a used descriptor was added or
+    ///  removed). Only then does it replay resolution. The first call's inputs deliberately exclude the
+    ///  tag-helper set, so it re-runs only when the document itself changes.
+    /// </summary>
     public SourceGeneratorRazorCodeDocument ProcessTagHelpers(
         SourceGeneratorRazorCodeDocument sgDocument, 
         TagHelperCollection tagHelpers, 
@@ -72,7 +89,6 @@ internal sealed class SourceGeneratorProjectEngine
     {
         Debug.Assert(sgDocument.CodeDocument.GetSyntaxTree() is not null);
 
-        int startIndex = _discoveryPhaseIndex;
         var codeDocument = sgDocument.CodeDocument;
 
         if (checkForIdempotency && codeDocument.TryGetTagHelpers(out var previousTagHelpers))
@@ -101,19 +117,32 @@ internal sealed class SourceGeneratorProjectEngine
                 return sgDocument;
             }
 
-            // We need to re-process the document with the updated tag helpers, but can skip discovery
-            // as we just performed it. We must re-run lowering (not just rewrite) because the resolution
-            // phase resolves unresolved nodes based on tag helpers and mutates the IR in place.
-            startIndex = _discoveryPhaseIndex + 1;
-        }
-        else
-        {
-            codeDocument = codeDocument.WithTagHelpers(tagHelpers);
+            codeDocument = ResolveTagHelpers(codeDocument);
+
+            return new SourceGeneratorRazorCodeDocument(codeDocument);
         }
 
-        codeDocument = ExecutePhases(Phases[startIndex..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
+        codeDocument = codeDocument.WithTagHelpers(tagHelpers);
+        codeDocument = _discoveryPhase.Execute(codeDocument, cancellationToken);
+        codeDocument = ResolveTagHelpers(codeDocument);
 
         return new SourceGeneratorRazorCodeDocument(codeDocument);
+
+        RazorCodeDocument ResolveTagHelpers(RazorCodeDocument codeDocument)
+        {
+            // Capture the unresolved node on the first pass (discovery doesn't mutate it), then resolve a
+            // clone of it every time. Resolution binds tag helpers by mutating the IR in place, so cloning
+            // keeps the stored node pristine for later replays -- which start from it instead of re-lowering.
+            var unresolvedDocumentNode = codeDocument.GetUnresolvedDocumentNode();
+            if (unresolvedDocumentNode is null)
+            {
+                unresolvedDocumentNode = codeDocument.GetRequiredDocumentNode();
+                codeDocument = codeDocument.WithUnresolvedDocumentNode(unresolvedDocumentNode);
+            }
+
+            codeDocument = codeDocument.WithDocumentNode((DocumentIntermediateNode)unresolvedDocumentNode.Clone());
+            return ExecutePhases(Phases[(_discoveryPhaseIndex + 1)..(_rewritePhaseIndex + 1)], codeDocument, cancellationToken);
+        }
     }
 
     private static bool RequiresRewrite(
@@ -166,18 +195,34 @@ internal sealed class SourceGeneratorProjectEngine
         return false;
     }
 
-    public SourceGeneratorRazorCodeDocument ProcessRemaining(SourceGeneratorRazorCodeDocument sgDocument, DefaultUtf8WriteLiteralFeature.Utf8SupportMap utf8SupportMap, CancellationToken cancellationToken)
+    public SourceGeneratorRazorCodeDocument ProcessOptimizationPasses(SourceGeneratorRazorCodeDocument sgDocument, CancellationToken cancellationToken)
     {
         var codeDocument = sgDocument.CodeDocument;
         Debug.Assert(codeDocument.GetReferencedTagHelpers() is not null);
 
-        if (_projectEngine.Engine.TryGetFeature<IUtf8WriteLiteralFeature>(out var feature) &&
-            feature is DefaultUtf8WriteLiteralFeature defaultFeature)
-        {
-            defaultFeature.SupportMap = utf8SupportMap;
-        }
+        codeDocument = ExecutePhases(Phases[(_rewritePhaseIndex + 1).._utf8PhaseIndex], codeDocument, cancellationToken);
 
-        codeDocument = ExecutePhases(Phases[(_rewritePhaseIndex + 1)..], codeDocument, cancellationToken);
+        return new SourceGeneratorRazorCodeDocument(codeDocument);
+    }
+
+    /// <summary>
+    ///  Runs the <see cref="Utf8WriteLiteralPhase"/> with the support map and returns the UTF-8 flag
+    ///  it records on the document.
+    /// </summary>
+    /// <remarks>
+    ///  Kept as its own step so the support map stays out of the cached optimization passes.
+    /// </remarks>
+    public bool ProcessUtf8(SourceGeneratorRazorCodeDocument sgDocument, Utf8SupportMap utf8SupportMap, CancellationToken cancellationToken)
+    {
+        var codeDocument = sgDocument.CodeDocument.WithUtf8SupportMap(utf8SupportMap);
+        codeDocument = ExecutePhases(Phases[_utf8PhaseIndex.._csharpLoweringPhaseIndex], codeDocument, cancellationToken);
+
+        return codeDocument.GetDocumentNode()?.Options?.WriteHtmlUtf8StringLiterals ?? false;
+    }
+
+    public SourceGeneratorRazorCodeDocument ProcessCSharp(SourceGeneratorRazorCodeDocument sgDocument, CancellationToken cancellationToken)
+    {
+        var codeDocument = ExecutePhases(Phases[_csharpLoweringPhaseIndex..], sgDocument.CodeDocument, cancellationToken);
 
         return new SourceGeneratorRazorCodeDocument(codeDocument);
     }

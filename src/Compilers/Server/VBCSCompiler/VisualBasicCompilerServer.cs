@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
@@ -12,10 +13,11 @@ using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    internal sealed class VisualBasicCompilerServer : VisualBasicCompiler
+    internal sealed class VisualBasicCompilerServer : VisualBasicCompiler, ICompilerServerTelemetryProvider
     {
         private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _metadataProvider;
         private readonly CompilationCache? _cache;
+        private readonly CompilationCacheTelemetry _cacheTelemetry = new CompilationCacheTelemetry();
         private readonly ICompilerServerLogger _logger;
 
         internal VisualBasicCompilerServer(Func<string, MetadataReferenceProperties, PortableExecutableReference> metadataProvider, string[] args, BuildPaths buildPaths, string? libDirectory, IAnalyzerAssemblyLoader analyzerLoader, GeneratorDriverCache driverCache, ICompilerServerLogger? logger = null)
@@ -44,9 +46,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CancellationToken cancellationToken,
             out object? cacheState)
         {
-            var result = CompilationCacheUtilities.CheckCache(_cache, _logger, Arguments, compilation, analyzers, generators, additionalTexts, cancellationToken, out var deterministicKey, out var hashKey);
+            var result = CompilationCacheUtilities.CheckCache(_cache, _logger, Arguments, compilation, analyzers, generators, additionalTexts, _cacheTelemetry, cancellationToken, out var deterministicKey, out var hashKey);
             cacheState = (deterministicKey, hashKey);
             return result;
+        }
+
+        protected override void OnCompilationStarted()
+        {
+            _cacheTelemetry.StartCompileTimer();
+        }
+
+        protected override void OnCompilationCompleted(bool succeeded)
+        {
+            _cacheTelemetry.StopCompileTimer(succeeded);
         }
 
         protected override void OnCompilationSucceeded(
@@ -58,7 +70,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CancellationToken cancellationToken)
         {
             var (deterministicKey, hashKey) = ((string?, string?))cacheState!;
-            CompilationCacheUtilities.OnCompilationSucceeded(_cache, _logger, Arguments, deterministicKey, hashKey);
+            CompilationCacheUtilities.OnCompilationSucceeded(_cache, _logger, Arguments, deterministicKey, hashKey, _cacheTelemetry);
+        }
+
+        public IReadOnlyList<BuildTelemetryEvent> GetTelemetryEvents()
+        {
+            return _cacheTelemetry.HasData
+                ? [_cacheTelemetry.ToTelemetryEvent(LanguageNames.VisualBasic)]
+                : [];
         }
     }
 }

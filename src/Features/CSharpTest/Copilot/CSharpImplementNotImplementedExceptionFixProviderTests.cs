@@ -608,12 +608,6 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestCopilotOptionsService() { }
 
-        public Task<bool> IsRefineOptionEnabledAsync()
-            => Task.FromResult(true);
-
-        public Task<bool> IsCodeAnalysisOptionEnabledAsync()
-            => Task.FromResult(true);
-
         public Task<bool> IsOnTheFlyDocsOptionEnabledAsync()
             => Task.FromResult(true);
 
@@ -637,25 +631,19 @@ public sealed partial class CSharpImplementNotImplementedExceptionFixProviderTes
 
         public ImplementationDetails? PrepareUsingSingleFakeResult { get; internal set; }
 
-        public Task AnalyzeDocumentAsync(Document document, TextSpan? span, string promptTitle, CancellationToken cancellationToken)
+        public Task<bool> IsOnTheFlyDocsAvailableAsync(CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<ImmutableArray<string>> GetAvailablePromptTitlesAsync(Document document, CancellationToken cancellationToken)
-            => throw new NotImplementedException();
-
-        public Task<ImmutableArray<Diagnostic>> GetCachedDocumentDiagnosticsAsync(Document document, TextSpan? span, ImmutableArray<string> promptTitles, CancellationToken cancellationToken)
+        public Task<bool> IsFileExcludedFromOnTheFlyDocsAsync(string filePath, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         public Task<(string responseString, bool isQuotaExceeded)> GetOnTheFlyDocsAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
-            => Task.FromResult(true);
-
-        public Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken)
+        public Task<bool> IsGenerateDocumentationCommentAvailableAsync(CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
-        public Task StartRefinementSessionAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken)
+        public Task<bool> IsFileExcludedFromDocumentationCommentGenerationAsync(string filePath, CancellationToken cancellationToken)
             => throw new NotImplementedException();
 
         Task<(Dictionary<string, string>? responseDictionary, bool isQuotaExceeded)> ICopilotCodeAnalysisService.GetDocumentationCommentAsync(DocumentationCommentProposal proposal, CancellationToken cancellationToken)

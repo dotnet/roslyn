@@ -20,6 +20,14 @@ public sealed class DirectiveTokenIntermediateNode : IntermediateNode
         visitor.VisitDirectiveToken(this);
     }
 
+    protected override IntermediateNode CloneNode()
+        => new DirectiveTokenIntermediateNode
+        {
+            Content = Content,
+            DirectiveToken = DirectiveToken,
+            IsSynthesizedHelper = IsSynthesizedHelper,
+        };
+
     public override void FormatNode(IntermediateNodeFormatter formatter)
     {
         formatter.WriteContent(Content);

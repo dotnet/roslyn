@@ -1157,6 +1157,122 @@ public sealed class RemoveUnnecessaryCastTests
             source);
     }
 
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/86140")]
+    [InlineData("class")]
+    [InlineData("struct")]
+    public Task DoNotRemoveUnionConversionBeforeBoxing(string caseKind)
+        => new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class Program
+                {
+                    static void Main()
+                    {
+                        object boxed = (Reply<string>)new Failed();
+                        System.Console.WriteLine(boxed.GetType());
+                        var reply = (Reply<string>)boxed;
+                    }
+                }
+
+                {{caseKind}} Failed;
+                class Succeeded<T>;
+                union Reply<T>(Succeeded<T>, Failed);
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public interface IUnion
+                    {
+                        object Value { get; }
+                    }
+
+                    public sealed class UnionAttribute : System.Attribute;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86140")]
+    public Task DoNotRemoveUnionConversionToDifferentUnion()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Outer reply = (Inner)new Failed();
+                        System.Console.WriteLine(reply.Value.GetType());
+                    }
+                }
+
+                class Failed;
+                union Inner(Failed);
+                union Outer(Inner, Failed);
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public interface IUnion
+                    {
+                        object Value { get; }
+                    }
+
+                    public sealed class UnionAttribute : System.Attribute;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86140")]
+    public Task RemoveUnionConversionWhenTargetTyped()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Reply reply = [|(Reply)|]new Failed();
+                    }
+                }
+
+                class Failed;
+                union Reply(Failed);
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public interface IUnion
+                    {
+                        object Value { get; }
+                    }
+
+                    public sealed class UnionAttribute : System.Attribute;
+                }
+                """,
+            FixedCode = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        Reply reply = new Failed();
+                    }
+                }
+
+                class Failed;
+                union Reply(Failed);
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public interface IUnion
+                    {
+                        object Value { get; }
+                    }
+
+                    public sealed class UnionAttribute : System.Attribute;
+                }
+                """,
+            LanguageVersion = LanguageVersion.Preview,
+        }.RunAsync();
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545941")]
     public async Task DoNotRemoveNecessaryCastWithImplicitConversionInThrow()
     {
@@ -13668,4 +13784,34 @@ public sealed class RemoveUnnecessaryCastTests
             LanguageVersion = LanguageVersion.CSharp14,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net90,
         }.RunAsync();
+
+#if NET
+    [Fact]
+    public Task RemoveNativeIntegerCastsWithNet100References()
+        => new VerifyCS.Test
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net100,
+            TestCode = """
+                using System;
+
+                public class C
+                {
+                    public nuint FromIntPtr(IntPtr x) => (nuint)[|(nint)|]x;
+                    public int ToInt(IntPtr x) => (int)[|(nint)|]x;
+                    public nint FromUIntPtr(UIntPtr x) => (nint)[|(nuint)|]x;
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                public class C
+                {
+                    public nuint FromIntPtr(IntPtr x) => (nuint)x;
+                    public int ToInt(IntPtr x) => (int)x;
+                    public nint FromUIntPtr(UIntPtr x) => (nint)x;
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp9,
+        }.RunAsync();
+#endif
 }

@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             public bool IsExtensionMethodIsPopulated => (_bits & IsExtensionMethodIsPopulatedBit) != 0;
             public bool IsExplicitFinalizerOverride => (_bits & IsExplicitFinalizerOverrideBit) != 0;
             public bool IsExplicitClassOverride => (_bits & IsExplicitClassOverrideBit) != 0;
-            public bool IsExplicitOverrideIsPopulated => (_bits & IsExplicitOverrideIsPopulatedBit) != 0;
+            public bool IsExplicitOverrideIsPopulated => (Volatile.Read(ref _bits) & IsExplicitOverrideIsPopulatedBit) != 0;
             public bool IsObsoleteAttributePopulated => (Volatile.Read(ref _bits) & IsObsoleteAttributePopulatedBit) != 0;
             public bool IsCustomAttributesPopulated => (Volatile.Read(ref _bits) & IsCustomAttributesPopulatedBit) != 0;
             public bool IsUseSiteDiagnosticPopulated => (Volatile.Read(ref _bits) & IsUseSiteDiagnosticPopulatedBit) != 0;
@@ -1373,7 +1373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var explicitInterfaceImplementations = _lazyExplicitMethodImplementations;
+                var explicitInterfaceImplementations = RoslynImmutableInterlocked.VolatileRead(in _lazyExplicitMethodImplementations);
                 if (!explicitInterfaceImplementations.IsDefault)
                 {
                     return explicitInterfaceImplementations;
@@ -1544,14 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         "11");
                 }
 
-                if (diagnosticInfo == null &&
-                    _containingType.ContainingPEModule.MemorySafetyRulesVersion == PEModuleSymbol.MemorySafetyRulesAttributeVersion.UnrecognizedAttribute)
-                {
-                    diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_UnrecognizedAttributeVersion,
-                        this,
-                        WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_MemorySafetyRulesAttribute),
-                        CSharpCompilationOptions.UpdatedMemorySafetyRulesVersion.ToString(CultureInfo.InvariantCulture));
-                }
+                diagnosticInfo ??= PEUtilities.DeriveUnrecognizedMemorySafetyRulesAttributeDiagnostic(this);
 
                 if (diagnosticInfo == null && GetUnmanagedCallersOnlyAttributeData(forceComplete: true) is UnmanagedCallersOnlyAttributeData data)
                 {
@@ -1827,25 +1820,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (ContainingModule.UseUpdatedMemorySafetyRules)
             {
-                Debug.Assert(AssociatedSymbol?.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) != CallerUnsafeMode.Implicit);
+                Debug.Assert(AssociatedSymbol?.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) != RequiresUnsafeMode.Implicit);
 
-                return hasRequiresUnsafeAttribute || AssociatedSymbol?.GetCallerUnsafeMode(ConsList<FieldSymbol>.Empty) == CallerUnsafeMode.Explicit;
+                return hasRequiresUnsafeAttribute || AssociatedSymbol?.GetRequiresUnsafeMode(ConsList<FieldSymbol>.Empty) == RequiresUnsafeMode.Explicit;
             }
 
             // This might be expensive, so we cache it in _packedFlags.
             return this.HasParameterContainingPointerType() || ReturnType.ContainsPointerOrFunctionPointer();
         }
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (!RequiresUnsafe)
             {
-                return CallerUnsafeMode.None;
+                return RequiresUnsafeMode.None;
             }
 
             return ContainingModule.UseUpdatedMemorySafetyRules
-                ? CallerUnsafeMode.Explicit
-                : CallerUnsafeMode.Implicit;
+                ? RequiresUnsafeMode.Explicit
+                : RequiresUnsafeMode.Implicit;
         }
 
         internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)

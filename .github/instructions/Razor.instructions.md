@@ -15,11 +15,22 @@ their original sub-tree layout
   The bug is more likely in existing logic than a missing feature.
 - **Helpers**: Review existing helpers (`UsingDirectiveHelper`, `AddUsingsHelper`, etc.)
   before writing new utility methods. Don't duplicate.
+- **Warning levels**: Track warnings with non-zero `RazorWarningLevel` values in
+  [`docs/razor/warning-levels.md`](../../docs/razor/warning-levels.md), including the diagnostic
+  ID, warning level, exact message, and trigger condition.
 
 ## File Types
 
 - `.razor` -- Blazor components.
 - `.cshtml` -- Razor views/pages (referred to as "Legacy" in the codebase).
+
+## Formatting Tests
+
+- Put the intended indentation directly in raw string literals, including literal tabs.
+  Do not use string replacements to construct formatting-test input or expected output.
+- Tabs, trailing whitespace, and whitespace-only lines inside formatting-test literals
+  can be deliberate test data. Preserve them even when `git diff --check` or a formatter
+  flags them; normal whitespace rules still apply outside the literals.
 
 ## Code Patterns
 
@@ -33,10 +44,41 @@ their original sub-tree layout
   fields through the constructor. When adding a new field, thread it through every existing
   `With*` method. Prefer computing derived data via extension methods (e.g.,
   `GetUnusedDirectives()`) rather than storing computed results as fields.
+- **Razor engine concurrency**: Hosts can process multiple documents concurrently through one
+  `RazorProjectEngine`. Phase and pass instances are shared, so keep per-document state in locals
+  or an execution context rather than mutable instance fields.
+- **Source-generator/project-engine boundary**: Source generators build incremental inputs and drive
+  the project engine by attaching project-wide inputs to `RazorCodeDocument`; compiler phases and
+  passes consume those document inputs rather than source-generator-specific state. Direct project-
+  engine tests that depend on those inputs must attach them explicitly instead of changing production
+  phases to preserve a test-only execution path.
 - **Razor documents in Roslyn**: Stored as additional documents. Resolve via
   `solution.GetDocumentIdsWithFilePath(filePath)` then `solution.GetAdditionalDocument(documentId)`.
+- **Razor documents with virtual URIs**: Preserve the full additional-document `FilePath` and
+  source-generator `RelativePhysicalPath` for document and generated-source identity.
+  Use `FileUtilities.AdjustToUsableFilePath` for file-kind classification, project-item paths, and
+  source-document `RelativePath`; URI queries and fragments aren't part of logical filenames.
+- **Generated C# filenames**: Use `CodeWriterExtensions.WriteFilePath` for `#line` and checksum
+  directive filenames. URI quotes and line breaks need percent encoding, not C# string escaping;
+  preserve the rest of the URI and its forward slashes without URI parsing.
+  Use `WriteVerbatimStringLiteral` for verbatim metadata literals so
+  embedded quotes are escaped without changing their values.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
+- **Formatting options across OOP**: Cohost endpoints use
+  `razorDocument.GetRazorFormattingOptions(clientSettings, cancellationToken)` to resolve
+  Razor preferences and `CSharpSyntaxFormattingOptions` from the Razor document's analyzer-config options.
+  This applies `.editorconfig` sections matching the `.razor` or `.cshtml` path and falls back to
+  the user's global C# options. Include the resolved options in `RazorFormattingOptions` sent to
+  remote formatting consumers; remote `IClientSettingsManager` state does not contain the user's
+  C# formatting preferences.
+- **Runtime-declared attribute lists**: When the runtime declares a set the compiler must read
+  (e.g. `[EventHandler]`, `[AcceptsAssetPath]`), it applies the attributes to a public type with
+  a well-known name (`EventHandlers`, `AssetPathAttributes`). A `TagHelperProducer` under
+  `Language/TagHelpers/Producers/` keys off that type name (`IsCandidateType`) and emits carrier
+  `TagHelperDescriptor`s whose descriptor-level metadata carries the parsed values. A later
+  optimization pass reads the full discovered set from `RazorCodeDocument.GetRequiredTagHelpers()`.
+  Do not use the document's in-scope tag helpers, which are namespace-scoped.
 - **Visual Studio options**: Register Razor Advanced settings in
   `Microsoft.VisualStudio.RazorExtension\UnifiedSettings\razor.registration.json`, localize
   their UI text in `VSPackage.resx`, read them through `OptionsStorage`, and add remotely consumed
@@ -51,7 +93,7 @@ When adding a new `IRemote*Service` and `Remote*Service`:
 3. Register in
    `src\Razor\src\Razor\src\Microsoft.CodeAnalysis.Razor.Workspaces\Remote\RazorServices.cs`
    (add to `MessagePackServices` or `JsonServices`).
-4. **Add an entry to `eng\targets\RazorServices.props`** (at the Roslyn repo root, not under
+4. **Add an entry to the repo-root `eng\targets\RazorServices.props` file** (not under
    `src\Razor`):
    `Include="Microsoft.VisualStudio.Razor.{ShortName}"` with
    `ClassName="{FullTypeName}+Factory"`. The `ShortName` is your interface name with

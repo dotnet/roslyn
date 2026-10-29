@@ -112,23 +112,23 @@ _ = o[2];
 """;
 
         CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
-            // (2,1): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,1): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // o[0] = 1;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "o[0]").WithArguments("extension indexers").WithLocation(2, 1),
-            // (3,5): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "o[0]").WithArguments("extension indexers", "15.0").WithLocation(2, 1),
+            // (3,5): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = o[2];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "o[2]").WithArguments("extension indexers").WithLocation(3, 5));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "o[2]").WithArguments("extension indexers", "15.0").WithLocation(3, 5));
 
-        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular15).VerifyEmitDiagnostics();
 
         CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
 
         CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular14).VerifyEmitDiagnostics(
-            // (5,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (5,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[int i]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(5, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(5, 20));
 
-        CreateCompilation([src, libSrc], parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+        CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular15).VerifyEmitDiagnostics();
 
         CreateCompilation([src, libSrc], parseOptions: TestOptions.RegularPreview).VerifyEmitDiagnostics();
     }
@@ -8947,14 +8947,14 @@ _ = new C() is [.., 1];
 
         var comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,16): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = new C() is [.., 1];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[.., 1]").WithArguments("extension indexers").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[.., 1]").WithArguments("extension indexers", "15.0").WithLocation(1, 16));
 
         comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("^1"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
@@ -9964,27 +9964,27 @@ _ = new C() is [_, .. var x];
 
         var comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,16): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[_, .. var x]").WithArguments("extension indexers").WithLocation(1, 16),
-            // (1,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[_, .. var x]").WithArguments("extension indexers", "15.0").WithLocation(1, 16),
+            // (1,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, ".. var x").WithArguments("extension indexers").WithLocation(1, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, ".. var x").WithArguments("extension indexers", "15.0").WithLocation(1, 20));
 
         comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("1..^0"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         comp = CreateCompilation([src, libSrc], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (8,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (8,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[System.Index i] { get { System.Console.WriteLine(i); return 0; } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(8, 20),
-            // (9,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(8, 20),
+            // (9,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[System.Range r] { get { System.Console.WriteLine(r); return 0; } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(9, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(9, 20));
     }
 
     [Fact]
@@ -10074,9 +10074,9 @@ _ = new C() is [_, .. var x];
             // (1,16): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // _ = new C() is [_, .. var x];
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "[_, .. var x]").WithArguments("extensions", "14.0").WithLocation(1, 16),
-            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,16): error CS9260: Feature 'extension indexers' is not available in C# 13.0. Please use language version 15.0 or greater.
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[_, .. var x]").WithArguments("extension indexers").WithLocation(1, 16),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "[_, .. var x]").WithArguments("extension indexers", "15.0").WithLocation(1, 16),
             // (1,20): error CS9260: Feature 'extensions' is not available in C# 13.0. Please use language version 14.0 or greater.
             // _ = new C() is [_, .. var x];
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, ".. var x").WithArguments("extensions", "14.0").WithLocation(1, 20),
@@ -10086,14 +10086,14 @@ _ = new C() is [_, .. var x];
 
         comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (1,16): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,16): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = new C() is [_, .. var x];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[_, .. var x]").WithArguments("extension indexers").WithLocation(1, 16));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[_, .. var x]").WithArguments("extension indexers", "15.0").WithLocation(1, 16));
 
         comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("(1, 2)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular15);
         CompileAndVerify(comp, expectedOutput: ExpectedOutput("(1, 2)"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
@@ -11312,14 +11312,14 @@ c?[43] = 100;
 
         var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,3): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,3): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // c?[42] = 0;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[42]").WithArguments("extension indexers").WithLocation(2, 3),
-            // (5,3): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[42]").WithArguments("extension indexers", "15.0").WithLocation(2, 3),
+            // (5,3): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // c?[43] = 100;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[43]").WithArguments("extension indexers").WithLocation(5, 3));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[43]").WithArguments("extension indexers", "15.0").WithLocation(5, 3));
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular15);
         comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef]);
@@ -11327,9 +11327,9 @@ c?[43] = 100;
 
         comp = CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (7,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[int i]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(7, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(7, 20));
     }
 
     [Fact]
@@ -11401,14 +11401,14 @@ System.Console.Write(c?[43] is 100);
 
         var comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,24): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,24): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // System.Console.Write(c?[42] is null);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[42]").WithArguments("extension indexers").WithLocation(2, 24),
-            // (5,24): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[42]").WithArguments("extension indexers", "15.0").WithLocation(2, 24),
+            // (5,24): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // System.Console.Write(c?[43] is 100);
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "[43]").WithArguments("extension indexers").WithLocation(5, 24));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "[43]").WithArguments("extension indexers", "15.0").WithLocation(5, 24));
 
-        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilation(src, references: [libRef], parseOptions: TestOptions.Regular15);
         comp.VerifyEmitDiagnostics();
 
         comp = CreateCompilation(src, references: [libRef]);
@@ -11416,9 +11416,9 @@ System.Console.Write(c?[43] is 100);
 
         comp = CreateCompilation([src, libSrc], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (7,20): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (7,20): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             //         public int this[int i]
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "this").WithArguments("extension indexers").WithLocation(7, 20));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "this").WithArguments("extension indexers", "15.0").WithLocation(7, 20));
     }
 
     [Fact]
@@ -11723,12 +11723,12 @@ i[101] = 102;
 
         comp = CreateCompilation(src, [libRef], parseOptions: TestOptions.Regular14);
         comp.VerifyEmitDiagnostics(
-            // (2,5): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (2,5): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // _ = i[43];
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i[43]").WithArguments("extension indexers").WithLocation(2, 5),
-            // (3,1): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "i[43]").WithArguments("extension indexers", "15.0").WithLocation(2, 5),
+            // (3,1): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // i[101] = 102;
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "i[101]").WithArguments("extension indexers").WithLocation(3, 1));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "i[101]").WithArguments("extension indexers", "15.0").WithLocation(3, 1));
     }
 
     [Fact]
@@ -15102,9 +15102,9 @@ public static class E
             // (1,16): warning CS1574: XML comment has cref attribute 'extension(int).this[string]' that could not be resolved
             // /// <see cref="E.extension(int).this[string]"/>
             Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).this[string]").WithArguments("extension(int).this[string]").WithLocation(1, 16),
-            // (1,18): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,18): error CS9260: Feature 'extension indexers' is not available in C# 13.0. Please use language version 15.0 or greater.
             // /// <see cref="E.extension(int).this[string]"/>
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension(int).this[string]").WithArguments("extension indexers").WithLocation(1, 18),
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion13, "extension(int).this[string]").WithArguments("extension indexers", "15.0").WithLocation(1, 18),
             // (2,16): warning CS1574: XML comment has cref attribute 'extension(int).get_Item(string)' that could not be resolved
             // /// <see cref="E.extension(int).get_Item(string)"/>
             Diagnostic(ErrorCode.WRN_BadXMLRef, "E.extension(int).get_Item(string)").WithArguments("extension(int).get_Item(string)").WithLocation(2, 16),
@@ -15156,13 +15156,13 @@ class C { }
 """;
         var comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.Regular14.WithDocumentationMode(DocumentationMode.Diagnose));
         comp.VerifyEmitDiagnostics(
-            // (1,18): error CS8652: The feature 'extension indexers' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            // (1,18): error CS9327: Feature 'extension indexers' is not available in C# 14.0. Please use language version 15.0 or greater.
             // /// <see cref="E.extension(int).this[string]"/>
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "extension(int).this[string]").WithArguments("extension indexers").WithLocation(1, 18));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion14, "extension(int).this[string]").WithArguments("extension indexers", "15.0").WithLocation(1, 18));
 
         validateCrefSymbols(comp);
 
-        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.RegularNext.WithDocumentationMode(DocumentationMode.Diagnose));
+        comp = CreateCompilation(src, references: [libComp.EmitToImageReference()], parseOptions: TestOptions.Regular15.WithDocumentationMode(DocumentationMode.Diagnose));
         comp.VerifyEmitDiagnostics();
 
         validateCrefSymbols(comp);
@@ -15918,7 +15918,7 @@ namespace N2
         //{
         //    extension(C c)
         //    {
-        //        public int this[ref short p] { get { return 0; } }
+        //        public int this[ref short p] { get { return 0; } set {}}
         //    }
         //}
         var ilSrc = """
@@ -15967,6 +15967,20 @@ namespace N2
             IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
             IL_0005: throw
         }
+        .method public hidebysig specialname 
+            instance void set_Item (
+                int16& p,
+                int32 'value'
+            ) cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 41 44 39 46 38 39 39
+                31 32 42 43 34 33 33 37 33 33 38 45 33 44 45 37
+                31 38 32 42 37 38 35 00 00
+            )
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::set_Item
         .property instance int32 Item( int16& p )
         {
             .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
@@ -15975,11 +15989,16 @@ namespace N2
                 31 38 32 42 37 38 35 00 00
             )
             .get instance int32 E/'<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::get_Item(int16&)
+            .set instance void E/'<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::set_Item(int16&, int32)
         }
     }
     .method public hidebysig static int32 get_Item ( class C c, int16& p ) cil managed
     {
         ldc.i4.0
+        ret
+    }
+    .method public hidebysig static void set_Item ( class C c, int16& p, int32 'value') cil managed 
+    {
         ret
     }
 }
@@ -15990,6 +16009,12 @@ short x = 123;
 C c = new C();
 _ = c[ref x];
 _ = c[x];
+c[ref x] += 1;
+c[x] += 1;
+_ = c.get_Item(ref x);
+_ = c.get_Item(x);
+c.set_Item(ref x, 1);
+c.set_Item(x, 1);
 """;
         var comp = CreateCompilationWithIL(source, ilSrc);
         comp.VerifyEmitDiagnostics(
@@ -15998,7 +16023,14 @@ _ = c[x];
             Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[ref x]").WithArguments("C").WithLocation(3, 5),
             // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
             // _ = c[x];
-            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[x]").WithArguments("C").WithLocation(4, 5));
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[x]").WithArguments("C").WithLocation(4, 5),
+            // (5,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // c[ref x] += 1;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[ref x]").WithArguments("C").WithLocation(5, 1),
+            // (6,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // c[x] += 1;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[x]").WithArguments("C").WithLocation(6, 1)
+            );
     }
 
     [Fact]
@@ -16038,6 +16070,175 @@ static class E
             // (18,24): error CS8337: The first parameter of a 'ref' extension method 'M2' must be a value type or a generic type constrained to struct.
             //     public static void M2(this ref C c) { }
             Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "M2").WithArguments("M2").WithLocation(18, 24));
+    }
+
+    [Fact]
+    public void RefOmittedComCall_03()
+    {
+        // For COM import type, omitting the ref is allowed, but properties with parameters are disallowed
+
+        // [ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
+        //public class C { }
+        //
+        //public static class E
+        //{
+        //    extension(C c)
+        //    {
+        //        public int Item[ref short p] { get { return 0; } set {}}
+        //    }
+        //}
+        var ilSrc = """
+.class public auto ansi import beforefieldinit C
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.InteropServices.GuidAttribute::.ctor(string) = (
+        01 00 24 31 32 33 34 43 36 35 44 2d 31 32 33 34
+        2d 34 34 37 41 2d 42 37 38 36 2d 36 34 36 38 32
+        43 42 45 46 31 33 36 00 00
+    )
+    .method public hidebysig specialname rtspecialname
+        instance void .ctor () runtime managed internalcall
+    {
+    }
+}
+
+.class public auto ansi abstract sealed beforefieldinit E
+    extends System.Object
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .class nested public auto ansi sealed specialname '<G>$9794DAFCCB9E752B29BFD6350ADA77F2'
+        extends System.Object
+    {
+        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+        .class nested public auto ansi abstract sealed specialname '<M>$73AD9F89912BC4337338E3DE7182B785'
+            extends System.Object
+        {
+            // Methods
+            .method public hidebysig specialname static void '<Extension>$' ( class C c ) cil managed
+            {
+                .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+                ret
+            }
+        }
+        .method public hidebysig specialname instance int32 get_Item ( int16& p ) cil managed
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 41 44 39 46 38 39 39
+                31 32 42 43 34 33 33 37 33 33 38 45 33 44 45 37
+                31 38 32 42 37 38 35 00 00
+            )
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        }
+        .method public hidebysig specialname 
+            instance void set_Item (
+                int16& p,
+                int32 'value'
+            ) cil managed 
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 41 44 39 46 38 39 39
+                31 32 42 43 34 33 33 37 33 33 38 45 33 44 45 37
+                31 38 32 42 37 38 35 00 00
+            )
+            IL_0000: newobj instance void [mscorlib]System.NotSupportedException::.ctor()
+            IL_0005: throw
+        } // end of method '<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::set_Item
+        .property instance int32 Item( int16& p )
+        {
+            .custom instance void System.Runtime.CompilerServices.ExtensionMarkerAttribute::.ctor(string) = (
+                01 00 24 3c 4d 3e 24 37 33 41 44 39 46 38 39 39
+                31 32 42 43 34 33 33 37 33 33 38 45 33 44 45 37
+                31 38 32 42 37 38 35 00 00
+            )
+            .get instance int32 E/'<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::get_Item(int16&)
+            .set instance void E/'<G>$9794DAFCCB9E752B29BFD6350ADA77F2'::set_Item(int16&, int32)
+        }
+    }
+    .method public hidebysig static int32 get_Item ( class C c, int16& p ) cil managed
+    {
+        ldc.i4.0
+        ret
+    }
+    .method public hidebysig static void set_Item ( class C c, int16& p, int32 'value') cil managed 
+    {
+        ret
+    }
+}
+""" + ExtensionMarkerAttributeIL;
+
+        string source = """
+short x = 123;
+C c = new C();
+_ = c[ref x];
+_ = c[x];
+c[ref x] += 1;
+c[x] += 1;
+_ = c.Item[ref x];
+_ = c.Item[x];
+c.Item[ref x] += 1;
+c.Item[x] += 1;
+_ = c.get_Item(ref x);
+_ = c.get_Item(x);
+c.set_Item(ref x, 1);
+c.set_Item(x, 1);
+""";
+        var comp = CreateCompilationWithIL(source, ilSrc);
+        comp.VerifyEmitDiagnostics(
+            // (3,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[ref x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[ref x]").WithArguments("C").WithLocation(3, 5),
+            // (4,5): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // _ = c[x];
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[x]").WithArguments("C").WithLocation(4, 5),
+            // (5,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // c[ref x] += 1;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[ref x]").WithArguments("C").WithLocation(5, 1),
+            // (6,1): error CS0021: Cannot apply indexing with [] to an expression of type 'C'
+            // c[x] += 1;
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "c[x]").WithArguments("C").WithLocation(6, 1),
+            // (7,7): error CS1061: 'C' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // _ = c.Item[ref x];
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item").WithLocation(7, 7),
+            // (8,7): error CS1061: 'C' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // _ = c.Item[x];
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item").WithLocation(8, 7),
+            // (9,3): error CS1061: 'C' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // c.Item[ref x] += 1;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item").WithLocation(9, 3),
+            // (10,3): error CS1061: 'C' does not contain a definition for 'Item' and no accessible extension method 'Item' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+            // c.Item[x] += 1;
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Item").WithArguments("C", "Item").WithLocation(10, 3)
+            );
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/84735")]
+    public void ComReceiver_CompoundAssignment()
+    {
+        var source = """
+using System;
+using System.Runtime.InteropServices;
+
+C c = default;
+c[0] += 1;
+
+[ComImport, Guid("1234C65D-1234-447A-B786-64682CBEF136")]
+class C { }
+
+static class E
+{
+    extension(C c)
+    {
+        public int this[int i]
+        {
+            get { Console.Write($"get({i}) "); return 0; }
+            set { Console.Write($"set({i}, {value}) "); }
+        }
+    }
+}
+""";
+        var compilation = CreateCompilation(source);
+        CompileAndVerify(compilation, expectedOutput: ExpectedOutput("get(0) set(0, 1) ")).VerifyDiagnostics();
     }
 
     [Fact]
@@ -23364,19 +23565,19 @@ class Program
             verifier = CompileAndVerify(comp2, verify: Verification.Skipped);
             verifier.VerifyIL("Program.Test", $$"""
 {
-  // Code size       24 (0x18)
+  // Code size       26 (0x1a)
   .maxstack  3
   .locals init (S1 V_0)
   IL_0000:  ldloca.s   V_0
-  IL_0002:  dup
-  IL_0003:  initobj    "S1"
-  IL_0009:  dup
-  IL_000a:  call       "int E.get_Length({{refKind}} S1)"
-  IL_000f:  ldc.i4.1
-  IL_0010:  sub
-  IL_0011:  call       "int E.get_Item({{refKind}} S1, int)"
-  IL_0016:  pop
-  IL_0017:  ret
+  IL_0002:  initobj    "S1"
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldloca.s   V_0
+  IL_000c:  call       "int E.get_Length({{refKind}} S1)"
+  IL_0011:  ldc.i4.1
+  IL_0012:  sub
+  IL_0013:  call       "int E.get_Item({{refKind}} S1, int)"
+  IL_0018:  pop
+  IL_0019:  ret
 }
 """);
         }
@@ -24595,31 +24796,26 @@ class Program
 
         verifier.VerifyIL("Program.Test", """
 {
-  // Code size       49 (0x31)
+  // Code size       36 (0x24)
   .maxstack  2
-  .locals init (S1& V_0,
-                S1 V_1,
-                int V_2,
-                System.Index V_3)
+  .locals init (S1 V_0,
+                int V_1,
+                System.Index V_2)
   IL_0000:  nop
   IL_0001:  call       "S1 Program.GetS1()"
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  call       "System.Index Program.GetIndex()"
-  IL_000f:  stloc.3
-  IL_0010:  ldloca.s   V_3
-  IL_0012:  ldloc.0
-  IL_0013:  ldobj      "S1"
-  IL_0018:  call       "int E.get_Length(S1)"
-  IL_001d:  call       "int System.Index.GetOffset(int)"
-  IL_0022:  stloc.2
-  IL_0023:  ldloc.0
-  IL_0024:  ldobj      "S1"
-  IL_0029:  ldloc.2
-  IL_002a:  call       "int E.get_Item(S1, int)"
-  IL_002f:  pop
-  IL_0030:  ret
+  IL_0006:  stloc.0
+  IL_0007:  call       "System.Index Program.GetIndex()"
+  IL_000c:  stloc.2
+  IL_000d:  ldloca.s   V_2
+  IL_000f:  ldloc.0
+  IL_0010:  call       "int E.get_Length(S1)"
+  IL_0015:  call       "int System.Index.GetOffset(int)"
+  IL_001a:  stloc.1
+  IL_001b:  ldloc.0
+  IL_001c:  ldloc.1
+  IL_001d:  call       "int E.get_Item(S1, int)"
+  IL_0022:  pop
+  IL_0023:  ret
 }
 """);
     }
@@ -24700,26 +24896,23 @@ class Program
 
         verifier.VerifyIL("Program.Test", $$"""
 {
-  // Code size       37 (0x25)
+  // Code size       36 (0x24)
   .maxstack  3
-  .locals init (S1& V_0,
-                S1 V_1,
-                System.Index V_2)
+  .locals init (S1 V_0,
+            System.Index V_1)
   IL_0000:  nop
   IL_0001:  call       "S1 Program.GetS1()"
-  IL_0006:  stloc.1
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  call       "System.Index Program.GetIndex()"
-  IL_0010:  stloc.2
-  IL_0011:  ldloca.s   V_2
-  IL_0013:  ldloc.0
-  IL_0014:  call       "int E.get_Length({{refKind}} S1)"
-  IL_0019:  call       "int System.Index.GetOffset(int)"
-  IL_001e:  call       "int E.get_Item({{refKind}} S1, int)"
-  IL_0023:  pop
-  IL_0024:  ret
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "System.Index Program.GetIndex()"
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       "int E.get_Length({{refKind}} S1)"
+  IL_0018:  call       "int System.Index.GetOffset(int)"
+  IL_001d:  call       "int E.get_Item({{refKind}} S1, int)"
+  IL_0022:  pop
+  IL_0023:  ret
 }
 """);
     }
@@ -27202,46 +27395,41 @@ class Program
 
         verifier.VerifyIL("Program.Test", """
 {
-  // Code size       80 (0x50)
+  // Code size       66 (0x42)
   .maxstack  3
   .locals init (System.Range V_0,
                 int V_1,
                 int V_2,
                 int V_3,
-                S1 V_4,
-                System.Index V_5)
+                System.Index V_4)
   IL_0000:  nop
   IL_0001:  call       "S1 Program.GetS1()"
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  call       "System.Range Program.GetRange()"
-  IL_000f:  stloc.0
-  IL_0010:  dup
-  IL_0011:  ldobj      "S1"
-  IL_0016:  call       "int E.get_Length(S1)"
-  IL_001b:  stloc.1
-  IL_001c:  ldloca.s   V_0
-  IL_001e:  call       "System.Index System.Range.Start.get"
-  IL_0023:  stloc.s    V_5
-  IL_0025:  ldloca.s   V_5
-  IL_0027:  ldloc.1
-  IL_0028:  call       "int System.Index.GetOffset(int)"
-  IL_002d:  stloc.2
-  IL_002e:  ldloca.s   V_0
-  IL_0030:  call       "System.Index System.Range.End.get"
-  IL_0035:  stloc.s    V_5
-  IL_0037:  ldloca.s   V_5
-  IL_0039:  ldloc.1
-  IL_003a:  call       "int System.Index.GetOffset(int)"
-  IL_003f:  ldloc.2
-  IL_0040:  sub
-  IL_0041:  stloc.3
-  IL_0042:  ldobj      "S1"
-  IL_0047:  ldloc.2
-  IL_0048:  ldloc.3
-  IL_0049:  call       "int E.Slice(S1, int, int)"
-  IL_004e:  pop
-  IL_004f:  ret
+  IL_0006:  call       "System.Range Program.GetRange()"
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  call       "int E.get_Length(S1)"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       "System.Index System.Range.Start.get"
+  IL_001a:  stloc.s    V_4
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  ldloc.1
+  IL_001f:  call       "int System.Index.GetOffset(int)"
+  IL_0024:  stloc.2
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       "System.Index System.Range.End.get"
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  ldloc.1
+  IL_0031:  call       "int System.Index.GetOffset(int)"
+  IL_0036:  ldloc.2
+  IL_0037:  sub
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.2
+  IL_003a:  ldloc.3
+  IL_003b:  call       "int E.Slice(S1, int, int)"
+  IL_0040:  pop
+  IL_0041:  ret
 }
 """);
     }
@@ -27417,44 +27605,44 @@ class Program
         var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetRange:3 length:3 Slice:3 final:6"), verify: Verification.Skipped);
         verifier.VerifyIL("Program.Test", $$"""
 {
-  // Code size       70 (0x46)
+  // Code size       72 (0x48)
   .maxstack  3
-  .locals init (System.Range V_0,
-                int V_1,
+  .locals init (S1 V_0,
+                System.Range V_1,
                 int V_2,
                 int V_3,
-                S1 V_4,
+                int V_4,
                 System.Index V_5)
   IL_0000:  nop
   IL_0001:  call       "S1 Program.GetS1()"
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  call       "System.Range Program.GetRange()"
-  IL_000f:  stloc.0
-  IL_0010:  dup
-  IL_0011:  call       "int E.get_Length({{refKind}} S1)"
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  call       "System.Index System.Range.Start.get"
-  IL_001e:  stloc.s    V_5
-  IL_0020:  ldloca.s   V_5
-  IL_0022:  ldloc.1
-  IL_0023:  call       "int System.Index.GetOffset(int)"
-  IL_0028:  stloc.2
-  IL_0029:  ldloca.s   V_0
-  IL_002b:  call       "System.Index System.Range.End.get"
-  IL_0030:  stloc.s    V_5
-  IL_0032:  ldloca.s   V_5
-  IL_0034:  ldloc.1
-  IL_0035:  call       "int System.Index.GetOffset(int)"
-  IL_003a:  ldloc.2
-  IL_003b:  sub
-  IL_003c:  stloc.3
-  IL_003d:  ldloc.2
+  IL_0006:  stloc.0
+  IL_0007:  call       "System.Range Program.GetRange()"
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       "int E.get_Length({{refKind}} S1)"
+  IL_0014:  stloc.2
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "System.Index System.Range.Start.get"
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloca.s   V_5
+  IL_0020:  ldloc.2
+  IL_0021:  call       "int System.Index.GetOffset(int)"
+  IL_0026:  stloc.3
+  IL_0027:  ldloca.s   V_1
+  IL_0029:  call       "System.Index System.Range.End.get"
+  IL_002e:  stloc.s    V_5
+  IL_0030:  ldloca.s   V_5
+  IL_0032:  ldloc.2
+  IL_0033:  call       "int System.Index.GetOffset(int)"
+  IL_0038:  ldloc.3
+  IL_0039:  sub
+  IL_003a:  stloc.s    V_4
+  IL_003c:  ldloca.s   V_0
   IL_003e:  ldloc.3
-  IL_003f:  call       "int E.Slice({{refKind}} S1, int, int)"
-  IL_0044:  pop
-  IL_0045:  ret
+  IL_003f:  ldloc.s    V_4
+  IL_0041:  call       "int E.Slice({{refKind}} S1, int, int)"
+  IL_0046:  pop
+  IL_0047:  ret
 }
 """);
     }
@@ -27850,106 +28038,81 @@ class Program
 
         verifier.VerifyIL("Program.Test1<T>()", """
 {
-  // Code size      115 (0x73)
-  .maxstack  3
-  .locals init (T V_0,
-                T& V_1,
-                System.Range V_2,
-                int V_3,
-                int V_4,
-                int V_5,
-                T V_6,
-                T V_7,
-                System.Index V_8)
-  IL_0000:  nop
-  IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.s    V_6
-  IL_0008:  ldloca.s   V_6
-  IL_000a:  stloc.1
-  IL_000b:  ldloca.s   V_7
-  IL_000d:  initobj    "T"
-  IL_0013:  ldloc.s    V_7
-  IL_0015:  box        "T"
-  IL_001a:  brtrue.s   IL_0027
-  IL_001c:  ldloc.1
-  IL_001d:  ldobj      "T"
-  IL_0022:  stloc.0
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  br.s       IL_0028
-  IL_0027:  ldloc.1
-  IL_0028:  call       "System.Range Program.GetRange()"
-  IL_002d:  stloc.2
-  IL_002e:  dup
-  IL_002f:  ldobj      "T"
-  IL_0034:  call       "int E.get_Length<T>(T)"
-  IL_0039:  stloc.3
-  IL_003a:  ldloca.s   V_2
-  IL_003c:  call       "System.Index System.Range.Start.get"
-  IL_0041:  stloc.s    V_8
-  IL_0043:  ldloca.s   V_8
-  IL_0045:  ldloc.3
-  IL_0046:  call       "int System.Index.GetOffset(int)"
-  IL_004b:  stloc.s    V_4
-  IL_004d:  ldloca.s   V_2
-  IL_004f:  call       "System.Index System.Range.End.get"
-  IL_0054:  stloc.s    V_8
-  IL_0056:  ldloca.s   V_8
-  IL_0058:  ldloc.3
-  IL_0059:  call       "int System.Index.GetOffset(int)"
-  IL_005e:  ldloc.s    V_4
-  IL_0060:  sub
-  IL_0061:  stloc.s    V_5
-  IL_0063:  ldobj      "T"
-  IL_0068:  ldloc.s    V_4
-  IL_006a:  ldloc.s    V_5
-  IL_006c:  call       "int E.Slice<T>(T, int, int)"
-  IL_0071:  pop
-  IL_0072:  ret
-}
-""");
-
-        verifier.VerifyIL("Program.Test2<T>()", """
-{
-  // Code size       80 (0x50)
+  // Code size       66 (0x42)
   .maxstack  3
   .locals init (System.Range V_0,
                 int V_1,
                 int V_2,
                 int V_3,
-                T V_4,
-                System.Index V_5)
+                System.Index V_4)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  call       "System.Range Program.GetRange()"
-  IL_000f:  stloc.0
-  IL_0010:  dup
-  IL_0011:  ldobj      "T"
-  IL_0016:  call       "int E.get_Length<T>(T)"
-  IL_001b:  stloc.1
-  IL_001c:  ldloca.s   V_0
-  IL_001e:  call       "System.Index System.Range.Start.get"
-  IL_0023:  stloc.s    V_5
-  IL_0025:  ldloca.s   V_5
-  IL_0027:  ldloc.1
-  IL_0028:  call       "int System.Index.GetOffset(int)"
-  IL_002d:  stloc.2
-  IL_002e:  ldloca.s   V_0
-  IL_0030:  call       "System.Index System.Range.End.get"
-  IL_0035:  stloc.s    V_5
-  IL_0037:  ldloca.s   V_5
-  IL_0039:  ldloc.1
-  IL_003a:  call       "int System.Index.GetOffset(int)"
-  IL_003f:  ldloc.2
-  IL_0040:  sub
-  IL_0041:  stloc.3
-  IL_0042:  ldobj      "T"
-  IL_0047:  ldloc.2
-  IL_0048:  ldloc.3
-  IL_0049:  call       "int E.Slice<T>(T, int, int)"
-  IL_004e:  pop
-  IL_004f:  ret
+  IL_0006:  call       "System.Range Program.GetRange()"
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  call       "int E.get_Length<T>(T)"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       "System.Index System.Range.Start.get"
+  IL_001a:  stloc.s    V_4
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  ldloc.1
+  IL_001f:  call       "int System.Index.GetOffset(int)"
+  IL_0024:  stloc.2
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       "System.Index System.Range.End.get"
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  ldloc.1
+  IL_0031:  call       "int System.Index.GetOffset(int)"
+  IL_0036:  ldloc.2
+  IL_0037:  sub
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.2
+  IL_003a:  ldloc.3
+  IL_003b:  call       "int E.Slice<T>(T, int, int)"
+  IL_0040:  pop
+  IL_0041:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2<T>()", """
+{
+  // Code size       66 (0x42)
+  .maxstack  3
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
+                int V_3,
+                System.Index V_4)
+  IL_0000:  nop
+  IL_0001:  call       "T Program.GetT<T>()"
+  IL_0006:  call       "System.Range Program.GetRange()"
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  call       "int E.get_Length<T>(T)"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       "System.Index System.Range.Start.get"
+  IL_001a:  stloc.s    V_4
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  ldloc.1
+  IL_001f:  call       "int System.Index.GetOffset(int)"
+  IL_0024:  stloc.2
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       "System.Index System.Range.End.get"
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  ldloc.1
+  IL_0031:  call       "int System.Index.GetOffset(int)"
+  IL_0036:  ldloc.2
+  IL_0037:  sub
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.2
+  IL_003a:  ldloc.3
+  IL_003b:  call       "int E.Slice<T>(T, int, int)"
+  IL_0040:  pop
+  IL_0041:  ret
 }
 """);
     }
@@ -28346,61 +28509,41 @@ class Program
 
         verifier.VerifyIL("Program.Test1<T>()", """
 {
-  // Code size      115 (0x73)
+  // Code size       66 (0x42)
   .maxstack  3
-  .locals init (T V_0,
-                T& V_1,
-                System.Range V_2,
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
                 int V_3,
-                int V_4,
-                int V_5,
-                T V_6,
-                T V_7,
-                System.Index V_8)
+                System.Index V_4)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.s    V_6
-  IL_0008:  ldloca.s   V_6
-  IL_000a:  stloc.1
-  IL_000b:  ldloca.s   V_7
-  IL_000d:  initobj    "T"
-  IL_0013:  ldloc.s    V_7
-  IL_0015:  box        "T"
-  IL_001a:  brtrue.s   IL_0027
-  IL_001c:  ldloc.1
-  IL_001d:  ldobj      "T"
-  IL_0022:  stloc.0
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  br.s       IL_0028
-  IL_0027:  ldloc.1
-  IL_0028:  call       "System.Range Program.GetRange()"
-  IL_002d:  stloc.2
-  IL_002e:  dup
-  IL_002f:  ldobj      "T"
-  IL_0034:  call       "int E.get_Length<T>(T)"
-  IL_0039:  stloc.3
-  IL_003a:  ldloca.s   V_2
-  IL_003c:  call       "System.Index System.Range.Start.get"
-  IL_0041:  stloc.s    V_8
-  IL_0043:  ldloca.s   V_8
-  IL_0045:  ldloc.3
-  IL_0046:  call       "int System.Index.GetOffset(int)"
-  IL_004b:  stloc.s    V_4
-  IL_004d:  ldloca.s   V_2
-  IL_004f:  call       "System.Index System.Range.End.get"
-  IL_0054:  stloc.s    V_8
-  IL_0056:  ldloca.s   V_8
-  IL_0058:  ldloc.3
-  IL_0059:  call       "int System.Index.GetOffset(int)"
-  IL_005e:  ldloc.s    V_4
-  IL_0060:  sub
-  IL_0061:  stloc.s    V_5
-  IL_0063:  ldobj      "T"
-  IL_0068:  ldloc.s    V_4
-  IL_006a:  ldloc.s    V_5
-  IL_006c:  call       "int E.Slice<T>(T, int, int)"
-  IL_0071:  pop
-  IL_0072:  ret
+  IL_0006:  call       "System.Range Program.GetRange()"
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  call       "int E.get_Length<T>(T)"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       "System.Index System.Range.Start.get"
+  IL_001a:  stloc.s    V_4
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  ldloc.1
+  IL_001f:  call       "int System.Index.GetOffset(int)"
+  IL_0024:  stloc.2
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       "System.Index System.Range.End.get"
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  ldloc.1
+  IL_0031:  call       "int System.Index.GetOffset(int)"
+  IL_0036:  ldloc.2
+  IL_0037:  sub
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.2
+  IL_003a:  ldloc.3
+  IL_003b:  call       "int E.Slice<T>(T, int, int)"
+  IL_0040:  pop
+  IL_0041:  ret
 }
 """);
 
@@ -30331,32 +30474,27 @@ class Program
 
         verifier.VerifyIL("Program.Test", """
 {
-  // Code size       45 (0x2d)
+  // Code size       32 (0x20)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
-                int V_2,
-                S1 V_3)
+                int V_2)
   IL_0000:  nop
   IL_0001:  call       "S1 Program.GetS1()"
-  IL_0006:  stloc.3
-  IL_0007:  ldloca.s   V_3
-  IL_0009:  call       "int Program.GetStart()"
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  stloc.1
-  IL_0011:  dup
-  IL_0012:  ldobj      "S1"
-  IL_0017:  call       "int E.get_Length(S1)"
-  IL_001c:  ldloc.0
-  IL_001d:  sub
-  IL_001e:  stloc.2
-  IL_001f:  ldobj      "S1"
-  IL_0024:  ldloc.1
-  IL_0025:  ldloc.2
-  IL_0026:  call       "int E.Slice(S1, int, int)"
-  IL_002b:  pop
-  IL_002c:  ret
+  IL_0006:  call       "int Program.GetStart()"
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.1
+  IL_000e:  dup
+  IL_000f:  call       "int E.get_Length(S1)"
+  IL_0014:  ldloc.0
+  IL_0015:  sub
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       "int E.Slice(S1, int, int)"
+  IL_001e:  pop
+  IL_001f:  ret
 }
 """);
     }
@@ -30440,27 +30578,24 @@ class Program
         var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetStart:3 length:3 Slice:3 final:6"), verify: Verification.Skipped);
         verifier.VerifyIL("Program.Test", $$"""
 {
-  // Code size       33 (0x21)
+  // Code size       32 (0x20)
   .maxstack  4
-  .locals init (S1& V_0,
-                int V_1,
-                S1 V_2)
+  .locals init (S1 V_0,
+                int V_1)
   IL_0000:  nop
   IL_0001:  call       "S1 Program.GetS1()"
-  IL_0006:  stloc.2
-  IL_0007:  ldloca.s   V_2
-  IL_0009:  stloc.0
-  IL_000a:  call       "int Program.GetStart()"
-  IL_000f:  stloc.1
-  IL_0010:  ldloc.0
-  IL_0011:  ldloc.1
-  IL_0012:  ldloc.0
-  IL_0013:  call       "int E.get_Length({{refKind}} S1)"
-  IL_0018:  ldloc.1
-  IL_0019:  sub
-  IL_001a:  call       "int E.Slice({{refKind}} S1, int, int)"
-  IL_001f:  pop
-  IL_0020:  ret
+  IL_0006:  stloc.0
+  IL_0007:  call       "int Program.GetStart()"
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldloc.1
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "int E.get_Length({{refKind}} S1)"
+  IL_0017:  ldloc.1
+  IL_0018:  sub
+  IL_0019:  call       "int E.Slice({{refKind}} S1, int, int)"
+  IL_001e:  pop
+  IL_001f:  ret
 }
 """);
     }
@@ -30612,78 +30747,53 @@ class Program
 
         verifier.VerifyIL("Program.Test1<T>()", """
 {
-  // Code size       78 (0x4e)
+  // Code size       32 (0x20)
   .maxstack  3
-  .locals init (T V_0,
-                T& V_1,
-                int V_2,
-                int V_3,
-                int V_4,
-                T V_5,
-                T V_6)
+  .locals init (int V_0,
+                int V_1,
+                int V_2)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.s    V_5
-  IL_0008:  ldloca.s   V_5
-  IL_000a:  stloc.1
-  IL_000b:  ldloca.s   V_6
-  IL_000d:  initobj    "T"
-  IL_0013:  ldloc.s    V_6
-  IL_0015:  box        "T"
-  IL_001a:  brtrue.s   IL_0027
-  IL_001c:  ldloc.1
-  IL_001d:  ldobj      "T"
-  IL_0022:  stloc.0
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  br.s       IL_0028
-  IL_0027:  ldloc.1
-  IL_0028:  call       "int Program.GetStart()"
-  IL_002d:  stloc.2
-  IL_002e:  ldloc.2
-  IL_002f:  stloc.3
-  IL_0030:  dup
-  IL_0031:  ldobj      "T"
-  IL_0036:  call       "int E.get_Length<T>(T)"
-  IL_003b:  ldloc.2
-  IL_003c:  sub
-  IL_003d:  stloc.s    V_4
-  IL_003f:  ldobj      "T"
-  IL_0044:  ldloc.3
-  IL_0045:  ldloc.s    V_4
-  IL_0047:  call       "int E.Slice<T>(T, int, int)"
-  IL_004c:  pop
-  IL_004d:  ret
+  IL_0006:  call       "int Program.GetStart()"
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.1
+  IL_000e:  dup
+  IL_000f:  call       "int E.get_Length<T>(T)"
+  IL_0014:  ldloc.0
+  IL_0015:  sub
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       "int E.Slice<T>(T, int, int)"
+  IL_001e:  pop
+  IL_001f:  ret
 }
 """);
 
         verifier.VerifyIL("Program.Test2<T>()", """
 {
-  // Code size       45 (0x2d)
+  // Code size       32 (0x20)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
-                int V_2,
-                T V_3)
+                int V_2)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.3
-  IL_0007:  ldloca.s   V_3
-  IL_0009:  call       "int Program.GetStart()"
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  stloc.1
-  IL_0011:  dup
-  IL_0012:  ldobj      "T"
-  IL_0017:  call       "int E.get_Length<T>(T)"
-  IL_001c:  ldloc.0
-  IL_001d:  sub
-  IL_001e:  stloc.2
-  IL_001f:  ldobj      "T"
-  IL_0024:  ldloc.1
-  IL_0025:  ldloc.2
-  IL_0026:  call       "int E.Slice<T>(T, int, int)"
-  IL_002b:  pop
-  IL_002c:  ret
+  IL_0006:  call       "int Program.GetStart()"
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.1
+  IL_000e:  dup
+  IL_000f:  call       "int E.get_Length<T>(T)"
+  IL_0014:  ldloc.0
+  IL_0015:  sub
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       "int E.Slice<T>(T, int, int)"
+  IL_001e:  pop
+  IL_001f:  ret
 }
 """);
     }
@@ -30822,47 +30932,27 @@ class Program
 
         verifier.VerifyIL("Program.Test1<T>()", """
 {
-  // Code size       78 (0x4e)
+  // Code size       32 (0x20)
   .maxstack  3
-  .locals init (T V_0,
-                T& V_1,
-                int V_2,
-                int V_3,
-                int V_4,
-                T V_5,
-                T V_6)
+  .locals init (int V_0,
+                int V_1,
+                int V_2)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.s    V_5
-  IL_0008:  ldloca.s   V_5
-  IL_000a:  stloc.1
-  IL_000b:  ldloca.s   V_6
-  IL_000d:  initobj    "T"
-  IL_0013:  ldloc.s    V_6
-  IL_0015:  box        "T"
-  IL_001a:  brtrue.s   IL_0027
-  IL_001c:  ldloc.1
-  IL_001d:  ldobj      "T"
-  IL_0022:  stloc.0
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  br.s       IL_0028
-  IL_0027:  ldloc.1
-  IL_0028:  call       "int Program.GetStart()"
-  IL_002d:  stloc.2
-  IL_002e:  ldloc.2
-  IL_002f:  stloc.3
-  IL_0030:  dup
-  IL_0031:  ldobj      "T"
-  IL_0036:  call       "int E.get_Length<T>(T)"
-  IL_003b:  ldloc.2
-  IL_003c:  sub
-  IL_003d:  stloc.s    V_4
-  IL_003f:  ldobj      "T"
-  IL_0044:  ldloc.3
-  IL_0045:  ldloc.s    V_4
-  IL_0047:  call       "int E.Slice<T>(T, int, int)"
-  IL_004c:  pop
-  IL_004d:  ret
+  IL_0006:  call       "int Program.GetStart()"
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  stloc.1
+  IL_000e:  dup
+  IL_000f:  call       "int E.get_Length<T>(T)"
+  IL_0014:  ldloc.0
+  IL_0015:  sub
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       "int E.Slice<T>(T, int, int)"
+  IL_001e:  pop
+  IL_001f:  ret
 }
 """);
 
@@ -32613,50 +32703,30 @@ class Program
 
         verifier.VerifyIL("Program.Test1<T>()", """
 {
-  // Code size       91 (0x5b)
+  // Code size       43 (0x2b)
   .maxstack  3
-  .locals init (T& V_0,
-                T V_1,
-                T& V_2,
-                T V_3,
-                T V_4,
-                int V_5,
-                int V_6,
-                System.Index V_7)
+  .locals init (T V_0,
+                int V_1,
+                int V_2,
+                System.Index V_3)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.3
-  IL_0007:  ldloca.s   V_3
-  IL_0009:  stloc.2
-  IL_000a:  ldloca.s   V_4
-  IL_000c:  initobj    "T"
-  IL_0012:  ldloc.s    V_4
-  IL_0014:  box        "T"
-  IL_0019:  brtrue.s   IL_0026
-  IL_001b:  ldloc.2
-  IL_001c:  ldobj      "T"
-  IL_0021:  stloc.1
-  IL_0022:  ldloca.s   V_1
-  IL_0024:  br.s       IL_0027
-  IL_0026:  ldloc.2
-  IL_0027:  stloc.0
-  IL_0028:  call       "System.Index Program.GetIndex()"
-  IL_002d:  stloc.s    V_7
-  IL_002f:  ldloca.s   V_7
-  IL_0031:  ldloc.0
-  IL_0032:  ldobj      "T"
-  IL_0037:  call       "int E.get_Length<T>(T)"
-  IL_003c:  call       "int System.Index.GetOffset(int)"
-  IL_0041:  stloc.s    V_5
-  IL_0043:  call       "int Program.GetValue()"
-  IL_0048:  stloc.s    V_6
-  IL_004a:  ldloc.0
-  IL_004b:  ldobj      "T"
-  IL_0050:  ldloc.s    V_5
-  IL_0052:  ldloc.s    V_6
-  IL_0054:  call       "void E.set_Item<T>(T, int, int)"
-  IL_0059:  nop
-  IL_005a:  ret
+  IL_0006:  stloc.0
+  IL_0007:  call       "System.Index Program.GetIndex()"
+  IL_000c:  stloc.3
+  IL_000d:  ldloca.s   V_3
+  IL_000f:  ldloc.0
+  IL_0010:  call       "int E.get_Length<T>(T)"
+  IL_0015:  call       "int System.Index.GetOffset(int)"
+  IL_001a:  stloc.1
+  IL_001b:  call       "int Program.GetValue()"
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.0
+  IL_0022:  ldloc.1
+  IL_0023:  ldloc.2
+  IL_0024:  call       "void E.set_Item<T>(T, int, int)"
+  IL_0029:  nop
+  IL_002a:  ret
 }
 """);
     }
@@ -32737,50 +32807,30 @@ class Program
 
         verifier.VerifyIL("Program.Test1<T>()", """
 {
-  // Code size       91 (0x5b)
+  // Code size       43 (0x2b)
   .maxstack  3
-  .locals init (T& V_0,
-                T V_1,
-                T& V_2,
-                T V_3,
-                T V_4,
-                int V_5,
-                int V_6,
-                System.Index V_7)
+  .locals init (T V_0,
+                int V_1,
+                int V_2,
+                System.Index V_3)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.3
-  IL_0007:  ldloca.s   V_3
-  IL_0009:  stloc.2
-  IL_000a:  ldloca.s   V_4
-  IL_000c:  initobj    "T"
-  IL_0012:  ldloc.s    V_4
-  IL_0014:  box        "T"
-  IL_0019:  brtrue.s   IL_0026
-  IL_001b:  ldloc.2
-  IL_001c:  ldobj      "T"
-  IL_0021:  stloc.1
-  IL_0022:  ldloca.s   V_1
-  IL_0024:  br.s       IL_0027
-  IL_0026:  ldloc.2
-  IL_0027:  stloc.0
-  IL_0028:  call       "System.Index Program.GetIndex()"
-  IL_002d:  stloc.s    V_7
-  IL_002f:  ldloca.s   V_7
-  IL_0031:  ldloc.0
-  IL_0032:  ldobj      "T"
-  IL_0037:  call       "int E.get_Length<T>(T)"
-  IL_003c:  call       "int System.Index.GetOffset(int)"
-  IL_0041:  stloc.s    V_5
-  IL_0043:  call       "int Program.GetValue()"
-  IL_0048:  stloc.s    V_6
-  IL_004a:  ldloc.0
-  IL_004b:  ldobj      "T"
-  IL_0050:  ldloc.s    V_5
-  IL_0052:  ldloc.s    V_6
-  IL_0054:  call       "void E.set_Item<T>(T, int, int)"
-  IL_0059:  nop
-  IL_005a:  ret
+  IL_0006:  stloc.0
+  IL_0007:  call       "System.Index Program.GetIndex()"
+  IL_000c:  stloc.3
+  IL_000d:  ldloca.s   V_3
+  IL_000f:  ldloc.0
+  IL_0010:  call       "int E.get_Length<T>(T)"
+  IL_0015:  call       "int System.Index.GetOffset(int)"
+  IL_001a:  stloc.1
+  IL_001b:  call       "int Program.GetValue()"
+  IL_0020:  stloc.2
+  IL_0021:  ldloc.0
+  IL_0022:  ldloc.1
+  IL_0023:  ldloc.2
+  IL_0024:  call       "void E.set_Item<T>(T, int, int)"
+  IL_0029:  nop
+  IL_002a:  ret
 }
 """);
 
@@ -32989,32 +33039,30 @@ class Program
 
         verifier2.VerifyIL("Program.Test", """
 {
-  // Code size       43 (0x2b)
+  // Code size       33 (0x21)
   .maxstack  3
   .locals init (int V_0,
                 int V_1,
                 S1 V_2)
   IL_0000:  nop
   IL_0001:  ldloca.s   V_2
-  IL_0003:  dup
-  IL_0004:  initobj    "S1"
+  IL_0003:  initobj    "S1"
+  IL_0009:  ldloc.2
   IL_000a:  ldc.i4.1
   IL_000b:  stloc.0
   IL_000c:  dup
-  IL_000d:  ldobj      "S1"
-  IL_0012:  call       "int E.get_Length(S1)"
-  IL_0017:  ldc.i4.1
-  IL_0018:  sub
-  IL_0019:  ldc.i4.1
-  IL_001a:  sub
-  IL_001b:  stloc.1
-  IL_001c:  ldobj      "S1"
-  IL_0021:  ldloc.0
-  IL_0022:  ldloc.1
-  IL_0023:  call       "ref int E.Slice(S1, int, int)"
-  IL_0028:  ldc.i4.1
-  IL_0029:  stind.i4
-  IL_002a:  ret
+  IL_000d:  call       "int E.get_Length(S1)"
+  IL_0012:  ldc.i4.1
+  IL_0013:  sub
+  IL_0014:  ldc.i4.1
+  IL_0015:  sub
+  IL_0016:  stloc.1
+  IL_0017:  ldloc.0
+  IL_0018:  ldloc.1
+  IL_0019:  call       "ref int E.Slice(S1, int, int)"
+  IL_001e:  ldc.i4.1
+  IL_001f:  stind.i4
+  IL_0020:  ret
 }
 """);
     }
@@ -33199,31 +33247,30 @@ class Program
 
         verifier.VerifyIL("Program.Test", """
 {
-  // Code size       38 (0x26)
+  // Code size       34 (0x22)
   .maxstack  3
-  .locals init (int V_0,
+  .locals init (S1 V_0,
                 int V_1,
-                S1 V_2)
+                int V_2)
   IL_0000:  nop
-  IL_0001:  ldloca.s   V_2
-  IL_0003:  dup
-  IL_0004:  initobj    "S1"
-  IL_000a:  ldc.i4.1
-  IL_000b:  stloc.0
-  IL_000c:  dup
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "S1"
+  IL_0009:  ldc.i4.1
+  IL_000a:  stloc.1
+  IL_000b:  ldloca.s   V_0
   IL_000d:  call       "int S1.Length.get"
   IL_0012:  ldc.i4.1
   IL_0013:  sub
   IL_0014:  ldc.i4.1
   IL_0015:  sub
-  IL_0016:  stloc.1
-  IL_0017:  ldobj      "S1"
-  IL_001c:  ldloc.0
-  IL_001d:  ldloc.1
-  IL_001e:  call       "ref int E.Slice(S1, int, int)"
-  IL_0023:  ldc.i4.1
-  IL_0024:  stind.i4
-  IL_0025:  ret
+  IL_0016:  stloc.2
+  IL_0017:  ldloc.0
+  IL_0018:  ldloc.1
+  IL_0019:  ldloc.2
+  IL_001a:  call       "ref int E.Slice(S1, int, int)"
+  IL_001f:  ldc.i4.1
+  IL_0020:  stind.i4
+  IL_0021:  ret
 }
 """);
     }
@@ -33408,28 +33455,24 @@ class Program
 
         verifier.VerifyIL("Program.Test", """
 {
-  // Code size       36 (0x24)
+  // Code size       30 (0x1e)
   .maxstack  4
-  .locals init (S1& V_0,
-                S1 V_1)
+  .locals init (S1 V_0)
   IL_0000:  nop
-  IL_0001:  ldloca.s   V_1
-  IL_0003:  dup
-  IL_0004:  initobj    "S1"
-  IL_000a:  stloc.0
-  IL_000b:  ldloc.0
-  IL_000c:  ldc.i4.1
-  IL_000d:  ldloc.0
-  IL_000e:  ldobj      "S1"
-  IL_0013:  call       "int E.get_Length(S1)"
-  IL_0018:  ldc.i4.1
-  IL_0019:  sub
-  IL_001a:  ldc.i4.1
-  IL_001b:  sub
-  IL_001c:  call       "ref int S1.Slice(int, int)"
-  IL_0021:  ldc.i4.1
-  IL_0022:  stind.i4
-  IL_0023:  ret
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  initobj    "S1"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldc.i4.1
+  IL_000c:  ldloc.0
+  IL_000d:  call       "int E.get_Length(S1)"
+  IL_0012:  ldc.i4.1
+  IL_0013:  sub
+  IL_0014:  ldc.i4.1
+  IL_0015:  sub
+  IL_0016:  call       "ref int S1.Slice(int, int)"
+  IL_001b:  ldc.i4.1
+  IL_001c:  stind.i4
+  IL_001d:  ret
 }
 """);
     }
@@ -34619,62 +34662,42 @@ class Program
         verifier.VerifyIL("Program.Test1<T>()",
 """
 {
-  // Code size      120 (0x78)
+  // Code size       71 (0x47)
   .maxstack  3
-  .locals init (T V_0,
-                T& V_1,
-                System.Range V_2,
+  .locals init (System.Range V_0,
+                int V_1,
+                int V_2,
                 int V_3,
-                int V_4,
-                int V_5,
-                T V_6,
-                T V_7,
-                System.Index V_8)
+                System.Index V_4)
   IL_0000:  nop
   IL_0001:  call       "T Program.GetT<T>()"
-  IL_0006:  stloc.s    V_6
-  IL_0008:  ldloca.s   V_6
-  IL_000a:  stloc.1
-  IL_000b:  ldloca.s   V_7
-  IL_000d:  initobj    "T"
-  IL_0013:  ldloc.s    V_7
-  IL_0015:  box        "T"
-  IL_001a:  brtrue.s   IL_0027
-  IL_001c:  ldloc.1
-  IL_001d:  ldobj      "T"
-  IL_0022:  stloc.0
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  br.s       IL_0028
-  IL_0027:  ldloc.1
-  IL_0028:  call       "System.Range Program.GetRange()"
-  IL_002d:  stloc.2
-  IL_002e:  dup
-  IL_002f:  ldobj      "T"
-  IL_0034:  call       "int E.get_Length<T>(T)"
-  IL_0039:  stloc.3
-  IL_003a:  ldloca.s   V_2
-  IL_003c:  call       "System.Index System.Range.Start.get"
-  IL_0041:  stloc.s    V_8
-  IL_0043:  ldloca.s   V_8
-  IL_0045:  ldloc.3
-  IL_0046:  call       "int System.Index.GetOffset(int)"
-  IL_004b:  stloc.s    V_4
-  IL_004d:  ldloca.s   V_2
-  IL_004f:  call       "System.Index System.Range.End.get"
-  IL_0054:  stloc.s    V_8
-  IL_0056:  ldloca.s   V_8
-  IL_0058:  ldloc.3
-  IL_0059:  call       "int System.Index.GetOffset(int)"
-  IL_005e:  ldloc.s    V_4
-  IL_0060:  sub
-  IL_0061:  stloc.s    V_5
-  IL_0063:  ldobj      "T"
-  IL_0068:  ldloc.s    V_4
-  IL_006a:  ldloc.s    V_5
-  IL_006c:  call       "ref int E.Slice<T>(T, int, int)"
-  IL_0071:  call       "int Program.GetValue()"
-  IL_0076:  stind.i4
-  IL_0077:  ret
+  IL_0006:  call       "System.Range Program.GetRange()"
+  IL_000b:  stloc.0
+  IL_000c:  dup
+  IL_000d:  call       "int E.get_Length<T>(T)"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  call       "System.Index System.Range.Start.get"
+  IL_001a:  stloc.s    V_4
+  IL_001c:  ldloca.s   V_4
+  IL_001e:  ldloc.1
+  IL_001f:  call       "int System.Index.GetOffset(int)"
+  IL_0024:  stloc.2
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  call       "System.Index System.Range.End.get"
+  IL_002c:  stloc.s    V_4
+  IL_002e:  ldloca.s   V_4
+  IL_0030:  ldloc.1
+  IL_0031:  call       "int System.Index.GetOffset(int)"
+  IL_0036:  ldloc.2
+  IL_0037:  sub
+  IL_0038:  stloc.3
+  IL_0039:  ldloc.2
+  IL_003a:  ldloc.3
+  IL_003b:  call       "ref int E.Slice<T>(T, int, int)"
+  IL_0040:  call       "int Program.GetValue()"
+  IL_0045:  stind.i4
+  IL_0046:  ret
 }
 """);
 
@@ -37974,61 +37997,58 @@ class Program
 }
 """;
 
-        var expectedOutput = ExpectedOutput("GetIndex:3 length:3 get:3 GetValue:6 set:3 final:7, GetIndex:3 length:4 get:5 GetValueAsync:6 set:7 final:7");
+        var expectedOutput = ExpectedOutput("GetIndex:3 length:4 get:5 GetValue:6 set:7 final:7, GetIndex:3 length:4 get:5 GetValueAsync:6 set:7 final:7");
         var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true), targetFramework: TargetFramework.Net100);
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>()", """
 {
-  // Code size      103 (0x67)
+  // Code size       99 (0x63)
   .maxstack  3
   .locals init (T& V_0,
                 T V_1,
                 T& V_2,
                 int V_3,
                 T V_4,
-                T V_5,
-                System.Index V_6,
-                int V_7)
+                System.Index V_5,
+                int V_6)
   IL_0000:  nop
-  IL_0001:  ldsfld     "T Program<T>.F"
-  IL_0006:  stloc.s    V_4
-  IL_0008:  ldloca.s   V_4
-  IL_000a:  stloc.2
-  IL_000b:  ldloca.s   V_5
-  IL_000d:  initobj    "T"
-  IL_0013:  ldloc.s    V_5
-  IL_0015:  box        "T"
-  IL_001a:  brtrue.s   IL_0027
-  IL_001c:  ldloc.2
-  IL_001d:  ldobj      "T"
-  IL_0022:  stloc.1
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  br.s       IL_0028
-  IL_0027:  ldloc.2
-  IL_0028:  stloc.0
-  IL_0029:  call       "System.Index Program.GetIndex()"
-  IL_002e:  stloc.s    V_6
-  IL_0030:  ldloca.s   V_6
-  IL_0032:  ldloc.0
-  IL_0033:  ldobj      "T"
-  IL_0038:  call       "int E.get_Length<T>(T)"
-  IL_003d:  call       "int System.Index.GetOffset(int)"
-  IL_0042:  stloc.3
-  IL_0043:  ldloc.0
-  IL_0044:  ldobj      "T"
-  IL_0049:  ldloc.3
-  IL_004a:  call       "int E.get_Item<T>(T, int)"
-  IL_004f:  call       "int Program.GetValue()"
-  IL_0054:  add
-  IL_0055:  stloc.s    V_7
-  IL_0057:  ldloc.0
-  IL_0058:  ldobj      "T"
-  IL_005d:  ldloc.3
-  IL_005e:  ldloc.s    V_7
-  IL_0060:  call       "void E.set_Item<T>(T, int, int)"
-  IL_0065:  nop
-  IL_0066:  ret
+  IL_0001:  ldsflda    "T Program<T>.F"
+  IL_0006:  stloc.2
+  IL_0007:  ldloca.s   V_4
+  IL_0009:  initobj    "T"
+  IL_000f:  ldloc.s    V_4
+  IL_0011:  box        "T"
+  IL_0016:  brtrue.s   IL_0023
+  IL_0018:  ldloc.2
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  br.s       IL_0024
+  IL_0023:  ldloc.2
+  IL_0024:  stloc.0
+  IL_0025:  call       "System.Index Program.GetIndex()"
+  IL_002a:  stloc.s    V_5
+  IL_002c:  ldloca.s   V_5
+  IL_002e:  ldloc.0
+  IL_002f:  ldobj      "T"
+  IL_0034:  call       "int E.get_Length<T>(T)"
+  IL_0039:  call       "int System.Index.GetOffset(int)"
+  IL_003e:  stloc.3
+  IL_003f:  ldloc.0
+  IL_0040:  ldobj      "T"
+  IL_0045:  ldloc.3
+  IL_0046:  call       "int E.get_Item<T>(T, int)"
+  IL_004b:  call       "int Program.GetValue()"
+  IL_0050:  add
+  IL_0051:  stloc.s    V_6
+  IL_0053:  ldloc.0
+  IL_0054:  ldobj      "T"
+  IL_0059:  ldloc.3
+  IL_005a:  ldloc.s    V_6
+  IL_005c:  call       "void E.set_Item<T>(T, int, int)"
+  IL_0061:  nop
+  IL_0062:  ret
 }
 """);
 
@@ -38046,6 +38066,7 @@ class Program
                 [Initialize]: Expected numeric type on the stack. { Offset = 0xc, Found = address of Int32 }
                 [Increment]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
                 [Increment]: Expected numeric type on the stack. { Offset = 0xc, Found = address of Int32 }
+                [Test1]: Cannot change initonly field outside its .ctor. { Offset = 0x0 }
                 [GetValue]: Cannot change initonly field outside its .ctor. { Offset = 0x18 }
                 [GetIndex]: Cannot change initonly field outside its .ctor. { Offset = 0x18 }
                 [Test3]: Return value missing on the stack. { Offset = 0x99 }
@@ -38176,11 +38197,9 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100);
-        if (refKind == "ref")
-        {
-            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 GetValue:6 set:7 final:7"), verify: Verification.FailsPEVerify)
-                .VerifyDiagnostics();
-            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
+        var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:4 get:5 GetValue:6 set:7 final:7"), verify: Verification.FailsPEVerify)
+            .VerifyDiagnostics();
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
 {
   // Code size       95 (0x5f)
   .maxstack  3
@@ -38230,66 +38249,6 @@ class Program
   IL_005e:  ret
 }
 """);
-        }
-        else
-        {
-            var verifier = CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetIndex:3 length:3 get:3 GetValue:6 set:3 final:7"), verify: Verification.FailsPEVerify)
-                .VerifyDiagnostics();
-            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
-{
-  // Code size      104 (0x68)
-  .maxstack  3
-  .locals init (T& V_0,
-                T V_1,
-                T& V_2,
-                int V_3,
-                T V_4,
-                T V_5,
-                System.Index V_6,
-                int V_7)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      "T"
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldloca.s   V_4
-  IL_000b:  stloc.2
-  IL_000c:  ldloca.s   V_5
-  IL_000e:  initobj    "T"
-  IL_0014:  ldloc.s    V_5
-  IL_0016:  box        "T"
-  IL_001b:  brtrue.s   IL_0028
-  IL_001d:  ldloc.2
-  IL_001e:  ldobj      "T"
-  IL_0023:  stloc.1
-  IL_0024:  ldloca.s   V_1
-  IL_0026:  br.s       IL_0029
-  IL_0028:  ldloc.2
-  IL_0029:  stloc.0
-  IL_002a:  call       "System.Index Program.GetIndex()"
-  IL_002f:  stloc.s    V_6
-  IL_0031:  ldloca.s   V_6
-  IL_0033:  ldloc.0
-  IL_0034:  ldobj      "T"
-  IL_0039:  call       "int E.get_Length<T>(T)"
-  IL_003e:  call       "int System.Index.GetOffset(int)"
-  IL_0043:  stloc.3
-  IL_0044:  ldloc.0
-  IL_0045:  ldobj      "T"
-  IL_004a:  ldloc.3
-  IL_004b:  call       "int E.get_Item<T>(T, int)"
-  IL_0050:  call       "int Program.GetValue()"
-  IL_0055:  add
-  IL_0056:  stloc.s    V_7
-  IL_0058:  ldloc.0
-  IL_0059:  ldobj      "T"
-  IL_005e:  ldloc.3
-  IL_005f:  ldloc.s    V_7
-  IL_0061:  call       "void E.set_Item<T>(T, int, int)"
-  IL_0066:  nop
-  IL_0067:  ret
-}
-""");
-        }
     }
 
     [Theory]
@@ -38352,9 +38311,7 @@ class Program
             expectedOutput: ExpectedOutput("GetIndex:3 length:3 get:3 GetValue:6 set:3 final:7"),
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        if (refKind == "ref")
-        {
-            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
 {
   // Code size       95 (0x5f)
   .maxstack  3
@@ -38404,64 +38361,6 @@ class Program
   IL_005e:  ret
 }
 """);
-        }
-        else
-        {
-            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
-{
-  // Code size      104 (0x68)
-  .maxstack  3
-  .locals init (T& V_0,
-                T V_1,
-                T& V_2,
-                int V_3,
-                T V_4,
-                T V_5,
-                System.Index V_6,
-                int V_7)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      "T"
-  IL_0007:  stloc.s    V_4
-  IL_0009:  ldloca.s   V_4
-  IL_000b:  stloc.2
-  IL_000c:  ldloca.s   V_5
-  IL_000e:  initobj    "T"
-  IL_0014:  ldloc.s    V_5
-  IL_0016:  box        "T"
-  IL_001b:  brtrue.s   IL_0028
-  IL_001d:  ldloc.2
-  IL_001e:  ldobj      "T"
-  IL_0023:  stloc.1
-  IL_0024:  ldloca.s   V_1
-  IL_0026:  br.s       IL_0029
-  IL_0028:  ldloc.2
-  IL_0029:  stloc.0
-  IL_002a:  call       "System.Index Program.GetIndex()"
-  IL_002f:  stloc.s    V_6
-  IL_0031:  ldloca.s   V_6
-  IL_0033:  ldloc.0
-  IL_0034:  ldobj      "T"
-  IL_0039:  call       "int E.get_Length<T>(T)"
-  IL_003e:  call       "int System.Index.GetOffset(int)"
-  IL_0043:  stloc.3
-  IL_0044:  ldloc.0
-  IL_0045:  ldobj      "T"
-  IL_004a:  ldloc.3
-  IL_004b:  call       "int E.get_Item<T>(T, int)"
-  IL_0050:  call       "int Program.GetValue()"
-  IL_0055:  add
-  IL_0056:  stloc.s    V_7
-  IL_0058:  ldloc.0
-  IL_0059:  ldobj      "T"
-  IL_005e:  ldloc.3
-  IL_005f:  ldloc.s    V_7
-  IL_0061:  call       "void E.set_Item<T>(T, int, int)"
-  IL_0066:  nop
-  IL_0067:  ret
-}
-""");
-        }
     }
 
     [Fact]
@@ -40410,7 +40309,7 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe.WithAllowUnsafe(true), targetFramework: TargetFramework.Net100);
-        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetRange:3 length:3 Slice:3 GetValue:6 result:11 final:7"), verify: Verification.Fails)
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("GetRange:3 length:4 Slice:5 GetValue:6 result:11 final:7"), verify: Verification.Fails)
             .VerifyDiagnostics();
     }
 
@@ -40470,14 +40369,10 @@ class Program
 
         var verifier = CompileAndVerify(
             CreateCompilation(src, options: TestOptions.DebugExe, targetFramework: TargetFramework.Net100),
-            expectedOutput: refKind == "ref"
-                ? ExpectedOutput("GetRange:3 length:4 Slice:5 GetValue:6 result:11 final:7")
-                : ExpectedOutput("GetRange:3 length:3 Slice:3 GetValue:6 result:11 final:7"),
+            expectedOutput: ExpectedOutput("GetRange:3 length:4 Slice:5 GetValue:6 result:11 final:7"),
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        if (refKind == "ref")
-        {
-            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
 {
   // Code size      115 (0x73)
   .maxstack  3
@@ -40537,74 +40432,6 @@ class Program
   IL_0072:  ret
 }
 """);
-        }
-        else
-        {
-            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
-{
-  // Code size      124 (0x7c)
-  .maxstack  3
-  .locals init (T V_0,
-                T& V_1,
-                System.Range V_2,
-                int V_3,
-                int V_4,
-                int V_5,
-                T V_6,
-                T V_7,
-                System.Index V_8)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      "T"
-  IL_0007:  stloc.s    V_6
-  IL_0009:  ldloca.s   V_6
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_7
-  IL_000e:  initobj    "T"
-  IL_0014:  ldloc.s    V_7
-  IL_0016:  box        "T"
-  IL_001b:  brtrue.s   IL_0028
-  IL_001d:  ldloc.1
-  IL_001e:  ldobj      "T"
-  IL_0023:  stloc.0
-  IL_0024:  ldloca.s   V_0
-  IL_0026:  br.s       IL_0029
-  IL_0028:  ldloc.1
-  IL_0029:  call       "System.Range Program.GetRange()"
-  IL_002e:  stloc.2
-  IL_002f:  dup
-  IL_0030:  ldobj      "T"
-  IL_0035:  call       "int E.get_Length<T>(T)"
-  IL_003a:  stloc.3
-  IL_003b:  ldloca.s   V_2
-  IL_003d:  call       "System.Index System.Range.Start.get"
-  IL_0042:  stloc.s    V_8
-  IL_0044:  ldloca.s   V_8
-  IL_0046:  ldloc.3
-  IL_0047:  call       "int System.Index.GetOffset(int)"
-  IL_004c:  stloc.s    V_4
-  IL_004e:  ldloca.s   V_2
-  IL_0050:  call       "System.Index System.Range.End.get"
-  IL_0055:  stloc.s    V_8
-  IL_0057:  ldloca.s   V_8
-  IL_0059:  ldloc.3
-  IL_005a:  call       "int System.Index.GetOffset(int)"
-  IL_005f:  ldloc.s    V_4
-  IL_0061:  sub
-  IL_0062:  stloc.s    V_5
-  IL_0064:  ldobj      "T"
-  IL_0069:  ldloc.s    V_4
-  IL_006b:  ldloc.s    V_5
-  IL_006d:  call       "ref int E.Slice<T>(T, int, int)"
-  IL_0072:  dup
-  IL_0073:  ldind.i4
-  IL_0074:  call       "int Program.GetValue()"
-  IL_0079:  add
-  IL_007a:  stind.i4
-  IL_007b:  ret
-}
-""");
-        }
     }
 
     [Theory]
@@ -40666,9 +40493,7 @@ class Program
             expectedOutput: ExpectedOutput("GetRange:3 length:3 Slice:3 GetValue:6 result:11 final:7"),
             verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
-        if (refKind == "ref")
-        {
-            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
+        verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
 {
   // Code size      115 (0x73)
   .maxstack  3
@@ -40728,74 +40553,6 @@ class Program
   IL_0072:  ret
 }
 """);
-        }
-        else
-        {
-            verifier.VerifyIL($"Program.Test1<T>({refKind} T)", """
-{
-  // Code size      124 (0x7c)
-  .maxstack  3
-  .locals init (T V_0,
-                T& V_1,
-                System.Range V_2,
-                int V_3,
-                int V_4,
-                int V_5,
-                T V_6,
-                T V_7,
-                System.Index V_8)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldobj      "T"
-  IL_0007:  stloc.s    V_6
-  IL_0009:  ldloca.s   V_6
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_7
-  IL_000e:  initobj    "T"
-  IL_0014:  ldloc.s    V_7
-  IL_0016:  box        "T"
-  IL_001b:  brtrue.s   IL_0028
-  IL_001d:  ldloc.1
-  IL_001e:  ldobj      "T"
-  IL_0023:  stloc.0
-  IL_0024:  ldloca.s   V_0
-  IL_0026:  br.s       IL_0029
-  IL_0028:  ldloc.1
-  IL_0029:  call       "System.Range Program.GetRange()"
-  IL_002e:  stloc.2
-  IL_002f:  dup
-  IL_0030:  ldobj      "T"
-  IL_0035:  call       "int E.get_Length<T>(T)"
-  IL_003a:  stloc.3
-  IL_003b:  ldloca.s   V_2
-  IL_003d:  call       "System.Index System.Range.Start.get"
-  IL_0042:  stloc.s    V_8
-  IL_0044:  ldloca.s   V_8
-  IL_0046:  ldloc.3
-  IL_0047:  call       "int System.Index.GetOffset(int)"
-  IL_004c:  stloc.s    V_4
-  IL_004e:  ldloca.s   V_2
-  IL_0050:  call       "System.Index System.Range.End.get"
-  IL_0055:  stloc.s    V_8
-  IL_0057:  ldloca.s   V_8
-  IL_0059:  ldloc.3
-  IL_005a:  call       "int System.Index.GetOffset(int)"
-  IL_005f:  ldloc.s    V_4
-  IL_0061:  sub
-  IL_0062:  stloc.s    V_5
-  IL_0064:  ldobj      "T"
-  IL_0069:  ldloc.s    V_4
-  IL_006b:  ldloc.s    V_5
-  IL_006d:  call       "ref int E.Slice<T>(T, int, int)"
-  IL_0072:  dup
-  IL_0073:  ldind.i4
-  IL_0074:  call       "int Program.GetValue()"
-  IL_0079:  add
-  IL_007a:  stind.i4
-  IL_007b:  ret
-}
-""");
-        }
     }
 
     [Fact]
