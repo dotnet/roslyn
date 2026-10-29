@@ -31,16 +31,15 @@ internal sealed class GoToDefinitionHandler : AbstractGoToDefinitionHandler
     {
     }
 
-<<<<<<< HEAD
     public override async Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        if (context.Document is { } document &&
+        if (await context.GetDocumentAsync(cancellationToken).ConfigureAwait(false) is { } document &&
             await TryGetFileLevelDirectiveLocationAsync(document, request.Position, cancellationToken).ConfigureAwait(false) is { } location)
         {
             return [location];
         }
 
-        return await GetDefinitionAsync(request, forSymbolType: false, context, cancellationToken).ConfigureAwait(false);
+        return await GetDefinitionAsync(request, LSP.Methods.TextDocumentDefinitionName, forSymbolType: false, context, cancellationToken).ConfigureAwait(false);
     }
 
     internal static async Task<LSP.Location?> TryGetFileLevelDirectiveLocationAsync(
@@ -163,11 +162,4 @@ internal sealed class GoToDefinitionHandler : AbstractGoToDefinitionHandler
             return end;
         }
     }
-||||||| 331e174a56b
-    public override Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
-        => GetDefinitionAsync(request, forSymbolType: false, context, cancellationToken);
-=======
-    public override Task<LSP.Location[]?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
-        => GetDefinitionAsync(request, LSP.Methods.TextDocumentDefinitionName, forSymbolType: false, context, cancellationToken);
->>>>>>> upstream/main
 }
