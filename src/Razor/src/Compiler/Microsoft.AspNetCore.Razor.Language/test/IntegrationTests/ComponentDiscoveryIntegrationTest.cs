@@ -265,6 +265,42 @@ namespace Test.AnotherNamespace
     }
 
     [Fact]
+    public void ComponentDiscovery_AmbiguousGenericArity_DoesNotStopLowering()
+    {
+        AdditionalSyntaxTrees.Add(Parse("""
+            using Microsoft.AspNetCore.Components;
+
+            namespace Components.Library
+            {
+                public class Widget<TItem> : ComponentBase
+                {
+                }
+
+                public class Widget<TItem, TOther> : ComponentBase
+                {
+                }
+
+                public class Subsequent : ComponentBase
+                {
+                }
+            }
+            """));
+
+        var result = CompileToCSharp("""
+            @using Components.Library
+
+            <Widget />
+            <Subsequent />
+            """);
+
+        var diagnostic = Assert.Single(result.RazorDiagnostics);
+        Assert.Equal(ComponentDiagnosticFactory.MultipleComponents.Id, diagnostic.Id);
+
+        // An ambiguous tag must not prevent unrelated components from being lowered.
+        Assert.Contains("OpenComponent<global::Components.Library.Subsequent>", result.Code);
+    }
+
+    [Fact]
     public void UnusedUsingDirectives_IsDirectiveUsed_ReturnsFalseForUnusedUsing()
     {
         // Arrange
