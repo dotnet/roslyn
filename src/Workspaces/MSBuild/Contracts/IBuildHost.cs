@@ -58,4 +58,5 @@ internal interface IBuildHost
 
     Task<string?> TryGetProjectOutputPathAsync(string projectFilePath, CancellationToken cancellationToken);
     Task ShutdownAsync();
+    void TestOnly_ForceGarbageCollection();
 }
