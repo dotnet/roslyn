@@ -246,6 +246,7 @@ namespace Text.Analyzers
             var cancellationToken = context.CancellationToken;
 
             var dictionaries = ReadDictionaries().Add(s_mainDictionary);
+            var eventArgsType = context.Compilation.GetOrCreateTypeByMetadataName(WellKnownTypeNames.SystemEventArgs);
 
             context.RegisterOperationAction(AnalyzeVariable, OperationKind.VariableDeclarator);
             context.RegisterCompilationEndAction(AnalyzeAssembly);
@@ -368,9 +369,7 @@ namespace Text.Analyzers
 
             void ReportDiagnosticsForSymbol(ISymbol symbol, string symbolName, Action<Diagnostic> reportDiagnostic, bool checkForUnmeaningful = true)
             {
-                // Only digits remain of type parameter names like 'T1' after the prefix was removed. Fields ('_1') and
-                // interfaces ('I1') have their prefix removed too, but a bare number is no more meaningful a name there.
-                if (symbol.Kind == SymbolKind.TypeParameter && symbolName.All(char.IsDigit))
+                if (IsNumberedTypeParameter(symbol, symbolName) || IsEventArgsParameter(symbol))
                 {
                     return;
                 }
@@ -380,20 +379,20 @@ namespace Text.Analyzers
                     reportDiagnostic(GetMisspelledWordDiagnostic(symbol, misspelledWord));
                 }
 
-                if (checkForUnmeaningful && symbolName.Length == 1 && !IsExcludedSingleLetterParameter(symbol))
+                if (checkForUnmeaningful && symbolName.Length == 1)
                 {
                     reportDiagnostic(GetUnmeaningfulIdentifierDiagnostic(symbol, symbolName));
                 }
             }
 
-            bool IsExcludedSingleLetterParameter(ISymbol symbol)
-                => symbol.Kind == SymbolKind.Parameter
-                    && context.Options.GetBoolOptionValue(
-                        EditorConfigOptionNames.ExcludeSingleLetterParameters,
-                        MemberParameterMoreMeaningfulNameRule,
-                        symbol,
-                        context.Compilation,
-                        defaultValue: false);
+            // Only digits remain of type parameter names like 'T1' after the prefix was removed. Fields ('_1') and
+            // interfaces ('I1') have their prefix removed too, but a bare number is no more meaningful a name there.
+            static bool IsNumberedTypeParameter(ISymbol symbol, string symbolName)
+                => symbol.Kind == SymbolKind.TypeParameter && symbolName.All(char.IsDigit);
+
+            // 'e' of an EventArgs type is the standard event handler signature; legacy FxCop did not report it either.
+            bool IsEventArgsParameter(ISymbol symbol)
+                => symbol is IParameterSymbol { Name: "e" } parameter && parameter.Type.DerivesFrom(eventArgsType);
 
             IEnumerable<string> GetMisspelledWords(string symbolName)
             {

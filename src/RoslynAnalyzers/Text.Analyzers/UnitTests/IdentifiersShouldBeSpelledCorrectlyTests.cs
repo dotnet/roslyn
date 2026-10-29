@@ -245,26 +245,35 @@ namespace Text.Analyzers.UnitTests
                     .WithLocation(0)
                     .WithArguments(typeName));
 
-        [Fact]
-        public Task MemberParameterUnmeaningfulAndSingleLetterParametersExcluded_Verify_NoDiagnosticsAsync()
-            => VerifyCSharpWithSingleLetterParametersExcludedAsync(
-                "class Program { public void Method(string a) { } }");
+        [Theory]
+        [InlineData("System.EventArgs")]
+        [InlineData("System.ComponentModel.CancelEventArgs")]
+        [InlineData("Notification")]
+        public Task MemberParameterEventArgsNamedE_Verify_NoDiagnosticsAsync(string eventArgsType)
+            => VerifyCSharpAsync($$"""
+                class Notification : System.EventArgs { }
+
+                class Program
+                {
+                    void OnChanged(object sender, {{eventArgsType}} e) { }
+                }
+                """);
 
         [Fact]
-        public Task MemberParameterMisspelledAndSingleLetterParametersExcluded_Verify_EmitsDiagnosticAsync()
-            => VerifyCSharpWithSingleLetterParametersExcludedAsync(
-                "class Program { public void Method(string {|#0:yourNaem|}) { } }",
-                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterRule)
+        public Task MemberParameterEventArgsNotNamedE_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                "class Program { void OnChanged(object sender, System.EventArgs {|#0:a|}) { } }",
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
-                    .WithArguments("Program.Method(string)", "Naem", "yourNaem"));
+                    .WithArguments("Program.OnChanged(object, System.EventArgs)", "a"));
 
         [Fact]
-        public Task TypeUnmeaningfulAndSingleLetterParametersExcluded_Verify_EmitsDiagnosticAsync()
-            => VerifyCSharpWithSingleLetterParametersExcludedAsync(
-                "class {|#0:A|} {}",
-                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.TypeMoreMeaningfulNameRule)
+        public Task MemberParameterNamedENotEventArgs_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                "class Program { void Method(string {|#0:e|}) { } }",
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
                     .WithLocation(0)
-                    .WithArguments("A"));
+                    .WithArguments("Program.Method(string)", "e"));
 
         [Theory]
         [MemberData(nameof(MisspelledMembers))]
@@ -766,28 +775,6 @@ namespace Text.Analyzers.UnitTests
                 TestState =
                 {
                     AdditionalFilesFactories = { () => additionalTexts.Select(x => (x.Path, SourceText.From(x.Text))) }
-                },
-                TestBehaviors = TestBehaviors.SkipSuppressionCheck,
-            };
-
-            csharpTest.ExpectedDiagnostics.AddRange(expected);
-
-            await csharpTest.RunAsync();
-        }
-
-        private async Task VerifyCSharpWithSingleLetterParametersExcludedAsync(string source, params DiagnosticResult[] expected)
-        {
-            var csharpTest = new VerifyCS.Test
-            {
-                TestCode = source,
-                TestState =
-                {
-                    AnalyzerConfigFiles = { ("/.editorconfig", """
-                        root = true
-
-                        [*]
-                        dotnet_code_quality.CA1704.exclude_single_letter_parameters = true
-                        """), },
                 },
                 TestBehaviors = TestBehaviors.SkipSuppressionCheck,
             };
