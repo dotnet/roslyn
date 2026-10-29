@@ -300,6 +300,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
             }
+            else
+            {
+                state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
+            }
         }
 
         protected override void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
