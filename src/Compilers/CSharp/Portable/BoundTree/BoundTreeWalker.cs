@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.VisitList(node.Arguments);
         }
 
-        public sealed override BoundNode? VisitIfStatement(BoundIfStatement node)
+        public override BoundNode? VisitIfStatement(BoundIfStatement node)
         {
             while (true)
             {

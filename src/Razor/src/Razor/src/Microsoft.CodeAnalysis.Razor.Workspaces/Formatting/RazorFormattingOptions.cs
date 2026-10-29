@@ -34,40 +34,6 @@ internal readonly record struct RazorFormattingOptions
         => CSharpSyntaxFormattingOptions.GetResolvedCSharpSyntaxFormattingOptions(
             InsertSpaces, TabSize, CSharpSyntaxFormattingOptions.Default.NewLine);
 
-    public static RazorFormattingOptions From(
-        LspFormattingOptions options,
-        bool codeBlockBraceOnNextLine,
-        AttributeIndentStyle attributeIndentStyle,
-        bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor,
-        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions)
-        => new()
-        {
-            InsertSpaces = options.InsertSpaces,
-            TabSize = options.TabSize,
-            CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
-            AttributeIndentStyle = attributeIndentStyle,
-            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = ignoreIndentationInScriptOrStyleBlocksWithComplexRazor,
-            CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
-        };
-
-    public static RazorFormattingOptions From(
-        LspFormattingOptions options,
-        bool codeBlockBraceOnNextLine,
-        AttributeIndentStyle attributeIndentStyle,
-        bool ignoreIndentationInScriptOrStyleBlocksWithComplexRazor,
-        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
-        bool fromPaste)
-        => new()
-        {
-            InsertSpaces = options.InsertSpaces,
-            TabSize = options.TabSize,
-            CodeBlockBraceOnNextLine = codeBlockBraceOnNextLine,
-            AttributeIndentStyle = attributeIndentStyle,
-            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = ignoreIndentationInScriptOrStyleBlocksWithComplexRazor,
-            CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
-            FromPaste = fromPaste
-        };
-
     public LspFormattingOptions ToLspFormattingOptions()
         => new()
         {

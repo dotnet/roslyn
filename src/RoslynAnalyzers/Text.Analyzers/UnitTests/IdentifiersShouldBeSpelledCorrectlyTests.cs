@@ -41,6 +41,7 @@ namespace Text.Analyzers.UnitTests
                 new object[] { CreateTypeWithConstructor("A", constructorName: "{|#0:A|}", isStatic: false), "A" },
                 [CreateTypeWithConstructor("B", constructorName: "{|#0:B|}", isStatic: false), "B"],
                 [CreateTypeWithField("Program", "{|#0:_c|}"), "c"],
+                [CreateTypeWithField("Program", "{|#0:_1|}"), "1"],
                 [CreateTypeWithEvent("Program", "{|#0:D|}"), "D"],
                 [CreateTypeWithProperty("Program", "{|#0:E|}"), "E"],
                 [CreateTypeWithMethod("Program", "{|#0:F|}"), "F"],
@@ -235,6 +236,7 @@ namespace Text.Analyzers.UnitTests
         [InlineData("struct {|#0:B|} {}", "B")]
         [InlineData("enum {|#0:C|} {}", "C")]
         [InlineData("interface {|#0:ID|} {}", "D")]
+        [InlineData("interface {|#0:I1|} {}", "1")]
         [InlineData("delegate int {|#0:E|}();", "E")]
         public Task TypeUnmeaningful_Verify_EmitsDiagnosticAsync(string source, string typeName)
             => VerifyCSharpAsync(

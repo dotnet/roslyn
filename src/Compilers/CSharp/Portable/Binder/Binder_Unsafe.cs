@@ -88,10 +88,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static void checkTypeArgumentWithConstructorConstraint(Binder @this, TypeParameterSymbol typeParameter, TypeSymbol typeArgument, Symbol targetSymbol, T arg, Func<T, Location?> location, DiagnosticBag diagnostics)
             {
-                if ((typeParameter.HasConstructorConstraint || typeParameter.IsValueType) &&
-                    typeArgument is NamedTypeSymbol namedTypeArgument)
+                if (typeArgument is NamedTypeSymbol namedTypeArgument)
                 {
-                    // Looking up constructors while binding declarations can reenter member synthesis.
+                    // Resolving constraints or constructors while binding declarations can reenter binding or member synthesis.
                     DiagnosticInfo? diagnosticInfo = @this.ShouldCheckConstraints
                         ? @this.GetUnsafeConstructorConstraintDiagnosticInfo(typeParameter, namedTypeArgument, targetSymbol)
                         : new LazyUnsafeConstructorConstraintDiagnosticInfo(@this, typeParameter, namedTypeArgument, targetSymbol);
@@ -106,6 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal CSDiagnosticInfo? GetUnsafeConstructorConstraintDiagnosticInfo(TypeParameterSymbol typeParameter, NamedTypeSymbol typeArgument, Symbol targetSymbol)
         {
+            if (!typeParameter.HasConstructorConstraint && !typeParameter.IsValueType)
+            {
+                return null;
+            }
+
             foreach (var constructor in typeArgument.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)

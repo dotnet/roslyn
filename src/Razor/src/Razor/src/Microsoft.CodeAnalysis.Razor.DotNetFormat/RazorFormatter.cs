@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 
@@ -88,6 +89,7 @@ public static class RazorFormatter
         CancellationToken cancellationToken)
     {
         var csharpOptions = document.GetCSharpSyntaxFormattingOptions(cancellationToken);
+        var razorOptions = RazorFormattingOptionsStorage.GetOptions(document, cancellationToken);
 
         return new()
         {
@@ -95,6 +97,10 @@ public static class RazorFormatter
             TabSize = csharpOptions.LineFormatting.TabSize,
             NewLine = GetNewLine(sourceText),
             CSharpSyntaxFormattingOptions = csharpOptions,
+            CodeBlockBraceOnNextLine = razorOptions.GetOption(RazorFormattingOptionsStorage.CodeBlockBraceOnNextLine),
+            AttributeIndentStyle = razorOptions.GetOption(RazorFormattingOptionsStorage.AttributeIndentStyle),
+            IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor = razorOptions.GetOption(
+                RazorFormattingOptionsStorage.IgnoreIndentationInScriptOrStyleBlocksWithComplexRazor),
         };
     }
 

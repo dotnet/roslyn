@@ -49,6 +49,7 @@ internal sealed partial class RazorEditService(
         var originalCSharpSyntaxTree = await snapshot.GetCSharpSyntaxTreeAsync(declarationDocument, cancellationToken).ConfigureAwait(false);
 
         return await MapCSharpEditsAsync(
+            snapshot.TextDocument,
             textChanges,
             codeDocument,
             originalCSharpSyntaxTree,
@@ -59,6 +60,7 @@ internal sealed partial class RazorEditService(
     }
 
     private async Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
+        TextDocument razorDocument,
         ImmutableArray<RazorTextChange> textChanges,
         RazorCodeDocument codeDocument,
         SyntaxTree originalCSharpSyntaxTree,
@@ -84,7 +86,8 @@ internal sealed partial class RazorEditService(
             var newCSharpSyntaxTree = originalCSharpSyntaxTree.WithChangedText(newCSharpSourceText);
             var newCSharpSyntaxRoot = await newCSharpSyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
 
-            var options = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
+            var clientSettings = _clientSettingsManager.GetClientSettings();
+            var options = razorDocument.GetRazorFormattingOptions(clientSettings, cancellationToken);
             AddCSharpLanguageFeatureChanges(ref edits.AsRef(), codeDocument, originalCSharpSyntaxRoot, originalCSharpSourceText, newCSharpSyntaxRoot, newCSharpSourceText, options, cancellationToken);
         }
 
@@ -386,6 +389,7 @@ internal sealed partial class RazorEditService(
     internal readonly struct TestAccessor(RazorEditService instance)
     {
         public Task<ImmutableArray<RazorTextChange>> MapCSharpEditsAsync(
+            TextDocument razorDocument,
             ImmutableArray<RazorTextChange> textChanges,
             RazorCodeDocument codeDocument,
             SyntaxTree originalCSharpSyntaxTree,
@@ -395,6 +399,7 @@ internal sealed partial class RazorEditService(
             CancellationToken cancellationToken)
         {
             return instance.MapCSharpEditsAsync(
+                razorDocument,
                 textChanges,
                 codeDocument,
                 originalCSharpSyntaxTree,
