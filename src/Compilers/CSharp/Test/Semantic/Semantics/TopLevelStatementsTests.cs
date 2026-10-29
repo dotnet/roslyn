@@ -9903,6 +9903,70 @@ public class C
             Assert.Equal(ConversionKind.NoConversion, conversionOutsideTopLevel.Kind);
         }
 
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86103")]
+        public void SpeculativeSemanticModel_TaskReturningLocalFunction(
+            bool isAsync,
+            bool returnsInt,
+            [CombinatorialValues("Main", "Foo")] string name,
+            [CombinatorialValues(OutputKind.ConsoleApplication, OutputKind.DynamicallyLinkedLibrary)] OutputKind outputKind)
+        {
+            var returnType = returnsInt ? "Task<int>" : "Task";
+            var body = isAsync
+                ? (returnsInt ? "await Task.Delay(1); return 0;" : "await Task.Delay(1);")
+                : (returnsInt ? "return Task.FromResult(0);" : "return Task.CompletedTask;");
+            var source = $$"""
+                using System.Threading.Tasks;
+                _ = {{name}}();
+                static {{(isAsync ? "async " : "")}}{{returnType}} {{name}}()
+                {
+                    {{body}}
+                }
+                """;
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithOutputKind(outputKind));
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var newLocalFunction = (LocalFunctionStatementSyntax)SyntaxFactory.ParseStatement(localFunction.ToFullString());
+
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunction.SpanStart, newLocalFunction, out var speculativeModel));
+            Assert.Equal(
+                returnsInt ? "System.Threading.Tasks.Task<System.Int32>" : "System.Threading.Tasks.Task",
+                speculativeModel.GetSymbolInfo(newLocalFunction.ReturnType).Symbol.ToTestDisplayString());
+
+            var expectedDiagnostics = ImmutableArray.CreateBuilder<DiagnosticDescription>();
+            if (outputKind == OutputKind.DynamicallyLinkedLibrary)
+            {
+                expectedDiagnostics.Add(Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, $"_ = {name}();"));
+            }
+
+            if (name == "Main")
+            {
+                expectedDiagnostics.Add(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
+            }
+
+            compilation.VerifyEmitDiagnostics(expectedDiagnostics.ToArray());
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86103")]
+        public void SpeculativeSemanticModel_VoidReturningMain()
+        {
+            var source = """
+                Main();
+                static void Main() { }
+                """;
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+            var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var newLocalFunction = (LocalFunctionStatementSyntax)SyntaxFactory.ParseStatement(localFunction.ToFullString());
+
+            Assert.True(model.TryGetSpeculativeSemanticModel(localFunction.SpanStart, newLocalFunction, out var speculativeModel));
+            Assert.Equal(SpecialType.System_Void, ((ITypeSymbol)speculativeModel.GetSymbolInfo(newLocalFunction.ReturnType).Symbol).SpecialType);
+            compilation.VerifyEmitDiagnostics(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
+        }
+
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/67050")]
         public void EmptyLocalDeclaration()
