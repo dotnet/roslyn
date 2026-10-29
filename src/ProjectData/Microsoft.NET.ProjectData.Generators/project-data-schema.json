@@ -74,7 +74,7 @@
 
   "cacheFormat": {
     "$comment": "Wire-format tokens for the on-disk .lscache file. Shared by the writer (Microsoft.NET.ProjectData.Tasks) and the reader (Microsoft.NET.ProjectData) so renames cannot silently drop a section. VERSIONING: 'versionHeader' is 'version=<major>[.<minor>]' (an absent minor means '.0'). The reader accepts any file whose MAJOR matches and ignores the minor, so a newer minor's additive data (new sections / [properties] keys / @metadata) is silently ignored; a different major is a clean cache miss. The minor is a compatibility marker for the file's payload, not a mandatory stamp of the writer binary: when a newer writer produces otherwise identical content, the existing older stamp remains valid and the file is left untouched. The writer preserves any unknown data and newer stamp when it rewrites a file authored by a newer minor (see ForwardCompat) so mixed-version teams don't churn the file. Bump the MINOR for purely additive data an old reader can ignore AND an old writer can round-trip losslessly; bump the MAJOR for anything else (grammar/encoding changes, repurposing or removing meaning, optional->required, or data the old writer cannot carry forward losslessly). It is about the KIND of change, never the amount. 'hashHeaderPrefix' is LEGACY: the writer no longer emits a 'hash=' header (no-op writes are detected by a direct byte compare), but the reader still skips a leading 'hash=' line so pre-migration files keep reading. Do not reintroduce a persisted hash.",
-    "versionHeader": "version=2.2",
+    "versionHeader": "version=3",
     "hashHeaderPrefix": "hash=",
     "sliceSeparator": "---",
     "sectionOpen": "[",
@@ -97,8 +97,9 @@
       { "name": "projectReferences", "description": "Resolved project-to-project references.", "itemType": "ProjectReference" },
       { "name": "embeddedResources", "description": "Embedded resource files (.resx, etc.) with optional Generator/LastGenOutput/CustomToolNamespace metadata.", "itemType": "EmbeddedResource" },
       { "name": "capabilities", "description": "Project capabilities flags." },
-      { "name": "frameworkPacks", "description": "Ref-pack names (e.g. Microsoft.NETCore.App.Ref); reader probes the SDK install first, then the NuGet cache, so the same cache works whether the writing machine resolved the pack from <DOTNET>/packs/ or from <NUGET>/." },
-      { "name": "sdkAnalyzerPacks", "description": "SDK-shipped analyzer NuGet package IDs; reader enumerates analyzers/dotnet/<lang>/ on disk." },
+      { "name": "frameworkPacks", "description": "Ref-pack names for metadata references only (e.g. Microsoft.NETCore.App.Ref); reader probes the SDK install first, then the NuGet cache, so the same cache works whether the writing machine resolved the pack from <DOTNET>/packs/ or from <NUGET>/. Does not imply any analyzer selection." },
+      { "name": "frameworkAnalyzerReferences", "description": "Selected framework-pack analyzers as pack-name/analyzers/relative-path entries with path compression. Versions and installation locations are resolved locally. Absent entries mean no selected analyzers, independently of frameworkPacks. Entries remain in their TFM slices when merging so local resolution uses the correct target framework." },
+      { "name": "sdkAnalyzerPackageReferences", "description": "Selected analyzers from SDK-known NuGet packages as package-id/analyzers/relative-path entries with path compression. Only the recorded files are loaded from the locally resolved package. Entries remain in their TFM slices when merging." },
       { "name": "sdkAnalyzerConfigPolicy", "description": "Policy entries for SDK-shipped analyzer config files; reader resolves them under the bound SDK." }
     ]
   },
