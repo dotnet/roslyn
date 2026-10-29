@@ -40,69 +40,83 @@ internal static class DocumentFixAllHelper
             .Where(d => !d.IsSuppressed && d.Severity >= minimumSeverity)
             .Select(d => d.Id).Distinct().OrderBy(id => id, StringComparer.Ordinal).ToImmutableArray();
 
-        // Each ID is visited once, but its locations and fixes must be recomputed after earlier edits.
-        // Diagnostic IDs introduced by those edits are left for a later invocation.
+        // Different keys may be competing ways to fix one diagnostic. Recompute the same ID after each accepted fix
+        // instead of applying all original actions. IDs introduced by those edits are left for a later invocation.
         foreach (var diagnosticId in diagnosticIds)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var collection = await codeFixService.GetDocumentFixAllForIdInSpanAsync(
-                document, textSpan: null, diagnosticId, minimumSeverity, cancellationToken).ConfigureAwait(false);
-            if (collection?.FixAllState is not { } state || collection.Provider is not CodeFixProvider)
-                continue;
-
-            // No individual fix was selected by the user, so choose the first eligible action and reuse its equivalence key.
-            var action = GetFirstAction(collection.Fixes.Select(fix => fix.Action));
-            if (action is null)
-                continue;
-
-            state = state.With(codeActionEquivalenceKey: action.EquivalenceKey);
-
-            // Compute operations through normal extension exception handling, without changing the live workspace.
-            var operations = await extensionManager.PerformFunctionAsync(
-                state.Provider,
-                ct => fixAllService.GetFixAllOperationsAsync(
-                    new FixAllContext(state, CodeAnalysisProgress.None, ct), showPreviewChangesDialog: false),
-                defaultValue: [],
-                cancellationToken).ConfigureAwait(false);
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (operations.IsEmpty)
-                continue;
-
-            // Only a single ApplyChangesOperation can be converted into the workspace edit returned by this action.
-            if (operations.Length != 1 || operations[0] is not ApplyChangesOperation applyChanges)
+            int? previousDiagnosticCount = null;
+            while (true)
             {
-                log($"Skipping document Fix All for '{diagnosticId}': unsupported code action operations.");
-                continue;
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var collection = await codeFixService.GetDocumentFixAllForIdInSpanAsync(
+                    document, textSpan: null, diagnosticId, minimumSeverity, cancellationToken).ConfigureAwait(false);
+                if (collection?.FixAllState is not { } state || collection.Provider is not CodeFixProvider)
+                    break;
+
+                // Changing text alone need not fix anything. A decreasing diagnostic count bounds retries,
+                // including providers that continually introduce different text without making progress.
+                if (previousDiagnosticCount is { } count && collection.Diagnostics.Length >= count)
+                {
+                    log($"Stopping document Fix All for '{diagnosticId}': no diagnostic progress.");
+                    break;
+                }
+
+                previousDiagnosticCount = collection.Diagnostics.Length;
+
+                // No individual fix was selected by the user, so choose the first eligible action and reuse its equivalence key.
+                var action = GetFirstAction(collection.Fixes.Select(fix => fix.Action));
+                if (action is null)
+                    break;
+
+                state = state.With(codeActionEquivalenceKey: action.EquivalenceKey);
+
+                // Compute operations through normal extension exception handling, without changing the live workspace.
+                var operations = await extensionManager.PerformFunctionAsync(
+                    state.Provider,
+                    ct => fixAllService.GetFixAllOperationsAsync(
+                        new FixAllContext(state, CodeAnalysisProgress.None, ct), showPreviewChangesDialog: false),
+                    defaultValue: [],
+                    cancellationToken).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (operations.IsEmpty)
+                    break;
+
+                // Only a single ApplyChangesOperation can be converted into the workspace edit returned by this action.
+                if (operations.Length != 1 || operations[0] is not ApplyChangesOperation applyChanges)
+                {
+                    log($"Skipping document Fix All for '{diagnosticId}': unsupported code action operations.");
+                    break;
+                }
+
+                // Reject the whole candidate if any required change cannot be represented by the client.
+                var candidate = applyChanges.ChangedSolution;
+                if (!CodeActionResolveHelper.CanApplyFixAllChanges(solution, candidate, resourceOperations))
+                {
+                    log($"Skipping document Fix All for '{diagnosticId}': unsupported workspace changes.");
+                    break;
+                }
+
+                var normalized = await NormalizeLinkedDocumentChangesAsync(solution, candidate, cancellationToken).ConfigureAwait(false);
+                if (normalized is null)
+                {
+                    log($"Skipping document Fix All for '{diagnosticId}': conflicting linked document changes.");
+                    break;
+                }
+
+                if (!CodeActionResolveHelper.CanApplyFixAllChanges(originalSolution, normalized, resourceOperations))
+                {
+                    log($"Skipping document Fix All for '{diagnosticId}': unsupported accumulated workspace changes.");
+                    break;
+                }
+
+                solution = normalized;
+                if (solution.GetDocument(document.Id) is not { } changedDocument)
+                    return solution;
+
+                document = changedDocument;
             }
-
-            // Reject the whole candidate if any required change cannot be represented by the client.
-            var candidate = applyChanges.ChangedSolution;
-            if (!CodeActionResolveHelper.CanApplyFixAllChanges(solution, candidate, resourceOperations))
-            {
-                log($"Skipping document Fix All for '{diagnosticId}': unsupported workspace changes.");
-                continue;
-            }
-
-            var normalized = await NormalizeLinkedDocumentChangesAsync(solution, candidate, cancellationToken).ConfigureAwait(false);
-            if (normalized is null)
-            {
-                log($"Skipping document Fix All for '{diagnosticId}': conflicting linked document changes.");
-                continue;
-            }
-
-            if (!CodeActionResolveHelper.CanApplyFixAllChanges(originalSolution, normalized, resourceOperations))
-            {
-                log($"Skipping document Fix All for '{diagnosticId}': unsupported accumulated workspace changes.");
-                continue;
-            }
-
-            solution = normalized;
-            if (solution.GetDocument(document.Id) is not { } changedDocument)
-                break;
-
-            document = changedDocument;
         }
 
         return solution;

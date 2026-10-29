@@ -203,6 +203,35 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
+    public async Task FixAllStopsRetryingWithoutDiagnosticProgress(bool mutatingLspWorkspace)
+    {
+        var source = "// alpha beta\n{|caret:|}class C { }";
+        var expected = "// alpha fixed\nclass C { }\n// changed";
+
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        var fixer = new TestFixer(["FA0001", "FA0002"], async (document, diagnostics, cancellationToken) =>
+        {
+            var text = await document.GetTextAsync(cancellationToken);
+            if (diagnostics[0].Id == "FA0002")
+                return await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
+
+            // A retry would remove alpha, but changing text alone must not count as diagnostic progress.
+            return text.ToString().Contains("// changed", StringComparison.Ordinal)
+                ? await ReplaceDiagnosticsAsync(document, diagnostics, "unexpected", cancellationToken)
+                : document.WithText(SourceText.From(text + "\n// changed")).Project.Solution;
+        });
+        var document = GetDocumentWithReference(server, new TestReference(
+            [new MarkerAnalyzer(new("FA0001", "alpha"), new("FA0002", "beta"))], [fixer]));
+        var logs = new List<string>();
+
+        var changed = await ChangeAsync(document, server, log: logs.Add);
+
+        Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
+        Assert.Equal(["FA0001", "FA0002"], fixer.Invocations);
+        Assert.Single(logs, message => message.Contains("FA0001", StringComparison.Ordinal));
+    }
+
+    [Theory, CombinatorialData]
     public async Task FixAllIncludesOnlyDiagnosticsAtOrAboveMinimumSeverity(
         bool mutatingLspWorkspace,
         [CombinatorialValues(DiagnosticSeverity.Error, DiagnosticSeverity.Warning, DiagnosticSeverity.Info, DiagnosticSeverity.Hidden)] DiagnosticSeverity threshold)
@@ -661,29 +690,51 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task ResolveGeneratesMissingInterfaceMethod(bool mutatingLspWorkspace)
+    public async Task ResolveGeneratesMembersForDifferentInterfaces(bool mutatingLspWorkspace)
     {
-        // Leave an interface member unimplemented to exercise the built-in implementation fix.
+        // Both classes report CS0535, but implementing different interfaces requires different equivalence keys.
         var source = """
-            interface I
+            interface IFirst
             {
-                void M();
+                void First();
             }
 
-            class C : I
+            interface ISecond
+            {
+                void Second();
+            }
+
+            class C : IFirst
             {
                 {|caret:|}
             }
+
+            class D : ISecond
+            {
+            }
             """;
         var expected = """
-            interface I
+            interface IFirst
             {
-                void M();
+                void First();
             }
 
-            class C : I
+            interface ISecond
             {
-                public void M()
+                void Second();
+            }
+
+            class C : IFirst
+            {
+                public void First()
+                {
+                    throw new System.NotImplementedException();
+                }
+            }
+
+            class D : ISecond
+            {
+                public void Second()
                 {
                     throw new System.NotImplementedException();
                 }
@@ -692,11 +743,9 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
         var uri = server.GetLocations("caret").Single().DocumentUri;
 
-        // Resolve the real source action to check that document-local member generation is eligible.
         var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
         var resolved = await ResolveAsync(server, action);
 
-        // Generating a throwing stub is supported by an unattended workspace edit.
         Assert.Equal(expected.ReplaceLineEndings("\n"),
             ApplySingleDocumentEdit(resolved, await server.GetDocumentTextAsync(uri), uri).ReplaceLineEndings("\n"));
     }
