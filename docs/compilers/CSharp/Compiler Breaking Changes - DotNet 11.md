@@ -329,7 +329,7 @@ class C
 
 ## Uninitialized non-nullable events now report CS9402 instead of CS8618
 
-***Introduced in Visual Studio 2026 version 18.12***
+***Introduced in Visual Studio 2026 version 18.14***
 
 The compiler now reports CS9402 for an uninitialized non-nullable event instead of
 CS8618.
