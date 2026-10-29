@@ -326,3 +326,30 @@ class C
     @union CurrentField; // field of type 'union'
 }
 ```
+
+## Uninitialized non-nullable events now report CS9402 instead of CS8618
+
+***Introduced in Visual Studio 2026 version 18.14***
+
+The compiler now reports CS9402 for an uninitialized non-nullable event instead of
+CS8618.
+
+This change can cause a warning to appear in existing code that suppresses CS8618,
+for example:
+
+```cs
+#nullable enable
+
+class C
+{
+#pragma warning disable CS8618
+    public event System.Action E; // warning CS9402
+#pragma warning restore CS8618
+}
+```
+
+If the event is intentionally left uninitialized, update the suppression to include
+CS9402. Otherwise, make the event nullable or initialize it as appropriate for the
+application.
+
+See also https://github.com/dotnet/roslyn/issues/81679.

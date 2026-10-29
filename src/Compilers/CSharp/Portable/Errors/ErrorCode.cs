@@ -2514,6 +2514,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_IllegalUnsafeModifier = 9401,
         ERR_UnsafeUnassignedAddressOf = 9402,
 
+        WRN_UninitializedNonNullableEvent = 9402,
+
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
         //  2) Add message to CSharpResources.resx
