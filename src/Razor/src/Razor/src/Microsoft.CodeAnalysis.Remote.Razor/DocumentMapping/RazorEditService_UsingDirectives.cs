@@ -328,10 +328,11 @@ internal partial class RazorEditService
         // When rebuilding the using block, include any edits already mapped to this directive so
         // those changes aren't lost. To apply them to the directive's text, convert their positions
         // from offsets in the whole Razor document to offsets from the start of the directive.
+        // An insertion at the end belongs after the directive, such as a new @code block at EOF.
         using var changes = new PooledArrayBuilder<TextChange>();
         foreach (var edit in mappedEdits)
         {
-            if (directive.Span.Contains(edit.Span.ToTextSpan()))
+            if (directive.Span.Contains(edit.Span.ToTextSpan()) && edit.Span.Start < directive.Span.End)
             {
                 changes.Add(new TextChange(new TextSpan(edit.Span.Start - directive.SpanStart, edit.Span.Length), edit.NewText ?? ""));
             }
@@ -349,9 +350,10 @@ internal partial class RazorEditService
     {
         // If there are mapped edits within this span, the replacement already includes them. Remove their
         // originals so they cannot overlap the block edit or be discarded by normalization.
+        // Keep insertions at the end boundary: they weren't incorporated into the directive text.
         for (var i = edits.Count - 1; i >= 0; i--)
         {
-            if (span.Contains(edits[i].Span.ToTextSpan()))
+            if (span.Contains(edits[i].Span.ToTextSpan()) && edits[i].Span.Start < span.End)
             {
                 edits.RemoveAt(i);
             }

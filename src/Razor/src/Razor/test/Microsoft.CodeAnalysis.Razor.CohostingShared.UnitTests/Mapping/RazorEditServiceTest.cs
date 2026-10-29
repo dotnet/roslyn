@@ -2054,6 +2054,64 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """);
 
     [Fact]
+    public Task UsingAndMemberAdded_AtEndOfFileWithTrailingNewline_PreservesMember()
+        => TestAsync(
+            csharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @using System
+
+                """,
+            newCSharpSource: """
+                using System;
+                using System.Text;
+                class MyComponent : ComponentBase
+                {
+                    public int Counter { get; set; }
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @using System.Text
+                @code {
+                    public int Counter { get; set; }
+                }
+                """);
+
+    [Fact]
+    public Task UsingAndMemberAdded_AtEndOfFileWithoutTrailingNewline_PreservesMember()
+        => TestAsync(
+            csharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @using System
+                """,
+            newCSharpSource: """
+                using System;
+                using System.Text;
+                class MyComponent : ComponentBase
+                {
+                    public int Counter { get; set; }
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @using System.Text
+
+                @code {
+                    public int Counter { get; set; }
+                }
+                """);
+
+    [Fact]
     public Task UsingAliasAndNamespaceRenamed_HandledCorrectly()
         => TestAsync(
             csharpSource: """
