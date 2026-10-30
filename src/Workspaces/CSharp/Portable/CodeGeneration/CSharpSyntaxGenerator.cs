@@ -1530,7 +1530,7 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
 
     private static readonly DeclarationModifiers s_interfaceModifiers = DeclarationModifiers.New | DeclarationModifiers.Partial | DeclarationModifiers.Unsafe | DeclarationModifiers.File;
     private static readonly DeclarationModifiers s_eventAccessorModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Virtual;
-    private static readonly DeclarationModifiers s_propertyAccessorModifiers = s_eventAccessorModifiers | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
+    private static readonly DeclarationModifiers s_propertyAccessorModifiers = s_eventAccessorModifiers | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe | DeclarationModifiers.Safe;
 
     private static readonly DeclarationModifiers s_localFunctionModifiers =
         DeclarationModifiers.Async |
