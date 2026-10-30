@@ -63,7 +63,6 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
     public async Task<ImmutableArray<string>> GetFileLevelDirectiveTargetPathsAsync(Document document, int position, CancellationToken cancellationToken)
     {
         if (document.Project.Language != LanguageNames.CSharp
-            || document.FilePath is null
             || document.Project.ParseOptions?.Features.ContainsKey("FileBasedProgram") != true)
         {
             return [];
