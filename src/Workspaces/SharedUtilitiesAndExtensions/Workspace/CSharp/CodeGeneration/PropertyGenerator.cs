@@ -360,7 +360,7 @@ internal static class PropertyGenerator
             modifiers.Add(ReadOnlyKeyword);
 
 #if !OLDER_ROSLYN
-        if (property.RequiresAccessorSafetyModifiers() && accessor.RequiresUnsafeContext)
+        if (info.LanguageVersion >= LanguageVersion.Preview && property.RequiresAccessorSafetyModifiers() && accessor.RequiresUnsafeContext)
             modifiers.Add(UnsafeKeyword);
 #endif
 
