@@ -287,28 +287,22 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
             event partial Action E;
             """,
             TestOptions.Regular.WithLanguageVersion(langVersion),
-            // (1,7): error CS1031: Type expected
+            // (1,22): error CS1003: Syntax error, ',' expected
             // event partial Action E;
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 7),
-            // (1,7): error CS1525: Invalid expression term 'partial'
-            // event partial Action E;
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 7),
-            // (1,7): error CS1003: Syntax error, ',' expected
-            // event partial Action E;
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 7));
+            Diagnostic(ErrorCode.ERR_SyntaxError, "E").WithArguments(",").WithLocation(1, 22));
 
         N(SyntaxKind.EventFieldDeclaration);
         {
             N(SyntaxKind.EventKeyword);
-            M(SyntaxKind.VariableDeclaration);
+            N(SyntaxKind.VariableDeclaration);
             {
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.IdentifierName);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "partial");
                 }
-                M(SyntaxKind.VariableDeclarator);
+                N(SyntaxKind.VariableDeclarator);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "Action");
                 }
             }
             N(SyntaxKind.SemicolonToken);
@@ -586,15 +580,9 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
             event partial Action E { add { } remove { } }
             """,
             TestOptions.Regular.WithLanguageVersion(langVersion),
-            // (1,7): error CS1031: Type expected
+            // (1,22): error CS1003: Syntax error, ',' expected
             // event partial Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_TypeExpected, "partial").WithLocation(1, 7),
-            // (1,7): error CS1525: Invalid expression term 'partial'
-            // event partial Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(1, 7),
-            // (1,7): error CS1003: Syntax error, ',' expected
-            // event partial Action E { add { } remove { } }
-            Diagnostic(ErrorCode.ERR_SyntaxError, "partial").WithArguments(",").WithLocation(1, 7),
+            Diagnostic(ErrorCode.ERR_SyntaxError, "E").WithArguments(",").WithLocation(1, 22),
             // (1,46): error CS1002: ; expected
             // event partial Action E { add { } remove { } }
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 46));
@@ -602,15 +590,15 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         N(SyntaxKind.EventFieldDeclaration);
         {
             N(SyntaxKind.EventKeyword);
-            M(SyntaxKind.VariableDeclaration);
+            N(SyntaxKind.VariableDeclaration);
             {
-                M(SyntaxKind.IdentifierName);
+                N(SyntaxKind.IdentifierName);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "partial");
                 }
-                M(SyntaxKind.VariableDeclarator);
+                N(SyntaxKind.VariableDeclarator);
                 {
-                    M(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "Action");
                 }
             }
             M(SyntaxKind.SemicolonToken);
@@ -724,12 +712,12 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
             }
             """,
             TestOptions.Regular.WithLanguageVersion(langVersion),
-            // (3,11): error CS1026: ) expected
-            //     [Attr(
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 11),
-            // (3,11): error CS1003: Syntax error, ']' expected
-            //     [Attr(
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(3, 11));
+            // (4,13): error CS1026: ) expected
+            //     partial event Action E;
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "event").WithLocation(4, 13),
+            // (4,13): error CS1003: Syntax error, ']' expected
+            //     partial event Action E;
+            Diagnostic(ErrorCode.ERR_SyntaxError, "event").WithArguments("]").WithLocation(4, 13));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -753,12 +741,18 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                             N(SyntaxKind.AttributeArgumentList);
                             {
                                 N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "partial");
+                                    }
+                                }
                                 M(SyntaxKind.CloseParenToken);
                             }
                         }
                         M(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.EventKeyword);
                     N(SyntaxKind.VariableDeclaration);
                     {
@@ -867,12 +861,9 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
             """,
             TestOptions.Regular13);
 
-        N(SyntaxKind.MethodDeclaration);
+        N(SyntaxKind.ConstructorDeclaration);
         {
-            N(SyntaxKind.IdentifierName);
-            {
-                N(SyntaxKind.IdentifierToken, "partial");
-            }
+            N(SyntaxKind.PartialKeyword);
             N(SyntaxKind.IdentifierToken, "C");
             N(SyntaxKind.ParameterList);
             {
@@ -928,22 +919,21 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         UsingDeclaration("""
             partial C;
             """,
-            TestOptions.Regular.WithLanguageVersion(langVersion));
+            TestOptions.Regular.WithLanguageVersion(langVersion),
+            // (1,1): error CS1073: Unexpected token ';'
+            // partial C;
+            Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial C").WithArguments(";").WithLocation(1, 1),
+            // (1,10): error CS1519: Invalid token ';' in a member declaration
+            // partial C;
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(1, 10));
 
-        N(SyntaxKind.FieldDeclaration);
+        N(SyntaxKind.IncompleteMember);
         {
-            N(SyntaxKind.VariableDeclaration);
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.IdentifierName);
             {
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "partial");
-                }
-                N(SyntaxKind.VariableDeclarator);
-                {
-                    N(SyntaxKind.IdentifierToken, "C");
-                }
+                N(SyntaxKind.IdentifierToken, "C");
             }
-            N(SyntaxKind.SemicolonToken);
         }
         EOF();
     }
@@ -999,12 +989,9 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
             """,
             TestOptions.Regular13);
 
-        N(SyntaxKind.MethodDeclaration);
+        N(SyntaxKind.ConstructorDeclaration);
         {
-            N(SyntaxKind.IdentifierName);
-            {
-                N(SyntaxKind.IdentifierToken, "partial");
-            }
+            N(SyntaxKind.PartialKeyword);
             N(SyntaxKind.IdentifierToken, "partial");
             N(SyntaxKind.ParameterList);
             {
@@ -1145,19 +1132,48 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
             partial const();
             """,
             TestOptions.Regular.WithLanguageVersion(langVersion),
-            // (1,1): error CS1073: Unexpected token 'const'
+            // (1,15): error CS8124: Tuple must contain at least two elements.
             // partial const();
-            Diagnostic(ErrorCode.ERR_UnexpectedToken, "partial").WithArguments("const").WithLocation(1, 1),
-            // (1,9): error CS1519: Invalid token 'const' in class, record, struct, or interface member declaration
+            Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(1, 15),
+            // (1,16): error CS1001: Identifier expected
             // partial const();
-            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "const").WithArguments("const").WithLocation(1, 9));
+            Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(1, 16),
+            // (1,16): error CS0145: A const field requires a value to be provided
+            // partial const();
+            Diagnostic(ErrorCode.ERR_ConstValueRequired, ";").WithLocation(1, 16));
 
-        N(SyntaxKind.IncompleteMember);
+        N(SyntaxKind.FieldDeclaration);
         {
-            N(SyntaxKind.IdentifierName);
+            N(SyntaxKind.PartialKeyword);
+            N(SyntaxKind.ConstKeyword);
+            N(SyntaxKind.VariableDeclaration);
             {
-                N(SyntaxKind.IdentifierToken, "partial");
+                N(SyntaxKind.TupleType);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    M(SyntaxKind.TupleElement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.CommaToken);
+                    M(SyntaxKind.TupleElement);
+                    {
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                M(SyntaxKind.VariableDeclarator);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
             }
+            N(SyntaxKind.SemicolonToken);
         }
         EOF();
     }
@@ -1173,12 +1189,18 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
             }
             """,
             TestOptions.Regular.WithLanguageVersion(langVersion),
-            // (3,11): error CS1026: ) expected
-            //     [Attr(
-            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(3, 11),
-            // (3,11): error CS1003: Syntax error, ']' expected
-            //     [Attr(
-            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(3, 11));
+            // (4,13): error CS1003: Syntax error, ',' expected
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "C").WithArguments(",").WithLocation(4, 13),
+            // (4,16): error CS1003: Syntax error, ',' expected
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(",").WithLocation(4, 16),
+            // (4,17): error CS1026: ) expected
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 17),
+            // (4,17): error CS1003: Syntax error, ']' expected
+            //     partial C();
+            Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]").WithLocation(4, 17));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1188,7 +1210,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.ConstructorDeclaration);
+                N(SyntaxKind.IncompleteMember);
                 {
                     N(SyntaxKind.AttributeList);
                     {
@@ -1202,19 +1224,34 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                             N(SyntaxKind.AttributeArgumentList);
                             {
                                 N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "partial");
+                                    }
+                                }
+                                M(SyntaxKind.CommaToken);
+                                N(SyntaxKind.AttributeArgument);
+                                {
+                                    N(SyntaxKind.InvocationExpression);
+                                    {
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "C");
+                                        }
+                                        N(SyntaxKind.ArgumentList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                    }
+                                }
                                 M(SyntaxKind.CloseParenToken);
                             }
                         }
                         M(SyntaxKind.CloseBracketToken);
                     }
-                    N(SyntaxKind.PartialKeyword);
-                    N(SyntaxKind.IdentifierToken, "C");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -1235,13 +1272,7 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                 }
             }
             """,
-            TestOptions.Regular.WithLanguageVersion(langVersion),
-            // (4,6): error CS1513: } expected
-            //     {
-            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6),
-            // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
-            // }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.CompilationUnit);
         {
@@ -1265,27 +1296,30 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                     N(SyntaxKind.Block);
                     {
                         N(SyntaxKind.OpenBraceToken);
-                        M(SyntaxKind.CloseBraceToken);
-                    }
-                }
-                N(SyntaxKind.ConstructorDeclaration);
-                {
-                    N(SyntaxKind.PartialKeyword);
-                    N(SyntaxKind.IdentifierToken, "F");
-                    N(SyntaxKind.ParameterList);
-                    {
-                        N(SyntaxKind.OpenParenToken);
-                        N(SyntaxKind.CloseParenToken);
-                    }
-                    N(SyntaxKind.ArrowExpressionClause);
-                    {
-                        N(SyntaxKind.EqualsGreaterThanToken);
-                        N(SyntaxKind.NullLiteralExpression);
+                        N(SyntaxKind.LocalFunctionStatement);
                         {
-                            N(SyntaxKind.NullKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "partial");
+                            }
+                            N(SyntaxKind.IdentifierToken, "F");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NullLiteralExpression);
+                                {
+                                    N(SyntaxKind.NullKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
                         }
+                        N(SyntaxKind.CloseBraceToken);
                     }
-                    N(SyntaxKind.SemicolonToken);
                 }
                 N(SyntaxKind.CloseBraceToken);
             }
@@ -1368,32 +1402,26 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
         UsingTree("""
             partial F() => null;
             """,
-            TestOptions.Regular.WithLanguageVersion(langVersion),
-            // (1,9): error CS0116: A namespace cannot directly contain members such as fields, methods or statements
-            // partial F() => null;
-            Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "F").WithLocation(1, 9));
+            TestOptions.Regular.WithLanguageVersion(langVersion));
 
         N(SyntaxKind.CompilationUnit);
         {
-            N(SyntaxKind.IncompleteMember);
-            {
-                N(SyntaxKind.PartialKeyword);
-                N(SyntaxKind.IdentifierName);
-                {
-                    N(SyntaxKind.IdentifierToken, "F");
-                }
-            }
             N(SyntaxKind.GlobalStatement);
             {
-                N(SyntaxKind.ExpressionStatement);
+                N(SyntaxKind.LocalFunctionStatement);
                 {
-                    N(SyntaxKind.ParenthesizedLambdaExpression);
+                    N(SyntaxKind.IdentifierName);
                     {
-                        N(SyntaxKind.ParameterList);
-                        {
-                            N(SyntaxKind.OpenParenToken);
-                            N(SyntaxKind.CloseParenToken);
-                        }
+                        N(SyntaxKind.IdentifierToken, "partial");
+                    }
+                    N(SyntaxKind.IdentifierToken, "F");
+                    N(SyntaxKind.ParameterList);
+                    {
+                        N(SyntaxKind.OpenParenToken);
+                        N(SyntaxKind.CloseParenToken);
+                    }
+                    N(SyntaxKind.ArrowExpressionClause);
+                    {
                         N(SyntaxKind.EqualsGreaterThanToken);
                         N(SyntaxKind.NullLiteralExpression);
                         {
@@ -1534,12 +1562,9 @@ public sealed class PartialEventsAndConstructorsParsingTests(ITestOutputHelper o
                 N(SyntaxKind.ClassKeyword);
                 N(SyntaxKind.IdentifierToken, "C");
                 N(SyntaxKind.OpenBraceToken);
-                N(SyntaxKind.MethodDeclaration);
+                N(SyntaxKind.ConstructorDeclaration);
                 {
-                    N(SyntaxKind.IdentifierName);
-                    {
-                        N(SyntaxKind.IdentifierToken, "partial");
-                    }
+                    N(SyntaxKind.PartialKeyword);
                     N(SyntaxKind.IdentifierToken, "M");
                     N(SyntaxKind.ParameterList);
                     {
