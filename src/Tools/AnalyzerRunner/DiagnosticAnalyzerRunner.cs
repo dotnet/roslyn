@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Roslyn.Utilities;
@@ -26,6 +27,11 @@ namespace AnalyzerRunner
         private readonly Options _options;
         private readonly ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> _analyzers;
 
+        /// <summary>
+        /// Map from language name → code fix providers.
+        /// </summary>
+        private readonly ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> _codeFixes;
+
         public DiagnosticAnalyzerRunner(Workspace workspace, Options options)
         {
             _workspace = workspace;
@@ -33,6 +39,9 @@ namespace AnalyzerRunner
 
             var analyzers = GetDiagnosticAnalyzers(options.AnalyzerPath);
             _analyzers = FilterAnalyzers(analyzers, options);
+
+            var codeFixes = GetCodeFixProviders(options.AnalyzerPath);
+            _codeFixes = FilterCodeFixes(codeFixes, options);
         }
 
         public bool HasAnalyzers => _analyzers.Any(pair => pair.Value.Any());
@@ -173,6 +182,17 @@ namespace AnalyzerRunner
             {
                 WriteDiagnosticResults(analysisResult.SelectManyAsArray(pair => pair.Value.GetAllDiagnostics().Select(j => Tuple.Create(pair.Key, j))), _options.LogFileName);
             }
+
+            if (_options.FixAll)
+            {
+                var diagnosticsByProject = analysisResult.Where(pair => pair.Value != null).ToImmutableDictionary(pair => pair.Key, pair => pair.Value.GetAllDiagnostics());
+
+                // Apply fixes to the current solution of the workspace. This avoids failures when /apply is specified
+                // since the solution for analysis was modified above to change compilation options.
+                var solutionToFix = _workspace.CurrentSolution;
+
+                await TestFixAllAsync(solutionToFix, diagnosticsByProject, _options.EquivalenceKey, _options.ApplyChanges, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private static async Task<DocumentAnalyzerPerformance> TestDocumentPerformanceAsync(ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> analyzers, Project project, DocumentId documentId, Options analyzerOptionsInternal, CancellationToken cancellationToken)
@@ -282,6 +302,11 @@ namespace AnalyzerRunner
             }
         }
 
+        private ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> FilterCodeFixes(ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> codeFixes, Options options)
+        {
+            return codeFixes;
+        }
+
         private static ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> GetDiagnosticAnalyzers(string path)
         {
             if (File.Exists(path))
@@ -301,12 +326,42 @@ namespace AnalyzerRunner
             throw new InvalidDataException($"Cannot find {path}.");
         }
 
+        private static ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> GetCodeFixProviders(string path)
+        {
+            if (File.Exists(path))
+            {
+                return GetCodeFixProvidersFromFile(path);
+            }
+            else if (Directory.Exists(path))
+            {
+                return Directory.GetFiles(path, "*.dll", SearchOption.AllDirectories)
+                    .SelectMany(file => GetCodeFixProvidersFromFile(file))
+                    .ToLookup(analyzers => analyzers.Key, analyzers => analyzers.Value)
+                    .ToImmutableDictionary(
+                        group => group.Key,
+                        group => group.SelectMany(analyzer => analyzer).ToImmutableArray());
+            }
+
+            throw new InvalidDataException($"Cannot find {path}.");
+        }
+
         private static ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> GetDiagnosticAnalyzersFromFile(string path)
         {
             var analyzerReference = new AnalyzerFileReference(Path.GetFullPath(path), AssemblyLoader.Instance);
             var csharpAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.CSharp);
             var basicAnalyzers = analyzerReference.GetAnalyzers(LanguageNames.VisualBasic);
             return ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>>.Empty
+                .Add(LanguageNames.CSharp, csharpAnalyzers)
+                .Add(LanguageNames.VisualBasic, basicAnalyzers);
+        }
+
+        private static ImmutableDictionary<string, ImmutableArray<CodeFixProvider>> GetCodeFixProvidersFromFile(string path)
+        {
+            var analyzerReference = new AnalyzerFileReference(Path.GetFullPath(path), AssemblyLoader.Instance);
+            var codeFixReference = new CodeFixFileReference(analyzerReference);
+            var csharpAnalyzers = codeFixReference.GetExtensions(LanguageNames.CSharp);
+            var basicAnalyzers = codeFixReference.GetExtensions(LanguageNames.VisualBasic);
+            return ImmutableDictionary<string, ImmutableArray<CodeFixProvider>>.Empty
                 .Add(LanguageNames.CSharp, csharpAnalyzers)
                 .Add(LanguageNames.VisualBasic, basicAnalyzers);
         }
@@ -404,6 +459,13 @@ namespace AnalyzerRunner
             }
         }
 
+        private Task TestFixAllAsync(Solution solution, ImmutableDictionary<ProjectId, ImmutableArray<Diagnostic>> diagnostics, string equivalenceKey, bool applyChanges, CancellationToken cancellationToken)
+        {
+            Console.WriteLine("Calculating fixes");
+
+            throw new NotImplementedException();
+        }
+
         internal static void WriteTelemetry(ImmutableDictionary<ProjectId, AnalysisResult> dictionary)
         {
             if (dictionary.IsEmpty)
@@ -486,6 +548,27 @@ namespace AnalyzerRunner
 
             public double EditsPerSecond { get; }
             public long AllocatedBytesPerEdit { get; }
+        }
+
+        private sealed class CodeFixFileReference : AbstractProjectExtensionProvider<CodeFixProvider, ExportCodeFixProviderAttribute>
+        {
+            public CodeFixFileReference(AnalyzerReference reference)
+                : base(reference)
+            {
+            }
+
+            protected override bool SupportsLanguage(ExportCodeFixProviderAttribute exportAttribute, string language)
+            {
+                return exportAttribute.Languages == null
+                    || exportAttribute.Languages.Length == 0
+                    || exportAttribute.Languages.Contains(language);
+            }
+
+            protected override bool TryGetExtensionsFromReference(AnalyzerReference reference, out ImmutableArray<CodeFixProvider> extensions)
+            {
+                extensions = default;
+                return false;
+            }
         }
     }
 }
