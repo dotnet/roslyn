@@ -212,7 +212,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
 
             // Check if we need to add 'unsafe' to the signature we're generating.
             var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var addUnsafe = member.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(State.ContextNode);
+            var addUnsafe = ShouldAddUnsafeModifier(member, State.ContextNode, syntaxFacts);
 
             return GenerateMembers(
                 compilation, member, conflictingMember, memberName, generateInvisibleMember, generateAbstractly,

@@ -137,10 +137,24 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             generateInvisibly: generator.ShouldGenerateInvisibleMember(document.Project.ParseOptions!, interfaceMember, interfaceMember.Name, supportsImplementingLessAccessibleMember),
             generateAbstractly: configuration.Abstractly,
             addNew: false,
-            interfaceMember.RequiresUnsafeModifier() && !syntaxFacts.IsUnsafeContext(info.ContextNode),
+            ShouldAddUnsafeModifier(interfaceMember, info.ContextNode, syntaxFacts),
             options.PropertyGenerationBehavior);
 
         return implementedMembers;
+    }
+
+    private static bool ShouldAddUnsafeModifier(ISymbol member, SyntaxNode contextNode, ISyntaxFactsService syntaxFacts)
+    {
+        if (member.UsesUpdatedMemorySafetyRules())
+        {
+            // An unsafe context does not replace a v2 member's caller-safety contract.
+            return member.InferSafetyModifiersFromSymbol().IsUnsafe;
+        }
+
+        if (!member.RequiresUnsafeModifier())
+            return false;
+
+        return !syntaxFacts.IsUnsafeContext(contextNode);
     }
 
     public async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode? interfaceType, CancellationToken cancellationToken)
