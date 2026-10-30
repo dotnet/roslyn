@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedValues), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddImport)>
     Friend Class VisualBasicRemoveUnusedValuesCodeFixProvider
-        Inherits AbstractRemoveUnusedValuesCodeFixProvider(Of ExpressionSyntax, StatementSyntax, StatementSyntax,
+        Inherits AbstractRemoveUnusedValuesCodeFixProvider(Of ExpressionSyntax, StatementSyntax,
             ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax, ForEachBlockSyntax,
             CaseBlockSyntax, CaseClauseSyntax, CatchStatementSyntax, CatchBlockSyntax)
 
@@ -27,9 +27,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedParametersAndValues
 
         Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting = VisualBasicSyntaxFormatting.Instance
 
-        Protected Overrides Function WrapWithBlockIfNecessary(statements As IEnumerable(Of StatementSyntax)) As StatementSyntax
-            ' Unreachable code path as VB statements don't need to be wrapped in special BlockSyntax.
-            Throw ExceptionUtilities.Unreachable
+        Protected Overrides Function WrapWithBlockIfNecessary(
+            expressionStatement As ExpressionStatementSyntax,
+            declarationStatement As LocalDeclarationStatementSyntax) As StatementSyntax
+
+            Return declarationStatement
         End Function
 
         Protected Overrides Sub InsertAtStartOfSwitchCaseBlockForDeclarationInCaseLabelOrClause(switchCaseBlock As CaseBlockSyntax, editor As SyntaxEditor, declarationStatement As LocalDeclarationStatementSyntax)
