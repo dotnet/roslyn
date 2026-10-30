@@ -3582,6 +3582,16 @@
         <target state="translated">Значение типа "System.Threading.Lock", преобразованное в другой тип, будет использовать (скорее всего, непреднамеренную) блокировку на основе монитора в инструкции "lock".</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_DeprecatedFeatureFlag">
+        <source>Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</source>
+        <target state="new">Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DeprecatedFeatureFlag_Title">
+        <source>Feature flag is deprecated</source>
+        <target state="new">Feature flag is deprecated</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
         <source>Comparison of function pointers might yield an unexpected result, since pointers to the same function may be distinct.</source>
         <target state="translated">Сравнение указателей на функции может привести к непредвиденному результату, так как указатели на одну и ту же функцию могут быть разными.</target>
