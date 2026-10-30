@@ -48,6 +48,8 @@ internal static class DocumentFixAllHelper
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
+                // The initial snapshot keeps only IDs. Earlier fixes can move or remove diagnostics,
+                // so request them for the current document rather than reusing the original locations.
                 var collection = await codeFixService.GetDocumentFixAllForIdInSpanAsync(
                     document, textSpan: null, diagnosticId, minimumSeverity,
                     includeInteractive: false, cancellationToken).ConfigureAwait(false);
