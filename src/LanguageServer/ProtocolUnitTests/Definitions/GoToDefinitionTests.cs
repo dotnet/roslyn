@@ -179,6 +179,28 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
     }
 
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_01(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="C:\App.cs">
+                        #:include Files\{|caret:|}*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="C:\Files\Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
+    }
+
     [Theory, CombinatorialData]
     public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirectiveDirectory(bool mutatingLspWorkspace)
     {
