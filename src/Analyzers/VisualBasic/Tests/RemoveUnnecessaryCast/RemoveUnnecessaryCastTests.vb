@@ -951,6 +951,56 @@ End Module
             Await TestMissingAsync(markup)
         End Function
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77134")>
+        Public Async Function TestRemoveUnnecessaryCast_UnresolvedMethod() As Task
+            Dim markup =
+<File>
+Module M
+    Sub Main()
+        UnresolvedMethod([|DirectCast(Nothing, String)|])
+    End Sub
+End Module
+</File>
+
+            Dim expected =
+<File>
+Module M
+    Sub Main()
+        UnresolvedMethod(Nothing)
+    End Sub
+End Module
+</File>
+
+            Await TestAsync(markup, expected)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/77134")>
+        Public Async Function TestRemoveUnnecessaryCast_QueryHelper() As Task
+            Dim markup =
+<File>
+Class QueryHelper(Of T)
+    Public ReadOnly Property Expression As Object
+        Get
+            Return System.Linq.Expressions.Expression.Constant([|DirectCast(Nothing, QueryHelper(Of T))|], GetType(QueryHelper(Of T)))
+        End Get
+    End Property
+End Class
+</File>
+
+            Dim expected =
+<File>
+Class QueryHelper(Of T)
+    Public ReadOnly Property Expression As Object
+        Get
+            Return System.Linq.Expressions.Expression.Constant(Nothing, GetType(QueryHelper(Of T)))
+        End Get
+    End Property
+End Class
+</File>
+
+            Await TestAsync(markup, expected)
+        End Function
+
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545971")>
         Public Async Function TestRemoveUnnecessaryCastPassedToParamArray1() As Task
             Dim markup =
