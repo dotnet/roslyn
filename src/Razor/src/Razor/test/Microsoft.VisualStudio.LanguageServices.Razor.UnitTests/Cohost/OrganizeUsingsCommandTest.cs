@@ -639,6 +639,121 @@ public class OrganizeUsingsCommandTest(ITestOutputHelper testOutputHelper) : Coh
                 }
                 """);
 
+    [Fact]
+    public Task SortOnly_AliasesLast_OrderedByAliasName()
+        // Alias targets deliberately sort differently from their names.
+        => VerifySortUsingsAsync(
+            input: """
+                @using Z = System
+                @using SystemAlias = System.String
+                @using Microsoft.AspNetCore.Components
+                @using A = System.Text.StringBuilder
+                @using b = System.Text
+                @using static System.Math
+                @using System.Text
+                @using System
+
+                <div></div>
+                """,
+            expected: """
+                @using System
+                @using System.Text
+                @using Microsoft.AspNetCore.Components
+                @using static System.Math
+                @using A = System.Text.StringBuilder
+                @using SystemAlias = System.String
+                @using Z = System
+                @using b = System.Text
+
+                <div></div>
+                """);
+
+    [Fact]
+    public Task SortOnly_AliasNames_UseOrdinalOrdering()
+        // Alias names are case-sensitive, with no special treatment for an alias named System.
+        => VerifySortUsingsAsync(
+            input: """
+                @using b = System
+                @using A = System.Text
+                @using a = System.String
+                @using System = Microsoft.AspNetCore.Components.ComponentBase
+                @using System.Text
+
+                <div></div>
+                """,
+            expected: """
+                @using System.Text
+                @using A = System.Text
+                @using System = Microsoft.AspNetCore.Components.ComponentBase
+                @using a = System.String
+                @using b = System
+
+                <div></div>
+                """);
+
+    [Fact]
+    public Task SortOnly_StaticImports_BetweenNamespacesAndAliases_SystemFirst()
+        // Lowercase namespace names still precede statics; static targets use System-first, then ordinal ordering.
+        => VerifySortUsingsAsync(
+            input: """
+                @using static a.Math
+                @using Z = System
+                @using static System.String
+                @using static A.Math
+                @using zeta
+                @using static System.Math
+                @using System.Text
+                @using A = System.String
+
+                <div></div>
+                """,
+            expected: """
+                @using System.Text
+                @using zeta
+                @using static System.Math
+                @using static System.String
+                @using static A.Math
+                @using static a.Math
+                @using A = System.String
+                @using Z = System
+
+                <div></div>
+                """);
+
+    [Fact]
+    public Task RemoveAndSort_AliasesUsedOnlyInCSharp()
+        => VerifyRemoveAndSortUsingsAsync(
+            input: """
+                @using Text = System.Text
+                @using Unused = System.String
+                @using Builder = System.Text.StringBuilder
+
+                <div>@typeof(Text.StringBuilder) @(new Builder())</div>
+                """,
+            expected: """
+                @using Builder = System.Text.StringBuilder
+                @using Text = System.Text
+
+                <div>@typeof(Text.StringBuilder) @(new Builder())</div>
+                """);
+
+    [Fact]
+    public Task RemoveAndSort_StaticImports_UnusedRemoved_UsedSorted()
+        => VerifyRemoveAndSortUsingsAsync(
+            input: """
+                @using static System.String
+                @using static System.Convert
+                @using static System.Math
+
+                <div>@Abs(-1) @IsNullOrEmpty("")</div>
+                """,
+            expected: """
+                @using static System.Math
+                @using static System.String
+
+                <div>@Abs(-1) @IsNullOrEmpty("")</div>
+                """);
+
     private async Task VerifyRemoveAndSortUsingsAsync(TestCode input, string expected, (string filePath, string contents)[]? additionalFiles = null, RazorFileKind? fileKind = null)
     {
         var document = CreateProjectAndRazorDocument(input.Text, fileKind: fileKind, additionalFiles: additionalFiles);

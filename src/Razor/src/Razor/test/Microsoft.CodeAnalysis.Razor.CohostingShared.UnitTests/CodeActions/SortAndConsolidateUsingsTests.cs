@@ -11,6 +11,108 @@ namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost.CodeActions;
 public class SortAndConsolidateUsingsTests(ITestOutputHelper testOutputHelper) : CohostCodeActionsEndpointTestBase(testOutputHelper)
 {
     [Fact]
+    public async Task AliasesLast_OrderedByAliasName()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]Z = System
+                @using SystemAlias = System.String
+                @using Microsoft.AspNetCore.Components
+                @using A = System.Text.StringBuilder
+                @using b = System.Text
+                @using static System.Math
+                @using System.Text
+                @using System
+
+                <div>Hello</div>
+                """,
+            expected: """
+                @using System
+                @using System.Text
+                @using Microsoft.AspNetCore.Components
+                @using static System.Math
+                @using A = System.Text.StringBuilder
+                @using SystemAlias = System.String
+                @using Z = System
+                @using b = System.Text
+
+                <div>Hello</div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SortAndConsolidateUsings);
+    }
+
+    [Fact]
+    public async Task AliasesLast_AlreadySorted_NotOffered()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System
+                @using System.Text
+                @using Microsoft.AspNetCore.Components
+                @using static System.Math
+                @using A = System.Text.StringBuilder
+                @using SystemAlias = System.String
+                @using Z = System
+                @using b = System.Text
+
+                <div>Hello</div>
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.SortAndConsolidateUsings);
+    }
+
+    [Fact]
+    public async Task StaticImports_BetweenNamespacesAndAliases_SystemFirst()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]static a.Math
+                @using Z = System
+                @using static System.String
+                @using static A.Math
+                @using zeta
+                @using static System.Math
+                @using System.Text
+                @using A = System.String
+
+                <div>Hello</div>
+                """,
+            expected: """
+                @using System.Text
+                @using zeta
+                @using static System.Math
+                @using static System.String
+                @using static A.Math
+                @using static a.Math
+                @using A = System.String
+                @using Z = System
+
+                <div>Hello</div>
+                """,
+            codeActionName: LanguageServerConstants.CodeActions.SortAndConsolidateUsings);
+    }
+
+    [Fact]
+    public async Task StaticImports_AlreadySorted_NotOffered()
+    {
+        await VerifyCodeActionAsync(
+            input: """
+                @using [||]System.Text
+                @using zeta
+                @using static System.Math
+                @using static System.String
+                @using static A.Math
+                @using static a.Math
+                @using A = System.String
+                @using Z = System
+
+                <div>Hello</div>
+                """,
+            expected: null,
+            codeActionName: LanguageServerConstants.CodeActions.SortAndConsolidateUsings);
+    }
+
+    [Fact]
     public async Task AlreadySortedSingleGroup_NotOffered()
     {
         await VerifyCodeActionAsync(
