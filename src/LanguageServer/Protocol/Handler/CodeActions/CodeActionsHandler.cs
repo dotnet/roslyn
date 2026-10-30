@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -11,6 +12,7 @@ using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
@@ -54,9 +56,26 @@ internal class CodeActionsHandler : ILspServiceDocumentRequestHandler<LSP.CodeAc
     {
         var document = await context.GetRequiredTextDocumentAsync(cancellationToken).ConfigureAwait(false);
         var clientCapability = context.GetRequiredClientCapabilities();
+        using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var result);
+
+        // Offer source.fixAll without computing fixes to keep discovery cheap. Resolve checks the current
+        // document for eligible fixes and returns an empty edit when there is nothing to fix.
+        if (document is Document && request.Context.Only?.Any(kind => CodeActionHelpers.MatchesKind(kind, CodeActionKind.SourceFixAll)) == true)
+        {
+            result.Add(new LSP.CodeAction
+            {
+                Title = FeaturesResources.Fix_all_diagnostics_in_document,
+                Kind = CodeActionKind.SourceFixAll,
+                Data = new CodeActionResolveData(
+                    CodeActionKind.SourceFixAll.Value, [], request.Range, request.TextDocument, [],
+                    fixAllFlavors: null, fixAllInDocument: true, nestedCodeActions: null)
+            });
+        }
+
         var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
             request, document, _codeFixService, _codeRefactoringService, hasVsLspCapability: clientCapability.HasVisualStudioLspCapability(), cancellationToken).ConfigureAwait(false);
+        result.AddRange(codeActions);
 
-        return codeActions;
+        return result.ToArray();
     }
 }

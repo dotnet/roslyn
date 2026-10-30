@@ -7,6 +7,7 @@ using System.Composition;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -57,6 +58,22 @@ internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.
         Contract.ThrowIfNull(codeAction.Data);
         var data = GetCodeActionResolveData(codeAction);
         Assumes.Present(data);
+
+        if (data.FixAllInDocument)
+        {
+            // This source.fixAll action combines fixes for all eligible diagnostic IDs in the document.
+            // Compute the combined workspace edit only on resolve to keep discovery cheap and use the
+            // current document and severity setting.
+            var sourceDocument = await context.GetRequiredDocumentAsync(cancellationToken).ConfigureAwait(false);
+            var minimumSeverity = _globalOptions.GetOption(LspOptionsStorage.FixAllMinimumSeverity);
+            var changedSolution = await DocumentFixAllHelper.GetChangedSolutionAsync(
+                sourceDocument, _codeFixService, minimumSeverity,
+                context.GetRequiredClientCapabilities().Workspace?.WorkspaceEdit?.ResourceOperations ?? [],
+                context.TraceDebug, cancellationToken).ConfigureAwait(false);
+            codeAction.Edit = await CodeActionResolveHelper.GetCodeActionResolveEditsAsync(
+                context, data, [new ApplyChangesOperation(changedSolution)], cancellationToken).ConfigureAwait(false);
+            return codeAction;
+        }
 
         // Fix All Code Action does not need further resolution since it already has the command callback
         // when the action is initially created.

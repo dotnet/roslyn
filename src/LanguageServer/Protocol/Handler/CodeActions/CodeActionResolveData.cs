@@ -36,6 +36,9 @@ internal sealed class CodeActionResolveData
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string[]? FixAllFlavors { get; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool FixAllInDocument { get; }
+
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ImmutableArray<LSP.CodeAction>? NestedCodeActions { get; }
 
@@ -46,7 +49,8 @@ internal sealed class CodeActionResolveData
         LSP.TextDocumentIdentifier textDocument,
         string[] codeActionPath,
         string[]? fixAllFlavors,
-        ImmutableArray<LSP.CodeAction>? nestedCodeActions)
+        ImmutableArray<LSP.CodeAction>? nestedCodeActions,
+        bool fixAllInDocument = false)
     {
         UniqueIdentifier = uniqueIdentifier;
         CustomTags = customTags;
@@ -54,6 +58,7 @@ internal sealed class CodeActionResolveData
         TextDocument = textDocument;
         CodeActionPath = codeActionPath;
         FixAllFlavors = fixAllFlavors;
+        FixAllInDocument = fixAllInDocument;
         NestedCodeActions = nestedCodeActions;
     }
 }

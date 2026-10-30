@@ -39,8 +39,9 @@ internal static class CodeActionHelpers
         bool hasVsLspCapability,
         CancellationToken cancellationToken)
     {
+        var requestedKinds = request.Context.Only;
         var actionSets = await GetActionSetsAsync(
-            document, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
+            document, codeFixService, codeRefactoringService, request.Range, requestedKinds, cancellationToken).ConfigureAwait(false);
         if (actionSets.IsDefaultOrEmpty)
             return [];
 
@@ -90,8 +91,15 @@ internal static class CodeActionHelpers
             }
         }
 
-        return codeActions.ToArray();
+        if (requestedKinds is not { Length: > 0 } only)
+            return codeActions.ToArray();
+
+        return [.. codeActions.Where(action => action.Kind is { } kind && requestedKinds.Any(requested => MatchesKind(requested, kind)))];
     }
+
+    public static bool MatchesKind(CodeActionKind requested, CodeActionKind actual)
+        => requested.Value.Length == 0 || actual.Value == requested.Value ||
+           actual.Value.StartsWith(requested.Value + ".", StringComparison.Ordinal);
 
     private static bool IsCodeActionNotSupportedByLSP(SuggestedAction suggestedAction)
         // Filter out CodeActionsWithOptions that do not report having an OptionsService
@@ -313,7 +321,7 @@ internal static class CodeActionHelpers
         CancellationToken cancellationToken)
     {
         var actionSets = await GetActionSetsAsync(
-            document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+            document, codeFixService, codeRefactoringService, selection, requestedKinds: null, cancellationToken).ConfigureAwait(false);
         if (actionSets.IsDefaultOrEmpty)
             return [];
 
@@ -381,21 +389,50 @@ internal static class CodeActionHelpers
         ICodeFixService codeFixService,
         ICodeRefactoringService codeRefactoringService,
         LSP.Range selection,
+        CodeActionKind[]? requestedKinds,
         CancellationToken cancellationToken)
     {
+        var (includeCodeFixes, includeRefactorings) = GetIncludedCodeActionTypes(requestedKinds);
+        if (!includeCodeFixes && !includeRefactorings)
+            return [];
+
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var textSpan = ProtocolConversions.RangeToTextSpan(selection, text);
 
-        var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
-            codeFixService, document, textSpan, priority: null, cancellationToken).ConfigureAwait(false);
+        var codeFixes = includeCodeFixes
+            ? await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
+                codeFixService, document, textSpan, priority: null, cancellationToken).ConfigureAwait(false)
+            : [];
 
-        var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-            codeRefactoringService, document, textSpan, priority: null,
-            filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
+        var codeRefactorings = includeRefactorings
+            ? await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
+                codeRefactoringService, document, textSpan, priority: null,
+                filterOutsideSelection: false, cancellationToken).ConfigureAwait(false)
+            : [];
 
         var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(
             codeFixes, codeRefactorings, textSpan, currentActionCount: 0);
         return actionSets;
+    }
+
+    private static (bool includeCodeFixes, bool includeRefactorings) GetIncludedCodeActionTypes(CodeActionKind[]? requestedKinds)
+    {
+        if (requestedKinds is not { Length: > 0 })
+            return (true, true);
+
+        var includeCodeFixes = false;
+        var includeRefactorings = false;
+        foreach (var kind in requestedKinds)
+        {
+            includeCodeFixes = includeCodeFixes || MatchesKind(kind, CodeActionKind.QuickFix);
+            includeRefactorings = includeRefactorings ||
+                MatchesKind(kind, CodeActionKind.Refactor) || MatchesKind(CodeActionKind.Refactor, kind);
+
+            if (includeCodeFixes && includeRefactorings)
+                break;
+        }
+
+        return (includeCodeFixes, includeRefactorings);
     }
 
     private static CodeActionKind GetCodeActionKindFromSuggestedActionCategoryName(string categoryName, SuggestedAction suggestedAction)
