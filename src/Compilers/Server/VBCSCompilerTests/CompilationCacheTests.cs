@@ -439,6 +439,25 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "", "", _logger);
         }
 
+        [Fact]
+        public void TryStoreResult_SkipsEntry_WhenUserScopedMutexIsHeld()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var dllName = "MyLib.dll";
+            var deterministicKey = "locked-store";
+            var hashKey = CompilationCache.ComputeHashKey(deterministicKey);
+            var assemblyPath = Path.Combine(Temp.CreateDirectory().Path, dllName);
+            File.WriteAllBytes(assemblyPath, [1, 2, 3]);
+            var outputFiles = new CompilationOutputFiles { AssemblyPath = assemblyPath };
+
+            using var entryLock = AcquireEntryMutex(cache, dllName, hashKey);
+            var result = cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, _logger);
+
+            Assert.Equal(CompilationCacheStoreResult.SkippedRace, result);
+            Assert.False(Directory.Exists(Path.Combine(cacheDir, dllName, hashKey)));
+        }
+
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
         public void TryStoreResult_OnlyOneWriterStoresEntry(bool existingIncompleteEntry)
         {

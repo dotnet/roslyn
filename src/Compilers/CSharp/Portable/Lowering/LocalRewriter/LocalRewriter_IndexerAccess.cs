@@ -568,6 +568,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
                     RefKind refKind = receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref;
 
+                    refKind = AdjustReadonlyReceiverCaptureRefKind(receiver, refKind);
+
                     if (refKind == RefKind.Ref &&
                         receiver is BoundArrayAccess arrayAccess &&
                         !IsInvariantArray(arrayAccess.Expression.Type))
@@ -914,6 +916,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
                 RefKind refKind = receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref;
+
+                refKind = AdjustReadonlyReceiverCaptureRefKind(receiver, refKind);
 
                 if (refKind == RefKind.Ref &&
                     receiver is BoundArrayAccess arrayAccess &&

@@ -633,8 +633,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundAddressOfOperator
     {
-        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
-             : this(syntax, operand, isManaged: false, type, hasErrors)
+        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false, bool requiresAssignedOperand = false)
+             : this(syntax, operand, isManaged: false, requiresAssignedOperand, type, hasErrors)
+        {
+        }
+
+        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, bool isManaged, TypeSymbol type, bool hasErrors = false)
+             : this(syntax, operand, isManaged, requiresAssignedOperand: false, type, hasErrors)
         {
         }
     }

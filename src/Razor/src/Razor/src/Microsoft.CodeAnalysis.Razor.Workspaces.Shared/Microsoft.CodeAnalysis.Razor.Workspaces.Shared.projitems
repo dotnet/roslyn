@@ -35,6 +35,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TextChangeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\TextLineExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingOptionsExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\RazorFormattingOptionsStorage.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\EmptyLoggerFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\Handlers\CriticalLogMessageInterpolatedStringHandler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logging\Handlers\DebugLogMessageInterpolatedStringHandler.cs" />
