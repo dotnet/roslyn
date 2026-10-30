@@ -483,7 +483,19 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     !memberValue.HasExceptionThrown() &&
                     memberValue.Type.GetLmrType().IsByRef)
                 {
-                    memberValue = memberValue.Dereference(inspectionContext);
+                    try
+                    {
+                        memberValue = memberValue.Dereference(inspectionContext);
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        // The debugger can throw when dereferencing an uninitialized ref field.
+                        // Report the failure for this member so sibling expansion can continue.
+                        return new EvalResult(
+                            name: member.DisplayName,
+                            errorMessage: e.Message,
+                            inspectionContext: inspectionContext);
+                    }
                 }
             }
 
