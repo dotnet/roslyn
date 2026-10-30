@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FileBasedPrograms;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Navigation;
@@ -61,6 +62,9 @@ internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentReque
         var locations = ArrayBuilder<LSP.Location>.GetInstance();
         var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
+        if (await GetFileLevelDirectiveLocationsAsync().ConfigureAwait(false) is { } directiveLocations)
+            return directiveLocations;
+
         var service = document.GetLanguageService<INavigableItemsService>();
         if (service is null)
             return null;
@@ -106,6 +110,31 @@ internal abstract class AbstractGoToDefinitionHandler : ILspServiceDocumentReque
         return locations.ToArrayAndFree();
 
         // local functions
+        async ValueTask<LSP.Location[]?> GetFileLevelDirectiveLocationsAsync()
+        {
+            if (forSymbolType)
+                return null;
+
+            if (workspace.Services.GetService<IFileBasedProgramService>() is not { } service)
+                return null;
+
+            var paths = await service.GetFileLevelDirectiveTargetPathsAsync(document, position, cancellationToken).ConfigureAwait(false);
+            if (paths is [])
+                return null;
+
+            var locations = new LSP.Location[paths.Length];
+            for (var i = 0; i < paths.Length; i++)
+            {
+                locations[i] = new LSP.Location
+                {
+                    DocumentUri = ProtocolConversions.CreateAbsoluteDocumentUri(paths[i]),
+                    Range = new() { Start = new() { Line = 0, Character = 0 }, End = new() { Line = 0, Character = 0 } },
+                };
+            }
+
+            return locations;
+        }
+
         static bool ShouldInclude(INavigableItem item, bool forSymbolType)
         {
             if (item.Glyph is Glyph.Namespace)
