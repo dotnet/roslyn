@@ -30,6 +30,13 @@ internal sealed partial class ProjectState
     public Checksum GetParseOptionsChecksum()
         => GetParseOptionsChecksum(LanguageServices.SolutionServices.GetRequiredService<ISerializerService>());
 
+    public ChecksumCollection GetAnalyzerReferenceChecksums(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return ChecksumCache.GetOrCreateChecksumCollection(
+            AnalyzerReferences, LanguageServices.SolutionServices.GetRequiredService<ISerializerService>(), cancellationToken);
+    }
+
     private Checksum GetParseOptionsChecksum(ISerializerService serializer)
         => this.SupportsCompilation
             ? ChecksumCache.GetOrCreate(this.ParseOptions!, static (options, serializer) => serializer.CreateParseOptionsChecksum(options), serializer)
@@ -58,7 +65,7 @@ internal sealed partial class ProjectState
 
                 var projectReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(ProjectReferences, serializer, cancellationToken);
                 var metadataReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(MetadataReferences, serializer, cancellationToken);
-                var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(AnalyzerReferences, serializer, cancellationToken);
+                var analyzerReferenceChecksums = GetAnalyzerReferenceChecksums(cancellationToken);
 
                 return new ProjectStateChecksums(
                     this.Id,

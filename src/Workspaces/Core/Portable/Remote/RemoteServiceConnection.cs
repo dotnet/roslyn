@@ -63,6 +63,16 @@ internal abstract class RemoteServiceConnection<TService> : IDisposable
 
     // project, no callback
 
+    /// <summary>
+    /// Invokes a service with only analyzer assets pinned. The callback checksum identifies an asset
+    /// scope, not a solution snapshot.
+    /// </summary>
+    public abstract ValueTask<Optional<TResult>> TryInvokeWithAnalyzerReferencesAsync<TResult>(
+        SolutionCompilationState compilationState,
+        ProjectId projectId,
+        Func<TService, Checksum, CancellationToken, ValueTask<TResult>> invocation,
+        CancellationToken cancellationToken);
+
     public abstract ValueTask<bool> TryInvokeAsync(
         SolutionCompilationState compilationState,
         ProjectId projectId,
