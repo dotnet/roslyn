@@ -45,17 +45,35 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
             var codeGenerationService = languageServices.GetRequiredService<ICodeGenerationService>();
 
             Contract.ThrowIfNull(_state.DelegatedConstructor);
-            var thisConstructorArguments = factory.CreateArguments(
-                [.. _state.Parameters.Select(t => t.parameter).Take(_state.DelegatedConstructor.Parameters.Length)]);
+            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var thisConstructorArguments);
+            var useNamedArguments = false;
+            foreach (var (parameter, delegatedParameter) in _state.DelegatedConstructorArguments)
+            {
+                if (parameter == null && (delegatedParameter.HasExplicitDefaultValue || delegatedParameter.IsParams))
+                {
+                    useNamedArguments = true;
+                    continue;
+                }
 
-            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
-            using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
+                var expression = parameter == null
+                    ? factory.DefaultExpression(delegatedParameter.Type)
+                    : factory.IdentifierName(parameter.Name);
+                thisConstructorArguments.Add(factory.Argument(
+                    useNamedArguments ? delegatedParameter.Name : null,
+                    delegatedParameter.RefKind,
+                    expression));
+            }
+
+            using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
+            using var _3 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
 
             var useThrowExpressions = await _service.PrefersThrowExpressionAsync(_document, cancellationToken).ConfigureAwait(false);
 
-            for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
+            foreach (var (parameter, fieldOrProperty) in _state.Parameters)
             {
-                var (parameter, fieldOrProperty) = _state.Parameters[i];
+                if (_state.DelegatedConstructorArguments.Any(a => a.parameter == parameter))
+                    continue;
+
                 var symbolName = fieldOrProperty.Name;
 
                 var fieldAccess = factory.MemberAccessExpression(
@@ -89,12 +107,12 @@ internal abstract partial class AbstractGenerateConstructorsCodeRefactoringProvi
                 _state.ContainingType,
                 CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,
-                    accessibility: _state.ContainingType.IsAbstractClass() ? Accessibility.Protected : Accessibility.Public,
+                    accessibility: _state.Accessibility,
                     modifiers: DeclarationModifiers.None,
                     typeName: _state.ContainingType.Name,
                     parameters: _state.Parameters.SelectAsArray(t => t.parameter),
                     statements: statements,
-                    thisConstructorArguments: thisConstructorArguments),
+                    thisConstructorArguments: thisConstructorArguments.ToImmutable()),
                 cancellationToken: cancellationToken).ConfigureAwait(false);
 
             return await AddNavigationAnnotationAsync(result, cancellationToken).ConfigureAwait(false);
