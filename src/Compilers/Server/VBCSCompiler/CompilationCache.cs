@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     ///   <item><c>pdb</c> — the PDB debug symbols</item>
     ///   <item><c>refassembly</c> — the reference assembly</item>
     ///   <item><c>xmldoc</c> — the XML documentation file</item>
+    ///   <item><c>diagnostics</c> — the diagnostic context and formatted diagnostic output (always present)</item>
     ///   <item><c>&lt;dll name&gt;.key</c> — the full deterministic key JSON</item>
     /// </list>
     /// </remarks>
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private const string PdbFileName = "pdb";
         private const string RefAssemblyFileName = "refassembly";
         private const string XmlDocFileName = "xmldoc";
+        private const string DiagnosticsFileName = "diagnostics";
         private const string LastUsedFileName = "last-used";
         private const string CreatedFileName = "created";
 
@@ -145,9 +147,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string dllName,
             string hashKey,
             CompilationOutputFiles outputFiles,
+            string diagnosticContext,
             ICompilerServerLogger logger,
-            DateTime outputTimestampUtc)
+            DateTime outputTimestampUtc,
+            out string? diagnosticOutput)
         {
+            diagnosticOutput = null;
             var entryDir = GetCacheEntryDirectory(dllName, hashKey);
             var cachedAssemblyPath = Path.Combine(entryDir, AssemblyFileName);
             Debug.Assert(outputTimestampUtc.Kind == DateTimeKind.Utc);
@@ -173,10 +178,30 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // so we don't partially overwrite outputs on a cache miss.
                 if (isMissingWhenRequired(entryDir, PdbFileName, outputFiles.PdbPath)
                     || isMissingWhenRequired(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
-                    || isMissingWhenRequired(entryDir, XmlDocFileName, outputFiles.XmlDocPath))
+                    || isMissingWhenRequired(entryDir, XmlDocFileName, outputFiles.XmlDocPath)
+                    || !File.Exists(Path.Combine(entryDir, DiagnosticsFileName)))
                 {
                     logger.Log($"Cache miss because entry is missing required output files: {dllName} [{hashKey}]");
                     return false;
+                }
+
+                string cachedDiagnosticOutput;
+                using (var stream = File.OpenRead(Path.Combine(entryDir, DiagnosticsFileName)))
+                using (var reader = new BinaryReader(stream, Encoding.UTF8))
+                {
+                    var cachedContext = reader.ReadString();
+                    cachedDiagnosticOutput = reader.ReadString();
+                    if (stream.Position != stream.Length)
+                    {
+                        logger.Log($"Cache miss because entry has invalid diagnostic data: {dllName} [{hashKey}]");
+                        return false;
+                    }
+
+                    if (cachedDiagnosticOutput.Length > 0 && cachedContext != diagnosticContext)
+                    {
+                        logger.Log($"Cache miss because diagnostic context changed: {dllName} [{hashKey}]");
+                        return false;
+                    }
                 }
 
                 logger.Log($"Cache hit: {dllName} [{hashKey}]");
@@ -185,6 +210,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 copyIfNeeded(entryDir, PdbFileName, outputFiles.PdbPath, outputTimestampUtc);
                 copyIfNeeded(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath, outputTimestampUtc);
                 copyIfNeeded(entryDir, XmlDocFileName, outputFiles.XmlDocPath, outputTimestampUtc);
+                diagnosticOutput = cachedDiagnosticOutput;
             }
             catch (Exception ex)
             {
@@ -294,6 +320,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string hashKey,
             CompilationOutputFiles outputFiles,
             string deterministicKey,
+            string diagnosticContext,
+            string diagnosticOutput,
             ICompilerServerLogger logger)
         {
             string? stagingDir = null;
@@ -327,6 +355,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 tryCopyOptional(outputFiles.PdbPath, Path.Combine(stagingDir, PdbFileName));
                 tryCopyOptional(outputFiles.RefAssemblyPath, Path.Combine(stagingDir, RefAssemblyFileName));
                 tryCopyOptional(outputFiles.XmlDocPath, Path.Combine(stagingDir, XmlDocFileName));
+
+                using (var stream = File.Create(Path.Combine(stagingDir, DiagnosticsFileName)))
+                using (var writer = new BinaryWriter(stream, Encoding.UTF8))
+                {
+                    writer.Write(diagnosticContext);
+                    writer.Write(diagnosticOutput);
+                }
 
                 File.WriteAllText(Path.Combine(stagingDir, dllName + ".key"), deterministicKey, Encoding.UTF8);
                 File.WriteAllText(Path.Combine(stagingDir, CreatedFileName), DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture));

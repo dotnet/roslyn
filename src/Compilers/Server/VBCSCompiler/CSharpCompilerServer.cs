@@ -43,11 +43,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
+            TextWriter consoleOutput,
             CancellationToken cancellationToken,
             out object? cacheState)
         {
-            var result = CompilationCacheUtilities.CheckCache(_cache, _logger, Arguments, compilation, analyzers, generators, additionalTexts, _cacheTelemetry, cancellationToken, out var deterministicKey, out var hashKey);
-            cacheState = (deterministicKey, hashKey);
+            var result = CompilationCacheUtilities.CheckCache(_cache, _logger, Arguments, compilation, analyzers, generators, additionalTexts, Culture, consoleOutput, _cacheTelemetry, cancellationToken, out var innerCacheState);
+            cacheState = innerCacheState;
             return result;
         }
 
@@ -67,10 +68,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
             object? cacheState,
+            string? diagnosticOutput,
             CancellationToken cancellationToken)
         {
-            var (deterministicKey, hashKey) = ((string?, string?))cacheState!;
-            CompilationCacheUtilities.OnCompilationSucceeded(_cache, _logger, Arguments, deterministicKey, hashKey, _cacheTelemetry);
+            CompilationCacheUtilities.OnCompilationSucceeded(_cache, _logger, Arguments, (CacheState?)cacheState, diagnosticOutput, _cacheTelemetry);
         }
 
         public IReadOnlyList<BuildTelemetryEvent> GetTelemetryEvents()

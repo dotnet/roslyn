@@ -7,12 +7,15 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Basic.CompilerLog.Util;
 using Microsoft.Build.Logging.StructuredLogger;
+using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests;
 
@@ -95,6 +98,66 @@ public sealed class SdkIntegrationTests : IDisposable
         }
 
         return list;
+    }
+
+    [ConditionalTheory(typeof(DotNetSdkAvailable), typeof(CoreClrOnly)), CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+    public async Task CompilerCache_ReplaysWarningsWithMSBuildWarnAsError(bool visualBasic)
+    {
+        var projectFile = ProjectDir.CreateFile(visualBasic ? "warning.vbproj" : "warning.csproj");
+        var cachePath = Path.Combine(ProjectDir.Path, "compiler-cache");
+        var pipeName = Guid.NewGuid().ToString("N");
+        projectFile.WriteAllText($"""
+            <Project Sdk="Microsoft.NET.Sdk">
+              <PropertyGroup>
+                <TargetFramework>{NetCoreTfm}</TargetFramework>
+                <SharedCompilationId>{pipeName}</SharedCompilationId>
+                <Features>use-global-cache={cachePath}</Features>
+              </PropertyGroup>
+            </Project>
+            """);
+
+        ProjectDir.CreateFile(visualBasic ? "C.vb" : "C.cs").WriteAllText(visualBasic
+            ? """
+            Public Class C
+                <System.Obsolete("Example warning")>
+                Public Shared Sub Old()
+                End Sub
+
+                Public Shared Sub M()
+                    Old()
+                End Sub
+            End Class
+            """
+            : """
+            public class C
+            {
+                [System.Obsolete("Example warning")]
+                public static void Old() { }
+
+                public static void M() => Old();
+            }
+            """);
+
+        var diagnosticId = visualBasic ? "BC40000" : "CS0618";
+        try
+        {
+            for (var i = 0; i < 2; i++)
+            {
+                var binlogPath = RunBuild(projectFile.Path, additionalArguments: "-t:Rebuild -warnaserror -nodeReuse:false", succeeds: false);
+                var build = BinaryLog.ReadBuild(binlogPath);
+                Assert.Contains(build.FindChildrenRecursive<Error>(), error => error.Code == diagnosticId);
+                Assert.Contains(build.FindChildrenRecursive<Message>(), message => message.Text.Contains("server processed compilation", StringComparison.Ordinal));
+                Assert.Equal(i == 1, build.FindChildrenRecursive<Message>().Any(message => message.Text == "Compilation result restored from cache."));
+            }
+        }
+        finally
+        {
+            Assert.True(await BuildServerConnection.RunServerShutdownRequestAsync(
+                pipeName, timeoutOverride: null, waitForProcess: true, EmptyCompilerServerLogger.Instance, CancellationToken.None));
+        }
+
+        ArtifactUploadUtil.SetSucceeded();
     }
 
     [ConditionalFact(typeof(DotNetSdkAvailable))]

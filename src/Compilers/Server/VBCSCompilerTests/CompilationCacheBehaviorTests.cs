@@ -27,10 +27,8 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
 {
     private readonly ICompilerServerLogger _logger = new XunitCompilerServerLogger(testOutputHelper);
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task CacheHit_OmitsWarningDiagnosticsFromOutput(bool visualBasic)
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+    public async Task CacheHit_ReplaysAnalyzerWarnings(bool visualBasic)
     {
         var workingDirectory = Temp.CreateDirectory();
         var cacheDirectory = Temp.CreateDirectory();
@@ -55,19 +53,129 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
         Assert.Equal(0, exitCode);
         Assert.Contains("warning CACHWARN001", output, StringComparison.Ordinal);
         Assert.DoesNotContain("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        var originalOutput = output;
 
         File.Delete(Path.Combine(workingDirectory.Path, outputFileName));
 
         (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
         Assert.Equal(0, exitCode);
         Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
-        Assert.DoesNotContain("warning CACHWARN001", output, StringComparison.Ordinal);
+        Assert.Equal(originalOutput + "Compilation result restored from cache." + Environment.NewLine, output);
         Assert.True(File.Exists(Path.Combine(workingDirectory.Path, outputFileName)));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+    public async Task CacheHit_ReplaysCompilerWarnings(bool visualBasic, bool warningsAsErrors, bool suppressWarnings)
+    {
+        var workingDirectory = Temp.CreateDirectory();
+        var cacheDirectory = Temp.CreateDirectory();
+        var sourceFileName = visualBasic ? "test.vb" : "test.cs";
+        var source = visualBasic
+            ? """
+            Public Class C
+                <System.Obsolete("Example warning")>
+                Public Shared Sub Old()
+                End Sub
+
+                Public Shared Sub M()
+                    Old()
+                End Sub
+            End Class
+            """
+            : """
+            public class C
+            {
+                [System.Obsolete("Example warning")]
+                public static void Old() { }
+
+                public static void M() => Old();
+            }
+            """;
+
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var warningId = visualBasic ? "BC40000" : "CS0618";
+        var additionalArguments = warningsAsErrors ? "/warnaserror+" : "/warnaserror-";
+        if (suppressWarnings)
+        {
+            additionalArguments += $" /nowarn:{warningId}";
+        }
+        var arguments = BuildCompilationArguments(visualBasic, serverData.PipeName, sourceFileName, "test.dll", additionalArguments, cachePath: cacheDirectory.Path);
+        var expectedExitCode = warningsAsErrors && !suppressWarnings ? 1 : 0;
+
+        var (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
+        Assert.Equal(expectedExitCode, exitCode);
+        if (suppressWarnings)
+        {
+            Assert.DoesNotContain(warningId, output, StringComparison.Ordinal);
+        }
+        else
+        {
+            Assert.Contains((warningsAsErrors ? "error " : "warning ") + warningId, output, StringComparison.Ordinal);
+        }
+        Assert.DoesNotContain("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        var originalOutput = output;
+
+        File.Delete(Path.Combine(workingDirectory.Path, "test.dll"));
+
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(expectedExitCode, exitCode);
+        Assert.Equal(originalOutput + (expectedExitCode == 0 ? "Compilation result restored from cache." + Environment.NewLine : ""), output);
+        Assert.Equal(expectedExitCode == 0, File.Exists(Path.Combine(workingDirectory.Path, "test.dll")));
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+    public async Task CacheHit_DoesNotReplayWarningsInDifferentContext(bool changeCulture)
+    {
+        var workingDirectory = Temp.CreateDirectory();
+        var cacheDirectory = Temp.CreateDirectory();
+        var supportAssembly = CreateWarningAnalyzerAssembly(workingDirectory);
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(false, serverData.PipeName, "test.cs", "test.dll", additionalArguments: $"/a:{supportAssembly}", cachePath: cacheDirectory.Path);
+
+        var (exitCode, originalOutput) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, workingDirectory, [new("test.cs", "public class C { }")]);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("warning CACHWARN001", originalOutput, StringComparison.Ordinal);
+
+        var differentArguments = changeCulture ? arguments : arguments + " /fullpaths /errorendlocation";
+        var (differentExitCode, differentOutput) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, differentArguments, workingDirectory, preferredUiLanguage: changeCulture ? "fr" : "en");
+        Assert.Equal(0, differentExitCode);
+        Assert.DoesNotContain("Compilation result restored from cache.", differentOutput, StringComparison.Ordinal);
+        Assert.Contains("CACHWARN001", differentOutput, StringComparison.Ordinal);
+        if (!changeCulture)
+        {
+            Assert.StartsWith(Path.Combine(workingDirectory.Path, "test.cs") + "(1,1,", differentOutput, StringComparison.Ordinal);
+        }
+
+        (exitCode, var output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Equal(originalOutput + "Compilation result restored from cache." + Environment.NewLine, output);
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+    public async Task CacheHit_UsesCurrentWorkingDirectoryForDiagnostics(bool hasWarnings)
+    {
+        var workingDirectory = Temp.CreateDirectory();
+        var otherWorkingDirectory = Temp.CreateDirectory();
+        var cacheDirectory = Temp.CreateDirectory();
+        var sourcePath = Path.Combine(workingDirectory.Path, "test.cs");
+        var supportAssembly = CreateWarningAnalyzerAssembly(workingDirectory);
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(false, serverData.PipeName, sourcePath, "test.dll", additionalArguments: hasWarnings ? $"/a:{supportAssembly}" : "", cachePath: cacheDirectory.Path);
+
+        var (exitCode, output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, workingDirectory, [new("test.cs", "public class C { }")]);
+        Assert.Equal(0, exitCode);
+        Assert.DoesNotContain("Compilation result restored from cache.", output, StringComparison.Ordinal);
+
+        (exitCode, output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, otherWorkingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Equal(!hasWarnings, output.Contains("Compilation result restored from cache.", StringComparison.Ordinal));
+        if (hasWarnings)
+        {
+            Assert.Contains(sourcePath + "(1,1): warning CACHWARN001", output, StringComparison.Ordinal);
+        }
+    }
+
+    [Theory, CombinatorialData]
     public async Task CacheHit_DoesNotRecreateTouchedFiles(bool visualBasic)
     {
         var workingDirectory = Temp.CreateDirectory();
@@ -105,9 +213,7 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
         Assert.False(File.Exists(touchedFilesBase + ".write"));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Theory, CombinatorialData]
     public async Task CacheHit_OmitsReportAnalyzerOutput(bool visualBasic)
     {
         var workingDirectory = Temp.CreateDirectory();
@@ -147,9 +253,7 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
         Assert.DoesNotContain("CacheReportGenerator", output, StringComparison.Ordinal);
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Theory, CombinatorialData]
     public async Task CacheHit_OmitsReportIvtsOutput(bool visualBasic)
     {
         var workingDirectory = Temp.CreateDirectory();
@@ -252,9 +356,7 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
         Assert.False(Directory.Exists(generatedFilesDirectory));
     }
 
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
+    [Theory, CombinatorialData]
     public async Task CacheHit_DoesNotRecreateDebugDeterminismKey(bool visualBasic)
     {
         var workingDirectory = Temp.CreateDirectory();
@@ -542,11 +644,12 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
         TempDirectory currentDirectory,
         IEnumerable<KeyValuePair<string, string>> filesInDirectory = null,
         IEnumerable<KeyValuePair<string, string>> additionalEnvironmentVars = null,
-        Encoding redirectEncoding = null)
+        Encoding redirectEncoding = null,
+        string preferredUiLanguage = "en")
     {
         var arguments = new List<string>(argumentsSingle.Split(' '))
         {
-            "/preferreduilang:en"
+            $"/preferreduilang:{preferredUiLanguage}"
         };
 
         ReferenceNetstandardDllIfCoreClr(currentDirectory, arguments);

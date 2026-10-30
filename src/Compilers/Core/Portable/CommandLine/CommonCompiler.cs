@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis
 
                 var additionalTexts = ImmutableArray<AdditionalText>.CastUp(additionalTextFiles);
 
-                var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, cancellationToken, out var cacheState);
+                var cachedExitCode = CheckCache(compilation, analyzers, generators, additionalTexts, consoleOutput, cancellationToken, out var cacheState);
                 if (cachedExitCode.HasValue)
                 {
                     consoleOutput.WriteLine("Compilation result restored from cache.");
@@ -993,7 +993,9 @@ namespace Microsoft.CodeAnalysis
                     analyzerCts.Cancel();
                 }
 
-                var exitCode = ReportDiagnostics(diagnostics, consoleOutput, errorLogger, compilation)
+                using var cachedDiagnosticOutput = cacheState is null ? null : new StringWriter(CultureInfo.InvariantCulture);
+                TextWriter diagnosticOutput = cachedDiagnosticOutput is null ? consoleOutput : cachedDiagnosticOutput;
+                var exitCode = ReportDiagnostics(diagnostics, diagnosticOutput, errorLogger, compilation)
                     ? Failed
                     : Succeeded;
 
@@ -1001,10 +1003,16 @@ namespace Microsoft.CodeAnalysis
                 // additional files due to forcing all additional files to fetch text
                 foreach (var additionalFile in additionalTextFiles)
                 {
-                    if (ReportDiagnostics(additionalFile.Diagnostics, consoleOutput, errorLogger, compilation))
+                    if (ReportDiagnostics(additionalFile.Diagnostics, diagnosticOutput, errorLogger, compilation))
                     {
                         exitCode = Failed;
                     }
+                }
+
+                var diagnosticText = cachedDiagnosticOutput?.ToString();
+                if (diagnosticText is not null)
+                {
+                    consoleOutput.Write(diagnosticText);
                 }
 
                 if (Arguments.ReportAnalyzer)
@@ -1021,7 +1029,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (exitCode == Succeeded)
                 {
-                    OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cacheState, cancellationToken);
+                    OnCompilationSucceeded(compilation, analyzers, generators, additionalTexts, cacheState, diagnosticText, cancellationToken);
                 }
 
                 return exitCode;
@@ -1771,12 +1779,14 @@ namespace Microsoft.CodeAnalysis
         /// inputs. Override in server compiler subclasses to provide caching. Return a non-null
         /// value to short-circuit compilation with a cached exit code.
         /// </summary>
-        /// <param name="cacheState">Opaque state to be passed to <see cref="OnCompilationSucceeded"/> on success.</param>
+        /// <param name="cacheState">Opaque state to be passed to <see cref="OnCompilationSucceeded"/> on success.
+        /// A non-null value also requests capture of the diagnostic output skipped by a cache hit.</param>
         protected virtual int? CheckCache(
             Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
+            TextWriter consoleOutput,
             CancellationToken cancellationToken,
             out object? cacheState)
         {
@@ -1803,12 +1813,14 @@ namespace Microsoft.CodeAnalysis
         /// compiler subclasses to store the result in a cache.
         /// </summary>
         /// <param name="cacheState">Opaque state returned from <see cref="CheckCache"/>.</param>
+        /// <param name="diagnosticOutput">Diagnostic output produced after cache lookup, or null when no capture was requested.</param>
         protected virtual void OnCompilationSucceeded(
             Compilation compilation,
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
             object? cacheState,
+            string? diagnosticOutput,
             CancellationToken cancellationToken)
         {
         }
