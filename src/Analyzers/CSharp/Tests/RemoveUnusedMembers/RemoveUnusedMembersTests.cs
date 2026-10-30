@@ -200,6 +200,154 @@ public sealed class RemoveUnusedMembersTests
             }
             """);
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task MethodIsUnused_WithStackAllocElsewhereInType()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+
+            class MyClass
+            {
+                private int [|Unused|]() => 0;
+
+                public static int M()
+                {
+                    Span<char> b = stackalloc char[8];
+                    return b.Length;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class MyClass
+            {
+                public static int M()
+                {
+                    Span<char> b = stackalloc char[8];
+                    return b.Length;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task MethodIsUnused_WithImplicitStackAllocElsewhereInType()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+
+            class MyClass
+            {
+                private int [|Unused|]() => 0;
+
+                public static int M()
+                {
+                    Span<char> b = stackalloc[] { 'a', 'b' };
+                    return b.Length;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class MyClass
+            {
+                public static int M()
+                {
+                    Span<char> b = stackalloc[] { 'a', 'b' };
+                    return b.Length;
+                }
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public async Task FieldIsUnread_WithStackAllocElsewhereInType()
+    {
+        var code = """
+            using System;
+
+            class MyClass
+            {
+                private int {|IDE0052:_field|};
+
+                public void M1() { _field = 0; }
+
+                public static int M2()
+                {
+                    Span<char> b = stackalloc char[8];
+                    return b.Length;
+                }
+            }
+            """;
+
+        await VerifyCS.VerifyCodeFixAsync(code, code);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task MethodIsUnused_WithStackAllocInLambdaElsewhereInType()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+
+            class MyClass
+            {
+                private int [|Unused|]() => 0;
+
+                public static Func<int> M = () =>
+                {
+                    Span<char> b = stackalloc char[8];
+                    return b.Length;
+                };
+            }
+            """,
+            """
+            using System;
+
+            class MyClass
+            {
+                public static Func<int> M = () =>
+                {
+                    Span<char> b = stackalloc char[8];
+                    return b.Length;
+                };
+            }
+            """);
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task MethodIsUnused_WithStackAllocInSameMethodAsUsage()
+        => VerifyCS.VerifyCodeFixAsync(
+            """
+            using System;
+
+            class MyClass
+            {
+                private int [|Unused|]() => 0;
+                private int Used() => 1;
+
+                public static int M()
+                {
+                    Span<char> b = stackalloc char[8];
+                    var c = new MyClass();
+                    return c.Used() + b.Length;
+                }
+            }
+            """,
+            """
+            using System;
+
+            class MyClass
+            {
+                private int Used() => 1;
+
+                public static int M()
+                {
+                    Span<char> b = stackalloc char[8];
+                    var c = new MyClass();
+                    return c.Used() + b.Length;
+                }
+            }
+            """);
+
     [Fact]
     public Task GenericMethodIsUnused()
         => VerifyCS.VerifyCodeFixAsync(
@@ -4084,5 +4232,99 @@ public sealed class RemoveUnusedMembersTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp14,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task StackAllocDoesNotBailOutAnalysisOfContainingType()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class A
+                {
+                    static void {|IDE0051:Unused|}() { }
+                    public static int M() { return 1; }
+                }
+
+                public class B
+                {
+                    static void {|IDE0051:Unused|}() { }
+                    public static int M() { Span<char> b = stackalloc char[8]; return b.Length; }
+                }
+
+                public class C
+                {
+                    static void {|IDE0051:Unused|}() { }
+                    public static int M() { var b = new char[8]; Span<char> s = b; return s.Length; }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task ImplicitStackAllocDoesNotBailOutAnalysisOfContainingType()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class B
+                {
+                    static void {|IDE0051:Unused|}() { }
+                    public static int M() { Span<char> b = stackalloc[] { 'a', 'b' }; return b.Length; }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task StackAllocDoesNotBailOutUnreadMembersAnalysisOfContainingType()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class B
+                {
+                    private int {|IDE0052:_field|};
+
+                    public void SetField() { _field = 0; }
+
+                    public static int M() { Span<char> b = stackalloc char[8]; return b.Length; }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task StackAllocLengthReferencesPrivateConstant()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class B
+                {
+                    private const int Size = 8;
+                    static void {|IDE0051:Unused|}() { }
+
+                    public static int M() { Span<char> b = stackalloc char[Size]; return b.Length; }
+                }
+                """,
+        }.RunAsync();
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85934")]
+    public Task ImplicitStackAllocInitializerReferencesPrivateConstant()
+        => new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                public class B
+                {
+                    private const char MyChar = 'x';
+                    static void {|IDE0051:Unused|}() { }
+
+                    public static int M() { Span<char> b = stackalloc[] { MyChar, 'a' }; return b.Length; }
+                }
+                """,
         }.RunAsync();
 }
