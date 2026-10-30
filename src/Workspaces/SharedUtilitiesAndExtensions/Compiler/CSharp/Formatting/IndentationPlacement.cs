@@ -13,5 +13,6 @@ internal enum IndentationPlacement
     BlockContents = 1 << 1,
     SwitchCaseContents = 1 << 2,
     SwitchCaseContentsWhenBlock = 1 << 3,
-    SwitchSection = 1 << 4
+    SwitchSection = 1 << 4,
+    ListPatternContents = 1 << 5
 }
