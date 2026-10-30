@@ -237,7 +237,9 @@ static async Task<string?> ReadFileAsync(HttpClient client, string repository, s
     if (file.Type != "file" || file.Encoding != "base64" || file.Content is null)
         throw new InvalidOperationException($"Expected a file at {repository}/{path}@{commit}.");
 
-    return Encoding.UTF8.GetString(Convert.FromBase64String(file.Content));
+    using var stream = new MemoryStream(Convert.FromBase64String(file.Content));
+    using var reader = new StreamReader(stream);
+    return await reader.ReadToEndAsync().ConfigureAwait(false);
 }
 
 static async Task<List<T>> GetPagesAsync<T>(HttpClient client, string endpoint, JsonTypeInfo<T[]> typeInfo)
