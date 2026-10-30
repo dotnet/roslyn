@@ -1278,7 +1278,7 @@ Additional information: {1}</value>
     <value>Warning: type does not bind</value>
   </data>
   <data name="Display_inline_parameter_name_hints" xml:space="preserve">
-    <value>Disp_lay inline parameter name hints</value>
+    <value>Display inline parameter name hints</value>
   </data>
   <data name="Current_parameter" xml:space="preserve">
     <value>Current parameter</value>
@@ -1543,9 +1543,6 @@ Additional information: {1}</value>
     <value>No namespaces needed updating.</value>
     <comment>"Namespaces" is the programming language concept</comment>
   </data>
-  <data name="Quick_Actions" xml:space="preserve">
-    <value>Quick Actions</value>
-  </data>
   <data name="Combine_inheritance_margin_with_indicator_margin" xml:space="preserve">
     <value>Combine inheritance margin with indicator margin</value>
   </data>
@@ -1684,8 +1681,8 @@ Additional information: {1}</value>
   <data name="Automatic_Run_generators_after_any_change" xml:space="preserve">
     <value>Automatic. Run generators after any change</value>
   </data>
-  <data name="Source_generator_execution_requires_restart" xml:space="preserve">
-    <value>Source generator execution (requires restart):</value>
+  <data name="Source_generator_execution_USX" xml:space="preserve">
+    <value>Source generator execution:</value>
   </data>
   <data name="Source_Generators" xml:space="preserve">
     <value>Source Generators</value>
@@ -1721,31 +1718,16 @@ Additional information: {1}</value>
     <value>Insert Snippet</value>
   </data>
   <data name="Show_procedure_line_separators" xml:space="preserve">
-    <value>_Show procedure line separators</value>
+    <value>Show procedure line separators</value>
   </data>
   <data name="Editor_Help" xml:space="preserve">
     <value>Editor Help</value>
   </data>
   <data name="Highlight_related_keywords_under_cursor" xml:space="preserve">
-    <value>Highlight related _keywords under cursor</value>
+    <value>Highlight related keywords under cursor</value>
   </data>
   <data name="Highlight_references_to_symbol_under_cursor" xml:space="preserve">
-    <value>_Highlight references to symbol under cursor</value>
-  </data>
-  <data name="Optimize_for_solution_size" xml:space="preserve">
-    <value>Optimize for solution size</value>
-  </data>
-  <data name="Large" xml:space="preserve">
-    <value>Large</value>
-  </data>
-  <data name="Regular" xml:space="preserve">
-    <value>Regular</value>
-  </data>
-  <data name="Small" xml:space="preserve">
-    <value>Small</value>
-  </data>
-  <data name="Performance" xml:space="preserve">
-    <value>Performance</value>
+    <value>Highlight references to symbol under cursor</value>
   </data>
   <data name="_Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
     <value>_Highlight matching portions of completion list items</value>
@@ -1799,7 +1781,7 @@ Additional information: {1}</value>
     <value>Enter key behavior</value>
   </data>
   <data name="Show_preview_for_rename_tracking" xml:space="preserve">
-    <value>Show preview for rename _tracking</value>
+    <value>Show preview for rename tracking</value>
   </data>
   <data name="_Only_add_new_line_on_enter_after_end_of_fully_typed_word" xml:space="preserve">
     <value>_Only add new line on enter after end of fully typed word</value>
@@ -1858,5 +1840,41 @@ Additional information: {1}</value>
   </data>
   <data name="Formatting_new_document" xml:space="preserve">
     <value>Formatting new document...</value>
+  </data>
+  <data name="This_setting_is_shared_by_CSharp_and_Visual_Basic" xml:space="preserve">
+    <value>This setting is shared by C# and Visual Basic. Changing it affects both languages.</value>
+  </data>
+  <data name="Browsing_and_navigation" xml:space="preserve">
+    <value>Browsing &amp; navigation</value>
+  </data>
+  <data name="Refactoring" xml:space="preserve">
+    <value>Refactoring</value>
+  </data>
+  <data name="Embedded_languages" xml:space="preserve">
+    <value>Embedded languages</value>
+  </data>
+  <data name="Text_editor" xml:space="preserve">
+    <value>Text editor</value>
+  </data>
+  <data name="Structure_guides" xml:space="preserve">
+    <value>Structure guides</value>
+  </data>
+  <data name="Code_cleanup" xml:space="preserve">
+    <value>Code cleanup</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Inline_diagnostic_location" xml:space="preserve">
+    <value>Inline diagnostic location</value>
+  </data>
+  <data name="Show_regular_expression_completion_list" xml:space="preserve">
+    <value>Show regular expression completion list</value>
+  </data>
+  <data name="Highlight_related_regular_expression_components_under_cursor" xml:space="preserve">
+    <value>Highlight related regular expression components under cursor</value>
+  </data>
+  <data name="Highlight_related_JSON_components_under_cursor" xml:space="preserve">
+    <value>Highlight related JSON components under cursor</value>
   </data>
 </root>

@@ -42,6 +42,21 @@
         <target state="translated">在遇到分號時自動完成陳述式</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_format_block_on_close_brace">
+        <source>Automatically format block on }</source>
+        <target state="translated">於 } 處將區塊自動格式化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_on_paste">
+        <source>Automatically format on paste</source>
+        <target state="translated">貼上時自動格式化</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon">
+        <source>Automatically format statement on ;</source>
+        <target state="translated">於 ; 處將陳述式自動格式化</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
         <target state="translated">自動在引數清單中顯示自動完成清單</target>
@@ -92,20 +107,30 @@
         <target state="translated">編輯色彩配置</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>Enter outlining mode when files open</source>
+        <target state="translated">當檔案開啟時進入大綱模式</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">檔案已設定範圍</target>
         <note />
       </trans-unit>
-      <trans-unit id="General">
-        <source>General</source>
-        <target state="translated">一般</target>
-        <note>Title of the control group on the General Formatting options page</note>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>Generate XML documentation comments for ///</source>
+        <target state="translated">產生 /// 的 XML 文件註解</target>
+        <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">在關係運算子中: &lt; &gt; &lt;= &gt;= 如同 == !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
+        <source>Insert * at the start of new lines when writing /* */ comments</source>
+        <target state="translated">在寫入 /* */ 時，於新行開頭插入 *</target>
+        <note />
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
@@ -132,6 +157,11 @@
         <target state="translated">永不新增 using</target>
         <note />
       </trans-unit>
+      <trans-unit id="On_type_formatting">
+        <source>On-type Formatting</source>
+        <target state="new">On-type Formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Only_add_using_if_explicitly_completed">
         <source>Only add using if explicitly completed (via TAB or double-click)</source>
         <target state="translated">只在明確完成時新增 using (透過 TAB 或按兩下)</target>
@@ -140,6 +170,11 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">模式比對喜好設定:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_usings">
+        <source>Place 'System' directives first when sorting usings</source>
+        <target state="translated">排序 Using 時先放置 'System' 指示詞</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -202,6 +237,16 @@
         <target state="translated">顯示新的程式碼片段體驗 (實驗性)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_string_literals_on_enter">
+        <source>Split string literals on enter</source>
+        <target state="translated">在 Enter 字元處分隔字串文字</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
+        <source>Suggest usings for types in NuGet packages</source>
+        <target state="translated">為 NuGet 封裝中的類型建議 Using</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
         <target state="translated">為 .NET Framework 組件中的類型建議 using</target>
@@ -210,21 +255,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">範圍陳述式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_block_on_close_brace">
-        <source>Automatically format _block on }</source>
-        <target state="translated">於 } 處將區塊自動格式化(_B)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_on_paste">
-        <source>Automatically format on _paste</source>
-        <target state="translated">貼上時自動格式化(_P)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon">
-        <source>Automatically format _statement on ;</source>
-        <target state="translated">於 ; 處將陳述式自動格式化(_S)</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
@@ -502,29 +532,9 @@
         <target state="translated">關鍵字的新行選項</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>Enter _outlining mode when files open</source>
-        <target state="translated">當檔案開啟時進入大綱模式(_O)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for ///</source>
-        <target state="translated">產生 /// 的 XML 文件註解(_G)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
-        <source>_Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="translated">在寫入 /* */ 時，於新行開頭插入 *(_I)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Using_Directives">
         <source>Using Directives</source>
         <target state="translated">Using 指示詞</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_usings">
-        <source>_Place 'System' directives first when sorting usings</source>
-        <target state="translated">排序 Using 時先放置 'System' 指示詞(_P)</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -550,11 +560,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
         <source>Place open brace on new line for properties, indexers, and events</source>
         <target state="translated">將屬性、索引子及事件的左邊大括號放在新行</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
-        <source>Suggest usings for types in _NuGet packages</source>
-        <target state="translated">為 NuGet 封裝中的類型建議 Using(_N)</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -635,11 +640,6 @@
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
         <target state="translated">預先定義的類型喜好設定:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Split_string_literals_on_enter">
-        <source>Split string literals on _enter</source>
-        <target state="translated">在 Enter 字元處分隔字串文字(_E)</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">

@@ -42,6 +42,21 @@
         <target state="translated">Автоматически завершать инструкцию при вводе точки с запятой</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_format_block_on_close_brace">
+        <source>Automatically format block on }</source>
+        <target state="translated">Автоматически форматировать блок при вводе "}"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_on_paste">
+        <source>Automatically format on paste</source>
+        <target state="translated">Автоматически форматировать при вставке</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon">
+        <source>Automatically format statement on ;</source>
+        <target state="translated">Автоматически форматировать оператор при вводе ";"</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
         <target state="translated">Автоматически показывать список завершения в списках аргументов</target>
@@ -92,20 +107,30 @@
         <target state="translated">Изменить цветовую схему</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>Enter outlining mode when files open</source>
+        <target state="translated">Включать режим редактирования структуры при открытии файлов</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">Область видимого файла</target>
         <note />
       </trans-unit>
-      <trans-unit id="General">
-        <source>General</source>
-        <target state="translated">Общие</target>
-        <note>Title of the control group on the General Formatting options page</note>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>Generate XML documentation comments for ///</source>
+        <target state="translated">Создавать комментарии XML-документации для ///</target>
+        <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">В реляционных операторах:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
+        <source>Insert * at the start of new lines when writing /* */ comments</source>
+        <target state="translated">Вставлять "*" в начале новой строки при написании комментариев /* */</target>
+        <note />
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
@@ -132,6 +157,11 @@
         <target state="translated">Никогда не добавлять using</target>
         <note />
       </trans-unit>
+      <trans-unit id="On_type_formatting">
+        <source>On-type Formatting</source>
+        <target state="new">On-type Formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Only_add_using_if_explicitly_completed">
         <source>Only add using if explicitly completed (via TAB or double-click)</source>
         <target state="translated">Добавлять using только при явном завершении (клавишей TAB или двойным щелчком)</target>
@@ -140,6 +170,11 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Параметры сопоставления шаблонов:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_usings">
+        <source>Place 'System' directives first when sorting usings</source>
+        <target state="translated">Располагать директивы "System" первыми при сортировке using</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -202,6 +237,16 @@
         <target state="translated">Показывать новый интерфейс фрагмента кода (экспериментальная функция)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_string_literals_on_enter">
+        <source>Split string literals on enter</source>
+        <target state="translated">Разделить строковые литералы на enter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
+        <source>Suggest usings for types in NuGet packages</source>
+        <target state="translated">Предлагать using для типов в пакетах NuGet</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
         <target state="translated">Предлагать using для типов в сборках .NET Framework</target>
@@ -210,21 +255,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">Окружить</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_block_on_close_brace">
-        <source>Automatically format _block on }</source>
-        <target state="translated">Автоматически форматировать _блок при вводе "}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_on_paste">
-        <source>Automatically format on _paste</source>
-        <target state="translated">Автоматически форматировать при _вставке</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon">
-        <source>Automatically format _statement on ;</source>
-        <target state="translated">Автоматически форматировать _оператор при вводе ";"</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
@@ -502,29 +532,9 @@
         <target state="translated">Параметры новых строк для ключевых слов</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>Enter _outlining mode when files open</source>
-        <target state="translated">Включать режим редактирования структуры при _открытии файлов</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for ///</source>
-        <target state="translated">_Создавать комментарии XML-документации для ///</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
-        <source>_Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="translated">_Вставлять "*" в начале новой строки при написании комментариев /* */</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Using_Directives">
         <source>Using Directives</source>
         <target state="translated">Директивы Using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_usings">
-        <source>_Place 'System' directives first when sorting usings</source>
-        <target state="translated">_Располагать директивы "System" первыми при сортировке using</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -550,11 +560,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
         <source>Place open brace on new line for properties, indexers, and events</source>
         <target state="translated">Поместите открывающую скобку на новой строке для указания свойства, индексатора или события</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
-        <source>Suggest usings for types in _NuGet packages</source>
-        <target state="translated">Предлагать using для типов в _пакетах NuGet</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -635,11 +640,6 @@
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
         <target state="translated">Предпочтения для предопределенных типов:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Split_string_literals_on_enter">
-        <source>Split string literals on _enter</source>
-        <target state="translated">Разделить строковые литералы на _enter</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">

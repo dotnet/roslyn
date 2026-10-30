@@ -2,15 +2,35 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hant" original="../BasicVSResources.resx">
     <body>
+      <trans-unit id="A_utomatic_insertion_of_end_constructs">
+        <source>Automatic insertion of end constructs</source>
+        <target state="translated">自動插入 End 建構</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Add_missing_imports_on_paste">
         <source>Add missing imports on paste</source>
         <target state="translated">在貼上時新增缺少的 import</target>
         <note>'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
+      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
+        <source>Automatic insertion of Interface and MustOverride members</source>
+        <target state="translated">自動插入 Interface 及 MustOverride 成員</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_imports_on_file_open">
         <source>Collapse Imports on file open</source>
         <target state="translated">在檔案開啟時摺疊匯入</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>Enter outlining mode when files open</source>
+        <target state="translated">開啟檔案時進入大綱模式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>Generate XML documentation comments for '''</source>
+        <target state="translated">產生 ''' 的 XML 文件註解</target>
+        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  =   &lt;&gt;   &lt;   &gt;   &lt;=   &gt;=   Like   Is</source>
@@ -27,9 +47,14 @@
         <target state="translated">Microsoft Visual Basic</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_insertion_of_Interface_and_MustOverride_members">
-        <source>Automatic _insertion of Interface and MustOverride members</source>
-        <target state="translated">自動插入 Interface 及 MustOverride 成員(_I)</target>
+      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
+        <source>Navigate to Object Browser for symbols defined in metadata</source>
+        <target state="translated">巡覽至定義於中繼資料內符號的物件瀏覽器</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_imports">
+        <source>Place 'System' directives first when sorting imports</source>
+        <target state="translated">排序 Import 時，先置入 'System' 指示詞</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_IsNot_expression">
@@ -47,34 +72,14 @@
         <target state="translated">偏好簡易物件建立</target>
         <note />
       </trans-unit>
+      <trans-unit id="Pretty_listing_reformatting_of_code">
+        <source>Pretty listing (reformatting) of code</source>
+        <target state="translated">程式碼美化排列 (重新格式化)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
         <source>Show hints for 'New' expressions</source>
         <target state="translated">顯示 'New' 運算式的提示</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="A_utomatic_insertion_of_end_constructs">
-        <source>A_utomatic insertion of end constructs</source>
-        <target state="translated">自動插入 End 建構(_U)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Pretty_listing_reformatting_of_code">
-        <source>_Pretty listing (reformatting) of code</source>
-        <target state="translated">程式碼美化排列 (重新格式化)(_P)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>_Enter outlining mode when files open</source>
-        <target state="translated">開啟檔案時進入大綱模式(_E)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for '''</source>
-        <target state="translated">產生 ''' 的 XML 文件註解(_G)</target>
-        <note>{Locked="'''"} "'''" is a VB keyword and should not be localized.</note>
-      </trans-unit>
-      <trans-unit id="Navigate_to_Object_Browser_for_symbols_defined_in_metadata">
-        <source>_Navigate to Object Browser for symbols defined in metadata</source>
-        <target state="translated">巡覽至定義於中繼資料內符號的物件瀏覽器(_N)</target>
         <note />
       </trans-unit>
       <trans-unit id="Import_Directives">
@@ -83,18 +88,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
-        <source>Suggest imports for types in _NuGet packages</source>
-        <target state="translated">為 NuGet 套件中的類型建議 Import(_N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
-        <source>Suggest imports for types in _reference assemblies</source>
-        <target state="translated">為參考組件中的類型建議 Import(_R)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_imports">
-        <source>_Place 'System' directives first when sorting imports</source>
-        <target state="translated">排序 Import 時，先置入 'System' 指示詞(_P)</target>
+        <source>Suggest imports for types in NuGet packages</source>
+        <target state="translated">為 NuGet 套件中的類型建議 Import</target>
         <note />
       </trans-unit>
       <trans-unit id="Qualify_event_access_with_Me">
@@ -140,6 +135,11 @@
       <trans-unit id="Completion_Lists">
         <source>Completion Lists</source>
         <target state="translated">完成清單</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_imports_for_types_in_reference_assemblies">
+        <source>Suggest imports for types in reference assemblies</source>
+        <target state="translated">為參考組件中的類型建議 Import</target>
         <note />
       </trans-unit>
       <trans-unit id="nothing_checking_colon">

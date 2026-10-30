@@ -42,6 +42,21 @@
         <target state="translated">Automatyczne uzupełniaj instrukcje po naciśnięciu średnika</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatically_format_block_on_close_brace">
+        <source>Automatically format block on }</source>
+        <target state="translated">Automatycznie formatuj blok w pozycji znaku }</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_on_paste">
+        <source>Automatically format on paste</source>
+        <target state="translated">Automatycznie formatuj przy wklejeniu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Automatically_format_statement_on_semicolon">
+        <source>Automatically format statement on ;</source>
+        <target state="translated">Automatycznie formatuj instrukcję w pozycji znaku ;</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_show_completion_list_in_argument_lists">
         <source>Automatically show completion list in argument lists</source>
         <target state="translated">Automatycznie pokaż listę uzupełniania na listach argumentów</target>
@@ -92,20 +107,30 @@
         <target state="translated">Edytuj schemat kolorów</target>
         <note />
       </trans-unit>
+      <trans-unit id="Enter_outlining_mode_when_files_open">
+        <source>Enter outlining mode when files open</source>
+        <target state="translated">Przejdź do trybu konspektu przy otwieraniu plików</target>
+        <note />
+      </trans-unit>
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">Plik objęty zakresem</target>
         <note />
       </trans-unit>
-      <trans-unit id="General">
-        <source>General</source>
-        <target state="translated">Ogólne</target>
-        <note>Title of the control group on the General Formatting options page</note>
+      <trans-unit id="Generate_XML_documentation_comments_for">
+        <source>Generate XML documentation comments for ///</source>
+        <target state="translated">Generuj komentarze dokumentacji XML dla ///</target>
+        <note />
       </trans-unit>
       <trans-unit id="In_relational_binary_operators">
         <source>In relational operators:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</source>
         <target state="translated">W operatorach relacyjnych:  &lt;   &gt;   &lt;=   &gt;=   is   as   ==   !=</target>
         <note>'is' and 'as' are C# keywords and should not be localized</note>
+      </trans-unit>
+      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
+        <source>Insert * at the start of new lines when writing /* */ comments</source>
+        <target state="translated">Wstawiaj znak * na początku nowych wierszy podczas pisania komentarzy (/* */)</target>
+        <note />
       </trans-unit>
       <trans-unit id="Insert_slash_slash_at_the_start_of_new_lines_when_writing_slash_slash_comments">
         <source>Insert // at the start of new lines when writing // comments</source>
@@ -132,6 +157,11 @@
         <target state="translated">Nigdy nie dodawaj przy użyciu</target>
         <note />
       </trans-unit>
+      <trans-unit id="On_type_formatting">
+        <source>On-type Formatting</source>
+        <target state="new">On-type Formatting</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Only_add_using_if_explicitly_completed">
         <source>Only add using if explicitly completed (via TAB or double-click)</source>
         <target state="translated">Dodaj używanie tylko w przypadku jawnego ukończenia (za pomocą klawisza TAB lub klikając dwukrotnie)</target>
@@ -140,6 +170,11 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Preferencje dopasowywania wzorca:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Place_System_directives_first_when_sorting_usings">
+        <source>Place 'System' directives first when sorting usings</source>
+        <target state="translated">Umieść dyrektywy „System” jako pierwsze podczas sortowania użyć</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -202,6 +237,16 @@
         <target state="translated">Pokaż nowe środowisko fragmentu kodu (eksperymentalne)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Split_string_literals_on_enter">
+        <source>Split string literals on enter</source>
+        <target state="translated">Dziel literały ciągów po wpisaniu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
+        <source>Suggest usings for types in NuGet packages</source>
+        <target state="translated">Sugeruj dyrektywy using dla typów w pakietach NuGet</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
         <source>Suggest usings for types in .NET Framework assemblies</source>
         <target state="translated">Sugeruj dyrektywy using dla typów w zestawach platformy .NET Framework</target>
@@ -210,21 +255,6 @@
       <trans-unit id="Surround_With">
         <source>Surround With</source>
         <target state="translated">Otocz przez</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_block_on_close_brace">
-        <source>Automatically format _block on }</source>
-        <target state="translated">Automatycznie formatuj _blok w pozycji znaku }</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_on_paste">
-        <source>Automatically format on _paste</source>
-        <target state="translated">Automatycznie formatuj przy _wklejeniu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatically_format_statement_on_semicolon">
-        <source>Automatically format _statement on ;</source>
-        <target state="translated">Automatycznie formatuj _instrukcję w pozycji znaku ;</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_members_in_anonymous_types_on_new_line">
@@ -502,29 +532,9 @@
         <target state="translated">Opcje nowego wiersza dla słów kluczowych</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enter_outlining_mode_when_files_open">
-        <source>Enter _outlining mode when files open</source>
-        <target state="translated">Przejdź _do trybu konspektu przy otwieraniu plików</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_XML_documentation_comments_for">
-        <source>_Generate XML documentation comments for ///</source>
-        <target state="translated">_Generuj komentarze dokumentacji XML dla ///</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Insert_at_the_start_of_new_lines_when_writing_comments">
-        <source>_Insert * at the start of new lines when writing /* */ comments</source>
-        <target state="translated">_Wstawiaj znak * na początku nowych wierszy podczas pisania komentarzy (/* */)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Using_Directives">
         <source>Using Directives</source>
         <target state="translated">Dyrektywy using</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Place_System_directives_first_when_sorting_usings">
-        <source>_Place 'System' directives first when sorting usings</source>
-        <target state="translated">_Umieść dyrektywy „System” jako pierwsze podczas sortowania użyć</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_keywords_in_completion_lists">
@@ -550,11 +560,6 @@
       <trans-unit id="Place_open_brace_on_new_line_for_properties_indexers_and_events">
         <source>Place open brace on new line for properties, indexers, and events</source>
         <target state="translated">Umieść otwierający nawias klamrowy w nowym wierszu dla właściwości, indeksatorów i zdarzeń</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
-        <source>Suggest usings for types in _NuGet packages</source>
-        <target state="translated">Sugeruj dyrektywy using dla typów w pakietach _NuGet</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -635,11 +640,6 @@
       <trans-unit id="predefined_type_preferences_colon">
         <source>predefined type preferences:</source>
         <target state="translated">Preferencje wstępnie zdefiniowanego typu:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Split_string_literals_on_enter">
-        <source>Split string literals on _enter</source>
-        <target state="translated">Dziel literały ciągów po _wpisaniu</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">

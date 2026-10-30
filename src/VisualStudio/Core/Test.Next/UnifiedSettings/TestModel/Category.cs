@@ -11,7 +11,4 @@ internal sealed record Category
     [JsonPropertyName("title")]
     [JsonConverter(typeof(ResourceStringConverter))]
     public required string Title { get; init; }
-
-    [JsonPropertyName("legacyOptionPageId")]
-    public string? LegacyOptionPageId { get; init; }
 }
