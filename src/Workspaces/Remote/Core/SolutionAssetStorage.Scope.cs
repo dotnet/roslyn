@@ -17,13 +17,15 @@ internal sealed partial class SolutionAssetStorage
         SolutionAssetStorage storage,
         Checksum solutionChecksum,
         ProjectCone? projectCone,
-        SolutionCompilationState compilationState) : IDisposable
+        SolutionCompilationState? compilationState,
+        ProjectState? analyzerProject = null) : IDisposable
     {
         private readonly SolutionAssetStorage _storage = storage;
 
         public readonly Checksum SolutionChecksum = solutionChecksum;
         public readonly ProjectCone? ProjectCone = projectCone;
-        public readonly SolutionCompilationState CompilationState = compilationState;
+        public readonly SolutionCompilationState? CompilationState = compilationState;
+        private readonly ProjectState? _analyzerProject = analyzerProject;
 
         /// <summary>
         /// Only safe to read write while <see cref="_gate"/> is held.
@@ -68,7 +70,23 @@ internal sealed partial class SolutionAssetStorage
         private async Task FindAssetsAsync<TArg>(
             AssetPath assetPath, HashSet<Checksum> remainingChecksumsToFind, Action<Checksum, object, TArg> onAssetFound, TArg arg, CancellationToken cancellationToken)
         {
+            if (_analyzerProject is not null)
+            {
+                var analyzerChecksums = _analyzerProject.GetAnalyzerReferenceChecksums(cancellationToken);
+                var references = _analyzerProject.AnalyzerReferences;
+                for (var i = 0; i < references.Count; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var checksum = analyzerChecksums.Children[i];
+                    if (remainingChecksumsToFind.Remove(checksum))
+                        onAssetFound(checksum, references[i], arg);
+                }
+
+                return;
+            }
+
             var solutionState = this.CompilationState;
+            Contract.ThrowIfNull(solutionState);
 
             if (this.ProjectCone is null)
             {

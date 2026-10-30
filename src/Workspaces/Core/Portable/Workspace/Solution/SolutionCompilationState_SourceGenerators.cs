@@ -152,10 +152,9 @@ internal sealed partial class SolutionCompilationState
 
             // Out of process, call to the remote to figure this out.
             var projectId = projectState.Id;
-            var projectStateChecksums = await projectState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-            var analyzerReferences = projectStateChecksums.AnalyzerReferences.Children;
+            var analyzerReferences = projectState.GetAnalyzerReferenceChecksums(cancellationToken).Children;
 
-            var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, SourceGeneratorPresence>(
+            var result = await client.TryInvokeWithAnalyzerReferencesAsync<IRemoteSourceGenerationService, SourceGeneratorPresence>(
                 solution,
                 projectId,
                 (service, solution, cancellationToken) => service.GetSourceGeneratorPresenceAsync(solution, projectId, analyzerReferences, projectState.Language, cancellationToken),
