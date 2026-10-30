@@ -289,6 +289,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.ForceComplete(locationOpt, filter, cancellationToken);
         }
 
+        protected override void LazyAsyncMethodChecks(CancellationToken cancellationToken)
+        {
+            if (state.NotePartComplete(CompletionPart.StartAsyncMethodChecks))
+            {
+                if (IsPartialDefinition)
+                {
+                    DeclaringCompilation.SymbolDeclaredEvent(this);
+                }
+
+                state.NotePartComplete(CompletionPart.FinishAsyncMethodChecks);
+            }
+            else
+            {
+                state.SpinWaitComplete(CompletionPart.FinishAsyncMethodChecks, cancellationToken);
+            }
+        }
+
         protected override void PartialConstructorChecks(BindingDiagnosticBag diagnostics)
         {
             if (SourcePartialImplementationPart is { } implementation)
