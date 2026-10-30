@@ -64,12 +64,21 @@ namespace Microsoft.CodeAnalysis
 
                 var stepInputs = tableBuilder.TrackIncrementalSteps ? ImmutableArray.Create((entry1.Step!, entry1.OutputIndex), (input2Step!, 0)) : default;
 
+                if (entry1.State == EntryState.Removed)
+                {
+                    if (!tableBuilder.TryRemoveEntries(stopwatch.Elapsed, stepInputs))
+                        totalEntryItemCount--;
+                    continue;
+                }
+
                 var state = (entry1.State, isInput2Cached) switch
                 {
                     (EntryState.Cached, true) => EntryState.Cached,
                     (EntryState.Cached, false) => EntryState.Modified,
                     _ => entry1.State
                 };
+                if (previousTable is null)
+                    state = EntryState.Added;
 
                 var entry = (entry1.Item, input2);
                 if (state != EntryState.Modified || _comparer is null || !tableBuilder.TryModifyEntry(entry, stopwatch.Elapsed, stepInputs, state))
@@ -88,6 +97,7 @@ namespace Microsoft.CodeAnalysis
         private NodeStateTable<(TInput1, TInput2)> RecordStepsForCachedTable(DriverStateTable.Builder graphState, NodeStateTable<(TInput1, TInput2)> previousTable, NodeStateTable<TInput1> input1Table, NodeStateTable<TInput2> input2Table)
         {
             Debug.Assert(input1Table.HasTrackedSteps && input2Table.IsCached);
+            Debug.Assert(previousTable.Count == input1Table.GetTotalEntryItemCount());
             var builder = graphState.CreateTableBuilder(previousTable, _name, _comparer);
             (_, IncrementalGeneratorRunStep? input2Step) = input2Table.Single();
             foreach (var entry in input1Table)

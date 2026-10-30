@@ -724,7 +724,13 @@ internal sealed partial class SolutionCompilationState
 
             // If we're forcing regeneration then we have to drop whatever driver we have so that we'll start from
             // scratch next time around.
-            var desiredGeneratorInfo = forceRegeneration ? state.GeneratorInfo with { Driver = null } : state.GeneratorInfo;
+            var desiredGeneratorInfo = forceRegeneration
+                ? state.GeneratorInfo with
+                {
+                    Driver = null,
+                    GeneratorsWithCompletedRegularOutputs = CompilationTrackerGeneratorInfo.Empty.GeneratorsWithCompletedRegularOutputs
+                }
+                : state.GeneratorInfo;
 
             var newState = state switch
             {

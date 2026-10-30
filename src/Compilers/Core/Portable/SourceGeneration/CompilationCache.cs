@@ -1,13 +1,11 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -38,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         private readonly Compilation? _compilation;
         private readonly Compilation? _inputCompilation;
         private readonly ImmutableArray<SyntaxTree> _postInitTrees;
-        private readonly ImmutableArray<PreCompCacheKey> _preCompKeys;
+        private readonly ImmutableArray<SyntaxTree> _preCompTrees;
 
         private CompilationCache() { }
 
@@ -46,12 +44,12 @@ namespace Microsoft.CodeAnalysis
             Compilation compilation,
             Compilation inputCompilation,
             ImmutableArray<SyntaxTree> postInitTrees,
-            ImmutableArray<PreCompCacheKey> preCompKeys)
+            ImmutableArray<SyntaxTree> preCompTrees)
         {
             _compilation = compilation;
             _inputCompilation = inputCompilation;
             _postInitTrees = postInitTrees;
-            _preCompKeys = preCompKeys;
+            _preCompTrees = preCompTrees;
         }
 
         /// <summary>
@@ -70,8 +68,8 @@ namespace Microsoft.CodeAnalysis
 
         /// <summary>
         /// Starts accumulating inputs for the current run. The builder takes the input
-        /// compilation reference (used for cache identity) and the compilation after post-init
-        /// trees have been added (used as the base for any pre-compilation augmentation).
+        /// compilation reference (used for cache identity) and the compilation after every
+        /// generator's current post-init trees have been added.
         /// </summary>
         public Builder ToBuilder(Compilation inputCompilation, Compilation compilationWithPostInit)
             => new Builder(this, inputCompilation, compilationWithPostInit);
@@ -82,7 +80,6 @@ namespace Microsoft.CodeAnalysis
             private readonly Compilation _inputCompilation;
             private readonly Compilation _compilationWithPostInit;
             private readonly ArrayBuilder<SyntaxTree> _postInitTrees = ArrayBuilder<SyntaxTree>.GetInstance();
-            private readonly ArrayBuilder<PreCompCacheKey> _preCompKeys = ArrayBuilder<PreCompCacheKey>.GetInstance();
             private readonly ArrayBuilder<SyntaxTree> _preCompTreesToAdd = ArrayBuilder<SyntaxTree>.GetInstance();
 
             internal Builder(CompilationCache previous, Compilation inputCompilation, Compilation compilationWithPostInit)
@@ -94,20 +91,16 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// Records a post-init <see cref="SyntaxTree"/> in driver order. The flat list of
-            /// post-init trees participates in the cache key.
+            /// post-init trees participates in the cache key and matches the trees already added
+            /// to the compilation supplied to the builder.
             /// </summary>
             public void AddPostInitTree(SyntaxTree tree) => _postInitTrees.Add(tree);
 
             /// <summary>
-            /// Records a pre-compilation tree: contributes to the cache key (via generator
-            /// index, hint name, text reference, and parse options) and to the set of trees
-            /// appended to <c>compilationWithPostInit</c> on a cache miss.
+            /// Records a pre-compilation tree in driver order. Its reference participates in the
+            /// cache key and it is added after post-init trees on a cache miss.
             /// </summary>
-            public void AddPreCompTree(int generatorIndex, GeneratedSyntaxTree tree)
-            {
-                _preCompKeys.Add(new PreCompCacheKey(generatorIndex, tree.HintName, tree.Text, tree.Tree.Options));
-                _preCompTreesToAdd.Add(tree.Tree);
-            }
+            public void AddPreCompTree(SyntaxTree tree) => _preCompTreesToAdd.Add(tree);
 
             /// <summary>
             /// Decides between reusing the previous run's cache (when its inputs match) or
@@ -117,24 +110,23 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public CompilationCache ToImmutableAndFree()
             {
-                var preCompKeys = _preCompKeys.ToImmutableAndFree();
                 var postInitTrees = _postInitTrees.ToImmutableAndFree();
                 var preCompTreesToAdd = _preCompTreesToAdd.ToImmutableAndFree();
 
-                if (preCompKeys.IsEmpty)
+                if (preCompTreesToAdd.IsEmpty)
                 {
                     // No pre-compilation contributions this run. Return a fresh cache holding
                     // just compilationWithPostInit; we deliberately don't attempt to reuse
                     // _previous here because that compilation reference is regenerated every
                     // run (post-init AddSyntaxTrees) and standard-phase consumers expect to
                     // see that fresh reference to preserve their own re-execution semantics.
-                    return new CompilationCache(_compilationWithPostInit, _inputCompilation, ImmutableArray<SyntaxTree>.Empty, ImmutableArray<PreCompCacheKey>.Empty);
+                    return new CompilationCache(_compilationWithPostInit, _inputCompilation, ImmutableArray<SyntaxTree>.Empty, ImmutableArray<SyntaxTree>.Empty);
                 }
 
                 if (_previous._compilation is not null
                     && ReferenceEquals(_previous._inputCompilation, _inputCompilation)
                     && ReferenceSequenceEqual(_previous._postInitTrees, postInitTrees)
-                    && _previous._preCompKeys.AsSpan().SequenceEqual(preCompKeys.AsSpan()))
+                    && ReferenceSequenceEqual(_previous._preCompTrees, preCompTreesToAdd))
                 {
                     // Cache hit -- reuse the previous run's compilation reference. This makes
                     // SharedInputNodes.Compilation report Cached for every generator, which is
@@ -142,16 +134,11 @@ namespace Microsoft.CodeAnalysis
                     return _previous;
                 }
 
-                var newCompilation = preCompTreesToAdd.IsEmpty
-                    ? _compilationWithPostInit
-                    : _compilationWithPostInit.AddSyntaxTrees(preCompTreesToAdd);
-                return new CompilationCache(newCompilation, _inputCompilation, postInitTrees, preCompKeys);
+                var newCompilation = _compilationWithPostInit.AddSyntaxTrees(preCompTreesToAdd);
+                return new CompilationCache(newCompilation, _inputCompilation, postInitTrees, preCompTreesToAdd);
             }
 
-            // Reference-equality SequenceEqual for ImmutableArray<T> where T is a class.
-            // ReferenceEqualityComparer is IEqualityComparer<object?>, so it can't be passed to
-            // ImmutableArray<T>.SequenceEqual's IEqualityComparer<T> parameter directly; this
-            // walks the underlying buffers via spans for an allocation-free comparison.
+            // Compare ordered tree identity without allocating an enumerator.
             private static bool ReferenceSequenceEqual<T>(ImmutableArray<T> a, ImmutableArray<T> b) where T : class
             {
                 if (a.Length != b.Length)
@@ -172,43 +159,4 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    /// <summary>
-    /// Identity for a single pre-compilation source as fed into the compilation cache.
-    /// Equality is reference-based on <see cref="Text"/> and <see cref="Options"/>; this matches
-    /// what <c>AbstractSourceOutputNode</c> already does — when the pre-compilation output's
-    /// inputs are unchanged it returns the previous <see cref="GeneratedSourceText"/> with the
-    /// same <see cref="SourceText"/> reference, so reference equality is the right level here.
-    /// </summary>
-    internal readonly struct PreCompCacheKey : IEquatable<PreCompCacheKey>
-    {
-        public PreCompCacheKey(int generatorIndex, string hintName, SourceText text, ParseOptions options)
-        {
-            GeneratorIndex = generatorIndex;
-            HintName = hintName;
-            Text = text;
-            Options = options;
-        }
-
-        public int GeneratorIndex { get; }
-        public string HintName { get; }
-        public SourceText Text { get; }
-        public ParseOptions Options { get; }
-
-        public bool Equals(PreCompCacheKey other) =>
-            GeneratorIndex == other.GeneratorIndex
-            && string.Equals(HintName, other.HintName, StringComparison.OrdinalIgnoreCase)
-            && ReferenceEquals(Text, other.Text)
-            && ReferenceEquals(Options, other.Options);
-
-        public override bool Equals(object? obj) => obj is PreCompCacheKey k && Equals(k);
-
-        public override int GetHashCode()
-            => Roslyn.Utilities.Hash.Combine(
-                GeneratorIndex,
-                Roslyn.Utilities.Hash.Combine(
-                    StringComparer.OrdinalIgnoreCase.GetHashCode(HintName),
-                    Roslyn.Utilities.Hash.Combine(
-                        System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Text),
-                        System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(Options))));
-    }
 }
