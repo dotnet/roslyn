@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
         {
             get
             {
-                return _underlying.IsEffectivelyReadOnly;
+                return !_underlying.IsExtensionBlockMember() && _underlying.IsEffectivelyReadOnly;
             }
         }
 
