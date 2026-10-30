@@ -42,6 +42,16 @@
         <target state="translated">Lambdafunktion oder anonyme Methode in generischer Methode ordnet eine Delegatinstanz zu</target>
         <note />
       </trans-unit>
+      <trans-unit id="LocalFunctionClosureRuleMessage">
+        <source>Heap allocation of closure for local function '{0}' Captures: {1}</source>
+        <target state="new">Heap allocation of closure for local function '{0}' Captures: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="LocalFunctionClosureRuleTitle">
+        <source>Local function converted to a delegate captures variables</source>
+        <target state="new">Local function converted to a delegate captures variables</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MethodGroupAllocationRuleMessage">
         <source>This will allocate a delegate instance</source>
         <target state="translated">Hiermit wird eine Delegatinstanz zugeordnet.</target>
