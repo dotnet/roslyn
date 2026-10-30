@@ -21,7 +21,6 @@
     <ProjectReference Include="..\..\..\..\..\VisualStudio\Core\Def\Microsoft.VisualStudio.LanguageServices.csproj" />
     <PackageReference Include="Microsoft.Internal.VisualStudio.Interop" />
 
-    <PackageReference Include="Microsoft.VisualStudio.LiveShare" />
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" />
     <!-- Manually upgrade to address CG alert. When the VS packages
          pull in the right version, this can be removed. -->

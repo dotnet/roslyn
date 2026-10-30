@@ -2,45 +2,7 @@
 
 ## High Level Overview
 
-![Layers](./overview.svg)
-
-<details>
-Created with https://www.sankeymatic.com/build/
-
-Input:
-```
-RoslynWorkspace [1] ProjectEngineHost
-MS.AspNetCore.Razor.LanguageServer [1] MS.AspNetCore.Razor.LanguageServer.Common
-MS.AspNetCore.Razor.LanguageServer.Common [1] Compiler
-MS.AspNetCore.Razor.LanguageServer.Common [1] Workspaces
-ProjectEngineHost [1] Compiler
-Workspaces [1] Compiler
-Workspaces [1] ProjectEngineHost
-OOP Tag Helper Discovery [1] Workspaces
-MS.VS.Editor.Razor [1] Workspaces
-MS.VS.LanguageServerClient.Razor [1] MS.AspNetCore.Razor.LanguageServer
-MS.VS.LanguageServerClient.Razor [1] MS.AspNetCore.Razor.LanguageServer.Common
-MS.VS.LanguageServerClient.Razor [1] Workspaces
-MS.VS.LanguageServerClient.Razor [1] MS.VS.Editor.Razor
-MS.VS.LanguageServerClient.Razor [1] ContainedLanguage
-LanguageServices.VS [1] MS.VS.Editor.Razor
-LiveShare [1] MS.VS.Editor.Razor
-Mac.LanguageServices [1] MS.VS.Editor.Razor
-VS Mac [1] Compiler
-VS Mac [1] MS.VS.LanguageServerClient.Razor
-VS Mac [1] Mac.LanguageServices
-VS [1] MS.AspNetCore.Razor.LanguageServer
-VS [1] MS.AspNetCore.Razor.LanguageServer.Common
-VS [1] Workspaces
-VS [1] OOP Tag Helper Discovery
-VS [1] MS.VS.Editor.Razor
-VS [1] ContainedLanguage
-VS [1] MS.VS.LanguageServerClient.Razor
-VS [1] LanguageServices.VS
-VS [1] LiveShare
-rzls [1] MS.AspNetCore.Razor.LanguageServer
-```
-</details>
+The compiler, workspace services and editor projects are described below.
 
 ## Details
 
@@ -96,7 +58,6 @@ target the broadest set of frameworks.
   - Microsoft.VisualStudio.Editor.Razor
   - Microsoft.VisualStudio.LanguageServer.ContainedLanguage
   - Microsoft.VisualStudio.LanguageServerClient.Razor
-  - Microsoft.VisualStudio.LiveShare.Razor
   - Microsoft.VisualStudio.RazorExtension
   - Microsoft.VisualStudio.RazorExtension.Dependencies
   - RazorDeployment
@@ -144,5 +105,4 @@ target the broadest set of frameworks.
 - Microsoft.VisualStudio.LanguageServer.ContainedLanguage.Test.Common (`net472`)
 - Microsoft.VisualStudio.LanguageServerClient.Razor.Test (`net472`)
 - Microsoft.VisualStudio.LanguageServices.Razor.Test (`net472`)
-- Microsoft.VisualStudio.LiveShare.Razor.Test (`net472`)
 - Microsoft.VisualStudio.Razor.IntegrationTests (`net472`)

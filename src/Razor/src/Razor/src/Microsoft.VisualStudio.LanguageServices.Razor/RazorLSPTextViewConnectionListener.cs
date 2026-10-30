@@ -28,7 +28,6 @@ namespace Microsoft.VisualStudio.Razor;
 internal sealed partial class RazorLSPTextViewConnectionListener(
     [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
     IVsEditorAdaptersFactoryService editorAdaptersFactory,
-    ILspEditorFeatureDetector editorFeatureDetector,
     IEditorOptionsFactoryService editorOptionsFactory,
     IClientSettingsManager editorSettingsManager,
     JoinableTaskContext joinableTaskContext,
@@ -36,7 +35,6 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory = editorAdaptersFactory;
-    private readonly ILspEditorFeatureDetector _editorFeatureDetector = editorFeatureDetector;
     private readonly IEditorOptionsFactoryService _editorOptionsFactory = editorOptionsFactory;
     private readonly IClientSettingsManager _editorSettingsManager = editorSettingsManager;
     private readonly JoinableTaskContext _joinableTaskContext = joinableTaskContext;
@@ -74,10 +72,7 @@ internal sealed partial class RazorLSPTextViewConnectionListener(
             throw new ArgumentNullException(nameof(textView));
         }
 
-        // In remote client scenarios there's a custom language service applied to buffers in order to enable delegation of interactions.
-        // Because of this we don't want to break that experience so we ensure not to "set" a language service for remote clients.
-        if (!_editorFeatureDetector.IsRemoteClient() &&
-            _editorAdaptersFactory.GetBufferAdapter(textView.TextViewModel.DataBuffer) is { } vsBuffer)
+        if (_editorAdaptersFactory.GetBufferAdapter(textView.TextViewModel.DataBuffer) is { } vsBuffer)
         {
             vsBuffer.SetLanguageServiceID(RazorConstants.RazorLanguageServiceGuid);
         }

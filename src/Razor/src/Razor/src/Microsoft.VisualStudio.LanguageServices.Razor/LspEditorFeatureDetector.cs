@@ -1,9 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.ComponentModel.Composition;
-using System.Threading;
 using Microsoft.VisualStudio.Razor.Logging;
 
 namespace Microsoft.VisualStudio.Razor;
@@ -11,25 +9,11 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(ILspEditorFeatureDetector))]
 [method: ImportingConstructor]
 internal sealed class LspEditorFeatureDetector(
-    IUIContextService uiContextService,
     IProjectCapabilityResolver projectCapabilityResolver,
-    RazorActivityLog activityLog) : ILspEditorFeatureDetector, IDisposable
+    RazorActivityLog activityLog) : ILspEditorFeatureDetector
 {
-    private readonly IUIContextService _uiContextService = uiContextService;
     private readonly IProjectCapabilityResolver _projectCapabilityResolver = projectCapabilityResolver;
     private readonly RazorActivityLog _activityLog = activityLog;
-    private readonly CancellationTokenSource _disposeTokenSource = new();
-
-    public void Dispose()
-    {
-        if (_disposeTokenSource.IsCancellationRequested)
-        {
-            return;
-        }
-
-        _disposeTokenSource.Cancel();
-        _disposeTokenSource.Dispose();
-    }
 
     public bool IsLspEditorSupported(string documentFilePath)
     {
@@ -46,10 +30,4 @@ internal sealed class LspEditorFeatureDetector(
 
     public CapabilityCheckResult IsDotNetCoreProject(string documentFilePath)
         => _projectCapabilityResolver.CheckCapability(WellKnownProjectCapabilities.DotNetCoreCSharp, documentFilePath);
-
-    public bool IsRemoteClient()
-        => _uiContextService.IsActive(Guids.LiveShareGuestUIContextGuid);
-
-    public bool IsLiveShareHost()
-        => _uiContextService.IsActive(Guids.LiveShareHostUIContextGuid);
 }

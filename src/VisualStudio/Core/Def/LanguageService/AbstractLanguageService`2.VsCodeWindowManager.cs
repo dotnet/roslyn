@@ -80,8 +80,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
             var editorAdaptersFactoryService = _languageService.Package.ComponentModel.GetService<IVsEditorAdaptersFactoryService>();
             var textBuffer = editorAdaptersFactoryService.GetDataBuffer(buffer);
             var document = textBuffer?.AsTextContainer()?.GetRelatedDocuments().FirstOrDefault();
-            // TODO - Remove the TS check once they move the liveshare navbar to LSP.  Then we can also switch to LSP
-            // for the local navbar implementation.
+            // TypeScript continues to use the Roslyn navigation bar in LSP editor contexts.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1163360
             if (textBuffer?.IsInLspEditorContext() == true && document!.Project!.Language != InternalLanguageNames.TypeScript)
             {

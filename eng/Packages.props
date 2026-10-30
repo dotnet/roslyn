@@ -85,10 +85,6 @@
     <PackageVersion Include="Microsoft.VisualStudio.Extensibility.Sdk" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.InteractiveWindow" Version="4.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="15.8.27812-alpha" />
-    <PackageVersion Include="Microsoft.VisualStudio.LiveShare" Version="2.18.6" />
-    <PackageVersion Include="Microsoft.VisualStudio.LiveShare.LanguageServices" Version="3.0.6" />
-    <PackageVersion Include="Microsoft.VisualStudio.LiveShare.LanguageServices.Guest" Version="3.0.6" />
-    <PackageVersion Include="Microsoft.VisualStudio.LiveShare.WebEditors" Version="3.0.8" />
     <PackageVersion Include="Microsoft.VisualStudio.ProjectSystem" Version="17.3.195-pre" />
     <PackageVersion Include="Microsoft.VisualStudio.SDK" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.Search" Version="17.14.39337" />

@@ -38,92 +38,12 @@ public class LspEditorFeatureDetectorTest(ITestOutputHelper testOutput) : Toolin
         Assert.Equal(expectedResult, result);
     }
 
-    public static TheoryData<bool, bool, bool> IsRemoteClientTestData { get; } = new()
-    {
-        // isLiveShareHostActive, isLiveShareGuestActive, expectedResult
-        { false, false, false },
-        { true, false, false },
-        { false, true, true },
-        { true, true, true }
-    };
-
-    [UITheory]
-    [MemberData(nameof(IsRemoteClientTestData))]
-    public void IsRemoteClient(bool liveShareHostActive, bool liveShareGuestActive, bool expectedResult)
-    {
-        // Arrange
-        var uiContextService = CreateUIContextService(liveShareHostActive, liveShareGuestActive);
-        var featureDetector = CreateLspEditorFeatureDetector(uiContextService);
-
-        // Act
-        var result = featureDetector.IsRemoteClient();
-
-        // Assert
-        Assert.Equal(expectedResult, result);
-    }
-
-    public static TheoryData<bool, bool, bool> IsLiveShareHostTestData { get; } = new()
-    {
-        // isLiveShareHostActive, isLiveShareGuestActive, expectedResult
-        { false, false, false },
-        { true, false, true },
-        { false, true, false },
-        { true, true, true }
-    };
-
-    [UITheory]
-    [MemberData(nameof(IsLiveShareHostTestData))]
-    public void IsLiveShareHost(bool liveShareHostActive, bool liveShareGuestActive, bool expectedResult)
-    {
-        // Arrange
-        var uiContextService = CreateUIContextService(liveShareHostActive, liveShareGuestActive);
-        var featureDetector = CreateLspEditorFeatureDetector(uiContextService);
-
-        // Act
-        var result = featureDetector.IsLiveShareHost();
-
-        // Assert
-        Assert.Equal(expectedResult, result);
-    }
-
-    private ILspEditorFeatureDetector CreateLspEditorFeatureDetector(IUIContextService uiContextService)
-        => CreateLspEditorFeatureDetector(uiContextService, hasDotNetCoreCSharpCapability: true);
-
     private ILspEditorFeatureDetector CreateLspEditorFeatureDetector(
         bool hasDotNetCoreCSharpCapability = true)
     {
-        return CreateLspEditorFeatureDetector(CreateUIContextService(), hasDotNetCoreCSharpCapability);
-    }
-
-    private ILspEditorFeatureDetector CreateLspEditorFeatureDetector(
-        IUIContextService uiContextService,
-        bool hasDotNetCoreCSharpCapability)
-    {
-        uiContextService ??= CreateUIContextService();
-
-        var featureDetector = new LspEditorFeatureDetector(
-            uiContextService,
+        return new LspEditorFeatureDetector(
             CreateProjectCapabilityResolver(hasDotNetCoreCSharpCapability),
             CreateRazorActivityLog());
-
-        AddDisposable(featureDetector);
-
-        return featureDetector;
-    }
-
-    private static IUIContextService CreateUIContextService(
-        bool liveShareHostActive = false,
-        bool liveShareGuestActive = false)
-    {
-        var mock = new StrictMock<IUIContextService>();
-
-        mock.Setup(x => x.IsActive(Guids.LiveShareHostUIContextGuid))
-            .Returns(liveShareHostActive);
-
-        mock.Setup(x => x.IsActive(Guids.LiveShareGuestUIContextGuid))
-            .Returns(liveShareGuestActive);
-
-        return mock.Object;
     }
 
     private static IProjectCapabilityResolver CreateProjectCapabilityResolver(bool hasDotNetCoreCSharpCapability)

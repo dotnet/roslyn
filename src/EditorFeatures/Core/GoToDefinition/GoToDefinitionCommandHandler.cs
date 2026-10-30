@@ -65,9 +65,7 @@ internal sealed class GoToDefinitionCommandHandler(
 
         Contract.ThrowIfNull(document);
 
-        // In Live Share, typescript exports a gotodefinition service that returns no results and prevents the LSP
-        // client from handling the request.  So prevent the local service from handling goto def commands in the
-        // remote workspace. This can be removed once typescript implements LSP support for goto def.
+        // Let the LSP client handle navigation in LSP editor contexts.
         if (subjectBuffer.IsInLspEditorContext())
             return false;
 

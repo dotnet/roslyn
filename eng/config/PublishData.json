@@ -74,7 +74,6 @@
     "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
     "Microsoft.CodeAnalysis.SemanticSearch.Extensions": "vs-impl",
     "Microsoft.CodeAnalysis.SemanticSearch.ReferenceAssemblies": "vs-impl",
-    "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
     "Microsoft.VisualStudio.LanguageServices.ExternalAccess": "vs-impl",
     "Microsoft.VisualStudio.LanguageServices.Xaml": "vs-impl",
     "Microsoft.CommonLanguageServerProtocol.Framework": "vs-impl",

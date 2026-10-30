@@ -59,20 +59,6 @@ public class RazorContentTypeChangeListenerTest : ToolingTestBase
     }
 
     [Fact]
-    public void RazorBufferCreated_RemoteClient_DoesNotTrackDocument()
-    {
-        // Arrange
-        var lspDocumentManager = new Mock<TrackingLSPDocumentManager>(MockBehavior.Strict);
-        lspDocumentManager.Setup(manager => manager.TrackDocument(It.IsAny<ITextBuffer>()))
-            .Throws<Exception>();
-        var featureDetector = StrictMock.Of<ILspEditorFeatureDetector>(detector => detector.IsRemoteClient() == true);
-        var listener = CreateListener(lspDocumentManager.Object, featureDetector);
-
-        // Act & Assert
-        listener.RazorBufferCreated(_razorBuffer);
-    }
-
-    [Fact]
     public void RazorBufferDisposed_Untracks()
     {
         // Arrange
@@ -202,23 +188,18 @@ public class RazorContentTypeChangeListenerTest : ToolingTestBase
 
     private RazorContentTypeChangeListener CreateListener(
         TrackingLSPDocumentManager lspDocumentManager = null,
-        ILspEditorFeatureDetector lspEditorFeatureDetector = null,
         IFileToContentTypeService fileToContentTypeService = null)
     {
         var textDocumentFactory = new Mock<ITextDocumentFactoryService>(MockBehavior.Strict).Object;
         Mock.Get(textDocumentFactory).Setup(f => f.TryGetTextDocument(It.IsAny<ITextBuffer>(), out It.Ref<ITextDocument>.IsAny)).Returns(false);
 
         lspDocumentManager ??= StrictMock.Of<TrackingLSPDocumentManager>();
-        lspEditorFeatureDetector ??= new MockRepository(MockBehavior.Strict).OneOf<ILspEditorFeatureDetector>(detector =>
-            detector.IsLspEditorSupported(It.IsAny<string>()) == true &&
-            detector.IsRemoteClient() == false);
         fileToContentTypeService ??= StrictMock.Of<IFileToContentTypeService>(detector => detector.GetContentTypeForFilePath(It.IsAny<string>()) == _razorContentType);
         var textManager = new Mock<IVsTextManager2>(MockBehavior.Strict);
         textManager.Setup(m => m.GetUserPreferences2(null, null, It.IsAny<LANGPREFERENCES2[]>(), null)).Returns(VSConstants.E_NOTIMPL);
         var listener = new RazorContentTypeChangeListener(
             textDocumentFactory,
             lspDocumentManager,
-            lspEditorFeatureDetector,
             fileToContentTypeService);
 
         return listener;

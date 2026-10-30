@@ -171,7 +171,7 @@ internal sealed partial class ContainedDocument : IContainedDocument
 
     public DocumentId FindProjectDocumentIdWithItemId(uint itemidInsertionPoint)
     {
-        // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
+        // Contained documents require Visual Studio document services.
         var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
 
         var containingDocumentItemid = GetContainingDocumentItemId(hierarchy);
@@ -194,7 +194,7 @@ internal sealed partial class ContainedDocument : IContainedDocument
 
     public uint FindItemIdOfDocument(Document document)
     {
-        // We cast to VisualStudioWorkspace because the expectation is this isn't being used in Live Share workspaces
+        // Contained documents require Visual Studio document services.
         var hierarchy = ((VisualStudioWorkspace)_workspace).GetHierarchy(_project.Id);
 
         if (document.Id == this.Id)

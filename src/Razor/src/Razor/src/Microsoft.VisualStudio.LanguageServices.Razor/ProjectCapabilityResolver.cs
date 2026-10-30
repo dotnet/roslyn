@@ -4,14 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
 using Microsoft.VisualStudio.Razor.Extensions;
-using Microsoft.VisualStudio.Razor.LiveShare;
-using Microsoft.VisualStudio.Razor.LiveShare.Guest;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
@@ -21,7 +16,6 @@ namespace Microsoft.VisualStudio.Razor;
 [Export(typeof(IProjectCapabilityResolver))]
 internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, IDisposable
 {
-    private readonly ILiveShareSessionAccessor _liveShareSessionAccessor;
     private readonly IEnumerable<IProjectCapabilityListener> _projectCapabilityListeners;
     private readonly AsyncLazy<IVsUIShellOpenDocument> _lazyVsUIShellOpenDocument;
     private readonly ILogger _logger;
@@ -30,13 +24,11 @@ internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, ID
 
     [ImportingConstructor]
     public ProjectCapabilityResolver(
-        ILiveShareSessionAccessor liveShareSessionAccessor,
         IVsService<SVsUIShellOpenDocument, IVsUIShellOpenDocument> vsUIShellOpenDocumentService,
         [ImportMany] IEnumerable<IProjectCapabilityListener> projectCapabilityListeners,
         ILoggerFactory loggerFactory,
         JoinableTaskContext joinableTaskContext)
     {
-        _liveShareSessionAccessor = liveShareSessionAccessor;
         _projectCapabilityListeners = projectCapabilityListeners;
         _jtf = joinableTaskContext.Factory;
         _logger = loggerFactory.GetOrCreateLogger<ProjectCapabilityResolver>();
@@ -60,55 +52,6 @@ internal sealed class ProjectCapabilityResolver : IProjectCapabilityResolver, ID
     }
 
     public CapabilityCheckResult CheckCapability(string capability, string documentFilePath)
-    {
-        // If a LiveShare is currently active, we call into the host to resolve project capabilities.
-        // Otherwise, we use the project that contains documentFilePath to resolve capabilities.
-
-        return _liveShareSessionAccessor.IsGuestSessionActive
-            ? LiveShareHostHasCapability(capability, documentFilePath)
-            : ContainingProjectHasCapability(capability, documentFilePath);
-    }
-
-    private CapabilityCheckResult LiveShareHostHasCapability(string capability, string documentFilePath)
-    {
-        Debug.Assert(_liveShareSessionAccessor.IsGuestSessionActive);
-
-        // Using JTF.Run(...) here isn't great, but this is how Razor's LiveShare implementation has
-        // always worked. It won't be called unless a LiveShare collaboration session is active.
-        return _jtf.Run(() => LiveShareHostHasCapabilityAsync(capability, documentFilePath, _disposeTokenSource.Token));
-
-        async Task<CapabilityCheckResult> LiveShareHostHasCapabilityAsync(string capability, string documentFilePath, CancellationToken cancellationToken)
-        {
-            // On a guest box. The project hierarchy is not fully populated. We need to ask the host machine
-            // questions about hierarchy capabilities.
-
-            var session = _liveShareSessionAccessor.Session.AssumeNotNull();
-
-            var remoteHierarchyService = await session
-                .GetRemoteServiceAsync<IRemoteHierarchyService>(nameof(IRemoteHierarchyService), cancellationToken)
-                .ConfigureAwait(false);
-            if (remoteHierarchyService is null)
-            {
-                _logger.LogWarning("Live Share remote hierarchy service was unavailable during capability resolution.");
-                return new(IsInProject: false, HasCapability: false);
-            }
-
-            var documentFilePathUri = session.ConvertLocalPathToSharedUri(documentFilePath);
-            if (documentFilePathUri is null)
-            {
-                _logger.LogWarning($"Live Share could not convert document path to shared URI: {documentFilePath}");
-                return new(IsInProject: false, HasCapability: false);
-            }
-
-            var isMatch = await remoteHierarchyService
-                .HasCapabilityAsync(documentFilePathUri, capability, cancellationToken)
-                .ConfigureAwait(false);
-
-            return new(IsInProject: true, HasCapability: isMatch);
-        }
-    }
-
-    private CapabilityCheckResult ContainingProjectHasCapability(string capability, string documentFilePath)
     {
         // This method is only ever called by our IFilePathToContentTypeProvider.TryGetContentTypeForFilePath(...) implementations.
         // We call AsyncLazy<T>.GetValue() below to get the value. If the work hasn't yet completed, we guard against a hidden
