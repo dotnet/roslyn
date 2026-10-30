@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.IO;
 
-namespace RunTests;
+namespace TestRunner;
 
 public readonly record struct AssemblyInfo(string AssemblyPath) : IComparable<AssemblyInfo>
 {
@@ -17,11 +16,6 @@ public readonly record struct AssemblyInfo(string AssemblyPath) : IComparable<As
         // Ensure we have a consistent ordering by ordering by assembly path.
         return string.Compare(this.AssemblyPath, other.AssemblyPath, StringComparison.Ordinal);
     }
-}
-
-public readonly record struct TypeInfo(string Name, string FullyQualifiedName, ImmutableArray<TestMethodInfo> Tests)
-{
-    public override string ToString() => $"[Type]{FullyQualifiedName}";
 }
 
 public readonly record struct TestMethodInfo(string Name, string FullyQualifiedName, TimeSpan ExecutionTime, bool HasAsyncLifetime)

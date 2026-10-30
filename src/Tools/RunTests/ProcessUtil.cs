@@ -13,7 +13,7 @@ using System.Runtime.Versioning;
 using System.Threading.Tasks;
 using Microsoft.Win32.SafeHandles;
 
-namespace RunTests
+namespace TestRunner.RunTests
 {
     internal static class ProcessUtil
     {

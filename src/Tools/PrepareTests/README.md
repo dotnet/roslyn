@@ -1,67 +1,62 @@
 # Prepare Tests
 
+PrepareTests discovers tests and minimizes already-built output for upload and
+download between CI build and test machines. It does not build the test projects.
+
 ## Usage
-This tool is meant to prepare our unit tests for efficient upload and download 
-in our CI pipeline. Our build and test legs run on different machines and hence
-they must go through a single upload cycle and many download cycles (per test
-scenario).
 
-The output of our build is ~11GB and that does not really lend itself to being 
-uploaded and downloaded as often as is needed in our tests. Some amount of 
-curation is needed to make that a practical experience. Even if it's as simple
-as deleting all of the non-unit test directories from our `bin` folder and 
-using the results as the payload.
+After building the test projects, PrepareTests, and the appropriate runners:
 
-Our eventual goal though is to be running on Helix and that environment is 
-optimized for a specific payload structure. Helix consists of Jobs which have 
-a collection of associated Work Items attached to it. Helix will fan out 
-Work Items to a series of machines but it will attempt to schedule many 
-Work Items for the same Job in sequence on the same machine. 
+```powershell
+dotnet exec .\artifacts\bin\PrepareTests\Debug\net10.0\PrepareTests.dll --source . --destination .\artifacts\testPayload
+```
 
-To support that scheduling Helix wants the payloads structured in the following
-manner:
+Use `--unix` when preparing a Unix payload, and `--dotnetPath <path>` to select
+the dotnet executable used for test discovery. The source is the repository root,
+not just its `artifacts/bin` directory. Use a fresh destination directory.
 
-1. Correlated payload: there is one per job and that is on disk for every 
-Work Item in the Job. Given that the schedule attempts to re-use the same machine
-for Work Items in a Job this means the correlated payload is only downloaded 
-based on the number of machines used, not the number of Work Items scheduled.
-1. Work Item payload: this is downloaded whenever a work item is executed. There
-is no re-use here hence this should be as small as possible.
+The resulting payload contains:
 
-In Roslyn terms the Job is effectively a single unit test DLL and the Work Items
-are the partitions that RunTests creates over them. Although in Helix there will
-be a lot more partitions.
+- Unit and integration test output, including discovered `testlist.json` files.
+- Built RunTests and RunHelix output and dependencies. RunHelix is optional for
+  local-only builds, including Visual Studio integration test builds.
+- Engineering scripts, VS setup artifacts when present, `global.json`, and
+  `NuGet.config`, so downstream jobs can run without a source checkout.
+- A `.duplicate` directory of shared binaries and per-output-directory
+  `rehydrate.cmd` or `rehydrate.sh` scripts.
 
-This tool effectively optimizes our payload for the Helix case. All of the 
-duplicate files in our build are structured into a single payload. That will 
-eventually become our correlation payload. What is left in the unit test 
-directory is unique to that test and hence is about as minimum as it can get.
+## Local execution and Helix submission
 
-Given that the end goal is Helix, and we need some sort of test data 
-manipulation now, I thought it best to just insert that tool here rather than 
-having an intermediate step. 
+[RunTests](../RunTests/README.md) executes whole assemblies locally using VSTest;
+it does not need `testlist.json`. Use `rehydrate-all.cmd` or `rehydrate-all.sh`
+to restore a downloaded payload before local execution.
+
+[RunHelix](../RunHelix/README.md) uses `testlist.json` and historical timings
+(or a test-count fallback) to partition tests into remote work items. It creates
+the Helix project and work-item payloads, then submits them. Helix workers invoke
+VSTest directly rather than either runner.
+
+The Windows and Unix Helix submission templates rehydrate RunHelix before
+invoking it. Set `HELIX_CORRELATION_PAYLOAD` to the downloaded payload's
+`.duplicate` directory when running an individual rehydration script.
+Single-machine and Visual Studio integration jobs continue to use RunTests.
+
+Helix separates shared **correlation payloads**, reused across work items on a
+machine, from **work-item payloads**, downloaded for individual work items.
+Keeping duplicate binaries in the shared payload reduces repeated transfers.
 
 ## Implementation
-This tool recognizes that a large number of the artifacts in our output 
-directory are duplicates. For example consider how many times 
-Microsoft.CodeAnalysis.dll gets copied around during our build (quite a bit).
 
-The tool uses that information to the following effect:
+1. Run TestDiscoveryWorker over test assemblies to create `testlist.json`.
+2. Walk selected test, runner, and supporting output directories.
+3. Read DLL module version IDs (MVIDs) and group copies with the same identity.
+4. Hard-link one copy of each duplicate DLL into `.duplicate`, named by its MVID.
+   Hard-link unique DLLs and other files at their original relative paths.
+5. Generate per-directory rehydration scripts that restore duplicate DLLs by
+   hard-linking from `HELIX_CORRELATION_PAYLOAD`. Unix scripts also restore
+   executable permissions where needed.
+6. Generate a `rehydrate-all` script for single-machine execution.
 
-1. Create a payload directory, `testPayload`, that the tool will populate
-1. Crack every DLL in the `bin` directory, read it's MVID, and keep a list
-of all file paths which are this MVID
-1. Create a directory, `.duplicates`, in `testPayload`
-1. For each MVID that has multiple copies create a hard link in `.duplicates` 
-where the name is the MVID. 
-1. For every other file in `bin` which is not a duplicate create a hard link
-in `.duplicates` with the same relative path.
-1. Create a file, `rehydrate.cmd`, that will restore all the duplicate files
-by creating a hard link into `.duplicates`. This file will be run on the test
-machine.
-
-This reduces our test payload size to ~1.5GB.
-
-*Note*: yes in many ways this is similar to hard linking during build. The 
-difference being that this is much more effective because build hard linking 
-isn't perfect and also it creates a handy correlation payload for us.
+RunTests and RunHelix participate in the same deduplication and rehydration
+process as the test outputs. Omitting an unbuilt RunHelix directory does not
+prevent creation of a local-only payload.
