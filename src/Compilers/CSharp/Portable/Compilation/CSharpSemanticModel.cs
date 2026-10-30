@@ -5487,6 +5487,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
+#nullable enable
+        private protected sealed override ITypeSymbol? GetIterationTypeCore(int position, ITypeSymbol type, CancellationToken cancellationToken)
+            => GetIterationType(position, type, isAsync: false);
+
+#pragma warning disable IDE0060 // Remove unused parameter
+        public ITypeSymbol? GetAsyncIterationType(int position, ITypeSymbol type, CancellationToken cancellationToken = default)
+#pragma warning restore IDE0060 // Remove unused parameter
+            => GetIterationType(position, type, isAsync: true);
+
+        private ITypeSymbol? GetIterationType(int position, ITypeSymbol type, bool isAsync)
+        {
+            position = CheckAndAdjustPosition(position);
+
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            var binder = GetEnclosingBinder(position);
+            if (binder is null)
+            {
+                return null;
+            }
+
+            return binder.TryGetForEachIterationType(Root, type.EnsureCSharpSymbolOrNull(nameof(type)), isAsync, out var iterationType)
+                ? iterationType.GetPublicSymbol()
+                : null;
+        }
+#nullable disable
+
         protected sealed override bool IsAccessibleCore(int position, ISymbol symbol)
         {
             return this.IsAccessible(position, symbol.EnsureCSharpSymbolOrNull(nameof(symbol)));

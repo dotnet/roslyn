@@ -744,6 +744,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets the type of the elements produced when <paramref name="type"/> is iterated over by an <c>await foreach</c>
+        /// loop at the given position.
+        /// </summary>
+        /// <param name="semanticModel">The semantic model.</param>
+        /// <param name="position">A character position used to identify a declaration scope. This character position must be
+        /// within the FullSpan of the Root syntax node in this SemanticModel.</param>
+        /// <param name="type">The type of the collection being iterated over.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>The iteration type, or null if <paramref name="type"/> cannot be iterated over asynchronously at <paramref name="position"/>.</returns>
+        public static ITypeSymbol? GetAsyncIterationType(this SemanticModel? semanticModel, int position, ITypeSymbol type, CancellationToken cancellationToken = default)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetAsyncIterationType(position, type, cancellationToken);
+        }
+
+        /// <summary>
         /// Binds the expression in the context of the specified location and gets type information.
         /// This method is used to get type information about an expression that did not actually
         /// appear in the source code.
