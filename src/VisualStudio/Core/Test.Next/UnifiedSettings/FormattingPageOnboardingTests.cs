@@ -64,7 +64,8 @@ public sealed class FormattingPageOnboardingTests
             Assert.All(root.GetProperty(section).EnumerateObject(), entry =>
             {
                 Assert.DoesNotContain(".editorConfig", entry.Name);
-                Assert.DoesNotContain(".codeStyle", entry.Name);
+                Assert.DoesNotContain(".codeStyle.general", entry.Name);
+                Assert.DoesNotContain(".codeStyle.naming", entry.Name);
             });
         }
 
@@ -76,7 +77,7 @@ public sealed class FormattingPageOnboardingTests
     public void OnTypeFormattingRetainsSettingsDefaultsAndLegacyMigrations()
     {
         using var document = Load("csharpSettings.registration.json");
-        const string prefix = "languages.csharp.advanced.onTypeFormatting";
+        const string prefix = "languages.csharp.codeStyle.formatting.general";
         var options = new (string Name, IOption2 Option, string StorageName)[]
         {
             ("formatOnTyping", AutoFormattingOptionsStorage.FormatOnTyping, "Auto Formatting On Typing"),

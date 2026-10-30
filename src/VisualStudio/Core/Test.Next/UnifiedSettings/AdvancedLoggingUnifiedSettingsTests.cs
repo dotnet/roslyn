@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.UnifiedSettings;
 
 public sealed class AdvancedLoggingUnifiedSettingsTests
 {
-    private const string Moniker = "languages.dotnet.advanced.enableFileLoggingForDiagnostics";
+    private const string Moniker = "languages.dotnet.analysis.enableFileLoggingForDiagnostics";
 
     [Fact]
     public void LoggingUsesUsxStorageWithFullRegistryMigration()
@@ -26,7 +26,7 @@ public sealed class AdvancedLoggingUnifiedSettingsTests
         Assert.Equal("boolean", native.GetProperty("type").GetString());
         Assert.False(native.GetProperty("default").GetBoolean());
         Assert.False(native.GetProperty("transientScopesSupported").GetBoolean());
-        Assert.Equal(new[] { "languages.csharp.advanced.analysis", "languages.basic.advanced.analysis" },
+        Assert.Equal(new[] { "languages.csharp.analysis", "languages.basic.analysis" },
             native.GetProperty("placements").EnumerateArray().Select(placement => placement.GetProperty("category").GetString()));
         var rule = native.GetProperty("migration").GetProperty("custom");
         Assert.Equal("full", rule.GetProperty("mode").GetString());

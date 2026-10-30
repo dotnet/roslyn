@@ -1,6 +1,6 @@
 ﻿{
   "properties": {
-    "languages.dotnet.advanced.offerRemoveUnusedReferences": {
+    "languages.dotnet.codeCleanup.offerRemoveUnusedReferences": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Show_Remove_Unused_References_command_in_Solution_Explorer;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
@@ -12,12 +12,12 @@
       ],
       "placements": [
         {
-          "category": "languages.csharp.advanced.analysis",
-          "order": 40
+          "category": "languages.csharp.codeCleanup",
+          "order": 0
         },
         {
-          "category": "languages.basic.advanced.analysis",
-          "order": 40
+          "category": "languages.basic.codeCleanup",
+          "order": 0
         }
       ],
       "migration": {
@@ -30,7 +30,7 @@
         }
       }
     },
-    "languages.dotnet.advanced.enableFileLoggingForDiagnostics": {
+    "languages.dotnet.analysis.enableFileLoggingForDiagnostics": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Enable_file_logging_for_diagnostics;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
@@ -42,11 +42,11 @@
       ],
       "placements": [
         {
-          "category": "languages.csharp.advanced.analysis",
+          "category": "languages.csharp.analysis",
           "order": 50
         },
         {
-          "category": "languages.basic.advanced.analysis",
+          "category": "languages.basic.analysis",
           "order": 50
         }
       ],
@@ -89,15 +89,15 @@
       }
     },
     // This static false default is safe to materialize; SettingsManager notifications refresh Roslyn's cached option.
-    "languages.dotnet.advanced.openStackTraceExplorerOnFocus": {
+    "languages.dotnet.intellisense.browsingNavigation.openStackTraceExplorerOnFocus": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Automatically_open_stack_trace_explorer_on_focus;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
       "transientScopesSupported": false,
       "placements": [
         {
-          "category": "languages.csharp.advanced.stackTrace",
-          "order": 0
+          "category": "languages.csharp.intellisense.browsingNavigation",
+          "order": 70
         }
       ],
       "migration": {
@@ -110,7 +110,7 @@
         }
       }
     },
-    "languages.dotnet.advanced.sourceGeneratorExecution": {
+    "languages.dotnet.analysis.sourceGeneratorExecution": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Source_generator_execution_USX;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "string",
       "default": "balanced",
@@ -131,12 +131,12 @@
       ],
       "placements": [
         {
-          "category": "languages.csharp.advanced.sourceGenerators",
-          "order": 0
+          "category": "languages.csharp.analysis",
+          "order": 70
         },
         {
-          "category": "languages.basic.advanced.sourceGenerators",
-          "order": 0
+          "category": "languages.basic.analysis",
+          "order": 70
         }
       ],
       "migration": {
@@ -184,7 +184,7 @@
       "enableWhen": "${config:test.realTimeDiscovery} == 'true'"
     },
     // Installed TextEditor.* IsRoamed/IsShared metadata upgrades this supported mode to FullWithoutDefaults.
-    "languages.dotnet.advanced.skipAnalyzersForImplicitlyTriggeredBuilds": {
+    "languages.dotnet.analysis.skipAnalyzersForImplicitlyTriggeredBuilds": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Skip_analyzers_for_implicitly_triggered_builds;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
@@ -196,11 +196,11 @@
       ],
       "placements": [
         {
-          "category": "languages.csharp.advanced.analysis",
+          "category": "languages.csharp.analysis",
           "order": 60
         },
         {
-          "category": "languages.basic.advanced.analysis",
+          "category": "languages.basic.analysis",
           "order": 60
         }
       ],
@@ -214,14 +214,14 @@
         }
       }
     },
-    "languages.dotnet.advanced.navigateToSourceLinkAndEmbeddedSources": {
+    "languages.dotnet.intellisense.browsingNavigation.navigateToSourceLinkAndEmbeddedSources": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Enable_navigation_to_sourcelink_and_embedded_sources;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
       "transientScopesSupported": false,
       "placements": [
         {
-          "category": "languages.csharp.advanced.navigation",
+          "category": "languages.csharp.intellisense.browsingNavigation",
           "order": 0
         }
       ],
@@ -235,14 +235,14 @@
         }
       }
     },
-    "languages.dotnet.advanced.navigateToDecompiledSources": {
+    "languages.dotnet.intellisense.browsingNavigation.navigateToDecompiledSources": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Enable_navigation_to_decompiled_sources;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
       "transientScopesSupported": false,
       "placements": [
         {
-          "category": "languages.csharp.advanced.navigation",
+          "category": "languages.csharp.intellisense.browsingNavigation",
           "order": 10
         }
       ],
@@ -256,14 +256,14 @@
         }
       }
     },
-    "languages.dotnet.advanced.alwaysUseDefaultSymbolServers": {
+    "languages.dotnet.intellisense.browsingNavigation.alwaysUseDefaultSymbolServers": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Always_use_default_symbol_servers_for_navigation;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
       "transientScopesSupported": false,
       "placements": [
         {
-          "category": "languages.csharp.advanced.navigation",
+          "category": "languages.csharp.intellisense.browsingNavigation",
           "order": 20
         }
       ],
@@ -277,7 +277,7 @@
         }
       }
     },
-    "languages.dotnet.advanced.displayAllHintsWhilePressingAltF1": {
+    "languages.dotnet.intellisense.inlineHints.showAllOnAltF1": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Display_all_hints_while_pressing_Alt_F1;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": true,
@@ -289,11 +289,11 @@
       ],
       "placements": [
         {
-          "category": "languages.csharp.advanced.inlineHints",
+          "category": "languages.csharp.intellisense.inlineHints",
           "order": 0
         },
         {
-          "category": "languages.basic.advanced.inlineHints",
+          "category": "languages.basic.intellisense.inlineHints",
           "order": 0
         }
       ],
@@ -307,7 +307,7 @@
         }
       }
     },
-    "languages.dotnet.advanced.inheritanceMarginCombinedWithIndicatorMargin": {
+    "languages.dotnet.intellisense.browsingNavigation.inheritanceMargin.combineWithIndicatorMargin": {
       "title": "@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:Combine_inheritance_margin_with_indicator_margin;..\\Microsoft.VisualStudio.LanguageServices.dll",
       "type": "boolean",
       "default": false,
@@ -319,12 +319,12 @@
       ],
       "placements": [
         {
-          "category": "languages.csharp.advanced.inheritanceMargin",
-          "order": 10
+          "category": "languages.csharp.intellisense.browsingNavigation",
+          "order": 50
         },
         {
-          "category": "languages.basic.advanced.inheritanceMargin",
-          "order": 10
+          "category": "languages.basic.intellisense.browsingNavigation",
+          "order": 50
         }
       ],
       "migration": {
@@ -337,14 +337,14 @@
         }
       }
     },
-    "languages.dotnet.advanced.splitStringLiterals": {
+    "languages.dotnet.textEditor.splitStringLiterals": {
       "title": "@Microsoft.VisualStudio.LanguageServices.CSharp.CSharpVSResources:Split_string_literals_on_enter;..\\Microsoft.VisualStudio.LanguageServices.CSharp.dll",
       "type": "boolean",
       "default": true,
       "transientScopesSupported": false,
       "placements": [
         {
-          "category": "languages.csharp.advanced.editorHelp",
+          "category": "languages.csharp.textEditor",
           "order": 20
         }
       ],

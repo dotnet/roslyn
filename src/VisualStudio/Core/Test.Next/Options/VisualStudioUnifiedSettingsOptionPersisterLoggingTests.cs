@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests;
 
 public partial class VisualStudioUnifiedSettingsOptionPersisterTests
 {
-    private const string LoggingMoniker = "languages.dotnet.advanced.enableFileLoggingForDiagnostics";
+    private const string LoggingMoniker = "languages.dotnet.analysis.enableFileLoggingForDiagnostics";
 
     [Theory]
     [InlineData(false, "false")]
@@ -91,7 +91,7 @@ public partial class VisualStudioUnifiedSettingsOptionPersisterTests
         Assert.True(storage.TryFetch(persister, key, out var initial));
         Assert.Equal(false, initial);
         Assert.Equal(1, reads);
-        manager.NotifyChanged("languages.dotnet.advanced.unrelated");
+        manager.NotifyChanged("languages.dotnet.analysis.unrelated");
         Assert.Equal(0, refreshes);
 
         // Native registry/import migration and native reset both enter this same subscription path.

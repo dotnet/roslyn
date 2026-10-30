@@ -1844,4 +1844,37 @@ Additional information: {1}</value>
   <data name="This_setting_is_shared_by_CSharp_and_Visual_Basic" xml:space="preserve">
     <value>This setting is shared by C# and Visual Basic. Changing it affects both languages.</value>
   </data>
+  <data name="Browsing_and_navigation" xml:space="preserve">
+    <value>Browsing &amp; navigation</value>
+  </data>
+  <data name="Refactoring" xml:space="preserve">
+    <value>Refactoring</value>
+  </data>
+  <data name="Embedded_languages" xml:space="preserve">
+    <value>Embedded languages</value>
+  </data>
+  <data name="Text_editor" xml:space="preserve">
+    <value>Text editor</value>
+  </data>
+  <data name="Structure_guides" xml:space="preserve">
+    <value>Structure guides</value>
+  </data>
+  <data name="Code_cleanup" xml:space="preserve">
+    <value>Code cleanup</value>
+  </data>
+  <data name="General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="Inline_diagnostic_location" xml:space="preserve">
+    <value>Inline diagnostic location</value>
+  </data>
+  <data name="Show_regular_expression_completion_list" xml:space="preserve">
+    <value>Show regular expression completion list</value>
+  </data>
+  <data name="Highlight_related_regular_expression_components_under_cursor" xml:space="preserve">
+    <value>Highlight related regular expression components under cursor</value>
+  </data>
+  <data name="Highlight_related_JSON_components_under_cursor" xml:space="preserve">
+    <value>Highlight related JSON components under cursor</value>
+  </data>
 </root>

@@ -54,7 +54,7 @@ using static Microsoft.VisualStudio.LanguageServices.Options.VisualStudioOptionS
 namespace Roslyn.VisualStudio.Next.UnitTests.UnifiedSettings;
 
 /// <summary>
-/// Validates shipping Advanced registrations and their legacy migrations.
+/// Validates task-oriented registrations and their legacy migrations.
 /// </summary>
 public sealed class AdvancedUnifiedSettingsTests
 {
@@ -64,94 +64,94 @@ public sealed class AdvancedUnifiedSettingsTests
         (SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, "analysis.compilerDiagnosticsScope"),
         (InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics, "analysis.enableInlineDiagnostics"),
         (InlineDiagnosticsOptionsStorage.Location, "analysis.inlineDiagnosticsLocation"),
-        (GenerationOptions.PlaceSystemNamespaceFirst, "imports.placeSystemNamespaceFirst"),
-        (GenerationOptions.SeparateImportDirectiveGroups, "imports.separateImportDirectiveGroups"),
-        (SymbolSearchOptionsStorage.SearchReferenceAssemblies, "imports.searchReferenceAssemblies"),
-        (SymbolSearchOptionsStorage.SearchNuGetPackages, "imports.searchNuGetPackages"),
-        (AddImportOnPasteOptionsStorage.AddImportsOnPaste, "imports.addImportsOnPaste"),
-        (ReferenceHighlightingOptionsStorage.ReferenceHighlighting, "highlighting.referenceHighlighting"),
-        (KeywordHighlightingOptionsStorage.KeywordHighlighting, "highlighting.keywordHighlighting"),
-        (OutliningOptionsStorage.Outlining, "outlining.outlining"),
-        (BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, "outlining.collapseRegionsWhenFirstOpened"),
-        (BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, "outlining.collapseImportsWhenFirstOpened"),
-        (BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, "outlining.collapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened"),
-        (BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, "outlining.collapseMetadataSignatureFilesWhenFirstOpened"),
-        (LineSeparatorsOptionsStorage.LineSeparator, "outlining.lineSeparator"),
-        (BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, "outlining.showOutliningForDeclarationLevelConstructs"),
-        (BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, "outlining.showOutliningForCodeLevelConstructs"),
-        (BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions, "outlining.showOutliningForCommentsAndPreprocessorRegions"),
-        (BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, "outlining.collapseRegionsWhenCollapsingToDefinitions"),
-        (FadingOptions.FadeOutUnusedImports, "fading.fadeOutUnusedImports"),
-        (FadingOptions.FadeOutUnusedMembers, "fading.fadeOutUnusedMembers"),
-        (BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, "structureGuides.showBlockStructureGuidesForDeclarationLevelConstructs"),
-        (BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, "structureGuides.showBlockStructureGuidesForCodeLevelConstructs"),
-        (BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, "structureGuides.showBlockStructureGuidesForCommentsAndPreprocessorRegions"),
-        (DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, "comments.autoXmlDocCommentGeneration"),
-        (DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, "comments.generateSummaryTagOnSingleLine"),
-        (DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, "comments.generateOnlySummaryTag"),
-        (SplitCommentOptionsStorage.Enabled, "comments.splitComments"),
-        (QuickInfoOptionsStorage.ShowRemarksInQuickInfo, "editorHelp.showRemarksInQuickInfo"),
-        (RenameTrackingOptionsStorage.RenameTrackingPreview, "editorHelp.renameTrackingPreview"),
-        (FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, "editorHelp.reportInvalidPlaceholdersInStringDotFormatCalls"),
-        (ClassificationOptionsStorage.ClassifyReassignedVariables, "editorHelp.classifyReassignedVariables"),
-        (ClassificationOptionsStorage.ClassifyObsoleteSymbols, "editorHelp.classifyObsoleteSymbols"),
-        (ClassificationOptionsStorage.ColorizeRegexPatterns, "regularExpressions.colorizeRegexPatterns"),
-        (RegexOptionsStorage.ReportInvalidRegexPatterns, "regularExpressions.reportInvalidRegexPatterns"),
-        (HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor, "regularExpressions.highlightRelatedRegexComponentsUnderCursor"),
-        (CompletionOptionsStorage.ProvideRegexCompletions, "regularExpressions.provideRegexCompletions"),
-        (ClassificationOptionsStorage.ColorizeJsonPatterns, "json.colorizeJsonPatterns"),
-        (JsonDetectionOptionsStorage.ReportInvalidJsonPatterns, "json.reportInvalidJsonPatterns"),
-        (HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor, "json.highlightRelatedJsonComponentsUnderCursor"),
-        (ImplementTypeOptionsStorage.InsertionBehavior, "implementType.insertionBehavior"),
-        (ImplementTypeOptionsStorage.PropertyGenerationBehavior, "implementType.propertyGenerationBehavior"),
-        (InlineHintsViewOptionsStorage.ColorHints, "inlineHints.colorHints"),
-        (InlineHintsOptionsStorage.EnabledForParameters, "inlineHints.enabledForParameters"),
-        (InlineHintsOptionsStorage.ForLiteralParameters, "inlineHints.forLiteralParameters"),
-        (InlineHintsOptionsStorage.ForObjectCreationParameters, "inlineHints.forObjectCreationParameters"),
-        (InlineHintsOptionsStorage.ForOtherParameters, "inlineHints.forOtherParameters"),
-        (InlineHintsOptionsStorage.ForIndexerParameters, "inlineHints.forIndexerParameters"),
-        (InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent, "inlineHints.suppressForParametersThatMatchMethodIntent"),
-        (InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix, "inlineHints.suppressForParametersThatDifferOnlyBySuffix"),
-        (InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName, "inlineHints.suppressForParametersThatMatchArgumentName"),
-        (InheritanceMarginOptionsStorage.ShowInheritanceMargin, "inheritanceMargin.showInheritanceMargin"),
-        (InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, "inheritanceMargin.inheritanceMarginIncludeGlobalImports"),
+        (GenerationOptions.PlaceSystemNamespaceFirst, "codeCleanup.imports.placeSystemNamespaceFirst"),
+        (GenerationOptions.SeparateImportDirectiveGroups, "codeCleanup.imports.separateImportDirectiveGroups"),
+        (SymbolSearchOptionsStorage.SearchReferenceAssemblies, "codeCleanup.imports.searchReferenceAssemblies"),
+        (SymbolSearchOptionsStorage.SearchNuGetPackages, "codeCleanup.imports.searchNuGetPackages"),
+        (AddImportOnPasteOptionsStorage.AddImportsOnPaste, "codeCleanup.imports.addImportsOnPaste"),
+        (ReferenceHighlightingOptionsStorage.ReferenceHighlighting, "textEditor.highlighting.referenceHighlighting"),
+        (KeywordHighlightingOptionsStorage.KeywordHighlighting, "textEditor.highlighting.keywordHighlighting"),
+        (OutliningOptionsStorage.Outlining, "textEditor.outlining.onFileOpen"),
+        (BlockStructureOptionsStorage.CollapseRegionsWhenFirstOpened, "textEditor.outlining.onFileOpen.collapseRegions"),
+        (BlockStructureOptionsStorage.CollapseImportsWhenFirstOpened, "textEditor.outlining.onFileOpen.collapseImports"),
+        (BlockStructureOptionsStorage.CollapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened, "textEditor.outlining.onFileOpen.collapseSourceLinkEmbeddedDecompiledFiles"),
+        (BlockStructureOptionsStorage.CollapseMetadataSignatureFilesWhenFirstOpened, "textEditor.outlining.onFileOpen.collapseMetadataSignatureFiles"),
+        (LineSeparatorsOptionsStorage.LineSeparator, "textEditor.lineSeparator"),
+        (BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs, "textEditor.outlining.showOutliningForDeclarationLevelConstructs"),
+        (BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs, "textEditor.outlining.showOutliningForCodeLevelConstructs"),
+        (BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions, "textEditor.outlining.showOutliningForCommentsAndPreprocessorRegions"),
+        (BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions, "textEditor.outlining.collapseRegionsWhenCollapsingToDefinitions"),
+        (FadingOptions.FadeOutUnusedImports, "textEditor.highlighting.fadeOutUnusedImports"),
+        (FadingOptions.FadeOutUnusedMembers, "textEditor.highlighting.fadeOutUnusedMembers"),
+        (BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, "textEditor.structureGuides.showBlockStructureGuidesForDeclarationLevelConstructs"),
+        (BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, "textEditor.structureGuides.showBlockStructureGuidesForCodeLevelConstructs"),
+        (BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, "textEditor.structureGuides.showBlockStructureGuidesForCommentsAndPreprocessorRegions"),
+        (DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, "codeStyle.comments.autoXmlDocCommentGeneration"),
+        (DocumentationCommentOptionsStorage.GenerateSummaryTagOnSingleLine, "codeStyle.comments.generateSummaryTagOnSingleLine"),
+        (DocumentationCommentOptionsStorage.GenerateOnlySummaryTag, "codeStyle.comments.generateOnlySummaryTag"),
+        (SplitCommentOptionsStorage.Enabled, "codeStyle.comments.splitComments"),
+        (QuickInfoOptionsStorage.ShowRemarksInQuickInfo, "intellisense.showRemarksInQuickInfo"),
+        (RenameTrackingOptionsStorage.RenameTrackingPreview, "intellisense.refactoring.renameTrackingPreview"),
+        (FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, "intellisense.embeddedLanguages.compositeFormatting.reportInvalidPlaceholders"),
+        (ClassificationOptionsStorage.ClassifyReassignedVariables, "textEditor.highlighting.classifyReassignedVariables"),
+        (ClassificationOptionsStorage.ClassifyObsoleteSymbols, "textEditor.highlighting.classifyObsoleteSymbols"),
+        (ClassificationOptionsStorage.ColorizeRegexPatterns, "intellisense.embeddedLanguages.regularExpressions.colorize"),
+        (RegexOptionsStorage.ReportInvalidRegexPatterns, "intellisense.embeddedLanguages.regularExpressions.reportInvalidPatterns"),
+        (HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor, "intellisense.embeddedLanguages.regularExpressions.highlightRelatedComponents"),
+        (CompletionOptionsStorage.ProvideRegexCompletions, "intellisense.embeddedLanguages.regularExpressions.showCompletions"),
+        (ClassificationOptionsStorage.ColorizeJsonPatterns, "intellisense.embeddedLanguages.json.colorize"),
+        (JsonDetectionOptionsStorage.ReportInvalidJsonPatterns, "intellisense.embeddedLanguages.json.reportInvalidPatterns"),
+        (HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor, "intellisense.embeddedLanguages.json.highlightRelatedComponents"),
+        (ImplementTypeOptionsStorage.InsertionBehavior, "intellisense.refactoring.implementType.insertionBehavior"),
+        (ImplementTypeOptionsStorage.PropertyGenerationBehavior, "intellisense.refactoring.implementType.propertyGenerationBehavior"),
+        (InlineHintsViewOptionsStorage.ColorHints, "intellisense.inlineHints.colorize"),
+        (InlineHintsOptionsStorage.EnabledForParameters, "intellisense.inlineHints.parameters.show"),
+        (InlineHintsOptionsStorage.ForLiteralParameters, "intellisense.inlineHints.parameters.forLiterals"),
+        (InlineHintsOptionsStorage.ForObjectCreationParameters, "intellisense.inlineHints.parameters.forObjectCreation"),
+        (InlineHintsOptionsStorage.ForOtherParameters, "intellisense.inlineHints.parameters.forOtherArguments"),
+        (InlineHintsOptionsStorage.ForIndexerParameters, "intellisense.inlineHints.parameters.forIndexers"),
+        (InlineHintsOptionsStorage.SuppressForParametersThatMatchMethodIntent, "intellisense.inlineHints.parameters.suppressWhenMatchingMethodIntent"),
+        (InlineHintsOptionsStorage.SuppressForParametersThatDifferOnlyBySuffix, "intellisense.inlineHints.parameters.suppressWhenDifferingOnlyBySuffix"),
+        (InlineHintsOptionsStorage.SuppressForParametersThatMatchArgumentName, "intellisense.inlineHints.parameters.suppressWhenMatchingArgumentName"),
+        (InheritanceMarginOptionsStorage.ShowInheritanceMargin, "intellisense.browsingNavigation.inheritanceMargin.show"),
+        (InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, "intellisense.browsingNavigation.inheritanceMargin.includeGlobalImports"),
     ];
 
     private static readonly (IOption2 Option, string Path)[] s_csharpOnlyOptions =
     [
-        (BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions, "outlining.collapseLocalFunctionsWhenCollapsingToDefinitions"),
-        (FadingOptions.FadeOutUnreachableCode, "fading.fadeOutUnreachableCode"),
-        (BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, "comments.autoInsertBlockCommentStartString"),
-        (StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, "editorHelp.automaticallyFixStringContentsOnPaste"),
-        (CrefPasteOptionsStorage.FixCrefOnPaste, "editorHelp.fixCrefOnPaste"),
-        (InlineHintsOptionsStorage.EnabledForTypes, "inlineHints.enabledForTypes"),
-        (InlineHintsOptionsStorage.ForImplicitVariableTypes, "inlineHints.forImplicitVariableTypes"),
-        (InlineHintsOptionsStorage.ForLambdaParameterTypes, "inlineHints.forLambdaParameterTypes"),
-        (InlineHintsOptionsStorage.ForImplicitObjectCreation, "inlineHints.forImplicitObjectCreation"),
-        (InlineHintsOptionsStorage.ForCollectionExpressions, "inlineHints.forCollectionExpressions"),
+        (BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions, "textEditor.outlining.collapseLocalFunctionsWhenCollapsingToDefinitions"),
+        (FadingOptions.FadeOutUnreachableCode, "textEditor.highlighting.fadeOutUnreachableCode"),
+        (BlockCommentEditingOptionsStorage.AutoInsertBlockCommentStartString, "codeStyle.comments.autoInsertBlockCommentStartString"),
+        (StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, "textEditor.automaticallyFixStringContentsOnPaste"),
+        (CrefPasteOptionsStorage.FixCrefOnPaste, "textEditor.fixCrefOnPaste"),
+        (InlineHintsOptionsStorage.EnabledForTypes, "intellisense.inlineHints.types.show"),
+        (InlineHintsOptionsStorage.ForImplicitVariableTypes, "intellisense.inlineHints.types.forInferredVariables"),
+        (InlineHintsOptionsStorage.ForLambdaParameterTypes, "intellisense.inlineHints.types.forLambdaParameters"),
+        (InlineHintsOptionsStorage.ForImplicitObjectCreation, "intellisense.inlineHints.types.forImplicitObjectCreation"),
+        (InlineHintsOptionsStorage.ForCollectionExpressions, "intellisense.inlineHints.types.forCollectionExpressions"),
     ];
 
     private static readonly (IOption2 Option, string Path)[] s_visualBasicOnlyOptions =
     [
-        (EndConstructGenerationOptionsStorage.EndConstruct, "editorHelp.endConstruct"),
-        (LineCommitOptionsStorage.PrettyListing, "editorHelp.prettyListing"),
-        (AutomaticInsertionOfAbstractOrInterfaceMembersOptionsStorage.AutomaticInsertionOfAbstractOrInterfaceMembers, "editorHelp.automaticInsertionOfAbstractOrInterfaceMembers"),
-        (VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, "navigation.navigateToObjectBrowser"),
+        (EndConstructGenerationOptionsStorage.EndConstruct, "textEditor.endConstruct"),
+        (LineCommitOptionsStorage.PrettyListing, "codeStyle.formatting.general.prettyListing"),
+        (AutomaticInsertionOfAbstractOrInterfaceMembersOptionsStorage.AutomaticInsertionOfAbstractOrInterfaceMembers, "intellisense.refactoring.automaticInsertionOfAbstractOrInterfaceMembers"),
+        (VisualStudioNavigationOptionsStorage.NavigateToObjectBrowser, "intellisense.browsingNavigation.navigateToObjectBrowser"),
     ];
 
     private static readonly (IOption2 Option, string Path, string Category, int Order, bool BothLanguages)[] s_globalOptions =
     [
-        (FeatureOnOffOptions.OfferRemoveUnusedReferences, "offerRemoveUnusedReferences", "analysis", 40, true),
-        (VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics, "enableFileLoggingForDiagnostics", "analysis", 50, true),
-        (FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds, "skipAnalyzersForImplicitlyTriggeredBuilds", "analysis", 60, true),
-        (WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, "sourceGeneratorExecution", "sourceGenerators", 0, true),
-        (MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, "navigateToSourceLinkAndEmbeddedSources", "navigation", 0, false),
-        (MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, "navigateToDecompiledSources", "navigation", 10, false),
-        (MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers, "alwaysUseDefaultSymbolServers", "navigation", 20, false),
-        (InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1, "displayAllHintsWhilePressingAltF1", "inlineHints", 0, true),
-        (InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin, "inheritanceMarginCombinedWithIndicatorMargin", "inheritanceMargin", 10, true),
-        (SplitStringLiteralOptionsStorage.Enabled, "splitStringLiterals", "editorHelp", 20, false),
-        (StackTraceExplorerOptionsStorage.OpenOnFocus, "openStackTraceExplorerOnFocus", "stackTrace", 0, false),
+        (FeatureOnOffOptions.OfferRemoveUnusedReferences, "codeCleanup.offerRemoveUnusedReferences", "codeCleanup", 0, true),
+        (VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics, "analysis.enableFileLoggingForDiagnostics", "analysis", 50, true),
+        (FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds, "analysis.skipAnalyzersForImplicitlyTriggeredBuilds", "analysis", 60, true),
+        (WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, "analysis.sourceGeneratorExecution", "analysis", 70, true),
+        (MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources, "intellisense.browsingNavigation.navigateToSourceLinkAndEmbeddedSources", "intellisense.browsingNavigation", 0, false),
+        (MetadataAsSourceOptionsStorage.NavigateToDecompiledSources, "intellisense.browsingNavigation.navigateToDecompiledSources", "intellisense.browsingNavigation", 10, false),
+        (MetadataAsSourceOptionsStorage.AlwaysUseDefaultSymbolServers, "intellisense.browsingNavigation.alwaysUseDefaultSymbolServers", "intellisense.browsingNavigation", 20, false),
+        (InlineHintsViewOptionsStorage.DisplayAllHintsWhilePressingAltF1, "intellisense.inlineHints.showAllOnAltF1", "intellisense.inlineHints", 0, true),
+        (InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin, "intellisense.browsingNavigation.inheritanceMargin.combineWithIndicatorMargin", "intellisense.browsingNavigation", 50, true),
+        (SplitStringLiteralOptionsStorage.Enabled, "textEditor.splitStringLiterals", "textEditor", 20, false),
+        (StackTraceExplorerOptionsStorage.OpenOnFocus, "intellisense.browsingNavigation.openStackTraceExplorerOnFocus", "intellisense.browsingNavigation", 70, false),
     ];
 
     [Theory]
@@ -161,24 +161,45 @@ public sealed class AdvancedUnifiedSettingsTests
     {
         using var document = Load(manifest);
         var properties = document.RootElement.GetProperty("properties");
-        var prefix = $"languages.{languageId}.advanced.";
+        var prefix = $"languages.{languageId}.";
         var expected = s_commonOptions.Concat(language == LanguageNames.CSharp ? s_csharpOnlyOptions : s_visualBasicOnlyOptions).ToArray();
         Assert.Equal(count, expected.Length);
-        Assert.Equal(count + (language == LanguageNames.CSharp ? 5 : 0), properties.EnumerateObject().Count(property => property.Name.StartsWith(prefix, StringComparison.Ordinal)));
+        Assert.Equal(count + (language == LanguageNames.CSharp ? 5 : 0), properties.EnumerateObject().Count(property => property.Value.TryGetProperty("transientScopesSupported", out _)));
         foreach (var (option, path) in expected)
         {
-            var setting = properties.GetProperty(prefix + path);
+            var moniker = prefix + path;
+            var setting = properties.GetProperty(moniker);
             VerifyOption(option, language, setting);
-            Assert.False(setting.TryGetProperty("placements", out _));
-            Assert.True(document.RootElement.GetProperty("categories").TryGetProperty(prefix + path[..path.LastIndexOf('.')], out _));
+            var categories = document.RootElement.GetProperty("categories");
+            var expectedCategory = categories.EnumerateObject().Select(category => category.Name)
+                .Where(category => moniker.StartsWith(category + ".", StringComparison.Ordinal))
+                .OrderByDescending(category => category.Length).First();
+            Assert.Equal(expectedCategory, GetCategory(moniker, properties));
         }
     }
 
+    private static string GetCategory(string moniker, JsonElement properties)
+    {
+        var setting = properties.GetProperty(moniker);
+        if (setting.TryGetProperty("enableWhen", out var enableWhen))
+        {
+            Assert.False(setting.TryGetProperty("placements", out _));
+            var expression = enableWhen.GetString()!;
+            Assert.StartsWith("${config:", expression);
+            var dependency = expression.Substring("${config:".Length, expression.IndexOf('}') - "${config:".Length);
+            return GetCategory(dependency, properties);
+        }
+
+        return setting.TryGetProperty("placements", out var placements)
+            ? Assert.Single(placements.EnumerateArray()).GetProperty("category").GetString()!
+            : moniker[..moniker.LastIndexOf('.')];
+    }
+
     [Theory]
-    [InlineData("csharpSettings.registration.json", "languages.csharp.advanced.imports.placeSystemNamespaceFirst", false)]
-    [InlineData("visualBasicSettings.registration.json", "languages.basic.advanced.imports.placeSystemNamespaceFirst", true)]
-    [InlineData("csharpSettings.registration.json", "languages.csharp.advanced.outlining.lineSeparator", false)]
-    [InlineData("visualBasicSettings.registration.json", "languages.basic.advanced.outlining.lineSeparator", true)]
+    [InlineData("csharpSettings.registration.json", "languages.csharp.codeCleanup.imports.placeSystemNamespaceFirst", false)]
+    [InlineData("visualBasicSettings.registration.json", "languages.basic.codeCleanup.imports.placeSystemNamespaceFirst", true)]
+    [InlineData("csharpSettings.registration.json", "languages.csharp.textEditor.lineSeparator", false)]
+    [InlineData("visualBasicSettings.registration.json", "languages.basic.textEditor.lineSeparator", true)]
     public void LanguageDefaultsMatchGeneralProfile(string manifest, string moniker, bool expectedDefault)
     {
         using var document = Load(manifest);
@@ -193,10 +214,10 @@ public sealed class AdvancedUnifiedSettingsTests
         using var csharp = Load("csharpSettings.registration.json");
         using var basic = Load("visualBasicSettings.registration.json");
         var properties = shared.RootElement.GetProperty("properties");
-        Assert.Equal(s_globalOptions.Length, properties.EnumerateObject().Count(property => property.Name.StartsWith("languages.dotnet.advanced.", StringComparison.Ordinal)));
+        Assert.Equal(s_globalOptions.Length, properties.EnumerateObject().Count(property => property.Name.StartsWith("languages.dotnet.", StringComparison.Ordinal)));
         foreach (var (option, path, category, order, bothLanguages) in s_globalOptions)
         {
-            var moniker = "languages.dotnet.advanced." + path;
+            var moniker = "languages.dotnet." + path;
             Assert.False(csharp.RootElement.GetProperty("properties").TryGetProperty(moniker, out _));
             Assert.False(basic.RootElement.GetProperty("properties").TryGetProperty(moniker, out _));
             var setting = properties.GetProperty(moniker);
@@ -204,7 +225,7 @@ public sealed class AdvancedUnifiedSettingsTests
             Assert.False(setting.TryGetProperty("enableWhen", out _));
             var placements = setting.GetProperty("placements").EnumerateArray().ToArray();
             Assert.Equal(bothLanguages ? 2 : 1, placements.Length);
-            Assert.Equal("languages.csharp.advanced." + category, placements[0].GetProperty("category").GetString());
+            Assert.Equal("languages.csharp." + category, placements[0].GetProperty("category").GetString());
             foreach (var placement in placements)
             {
                 Assert.Equal(order, placement.GetProperty("order").GetInt32());
@@ -215,7 +236,7 @@ public sealed class AdvancedUnifiedSettingsTests
 
             if (bothLanguages)
             {
-                Assert.Equal("languages.basic.advanced." + category, placements[1].GetProperty("category").GetString());
+                Assert.Equal("languages.basic." + category, placements[1].GetProperty("category").GetString());
                 var message = Assert.Single(setting.GetProperty("messages").EnumerateArray());
                 Assert.Equal("@Microsoft.VisualStudio.LanguageServices.ServicesVSResources:This_setting_is_shared_by_CSharp_and_Visual_Basic;{6cf2e545-6109-4730-8883-cf43d7aec3e1}", message.GetProperty("text").GetString());
                 Assert.Equal("This setting is shared by C# and Visual Basic. Changing it affects both languages.", TestModel.Utilities.EvalResource(message.GetProperty("text").GetString()!));
@@ -227,7 +248,7 @@ public sealed class AdvancedUnifiedSettingsTests
             }
         }
 
-        var sourceGeneratorExecution = properties.GetProperty("languages.dotnet.advanced.sourceGeneratorExecution");
+        var sourceGeneratorExecution = properties.GetProperty("languages.dotnet.analysis.sourceGeneratorExecution");
         Assert.Equal("Source generator execution:", TestModel.Utilities.EvalResource(sourceGeneratorExecution.GetProperty("title").GetString()!));
         Assert.True(sourceGeneratorExecution.GetProperty("requiresRestart").GetBoolean());
     }
@@ -239,33 +260,52 @@ public sealed class AdvancedUnifiedSettingsTests
     {
         using var document = Load(manifest);
         var properties = document.RootElement.GetProperty("properties");
-        var prefix = $"languages.{languageId}.advanced.";
+        var prefix = $"languages.{languageId}.";
         var expected = new Dictionary<string, string>
         {
             ["analysis.inlineDiagnosticsLocation"] = "analysis.enableInlineDiagnostics",
-            ["outlining.collapseRegionsWhenFirstOpened"] = "outlining.outlining",
-            ["outlining.collapseImportsWhenFirstOpened"] = "outlining.outlining",
-            ["outlining.collapseSourceLinkEmbeddedDecompiledFilesWhenFirstOpened"] = "outlining.outlining",
-            ["outlining.collapseMetadataSignatureFilesWhenFirstOpened"] = "outlining.outlining",
+            ["textEditor.outlining.onFileOpen.collapseRegions"] = "textEditor.outlining.onFileOpen",
+            ["textEditor.outlining.onFileOpen.collapseImports"] = "textEditor.outlining.onFileOpen",
+            ["textEditor.outlining.onFileOpen.collapseSourceLinkEmbeddedDecompiledFiles"] = "textEditor.outlining.onFileOpen",
+            ["textEditor.outlining.onFileOpen.collapseMetadataSignatureFiles"] = "textEditor.outlining.onFileOpen",
         };
-        foreach (var path in new[] { "forLiteralParameters", "forObjectCreationParameters", "forOtherParameters", "forIndexerParameters", "suppressForParametersThatMatchMethodIntent", "suppressForParametersThatDifferOnlyBySuffix", "suppressForParametersThatMatchArgumentName" })
-            expected.Add("inlineHints." + path, "inlineHints.enabledForParameters");
+        foreach (var path in new[] { "forLiterals", "forObjectCreation", "forOtherArguments", "forIndexers", "suppressWhenMatchingMethodIntent", "suppressWhenDifferingOnlyBySuffix", "suppressWhenMatchingArgumentName" })
+            expected.Add("intellisense.inlineHints.parameters." + path, "intellisense.inlineHints.parameters.show");
         if (languageId == "csharp")
         {
-            foreach (var path in new[] { "forImplicitVariableTypes", "forLambdaParameterTypes", "forImplicitObjectCreation", "forCollectionExpressions" })
-                expected.Add("inlineHints." + path, "inlineHints.enabledForTypes");
+            foreach (var path in new[] { "forInferredVariables", "forLambdaParameters", "forImplicitObjectCreation", "forCollectionExpressions" })
+                expected.Add("intellisense.inlineHints.types." + path, "intellisense.inlineHints.types.show");
         }
 
         Assert.Equal(count, expected.Count);
-        Assert.Equal(count + (languageId == "csharp" ? 2 : 0), properties.EnumerateObject().Count(property => property.Name.StartsWith(prefix, StringComparison.Ordinal) && property.Value.TryGetProperty("enableWhen", out _)));
+        Assert.Equal(count + (languageId == "csharp" ? 2 : 0), properties.EnumerateObject().Count(property => property.Value.TryGetProperty("transientScopesSupported", out _) && property.Value.TryGetProperty("enableWhen", out _)));
         foreach (var (path, dependency) in expected)
             Assert.Equal($"${{config:{prefix}{dependency}}}=='true'", properties.GetProperty(prefix + path).GetProperty("enableWhen").GetString());
 
         var checkbox = properties.GetProperty(prefix + "analysis.enableInlineDiagnostics");
         var location = properties.GetProperty(prefix + "analysis.inlineDiagnosticsLocation");
         Assert.Equal("Display diagnostics inline", TestModel.Utilities.EvalResource(checkbox.GetProperty("title").GetString()!));
-        Assert.Equal("Location", TestModel.Utilities.EvalResource(location.GetProperty("title").GetString()!));
+        Assert.Equal("Inline diagnostic location", TestModel.Utilities.EvalResource(location.GetProperty("title").GetString()!));
         Assert.True(location.GetProperty("order").GetInt32() > checkbox.GetProperty("order").GetInt32());
+    }
+
+    [Theory]
+    [InlineData("csharp", "csharpSettings.registration.json")]
+    [InlineData("basic", "visualBasicSettings.registration.json")]
+    public void EmbeddedLanguageLabelsIdentifyTheirLanguage(string languageId, string manifest)
+    {
+        using var document = Load(manifest);
+        var properties = document.RootElement.GetProperty("properties");
+        var prefix = $"languages.{languageId}.intellisense.embeddedLanguages.";
+        foreach (var (path, label) in new[]
+        {
+            ("regularExpressions.showCompletions", "Show regular expression completion list"),
+            ("regularExpressions.highlightRelatedComponents", "Highlight related regular expression components under cursor"),
+            ("json.highlightRelatedComponents", "Highlight related JSON components under cursor"),
+        })
+        {
+            Assert.Equal(label, TestModel.Utilities.EvalResource(properties.GetProperty(prefix + path).GetProperty("title").GetString()!));
+        }
     }
 
     [Fact]
@@ -294,16 +334,16 @@ public sealed class AdvancedUnifiedSettingsTests
         {
             using var document = Load(manifest);
             var properties = document.RootElement.GetProperty("properties");
-            var prefix = $"languages.{languageId}.advanced.";
+            var prefix = $"languages.{languageId}.";
             VerifyMap(properties.GetProperty(prefix + "analysis.backgroundAnalysisScope"), ("none", 3), ("currentDocument", 0), ("openDocuments", 1), ("entireSolution", 2));
             VerifyMap(properties.GetProperty(prefix + "analysis.compilerDiagnosticsScope"), ("none", 0), ("currentDocument", 1), ("openDocuments", 2), ("entireSolution", 3));
             VerifyMap(properties.GetProperty(prefix + "analysis.inlineDiagnosticsLocation"), ("placedAtEndOfCode", 0), ("placedAtEndOfEditor", 1));
-            VerifyMap(properties.GetProperty(prefix + "implementType.insertionBehavior"), ("withOtherMembersOfTheSameKind", 0), ("atTheEnd", 1));
-            VerifyMap(properties.GetProperty(prefix + "implementType.propertyGenerationBehavior"), ("preferThrowingProperties", 0), ("preferAutoProperties", 1));
+            VerifyMap(properties.GetProperty(prefix + "intellisense.refactoring.implementType.insertionBehavior"), ("withOtherMembersOfTheSameKind", 0), ("atTheEnd", 1));
+            VerifyMap(properties.GetProperty(prefix + "intellisense.refactoring.implementType.propertyGenerationBehavior"), ("preferThrowingProperties", 0), ("preferAutoProperties", 1));
         }
 
         using var shared = Load("roslynSettings.registration.json");
-        VerifyMap(shared.RootElement.GetProperty("properties").GetProperty("languages.dotnet.advanced.sourceGeneratorExecution"), ("automatic", 0), ("balanced", 1));
+        VerifyMap(shared.RootElement.GetProperty("properties").GetProperty("languages.dotnet.analysis.sourceGeneratorExecution"), ("automatic", 0), ("balanced", 1));
     }
 
     private static void VerifyMap(JsonElement setting, params (string Result, int Match)[] expected)
@@ -321,7 +361,7 @@ public sealed class AdvancedUnifiedSettingsTests
         foreach (var manifest in new[] { "csharpSettings.registration.json", "visualBasicSettings.registration.json", "roslynSettings.registration.json" })
         {
             using var document = Load(manifest);
-            foreach (var property in document.RootElement.GetProperty("properties").EnumerateObject().Where(property => property.Name.Contains(".advanced.")))
+            foreach (var property in document.RootElement.GetProperty("properties").EnumerateObject().Where(property => property.Value.TryGetProperty("transientScopesSupported", out _)))
             {
                 if (property.Value.GetProperty("type").GetString() != "string"
                     || !property.Value.GetProperty("migration").TryGetProperty("custom", out var rule)
@@ -352,9 +392,9 @@ public sealed class AdvancedUnifiedSettingsTests
     }
 
     [Theory]
-    [InlineData("csharpSettings.registration.json", "languages.csharp.advanced.inheritanceMargin.showInheritanceMargin")]
-    [InlineData("visualBasicSettings.registration.json", "languages.basic.advanced.inheritanceMargin.showInheritanceMargin")]
-    [InlineData("roslynSettings.registration.json", "languages.dotnet.advanced.offerRemoveUnusedReferences")]
+    [InlineData("csharpSettings.registration.json", "languages.csharp.intellisense.browsingNavigation.inheritanceMargin.show")]
+    [InlineData("visualBasicSettings.registration.json", "languages.basic.intellisense.browsingNavigation.inheritanceMargin.show")]
+    [InlineData("roslynSettings.registration.json", "languages.dotnet.codeCleanup.offerRemoveUnusedReferences")]
     public void NullableLegacySettingsUseBooleanCheckboxesAndPassMigration(string manifest, string moniker)
     {
         using var document = Load(manifest);
@@ -388,7 +428,7 @@ public sealed class AdvancedUnifiedSettingsTests
                 Assert.Equal("full", migration.Value.GetProperty("mode").GetString());
                 break;
             case UnifiedSettingsManagerStorage unified:
-                Assert.Equal("languages.dotnet.advanced.enableFileLoggingForDiagnostics", unified.Key);
+                Assert.Equal("languages.dotnet.analysis.enableFileLoggingForDiagnostics", unified.Key);
                 Assert.Equal("VsUserSettingsRegistry", input.GetProperty("store").GetString());
                 Assert.Equal(@"Roslyn\Internal\Diagnostics\EnableFileLoggingForDiagnostics", input.GetProperty("path").GetString());
                 Assert.Equal("full", migration.Value.GetProperty("mode").GetString());
@@ -438,16 +478,16 @@ public sealed class AdvancedUnifiedSettingsTests
     }
 
     [Theory]
-    [InlineData("csharpSettings.registration.json", 95)]
+    [InlineData("csharpSettings.registration.json", 94)]
     [InlineData("visualBasicSettings.registration.json", 88)]
     [InlineData("roslynSettings.registration.json", 13)]
-    public void AdvancedDllResourcesUseTheirDeclaredNativeResourceTable(string manifest, int expectedReferences)
+    public void DllResourcesUseTheirDeclaredNativeResourceTable(string manifest, int expectedReferences)
     {
         using var document = Load(manifest);
         var count = 0;
         foreach (var group in document.RootElement.EnumerateObject().Where(group => group.Name is "categories" or "properties"))
         {
-            foreach (var entry in group.Value.EnumerateObject().Where(entry => entry.Name.Contains(".advanced.") || entry.Name.EndsWith(".advanced", StringComparison.Ordinal)))
+            foreach (var entry in group.Value.EnumerateObject().Where(entry => group.Name == "categories" || entry.Value.TryGetProperty("transientScopesSupported", out _)))
                 Verify(entry.Value);
         }
 

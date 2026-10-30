@@ -162,6 +162,11 @@
         <target state="translated">64 bits</target>
         <note />
       </trans-unit>
+      <trans-unit id="Browsing_and_navigation">
+        <source>Browsing &amp; navigation</source>
+        <target state="new">Browsing &amp; navigation</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Calculating">
         <source>Calculating...</source>
         <target state="translated">Calcul...</target>
@@ -215,6 +220,11 @@
       <trans-unit id="Code_analysis_terminated_before_completion_for_0">
         <source>Code analysis terminated before completion for '{0}'.</source>
         <target state="translated">L'analyse du code s'est terminée avant la fin de '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Code_cleanup">
+        <source>Code cleanup</source>
+        <target state="new">Code cleanup</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_preview">
@@ -347,6 +357,11 @@
         <target state="translated">L'élément n'est pas valide.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Embedded_languages">
+        <source>Embedded languages</source>
+        <target state="new">Embedded languages</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Enable_file_logging_for_diagnostics">
         <source>Enable file logging for diagnostics (logged in '%Temp%\Roslyn' folder)</source>
         <target state="translated">Activer la journalisation des fichiers pour les Diagnostics (connexion au dossier « %Temp% \Roslyn »)</target>
@@ -472,6 +487,11 @@
         <target state="translated">Mise en forme d’un nouveau document...</target>
         <note />
       </trans-unit>
+      <trans-unit id="General">
+        <source>General</source>
+        <target state="new">General</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Générer le fichier .editorconfig à partir des paramètres</target>
@@ -507,6 +527,11 @@
         <target state="translated">Surligner les références jusqu'au symbole sous le curseur</target>
         <note />
       </trans-unit>
+      <trans-unit id="Highlight_related_JSON_components_under_cursor">
+        <source>Highlight related JSON components under cursor</source>
+        <target state="new">Highlight related JSON components under cursor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Highlight_related_components_under_cursor">
         <source>Highlight related components under cursor</source>
         <target state="translated">Surligner les composants liés sous le curseur</target>
@@ -515,6 +540,11 @@
       <trans-unit id="Highlight_related_keywords_under_cursor">
         <source>Highlight related keywords under cursor</source>
         <target state="translated">Surligner les mots clés liés sous le curseur</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Highlight_related_regular_expression_components_under_cursor">
+        <source>Highlight related regular expression components under cursor</source>
+        <target state="new">Highlight related regular expression components under cursor</target>
         <note />
       </trans-unit>
       <trans-unit id="Highlighting">
@@ -590,6 +620,11 @@
       <trans-unit id="Inherited_interfaces">
         <source>Inherited interfaces</source>
         <target state="translated">Interfaces héritées</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Inline_diagnostic_location">
+        <source>Inline diagnostic location</source>
+        <target state="new">Inline diagnostic location</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_Snippet">
@@ -1112,6 +1147,11 @@
         <target state="translated">Élever les membres</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refactoring">
+        <source>Refactoring</source>
+        <target state="new">Refactoring</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Reference">
         <source>Reference</source>
         <target state="translated">Référence</target>
@@ -1372,6 +1412,11 @@
         <target state="translated">Afficher les séparateurs de ligne de procédure</target>
         <note />
       </trans-unit>
+      <trans-unit id="Show_regular_expression_completion_list">
+        <source>Show regular expression completion list</source>
+        <target state="new">Show regular expression completion list</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">Afficher les notes dans Info express</target>
@@ -1415,6 +1460,11 @@
       <trans-unit id="Strike_out_obsolete_symbols">
         <source>Strike out obsolete symbols</source>
         <target state="translated">Symboles obsolètes barrés</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Structure_guides">
+        <source>Structure guides</source>
+        <target state="new">Structure guides</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_hints_when_argument_matches_parameter_name">
@@ -1465,6 +1515,11 @@
       <trans-unit id="Target_Namespace_colon">
         <source>Target Namespace:</source>
         <target state="translated">Espace de noms cible :</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Text_editor">
+        <source>Text editor</source>
+        <target state="new">Text editor</target>
         <note />
       </trans-unit>
       <trans-unit id="The_generator_0_that_generated_this_file_has_been_removed_from_the_project">
