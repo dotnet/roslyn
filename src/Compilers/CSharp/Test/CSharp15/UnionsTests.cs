@@ -16612,6 +16612,7 @@ class S1 : S1.IUnionMembers
     public interface IUnionMembers  
     {
         public static S1? Create(int x) => throw null!;
+        public static S1 Create(string x) => throw null!;
         public object Value { get; }
     }
 }
@@ -16640,19 +16641,25 @@ class Program
     {
 #line 200
         return 10!;
-}
+    }   
 
     static S2<T> Test3<T>() where T : class
     {
 #line 300
         return 10;
-}
+    }   
 
     static S2<T> Test4<T>() where T : class
     {
 #line 400
         return 10!;
     }   
+
+    static S1 Test5(bool b, int x, string y)
+    {
+#line 500
+        return b ? x : y;
+    }
 }
 ";
             var comp = CreateCompilation([src, UnionAttributeSource]);
@@ -16662,7 +16669,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceReturn, "10").WithLocation(100, 16),
                 // (300,16): warning CS8619: Nullability of reference types in value of type 'S2<T?>' doesn't match target type 'S2<T>'.
                 //         return 10;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "10").WithArguments("S2<T?>", "S2<T>").WithLocation(300, 16)
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "10").WithArguments("S2<T?>", "S2<T>").WithLocation(300, 16),
+                // (500,16): warning CS8603: Possible null reference return.
+                //         return b ? x : y;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "b ? x : y").WithLocation(500, 16)
                 );
         }
 
