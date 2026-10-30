@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -104,9 +105,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 AssemblyPath = Path.Combine(outputDir, "Util.dll"),
             };
 
-            var result = cache.TryRestoreCachedResult("Util.dll", "abc123", outputFiles, "", _logger, s_outputTimestampUtc, out _);
+            var result = cache.TryRestoreCachedResult("Util.dll", "abc123", outputFiles, "", _logger, s_outputTimestampUtc, out _, out var missReason);
 
             Assert.False(result);
+            Assert.Equal(CompilationCacheMissReason.NotFound, missReason);
             Assert.False(File.Exists(outputFiles.AssemblyPath));
         }
 
@@ -130,9 +132,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 AssemblyPath = Path.Combine(outputDir, dllName),
             };
 
-            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", _logger, s_outputTimestampUtc, out var diagnosticOutput);
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", _logger, s_outputTimestampUtc, out var diagnosticOutput, out var missReason);
 
             Assert.True(result);
+            Assert.Equal(CompilationCacheMissReason.None, missReason);
             Assert.Equal("", diagnosticOutput);
             Assert.True(File.Exists(outputFiles.AssemblyPath));
             Assert.Equal([1, 2, 3], File.ReadAllBytes(outputFiles.AssemblyPath));
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             Directory.CreateDirectory(Path.Combine(outputDir, "ref"));
 
-            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", _logger, s_outputTimestampUtc, out _);
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", _logger, s_outputTimestampUtc, out _, out _);
 
             Assert.True(result);
             Assert.Equal([1], File.ReadAllBytes(outputFiles.AssemblyPath));
@@ -186,10 +189,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "original context", expectedOutput, _logger));
             File.WriteAllBytes(outputFiles.AssemblyPath, [4]);
 
-            var restored = cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, sameContext ? "original context" : "different context", _logger, s_outputTimestampUtc, out var diagnosticOutput);
+            var restored = cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, sameContext ? "original context" : "different context", _logger, s_outputTimestampUtc, out var diagnosticOutput, out var missReason);
 
             var expectedHit = !hasWarnings || sameContext;
             Assert.Equal(expectedHit, restored);
+            Assert.Equal(expectedHit ? CompilationCacheMissReason.None : CompilationCacheMissReason.DiagnosticContextMismatch, missReason);
             Assert.Equal(expectedHit ? expectedOutput : null, diagnosticOutput);
             Assert.Equal(expectedHit ? [1, 2, 3] : new byte[] { 4 }, File.ReadAllBytes(outputFiles.AssemblyPath));
         }
@@ -211,10 +215,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             File.WriteAllBytes(outputFiles.AssemblyPath, [4]);
             var logMessages = new List<string>();
 
-            Assert.False(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "", new CollectingLogger(logMessages), s_outputTimestampUtc, out var diagnosticOutput));
+            Assert.False(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "", new CollectingLogger(logMessages), s_outputTimestampUtc, out var diagnosticOutput, out var missReason));
+            Assert.Equal(invalidDiagnostics ? CompilationCacheMissReason.InvalidDiagnostics : CompilationCacheMissReason.MissingOutputs, missReason);
             Assert.Null(diagnosticOutput);
             Assert.Equal([4], File.ReadAllBytes(outputFiles.AssemblyPath));
-            Assert.Contains(logMessages, message => message.Contains(invalidDiagnostics ? "Cache hit restore failed" : "Cache miss because entry is missing required output files", StringComparison.Ordinal));
+            Assert.Contains(logMessages, message => message.Contains(invalidDiagnostics ? "Cache miss because entry has invalid diagnostic data" : "Cache miss because entry is missing required output files", StringComparison.Ordinal));
         }
 
         [Fact]
@@ -247,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             Directory.CreateDirectory(Path.Combine(outputDir, "ref"));
 
-            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", _logger, s_outputTimestampUtc, out _);
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", _logger, s_outputTimestampUtc, out _, out _);
 
             Assert.True(result);
             Assert.Equal(s_outputTimestampUtc, File.GetLastWriteTimeUtc(outputFiles.AssemblyPath));
@@ -286,10 +291,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var logMessages = new List<string>();
             var logger = new CollectingLogger(logMessages);
-            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", logger, s_outputTimestampUtc, out _);
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", logger, s_outputTimestampUtc, out _, out var missReason);
 
             // PDB was requested but not cached — should be treated as a cache miss.
             Assert.False(result);
+            Assert.Equal(CompilationCacheMissReason.MissingOutputs, missReason);
             Assert.Contains(logMessages, m => m.Contains("Cache miss because entry is missing required output files:", StringComparison.Ordinal));
         }
 
@@ -315,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             };
 
             using var entryLock = AcquireEntryMutex(cache, dllName, hashKey);
-            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", logger, s_outputTimestampUtc, out _);
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", logger, s_outputTimestampUtc, out _, out _);
 
             Assert.True(result);
             Assert.Equal([1, 2, 3], File.ReadAllBytes(outputFiles.AssemblyPath));
@@ -341,9 +347,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             };
 
             using var entryLock = AcquireEntryMutex(cache, dllName, hashKey);
-            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", logger, s_outputTimestampUtc, out _);
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", logger, s_outputTimestampUtc, out _, out var missReason);
 
             Assert.False(result);
+            Assert.Equal(CompilationCacheMissReason.NotFound, missReason);
             Assert.False(File.Exists(outputFiles.AssemblyPath));
             Assert.Contains(logMessages, m => m.Contains("Cache miss because entry is being populated:", StringComparison.Ordinal));
         }
@@ -466,6 +473,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var task2 = Task.Run(() => cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, "", "", logger2));
             Task.WaitAll(task1, task2);
 
+            Assert.Contains(existingIncompleteEntry ? CompilationCacheStoreResult.ReplacedEntry : CompilationCacheStoreResult.Stored, new[] { task1.Result, task2.Result });
             Assert.Equal([10, 20, 30], File.ReadAllBytes(Path.Combine(entryDir, "assembly")));
             Assert.True(File.Exists(Path.Combine(entryDir, "diagnostics")));
             Assert.Equal(entryDir, Assert.Single(Directory.GetDirectories(Path.Combine(cacheDir, dllName))));
@@ -497,14 +505,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             };
 
             // Initially no cache hit.
-            Assert.False(cache.TryRestoreCachedResult(dllName, hashKey, restoreFiles, "", _logger, s_outputTimestampUtc, out _));
+            Assert.False(cache.TryRestoreCachedResult(dllName, hashKey, restoreFiles, "", _logger, s_outputTimestampUtc, out _, out _));
 
             // Store the result.
             var storeFiles = new CompilationOutputFiles { AssemblyPath = assemblyPath };
             cache.TryStoreResult(dllName, hashKey, storeFiles, deterministicKey, "", "", _logger);
 
             // Now there should be a cache hit.
-            Assert.True(cache.TryRestoreCachedResult(dllName, hashKey, restoreFiles, "", _logger, s_outputTimestampUtc, out _));
+            Assert.True(cache.TryRestoreCachedResult(dllName, hashKey, restoreFiles, "", _logger, s_outputTimestampUtc, out _, out _));
             Assert.Equal([0xAB, 0xCD], File.ReadAllBytes(restoreFiles.AssemblyPath));
         }
 
@@ -565,19 +573,20 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             var entryDir = Path.Combine(cacheDir, "Util.dll", hashKey);
             File.Delete(Path.Combine(entryDir, missingFile));
-            Assert.False(cache.TryRestoreCachedResult("Util.dll", hashKey, outputFiles, "context", _logger, s_outputTimestampUtc, out _));
+            Assert.False(cache.TryRestoreCachedResult("Util.dll", hashKey, outputFiles, "context", _logger, s_outputTimestampUtc, out _, out var missReason));
+            Assert.Equal(CompilationCacheMissReason.MissingOutputs, missReason);
             File.WriteAllBytes(outputFiles.AssemblyPath, [11]);
             File.WriteAllBytes(outputFiles.PdbPath, [12]);
             File.WriteAllBytes(outputFiles.RefAssemblyPath, [13]);
             File.WriteAllBytes(outputFiles.XmlDocPath, [14]);
 
-            Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult("Util.dll", hashKey, outputFiles, "key", "context", "new diagnostic", _logger));
+            Assert.Equal(CompilationCacheStoreResult.ReplacedEntry, cache.TryStoreResult("Util.dll", hashKey, outputFiles, "key", "context", "new diagnostic", _logger));
             File.Delete(outputFiles.AssemblyPath);
             File.Delete(outputFiles.PdbPath);
             File.Delete(outputFiles.RefAssemblyPath);
             File.Delete(outputFiles.XmlDocPath);
 
-            Assert.True(cache.TryRestoreCachedResult("Util.dll", hashKey, outputFiles, "context", _logger, s_outputTimestampUtc, out var diagnosticOutput));
+            Assert.True(cache.TryRestoreCachedResult("Util.dll", hashKey, outputFiles, "context", _logger, s_outputTimestampUtc, out var diagnosticOutput, out _));
             Assert.Equal("new diagnostic", diagnosticOutput);
             Assert.Equal([11], File.ReadAllBytes(outputFiles.AssemblyPath));
             Assert.Equal([12], File.ReadAllBytes(outputFiles.PdbPath));
@@ -608,13 +617,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 "negative-length" => [0xFF, 0xFF, 0xFF, 0xFF, 0x0F],
                 _ => throw new InvalidOperationException(),
             });
-            Assert.False(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "context", _logger, s_outputTimestampUtc, out _));
+            Assert.False(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "context", _logger, s_outputTimestampUtc, out _, out var missReason));
+            Assert.Equal(CompilationCacheMissReason.InvalidDiagnostics, missReason);
             File.WriteAllBytes(outputFiles.AssemblyPath, [2]);
 
-            Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "context", "new diagnostic", _logger));
+            Assert.Equal(CompilationCacheStoreResult.ReplacedEntry, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "context", "new diagnostic", _logger));
             File.Delete(outputFiles.AssemblyPath);
 
-            Assert.True(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "context", _logger, s_outputTimestampUtc, out var diagnosticOutput));
+            Assert.True(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "context", _logger, s_outputTimestampUtc, out var diagnosticOutput, out _));
             Assert.Equal("new diagnostic", diagnosticOutput);
             Assert.Equal([2], File.ReadAllBytes(outputFiles.AssemblyPath));
         }
@@ -663,14 +673,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 AssemblyPath = differentContext ? Path.Combine(restoreDir, "Util.dll") : Path.Combine(restoreDir, "missing-directory", "Util.dll"),
             };
-            Assert.False(cache.TryRestoreCachedResult("Util.dll", "hash", restoreFiles, context, _logger, s_outputTimestampUtc, out _));
+            Assert.False(cache.TryRestoreCachedResult("Util.dll", "hash", restoreFiles, context, _logger, s_outputTimestampUtc, out _, out var missReason));
+            Assert.Equal(differentContext ? CompilationCacheMissReason.DiagnosticContextMismatch : CompilationCacheMissReason.RestoreFailed, missReason);
             Assert.False(File.Exists(restoreFiles.AssemblyPath));
             File.WriteAllBytes(outputFiles.AssemblyPath, [2]);
 
             Assert.Equal(CompilationCacheStoreResult.SkippedExists, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", context, "new diagnostic", _logger));
             File.Delete(outputFiles.AssemblyPath);
 
-            Assert.True(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "original context", _logger, s_outputTimestampUtc, out var diagnosticOutput));
+            Assert.True(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "original context", _logger, s_outputTimestampUtc, out var diagnosticOutput, out _));
             Assert.Equal("original diagnostic", diagnosticOutput);
             Assert.Equal([1], File.ReadAllBytes(outputFiles.AssemblyPath));
         }
@@ -689,6 +700,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             using (File.Open(Path.Combine(cacheDir, "Util.dll", "hash", "diagnostics"), FileMode.Open, FileAccess.Read, FileShare.None))
             {
+                Assert.False(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "context", _logger, s_outputTimestampUtc, out _, out var missReason));
+                Assert.Equal(CompilationCacheMissReason.RestoreFailed, missReason);
                 Assert.Equal(CompilationCacheStoreResult.Failed, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "context", "new diagnostic", new CollectingLogger(messages)));
             }
 
@@ -714,6 +727,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var telemetry = new CompilationCacheTelemetry
             {
                 Status = CompilationCacheStatus.Miss,
+                MissReason = CompilationCacheMissReason.DiagnosticContextMismatch,
                 StoreResult = CompilationCacheStoreResult.Stored,
                 CompileResult = CompilationCacheCompileResult.Succeeded,
                 KeyComputeMilliseconds = 5,
@@ -726,6 +740,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             Assert.Equal(CompilationCacheTelemetry.EventName, telemetryEvent.EventName);
             Assert.Equal("miss", telemetryEvent.Properties["cachestatus"]);
+            Assert.Equal("diagnosticcontextmismatch", telemetryEvent.Properties["missreason"]);
             Assert.Equal("stored", telemetryEvent.Properties["storeresult"]);
             Assert.Equal("succeeded", telemetryEvent.Properties["compileresult"]);
             Assert.Equal(LanguageNames.CSharp, telemetryEvent.Properties["language"]);
@@ -733,6 +748,105 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             Assert.Equal("6", telemetryEvent.Properties["restorems"]);
             Assert.Equal("7", telemetryEvent.Properties["storems"]);
             Assert.Equal("8", telemetryEvent.Properties["compilems"]);
+            Assert.Equal(9, telemetryEvent.Properties.Count);
+        }
+
+        [Theory]
+        [InlineData((int)CompilationCacheMissReason.None, null)]
+        [InlineData((int)CompilationCacheMissReason.NotFound, "notfound")]
+        [InlineData((int)CompilationCacheMissReason.MissingOutputs, "missingoutputs")]
+        [InlineData((int)CompilationCacheMissReason.InvalidDiagnostics, "invaliddiagnostics")]
+        [InlineData((int)CompilationCacheMissReason.DiagnosticContextMismatch, "diagnosticcontextmismatch")]
+        [InlineData((int)CompilationCacheMissReason.RestoreFailed, "restorefailed")]
+        public void CompilationCacheTelemetry_ToTelemetryEvent_MapsMissReason(int reason, string? expectedValue)
+        {
+            var telemetry = new CompilationCacheTelemetry
+            {
+                Status = CompilationCacheStatus.Miss,
+                MissReason = (CompilationCacheMissReason)reason,
+            };
+
+            var telemetryEvent = telemetry.ToTelemetryEvent(LanguageNames.CSharp);
+
+            Assert.Equal("miss", telemetryEvent.Properties["cachestatus"]);
+            if (expectedValue is null)
+            {
+                Assert.False(telemetryEvent.Properties.ContainsKey("missreason"));
+            }
+            else
+            {
+                Assert.Equal(expectedValue, telemetryEvent.Properties["missreason"]);
+            }
+        }
+
+        [Theory]
+        [InlineData((int)CompilationCacheStoreResult.None, "none")]
+        [InlineData((int)CompilationCacheStoreResult.Stored, "stored")]
+        [InlineData((int)CompilationCacheStoreResult.ReplacedEntry, "replaced")]
+        [InlineData((int)CompilationCacheStoreResult.SkippedRace, "skippedrace")]
+        [InlineData((int)CompilationCacheStoreResult.SkippedExists, "skippedexists")]
+        [InlineData((int)CompilationCacheStoreResult.Failed, "failed")]
+        public void CompilationCacheTelemetry_ToTelemetryEvent_MapsStoreResult(int result, string expectedValue)
+        {
+            var telemetry = new CompilationCacheTelemetry
+            {
+                Status = CompilationCacheStatus.Miss,
+                StoreResult = (CompilationCacheStoreResult)result,
+            };
+
+            var telemetryEvent = telemetry.ToTelemetryEvent(LanguageNames.CSharp);
+
+            Assert.Equal(expectedValue, telemetryEvent.Properties["storeresult"]);
+        }
+
+        [Theory, CombinatorialData]
+        public void CompilationCacheUtilities_ReportsLookupOutcome(bool differentContext)
+        {
+            var cache = CreateCache(Temp.CreateDirectory().Path);
+            var outputDirectory = Temp.CreateDirectory().Path;
+            var outputFile = Path.Combine(outputDirectory, "Util.dll");
+            var sourceFile = Path.Combine(outputDirectory, "test.cs");
+            var arguments = ParseArguments([$"/out:{outputFile}", "/t:library", "/deterministic", sourceFile]);
+            var compilation = CSharpCompilation.Create(
+                "Util",
+                syntaxTrees: [CSharpSyntaxTree.ParseText("public class C { }", path: sourceFile)],
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
+            var telemetry = new CompilationCacheTelemetry();
+
+            Assert.Null(CompilationCacheUtilities.CheckCache(
+                cache, _logger, arguments, compilation, [], [], [], CultureInfo.GetCultureInfo("en"), TextWriter.Null,
+                telemetry, CancellationToken.None, out var cacheState));
+            Assert.Equal("notfound", telemetry.ToTelemetryEvent(LanguageNames.CSharp).Properties["missreason"]);
+
+            File.WriteAllBytes(outputFile, [1]);
+            const string diagnosticOutput = "warning CS0618: Example warning";
+            CompilationCacheUtilities.OnCompilationSucceeded(cache, _logger, arguments, cacheState, diagnosticOutput, telemetry);
+            Assert.Equal(CompilationCacheStoreResult.Stored, telemetry.StoreResult);
+            File.Delete(outputFile);
+
+            var lookupTelemetry = new CompilationCacheTelemetry();
+            using var output = new StringWriter();
+            var exitCode = CompilationCacheUtilities.CheckCache(
+                cache, _logger, arguments, compilation, [], [], [], CultureInfo.GetCultureInfo(differentContext ? "fr" : "en"), output,
+                lookupTelemetry, CancellationToken.None, out _);
+            var telemetryEvent = lookupTelemetry.ToTelemetryEvent(LanguageNames.CSharp);
+
+            if (differentContext)
+            {
+                Assert.Null(exitCode);
+                Assert.Equal("miss", telemetryEvent.Properties["cachestatus"]);
+                Assert.Equal("diagnosticcontextmismatch", telemetryEvent.Properties["missreason"]);
+                Assert.Equal("", output.ToString());
+                Assert.False(File.Exists(outputFile));
+            }
+            else
+            {
+                Assert.Equal(CommonCompiler.Succeeded, exitCode);
+                Assert.Equal("hit", telemetryEvent.Properties["cachestatus"]);
+                Assert.False(telemetryEvent.Properties.ContainsKey("missreason"));
+                Assert.Equal(diagnosticOutput, output.ToString());
+                Assert.Equal([1], File.ReadAllBytes(outputFile));
+            }
         }
 
         [Fact]
@@ -741,6 +855,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var telemetry = new CompilationCacheTelemetry
             {
                 Status = CompilationCacheStatus.Hit,
+                MissReason = CompilationCacheMissReason.DiagnosticContextMismatch,
                 StoreResult = CompilationCacheStoreResult.None,
                 KeyComputeMilliseconds = 3,
                 RestoreMilliseconds = 4,
@@ -751,6 +866,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var telemetryEvent = telemetry.ToTelemetryEvent(LanguageNames.CSharp);
 
             Assert.Equal("hit", telemetryEvent.Properties["cachestatus"]);
+            Assert.False(telemetryEvent.Properties.ContainsKey("missreason"));
             Assert.Equal("none", telemetryEvent.Properties["storeresult"]);
             Assert.False(telemetryEvent.Properties.ContainsKey("compileresult"));
             Assert.Equal("3", telemetryEvent.Properties["keycomputems"]);
@@ -874,7 +990,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 AssemblyPath = Path.Combine(outputDir, dllName),
             };
 
-            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", _logger, s_outputTimestampUtc, out _);
+            var result = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, "", _logger, s_outputTimestampUtc, out _, out _);
             Assert.True(result);
 
             // The last-used file should exist after a cache hit

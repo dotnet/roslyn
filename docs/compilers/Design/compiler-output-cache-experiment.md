@@ -187,7 +187,8 @@ The event carries these properties:
 | Property | Meaning |
 |----------|---------|
 | `cachestatus` | `hit` or `miss` (always present) |
-| `storeresult` | `none`, `stored`, `skippedrace`, `skippedexists`, or `failed` (always present) |
+| `missreason` | `notfound`, `missingoutputs`, `invaliddiagnostics`, `diagnosticcontextmismatch`, or `restorefailed`; omitted on hits or when no reason is available |
+| `storeresult` | `none`, `stored`, `replaced`, `skippedrace`, `skippedexists`, or `failed` (always present) |
 | `compileresult` | `succeeded` or `failed`; omitted on a cache hit |
 | `language` | the compiler language (`C#` / `Visual Basic`) (always present) |
 | `keycomputems` | milliseconds spent computing the deterministic key (always present) |

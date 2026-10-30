@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -41,6 +41,30 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     }
 
     /// <summary>
+    /// Reason a cached result could not satisfy a request.
+    /// </summary>
+    internal enum CompilationCacheMissReason
+    {
+        /// <summary>No miss reason was recorded (for example, on a cache hit).</summary>
+        None,
+
+        /// <summary>No published cache entry was found.</summary>
+        NotFound,
+
+        /// <summary>An existing entry was missing required output files.</summary>
+        MissingOutputs,
+
+        /// <summary>Cached diagnostic data could not be decoded or failed validation.</summary>
+        InvalidDiagnostics,
+
+        /// <summary>Nonempty cached diagnostics were produced in a different rendering context.</summary>
+        DiagnosticContextMismatch,
+
+        /// <summary>An unexpected error occurred while restoring cached outputs.</summary>
+        RestoreFailed,
+    }
+
+    /// <summary>
     /// Outcome of an attempt to store a compilation result in the cache.
     /// </summary>
     internal enum CompilationCacheStoreResult
@@ -48,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>No store was attempted (for example, on a cache hit).</summary>
         None,
 
-        /// <summary>The result was stored successfully.</summary>
+        /// <summary>A new entry was stored successfully.</summary>
         Stored,
 
         /// <summary>Another writer was already populating the entry.</summary>
@@ -59,6 +83,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         /// <summary>The store attempt failed.</summary>
         Failed,
+
+        /// <summary>An unusable entry was replaced successfully.</summary>
+        ReplacedEntry,
     }
 
     /// <summary>
@@ -89,6 +116,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         internal const string EventName = "roslyn/compilercache";
 
         public CompilationCacheStatus Status { get; set; }
+        public CompilationCacheMissReason MissReason { get; set; }
         public CompilationCacheStoreResult StoreResult { get; set; }
         public CompilationCacheCompileResult CompileResult { get; set; }
         public long KeyComputeMilliseconds { get; set; }
@@ -150,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         public BuildTelemetryEvent ToTelemetryEvent(string language)
         {
-            var properties = new Dictionary<string, string>(8)
+            var properties = new Dictionary<string, string>(9)
             {
                 ["cachestatus"] = Status switch
                 {
@@ -161,6 +189,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 ["storeresult"] = StoreResult switch
                 {
                     CompilationCacheStoreResult.Stored => "stored",
+                    CompilationCacheStoreResult.ReplacedEntry => "replaced",
                     CompilationCacheStoreResult.SkippedRace => "skippedrace",
                     CompilationCacheStoreResult.SkippedExists => "skippedexists",
                     CompilationCacheStoreResult.Failed => "failed",
@@ -170,6 +199,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 ["keycomputems"] = KeyComputeMilliseconds.ToString(CultureInfo.InvariantCulture),
                 ["restorems"] = RestoreMilliseconds.ToString(CultureInfo.InvariantCulture),
             };
+
+            if (Status == CompilationCacheStatus.Miss && MissReason != CompilationCacheMissReason.None)
+            {
+                properties["missreason"] = MissReason switch
+                {
+                    CompilationCacheMissReason.NotFound => "notfound",
+                    CompilationCacheMissReason.MissingOutputs => "missingoutputs",
+                    CompilationCacheMissReason.InvalidDiagnostics => "invaliddiagnostics",
+                    CompilationCacheMissReason.DiagnosticContextMismatch => "diagnosticcontextmismatch",
+                    CompilationCacheMissReason.RestoreFailed => "restorefailed",
+                    _ => throw ExceptionUtilities.UnexpectedValue(MissReason),
+                };
+            }
 
             if (CompileResult != CompilationCacheCompileResult.None)
             {

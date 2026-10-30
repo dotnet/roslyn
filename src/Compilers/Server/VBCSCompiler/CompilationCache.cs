@@ -150,9 +150,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string diagnosticContext,
             ICompilerServerLogger logger,
             DateTime outputTimestampUtc,
-            out string? diagnosticOutput)
+            out string? diagnosticOutput,
+            out CompilationCacheMissReason missReason)
         {
             diagnosticOutput = null;
+            missReason = CompilationCacheMissReason.None;
             var entryDir = GetCacheEntryDirectory(dllName, hashKey);
             var cachedAssemblyPath = Path.Combine(entryDir, AssemblyFileName);
             Debug.Assert(outputTimestampUtc.Kind == DateTimeKind.Utc);
@@ -162,14 +164,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 if (!File.Exists(cachedAssemblyPath))
                 {
                     using var entryMutex = TryAcquireEntryMutex(dllName, hashKey, createIfMissing: false);
-                    if (entryMutex is null && !File.Exists(cachedAssemblyPath))
-                    {
-                        logger.Log($"Cache miss because entry is being populated: {dllName} [{hashKey}]");
-                        return false;
-                    }
-
                     if (!File.Exists(cachedAssemblyPath))
                     {
+                        missReason = Directory.Exists(entryDir)
+                            ? CompilationCacheMissReason.MissingOutputs
+                            : CompilationCacheMissReason.NotFound;
+                        if (entryMutex is null)
+                        {
+                            logger.Log($"Cache miss because entry is being populated: {dllName} [{hashKey}]");
+                        }
+
                         return false;
                     }
                 }
@@ -178,6 +182,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // so we don't partially overwrite outputs on a cache miss.
                 if (!HasRequiredOutputFiles(entryDir, outputFiles))
                 {
+                    missReason = CompilationCacheMissReason.MissingOutputs;
                     logger.Log($"Cache miss because entry is missing required output files: {dllName} [{hashKey}]");
                     return false;
                 }
@@ -185,14 +190,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 string cachedDiagnosticOutput;
                 using (var stream = File.OpenRead(Path.Combine(entryDir, DiagnosticsFileName)))
                 {
-                    if (!TryReadDiagnostics(stream, out var cachedContext, out cachedDiagnosticOutput))
+                    if (!TryReadDiagnostics(stream, out var cachedContext, out cachedDiagnosticOutput, out var exception))
                     {
-                        logger.Log($"Cache miss because entry has invalid diagnostic data: {dllName} [{hashKey}]");
+                        missReason = CompilationCacheMissReason.InvalidDiagnostics;
+                        var exceptionDetails = exception is null ? "" : $": {exception.Message}";
+                        logger.Log($"Cache miss because entry has invalid diagnostic data: {dllName} [{hashKey}]{exceptionDetails}");
                         return false;
                     }
 
                     if (cachedDiagnosticOutput.Length > 0 && cachedContext != diagnosticContext)
                     {
+                        missReason = CompilationCacheMissReason.DiagnosticContextMismatch;
                         logger.Log($"Cache miss because diagnostic context changed: {dllName} [{hashKey}]");
                         return false;
                     }
@@ -208,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (Exception ex)
             {
+                missReason = CompilationCacheMissReason.RestoreFailed;
                 logger.Log($"Cache hit restore failed, falling through to compilation: {ex.Message}");
                 return false;
             }
@@ -244,12 +253,27 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 => targetPath is not null && !File.Exists(Path.Combine(entryDir, cachedFileName));
         }
 
-        private static bool TryReadDiagnostics(Stream stream, out string diagnosticContext, out string diagnosticOutput)
+        private static bool TryReadDiagnostics(
+            Stream stream,
+            out string diagnosticContext,
+            out string diagnosticOutput,
+            out Exception? exception)
         {
-            using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
-            diagnosticContext = reader.ReadString();
-            diagnosticOutput = reader.ReadString();
-            return stream.Position == stream.Length;
+            try
+            {
+                using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+                diagnosticContext = reader.ReadString();
+                diagnosticOutput = reader.ReadString();
+                exception = null;
+                return stream.Position == stream.Length;
+            }
+            catch (Exception ex) when (ex is IOException or FormatException)
+            {
+                diagnosticContext = "";
+                diagnosticOutput = "";
+                exception = ex;
+                return false;
+            }
         }
 
         private static bool HasValidDiagnostics(string entryDir)
@@ -257,13 +281,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             try
             {
                 using var stream = File.OpenRead(Path.Combine(entryDir, DiagnosticsFileName));
-                return TryReadDiagnostics(stream, out _, out _);
+                return TryReadDiagnostics(stream, out _, out _, out _);
             }
             catch (IOException)
-            {
-                return false;
-            }
-            catch (FormatException)
             {
                 return false;
             }
@@ -397,9 +417,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return CompilationCacheStoreResult.Failed;
                 }
 
+                var replacedEntry = false;
                 if (Directory.Exists(cacheDir))
                 {
                     Directory.Delete(cacheDir, recursive: true);
+                    replacedEntry = true;
                 }
 
                 Directory.Move(stagingDir, cacheDir);
@@ -407,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 TouchLastUsed(cacheDir, logger);
                 logger.Log($"Cache stored: {dllName} [{hashKey}]");
-                return CompilationCacheStoreResult.Stored;
+                return replacedEntry ? CompilationCacheStoreResult.ReplacedEntry : CompilationCacheStoreResult.Stored;
             }
             catch (Exception ex)
             {

@@ -98,8 +98,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             var outputFiles = BuildOutputFiles(arguments, dllName);
             telemetry.StartRestoreTimer();
-            var restored = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, diagnosticContext, logger, outputTimestampUtc, out var diagnosticOutput);
+            var restored = cache.TryRestoreCachedResult(dllName, hashKey, outputFiles, diagnosticContext, logger, outputTimestampUtc, out var diagnosticOutput, out var missReason);
             telemetry.StopRestoreTimer();
+            telemetry.MissReason = missReason;
 
             if (restored)
             {
