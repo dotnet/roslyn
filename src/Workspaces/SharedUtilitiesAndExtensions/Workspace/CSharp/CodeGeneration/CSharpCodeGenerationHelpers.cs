@@ -24,6 +24,31 @@ using static SyntaxFactory;
 
 internal static class CSharpCodeGenerationHelpers
 {
+    public static void AddSafetyModifierTokens(
+        ISymbol symbol,
+        ArrayBuilder<SyntaxToken> tokens,
+        bool emitUnsafeForLegacyRules,
+        bool? hasBackingField = null)
+    {
+#if !OLDER_ROSLYN
+        if (symbol.UsesUpdatedMemorySafetyRules())
+        {
+            var modifiers = symbol.InferSafetyModifiersFromSymbol(hasBackingField);
+            if (modifiers.IsUnsafe)
+                tokens.Add(UnsafeKeyword);
+
+            if (modifiers.IsSafe)
+                tokens.Add(SafeKeyword);
+
+            return;
+        }
+#endif
+        // Keep legacy document generation unchanged: write 'unsafe' only when requested.
+        // Inferring it from pointer types here would change that behavior.
+        if (emitUnsafeForLegacyRules)
+            tokens.Add(UnsafeKeyword);
+    }
+
     public static TDeclarationSyntax ConditionallyAddFormattingAnnotationTo<TDeclarationSyntax>(
         TDeclarationSyntax result,
         SyntaxList<MemberDeclarationSyntax> members) where TDeclarationSyntax : MemberDeclarationSyntax

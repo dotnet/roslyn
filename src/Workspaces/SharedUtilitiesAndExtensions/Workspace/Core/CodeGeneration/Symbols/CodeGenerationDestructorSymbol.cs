@@ -18,7 +18,9 @@ internal sealed class CodeGenerationDestructorSymbol(
          name: string.Empty,
          typeParameters: [],
          parameters: [],
-         returnTypeAttributes: [])
+         returnTypeAttributes: [],
+         requiresUnsafeContext: false,
+         usesUpdatedMemorySafetyRules: false)
 {
     public override MethodKind MethodKind => MethodKind.Destructor;
 

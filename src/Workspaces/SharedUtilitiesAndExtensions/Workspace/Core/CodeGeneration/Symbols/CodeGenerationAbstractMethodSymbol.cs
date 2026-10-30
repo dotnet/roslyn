@@ -26,8 +26,10 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
         DeclarationModifiers modifiers,
         string name,
         ImmutableArray<AttributeData> returnTypeAttributes,
+        bool requiresUnsafeContext,
+        bool usesUpdatedMemorySafetyRules,
         string documentationCommentXml = null)
-        : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml)
+        : base(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, documentationCommentXml, requiresUnsafeContext, usesUpdatedMemorySafetyRules)
     {
         _returnTypeAttributes = returnTypeAttributes.NullToEmpty();
     }

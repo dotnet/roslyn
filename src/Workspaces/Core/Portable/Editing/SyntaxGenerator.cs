@@ -388,13 +388,22 @@ public abstract class SyntaxGenerator : ILanguageService
                 setAccessorStatements);
         }
 
+        // The generated accessors, not the original property, determine whether backing storage is needed.
+        var hasBackingField =
+            getMethodSymbol is not null && getAccessorStatements is null ||
+            setMethodSymbol is not null && setAccessorStatements is null ||
+            getAccessor?.DescendantNodes().Any(SyntaxFacts.IsFieldExpression) == true ||
+            setAccessor?.DescendantNodes().Any(SyntaxFacts.IsFieldExpression) == true;
+
         var propDecl = PropertyDeclaration(
             property.Name,
             this.SyntaxGeneratorInternal.TypeExpression(property.Type, property.RefKind),
             getAccessor,
             setAccessor,
             propertyAccessibility,
-            DeclarationModifiers.From(property));
+            DeclarationModifiers.From(property, hasBackingField));
+
+        propDecl = WithPropertyAccessorSafety(propDecl, property);
 
         if (property.ExplicitInterfaceImplementations.Length > 0)
         {
@@ -403,6 +412,23 @@ public abstract class SyntaxGenerator : ILanguageService
         }
 
         return propDecl;
+    }
+
+    // Mark only the accessor that requires unsafe; the unmarked accessor is already safe.
+    private SyntaxNode WithPropertyAccessorSafety(SyntaxNode declaration, IPropertySymbol property)
+    {
+        if (!property.RequiresAccessorSafetyModifiers())
+            return declaration;
+
+        return WithAccessorDeclarations(declaration, GetAccessors(declaration).Select(accessor =>
+        {
+            var symbol = GetDeclarationKind(accessor) == DeclarationKind.GetAccessor
+                ? property.GetMethod
+                : property.SetMethod;
+            return symbol?.RequiresUnsafeContext == true
+                ? WithModifiers(accessor, GetModifiers(accessor) | DeclarationModifiers.Unsafe)
+                : accessor;
+        }));
     }
 
     private protected abstract SyntaxNode PropertyDeclaration(
@@ -457,6 +483,17 @@ public abstract class SyntaxGenerator : ILanguageService
             getAccessorStatements,
             setAccessorStatements);
 
+        if (indexer.UsesUpdatedMemorySafetyRules())
+        {
+            // V2 annotations belong to the declared accessors; keep the legacy template behavior unchanged.
+            indexerDecl = WithAccessorDeclarations(indexerDecl, GetAccessors(indexerDecl).Where(accessor =>
+                GetDeclarationKind(accessor) == DeclarationKind.GetAccessor
+                    ? indexer.GetMethod is not null
+                    : indexer.SetMethod is not null));
+        }
+
+        indexerDecl = WithPropertyAccessorSafety(indexerDecl, indexer);
+
         if (indexer.ExplicitInterfaceImplementations.Length > 0)
         {
             indexerDecl = this.WithExplicitInterfaceImplementations(indexerDecl,
@@ -494,7 +531,7 @@ public abstract class SyntaxGenerator : ILanguageService
             symbol.Name,
             TypeExpression(symbol.Type),
             symbol.DeclaredAccessibility,
-            DeclarationModifiers.From(symbol));
+            DeclarationModifiers.From(symbol, hasBackingField: symbol.ExplicitInterfaceImplementations.IsEmpty));
 
         if (symbol.ExplicitInterfaceImplementations.Length > 0)
         {
@@ -532,7 +569,7 @@ public abstract class SyntaxGenerator : ILanguageService
             symbol.Name,
             TypeExpression(symbol.Type),
             symbol.DeclaredAccessibility,
-            DeclarationModifiers.From(symbol),
+            DeclarationModifiers.From(symbol, hasBackingField: false),
             parameters: parameters,
             addAccessorStatements: addAccessorStatements,
             removeAccessorStatements: removeAccessorStatements);

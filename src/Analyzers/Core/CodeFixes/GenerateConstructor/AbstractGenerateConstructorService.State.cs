@@ -460,8 +460,9 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         {
             Contract.ThrowIfNull(TypeToGenerateIn);
 
-            var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType) :
-                          withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType) :
+            var usesUpdatedMemorySafetyRules = TypeToGenerateIn.UsesUpdatedMemorySafetyRules();
+            var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType, usesUpdatedMemorySafetyRules) :
+                          withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType, usesUpdatedMemorySafetyRules) :
                           [];
 
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

@@ -21,7 +21,9 @@ internal sealed class CodeGenerationPropertySymbol(
     bool isIndexer,
     ImmutableArray<IParameterSymbol> parametersOpt,
     IMethodSymbol getMethod,
-    IMethodSymbol setMethod) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name), IPropertySymbol
+    IMethodSymbol setMethod,
+    bool requiresUnsafeContext,
+    bool usesUpdatedMemorySafetyRules) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, requiresUnsafeContext: requiresUnsafeContext, usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules), IPropertySymbol
 {
     public ITypeSymbol Type { get; } = type;
     public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
@@ -39,11 +41,12 @@ internal sealed class CodeGenerationPropertySymbol(
             this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
             this.Modifiers, this.Type, this.RefKind, this.ExplicitInterfaceImplementations,
             this.Name, this.IsIndexer, this.Parameters,
-            this.GetMethod, this.SetMethod);
+            this.GetMethod, this.SetMethod, this.RequiresUnsafeContext, this.UsesUpdatedMemorySafetyRules);
         CodeGenerationPropertyInfo.Attach(result,
             CodeGenerationPropertyInfo.GetIsNew(this),
             CodeGenerationPropertyInfo.GetIsUnsafe(this),
-            CodeGenerationPropertyInfo.GetInitializer(this));
+            CodeGenerationPropertyInfo.GetInitializer(this),
+            CodeGenerationPropertyInfo.GetRequiresSafeForBackingField(this));
 
         return result;
     }

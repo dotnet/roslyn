@@ -32,10 +32,14 @@ internal static class CodeGenerationSymbolFactory
         string name,
         IMethodSymbol? addMethod = null,
         IMethodSymbol? removeMethod = null,
-        IMethodSymbol? raiseMethod = null)
+        IMethodSymbol? raiseMethod = null,
+        bool? requiresUnsafeContext = null,
+        bool requiresSafeForBackingField = false,
+        bool usesUpdatedMemorySafetyRules = false)
     {
-        var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceImplementations, name, addMethod, removeMethod, raiseMethod);
-        CodeGenerationEventInfo.Attach(result, modifiers.IsUnsafe);
+        var result = new CodeGenerationEventSymbol(null, attributes, accessibility, modifiers, type, explicitInterfaceImplementations, name, addMethod, removeMethod, raiseMethod,
+            requiresUnsafeContext ?? GetRequiresUnsafeContext(modifiers), usesUpdatedMemorySafetyRules);
+        CodeGenerationEventInfo.Attach(result, modifiers.IsUnsafe, requiresSafeForBackingField);
         return result;
     }
 
@@ -52,7 +56,10 @@ internal static class CodeGenerationSymbolFactory
         IMethodSymbol? getMethod,
         IMethodSymbol? setMethod,
         bool isIndexer = false,
-        SyntaxNode? initializer = null)
+        SyntaxNode? initializer = null,
+        bool? requiresUnsafeContext = null,
+        bool requiresSafeForBackingField = false,
+        bool? usesUpdatedMemorySafetyRules = null)
     {
         var result = new CodeGenerationPropertySymbol(
             containingType,
@@ -66,8 +73,10 @@ internal static class CodeGenerationSymbolFactory
             isIndexer,
             parameters,
             getMethod,
-            setMethod);
-        CodeGenerationPropertyInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, initializer);
+            setMethod,
+            requiresUnsafeContext ?? GetRequiresUnsafeContext(modifiers),
+            usesUpdatedMemorySafetyRules ?? containingType?.UsesUpdatedMemorySafetyRules() == true);
+        CodeGenerationPropertyInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, initializer, requiresSafeForBackingField);
         return result;
     }
 
@@ -78,7 +87,8 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers,
         ITypeSymbol type, RefKind refKind, ImmutableArray<IPropertySymbol> explicitInterfaceImplementations, string name,
         ImmutableArray<IParameterSymbol> parameters, IMethodSymbol? getMethod, IMethodSymbol? setMethod,
-        bool isIndexer = false, SyntaxNode? initializer = null)
+        bool isIndexer = false, SyntaxNode? initializer = null,
+        bool usesUpdatedMemorySafetyRules = false)
     {
         return CreatePropertySymbol(
             containingType: null,
@@ -93,7 +103,8 @@ internal static class CodeGenerationSymbolFactory
             getMethod: getMethod,
             setMethod: setMethod,
             isIndexer: isIndexer,
-            initializer: initializer);
+            initializer: initializer,
+            usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules);
     }
 
     /// <summary>
@@ -106,9 +117,12 @@ internal static class CodeGenerationSymbolFactory
         ITypeSymbol type, string name,
         bool hasConstantValue = false,
         object? constantValue = null,
-        SyntaxNode? initializer = null)
+        SyntaxNode? initializer = null,
+        bool? requiresUnsafeContext = null,
+        bool usesUpdatedMemorySafetyRules = false)
     {
-        var result = new CodeGenerationFieldSymbol(null, attributes, accessibility, modifiers, type, name, hasConstantValue, constantValue);
+        var result = new CodeGenerationFieldSymbol(null, attributes, accessibility, modifiers, type, name, hasConstantValue, constantValue,
+            requiresUnsafeContext ?? GetRequiresUnsafeContext(modifiers), usesUpdatedMemorySafetyRules);
         CodeGenerationFieldInfo.Attach(result, modifiers.IsUnsafe, modifiers.IsWithEvents, initializer);
         return result;
     }
@@ -125,9 +139,11 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<SyntaxNode> statements = default,
         ImmutableArray<SyntaxNode> baseConstructorArguments = default,
         ImmutableArray<SyntaxNode> thisConstructorArguments = default,
-        bool isPrimaryConstructor = false)
+        bool isPrimaryConstructor = false,
+        bool usesUpdatedMemorySafetyRules = false)
     {
-        var result = new CodeGenerationConstructorSymbol(null, attributes, accessibility, modifiers, parameters);
+        var result = new CodeGenerationConstructorSymbol(null, attributes, accessibility, modifiers, parameters,
+            GetRequiresUnsafeContext(modifiers, MethodKind.Constructor), usesUpdatedMemorySafetyRules);
         CodeGenerationConstructorInfo.Attach(result, isPrimaryConstructor, modifiers.IsUnsafe, typeName, statements, baseConstructorArguments, thisConstructorArguments);
         return result;
     }
@@ -159,9 +175,14 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<SyntaxNode> handlesExpressions = default,
         ImmutableArray<AttributeData> returnTypeAttributes = default,
         MethodKind methodKind = MethodKind.Ordinary,
-        bool isInitOnly = false)
+        bool isInitOnly = false,
+        bool? requiresUnsafeContext = null,
+        bool? usesUpdatedMemorySafetyRules = null)
     {
-        var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, documentationCommentXml: null, methodKind, isInitOnly);
+        var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes,
+            requiresUnsafeContext ?? GetRequiresUnsafeContext(modifiers, methodKind),
+            usesUpdatedMemorySafetyRules ?? containingType?.UsesUpdatedMemorySafetyRules() == true,
+            methodKind: methodKind, isInitOnly: isInitOnly);
         CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions);
         return result;
     }
@@ -180,9 +201,11 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<SyntaxNode> handlesExpressions = default,
         ImmutableArray<AttributeData> returnTypeAttributes = default,
         MethodKind methodKind = MethodKind.Ordinary,
-        bool isInitOnly = false)
+        bool isInitOnly = false,
+        bool usesUpdatedMemorySafetyRules = false)
     {
-        return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind, isInitOnly);
+        return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, refKind, explicitInterfaceImplementations, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind, isInitOnly,
+            usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules);
     }
 
     /// <summary>
@@ -197,7 +220,8 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<IParameterSymbol> parameters,
         ImmutableArray<SyntaxNode> statements = default,
         ImmutableArray<AttributeData> returnTypeAttributes = default,
-        string? documentationCommentXml = null)
+        string? documentationCommentXml = null,
+        bool usesUpdatedMemorySafetyRules = false)
     {
         var expectedParameterCount = CodeGenerationOperatorSymbol.GetParameterCount(operatorKind);
         if (parameters.Length != expectedParameterCount)
@@ -208,7 +232,8 @@ internal static class CodeGenerationSymbolFactory
             throw new ArgumentException(message, nameof(parameters));
         }
 
-        var result = new CodeGenerationOperatorSymbol(null, attributes, accessibility, modifiers, returnType, operatorKind, parameters, returnTypeAttributes, documentationCommentXml);
+        var result = new CodeGenerationOperatorSymbol(null, attributes, accessibility, modifiers, returnType, operatorKind, parameters, returnTypeAttributes, documentationCommentXml,
+            GetRequiresUnsafeContext(modifiers), usesUpdatedMemorySafetyRules);
         CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions: default);
         return result;
     }
@@ -223,7 +248,8 @@ internal static class CodeGenerationSymbolFactory
         bool isImplicit = false,
         ImmutableArray<SyntaxNode> statements = default,
         ImmutableArray<AttributeData> toTypeAttributes = default,
-        string? documentationCommentXml = null)
+        string? documentationCommentXml = null,
+        bool? usesUpdatedMemorySafetyRules = null)
     {
         return CreateConversionSymbol(
             attributes: default,
@@ -235,7 +261,8 @@ internal static class CodeGenerationSymbolFactory
             isImplicit,
             statements,
             toTypeAttributes,
-            documentationCommentXml);
+            documentationCommentXml,
+            usesUpdatedMemorySafetyRules);
     }
 
     /// <summary>
@@ -251,9 +278,12 @@ internal static class CodeGenerationSymbolFactory
         bool isImplicit = false,
         ImmutableArray<SyntaxNode> statements = default,
         ImmutableArray<AttributeData> toTypeAttributes = default,
-        string? documentationCommentXml = null)
+        string? documentationCommentXml = null,
+        bool? usesUpdatedMemorySafetyRules = null)
     {
-        var result = new CodeGenerationConversionSymbol(containingType, attributes, accessibility, modifiers, toType, fromType, isImplicit, toTypeAttributes, documentationCommentXml);
+        var result = new CodeGenerationConversionSymbol(containingType, attributes, accessibility, modifiers, toType, fromType, isImplicit, toTypeAttributes, documentationCommentXml,
+            GetRequiresUnsafeContext(modifiers),
+            usesUpdatedMemorySafetyRules ?? containingType?.UsesUpdatedMemorySafetyRules() == true);
         CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions: default);
         return result;
     }
@@ -361,6 +391,7 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<SyntaxNode> statements = default)
     {
         return CreateMethodSymbol(
+            containingType: null,
             attributes,
             accessibility ?? accessor.DeclaredAccessibility,
             accessor.GetSymbolModifiers().WithIsAbstract(statements == null),
@@ -373,6 +404,10 @@ internal static class CodeGenerationSymbolFactory
             statements: statements,
             returnTypeAttributes: accessor.GetReturnTypeAttributes(),
             methodKind: accessor.MethodKind,
+            usesUpdatedMemorySafetyRules: accessor.UsesUpdatedMemorySafetyRules(),
+#if !OLDER_ROSLYN
+            requiresUnsafeContext: accessor.RequiresUnsafeContext,
+#endif
             isInitOnly: accessor.IsInitOnly);
     }
 
@@ -382,7 +417,8 @@ internal static class CodeGenerationSymbolFactory
     public static IMethodSymbol CreateAccessorSymbol(
         ImmutableArray<AttributeData> attributes,
         Accessibility accessibility,
-        ImmutableArray<SyntaxNode> statements)
+        ImmutableArray<SyntaxNode> statements,
+        bool usesUpdatedMemorySafetyRules = false)
     {
         return CreateMethodSymbol(
             attributes,
@@ -394,7 +430,8 @@ internal static class CodeGenerationSymbolFactory
             name: string.Empty,
             typeParameters: default,
             parameters: default,
-            statements: statements);
+            statements: statements,
+            usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules);
     }
 
     /// <summary>
@@ -422,9 +459,10 @@ internal static class CodeGenerationSymbolFactory
         SpecialType specialType = SpecialType.None,
         ImmutableArray<ISymbol> members = default,
         NullableAnnotation nullableAnnotation = NullableAnnotation.None,
-        IAssemblySymbol? containingAssembly = null)
+        IAssemblySymbol? containingAssembly = null,
+        bool usesUpdatedMemorySafetyRules = false)
     {
-        return CreateNamedTypeSymbol(attributes, accessibility, modifiers, isRecord: false, typeKind, name, typeParameters, baseType, interfaces, specialType, members, nullableAnnotation, containingAssembly);
+        return CreateNamedTypeSymbol(attributes, accessibility, modifiers, isRecord: false, typeKind, name, typeParameters, baseType, interfaces, specialType, members, nullableAnnotation, containingAssembly, usesUpdatedMemorySafetyRules);
     }
 
     /// <summary>
@@ -441,7 +479,8 @@ internal static class CodeGenerationSymbolFactory
         SpecialType specialType = SpecialType.None,
         ImmutableArray<ISymbol> members = default,
         NullableAnnotation nullableAnnotation = NullableAnnotation.None,
-        IAssemblySymbol? containingAssembly = null)
+        IAssemblySymbol? containingAssembly = null,
+        bool usesUpdatedMemorySafetyRules = false)
     {
         members = members.NullToEmpty();
 
@@ -450,7 +489,8 @@ internal static class CodeGenerationSymbolFactory
             typeParameters, baseType, interfaces, specialType, nullableAnnotation,
             members.WhereAsArray(m => m is not INamedTypeSymbol),
             [.. members.OfType<INamedTypeSymbol>().Select(n => n.ToCodeGenerationSymbol())],
-            enumUnderlyingType: null);
+            enumUnderlyingType: null,
+            usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules);
     }
 
     /// <summary>
@@ -465,7 +505,8 @@ internal static class CodeGenerationSymbolFactory
         string name,
         ImmutableArray<ITypeParameterSymbol> typeParameters = default,
         ImmutableArray<IParameterSymbol> parameters = default,
-        NullableAnnotation nullableAnnotation = NullableAnnotation.None)
+        NullableAnnotation nullableAnnotation = NullableAnnotation.None,
+        bool usesUpdatedMemorySafetyRules = false)
     {
         var invokeMethod = CreateMethodSymbol(
             attributes: default,
@@ -476,7 +517,8 @@ internal static class CodeGenerationSymbolFactory
             explicitInterfaceImplementations: default,
             name: "Invoke",
             typeParameters: default,
-            parameters: parameters);
+            parameters: parameters,
+            usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules);
 
         return new CodeGenerationNamedTypeSymbol(
             containingAssembly: null,
@@ -494,7 +536,8 @@ internal static class CodeGenerationSymbolFactory
             members: [invokeMethod],
             typeMembers: [],
             nullableAnnotation: nullableAnnotation,
-            enumUnderlyingType: null);
+            enumUnderlyingType: null,
+            usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules);
     }
 
     /// <summary>
@@ -534,6 +577,10 @@ internal static class CodeGenerationSymbolFactory
             statements,
             returnTypeAttributes: returnTypeAttributes.HasValue ? returnTypeAttributes.Value : method.GetReturnTypeAttributes(),
             methodKind: method.MethodKind,
+            usesUpdatedMemorySafetyRules: method.UsesUpdatedMemorySafetyRules(),
+#if !OLDER_ROSLYN
+            requiresUnsafeContext: modifiers is null ? method.RequiresUnsafeContext : null,
+#endif
             isInitOnly: method.IsInitOnly);
     }
 
@@ -551,6 +598,7 @@ internal static class CodeGenerationSymbolFactory
         SyntaxNode? initializer = null)
     {
         return CreatePropertySymbol(
+            containingType: null,
             attributes,
             accessibility ?? property.DeclaredAccessibility,
             modifiers ?? property.GetSymbolModifiers(),
@@ -561,7 +609,15 @@ internal static class CodeGenerationSymbolFactory
             parameters ?? property.Parameters,
             getMethod,
             setMethod,
-            isIndexer ?? property.IsIndexer,
+            isIndexer: isIndexer ?? property.IsIndexer,
+            usesUpdatedMemorySafetyRules: property.UsesUpdatedMemorySafetyRules(),
+#if !OLDER_ROSLYN
+            requiresUnsafeContext: modifiers is null ? property.RequiresUnsafeContext : null,
+            // Copies can change storage shape later; retain the annotation requirement, not just its current result.
+            requiresSafeForBackingField: modifiers is null &&
+                property.InferSafetyModifiersFromSymbol(hasBackingField: true).IsSafe &&
+                !property.InferSafetyModifiersFromSymbol(hasBackingField: false).IsSafe,
+#endif
             initializer: initializer);
     }
 
@@ -582,8 +638,15 @@ internal static class CodeGenerationSymbolFactory
             @event.Type,
             explicitInterfaceImplementations,
             name ?? @event.Name,
-            addMethod,
-            removeMethod);
+            usesUpdatedMemorySafetyRules: @event.UsesUpdatedMemorySafetyRules(),
+#if !OLDER_ROSLYN
+            requiresUnsafeContext: modifiers is null ? @event.RequiresUnsafeContext : null,
+            requiresSafeForBackingField: modifiers is null &&
+                @event.InferSafetyModifiersFromSymbol(hasBackingField: true).IsSafe &&
+                !@event.InferSafetyModifiersFromSymbol(hasBackingField: false).IsSafe,
+#endif
+            addMethod: addMethod,
+            removeMethod: removeMethod);
     }
 
     internal static IFieldSymbol CreateFieldSymbol(
@@ -598,6 +661,23 @@ internal static class CodeGenerationSymbolFactory
             accessibility ?? field.DeclaredAccessibility,
             modifiers ?? field.GetSymbolModifiers(),
             field.Type,
-            name ?? field.Name);
+            usesUpdatedMemorySafetyRules: field.UsesUpdatedMemorySafetyRules(),
+#if !OLDER_ROSLYN
+            requiresUnsafeContext: modifiers is null ? field.RequiresUnsafeContext : null,
+#endif
+            name: name ?? field.Name);
+    }
+
+    private static bool GetRequiresUnsafeContext(DeclarationModifiers modifiers, MethodKind methodKind = MethodKind.Ordinary)
+    {
+        // A newly authored symbol has no compiler contract to copy, so supply its
+        // effective safety from the requested modifiers and member kind.
+        if (methodKind is MethodKind.StaticConstructor or MethodKind.Destructor ||
+            methodKind is MethodKind.Constructor && modifiers.IsStatic)
+        {
+            return false;
+        }
+
+        return modifiers.IsUnsafe;
     }
 }

@@ -28,8 +28,9 @@ internal abstract class CodeGenerationAbstractNamedTypeSymbol : CodeGenerationTy
         string name,
         SpecialType specialType,
         NullableAnnotation nullableAnnotation,
-        ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers)
-        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation)
+        ImmutableArray<CodeGenerationAbstractNamedTypeSymbol> typeMembers,
+        bool usesUpdatedMemorySafetyRules = false)
+        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, specialType, nullableAnnotation, usesUpdatedMemorySafetyRules)
     {
         this.TypeMembers = typeMembers;
 
