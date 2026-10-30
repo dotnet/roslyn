@@ -8727,7 +8727,7 @@ extension(int i)
     }
 
     [Fact]
-    public void PropertyAccess_Set_01()
+    public void PropertyAccess_Set_01_01()
     {
         var src = """
 static class E
@@ -8823,7 +8823,7 @@ class Program
 """;
 
         var comp = CreateCompilation(src, options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124:124124:123124", verify: Verification.Skipped).VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124:124124:123124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test",
 @"
@@ -8882,18 +8882,157 @@ class Program
 """;
 
         var comp2 = CreateCompilation([src2]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1).P1 = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
-            );
+        comp2.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_Set_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1 = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1 = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124124:124124:124124").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_Set_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""void E.set_P1(S1, int)""
+  IL_0010:  nop
+  IL_0011:  ret
+}
+");
     }
 
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_Set_02(string refKind)
+    public void PropertyAccess_Set_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -9021,22 +9160,190 @@ class Program
                 comp2.VerifyDiagnostics(
                     // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         default(S1).P1 = 1;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 = 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
                     );
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 = 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_02_02(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1 = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1 = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124125:124125:124125").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_02_03(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (34,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget().P1 = Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(34, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1",
+$$$"""
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "int Program.Get1()"
+  IL_000e:  call       "void E.set_P1({{{refKind}}} S1, int)"
+  IL_0013:  nop
+  IL_0014:  ret
+}
+""");
     }
 
     [Fact]
@@ -9112,7 +9419,7 @@ class Program
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
-    public void PropertyAccess_Set_04()
+    public void PropertyAccess_Set_04_01()
     {
         var src = """
 using System.Threading.Tasks;
@@ -9161,12 +9468,11 @@ class Program
         Test2(ref Program<S1>.F);
         System.Console.Write(Program<S1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<S1>.F = new S1 { F1 = 123 };
-        //await Test3<S1>();
-        //System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -9185,23 +9491,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F.P1 = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F.P1 = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<S1>.F.F1++;
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124:124124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -9294,9 +9599,6 @@ namespace NS2
 
         var comp2 = CreateCompilation([src2]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T).P1 = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T).P1").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -9304,6 +9606,157 @@ namespace NS2
             //         extension<T>(ref readonly T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
             );
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_Set_04_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f.P1 = Get1();
+    }
+
+    static void Test2<T>({{{refKind}}} T f) where T : struct
+    {
+        f.P1 = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_Set_04_03()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+    }
+
+    static void Test1<T>()
+    {
+        GetTarget<T>().P1 = Get1();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetTarget<T>().P1 = Get1();
+    }
+
+    static T GetTarget<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123").VerifyDiagnostics();
+
+        var expected =
+@"
+{
+  // Code size       18 (0x12)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetTarget<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""void E.set_P1<T>(T, int)""
+  IL_0010:  nop
+  IL_0011:  ret
+}
+";
+        verifier.VerifyIL("Program.Test1<T>", expected);
+        verifier.VerifyIL("Program.Test2<T>", expected);
     }
 
     [Fact]
@@ -9502,12 +9955,11 @@ class Program
         Test2(ref Program<C1>.F);
         System.Console.Write(Program<C1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<C1>.F = new C1 { F1 = 123 };
-        //await Test3<C1>();
-        //System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -9526,23 +9978,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F.P1 = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F.P1 = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124:123124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -10162,7 +10613,7 @@ class Program
     }
 
     [Fact]
-    public void PropertyAccess_CompoundAssignment_01()
+    public void PropertyAccess_CompoundAssignment_01_01()
     {
         var src = """
 static class E
@@ -10273,11 +10724,162 @@ class Program
 ");
     }
 
+    [Fact]
+    public void PropertyAccess_CompoundAssignment_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1 += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 += Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1 += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_CompoundAssignment_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 += Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  dup
+  IL_0007:  call       "int E.get_P1(S1)"
+  IL_000c:  call       "int Program.Get1()"
+  IL_0011:  add
+  IL_0012:  stloc.0
+  IL_0013:  ldloc.0
+  IL_0014:  call       "void E.set_P1(S1, int)"
+  IL_0019:  nop
+  IL_001a:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_CompoundAssignment_02(string refKind)
+    public void PropertyAccess_CompoundAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -10411,22 +11013,206 @@ class Program
                 comp2.VerifyDiagnostics(
                     // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         default(S1).P1 += 1;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 += 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
-                    );
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9));
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 += 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_CompoundAssignment_02_02(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1 += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 += Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1 += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125126:123125126:123125126").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_CompoundAssignment_02_03(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 += Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (35,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget().P1 += Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(35, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  call       "int E.get_P1({{{refKind}}} S1)"
+  IL_0010:  call       "int Program.Get1()"
+  IL_0015:  add
+  IL_0016:  call       "void E.set_P1({{{refKind}}} S1, int)"
+  IL_001b:  nop
+  IL_001c:  ret
+}
+""");
     }
 
     [Fact]
@@ -11512,7 +12298,7 @@ class Program
     }
 
     [Fact]
-    public void PropertyAccess_PrefixIncrementAssignment_01()
+    public void PropertyAccess_PrefixIncrementAssignment_01_01()
     {
         var src = """
 static class E
@@ -11624,11 +12410,167 @@ class Program
 ");
     }
 
+    [Fact]
+    public void PropertyAccess_PrefixIncrementAssignment_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        ++this.P1;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        ++f.P1;
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        ++f.P1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_PrefixIncrementAssignment_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        ++GetTarget().P1;
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  dup
+  IL_0007:  call       "S2 E.get_P1(S1)"
+  IL_000c:  call       "S2 S2.op_Increment(S2)"
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  call       "void E.set_P1(S1, S2)"
+  IL_0018:  nop
+  IL_0019:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_PrefixIncrementAssignment_02(string refKind)
+    public void PropertyAccess_PrefixIncrementAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -11769,22 +12711,215 @@ class Program
                 comp2.VerifyDiagnostics(
                     // (15,11): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         ++default(S1).P1;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 11),
-                    // (15,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         ++default(S1).P1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 11)
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 11)
                     );
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (15,11): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         ++default(S1).P1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 11)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_PrefixIncrementAssignment_02_02(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        ++this.P1;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        ++f.P1;
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        ++f.P1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125126:123125126:123125126").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_PrefixIncrementAssignment_02_03(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        ++GetTarget().P1;
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (43,11): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         ++GetTarget().P1;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(43, 11)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (S1 V_0,
+                S2 V_1)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "S2 E.get_P1({{{refKind}}} S1)"
+  IL_000e:  call       "S2 S2.op_Increment(S2)"
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  ldloc.1
+  IL_0017:  call       "void E.set_P1({{{refKind}}} S1, S2)"
+  IL_001c:  nop
+  IL_001d:  ret
+}
+""");
     }
 
     [Fact]
@@ -12251,7 +13386,7 @@ class Program
     }
 
     [Fact]
-    public void PropertyAccess_PostfixIncrementAssignment_01()
+    public void PropertyAccess_PostfixIncrementAssignment_01_01()
     {
         var src = """
 static class E
@@ -12363,11 +13498,167 @@ class Program
 ");
     }
 
+    [Fact]
+    public void PropertyAccess_PostfixIncrementAssignment_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1++;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1++;
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1++;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_PostfixIncrementAssignment_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1++;
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (S2 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  dup
+  IL_0007:  call       "S2 E.get_P1(S1)"
+  IL_000c:  call       "S2 S2.op_Increment(S2)"
+  IL_0011:  stloc.0
+  IL_0012:  ldloc.0
+  IL_0013:  call       "void E.set_P1(S1, S2)"
+  IL_0018:  nop
+  IL_0019:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_PostfixIncrementAssignment_02(string refKind)
+    public void PropertyAccess_PostfixIncrementAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -12508,22 +13799,215 @@ class Program
                 comp2.VerifyDiagnostics(
                     // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         default(S1).P1++;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1++;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
                     );
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1++;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 9)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_PostfixIncrementAssignment_02_02(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this.P1++;
+    }
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        Program.F.F1++;
+        return x;
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1++;
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f.P1++;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125126:123125126:123125126").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_PostfixIncrementAssignment_02_03(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public S2 P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return default;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+struct S2
+{
+    public static S2 operator ++(S2 x)
+    {
+        return x;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1++;
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (43,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget().P1++;
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(43, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (S1 V_0,
+                S2 V_1)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "S2 E.get_P1({{{refKind}}} S1)"
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldloc.1
+  IL_0012:  call       "S2 S2.op_Increment(S2)"
+  IL_0017:  call       "void E.set_P1({{{refKind}}} S1, S2)"
+  IL_001c:  nop
+  IL_001d:  ret
+}
+""");
     }
 
     [Fact]
@@ -12990,7 +14474,7 @@ class Program
     }
 
     [Fact]
-    public void PropertyAccess_ConditionalAssignment_01()
+    public void PropertyAccess_ConditionalAssignment_01_01()
     {
         var src = """
 static class E
@@ -13219,11 +14703,272 @@ class Program
 ");
     }
 
+    [Fact]
+    public void PropertyAccess_ConditionalAssignment_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test1()
+    {
+        this.P1 ??= Program.Get1();
+    }
+
+    public readonly void Test2()
+    {
+        this.P2 ??= Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test1();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test2();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test4(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test2(in S1 f)
+    {
+        f.P2 ??= Get1();
+    }
+
+    static void Test3(ref readonly S1 f)
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        f.P2 ??= Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125125:123125125:123125125:123125125:123125125:123125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_ConditionalAssignment_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+
+        System.Console.Write(":");
+
+        Test2();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 ??= Get1();
+    }
+
+    static void Test2()
+    {
+        GetTarget().P2 ??= Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (S1 V_0,
+                object V_1,
+                object V_2)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       "object E.get_P1(S1)"
+  IL_000d:  brtrue.s   IL_0024
+  IL_000f:  call       "int Program.Get1()"
+  IL_0014:  box        "int"
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.0
+  IL_001b:  ldloc.1
+  IL_001c:  dup
+  IL_001d:  stloc.2
+  IL_001e:  call       "void E.set_P1(S1, object)"
+  IL_0023:  nop
+  IL_0024:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2", """
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (S1 V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       "int? E.get_P2(S1)"
+  IL_000d:  stloc.1
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  call       "int int?.GetValueOrDefault()"
+  IL_0015:  stloc.2
+  IL_0016:  ldloca.s   V_1
+  IL_0018:  call       "bool int?.HasValue.get"
+  IL_001d:  brtrue.s   IL_0037
+  IL_001f:  call       "int Program.Get1()"
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.0
+  IL_0026:  ldloca.s   V_3
+  IL_0028:  ldloc.2
+  IL_0029:  call       "int?..ctor(int)"
+  IL_002e:  ldloc.3
+  IL_002f:  call       "void E.set_P2(S1, int?)"
+  IL_0034:  nop
+  IL_0035:  br.s       IL_0037
+  IL_0037:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_ConditionalAssignment_02(string refKind)
+    public void PropertyAccess_ConditionalAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -13479,30 +15224,319 @@ class Program
                     // (16,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         default(S1).P1 ??= 1;
                     Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(16, 9),
-                    // (16,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 ??= 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(16, 9),
                     // (20,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         default(S1).P2 ??= 1;
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(20, 9),
-                    // (20,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P2 ??= 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P2").WithLocation(20, 9)
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(20, 9)
                     );
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (16,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P1 ??= 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(16, 9),
-                    // (20,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         default(S1).P2 ??= 1;
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P2").WithLocation(20, 9)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_ConditionalAssignment_02_02(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test1()
+    {
+        this.P1 ??= Program.Get1();
+    }
+
+    public readonly void Test2()
+    {
+        this.P2 ??= Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test1();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test3(ref F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test2();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test4(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test2(in S1 f)
+    {
+        f.P2 ??= Get1();
+    }
+
+    static void Test3(ref readonly S1 f)
+    {
+        f.P1 ??= Get1();
+    }
+
+    static void Test4(ref readonly S1 f)
+    {
+        f.P2 ??= Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125126:123125126:123125126:123125126:123125126:123125126").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_ConditionalAssignment_02_03(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public object P1
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+        public int? P2
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+
+        System.Console.Write(":");
+
+        Test2();
+    }
+
+    static void Test1()
+    {
+        GetTarget().P1 ??= Get1();
+    }
+
+    static void Test2()
+    {
+        GetTarget().P2 ??= Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (52,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget().P1 ??= Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(52, 9),
+                // (57,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget().P2 ??= Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(57, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (S1 V_0,
+                object V_1)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "object E.get_P1({{{refKind}}} S1)"
+  IL_000e:  brtrue.s   IL_0024
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "int Program.Get1()"
+  IL_0017:  box        "int"
+  IL_001c:  dup
+  IL_001d:  stloc.1
+  IL_001e:  call       "void E.set_P1({{{refKind}}} S1, object)"
+  IL_0023:  nop
+  IL_0024:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2", $$$"""
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  .locals init (S1 V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "int? E.get_P2({{{refKind}}} S1)"
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  call       "int int?.GetValueOrDefault()"
+  IL_0016:  stloc.2
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  call       "bool int?.HasValue.get"
+  IL_001e:  brtrue.s   IL_0039
+  IL_0020:  call       "int Program.Get1()"
+  IL_0025:  stloc.2
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  ldloca.s   V_3
+  IL_002a:  ldloc.2
+  IL_002b:  call       "int?..ctor(int)"
+  IL_0030:  ldloc.3
+  IL_0031:  call       "void E.set_P2({{{refKind}}} S1, int?)"
+  IL_0036:  nop
+  IL_0037:  br.s       IL_0039
+  IL_0039:  ret
+}
+""");
     }
 
     [Fact]
@@ -14841,7 +16875,7 @@ class Program
     }
 
     [Fact]
-    public void PropertyAccess_DeconstructAssignment_01()
+    public void PropertyAccess_DeconstructAssignment_01_01()
     {
         var src = """
 static class E
@@ -14943,11 +16977,157 @@ class Program
 ");
     }
 
+    [Fact]
+    public void PropertyAccess_DeconstructAssignment_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        (this.P1, _) = (Program.Get1(), 0);
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    public static int Get1()
+    {
+        System.Console.Write(Program.F.F1);
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123124124:123124124:123124124").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void PropertyAccess_DeconstructAssignment_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        (GetTarget().P1, _) = (Get1(), 0);
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       20 (0x14)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  call       "int Program.Get1()"
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  call       "void E.set_P1(S1, int)"
+  IL_0012:  nop
+  IL_0013:  ret
+}
+""");
+    }
+
     [Theory]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void PropertyAccess_DeconstructAssignment_02(string refKind)
+    public void PropertyAccess_DeconstructAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -15080,22 +17260,190 @@ class Program
                 comp2.VerifyDiagnostics(
                     // (15,10): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                     //         (default(S1).P1, _) = (1, 0);
-                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 10),
-                    // (15,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         (default(S1).P1, _) = (1, 0);
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 10)
+                    Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 10)
                     );
                 break;
             case "in":
-                comp2.VerifyDiagnostics(
-                    // (15,10): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                    //         (default(S1).P1, _) = (1, 0);
-                    Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1).P1").WithLocation(15, 10)
-                    );
+                comp2.VerifyDiagnostics();
                 break;
             default:
                 throw ExceptionUtilities.UnexpectedValue(refKind);
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_DeconstructAssignment_02_02(string refKind)
+    {
+        var text0 = """
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+""";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        (this.P1, _) = (Program.Get1(), 0);
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        (f.P1, _) = (Get1(), 0);
+    }
+
+    public static int Get1()
+    {
+        System.Console.Write(Program.F.F1);
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123124125:123124125:123124125").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void PropertyAccess_DeconstructAssignment_02_03(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int P1
+        {
+            get
+            {
+                throw null;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        (GetTarget().P1, _) = (Get1(), 0);
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (33,10): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         (GetTarget().P1, _) = (Get1(), 0);
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(33, 10)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (S1 V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  call       "int Program.Get1()"
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldloc.1
+  IL_0010:  call       "void E.set_P1({{{refKind}}} S1, int)"
+  IL_0015:  nop
+  IL_0016:  ret
+}
+""");
     }
 
     [Fact]
@@ -15737,7 +18085,7 @@ class Program
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_CompoundAssignment_01()
+    public void IndexerAccess_CompoundAssignment_01_01()
     {
         var src = """
 static class E
@@ -15884,18 +18232,14 @@ class Program
 """;
 
         var comp2 = CreateCompilation(src2);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
-            );
+        comp2.VerifyDiagnostics();
     }
 
     [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void IndexerAccess_CompoundAssignment_02(string refKind)
+    public void IndexerAccess_CompoundAssignment_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -16040,18 +18384,12 @@ class Program
             comp2.VerifyDiagnostics(
                 // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                 //         default(S1)[0] += 1;
-                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
-                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         default(S1)[0] += 1;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9));
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
+                );
         }
         else if (refKind == "in")
         {
-            // Tracked by https://github.com/dotnet/roslyn/issues/79451 : consider adjusting receiver requirements for extension members
-            comp2.VerifyDiagnostics(
-                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         default(S1)[0] += 1;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9));
+            comp2.VerifyDiagnostics();
         }
         else
         {
@@ -16060,6 +18398,215 @@ class Program
                 //         default(S1)[0] += 1;
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9));
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_02_02(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get2()] += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Get2()] += Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Get2()] += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+
+    public static int Get2()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124126127:124126127:124126127").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_02_03(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Get2()] += Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+
+    public static int Get2()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (35,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget()[Get2()] += Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(35, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1",
+$$$"""
+{
+  // Code size       37 (0x25)
+  .maxstack  4
+  .locals init (S1 V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  call       "int Program.Get2()"
+  IL_000c:  stloc.1
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldloc.1
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  ldloc.1
+  IL_0013:  call       "int E.get_Item({{{refKind}}} S1, int)"
+  IL_0018:  call       "int Program.Get1()"
+  IL_001d:  add
+  IL_001e:  call       "void E.set_Item({{{refKind}}} S1, int, int)"
+  IL_0023:  nop
+  IL_0024:  ret
+}
+""");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
@@ -16151,7 +18698,7 @@ class Program
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_CompoundAssignment_04()
+    public void IndexerAccess_CompoundAssignment_04_01()
     {
         var src = """
 using System.Threading.Tasks;
@@ -16343,9 +18890,6 @@ namespace NS2
 
         var comp2 = CreateCompilation(src2);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T)[0] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -16353,6 +18897,165 @@ namespace NS2
             //         extension<T>(ref readonly T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
             );
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_04_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[0] += Get1();
+    }
+
+    static void Test2<T>({{{refKind}}} T f) where T : struct
+    {
+        f[0] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "123125125:123125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_CompoundAssignment_04_03()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+    }
+
+    static void Test1<T>()
+    {
+        GetTarget<T>()[0] += Get1();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetTarget<T>()[0] += Get1();
+    }
+
+    static T GetTarget<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+
+        var expected =
+@"
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetTarget<T>()""
+  IL_0006:  dup
+  IL_0007:  ldc.i4.0
+  IL_0008:  call       ""int E.get_Item<T>(T, int)""
+  IL_000d:  call       ""int Program.Get1()""
+  IL_0012:  add
+  IL_0013:  stloc.0
+  IL_0014:  ldc.i4.0
+  IL_0015:  ldloc.0
+  IL_0016:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_001b:  nop
+  IL_001c:  ret
+}
+";
+        verifier.VerifyIL("Program.Test1<T>", expected);
+        verifier.VerifyIL("Program.Test2<T>", expected);
     }
 
     [Fact]
@@ -17024,7 +19727,7 @@ class Program
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01()
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01_01()
     {
         var src = """
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -17213,11 +19916,200 @@ struct InterpolationHandler
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
-            );
+        comp2.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01_02()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Program.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1(), $""] += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1(), $""] += Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1(), $""] += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124125127127:124125127127:124125127127", verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_01_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1(), $""] += Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (S1 V_0,
+                int V_1,
+                InterpolationHandler V_2,
+                int V_3)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""int E.get_Item(S1, int, InterpolationHandler)""
+  IL_001e:  call       ""int Program.Get1()""
+  IL_0023:  add
+  IL_0024:  stloc.3
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldloc.2
+  IL_0028:  ldloc.3
+  IL_0029:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
+  IL_002e:  nop
+  IL_002f:  ret
+}
+");
     }
 
     [Theory]
@@ -17225,7 +20117,7 @@ struct InterpolationHandler
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_02(string refKind)
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_02_01(string refKind)
     {
         var src = $$$"""
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -17404,11 +20296,7 @@ struct InterpolationHandler
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
         if (refKind == "in")
         {
-            comp2.VerifyDiagnostics(
-                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         default(S1)[0, $""] += 1;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
-                );
+            comp2.VerifyDiagnostics();
         }
         else if (refKind == "ref")
         {
@@ -17423,12 +20311,242 @@ struct InterpolationHandler
             comp2.VerifyDiagnostics(
                 // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                 //         default(S1)[0, $""] += 1;
-                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
-                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         default(S1)[0, $""] += 1;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
                 );
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_02_02(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Helper.Assign(in x.F1, x.F1 + 1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1(), $""] += Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1(), $""] += Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1(), $""] += Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124125127128:124125127128:124125127128").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_02_03(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Helper.Assign(in x.F1, x.F1 + 1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1(), $""] += Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124125").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (49,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget()[Program.Get1(), $""] += Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(49, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1",
+$$$"""
+{
+  // Code size       49 (0x31)
+  .maxstack  6
+  .locals init (S1 V_0,
+            int V_1,
+            InterpolationHandler V_2)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  call       "int Program.Get1()"
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  newobj     "InterpolationHandler..ctor(int, int, {{{refKind}}} S1)"
+  IL_0016:  stloc.2
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldloc.1
+  IL_001a:  ldloc.2
+  IL_001b:  ldloca.s   V_0
+  IL_001d:  ldloc.1
+  IL_001e:  ldloc.2
+  IL_001f:  call       "int E.get_Item({{{refKind}}} S1, int, InterpolationHandler)"
+  IL_0024:  call       "int Program.Get1()"
+  IL_0029:  add
+  IL_002a:  call       "void E.set_Item({{{refKind}}} S1, int, InterpolationHandler, int)"
+  IL_002f:  nop
+  IL_0030:  ret
+}
+""");
     }
 
     [Fact]
@@ -17537,7 +20655,7 @@ class Program
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04()
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04_01()
     {
         var src = """
 using System.Threading.Tasks;
@@ -17784,9 +20902,6 @@ struct InterpolationHandler<TR>
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -17794,6 +20909,206 @@ struct InterpolationHandler<TR>
             //         extension<T>(ref readonly T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
             );
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04_02(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        Program<S1>.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[Get1(), $""] += Get1();
+    }
+
+    static void Test2<T>({{{refKind}}} T f) where T : struct
+    {
+        f[Get1(), $""] += Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124125127127:124125127127").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_CompoundAssignment_WithInterpolationHandler_04_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+    }
+
+    static void Test1<T>()
+    {
+        GetTarget<T>()[Get1(), $""] += Get1();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetTarget<T>()[Get1(), $""] += Get1();
+    }
+
+    static T GetTarget<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123123:123123123").VerifyDiagnostics();
+
+        var expected =
+@"
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (T V_0,
+            int V_1,
+            InterpolationHandler<T> V_2,
+            int V_3)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetTarget<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  call       ""int Program.Get1()""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  stloc.2
+  IL_0016:  ldloc.0
+  IL_0017:  ldloc.1
+  IL_0018:  ldloc.2
+  IL_0019:  call       ""int E.get_Item<T>(T, int, InterpolationHandler<T>)""
+  IL_001e:  call       ""int Program.Get1()""
+  IL_0023:  add
+  IL_0024:  stloc.3
+  IL_0025:  ldloc.0
+  IL_0026:  ldloc.1
+  IL_0027:  ldloc.2
+  IL_0028:  ldloc.3
+  IL_0029:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_002e:  nop
+  IL_002f:  ret
+}
+";
+        verifier.VerifyIL("Program.Test1<T>", expected);
+        verifier.VerifyIL("Program.Test2<T>", expected);
     }
 
     [Fact]
@@ -18463,7 +21778,7 @@ class Program
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_Set_WithInterpolationHandler_01()
+    public void IndexerAccess_Set_WithInterpolationHandler_01_01()
     {
         var src = """
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -18638,11 +21953,183 @@ struct InterpolationHandler
 """;
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9)
-            );
+        comp2.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_Set_WithInterpolationHandler_01_02()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+        Program.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1(), $""] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1(), $""] = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1(), $""] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124126126:124126126:124126126", verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_Set_WithInterpolationHandler_01_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+public struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, S1 x)
+    {
+        System.Console.Write(x.F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1(), $""] = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler..ctor(int, int, S1)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""void E.set_Item(S1, int, InterpolationHandler, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
     }
 
     [Theory]
@@ -18650,7 +22137,7 @@ struct InterpolationHandler
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void IndexerAccess_Set_WithInterpolationHandler_02(string refKind)
+    public void IndexerAccess_Set_WithInterpolationHandler_02_01(string refKind)
     {
         var src = $$$"""
 [System.Runtime.CompilerServices.InterpolatedStringHandler]
@@ -18807,20 +22294,15 @@ struct InterpolationHandler
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
         if (refKind == "in")
         {
-            comp2.VerifyDiagnostics(
-                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         default(S1)[0, $""] = 1;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9));
+            comp2.VerifyDiagnostics();
         }
         else if (refKind == "ref readonly")
         {
             comp2.VerifyDiagnostics(
                 // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                 //         default(S1)[0, $""] = 1;
-                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
-                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         default(S1)[0, $""] = 1;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(S1)[0, $""""]").WithLocation(15, 9));
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
+                );
         }
         else
         {
@@ -18829,6 +22311,228 @@ struct InterpolationHandler
                 //         default(S1)[0, $""] = 1;
                 Diagnostic(ErrorCode.ERR_RefLvalueExpected, "default(S1)").WithLocation(15, 9));
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_WithInterpolationHandler_02_02(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Helper.Assign(in x.F1, x.F1 + 1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1(), $""] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1(), $""] = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1(), $""] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124126127:124126127:124126127").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_WithInterpolationHandler_02_03(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, {{{refKind}}} S1 x)
+    {
+        System.Console.Write(x.F1);
+        Helper.Assign(in x.F1, x.F1 + 1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler h]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1(), $""] = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (49,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget()[Program.Get1(), $""] = Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(49, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1",
+$$$"""
+{
+  // Code size       35 (0x23)
+  .maxstack  5
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "int Program.Get1()"
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldc.i4.0
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  newobj     "InterpolationHandler..ctor(int, int, {{{refKind}}} S1)"
+  IL_0017:  call       "int Program.Get1()"
+  IL_001c:  call       "void E.set_Item({{{refKind}}} S1, int, InterpolationHandler, int)"
+  IL_0021:  nop
+  IL_0022:  ret
+}
+""");
     }
 
     [Fact]
@@ -18927,7 +22631,7 @@ class Program
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
-    public void IndexerAccess_Set_WithInterpolationHandler_04()
+    public void IndexerAccess_Set_WithInterpolationHandler_04_01()
     {
         var src = """
 using System.Threading.Tasks;
@@ -18990,12 +22694,11 @@ class Program
         Test2(ref Program<S1>.F);
         System.Console.Write(Program<S1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<S1>.F = new S1 { F1 = 123 };
-        //await Test3<S1>();
-        //System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -19014,23 +22717,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F[Get1(), $""] = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F[Get1(), $""] = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<S1>.F.F1++;
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126:124126126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -19164,9 +22866,6 @@ struct InterpolationHandler<TR>
 
         var comp2 = CreateCompilation([src2, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T)[0, $""] += 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, @"default(T)[0, $""""]").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -19174,6 +22873,192 @@ struct InterpolationHandler<TR>
             //         extension<T>(ref readonly T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
             );
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_WithInterpolationHandler_04_02(string refKind)
+    {
+        var src = $$$"""
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+        Program<S1>.F.F1++;
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[Get1(), $""] = Get1();
+    }
+
+    static void Test2<T>({{{refKind}}} T f) where T : struct
+    {
+        f[Get1(), $""] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_Set_WithInterpolationHandler_04_03()
+    {
+        var src = """
+[System.Runtime.CompilerServices.InterpolatedStringHandler]
+struct InterpolationHandler<TR>
+{
+
+    public InterpolationHandler(int literalLength, int formattedCount, TR x)
+    {
+        System.Console.Write(((S1)(object)x).F1);
+    }
+    public void AppendLiteral(string value) { }
+    public void AppendFormatted<T>(T hole, int alignment = 0, string format = null) => throw null;
+}
+
+
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i, [System.Runtime.CompilerServices.InterpolatedStringHandlerArgument("x")] InterpolationHandler<T> h]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+    }
+
+    static void Test1<T>()
+    {
+        GetTarget<T>()[Get1(), $""] = Get1();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetTarget<T>()[Get1(), $""] = Get1();
+    }
+
+    static T GetTarget<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123:123123").VerifyDiagnostics();
+
+        var expected =
+@"
+{
+  // Code size       33 (0x21)
+  .maxstack  5
+  .locals init (T V_0)
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetTarget<T>()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  call       ""int Program.Get1()""
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.0
+  IL_000f:  ldloc.0
+  IL_0010:  newobj     ""InterpolationHandler<T>..ctor(int, int, T)""
+  IL_0015:  call       ""int Program.Get1()""
+  IL_001a:  call       ""void E.set_Item<T>(T, int, InterpolationHandler<T>, int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+";
+        verifier.VerifyIL("Program.Test1<T>", expected);
+        verifier.VerifyIL("Program.Test2<T>", expected);
     }
 
     [Fact]
@@ -19419,12 +23304,11 @@ class Program
         Test2(ref Program<C1>.F);
         System.Console.Write(Program<C1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<C1>.F = new C1 { F1 = 123 };
-        //await Test3<C1>();
-        //System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -19443,23 +23327,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F[Get1(), $""] = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F[Get1(), $""] = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123126:123123126").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123126:123123126:123123126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -20243,12 +24126,11 @@ class Program
         Test2(ref Program<S1>.F);
         System.Console.Write(Program<S1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<S1>.F = new S1 { F1 = 123 };
-        //await Test3<S1>();
-        //System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -20267,23 +24149,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    _ = Program<T>.F[Get1(), $"", await Get1Async()];
-    //}
+    static async Task Test3<T>()
+    {
+        _ = Program<T>.F[Get1(), $"", await Get1Async()];
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<S1>.F.F1++;
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124126126:124126126:124126126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -20600,12 +24481,11 @@ class Program
         Test2(ref Program<C1>.F);
         System.Console.Write(Program<C1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<C1>.F = new C1 { F1 = 123 };
-        //await Test3<C1>();
-        //System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -20624,23 +24504,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    _ = Program<T>.F[Get1(), $"", await Get1Async()];
-    //}
+    static async Task Test3<T>()
+    {
+        _ = Program<T>.F[Get1(), $"", await Get1Async()];
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src, InterpolatedStringHandlerAttribute, InterpolatedStringHandlerArgumentAttribute], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123123126:123123126").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123123126:123123126:123123126").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -21638,7 +25517,7 @@ class Program
 
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
-    public void IndexerAccess_Set_01()
+    public void IndexerAccess_Set_01_01()
     {
         var src = """
 static class E
@@ -21767,11 +25646,151 @@ class Program
 """;
 
         var comp2 = CreateCompilation([src2]);
-        comp2.VerifyDiagnostics(
-            // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(S1)[0] = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
-            );
+        comp2.VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_Set_01_02()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1()] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1()] = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1()] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "125125:125125:125125", verify: Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_Set_01_03()
+    {
+        var src = """
+static class E
+{
+    extension(S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+public struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1()] = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  call       ""S1 Program.GetTarget()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int Program.Get1()""
+  IL_0010:  call       ""void E.set_Item(S1, int, int)""
+  IL_0015:  nop
+  IL_0016:  ret
+}
+");
     }
 
     [Theory]
@@ -21779,7 +25798,7 @@ class Program
     [InlineData("ref")]
     [InlineData("ref readonly")]
     [InlineData("in")]
-    public void IndexerAccess_Set_02(string refKind)
+    public void IndexerAccess_Set_02_01(string refKind)
     {
         var src = $$$"""
 static class E
@@ -21909,21 +25928,189 @@ class Program
             comp2.VerifyDiagnostics(
                 // (15,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
                 //         default(S1)[0] = 1;
-                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9),
-                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         default(S1)[0] = 1;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "default(S1)").WithArguments("0").WithLocation(15, 9)
                 );
         }
         else
         {
-            // Tracked by https://github.com/dotnet/roslyn/issues/79451 : consider adjusting receiver requirements for extension members
-            comp2.VerifyDiagnostics(
-                // (15,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-                //         default(S1)[0] = 1;
-                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(S1)[0]").WithLocation(15, 9)
-                );
+            comp2.VerifyDiagnostics();
         }
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_02_02(string refKind)
+    {
+        var text0 = @"
+public static class Helper
+{
+    public static unsafe void Assign(ref readonly int i, int value)
+    {
+        fixed (int* f2 = &i)
+        {
+            (*f2) = value;
+        }
+    }
+}
+";
+        var comp0 = CreateCompilation(text0, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+                Helper.Assign(in x.F1, x.F1 + 1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+
+    public readonly void Test()
+    {
+        this[Program.Get1()] = Program.Get1();
+    }
+}
+
+class Program
+{
+    public static S1 F;
+
+    static void Main()
+    {
+        F = new S1 { F1 = 123 };
+        Test1(in F);
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        F.Test();
+        System.Console.Write(F.F1);
+
+        System.Console.Write(":");
+
+        F = new S1 { F1 = 123 };
+        Test2(ref F);
+        System.Console.Write(F.F1);
+    }
+
+    static void Test1(in S1 f)
+    {
+        f[Program.Get1()] = Get1();
+    }
+
+    static void Test2(ref readonly S1 f)
+    {
+        f[Program.Get1()] = Get1();
+    }
+
+    public static int Get1()
+    {
+        Program.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], references: [comp0.EmitToImageReference()], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "125126:125126:125126").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_02_03(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension({{{refKind}}} S1 x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(x.F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(x.F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        GetTarget()[Program.Get1()] = Get1();
+    }
+
+    static S1 GetTarget() => new S1 { F1 = 123 };
+
+    public static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123").VerifyDiagnostics(
+            refKind == "in" ? [] :
+            [
+                // (34,9): warning CS9193: Argument 0 should be a variable because it is passed to a 'ref readonly' parameter
+                //         GetTarget()[Program.Get1()] = Get1();
+                Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "GetTarget()").WithArguments("0").WithLocation(34, 9)
+            ]
+            );
+
+        verifier.VerifyIL("Program.Test1",
+$$$"""
+{
+  // Code size       26 (0x1a)
+  .maxstack  3
+  .locals init (S1 V_0)
+  IL_0000:  nop
+  IL_0001:  call       "S1 Program.GetTarget()"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "int Program.Get1()"
+  IL_000e:  call       "int Program.Get1()"
+  IL_0013:  call       "void E.set_Item({{{refKind}}} S1, int, int)"
+  IL_0018:  nop
+  IL_0019:  ret
+}
+""");
     }
 
     [Fact]
@@ -22002,7 +26189,7 @@ class Program
     [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/78829")]
     [WorkItem("https://github.com/dotnet/roslyn/issues/79416")]
-    public void IndexerAccess_Set_04()
+    public void IndexerAccess_Set_04_01()
     {
         var src = """
 using System.Threading.Tasks;
@@ -22051,12 +26238,11 @@ class Program
         Test2(ref Program<S1>.F);
         System.Console.Write(Program<S1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<S1>.F = new S1 { F1 = 123 };
-        //await Test3<S1>();
-        //System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -22075,23 +26261,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F[Get1()] = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F[Get1()] = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<S1>.F.F1++;
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "125125:125125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "125125:125125:125125").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -22192,9 +26377,6 @@ namespace NS2
 
         var comp2 = CreateCompilation([src2]);
         comp2.VerifyDiagnostics(
-            // (13,9): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            //         default(T)[0] = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "default(T)[0]").WithLocation(13, 9),
             // (21,25): error CS9301: The 'in' or 'ref readonly' receiver parameter of extension must be a concrete (non-generic) value type.
             //         extension<T>(in T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(21, 25),
@@ -22202,6 +26384,158 @@ namespace NS2
             //         extension<T>(ref readonly T x) where T : struct
             Diagnostic(ErrorCode.ERR_InExtensionParameterMustBeValueType, "T").WithLocation(31, 35)
             );
+    }
+
+    [Theory]
+    [InlineData("ref readonly")]
+    [InlineData("in")]
+    public void IndexerAccess_Set_04_02(string refKind)
+    {
+        var src = $$$"""
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                Program<S1>.F.F1++;
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program<T>
+{
+    public static T F;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test1({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+
+        System.Console.Write(":");
+
+        Program<S1>.F = new S1 { F1 = 123 };
+        Test2({{{refKind.Substring(0, Math.Min(3, refKind.Length))}}} Program<S1>.F);
+        System.Console.Write(Program<S1>.F.F1);
+    }
+
+    static void Test1<T>({{{refKind}}} T f)
+    {
+        f[Get1()] = Get1();
+    }
+
+    static void Test2<T>({{{refKind}}} T f) where T : struct
+    {
+        f[Get1()] = Get1();
+    }
+
+    static int Get1()
+    {
+        Program<S1>.F.F1++;
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "125125:125125").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void IndexerAccess_Set_04_03()
+    {
+        var src = """
+static class E
+{
+    extension<T>(T x)
+    {
+        public int this[int i]
+        {
+            get
+            {
+                System.Console.Write(((S1)(object)x).F1);
+                return 0;
+            }
+            set
+            {
+                System.Console.Write(((S1)(object)x).F1);
+            }
+        }
+    }
+}
+
+struct S1
+{
+    public int F1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Test1<S1>();
+
+        System.Console.Write(":");
+
+        Test2<S1>();
+    }
+
+    static void Test1<T>()
+    {
+        GetTarget<T>()[Get1()] = Get1();
+    }
+
+    static void Test2<T>() where T : struct
+    {
+        GetTarget<T>()[Get1()] = Get1();
+    }
+
+    static T GetTarget<T>() => (T)(object)new S1 { F1 = 123 };
+
+    static int Get1()
+    {
+        return 1;
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], options: TestOptions.DebugExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "123:123").VerifyDiagnostics();
+
+        var expected =
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  call       ""T Program.GetTarget<T>()""
+  IL_0006:  call       ""int Program.Get1()""
+  IL_000b:  call       ""int Program.Get1()""
+  IL_0010:  call       ""void E.set_Item<T>(T, int, int)""
+  IL_0015:  nop
+  IL_0016:  ret
+}
+";
+        verifier.VerifyIL("Program.Test1<T>", expected);
+        verifier.VerifyIL("Program.Test2<T>", expected);
     }
 
     [Fact]
@@ -22403,12 +26737,11 @@ class Program
         Test2(ref Program<C1>.F);
         System.Console.Write(Program<C1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<C1>.F = new C1 { F1 = 123 };
-        //await Test3<C1>();
-        //System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -22427,23 +26760,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    Program<T>.F[Get1()] = await Get1Async();
-    //}
+    static async Task Test3<T>()
+    {
+        Program<T>.F[Get1()] = await Get1Async();
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123125:123125").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123125:123125:123125").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -23063,12 +27395,11 @@ class Program
         Test2(ref Program<S1>.F);
         System.Console.Write(Program<S1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<S1>.F = new S1 { F1 = 123 };
-        //await Test3<S1>();
-        //System.Console.Write(Program<S1>.F.F1);
+        Program<S1>.F = new S1 { F1 = 123 };
+        await Test3<S1>();
+        System.Console.Write(Program<S1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -23087,23 +27418,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    _ = Program<T>.F[await Get1Async()];
-    //}
+    static async Task Test3<T>()
+    {
+        _ = Program<T>.F[await Get1Async()];
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<S1>.F.F1++;
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<S1>.F.F1++;
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "124124:124124:124124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -23346,12 +27676,11 @@ class Program
         Test2(ref Program<C1>.F);
         System.Console.Write(Program<C1>.F.F1);
 
-        // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-        //System.Console.Write(":");
+        System.Console.Write(":");
 
-        //Program<C1>.F = new C1 { F1 = 123 };
-        //await Test3<C1>();
-        //System.Console.Write(Program<C1>.F.F1);
+        Program<C1>.F = new C1 { F1 = 123 };
+        await Test3<C1>();
+        System.Console.Write(Program<C1>.F.F1);
     }
 
     static void Test1<T>(ref T f)
@@ -23370,23 +27699,22 @@ class Program
         return 1;
     }
 
-    // https://github.com/dotnet/roslyn/issues/79416 - uncomment the following code once fixed
-    //static async Task Test3<T>()
-    //{
-    //    _ = Program<T>.F[await Get1Async()];
-    //}
+    static async Task Test3<T>()
+    {
+        _ = Program<T>.F[await Get1Async()];
+    }
 
-    //static async Task<int> Get1Async()
-    //{
-    //    Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
-    //    await Task.Yield();
-    //    return 1;
-    //}
+    static async Task<int> Get1Async()
+    {
+        Program<C1>.F = new C1 { F1 = Program<C1>.F.F1 + 1 };
+        await Task.Yield();
+        return 1;
+    }
 }
 """;
 
         var comp = CreateCompilation([src], options: TestOptions.DebugExe);
-        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124").VerifyDiagnostics();
+        var verifier = CompileAndVerify(comp, expectedOutput: "123124:123124:123124").VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1<T>(ref T)",
 @"
@@ -40751,5 +45079,669 @@ class Program
   IL_0011:  ret
 }
 """);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_01_Val_Receiver(
+        [CombinatorialValues("", "readonly ")] string structModifier,
+        [CombinatorialValues("", "ref ", "ref readonly ")] string localModifier)
+    {
+        var src = $$$"""
+public {{{structModifier}}}struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        S1[] lst = [new S1()];
+        Test1(lst);
+    }
+
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach ({{{localModifier}}}var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.True(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.True(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.True(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.True(mReduced.IsEffectivelyReadOnly);
+        }
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, expectedOutput: ExpectedOutput("Set123"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       41 (0x29)
+  .maxstack  2
+  .locals init (System.Span<S1> V_0,
+            int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_001e
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldloc.1
+  IL_0009:  call       "ref S1 System.Span<S1>.this[int].get"
+  IL_000e:  ldobj      "S1"
+  IL_0013:  ldc.i4.s   123
+  IL_0015:  call       "void Extensions.set_SomeProp(S1, int)"
+  IL_001a:  ldloc.1
+  IL_001b:  ldc.i4.1
+  IL_001c:  add
+  IL_001d:  stloc.1
+  IL_001e:  ldloc.1
+  IL_001f:  ldloca.s   V_0
+  IL_0021:  call       "int System.Span<S1>.Length.get"
+  IL_0026:  blt.s      IL_0006
+  IL_0028:  ret
+}
+"""
+);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_02_Val_Var(
+        [CombinatorialValues("", "readonly ")] string structModifier,
+        [CombinatorialValues("in ", "ref readonly ")] string receiverModifier)
+    {
+        var src = $$$"""
+public {{{structModifier}}}struct S1
+{
+}
+
+public static class Extensions
+{
+    extension({{{receiverModifier}}}S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        S1[] lst = [new S1()];
+        Test1(lst);
+    }
+
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach (var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.True(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.True(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.True(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.True(mReduced.IsEffectivelyReadOnly);
+        }
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, expectedOutput: ExpectedOutput("Set123"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       44 (0x2c)
+  .maxstack  2
+  .locals init (System.Span<S1> V_0,
+                int V_1,
+                S1 V_2) //b
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_0021
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldloc.1
+  IL_0009:  call       "ref S1 System.Span<S1>.this[int].get"
+  IL_000e:  ldobj      "S1"
+  IL_0013:  stloc.2
+  IL_0014:  ldloca.s   V_2
+  IL_0016:  ldc.i4.s   123
+  IL_0018:  call       "void Extensions.set_SomeProp({{{receiverModifier}}}S1, int)"
+  IL_001d:  ldloc.1
+  IL_001e:  ldc.i4.1
+  IL_001f:  add
+  IL_0020:  stloc.1
+  IL_0021:  ldloc.1
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  call       "int System.Span<S1>.Length.get"
+  IL_0029:  blt.s      IL_0006
+  IL_002b:  ret
+}
+"""
+);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_03(
+        [CombinatorialValues("", "readonly ")] string structModifier,
+        [CombinatorialValues("in ", "ref readonly ")] string receiverModifier,
+        [CombinatorialValues("ref ", "ref readonly ")] string localModifier)
+    {
+        var src = $$$"""
+public {{{structModifier}}}struct S1
+{
+}
+
+public static class Extensions
+{
+    extension({{{receiverModifier}}}S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        S1[] lst = [new S1()];
+        Test1(lst);
+    }
+
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach ({{{localModifier}}}var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.True(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.True(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.True(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.True(mReduced.IsEffectivelyReadOnly);
+        }
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, expectedOutput: ExpectedOutput("Set123"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("Program.Test1", $$$"""
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (System.Span<S1> V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_0019
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldloc.1
+  IL_0009:  call       "ref S1 System.Span<S1>.this[int].get"
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       "void Extensions.set_SomeProp({{{receiverModifier}}}S1, int)"
+  IL_0015:  ldloc.1
+  IL_0016:  ldc.i4.1
+  IL_0017:  add
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       "int System.Span<S1>.Length.get"
+  IL_0021:  blt.s      IL_0006
+  IL_0023:  ret
+}
+"""
+);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_04_Ref_Receiver(
+        [CombinatorialValues("", "readonly ")] string structModifier,
+        [CombinatorialValues("", "ref readonly ")] string localModifier)
+    {
+        var src1 = $$$"""
+public {{{structModifier}}}struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(ref S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+""";
+        var src2 = $$$"""
+public static class Program
+{
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach ({{{localModifier}}}var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp1 = CreateCompilation([src1]);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.False(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.False(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.False(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.False(mReduced.IsEffectivelyReadOnly);
+        }
+
+        CompileAndVerify(comp1, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols).VerifyDiagnostics();
+
+        var comp2 = CreateCompilation([src1, src2], targetFramework: TargetFramework.Net80);
+
+        comp2.VerifyDiagnostics(
+            // (7,13): error CS1657: Cannot use 'b' as a ref or out value because it is a 'foreach iteration variable'
+            //             b.SomeProp = 123;
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocalCause, "b").WithArguments("b", "foreach iteration variable").WithLocation(7, 13)
+            );
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_05_Ref_Receiver_Ref_Var(
+        [CombinatorialValues("", "readonly ")] string structModifier)
+    {
+        var src = $$$"""
+public {{{structModifier}}}struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(ref S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        S1[] lst = [new S1()];
+        Test1(lst);
+    }
+
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach (ref var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.False(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.False(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.False(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.False(mReduced.IsEffectivelyReadOnly);
+        }
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, expectedOutput: ExpectedOutput("Set123"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        verifier.VerifyIL("Program.Test1", """
+{
+  // Code size       36 (0x24)
+  .maxstack  2
+  .locals init (System.Span<S1> V_0,
+            int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_0019
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldloc.1
+  IL_0009:  call       "ref S1 System.Span<S1>.this[int].get"
+  IL_000e:  ldc.i4.s   123
+  IL_0010:  call       "void Extensions.set_SomeProp(ref S1, int)"
+  IL_0015:  ldloc.1
+  IL_0016:  ldc.i4.1
+  IL_0017:  add
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  call       "int System.Span<S1>.Length.get"
+  IL_0021:  blt.s      IL_0006
+  IL_0023:  ret
+}
+"""
+);
+    }
+
+    [Fact]
+    public void EffectivelyReadOnly_06_Val_Receiver_Class()
+    {
+        var src = """
+public class S1
+{
+}
+
+public static class Extensions
+{
+    extension(S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M() {}
+    }
+}
+
+public static class Program
+{
+    public static void Main()
+    {
+        S1[] lst = [new S1()];
+        Test1(lst);
+    }
+
+    public static void Test1(System.Span<S1> lst)
+    {
+        foreach (var b in lst)
+        {
+            b.SomeProp = 123;
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.False(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.False(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.False(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+            Assert.False(mReduced.IsDeclaredReadOnly);
+            Assert.False(mReduced.IsEffectivelyReadOnly);
+        }
+
+        var verifier = CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols, expectedOutput: ExpectedOutput("Set123"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EffectivelyReadOnly_07_Static()
+    {
+        var src = """
+public struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(S1 s1)
+    {
+        public static int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public static void M() {}
+    }
+}
+""";
+
+        var comp = CreateCompilation([src]);
+
+        static void verifySymbols(ModuleSymbol module)
+        {
+            NamedTypeSymbol extension = module.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+            MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+            Assert.False(getter.IsDeclaredReadOnly);
+            Assert.False(getter.IsEffectivelyReadOnly);
+            MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+            Assert.False(setter.IsDeclaredReadOnly);
+            Assert.False(setter.IsEffectivelyReadOnly);
+            var m = extension.GetMember<MethodSymbol>("M");
+            Assert.False(m.IsDeclaredReadOnly);
+            Assert.False(m.IsEffectivelyReadOnly);
+            var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+            Assert.False(mImpl.IsDeclaredReadOnly);
+            Assert.False(mImpl.IsEffectivelyReadOnly);
+            Assert.False(mImpl.IsExtensionMethod);
+        }
+
+        CompileAndVerify(comp, symbolValidator: verifySymbols, sourceSymbolValidator: verifySymbols).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void EffectivelyReadOnly_08_InitOnly()
+    {
+        var src = """
+public struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(S1 s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            init { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80);
+        comp.VerifyDiagnostics(
+            // (12,13): error CS9304: 'Extensions.extension(S1).SomeProp': cannot declare init-only accessors in an extension block
+            //             init { System.Console.Write("Set"); System.Console.Write(value); }
+            Diagnostic(ErrorCode.ERR_InitInExtension, "init").WithArguments("Extensions.extension(S1).SomeProp").WithLocation(12, 13)
+            );
+
+        NamedTypeSymbol extension = comp.SourceModule.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+        var p = extension.GetMember<PropertySymbol>("SomeProp");
+        MethodSymbol getter = p.GetMethod;
+        Assert.False(getter.IsInitOnly);
+        Assert.False(getter.IsDeclaredReadOnly);
+        Assert.True(getter.IsEffectivelyReadOnly);
+        Assert.False(getter.TryGetCorrespondingExtensionImplementationMethod().IsExtensionMethod);
+        MethodSymbol setter = p.SetMethod;
+        Assert.True(setter.IsInitOnly);
+        Assert.False(setter.IsDeclaredReadOnly);
+        Assert.False(setter.IsEffectivelyReadOnly);
+        Assert.False(setter.TryGetCorrespondingExtensionImplementationMethod().IsExtensionMethod);
+    }
+
+    [Fact]
+    public void EffectivelyReadOnly_09_Readonly()
+    {
+        var src = """
+public struct S1
+{
+}
+
+public static class Extensions
+{
+    extension(ref S1 s1)
+    {
+        public readonly int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public readonly void M() {}
+    }
+}
+""";
+
+        var comp = CreateCompilation([src], targetFramework: TargetFramework.Net80);
+        comp.VerifyDiagnostics(
+            // (9,29): error CS0106: The modifier 'readonly' is not valid for this item
+            //         public readonly int SomeProp
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "SomeProp").WithArguments("readonly").WithLocation(9, 29),
+            // (15,30): error CS0106: The modifier 'readonly' is not valid for this item
+            //         public readonly void M() {}
+            Diagnostic(ErrorCode.ERR_BadMemberFlag, "M").WithArguments("readonly").WithLocation(15, 30)
+            );
+
+        NamedTypeSymbol extension = comp.SourceModule.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+        MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+        Assert.False(getter.IsDeclaredReadOnly);
+        Assert.False(getter.IsEffectivelyReadOnly);
+        MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+        Assert.False(setter.IsDeclaredReadOnly);
+        Assert.False(setter.IsEffectivelyReadOnly);
+        var m = extension.GetMember<MethodSymbol>("M");
+        Assert.False(m.IsDeclaredReadOnly);
+        Assert.False(m.IsEffectivelyReadOnly);
+        var mImpl = m.TryGetCorrespondingExtensionImplementationMethod();
+        Assert.False(mImpl.IsDeclaredReadOnly);
+        Assert.False(mImpl.IsEffectivelyReadOnly);
+        MethodSymbol mReduced = mImpl.ReduceExtensionMethod();
+        Assert.False(mReduced.IsDeclaredReadOnly);
+        Assert.False(mReduced.IsEffectivelyReadOnly);
     }
 }
