@@ -14,6 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 /// </summary>
 internal sealed class HeaderMenuItemViewModel : MenuItemViewModel
 {
+    public override bool IsHeader => true;
+
     public HeaderMenuItemViewModel(string displayContent, ImageMoniker imageMoniker)
         : base(displayContent, imageMoniker)
     {
