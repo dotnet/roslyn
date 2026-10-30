@@ -22,30 +22,25 @@ public abstract partial class TagHelperCollection
     /// </remarks>
     internal sealed class TagHelperDescriptorListPool : CustomObjectPool<List<TagHelperDescriptor>>
     {
-        private const int InitialCapacity = 128;
-        private const int MaximumCapacity = 2048;
-        private const int PoolSize = 128;
+        public static readonly TagHelperDescriptorListPool Default = new(
+            initialCapacity: 4, maximumCapacity: 2048, poolSize: 128);
 
-        public static readonly TagHelperDescriptorListPool Default = new(Policy.Instance, PoolSize);
-
-        private TagHelperDescriptorListPool(PooledObjectPolicy policy, Opt<int> poolSize)
-            : base(policy, poolSize)
+        internal TagHelperDescriptorListPool(int initialCapacity, int maximumCapacity, int poolSize)
+            : base(new Policy(initialCapacity, maximumCapacity), poolSize)
         {
         }
 
-        private sealed class Policy : PooledObjectPolicy
+        private sealed class Policy(int initialCapacity, int maximumCapacity) : PooledObjectPolicy
         {
-            public static readonly Policy Instance = new();
-
-            public override List<TagHelperDescriptor> Create() => new(capacity: InitialCapacity);
+            public override List<TagHelperDescriptor> Create() => new(capacity: initialCapacity);
 
             public override bool Return(List<TagHelperDescriptor> list)
             {
                 list.Clear();
 
-                if (list.Capacity > MaximumCapacity)
+                if (list.Capacity > maximumCapacity)
                 {
-                    list.Capacity = MaximumCapacity;
+                    list.Capacity = maximumCapacity;
                 }
 
                 return true;
