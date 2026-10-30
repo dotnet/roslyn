@@ -22582,12 +22582,18 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
 
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
+                // (100,25): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b ? u1 : null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(100, 25),
                 // (200,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         return null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(200, 16),
                 // (300,25): warning CS8604: Possible null reference argument for parameter 'value' in 'U1.U1(string value)'.
                 //         return b ? u1 : (U1)null;
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(U1)null").WithArguments("value", "U1.U1(string value)").WithLocation(300, 25),
+                // (400,48): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b switch { true => u1, false => null };
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(400, 48),
                 // (500,48): warning CS8604: Possible null reference argument for parameter 'value' in 'U1.U1(string value)'.
                 //         return b switch { true => u1, false => (U1)null };
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "(U1)null").WithArguments("value", "U1.U1(string value)").WithLocation(500, 48),
@@ -22743,6 +22749,12 @@ class Program
             var comp = CreateCompilation([src, UnionAttributeSource, IUnionSource]);
 
             var verifier = CompileAndVerify(comp).VerifyDiagnostics(
+                // (100,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b ? null : u1;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(100, 20),
+                // (400,35): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         return b switch { true => null, false => u1 };
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(400, 35),
                 // (600,20): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         return b ? null : u2;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(600, 20),
