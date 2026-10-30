@@ -501,6 +501,17 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         }
     }
 
+    [Fact]
+    public void RulesOption_FeatureFlag_Deprecated()
+    {
+        CreateCompilation(["", ""],
+            parseOptions: TestOptions.RegularPreview.WithFeature(Feature.UpdatedMemorySafetyRules),
+            options: TestOptions.ReleaseDll)
+            .VerifyDiagnostics(
+                // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+                Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
+    }
+
     [Theory, CombinatorialData]
     public void RulesOption_FeatureFlag(
         [CombinatorialValues(LanguageVersionFacts.CSharpNext, LanguageVersion.Preview)] LanguageVersion langVersion,
@@ -513,7 +524,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
                 module,
                 expectedDefinition: AttributeDefinition.Synthesized,
                 expectedUpdatedRules: true))
-            .VerifyDiagnostics();
+            .VerifyDiagnostics(
+                // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+                Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
 
         var comp = (CSharpCompilation)verifier.Compilation;
         var expectedOptionVersion = updatedRules == true ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
@@ -530,7 +543,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: updatedRules is not { } updatedRulesValue ? null : TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRulesValue))
             .VerifyDiagnostics(
             // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
-            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", "15.0", "preview").WithLocation(1, 1),
+            // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+            Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
 
         var expectedOptionVersion = updatedRules == true ? MemorySafetyRulesVersion.Version2 : MemorySafetyRulesVersion.Version1;
         Assert.Equal(expectedOptionVersion, comp.Options.MemorySafetyRulesVersion);
@@ -567,16 +582,22 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Assert.Equal(expectedVersion, compilation.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
             Assert.Same(options, compilation.Options);
 
+            var expectedDiagnostics = new List<DiagnosticDescription>();
             if (expectedUpdatedRules && compilation.LanguageVersion != LanguageVersion.Preview)
             {
-                compilation.VerifyDiagnostics(
+                expectedDiagnostics.Add(
                     // error CS8630: Invalid 'MemorySafetyRulesVersion' value: '2' for C# 15.0. Please use language version 'preview' or greater.
                     Diagnostic(ErrorCode.ERR_CompilationOptionNotAvailable).WithArguments("MemorySafetyRulesVersion", "2", compilation.LanguageVersion.ToDisplayString(), "preview").WithLocation(1, 1));
             }
-            else
+
+            if (compilation.HasFeature(Feature.UpdatedMemorySafetyRules))
             {
-                compilation.VerifyEmitDiagnostics();
+                expectedDiagnostics.Add(
+                    // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+                    Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
             }
+
+            compilation.VerifyDiagnostics([.. expectedDiagnostics]);
         }
     }
 
@@ -588,7 +609,9 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             options: TestOptions.ReleaseDll.WithMemorySafetyRulesVersion((MemorySafetyRulesVersion)999))
             .VerifyDiagnostics(
             // error CS9400: Invalid 'MemorySafetyRulesVersion' value: '999'. Accepted values are: 1, 2
-            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", "999", "1, 2").WithLocation(1, 1));
+            Diagnostic(ErrorCode.ERR_BadCompilationOptionValueAccepted).WithArguments("MemorySafetyRulesVersion", "999", "1, 2").WithLocation(1, 1),
+            // warning CS9402: Feature flag 'updated-memory-safety-rules' is deprecated and will be removed in a future version. Use MSBuild property 'MemorySafetyRulesVersion=2' or compiler option '/memorysafetyrulesversion:2' instead.
+            Diagnostic(ErrorCode.WRN_DeprecatedFeatureFlag).WithArguments("updated-memory-safety-rules", "MemorySafetyRulesVersion=2", "/memorysafetyrulesversion:2").WithLocation(1, 1));
 
         Assert.Equal((MemorySafetyRulesVersion)999, comp.Options.MemorySafetyRulesVersion);
         Assert.Equal(MemorySafetyRulesVersion.Version1, comp.SourceModule.GetPublicSymbol().MemorySafetyRulesVersion);
@@ -1601,7 +1624,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (2,5): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (2,5): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             // _ = &x; // 1
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&x").WithLocation(2, 5),
         };
@@ -1774,10 +1797,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (4,5): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (4,5): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             // _ = &s.Y;
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&s.Y").WithLocation(4, 5),
-            // (7,5): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (7,5): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             // _ = &t;
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&t").WithLocation(7, 5));
     }
@@ -1798,7 +1821,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.ReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (2,5): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (2,5): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             // _ = &Y.Y;
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&Y.Y").WithLocation(2, 5));
     }
@@ -1832,7 +1855,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source, references: [libReference],
             options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (3,5): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (3,5): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             // _ = &x;
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&x").WithLocation(3, 5));
 
@@ -1948,10 +1971,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (5,25): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (5,25): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             //         fixed (int* p = &value) { }
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&value").WithLocation(5, 25),
-            // (11,26): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (11,26): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             //         fixed (void* p = &value) { }
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&value").WithLocation(11, 26));
     }
@@ -2021,7 +2044,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         CreateCompilation(source,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (14,13): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (14,13): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             //         _ = &y;
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&y").WithLocation(14, 13));
     }
@@ -2065,7 +2088,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net100,
             options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (6,13): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (6,13): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             //         _ = &b[0];
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&b[0]").WithLocation(6, 13));
     }
@@ -2084,7 +2107,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (2,5): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('string')
             // _ = &s;
             Diagnostic(ErrorCode.WRN_ManagedAddr, "&s").WithArguments("string").WithLocation(2, 5),
-            // (2,5): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (2,5): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             // _ = &s;
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&s").WithLocation(2, 5));
     }
@@ -2110,7 +2133,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         if (updatedRules)
         {
             comp.VerifyDiagnostics(
-                // (6,13): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+                // (6,13): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
                 //         _ = &x;
                 Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&x").WithLocation(6, 13));
         }
@@ -2211,7 +2234,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
         else
         {
             comp.VerifyDiagnostics(
-                // (6,13): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+                // (6,13): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
                 //         _ = &x;
                 Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&x").WithLocation(6, 13));
         }
@@ -2254,7 +2277,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net100,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyEmitDiagnostics(
-            // (6,24): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (6,24): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             //         void F() { _ = &b[0]; }
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&b[0]").WithLocation(6, 24));
     }
@@ -2285,10 +2308,10 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             // (6,13): error CS0165: Use of unassigned local variable 'x'
             //         _ = x;
             Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(6, 13),
-            // (7,20): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (7,20): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             //         if (b) _ = &x;
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&x").WithLocation(7, 20),
-            // (10,20): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (10,20): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             //         if (b) _ = &y;
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&y").WithLocation(10, 20),
             // (11,13): error CS0165: Use of unassigned local variable 'y'
@@ -2323,7 +2346,7 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             targetFramework: TargetFramework.Net100,
             options: TestOptions.ReleaseDll.WithUpdatedMemorySafetyRules(updatedRules))
             .VerifyDiagnostics(
-            // (8,17): error CS9402: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
+            // (8,17): error CS9403: The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.
             //             _ = &b[0];
             Diagnostic(ErrorCode.ERR_UnsafeUnassignedAddressOf, "&b[0]").WithLocation(8, 17));
     }
