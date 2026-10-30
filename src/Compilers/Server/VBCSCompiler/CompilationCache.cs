@@ -176,10 +176,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 // Verify all required cached files exist before copying anything,
                 // so we don't partially overwrite outputs on a cache miss.
-                if (isMissingWhenRequired(entryDir, PdbFileName, outputFiles.PdbPath)
-                    || isMissingWhenRequired(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
-                    || isMissingWhenRequired(entryDir, XmlDocFileName, outputFiles.XmlDocPath)
-                    || !File.Exists(Path.Combine(entryDir, DiagnosticsFileName)))
+                if (!HasRequiredOutputFiles(entryDir, outputFiles))
                 {
                     logger.Log($"Cache miss because entry is missing required output files: {dllName} [{hashKey}]");
                     return false;
@@ -187,11 +184,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 string cachedDiagnosticOutput;
                 using (var stream = File.OpenRead(Path.Combine(entryDir, DiagnosticsFileName)))
-                using (var reader = new BinaryReader(stream, Encoding.UTF8))
                 {
-                    var cachedContext = reader.ReadString();
-                    cachedDiagnosticOutput = reader.ReadString();
-                    if (stream.Position != stream.Length)
+                    if (!TryReadDiagnostics(stream, out var cachedContext, out cachedDiagnosticOutput))
                     {
                         logger.Log($"Cache miss because entry has invalid diagnostic data: {dllName} [{hashKey}]");
                         return false;
@@ -220,17 +214,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return true;
 
-            // Returns true if the cached file exists or is not needed (targetPath is null).
-            static bool isMissingWhenRequired(string entryDir, string cachedFileName, string? targetPath)
-            {
-                if (targetPath is null)
-                {
-                    return false;
-                }
-
-                return !File.Exists(Path.Combine(entryDir, cachedFileName));
-            }
-
             static void copyIfNeeded(string entryDir, string cachedFileName, string? targetPath, DateTime outputTimestampUtc)
             {
                 if (targetPath is null)
@@ -245,6 +228,44 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 File.Copy(sourcePath, targetPath, overwrite: true);
                 File.SetLastWriteTimeUtc(targetPath, outputTimestampUtc);
+            }
+        }
+
+        private static bool HasRequiredOutputFiles(string entryDir, CompilationOutputFiles outputFiles)
+        {
+            return File.Exists(Path.Combine(entryDir, AssemblyFileName))
+                && File.Exists(Path.Combine(entryDir, DiagnosticsFileName))
+                && !isMissingWhenRequired(entryDir, PdbFileName, outputFiles.PdbPath)
+                && !isMissingWhenRequired(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
+                && !isMissingWhenRequired(entryDir, XmlDocFileName, outputFiles.XmlDocPath);
+
+            // Returns true if the cached file exists or is not needed (targetPath is null).
+            static bool isMissingWhenRequired(string entryDir, string cachedFileName, string? targetPath)
+                => targetPath is not null && !File.Exists(Path.Combine(entryDir, cachedFileName));
+        }
+
+        private static bool TryReadDiagnostics(Stream stream, out string diagnosticContext, out string diagnosticOutput)
+        {
+            using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+            diagnosticContext = reader.ReadString();
+            diagnosticOutput = reader.ReadString();
+            return stream.Position == stream.Length;
+        }
+
+        private static bool HasValidDiagnostics(string entryDir)
+        {
+            try
+            {
+                using var stream = File.OpenRead(Path.Combine(entryDir, DiagnosticsFileName));
+                return TryReadDiagnostics(stream, out _, out _);
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+            catch (FormatException)
+            {
+                return false;
             }
         }
 
@@ -312,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         /// <summary>
         /// Stores all compiled outputs and the deterministic key in the cache.
-        /// Only files that actually exist at the given paths are stored.
+        /// Replaces existing entries that are incomplete or contain malformed diagnostics.
         /// Failures are logged but do not propagate as exceptions.
         /// </summary>
         internal CompilationCacheStoreResult TryStoreResult(
@@ -340,9 +361,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var cacheDir = GetCacheEntryDirectory(dllName, hashKey);
                 if (Directory.Exists(cacheDir))
                 {
-                    // Another writer finished publishing this entry before we got here.
-                    logger.Log($"Cache store skipped because entry already exists: {dllName} [{hashKey}]");
-                    return CompilationCacheStoreResult.SkippedExists;
+                    if (HasRequiredOutputFiles(cacheDir, outputFiles) && HasValidDiagnostics(cacheDir))
+                    {
+                        logger.Log($"Cache store skipped because entry already exists: {dllName} [{hashKey}]");
+                        return CompilationCacheStoreResult.SkippedExists;
+                    }
+
+                    logger.Log($"Cache store replacing incomplete or invalid entry: {dllName} [{hashKey}]");
                 }
 
                 // Populate a unique staging directory and publish it with a single rename so readers only
@@ -365,6 +390,18 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 File.WriteAllText(Path.Combine(stagingDir, dllName + ".key"), deterministicKey, Encoding.UTF8);
                 File.WriteAllText(Path.Combine(stagingDir, CreatedFileName), DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+
+                if (!HasRequiredOutputFiles(stagingDir, outputFiles))
+                {
+                    logger.Log($"Cache store failed for {dllName} [{hashKey}]: missing required output files.");
+                    return CompilationCacheStoreResult.Failed;
+                }
+
+                if (Directory.Exists(cacheDir))
+                {
+                    Directory.Delete(cacheDir, recursive: true);
+                }
+
                 Directory.Move(stagingDir, cacheDir);
                 stagingDir = null;
 

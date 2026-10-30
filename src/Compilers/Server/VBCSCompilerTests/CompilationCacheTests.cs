@@ -432,8 +432,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "", "", _logger);
         }
 
-        [Fact]
-        public void TryStoreResult_OnlyOneWriterStoresEntry()
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+        public void TryStoreResult_OnlyOneWriterStoresEntry(bool existingIncompleteEntry)
         {
             var cacheDir = Temp.CreateDirectory().Path;
             var cache = CreateCache(cacheDir);
@@ -450,6 +450,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 AssemblyPath = assemblyPath,
             };
 
+            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
+            if (existingIncompleteEntry)
+            {
+                Directory.CreateDirectory(entryDir);
+                File.WriteAllBytes(Path.Combine(entryDir, "assembly"), [99]);
+            }
+
             var logger1Messages = new List<string>();
             var logger2Messages = new List<string>();
             var logger1 = new CollectingLogger(logger1Messages);
@@ -459,8 +466,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var task2 = Task.Run(() => cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, "", "", logger2));
             Task.WaitAll(task1, task2);
 
-            var entryDir = Path.Combine(cacheDir, dllName, hashKey);
             Assert.Equal([10, 20, 30], File.ReadAllBytes(Path.Combine(entryDir, "assembly")));
+            Assert.True(File.Exists(Path.Combine(entryDir, "diagnostics")));
+            Assert.Equal(entryDir, Assert.Single(Directory.GetDirectories(Path.Combine(cacheDir, dllName))));
 
             var allMessages = logger1Messages.Concat(logger2Messages).ToArray();
             Assert.Equal(1, allMessages.Count(m => m.StartsWith("Cache stored:", StringComparison.Ordinal)));
@@ -527,6 +535,167 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var outputFiles = new CompilationOutputFiles { AssemblyPath = "/nonexistent/path/Util.dll" };
 
             Assert.Equal(CompilationCacheStoreResult.Failed, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "", "", _logger));
+        }
+
+        [Theory]
+        [InlineData("assembly")]
+        [InlineData("pdb")]
+        [InlineData("refassembly")]
+        [InlineData("xmldoc")]
+        [InlineData("diagnostics")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+        public void TryStoreResult_ReplacesEntryWithMissingRequiredOutput(string missingFile)
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var outputDir = Temp.CreateDirectory().Path;
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(outputDir, "Util.dll"),
+                PdbPath = Path.Combine(outputDir, "Util.pdb"),
+                RefAssemblyPath = Path.Combine(outputDir, "Util.ref.dll"),
+                XmlDocPath = Path.Combine(outputDir, "Util.xml"),
+            };
+            File.WriteAllBytes(outputFiles.AssemblyPath, [1]);
+            File.WriteAllBytes(outputFiles.PdbPath, [2]);
+            File.WriteAllBytes(outputFiles.RefAssemblyPath, [3]);
+            File.WriteAllBytes(outputFiles.XmlDocPath, [4]);
+            var hashKey = CompilationCache.ComputeHashKey("key");
+            Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult("Util.dll", hashKey, outputFiles, "key", "context", "old diagnostic", _logger));
+
+            var entryDir = Path.Combine(cacheDir, "Util.dll", hashKey);
+            File.Delete(Path.Combine(entryDir, missingFile));
+            Assert.False(cache.TryRestoreCachedResult("Util.dll", hashKey, outputFiles, "context", _logger, s_outputTimestampUtc, out _));
+            File.WriteAllBytes(outputFiles.AssemblyPath, [11]);
+            File.WriteAllBytes(outputFiles.PdbPath, [12]);
+            File.WriteAllBytes(outputFiles.RefAssemblyPath, [13]);
+            File.WriteAllBytes(outputFiles.XmlDocPath, [14]);
+
+            Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult("Util.dll", hashKey, outputFiles, "key", "context", "new diagnostic", _logger));
+            File.Delete(outputFiles.AssemblyPath);
+            File.Delete(outputFiles.PdbPath);
+            File.Delete(outputFiles.RefAssemblyPath);
+            File.Delete(outputFiles.XmlDocPath);
+
+            Assert.True(cache.TryRestoreCachedResult("Util.dll", hashKey, outputFiles, "context", _logger, s_outputTimestampUtc, out var diagnosticOutput));
+            Assert.Equal("new diagnostic", diagnosticOutput);
+            Assert.Equal([11], File.ReadAllBytes(outputFiles.AssemblyPath));
+            Assert.Equal([12], File.ReadAllBytes(outputFiles.PdbPath));
+            Assert.Equal([13], File.ReadAllBytes(outputFiles.RefAssemblyPath));
+            Assert.Equal([14], File.ReadAllBytes(outputFiles.XmlDocPath));
+            Assert.Equal(entryDir, Assert.Single(Directory.GetDirectories(Path.Combine(cacheDir, "Util.dll"))));
+        }
+
+        [Theory]
+        [InlineData("truncated")]
+        [InlineData("trailing")]
+        [InlineData("invalid-length")]
+        [InlineData("negative-length")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+        public void TryStoreResult_ReplacesEntryWithMalformedDiagnostics(string corruption)
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var outputFiles = new CompilationOutputFiles { AssemblyPath = Temp.CreateFile().Path };
+            File.WriteAllBytes(outputFiles.AssemblyPath, [1]);
+            Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "context", "old diagnostic", _logger));
+            var entryDir = Path.Combine(cacheDir, "Util.dll", "hash");
+            File.WriteAllBytes(Path.Combine(entryDir, "diagnostics"), corruption switch
+            {
+                "truncated" => [3],
+                "trailing" => [0, 0, 1],
+                "invalid-length" => [0x80, 0x80, 0x80, 0x80, 0x80],
+                "negative-length" => [0xFF, 0xFF, 0xFF, 0xFF, 0x0F],
+                _ => throw new InvalidOperationException(),
+            });
+            Assert.False(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "context", _logger, s_outputTimestampUtc, out _));
+            File.WriteAllBytes(outputFiles.AssemblyPath, [2]);
+
+            Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "context", "new diagnostic", _logger));
+            File.Delete(outputFiles.AssemblyPath);
+
+            Assert.True(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "context", _logger, s_outputTimestampUtc, out var diagnosticOutput));
+            Assert.Equal("new diagnostic", diagnosticOutput);
+            Assert.Equal([2], File.ReadAllBytes(outputFiles.AssemblyPath));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+        public void TryStoreResult_PreservesEntryWhenStagingFails(bool missingAssembly)
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var outputDir = Temp.CreateDirectory().Path;
+            var outputFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = Path.Combine(outputDir, "Util.dll"),
+                PdbPath = Path.Combine(outputDir, "Util.pdb"),
+            };
+            File.WriteAllBytes(outputFiles.AssemblyPath, [1]);
+            File.WriteAllBytes(outputFiles.PdbPath, [2]);
+            Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "context", "old diagnostic", _logger));
+            var entryDir = Path.Combine(cacheDir, "Util.dll", "hash");
+            var originalDiagnostics = File.ReadAllBytes(Path.Combine(entryDir, "diagnostics"));
+            File.Delete(Path.Combine(entryDir, "pdb"));
+            File.WriteAllBytes(outputFiles.AssemblyPath, [3]);
+            File.Delete(missingAssembly ? outputFiles.AssemblyPath : outputFiles.PdbPath);
+            var messages = new List<string>();
+
+            Assert.Equal(CompilationCacheStoreResult.Failed, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "context", "new diagnostic", new CollectingLogger(messages)));
+
+            Assert.Equal([1], File.ReadAllBytes(Path.Combine(entryDir, "assembly")));
+            Assert.Equal(originalDiagnostics, File.ReadAllBytes(Path.Combine(entryDir, "diagnostics")));
+            Assert.False(File.Exists(Path.Combine(entryDir, "pdb")));
+            Assert.Equal(entryDir, Assert.Single(Directory.GetDirectories(Path.Combine(cacheDir, "Util.dll"))));
+            Assert.Contains(messages, message => message.StartsWith("Cache store failed", StringComparison.Ordinal));
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+        public void TryStoreResult_PreservesCompleteEntryAfterRestoreFailure(bool differentContext)
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var outputFiles = new CompilationOutputFiles { AssemblyPath = Temp.CreateFile().Path };
+            File.WriteAllBytes(outputFiles.AssemblyPath, [1]);
+            Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "original context", "original diagnostic", _logger));
+            var context = differentContext ? "different context" : "original context";
+            var restoreDir = Temp.CreateDirectory().Path;
+            var restoreFiles = new CompilationOutputFiles
+            {
+                AssemblyPath = differentContext ? Path.Combine(restoreDir, "Util.dll") : Path.Combine(restoreDir, "missing-directory", "Util.dll"),
+            };
+            Assert.False(cache.TryRestoreCachedResult("Util.dll", "hash", restoreFiles, context, _logger, s_outputTimestampUtc, out _));
+            Assert.False(File.Exists(restoreFiles.AssemblyPath));
+            File.WriteAllBytes(outputFiles.AssemblyPath, [2]);
+
+            Assert.Equal(CompilationCacheStoreResult.SkippedExists, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", context, "new diagnostic", _logger));
+            File.Delete(outputFiles.AssemblyPath);
+
+            Assert.True(cache.TryRestoreCachedResult("Util.dll", "hash", outputFiles, "original context", _logger, s_outputTimestampUtc, out var diagnosticOutput));
+            Assert.Equal("original diagnostic", diagnosticOutput);
+            Assert.Equal([1], File.ReadAllBytes(outputFiles.AssemblyPath));
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
+        public void TryStoreResult_ReturnsFailed_WhenDiagnosticsLocked()
+        {
+            var cacheDir = Temp.CreateDirectory().Path;
+            var cache = CreateCache(cacheDir);
+            var outputFiles = new CompilationOutputFiles { AssemblyPath = Temp.CreateFile().Path };
+            File.WriteAllBytes(outputFiles.AssemblyPath, [1]);
+            Assert.Equal(CompilationCacheStoreResult.Stored, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "context", "original diagnostic", _logger));
+            File.WriteAllBytes(outputFiles.AssemblyPath, [2]);
+            var messages = new List<string>();
+
+            using (File.Open(Path.Combine(cacheDir, "Util.dll", "hash", "diagnostics"), FileMode.Open, FileAccess.Read, FileShare.None))
+            {
+                Assert.Equal(CompilationCacheStoreResult.Failed, cache.TryStoreResult("Util.dll", "hash", outputFiles, "key", "context", "new diagnostic", new CollectingLogger(messages)));
+            }
+
+            Assert.Equal([2], File.ReadAllBytes(outputFiles.AssemblyPath));
+            Assert.Equal(Path.Combine(cacheDir, "Util.dll", "hash"), Assert.Single(Directory.GetDirectories(Path.Combine(cacheDir, "Util.dll"))));
+            Assert.Contains(messages, message => message.StartsWith("Cache store replacing incomplete or invalid entry:", StringComparison.Ordinal));
+            Assert.Contains(messages, message => message.StartsWith("Cache store failed", StringComparison.Ordinal));
         }
 
         [Fact]
