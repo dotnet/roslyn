@@ -5,6 +5,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -76,6 +77,80 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             // Same name, type, accessibility, return type, *and* the services can implement
             // implicitly.  These are not in conflict.
             return false;
+        }
+
+        private bool HasConflictingInterfaceSafetyRequirement(ISymbol member)
+        {
+#if !OLDER_ROSLYN
+            if (!State.ClassOrStructType.UsesUpdatedMemorySafetyRules())
+                return false;
+
+            var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
+            var implementationIsUnsafe = ShouldAddUnsafeModifier(member, State.ContextNode, syntaxFacts);
+            var property = member as IPropertySymbol;
+            var getterRequiresUnsafe = AccessorRequiresUnsafe(property?.GetMethod);
+            var setterRequiresUnsafe = AccessorRequiresUnsafe(property?.SetMethod);
+            if (!implementationIsUnsafe && !getterRequiresUnsafe && !setterRequiresUnsafe)
+                return false;
+
+            foreach (var interfaceType in State.ClassOrStructType.AllInterfaces)
+            {
+                foreach (var interfaceMember in interfaceType.GetMembers(member.Name))
+                {
+                    if (interfaceMember.Kind != member.Kind ||
+                        interfaceMember.IsStatic != member.IsStatic ||
+                        (!interfaceMember.IsAbstract && !interfaceMember.IsVirtual))
+                    {
+                        continue;
+                    }
+
+                    if (!HasConflictingSafety(interfaceMember))
+                        continue;
+
+                    if (!SignatureComparer.Instance.HaveSameSignatureAndConstraintsAndReturnType(member, interfaceMember, IsCaseSensitive))
+                        continue;
+
+                    var existingImplementation = State.ClassOrStructType.FindImplementationForInterfaceMember(interfaceMember);
+                    // Only explicit implementations in this type are insulated from a new public member.
+                    if (existingImplementation != null &&
+                        SymbolEqualityComparer.Default.Equals(existingImplementation.ContainingType, State.ClassOrStructType) &&
+                        existingImplementation.ExplicitInterfaceImplementations().Any())
+                    {
+                        continue;
+                    }
+
+                    return true;
+                }
+            }
+
+            return false;
+
+            bool AccessorRequiresUnsafe(IMethodSymbol? accessor)
+            {
+                if (accessor is null)
+                    return false;
+
+                if (implementationIsUnsafe)
+                    return true;
+
+                return member.UsesUpdatedMemorySafetyRules() && accessor.RequiresUnsafeContext;
+            }
+
+            bool HasConflictingSafety(ISymbol interfaceMember)
+            {
+                if (interfaceMember is IPropertySymbol interfaceProperty)
+                {
+                    if (getterRequiresUnsafe && interfaceProperty.GetMethod is { RequiresUnsafeContext: false })
+                        return true;
+
+                    return setterRequiresUnsafe && interfaceProperty.SetMethod is { RequiresUnsafeContext: false };
+                }
+
+                return implementationIsUnsafe && !interfaceMember.RequiresUnsafeContext;
+            }
+#else
+            return false;
+#endif
         }
     }
 }

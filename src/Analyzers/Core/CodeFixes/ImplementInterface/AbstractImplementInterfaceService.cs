@@ -148,7 +148,12 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
         if (member.UsesUpdatedMemorySafetyRules())
         {
             // An unsafe context does not replace a v2 member's caller-safety contract.
-            return member.InferSafetyModifiersFromSymbol().IsUnsafe;
+            if (member.InferSafetyModifiersFromSymbol().IsUnsafe)
+                return true;
+
+            // A safe contract does not make pointer signatures legal in older destination languages.
+            if (syntaxFacts.SupportsUnsafeEvolution(contextNode.SyntaxTree.Options))
+                return false;
         }
 
         if (!member.RequiresUnsafeModifier())

@@ -188,8 +188,13 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             // class C : IBar
             //
             // In this case we only want to generate 'Goo' once.
+            var requiresExplicitSafetyImplementation = false;
             if (HasMatchingMember(implementedVisibleMembers, member))
-                return [];
+            {
+                requiresExplicitSafetyImplementation = HasConflictingInterfaceSafetyRequirement(member);
+                if (!requiresExplicitSafetyImplementation)
+                    return [];
+            }
 
             var memberName = DetermineMemberName(member, implementedVisibleMembers, out var conflictingMember);
 
@@ -198,7 +203,8 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             var supportsImplicitImplementationOfNonPublicInterfaceMembers = this.Document
                 .GetRequiredLanguageService<ISyntaxFactsService>()
                 .SupportsImplicitImplementationOfNonPublicInterfaceMembers(options);
-            var generateInvisibleMember = ShouldGenerateInvisibleMember(options, member, memberName, supportsImplicitImplementationOfNonPublicInterfaceMembers);
+            var generateInvisibleMember = requiresExplicitSafetyImplementation ||
+                ShouldGenerateInvisibleMember(options, member, memberName, supportsImplicitImplementationOfNonPublicInterfaceMembers);
             memberName = generateInvisibleMember ? member.Name : memberName;
 
             // The language doesn't allow static abstract implementations of interface methods. i.e,
@@ -241,6 +247,9 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                 // If the member contains a type is less accessible than type, for which we are implementing it, then
                 // only explicit implementation is valid.
                 if (ContainsTypeLessAccessibleThan(member, State.ClassOrStructType, supportsImplementingLessAccessibleMember))
+                    return true;
+
+                if (HasConflictingInterfaceSafetyRequirement(member))
                     return true;
             }
 
