@@ -2753,6 +2753,25 @@ End Class
             Assert.Equal(DeclarationModifiers.None, Generator.GetModifiers(Generator.WithModifiers(SyntaxFactory.TypeParameter("tp"), DeclarationModifiers.Abstract)))
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn-analyzers/pull/7434")>
+        Public Sub TestWithModifiers_Iterator()
+            Dim declaration = SyntaxFactory.ParseCompilationUnit("Public Iterator Function Method1() As IEnumerable(Of Integer)
+    Yield 1
+End Function").Members.Single()
+
+            Dim modifiers = Generator.GetModifiers(declaration).WithIsStatic(True)
+            VerifySyntax(Of MethodBlockSyntax)(Generator.WithModifiers(declaration, modifiers), "Public Shared Iterator Function Method1() As IEnumerable(Of Integer)
+    Yield 1
+End Function")
+
+            Dim statement = DirectCast(declaration, MethodBlockSyntax).SubOrFunctionStatement
+            VerifySyntax(Of MethodStatementSyntax)(Generator.WithModifiers(statement, modifiers),
+                "Public Shared Iterator Function Method1() As IEnumerable(Of Integer)")
+            VerifySyntax(Of MethodBlockSyntax)(Generator.WithAccessibility(declaration, Accessibility.Private), "Private Iterator Function Method1() As IEnumerable(Of Integer)
+    Yield 1
+End Function")
+        End Sub
+
         <Fact>
         Public Sub TestWithModifiers_Sealed_Class()
             Dim classBlock = DirectCast(Generator.ClassDeclaration("C"), ClassBlockSyntax)
