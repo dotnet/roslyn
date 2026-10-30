@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security;
@@ -17,13 +16,20 @@ using System.Xml.Linq;
 
 namespace RunTests
 {
-    internal sealed class ProcessTestExecutor
+    internal sealed class ProcessTestExecutor : IDisposable
     {
         private readonly CancellationToken _userCancellationToken;
+        private readonly Lazy<CancellationTokenSource> _diagnosticBudget = new(() => new CancellationTokenSource(DumpCollector.TotalTimeout));
 
         public ProcessTestExecutor(CancellationToken userCancellationToken)
         {
             _userCancellationToken = userCancellationToken;
+        }
+
+        public void Dispose()
+        {
+            if (_diagnosticBudget.IsValueCreated)
+                _diagnosticBudget.Value.Dispose();
         }
 
         public static string BuildRspFileContents(WorkItemInfo workItem, Options options, string xmlResultsFilePath, string? htmlResultsFilePath, string diagnosticsDirectory)
@@ -141,14 +147,15 @@ namespace RunTests
                 File.Create(resultsFilePath).Close();
 
                 var start = DateTime.UtcNow;
-                var dotnetProcessInfo = ProcessRunner.CreateProcess(
-                    ProcessRunner.CreateProcessStartInfo(
-                        options.DotnetFilePath,
-                        commandLineArguments,
-                        displayWindow: false,
-                        captureOutput: true,
-                        environmentVariables: options.EnvironmentVariables),
-                    lowPriority: false);
+                var startInfo = ProcessRunner.CreateProcessStartInfo(
+                    options.DotnetFilePath, "", displayWindow: false, captureOutput: true,
+                    environmentVariables: options.EnvironmentVariables);
+                startInfo.ArgumentList.Add("exec");
+                startInfo.ArgumentList.Add(vsTestConsolePath);
+                startInfo.ArgumentList.Add("@" + rspFilePath);
+                await using var ownedProcess = OwnedProcess.Start(
+                    startInfo, workItemInfo.DisplayName, cancellationToken: cancellationToken);
+                var dotnetProcessInfo = ownedProcess.Info;
                 Logger.Log($"Create xunit process with id {dotnetProcessInfo.Id} for test {workItemInfo.DisplayName}");
 
                 var (xunitProcessResult, timeoutMessage) = await waitForCompletionAsync(resultsFilePath);
@@ -220,46 +227,31 @@ namespace RunTests
 
                 async Task handleCancellationAsync(string resultsFilePath, string timeoutMessage)
                 {
-                    var processes = new List<Process> { dotnetProcessInfo.Process };
+                    var processes = new List<OwnedProcess.Target>();
                     try
                     {
                         writeSyntheticFailure(resultsFilePath, workItemInfo.DisplayName, timeoutMessage);
                         if (_userCancellationToken.IsCancellationRequested)
                             return;
 
-                        processes.AddRange(await getChildProcessesAsync(dotnetProcessInfo.Process).ConfigureAwait(false));
-                        await DumpCollector.CollectAsync(processes, options, workItemDirectory).ConfigureAwait(false);
+                        var budget = _diagnosticBudget.Value.Token;
+                        processes.AddRange(await ownedProcess.GetProcessesAsync(budget).ConfigureAwait(false));
+                        await DumpCollector.CollectAsync(processes, options.DotnetFilePath, workItemDirectory, workItemInfo.DisplayName, budget).ConfigureAwait(false);
                     }
                     catch (Exception ex)
                     {
-                        ConsoleUtil.Warning($"Unable to collect timeout dumps: {ex.Message}");
+                        ConsoleUtil.Warning($"[{workItemInfo.DisplayName}] timeout diagnostics failed: {ex}");
                     }
                     finally
                     {
-                        foreach (var process in processes)
-                        {
-                            ProcessUtil.KillTree(process);
-                            if (process != dotnetProcessInfo.Process)
-                                process.Dispose();
-                        }
-                    }
-
-                    static async Task<List<Process>> getChildProcessesAsync(Process root)
-                    {
                         try
                         {
-                            ConsoleUtil.Write($"Getting child process tree for process {root.ProcessName} ({root.Id}) ... ");
-                            var children = await ProcessUtil.GetChildProcessesAsync(root).ConfigureAwait(false);
-                            ConsoleUtil.WriteLine("completed");
-                            return children;
+                            await ownedProcess.CleanupAsync().ConfigureAwait(false);
                         }
-                        catch (Exception ex)
+                        finally
                         {
-                            ConsoleUtil.WriteLine("failed");
-                            // The root process is already known and can still be dumped even if
-                            // descendant discovery fails.
-                            ConsoleUtil.Warning($"Unable to enumerate descendant processes: {ex.Message}");
-                            return new List<Process>();
+                            foreach (var process in processes)
+                                process.Process.Dispose();
                         }
                     }
                 }
