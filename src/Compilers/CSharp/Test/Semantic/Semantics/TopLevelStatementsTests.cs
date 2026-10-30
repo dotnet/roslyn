@@ -9908,7 +9908,7 @@ public class C
         public void SpeculativeSemanticModel_TaskReturningLocalFunction(
             bool isAsync,
             bool returnsInt,
-            [CombinatorialValues("Main", "Foo")] string name,
+            [CombinatorialValues("Main", "Goo")] string name,
             [CombinatorialValues(OutputKind.ConsoleApplication, OutputKind.DynamicallyLinkedLibrary)] OutputKind outputKind)
         {
             var returnType = returnsInt ? "Task<int>" : "Task";
@@ -9927,26 +9927,28 @@ public class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            var expectedReturnType = returnsInt ? "System.Threading.Tasks.Task<System.Int32>" : "System.Threading.Tasks.Task";
+            Assert.Equal(expectedReturnType, model.GetSymbolInfo(localFunction.ReturnType).Symbol.ToTestDisplayString());
             var newLocalFunction = (LocalFunctionStatementSyntax)SyntaxFactory.ParseStatement(localFunction.ToFullString());
 
             Assert.True(model.TryGetSpeculativeSemanticModel(localFunction.SpanStart, newLocalFunction, out var speculativeModel));
-            Assert.Equal(
-                returnsInt ? "System.Threading.Tasks.Task<System.Int32>" : "System.Threading.Tasks.Task",
-                speculativeModel.GetSymbolInfo(newLocalFunction.ReturnType).Symbol.ToTestDisplayString());
+            Assert.Equal(expectedReturnType, speculativeModel.GetSymbolInfo(newLocalFunction.ReturnType).Symbol.ToTestDisplayString());
 
             var expectedDiagnostics = ImmutableArray.CreateBuilder<DiagnosticDescription>();
-            if (outputKind == OutputKind.DynamicallyLinkedLibrary)
-            {
-                // (2,1): error CS8805: Program using top-level statements must be an executable.
-                // _ = Main();
-                expectedDiagnostics.Add(Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, $"_ = {name}();"));
-            }
-
             if (name == "Main")
             {
                 // (3,13): warning CS7022: The entry point of the program is global code; ignoring 'Main()' entry point.
                 // static Task Main()
                 expectedDiagnostics.Add(Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
+            }
+
+            model.GetDiagnostics().Verify(expectedDiagnostics.ToArray());
+            model.GetMethodBodyDiagnostics().Verify(expectedDiagnostics.ToArray());
+            if (outputKind == OutputKind.DynamicallyLinkedLibrary)
+            {
+                // (2,1): error CS8805: Program using top-level statements must be an executable.
+                // _ = Main();
+                expectedDiagnostics.Insert(0, Diagnostic(ErrorCode.ERR_SimpleProgramNotAnExecutable, $"_ = {name}();"));
             }
 
             compilation.VerifyEmitDiagnostics(expectedDiagnostics.ToArray());
@@ -9964,14 +9966,17 @@ public class C
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var localFunction = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single();
+            Assert.Equal(SpecialType.System_Void, ((ITypeSymbol)model.GetSymbolInfo(localFunction.ReturnType).Symbol).SpecialType);
             var newLocalFunction = (LocalFunctionStatementSyntax)SyntaxFactory.ParseStatement(localFunction.ToFullString());
 
             Assert.True(model.TryGetSpeculativeSemanticModel(localFunction.SpanStart, newLocalFunction, out var speculativeModel));
             Assert.Equal(SpecialType.System_Void, ((ITypeSymbol)speculativeModel.GetSymbolInfo(newLocalFunction.ReturnType).Symbol).SpecialType);
-            compilation.VerifyEmitDiagnostics(
-                // (2,13): warning CS7022: The entry point of the program is global code; ignoring 'Main()' entry point.
-                // static void Main() { }
-                Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()"));
+            // (2,13): warning CS7022: The entry point of the program is global code; ignoring 'Main()' entry point.
+            // static void Main() { }
+            var expectedDiagnostic = Diagnostic(ErrorCode.WRN_MainIgnored, "Main").WithArguments("Main()");
+            model.GetDiagnostics().Verify(expectedDiagnostic);
+            model.GetMethodBodyDiagnostics().Verify(expectedDiagnostic);
+            compilation.VerifyEmitDiagnostics(expectedDiagnostic);
         }
 
         [Fact]

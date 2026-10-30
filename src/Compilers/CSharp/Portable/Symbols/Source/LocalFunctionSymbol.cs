@@ -164,9 +164,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AsyncMethodChecks(addTo);
 
             var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: false, withDependencies: addTo.AccumulatesDependencies);
-            if (IsEntryPointCandidate && !IsGenericMethod &&
+            if (!_binder.IsSemanticModelBinder && IsEntryPointCandidate && !IsGenericMethod &&
                 ContainingSymbol is SynthesizedSimpleProgramEntryPointSymbol &&
-                compilation.HasEntryPointSignature(this, diagnostics, _binder).IsCandidate)
+                compilation.HasEntryPointSignature(this, diagnostics).IsCandidate)
             {
                 addTo.Add(ErrorCode.WRN_MainIgnored, Syntax.Identifier.GetLocation(), this);
             }

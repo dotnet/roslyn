@@ -2268,7 +2268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, BindingDiagnosticBag diagnostics, Binder? binder = null)
+        internal bool ReturnsAwaitableToVoidOrInt(MethodSymbol method, BindingDiagnosticBag diagnostics)
         {
             // Common case optimization
             if (method.ReturnType.IsVoidType() || method.ReturnType.SpecialType == SpecialType.System_Int32)
@@ -2290,7 +2290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = method.ExtractReturnTypeSyntax();
             var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
-            binder ??= GetBinder(syntax);
+            var binder = GetBinder(syntax);
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out BoundExpression? result, out BoundCall? runtimeAwaitCall, syntax, diagnostics);
 
             RoslynDebug.Assert(!namedType.IsDynamic());
@@ -2311,7 +2311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// is either void or int.
         /// - has either no parameter or a single parameter of type string[]
         /// </summary>
-        internal (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, BindingDiagnosticBag bag, Binder? binder = null)
+        internal (bool IsCandidate, bool IsTaskLike) HasEntryPointSignature(MethodSymbol method, BindingDiagnosticBag bag)
         {
             if (method.IsVararg)
             {
@@ -2323,7 +2323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (returnType.SpecialType != SpecialType.System_Int32 && !returnType.IsVoidType())
             {
                 // Never look for ReturnsAwaitableToVoidOrInt on int32 or void
-                returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(method, bag, binder);
+                returnsTaskOrTaskOfInt = ReturnsAwaitableToVoidOrInt(method, bag);
                 if (!returnsTaskOrTaskOfInt)
                 {
                     return (false, false);
