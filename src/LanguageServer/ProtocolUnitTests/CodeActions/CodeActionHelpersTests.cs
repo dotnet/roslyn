@@ -186,7 +186,8 @@ public sealed class CodeActionHelpersTests(ITestOutputHelper testOutputHelper) :
             => throw ExceptionUtilities.Unreachable();
 
         public Task<CodeFixCollection?> GetDocumentFixAllForIdInSpanAsync(
-            Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity severity, CancellationToken cancellationToken)
+            Document document, TextSpan? textSpan, string diagnosticId, DiagnosticSeverity severity,
+            bool includeInteractive, CancellationToken cancellationToken)
             => throw ExceptionUtilities.Unreachable();
 
         public Task<Document> ApplyCodeFixesForSpecificDiagnosticIdAsync(

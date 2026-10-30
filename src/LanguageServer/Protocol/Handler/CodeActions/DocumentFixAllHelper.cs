@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
-using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 
@@ -50,7 +49,8 @@ internal static class DocumentFixAllHelper
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var collection = await codeFixService.GetDocumentFixAllForIdInSpanAsync(
-                    document, textSpan: null, diagnosticId, minimumSeverity, cancellationToken).ConfigureAwait(false);
+                    document, textSpan: null, diagnosticId, minimumSeverity,
+                    includeInteractive: false, cancellationToken).ConfigureAwait(false);
                 if (collection?.FixAllState is not { } state || collection.Provider is not CodeFixProvider)
                     break;
 
@@ -64,8 +64,8 @@ internal static class DocumentFixAllHelper
 
                 previousDiagnosticCount = collection.Diagnostics.Length;
 
-                // No individual fix was selected by the user, so choose the first eligible action and reuse its equivalence key.
-                var action = GetFirstAction(collection.Fixes.Select(fix => fix.Action));
+                // Every retained fix has an eligible leaf; use the first fix's leaf equivalence key, not its container's.
+                var action = CodeFixService.GetFirstNonInteractiveAction(collection.Fixes[0].Action);
                 if (action is null)
                     break;
 
@@ -120,25 +120,6 @@ internal static class DocumentFixAllHelper
         }
 
         return solution;
-    }
-
-    private static CodeAction? GetFirstAction(System.Collections.Generic.IEnumerable<CodeAction> actions)
-    {
-        // Preserve provider registration order, choosing the first eligible leaf in nested actions.
-        foreach (var action in actions)
-        {
-            // Batch execution cannot prompt for options or include known non-document changes.
-            if (action is CodeActionWithOptions || action.Tags.Contains(CodeAction.RequiresNonDocumentChange))
-                continue;
-
-            if (action.NestedActions.IsEmpty)
-                return action;
-
-            if (GetFirstAction(action.NestedActions) is { } nested)
-                return nested;
-        }
-
-        return null;
     }
 
     private static async Task<Solution?> NormalizeLinkedDocumentChangesAsync(

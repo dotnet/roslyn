@@ -377,7 +377,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Register an action that requires user-supplied options before it can run.
         await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        var fixer = new TestFixer(["FA0001"], options: true);
+        var fixer = new TestFixer(["FA0001"], action: new OptionsAction());
         var document = GetDocumentWithReference(server, new TestReference(
             [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
 
@@ -387,6 +387,28 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         // Skip the interactive action rather than invoking its Fix All provider.
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
         Assert.Empty(fixer.Invocations);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FixAllFallsBackFromInteractiveProvider(bool mutatingLspWorkspace, bool nested)
+    {
+        var source = "// warning\n{|caret:|}class C { }";
+        var expected = "// fixed\nclass C { }";
+
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        CodeAction interactiveAction = nested
+            ? CodeAction.Create("Choices", [new OptionsAction()], isInlinable: false)
+            : new OptionsAction();
+        var first = new TestFixer(["FA0001"], action: interactiveAction);
+        var second = new TestFixer(["FA0001"]);
+        var document = GetDocumentWithReference(server, new TestReference(
+            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [first, second]));
+
+        var changed = await ChangeAsync(document, server);
+
+        Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
+        Assert.Empty(first.Invocations);
+        Assert.Equal(["FA0001"], second.Invocations);
     }
 
     [Theory, CombinatorialData]
@@ -1059,7 +1081,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Func<Document, ImmutableArray<Diagnostic>, CancellationToken, Task<Solution>>? transform = null,
         bool hasFixAll = true,
         bool documentScope = true,
-        bool options = false,
+        CodeAction? action = null,
         bool unsupportedOperations = false) : CodeFixProvider
     {
         private readonly bool _unsupportedOperations = unsupportedOperations;
@@ -1070,9 +1092,9 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            CodeAction action = options ? new OptionsAction() : CodeAction.Create(
+            var codeAction = action ?? CodeAction.Create(
                 "First", cancellationToken => ReplaceDiagnosticsAsync(context.Document, context.Diagnostics, "fixed", cancellationToken), "first");
-            context.RegisterCodeFix(action, context.Diagnostics);
+            context.RegisterCodeFix(codeAction, context.Diagnostics);
             return Task.CompletedTask;
         }
 
@@ -1107,6 +1129,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     private sealed class OptionsAction : CodeActionWithOptions
     {
         public override string Title => "Requires options";
+        public override string EquivalenceKey => "first";
         public override object GetOptions(CancellationToken cancellationToken)
             => throw new InvalidOperationException("Document Fix All must not request user options.");
     }
