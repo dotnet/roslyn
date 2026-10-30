@@ -45744,4 +45744,65 @@ public static class Extensions
         Assert.False(mReduced.IsDeclaredReadOnly);
         Assert.False(mReduced.IsEffectivelyReadOnly);
     }
+
+    [Theory]
+    [CombinatorialData]
+    public void EffectivelyReadOnly_10_GenericSubstitution(
+        [CombinatorialValues("", "in ", "ref readonly ")] string receiverModifier)
+    {
+        var src = $$$"""
+public struct S1<T>
+{
+}
+
+public static class Extensions
+{
+    extension<T>({{{receiverModifier}}}S1<T> s1)
+    {
+        public int SomeProp
+        {
+            get { System.Console.Write("Get"); return 0; }
+            set { System.Console.Write("Set"); System.Console.Write(value); }
+        }
+
+        public void M<U>() {}
+    }
+}
+""";
+
+        var comp = CreateCompilation([src]);
+        comp.VerifyDiagnostics();
+
+        NamedTypeSymbol extension = comp.SourceModule.GlobalNamespace.GetTypeMember("Extensions").GetTypeMember("");
+        MethodSymbol getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+        Assert.True(getter.IsEffectivelyReadOnly);
+        Assert.False(getter.GetPublicSymbol().IsReadOnly);
+        MethodSymbol setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+        Assert.True(setter.IsEffectivelyReadOnly);
+        Assert.False(setter.GetPublicSymbol().IsReadOnly);
+        var m = extension.GetMember<MethodSymbol>("M");
+        Assert.True(m.IsEffectivelyReadOnly);
+        Assert.False(m.GetPublicSymbol().IsReadOnly);
+        MethodSymbol mConstructed = m.Construct(getter.ReturnType);
+        Assert.True(mConstructed.IsEffectivelyReadOnly);
+        Assert.False(mConstructed.GetPublicSymbol().IsReadOnly);
+        var mImplReduced = m.TryGetCorrespondingExtensionImplementationMethod().ReduceExtensionMethod();
+        Assert.True(mImplReduced.IsEffectivelyReadOnly);
+        Assert.True(mImplReduced.GetPublicSymbol().IsReadOnly);
+
+        extension = extension.Construct(getter.ReturnType);
+
+        getter = extension.GetMember<MethodSymbol>("get_SomeProp");
+        Assert.True(getter.IsEffectivelyReadOnly);
+        Assert.False(getter.GetPublicSymbol().IsReadOnly);
+        setter = extension.GetMember<MethodSymbol>("set_SomeProp");
+        Assert.True(setter.IsEffectivelyReadOnly);
+        Assert.False(setter.GetPublicSymbol().IsReadOnly);
+        m = extension.GetMember<MethodSymbol>("M");
+        Assert.True(m.IsEffectivelyReadOnly);
+        Assert.False(m.GetPublicSymbol().IsReadOnly);
+        mConstructed = m.Construct(getter.ReturnType);
+        Assert.True(mConstructed.IsEffectivelyReadOnly);
+        Assert.False(mConstructed.GetPublicSymbol().IsReadOnly);
+    }
 }
