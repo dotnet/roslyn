@@ -110,7 +110,7 @@ public class GetIterationTypeTests : CSharpTestBase
         var (model, c) = Compile();
         var iterationType = model.GetIterationType(Source.IndexOf("/*inside*/"), ParameterType(c, "WithExtension"));
 
-        Assert.Null(iterationType);
+        Assert.Equal("System.Char", iterationType?.ToTestDisplayString(includeNonNullable: true));
     }
 
     [Theory]
@@ -120,6 +120,10 @@ public class GetIterationTypeTests : CSharpTestBase
     [InlineData("AsyncPattern", "System.Int64")]
     [InlineData("AsyncPatternWithToken", "System.Int64")]
     [InlineData("AsyncTaskPattern", "System.Int16")]
+    [InlineData("Array", null)]
+    [InlineData("String", null)]
+    [InlineData("Span", null)]
+    [InlineData("Dynamic", null)]
     [InlineData("List", null)]
     [InlineData("NotIterable", null)]
     [InlineData("WithAsyncExtension", null)]
@@ -137,7 +141,7 @@ public class GetIterationTypeTests : CSharpTestBase
         var (model, c) = Compile();
         var iterationType = model.GetAsyncIterationType(Source.IndexOf("/*inside*/"), ParameterType(c, "WithAsyncExtension"));
 
-        Assert.Null(iterationType);
+        Assert.Equal("System.Char", iterationType?.ToTestDisplayString(includeNonNullable: true));
     }
 
     [Fact]

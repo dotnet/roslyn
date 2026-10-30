@@ -2285,16 +2285,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         internal bool TryGetCollectionIterationType(SyntaxNode syntax, TypeSymbol collectionType, out TypeWithAnnotations iterationType)
-            => TryGetCollectionIterationType(syntax, collectionType, isAsync: false, out iterationType);
-
-        internal bool TryGetCollectionIterationType(SyntaxNode syntax, TypeSymbol collectionType, bool isAsync, out TypeWithAnnotations iterationType)
         {
             BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
             bool result = GetEnumeratorInfoAndInferCollectionElementType(
                 syntax,
                 syntax,
                 ref collectionExpr,
-                isAsync,
+                isAsync: false,
                 isSpread: false,
                 BindingDiagnosticBag.Discarded,
                 out iterationType,

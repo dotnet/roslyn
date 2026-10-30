@@ -5511,7 +5511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return binder.TryGetCollectionIterationType(Root, type.EnsureCSharpSymbolOrNull(nameof(type)), isAsync, out var iterationType)
+            return binder.TryGetForEachIterationType(Root, type.EnsureCSharpSymbolOrNull(nameof(type)), isAsync, out var iterationType)
                 ? iterationType.GetPublicSymbol()
                 : null;
         }
