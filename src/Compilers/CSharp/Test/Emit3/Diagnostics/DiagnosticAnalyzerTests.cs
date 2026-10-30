@@ -3246,6 +3246,7 @@ static partial class B
             var implementation = """
                 partial class C
                 {
+                #line 100
                     public partial C(int x) { }
                 }
                 """;
@@ -3262,9 +3263,9 @@ static partial class B
                 // (3,5): warning GeneratedCodeAnalyzerWarning: GeneratedCodeAnalyzerMessage for 'Node: public partial C(int x);'
                 //     public partial C(int x);
                 Diagnostic("GeneratedCodeAnalyzerWarning", "public partial C(int x);").WithArguments("Node: public partial C(int x);").WithLocation(3, 5),
-                // (3,5) or (7,5): warning GeneratedCodeAnalyzerWarning: GeneratedCodeAnalyzerMessage for 'Node: public partial C(int x) { }'
+                // (100,5): warning GeneratedCodeAnalyzerWarning: GeneratedCodeAnalyzerMessage for 'Node: public partial C(int x) { }'
                 //     public partial C(int x) { }
-                Diagnostic("GeneratedCodeAnalyzerWarning", "public partial C(int x) { }").WithArguments("Node: public partial C(int x) { }").WithLocation(separateFiles ? 3 : 7, 5),
+                Diagnostic("GeneratedCodeAnalyzerWarning", "public partial C(int x) { }").WithArguments("Node: public partial C(int x) { }").WithLocation(100, 5),
             };
 
             var diagnostics = await compilation.WithAnalyzers([analyzer]).GetAnalyzerDiagnosticsAsync();
