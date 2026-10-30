@@ -321,15 +321,11 @@ internal sealed class CodeActionResolveHelper
 
     internal static bool CanApplyFixAllChanges(Solution solution, Solution newSolution, ResourceOperationKind[] resourceOperations)
     {
-        // Reject solution-wide changes, generated-document overrides, and operations the client cannot apply.
-        // Unlike individual code actions, an aggregate must not silently omit any part of an accepted fix.
+        // Workspace edits cannot replace the solution or its projects or update solution-wide analyzer references.
+        // Per-project references and client resource capabilities are checked by the shared validator.
         if (solution.Id != newSolution.Id ||
-            solution.FilePath != newSolution.FilePath ||
             !solution.ProjectIds.SequenceEqual(newSolution.ProjectIds) ||
             !solution.AnalyzerReferences.SequenceEqual(newSolution.AnalyzerReferences) ||
-            solution.Options != newSolution.Options ||
-            solution.FallbackAnalyzerOptions != newSolution.FallbackAnalyzerOptions ||
-            newSolution.GetChanges(solution).GetExplicitlyChangedSourceGeneratedDocuments().Any() ||
             !CanApplyWorkspaceEdit(solution, newSolution, resourceOperations))
         {
             return false;
@@ -339,24 +335,13 @@ internal sealed class CodeActionResolveHelper
         using var _ = PooledDictionary<DocumentUri, DocumentUri>.GetInstance(out var resourceDestinations);
         foreach (var change in newSolution.GetChanges(solution).GetProjectChanges())
         {
-            var oldProject = change.OldProject;
-            var newProject = change.NewProject;
-
-            // Workspace edits cannot update project configuration or reorder the surviving source documents.
-            if (HasProjectConfigurationChange(oldProject, newProject) ||
-                !oldProject.DocumentIds.Where(newProject.ContainsDocument).SequenceEqual(newProject.DocumentIds.Where(oldProject.ContainsDocument)))
-            {
-                return false;
-            }
-
-            // A deletion removes a physical file, not just a project entry. All linked contexts must disappear,
-            // and no new document may reuse the deleted file's path.
+            // Removing a linked context would still emit DeleteFile for the shared source file.
+            // Preserve that file while any of its original project contexts survives.
             foreach (var id in change.GetRemovedDocuments().Concat(change.GetRemovedAdditionalDocuments()).Concat(change.GetRemovedAnalyzerConfigDocuments()))
             {
                 var removed = solution.GetRequiredTextDocument(id);
                 if (!HasUsableFilePath(removed) ||
-                    solution.GetDocumentIdsWithFilePath(removed.FilePath).Any(id => newSolution.GetTextDocument(id) is not null) ||
-                    newSolution.GetDocumentIdsWithFilePath(removed.FilePath).Any())
+                    solution.GetDocumentIdsWithFilePath(removed.FilePath).Any(id => newSolution.GetTextDocument(id) is not null))
                 {
                     return false;
                 }
@@ -381,19 +366,12 @@ internal sealed class CodeActionResolveHelper
                 }
             }
 
-            // Existing files can change text or be renamed, but their logical folders and compilation-related
-            // document metadata cannot be represented by a workspace edit.
+            // Text edits and renames require usable document URIs.
             foreach (var id in change.GetChangedDocuments().Concat(change.GetChangedAdditionalDocuments()).Concat(change.GetChangedAnalyzerConfigDocuments()))
             {
                 var oldDocument = solution.GetRequiredTextDocument(id);
                 var newDocument = newSolution.GetRequiredTextDocument(id);
-                var oldAttributes = oldDocument.State.Attributes;
-                var newAttributes = newDocument.State.Attributes;
-                if (!HasUsableFilePath(oldDocument) || !HasUsableFilePath(newDocument) ||
-                    !oldAttributes.Folders.SequenceEqual(newAttributes.Folders) ||
-                    oldAttributes.SourceCodeKind != newAttributes.SourceCodeKind ||
-                    oldAttributes.IsGenerated != newAttributes.IsGenerated ||
-                    oldAttributes.DesignTimeOnly != newAttributes.DesignTimeOnly)
+                if (!HasUsableFilePath(oldDocument) || !HasUsableFilePath(newDocument))
                 {
                     return false;
                 }
@@ -411,13 +389,14 @@ internal sealed class CodeActionResolveHelper
                     return false;
                 }
 
-                // A physical rename must move every project context to the same destination.
+                // The converter emits only one rename per source URI. Unchanged linked contexts do not need
+                // matching metadata, but multiple requested renames must agree on their physical destination.
                 foreach (var linkedId in linkedIds)
                 {
                     var oldLinked = solution.GetRequiredTextDocument(linkedId);
                     var newLinked = newSolution.GetTextDocument(linkedId);
-                    if (newLinked is null || !HasUsableFilePath(newLinked) ||
-                        (HasDocumentRename(oldLinked, newLinked) ? GetRenamedDocumentUri(oldLinked, newLinked) : newLinked.GetURI()) != destination)
+                    if (newLinked is not null && HasDocumentRename(oldLinked, newLinked) &&
+                        (!HasUsableFilePath(newLinked) || GetRenamedDocumentUri(oldLinked, newLinked) != destination))
                     {
                         return false;
                     }
@@ -446,31 +425,4 @@ internal sealed class CodeActionResolveHelper
 
     private static DocumentUri GetRenamedDocumentUri(TextDocument oldDocument, TextDocument newDocument)
         => oldDocument.FilePath != newDocument.FilePath ? newDocument.GetURI() : newDocument.GetUriForRenamedDocument();
-
-    private static bool HasProjectConfigurationChange(Project oldProject, Project newProject)
-    {
-        var oldAttributes = oldProject.State.Attributes;
-        var newAttributes = newProject.State.Attributes;
-        // Project versions and the syntax-tree options provider also change when analyzer-config text changes.
-        return oldAttributes.Name != newAttributes.Name ||
-            oldAttributes.AssemblyName != newAttributes.AssemblyName ||
-            oldAttributes.Language != newAttributes.Language ||
-            oldAttributes.FilePath != newAttributes.FilePath ||
-            oldAttributes.OutputFilePath != newAttributes.OutputFilePath ||
-            oldAttributes.OutputRefFilePath != newAttributes.OutputRefFilePath ||
-            oldAttributes.CompilationOutputInfo != newAttributes.CompilationOutputInfo ||
-            oldAttributes.DefaultNamespace != newAttributes.DefaultNamespace ||
-            oldAttributes.ChecksumAlgorithm != newAttributes.ChecksumAlgorithm ||
-            oldAttributes.IsSubmission != newAttributes.IsSubmission ||
-            oldAttributes.HasAllInformation != newAttributes.HasAllInformation ||
-            oldAttributes.RunAnalyzers != newAttributes.RunAnalyzers ||
-            oldAttributes.TelemetryId != newAttributes.TelemetryId ||
-            oldAttributes.HasSdkCodeStyleAnalyzers != newAttributes.HasSdkCodeStyleAnalyzers ||
-            oldProject.State.ProjectInfo.HostObjectType != newProject.State.ProjectInfo.HostObjectType ||
-            !Equals(oldProject.CompilationOptions?.WithSyntaxTreeOptionsProvider(newProject.CompilationOptions?.SyntaxTreeOptionsProvider), newProject.CompilationOptions) ||
-            !Equals(oldProject.ParseOptions, newProject.ParseOptions) ||
-            !oldProject.State.ProjectReferences.SequenceEqual(newProject.State.ProjectReferences) ||
-            !oldProject.MetadataReferences.SequenceEqual(newProject.MetadataReferences) ||
-            !oldProject.AnalyzerReferences.SequenceEqual(newProject.AnalyzerReferences);
-    }
 }

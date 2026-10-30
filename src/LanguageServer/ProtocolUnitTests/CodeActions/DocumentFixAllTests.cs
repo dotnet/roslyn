@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using Xunit.Abstractions;
 using CodeAction = Microsoft.CodeAnalysis.CodeActions.CodeAction;
@@ -582,15 +583,73 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public Task FixAllRejectsReferenceChangesWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
-        => VerifyRejectedProjectChangeAsync(mutatingLspWorkspace, project => project.WithMetadataReferences([]));
+    public async Task ResolvePreservesTextEditsWithIncidentalStateChanges(bool mutatingLspWorkspace)
+    {
+        var source = "// warning\n{|caret:|}class C { }";
+        var expected = "// fixed\nclass C { }";
+
+        // Include a sibling so the fix can also reorder existing documents.
+        await using var server = await CreateTestLspServerAsync([source, "class Other { }"], mutatingLspWorkspace);
+        var fixer = new TestFixer(["FA0001"], async (document, diagnostics, cancellationToken) =>
+        {
+            // Combine the text fix with incidental project settings, logical folders, and document ordering.
+            var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
+            return solution
+                .WithProjectCompilationOptions(document.Project.Id,
+                    document.Project.CompilationOptions!.WithConcurrentBuild(!document.Project.CompilationOptions.ConcurrentBuild))
+                .WithDocumentFolders(document.Id, ["Folder"])
+                .WithProjectDocumentsOrder(document.Project.Id, document.Project.DocumentIds.Reverse().ToImmutableList());
+        });
+
+        // Expose the marker analyzer and fixer to normal LSP discovery.
+        await AddReferenceAsync(server, new TestReference([new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
+        var document = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.First();
+
+        // Discover and resolve the document-wide source action through LSP.
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+        var resolved = await ResolveAsync(server, action);
+
+        // Emit the text fix without rejecting it or producing edits for the incidental state.
+        Assert.Equal(expected, ApplySingleDocumentEdit(resolved, await document.GetTextAsync(), document.GetURI()));
+    }
 
     [Theory, CombinatorialData]
-    public Task FixAllRejectsProjectOptionChangesWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
-        => VerifyRejectedProjectChangeAsync(mutatingLspWorkspace, project =>
-            project.WithCompilationOptions(project.CompilationOptions!.WithConcurrentBuild(!project.CompilationOptions.ConcurrentBuild)));
+    public async Task ResolveIncludesFrozenGeneratedDocumentChanges(bool mutatingLspWorkspace)
+    {
+        var source = "// warning\n{|caret:|}class C { }";
+        var expected = "// fixed\nclass C { }";
+        var generatedSource = "class Generated { }";
+        var expectedGenerated = "class ChangedGenerated { }";
 
-    private async Task VerifyRejectedProjectChangeAsync(bool mutatingLspWorkspace, Func<Project, Project> changeProject)
+        // Generate the original document so resolve can compute a text edit for its frozen replacement.
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await AddGeneratorAsync(new SingleFileTestGenerator(generatedSource), server.TestWorkspace);
+        var fixer = new TestFixer(["FA0001"], async (document, diagnostics, cancellationToken) =>
+        {
+            // Fix the ordinary document and override the generated output in the same returned snapshot.
+            var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
+            var generated = Assert.Single(await document.Project.GetSourceGeneratedDocumentsAsync(cancellationToken));
+            return solution.WithFrozenSourceGeneratedDocument(
+                generated.Identity, DateTime.MinValue, SourceText.From(expectedGenerated)).Project.Solution;
+        });
+
+        // Register the fixer and capture both original documents for checking the emitted edits.
+        await AddReferenceAsync(server, new TestReference([new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
+        var document = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        var generated = Assert.Single(await document.Project.GetSourceGeneratedDocumentsAsync());
+
+        // Resolve through LSP to exercise conversion of both ordinary and frozen generated-document changes.
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+        var operations = GetEditOperations(await ResolveAsync(server, action));
+
+        // Preserve both edits rather than rejecting the fix because its generated output was frozen.
+        Assert.Equal(2, operations.Length);
+        Assert.Equal(expected, ApplyDocumentEdit(operations, await document.GetTextAsync(), document.GetURI()));
+        Assert.Equal(expectedGenerated, ApplyDocumentEdit(operations, await generated.GetTextAsync(), generated.GetURI()));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FixAllRejectsReferenceChangesWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
     {
         var source = "// alpha beta\n{|caret:|}class C { }";
         var otherSource = "class Other { }";
@@ -603,7 +662,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         {
             var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
             if (diagnostics[0].Id == "FA0002")
-                return changeProject(solution.GetRequiredProject(document.Project.Id)).Solution;
+                return solution.WithProjectMetadataReferences(document.Project.Id, []);
 
             var otherId = document.Project.DocumentIds.Single(id => id != document.Id);
             return solution.WithDocumentText(otherId, SourceText.From(expectedOther));
@@ -616,7 +675,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         // Keep the accepted fix, but discard both the later text edit and its unsupported project change.
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
         Assert.Equal(expectedOther, (await changed.Project.Documents.Last().GetTextAsync()).ToString());
-        Assert.Equal(document.Project.CompilationOptions, changed.Project.CompilationOptions);
         Assert.Equal(document.Project.MetadataReferences, changed.Project.MetadataReferences);
         Assert.Single(logs, message => message.Contains("FA0002", StringComparison.Ordinal));
     }
@@ -879,7 +937,96 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Single(logs);
     }
 
-    private Task<TestLspServer> CreateLinkedDocumentTestLspServerAsync(string source, bool mutatingLspWorkspace)
+    [Theory, CombinatorialData]
+    public async Task ResolveAcceptsLinkedRenameFromOneContext(bool mutatingLspWorkspace)
+    {
+        var source = "// warning\n{|caret:|}class C { }";
+        var expected = "// fixed\nclass C { }";
+        var renamedPath = TestHelpers.GetRootedPath("Renamed.cs");
+
+        // Advertise rename support for one physical file shared by two project contexts.
+        await using var server = await CreateLinkedDocumentTestLspServerAsync(source, mutatingLspWorkspace,
+            ResourceOperationOptions(ResourceOperationKind.Rename, supported: true));
+        var fixer = new TestFixer(["FA0001"], async (document, diagnostics, cancellationToken) =>
+        {
+            // Update only the requested context, leaving its linked peer's name and path unchanged.
+            var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
+            return solution.WithDocumentName(document.Id, "Renamed.cs").WithDocumentFilePath(document.Id, renamedPath);
+        });
+
+        // Register in both projects so discovery works whichever linked context LSP selects.
+        await AddReferenceAsync(server, new TestReference([new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
+        var document = server.TestWorkspace.CurrentSolution.Projects.First().Documents.Single();
+
+        // Resolve the source action against the original shared-file URI.
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+        var operations = GetEditOperations(await ResolveAsync(server, action));
+
+        // Edit the old URI before one physical rename; unchanged peer metadata must not block it.
+        Assert.Equal(2, operations.Length);
+        Assert.Equal(expected, ApplyDocumentEdit(operations, await document.GetTextAsync(), document.GetURI()).ReplaceLineEndings("\n"));
+        var rename = Assert.IsType<RenameFile>(operations[1]);
+        Assert.Equal(document.GetURI(), rename.OldDocumentUri);
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(renamedPath), rename.NewDocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FixAllRejectsDeletingOneLinkedContext(bool mutatingLspWorkspace)
+    {
+        var source = "// warning\n{|caret:|}class C { }";
+
+        // Allow deletes so rejection exercises shared-file safety rather than missing client capabilities.
+        await using var server = await CreateLinkedDocumentTestLspServerAsync(source, mutatingLspWorkspace,
+            ResourceOperationOptions(ResourceOperationKind.Delete, supported: true));
+
+        // Remove only the selected project's document, leaving the other context backed by the same file.
+        var fixer = new TestFixer(["FA0001"], (document, _, _) =>
+            Task.FromResult(document.Project.Solution.RemoveDocument(document.Id)));
+
+        // Make the fixer available in either linked context selected by LSP.
+        await AddReferenceAsync(server, new TestReference([new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
+
+        // Discover the source action, then resolve the candidate removal through the normal LSP path.
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+
+        // Reject the candidate: DeleteFile would remove the surviving context's physical source.
+        Assert.Empty(GetEditOperations(await ResolveAsync(server, action)));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task FixAllRejectsConflictingLinkedRenames(bool mutatingLspWorkspace)
+    {
+        var source = "// warning\n{|caret:|}class C { }";
+
+        // Allow renames so rejection depends on conflicting destinations, not client capabilities.
+        await using var server = await CreateLinkedDocumentTestLspServerAsync(source, mutatingLspWorkspace,
+            ResourceOperationOptions(ResourceOperationKind.Rename, supported: true));
+        var fixer = new TestFixer(["FA0001"], async (document, diagnostics, cancellationToken) =>
+        {
+            // First fix the text and rename the requested context.
+            var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
+            solution = solution.WithDocumentName(document.Id, "First.cs")
+                .WithDocumentFilePath(document.Id, TestHelpers.GetRootedPath("First.cs"));
+
+            // Ask the other context to move that same physical file to a different destination.
+            foreach (var linkedId in document.GetLinkedDocumentIds())
+                solution = solution.WithDocumentName(linkedId, "Second.cs")
+                    .WithDocumentFilePath(linkedId, TestHelpers.GetRootedPath("Second.cs"));
+            return solution;
+        });
+
+        // Register in both projects so either linked context can supply the candidate.
+        await AddReferenceAsync(server, new TestReference([new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
+
+        // Resolve through LSP, where both requested renames would have the same source URI.
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+
+        // Reject the entire fix, including its text edit: the converter can emit only one of these renames.
+        Assert.Empty(GetEditOperations(await ResolveAsync(server, action)));
+    }
+
+    private Task<TestLspServer> CreateLinkedDocumentTestLspServerAsync(
+        string source, bool mutatingLspWorkspace, InitializationOptions? initializationOptions = null)
     {
         // Model one physical file shared by two project contexts.
         var path = TestHelpers.GetRootedPath("Linked.cs");
@@ -893,7 +1040,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
                 </Project>
             </Workspace>
             """;
-        return CreateXmlTestLspServerAsync(workspace, mutatingLspWorkspace);
+        return CreateXmlTestLspServerAsync(workspace, mutatingLspWorkspace, initializationOptions: initializationOptions);
     }
 
     [Theory, CombinatorialData]
