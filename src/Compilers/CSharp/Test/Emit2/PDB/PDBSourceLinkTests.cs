@@ -157,7 +157,9 @@ class C
                 rebuildData: null,
                 testData: new CompilationTestData()
                 {
+#pragma warning disable CA1416 // Test is Windows-only
                     SymWriterFactory = metadataProvider => new SymUnmanagedWriterWithoutSourceLinkSupport(metadataProvider)
+#pragma warning restore CA1416 // Test is Windows-only
                 });
 
             result.Diagnostics.Verify(
