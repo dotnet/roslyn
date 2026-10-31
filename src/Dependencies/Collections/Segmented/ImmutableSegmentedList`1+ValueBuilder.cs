@@ -34,8 +34,15 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public readonly int Count => ReadOnlyList.Count;
 
-            private readonly SegmentedList<T> ReadOnlyList => _mutableList ?? _list._list;
+            private readonly SegmentedList<T> ReadOnlyList
+            {
+                get
+                {
+                    var self = this;
 
+                    return self._mutableList ?? self._list._list;
+                }
+            }
             readonly bool ICollection<T>.IsReadOnly => false;
 
             readonly bool IList.IsFixedSize => false;
@@ -60,27 +67,30 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public readonly ref readonly T ItemRef(int index)
             {
+                var self = this;
                 // Following trick can reduce the range check by one
-                if ((uint)index >= (uint)ReadOnlyList.Count)
+                if ((uint)index >= (uint)self.ReadOnlyList.Count)
                 {
                     ThrowHelper.ThrowArgumentOutOfRange_IndexMustBeLessException();
                 }
 
-                return ref ReadOnlyList._items[index];
+                return ref self.ReadOnlyList._items[index];
             }
 
             private SegmentedList<T> GetOrCreateMutableList()
             {
-                if (_mutableList is null)
+                var self = this;
+                if (self._mutableList is null)
                 {
-                    var originalList = RoslynImmutableInterlocked.InterlockedExchange(ref _list, default);
+                    var originalList = RoslynImmutableInterlocked.InterlockedExchange(ref self._list, default);
                     if (originalList.IsDefault)
-                        throw new InvalidOperationException($"Unexpected concurrent access to {GetType()}");
+                        throw new InvalidOperationException($"Unexpected concurrent access to {self.GetType()}");
 
-                    _mutableList = new SegmentedList<T>(originalList._list);
+                    self._mutableList = new SegmentedList<T>(originalList._list);
                 }
+                this = self;
 
-                return _mutableList;
+                return self._mutableList;
             }
 
             public void Add(T item)
@@ -105,18 +115,21 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public void Clear()
             {
-                if (ReadOnlyList.Count != 0)
+                var self = this;
+                if (self.ReadOnlyList.Count != 0)
                 {
-                    if (_mutableList is null)
+                    if (self._mutableList is null)
                     {
-                        _mutableList = new SegmentedList<T>();
-                        _list = default;
+                        self._mutableList = new SegmentedList<T>();
+                        self._list = default;
                     }
                     else
                     {
-                        _mutableList.Clear();
+                        self._mutableList.Clear();
                     }
                 }
+
+                this = self;
             }
 
             public readonly bool Contains(T item)
@@ -160,26 +173,28 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public readonly int FindLastIndex(int startIndex, Predicate<T> match)
             {
-                if (startIndex == 0 && Count == 0)
+                var self = this;
+                if (startIndex == 0 && self.Count == 0)
                 {
                     // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
                     // Handle it explicitly to avoid an exception.
                     return -1;
                 }
 
-                return ReadOnlyList.FindLastIndex(startIndex, match);
+                return self.ReadOnlyList.FindLastIndex(startIndex, match);
             }
 
             public readonly int FindLastIndex(int startIndex, int count, Predicate<T> match)
             {
-                if (count == 0 && startIndex == 0 && Count == 0)
+                var self = this;
+                if (count == 0 && startIndex == 0 && self.Count == 0)
                 {
                     // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
                     // Handle it explicitly to avoid an exception.
                     return -1;
                 }
 
-                return ReadOnlyList.FindLastIndex(startIndex, count, match);
+                return self.ReadOnlyList.FindLastIndex(startIndex, count, match);
             }
 
             public readonly void ForEach(Action<T> action)
@@ -190,10 +205,15 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public ImmutableSegmentedList<T> GetRange(int index, int count)
             {
-                if (index == 0 && count == Count)
-                    return ToImmutable();
+                var self = this;
+                if (index == 0 && count == self.Count)
+                {
+                    var immutable = self.ToImmutable();
+                    this = self;
+                    return immutable;
+                }
 
-                return new ImmutableSegmentedList<T>(ReadOnlyList.GetRange(index, count));
+                return new ImmutableSegmentedList<T>(self.ReadOnlyList.GetRange(index, count));
             }
 
             public readonly int IndexOf(T item)
@@ -219,54 +239,61 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public readonly int LastIndexOf(T item, int startIndex)
             {
-                if (startIndex == 0 && Count == 0)
+                var self = this;
+                if (startIndex == 0 && self.Count == 0)
                 {
                     // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
                     // Handle it explicitly to avoid an exception.
                     return -1;
                 }
 
-                return ReadOnlyList.LastIndexOf(item, startIndex);
+                return self.ReadOnlyList.LastIndexOf(item, startIndex);
             }
 
             public readonly int LastIndexOf(T item, int startIndex, int count)
             {
-                if (count == 0 && startIndex == 0 && Count == 0)
+                var self = this;
+                if (count == 0 && startIndex == 0 && self.Count == 0)
                 {
                     // SegmentedList<T> doesn't allow starting at index 0 for an empty list, but IImmutableList<T> does.
                     // Handle it explicitly to avoid an exception.
                     return -1;
                 }
 
-                return ReadOnlyList.LastIndexOf(item, startIndex, count);
+                return self.ReadOnlyList.LastIndexOf(item, startIndex, count);
             }
 
             public readonly int LastIndexOf(T item, int startIndex, int count, IEqualityComparer<T>? equalityComparer)
             {
+                var self = this;
                 if (startIndex < 0)
                     ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
-                if (count < 0 || count > Count)
+                if (count < 0 || count > self.Count)
                     ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.count);
                 if (startIndex - count + 1 < 0)
                     throw new ArgumentException();
 
-                return ReadOnlyList.LastIndexOf(item, startIndex, count, equalityComparer);
+                return self.ReadOnlyList.LastIndexOf(item, startIndex, count, equalityComparer);
             }
 
             public bool Remove(T item)
             {
-                if (_mutableList is null)
+                var self = this;
+                if (self._mutableList is null)
                 {
-                    var index = IndexOf(item);
+                    var index = self.IndexOf(item);
                     if (index < 0)
                         return false;
 
-                    RemoveAt(index);
+                    self.RemoveAt(index);
+                    this = self;
                     return true;
                 }
                 else
                 {
-                    return _mutableList.Remove(item);
+                    bool removed = self._mutableList.Remove(item);
+                    this = self;
+                    return removed;
                 }
             }
 
@@ -281,10 +308,12 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public void Reverse()
             {
-                if (Count < 2)
+                var self = this;
+                if (self.Count < 2)
                     return;
 
-                GetOrCreateMutableList().Reverse();
+                self.GetOrCreateMutableList().Reverse();
+                this = self;
             }
 
             public void Reverse(int index, int count)
@@ -292,31 +321,38 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public void Sort()
             {
-                if (Count < 2)
+                var self = this;
+                if (self.Count < 2)
                     return;
 
-                GetOrCreateMutableList().Sort();
+                self.GetOrCreateMutableList().Sort();
+                this = self;
             }
 
             public void Sort(IComparer<T>? comparer)
             {
-                if (Count < 2)
+                var self = this;
+                if (self.Count < 2)
                     return;
 
-                GetOrCreateMutableList().Sort(comparer);
+                self.GetOrCreateMutableList().Sort(comparer);
+                this = self;
             }
 
             public void Sort(Comparison<T> comparison)
             {
+                var self = this;
                 if (comparison == null)
                 {
                     ThrowHelper.ThrowArgumentNullException(ExceptionArgument.comparison);
                 }
 
-                if (Count < 2)
+                if (self.Count < 2)
                     return;
 
-                GetOrCreateMutableList().Sort(comparison);
+                self.GetOrCreateMutableList().Sort(comparison);
+
+                this = self;
             }
 
             public void Sort(int index, int count, IComparer<T>? comparer)
@@ -324,9 +360,11 @@ namespace Microsoft.CodeAnalysis.Collections
 
             public ImmutableSegmentedList<T> ToImmutable()
             {
-                _list = new ImmutableSegmentedList<T>(ReadOnlyList);
-                _mutableList = null;
-                return _list;
+                var self = this;
+                self._list = new ImmutableSegmentedList<T>(self.ReadOnlyList);
+                self._mutableList = null;
+                this = self;
+                return self._list;
             }
 
             public readonly bool TrueForAll(Predicate<T> match)
