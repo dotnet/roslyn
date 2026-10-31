@@ -185,9 +185,10 @@ public sealed class WriteProjectDataSliceTask : Microsoft.Build.Utilities.Task
 			// ``KeyNotFoundException`` from a missing slice property) to fail the
 			// build instead of degrading to a stale-cache warning.
 			this.Log.LogWarning(
-				"ProjectData: failed to write project-data file for {0}: {1}",
+				"ProjectData: failed to write project-data file '{0}' for '{1}': {2}",
+				this.ResolvedOutputPath,
 				this.ProjectFilePath,
-				ex.Message);
+				ex);
 		}
 		return true;
 	}
