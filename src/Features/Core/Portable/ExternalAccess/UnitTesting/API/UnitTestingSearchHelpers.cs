@@ -26,7 +26,10 @@ internal static class UnitTestingSearchHelpers
         Project project, UnitTestingSearchQuery query, CancellationToken cancellationToken)
     {
         if (!project.SupportsCompilation)
-            return null;
+        {
+            var locations = await GetLanguageSpecificSourceLocationsAsync(project, query, cancellationToken).ConfigureAwait(false);
+            return locations.IsEmpty ? null : locations[0];
+        }
 
         var client = await RemoteHostClient.TryGetClientAsync(project.Solution.Services, cancellationToken).ConfigureAwait(false);
 
@@ -49,7 +52,7 @@ internal static class UnitTestingSearchHelpers
         Project project, UnitTestingSearchQuery query, CancellationToken cancellationToken)
     {
         if (!project.SupportsCompilation)
-            return [];
+            return await GetLanguageSpecificSourceLocationsAsync(project, query, cancellationToken).ConfigureAwait(false);
 
         var client = await RemoteHostClient.TryGetClientAsync(project.Solution.Services, cancellationToken).ConfigureAwait(false);
 
@@ -70,6 +73,17 @@ internal static class UnitTestingSearchHelpers
         }
 
         return await GetSourceLocationsInProcessAsync(project, query, cancellationToken).ConfigureAwait(false);
+    }
+
+    // Projects without a compilation are never synced to OOP, so this stays in process.
+    private static async Task<ImmutableArray<UnitTestingDocumentSpan>> GetLanguageSpecificSourceLocationsAsync(
+        Project project, UnitTestingSearchQuery query, CancellationToken cancellationToken)
+    {
+        var service = project.Services.GetService<IUnitTestingSearchService>();
+        if (service is null)
+            return [];
+
+        return await service.GetSourceLocationsAsync(project, query, cancellationToken).ConfigureAwait(false);
     }
 
     private static (string containerName, string symbolName, int symbolArity) ExtractQueryData(UnitTestingSearchQuery query)
