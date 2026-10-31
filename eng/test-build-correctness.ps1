@@ -63,8 +63,6 @@ try {
   & eng/build.ps1 -restore -build -bootstrapDir:$bootstrapDir -ci:$ci -prepareMachine:$prepareMachine -runAnalyzers:$true -configuration:$configuration -pack -binaryLog -useGlobalNuGetCache:$false -warnAsError:$warnAsError
   Test-LastExitCode
 
-  Subst-TempDir
-
   # Verify the state of our various build artifacts
   Write-Host "Running BuildBoss"
   $buildBossPath = GetProjectOutputBinary "BuildBoss.exe"
@@ -94,6 +92,5 @@ finally {
     Remove-ItemProperty -Path $key -Name 'DumpFolder'
   }
 
-  Unsubst-TempDir
   Pop-Location
 }
