@@ -15,4 +15,6 @@ internal interface ISumType
     /// Gets the value stored in the SumType. This can be matched against using the "is" operator.
     /// </summary>
     object? Value { get; }
+
+    SumConverter.SumTypeInfoCache CreateTypeInfo();
 }

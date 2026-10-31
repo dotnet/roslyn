@@ -4,6 +4,7 @@
 using System;
 using System.Composition;
 using System.IO;
+using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 
@@ -20,7 +21,7 @@ internal sealed class FormattingLoggerFactory : IFormattingLoggerFactory
         _logDirectory = logDirectory ?? s_environmentLogDirectory;
     }
 
-    public IFormattingLogger? CreateLogger(string documentFilePath, string formattingType)
+    public IFormattingLogger? CreateLogger(string documentFilePath, string formattingType, JsonSerializerOptions serializerOptions)
     {
         // If the env var isn't set, we do nothing
         var logDirectory = _logDirectory;
@@ -49,7 +50,7 @@ internal sealed class FormattingLoggerFactory : IFormattingLoggerFactory
             return null;
         }
 
-        var logger = new FormattingLogger(logFolder);
+        var logger = new FormattingLogger(logFolder, serializerOptions);
         logger.LogMessage($"{formattingType} formatting for {documentFilePath}");
         return logger;
     }

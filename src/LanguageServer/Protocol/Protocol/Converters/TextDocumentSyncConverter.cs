@@ -32,7 +32,7 @@ internal sealed class TextDocumentSyncConverter : JsonConverter<TextDocumentSync
         else if (reader.TokenType == JsonTokenType.String)
         {
             var value = reader.GetString();
-            return JsonSerializer.Deserialize<TextDocumentSyncOptions>(value);
+            return JsonSerializer.Deserialize<TextDocumentSyncOptions>(value, options);
         }
         else if (reader.TokenType == JsonTokenType.StartObject)
         {

@@ -15,7 +15,8 @@ using StreamJsonRpc;
 namespace Microsoft.CommonLanguageServerProtocol.Framework;
 
 internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
-    JsonRpc jsonRpc, JsonSerializerOptions options, AbstractTypeRefResolver? typeRefResolver = null)
+    JsonRpc jsonRpc, JsonSerializerOptions options, AbstractTypeRefResolver? typeRefResolver = null,
+    Action<JsonSerializerOptions, JsonRpc>? configureRequestOptions = null)
     : AbstractLanguageServer<TRequestContext>(jsonRpc, typeRefResolver)
 {
     /// <summary>
@@ -23,20 +24,26 @@ internal abstract class SystemTextJsonLanguageServer<TRequestContext>(
     /// <para>
     /// This is a copy of the options streamjsonrpc uses (which added the exotic type converters from
     /// <see cref="StreamJsonRpc.SystemTextJsonFormatter"/>) with our own <see cref="IProgress{T}"/> support
-    /// layered on top - see <see cref="LspProgressConverterFactory"/> for why streamjsonrpc's cannot be used
-    /// here. We deliberately copy rather than mutate the formatter's options, so that everything else on this
+    /// layered on top, either through statically registered converters or <see cref="LspProgressConverterFactory"/>.
+    /// See <see cref="LspProgressConverterFactory"/> for why streamjsonrpc's cannot be used here.
+    /// We deliberately copy rather than mutate the formatter's options, so that everything else on this
     /// connection (responses, notifications, and messages we originate) keeps streamjsonrpc's behavior.
     /// </para>
     /// </summary>
-    private readonly JsonSerializerOptions _jsonSerializerOptions = CreateRequestDeserializationOptions(options, jsonRpc);
+    private readonly JsonSerializerOptions _jsonSerializerOptions = CreateRequestDeserializationOptions(options, jsonRpc, configureRequestOptions);
 
-    private static JsonSerializerOptions CreateRequestDeserializationOptions(JsonSerializerOptions formatterOptions, JsonRpc jsonRpc)
+    private static JsonSerializerOptions CreateRequestDeserializationOptions(
+        JsonSerializerOptions formatterOptions, JsonRpc jsonRpc, Action<JsonSerializerOptions, JsonRpc>? configureRequestOptions)
     {
         var requestOptions = new JsonSerializerOptions(formatterOptions);
 
         // Insert at the front - System.Text.Json uses the first converter in the list that can convert a
         // type, and the copied options already contain streamjsonrpc's IProgress<T> converter.
-        requestOptions.Converters.Insert(0, new LspProgressConverterFactory(jsonRpc));
+        // Roslyn supplies closed progress converters; other source-package hosts retain the existing factory.
+        if (configureRequestOptions is not null)
+            configureRequestOptions(requestOptions, jsonRpc);
+        else
+            requestOptions.Converters.Insert(0, new LspProgressConverterFactory(jsonRpc));
         return requestOptions;
     }
 

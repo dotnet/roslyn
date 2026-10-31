@@ -17,6 +17,8 @@ namespace Roslyn.Test.Utilities
 #pragma warning restore CA2255
         internal static void Initialize()
         {
+            // Also enforce generated JSON contracts in language-server processes launched by tests.
+            Environment.SetEnvironmentVariable("ROSLYN_REQUIRE_GENERATED_JSON_METADATA", "1");
             Trace.Listeners.Clear();
             Trace.Listeners.Add(new ThrowingTraceListener());
         }

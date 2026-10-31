@@ -48,6 +48,9 @@ internal record SnippetCompletionData([property: JsonPropertyName(SnippetComplet
 {
     private const string PropertyName = "__razor_snippet_path";
 
+    internal JsonElement ToJsonElement()
+        => JsonSerializer.SerializeToElement(this, SnippetJsonSerializerContext.Default.SnippetCompletionData);
+
     internal static bool TryParse(object? data, [NotNullWhen(true)] out SnippetCompletionData? snippetCompletionData)
     {
         snippetCompletionData = data as SnippetCompletionData;
@@ -57,7 +60,7 @@ internal record SnippetCompletionData([property: JsonPropertyName(SnippetComplet
         {
             try
             {
-                snippetCompletionData = jElement.Deserialize<SnippetCompletionData>();
+                snippetCompletionData = jElement.Deserialize(SnippetJsonSerializerContext.Default.SnippetCompletionData);
             }
             catch { }
         }
@@ -70,6 +73,10 @@ internal record SnippetCompletionData([property: JsonPropertyName(SnippetComplet
         return s.Path == Path;
     }
 }
+
+[JsonSourceGenerationOptions(GenerationMode = JsonSourceGenerationMode.Metadata)]
+[JsonSerializable(typeof(SnippetCompletionData))]
+internal sealed partial class SnippetJsonSerializerContext : JsonSerializerContext;
 
 internal enum SnippetLanguage
 {
