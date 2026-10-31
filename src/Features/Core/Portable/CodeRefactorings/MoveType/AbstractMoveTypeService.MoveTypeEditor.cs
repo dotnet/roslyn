@@ -155,15 +155,19 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
             var modifiedRoot = documentEditor.GetChangedRoot();
             modifiedRoot = await AddFinalNewLineIfDesiredAsync(document, modifiedRoot).ConfigureAwait(false);
 
+            // Ensure we don't overwrite an existing document if the suggested name/path is already taken.
+            var (fileName, filePath) = GetNonConflictingFileNameAndFilePath(
+                SemanticDocument.Project.Solution, SemanticDocument.Document.FilePath, FileName);
+
             // add an empty document to solution, so that we'll have options from the right context.
             var solutionWithNewDocument = projectToBeUpdated.Solution.AddDocument(
-                newDocumentId, FileName, modifiedRoot, document.Folders, filePath: GetTargetDocumentFilePath());
+                newDocumentId, fileName, modifiedRoot, document.Folders, filePath: filePath);
 
             // get the updated document, give it the minimal set of imports that the type
             // inside it needs.
             var newDocument = solutionWithNewDocument.GetRequiredDocument(newDocumentId);
             var newDocumentWithUpdatedBanner = await AddFileBannerHelpers.CopyBannerAsync(
-                newDocument, FileName, document, this.CancellationToken).ConfigureAwait(false);
+                newDocument, fileName, document, this.CancellationToken).ConfigureAwait(false);
 
             return newDocumentWithUpdatedBanner;
 
