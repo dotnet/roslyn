@@ -2864,7 +2864,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeUnassignedAddressOf">
         <source>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</source>
-        <target state="new">The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</target>
+        <target state="translated">address-of 식의 피연산자가 확실히 할당되지 않았습니다. 피연산자를 할당하거나 안전하지 않은 컨텍스트를 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
