@@ -1,6 +1,9 @@
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsClosed.get -> bool
+Microsoft.CodeAnalysis.Editing.DeclarationModifiers.IsSafe.get -> bool
 Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsClosed(bool isClosed) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+Microsoft.CodeAnalysis.Editing.DeclarationModifiers.WithIsSafe(bool isSafe) -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Closed.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.Safe.get -> Microsoft.CodeAnalysis.Editing.DeclarationModifiers
 [RSEXPERIMENTAL008]Microsoft.CodeAnalysis.Extensions.ExtensionDocumentMessageContext
 [RSEXPERIMENTAL008]Microsoft.CodeAnalysis.Extensions.ExtensionDocumentMessageContext.ExtensionDocumentMessageContext() -> void
 [RSEXPERIMENTAL008]Microsoft.CodeAnalysis.Extensions.ExtensionDocumentMessageContext.Solution.get -> Microsoft.CodeAnalysis.Solution

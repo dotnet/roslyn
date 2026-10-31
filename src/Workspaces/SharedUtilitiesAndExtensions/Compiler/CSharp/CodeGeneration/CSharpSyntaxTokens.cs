@@ -87,6 +87,9 @@ internal static class CSharpSyntaxTokens
     public static readonly SyntaxToken RequiredKeyword = Token(SyntaxKind.RequiredKeyword);
     public static readonly SyntaxToken RestoreKeyword = Token(SyntaxKind.RestoreKeyword);
     public static readonly SyntaxToken ReturnKeyword = Token(SyntaxKind.ReturnKeyword);
+#if !OLDER_ROSLYN
+    public static readonly SyntaxToken SafeKeyword = Token(SyntaxKind.SafeKeyword);
+#endif
     public static readonly SyntaxToken SByteKeyword = Token(SyntaxKind.SByteKeyword);
     public static readonly SyntaxToken ScopedKeyword = Token(SyntaxKind.ScopedKeyword);
     public static readonly SyntaxToken SealedKeyword = Token(SyntaxKind.SealedKeyword);

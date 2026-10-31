@@ -15,8 +15,9 @@ internal abstract class CodeGenerationNamespaceOrTypeSymbol : CodeGenerationSymb
         ImmutableArray<AttributeData> attributes,
         Accessibility declaredAccessibility,
         DeclarationModifiers modifiers,
-        string name)
-        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name)
+        string name,
+        bool usesUpdatedMemorySafetyRules = false)
+        : base(containingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules)
     {
     }
 

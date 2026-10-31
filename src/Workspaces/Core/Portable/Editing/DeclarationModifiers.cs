@@ -35,7 +35,8 @@ public readonly record struct DeclarationModifiers
         bool isRequired = false,
         bool isFile = false,
         bool isFixed = false,
-        bool isClosed = false)
+        bool isClosed = false,
+        bool isSafe = false)
         : this(
               (isStatic ? Modifiers.Static : Modifiers.None) |
               (isAbstract ? Modifiers.Abstract : Modifiers.None) |
@@ -56,11 +57,15 @@ public readonly record struct DeclarationModifiers
               (isRequired ? Modifiers.Required : Modifiers.None) |
               (isFile ? Modifiers.File : Modifiers.None) |
               (isFixed ? Modifiers.Fixed : Modifiers.None) |
-              (isClosed ? Modifiers.Closed : Modifiers.None))
+              (isClosed ? Modifiers.Closed : Modifiers.None) |
+              (isSafe ? Modifiers.Safe : Modifiers.None))
     {
     }
 
     public static DeclarationModifiers From(ISymbol symbol)
+        => From(symbol, hasBackingField: null);
+
+    internal static DeclarationModifiers From(ISymbol symbol, bool? hasBackingField)
     {
         if (symbol
                 is INamedTypeSymbol
@@ -75,6 +80,7 @@ public readonly record struct DeclarationModifiers
             var type = symbol as INamedTypeSymbol;
             var isConst = field?.IsConst == true;
             var isClosed = type?.IsClosed == true;
+            var safetyModifiers = symbol.InferSafetyModifiersFromSymbol(hasBackingField);
 
             return new DeclarationModifiers(
                 isStatic: symbol.IsStatic && !isConst,
@@ -84,7 +90,7 @@ public readonly record struct DeclarationModifiers
                 isOverride: symbol.IsOverride,
                 isSealed: symbol.IsSealed,
                 isConst: isConst,
-                isUnsafe: symbol.RequiresUnsafeModifier(),
+                isUnsafe: safetyModifiers.IsUnsafe,
                 isRef: field?.RefKind is RefKind.Ref or RefKind.RefReadOnly || type?.IsRefLikeType == true,
                 isVolatile: field?.IsVolatile == true,
                 isExtern: symbol.IsExtern,
@@ -93,7 +99,8 @@ public readonly record struct DeclarationModifiers
                 isFile: type?.IsFileLocal == true,
                 isFixed: field?.IsFixedSizeBuffer == true,
                 isPartial: symbol.IsPartial(),
-                isClosed: isClosed);
+                isClosed: isClosed,
+                isSafe: safetyModifiers.IsSafe);
         }
 
         // Only named types, members of named types, and local functions have modifiers.
@@ -108,6 +115,8 @@ public readonly record struct DeclarationModifiers
     public bool IsNew => (Modifiers & Modifiers.New) != 0;
 
     public bool IsUnsafe => (Modifiers & Modifiers.Unsafe) != 0;
+
+    public bool IsSafe => (Modifiers & Modifiers.Safe) != 0;
 
     public bool IsReadOnly => (Modifiers & Modifiers.ReadOnly) != 0;
 
@@ -152,6 +161,9 @@ public readonly record struct DeclarationModifiers
 
     public DeclarationModifiers WithIsUnsafe(bool isUnsafe)
         => new(SetFlag(Modifiers, Modifiers.Unsafe, isUnsafe));
+
+    public DeclarationModifiers WithIsSafe(bool isSafe)
+        => new(SetFlag(Modifiers, Modifiers.Safe, isSafe));
 
     public DeclarationModifiers WithIsReadOnly(bool isReadOnly)
         => new(SetFlag(Modifiers, Modifiers.ReadOnly, isReadOnly));
@@ -208,6 +220,7 @@ public readonly record struct DeclarationModifiers
     public static DeclarationModifiers Abstract => new(Modifiers.Abstract);
     public static DeclarationModifiers New => new(Modifiers.New);
     public static DeclarationModifiers Unsafe => new(Modifiers.Unsafe);
+    public static DeclarationModifiers Safe => new(Modifiers.Safe);
     public static DeclarationModifiers ReadOnly => new(Modifiers.ReadOnly);
     public static DeclarationModifiers Virtual => new(Modifiers.Virtual);
     public static DeclarationModifiers Override => new(Modifiers.Override);

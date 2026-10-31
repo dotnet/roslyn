@@ -107,6 +107,7 @@ internal interface ISyntaxFacts
     bool SupportsTargetTypedConditionalExpression(ParseOptions options);
     bool SupportsThrowExpression(ParseOptions options);
     bool SupportsTupleDeconstruction(ParseOptions options);
+    bool SupportsUnsafeEvolution(ParseOptions options);
 
     SyntaxToken ParseToken(string text);
     SyntaxTriviaList ParseLeadingTrivia(string text);

@@ -18,7 +18,9 @@ internal sealed class CodeGenerationEventSymbol(
     string name,
     IMethodSymbol? addMethod,
     IMethodSymbol? removeMethod,
-    IMethodSymbol? raiseMethod) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name), IEventSymbol
+    IMethodSymbol? raiseMethod,
+    bool requiresUnsafeContext,
+    bool usesUpdatedMemorySafetyRules) : CodeGenerationSymbol(containingType?.ContainingAssembly, containingType, attributes, declaredAccessibility, modifiers, name, requiresUnsafeContext: requiresUnsafeContext, usesUpdatedMemorySafetyRules: usesUpdatedMemorySafetyRules), IEventSymbol
 {
     public ITypeSymbol Type { get; } = type;
     public NullableAnnotation NullableAnnotation => Type.NullableAnnotation;
@@ -31,10 +33,18 @@ internal sealed class CodeGenerationEventSymbol(
 
     protected override CodeGenerationSymbol Clone()
     {
-        return new CodeGenerationEventSymbol(
+        var result = new CodeGenerationEventSymbol(
             this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
             this.Modifiers, this.Type, this.ExplicitInterfaceImplementations,
-            this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod);
+            this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod, this.RequiresUnsafeContext, this.UsesUpdatedMemorySafetyRules);
+        // V2 needs the storage requirement; leave legacy event-clone output unchanged.
+        if (this.UsesUpdatedMemorySafetyRules)
+        {
+            CodeGenerationEventInfo.Attach(result,
+                CodeGenerationEventInfo.GetIsUnsafe(this),
+                CodeGenerationEventInfo.GetRequiresSafeForBackingField(this));
+        }
+        return result;
     }
 
     public override SymbolKind Kind => SymbolKind.Event;

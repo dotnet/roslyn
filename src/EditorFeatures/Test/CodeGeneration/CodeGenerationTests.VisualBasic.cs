@@ -355,7 +355,8 @@ public sealed partial class CodeGenerationTests
                         modifiers: default,
                         GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
                         explicitInterfaceImplementations: default,
-                        nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null)];
+                        nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null,
+                        requiresUnsafeContext: false, usesUpdatedMemorySafetyRules: false)];
             }
 
             await TestAddEventAsync("Class [|C|] \n End Class", """
