@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 //
 // For example, the URI can look like:
 //
-// roslyn-source-generated://E7D5BCFA-E345-4029-9D12-3EDCD0FB0F6B/Generated.cs?documentId=8E4C0B71-4044-4247-BDD0-04AF4C9E1677&assembly=Generator...
+// roslyn-source-generated://e7d5bcfa-e345-4029-9d12-3edcd0fb0f6b/Generated.cs?documentId%3D8e4c0b71-4044-4247-bdd0-04af4c9e1677%26assemblyName%3DGenerator...
 //
 // where the first GUID is the project ID, the second GUID is the document ID.
 internal static class SourceGeneratedDocumentUri
@@ -31,7 +31,6 @@ internal static class SourceGeneratedDocumentUri
 
     public static DocumentUri Create(SourceGeneratedDocumentIdentity identity)
     {
-        var hintPath = EscapeDataString(identity.HintName);
         var projectId = identity.DocumentId.ProjectId.Id.ToString(GuidFormat);
         var documentId = identity.DocumentId.Id.ToString(GuidFormat);
         var hintName = EscapeDataString(identity.HintName);
@@ -39,13 +38,15 @@ internal static class SourceGeneratedDocumentUri
         var assemblyVersion = EscapeDataString(identity.Generator.AssemblyVersion.ToString());
         var typeName = EscapeDataString(identity.Generator.TypeName);
 
-        var uri = $"{Scheme}://{projectId}/{hintPath}?{DocumentIdParam}={documentId}&{HintNameParam}={hintName}&{AssemblyNameParam}={assemblyName}&{AssemblyVersionParam}={assemblyVersion}&{TypeNameParam}={typeName}";
+        // Parameter escaping is separate from URI component escaping, so a client can parse and
+        // serialize the URI without turning escaped characters in values into query delimiters.
+        var query = $"{DocumentIdParam}={documentId}&{HintNameParam}={hintName}&{AssemblyNameParam}={assemblyName}&{AssemblyVersionParam}={assemblyVersion}&{TypeNameParam}={typeName}";
 
         // If we have a path (which is technically optional) also append it
         if (identity.Generator.AssemblyPath != null)
-            uri += $"&{AssemblyPathParam}={EscapeDataString(identity.Generator.AssemblyPath)}";
+            query += $"&{AssemblyPathParam}={EscapeDataString(identity.Generator.AssemblyPath)}";
 
-        return new DocumentUri(uri);
+        return new DocumentUri(ParsedUri.From(Scheme, authority: projectId, path: "/" + identity.HintName, query: query));
     }
 
     private static string EscapeDataString(string value)
@@ -67,15 +68,15 @@ internal static class SourceGeneratedDocumentUri
         if (projectId == null)
             return null;
 
-        var rawQuery = documentUri.RawQuery;
-        var query = System.Web.HttpUtility.ParseQueryString(rawQuery);
-        var documentIdGuid = Guid.ParseExact(GetRequiredQueryValue(DocumentIdParam, query, rawQuery), GuidFormat);
-        var hintName = GetRequiredQueryValue(HintNameParam, query, rawQuery);
-        var assemblyName = GetRequiredQueryValue(AssemblyNameParam, query, rawQuery);
+        var queryString = documentUri.Query;
+        var query = System.Web.HttpUtility.ParseQueryString(queryString);
+        var documentIdGuid = Guid.ParseExact(GetRequiredQueryValue(DocumentIdParam, query, queryString), GuidFormat);
+        var hintName = GetRequiredQueryValue(HintNameParam, query, queryString);
+        var assemblyName = GetRequiredQueryValue(AssemblyNameParam, query, queryString);
         // this one is actually OK if it's null, since it's optional
         var assemblyPath = query[AssemblyPathParam];
-        var assemblyVersion = Version.Parse(GetRequiredQueryValue(AssemblyVersionParam, query, rawQuery));
-        var typeName = GetRequiredQueryValue(TypeNameParam, query, rawQuery);
+        var assemblyVersion = Version.Parse(GetRequiredQueryValue(AssemblyVersionParam, query, queryString));
+        var typeName = GetRequiredQueryValue(TypeNameParam, query, queryString);
 
         var documentId = DocumentId.CreateFromSerialized(projectId, documentIdGuid, isSourceGenerated: true, hintName);
 

@@ -82,7 +82,8 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     public string Query => GetComponents().Query;
 
     /// <summary>
-    /// The query component as it appeared in the parsed URI, before percent-decoding.
+    /// The query component as it appeared in the parsed URI, before percent-decoding,
+    /// or its encoded form when constructed from components.
     /// </summary>
     public string RawQuery => GetComponents().RawQuery;
 
@@ -179,6 +180,12 @@ internal sealed class ParsedUri : IEquatable<ParsedUri>
     /// </summary>
     public static ParsedUri Parse(string value, bool strict = false)
         => new(ParseComponents(value, strict));
+
+    /// <summary>
+    /// Creates a new URI from unescaped components, equivalent to vscode-uri's <c>URI.from</c>.
+    /// </summary>
+    public static ParsedUri From(string scheme, string authority = "", string path = "", string query = "", string fragment = "", bool strict = false)
+        => new(CreateComponents(scheme, authority, path, query, EncodeURIComponentCanonical(query, isPath: false, isAuthority: false), fragment, strict));
 
     private static Components ParseComponents(string value, bool strict)
     {
