@@ -5065,6 +5065,128 @@ public sealed class SolutionTests : TestBase
         Assert.Contains("CS8669", diagnostic.Id);
     }
 
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task TopLevelVersionDoesNotParseUnchangedDocument(string language)
+    {
+        using var workspace = CreateWorkspace();
+        var projectId = ProjectId.CreateNewId();
+        var documentId = DocumentId.CreateNewId(projectId);
+        var version = VersionStamp.Create();
+        var text = SourceText.From(language == LanguageNames.CSharp ? "class C { }" : "Class C\nEnd Class");
+        var document = workspace.CurrentSolution
+            .AddProject(projectId, "Test", "Test", language)
+            .AddDocument(DocumentInfo.Create(
+                documentId, "Test",
+                loader: TextLoader.From(TextAndVersion.Create(text, version))))
+            .GetRequiredDocument(documentId);
+
+        Assert.False(document.TryGetSyntaxTree(out _));
+        Assert.Equal(version, await document.GetTopLevelChangeTextVersionAsync());
+        Assert.False(document.TryGetSyntaxTree(out _));
+
+        var tree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Equal(text.ToString(), (await tree.GetTextAsync()).ToString());
+        Assert.Equal(version, await document.GetTopLevelChangeTextVersionAsync());
+        Assert.Equal(version, await document.GetTopLevelChangeTextVersionAsync(new CancellationToken(canceled: true)));
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task TopLevelVersionPreservesReloadableTextSnapshot(string language)
+    {
+        using var workspace = CreateWorkspace();
+        var projectId = ProjectId.CreateNewId();
+        var documentId = DocumentId.CreateNewId(projectId);
+        var version = VersionStamp.Create();
+        var text = language == LanguageNames.CSharp ? "class C { }" : "Class C\nEnd Class";
+        var loader = new VersionQueryTextLoader(TextAndVersion.Create(SourceText.From(text), version));
+        var document = workspace.CurrentSolution
+            .AddProject(projectId, "Test", "Test", language)
+            .AddDocument(DocumentInfo.Create(documentId, "Test", loader: loader))
+            .GetRequiredDocument(documentId);
+
+        Assert.Equal(version, await document.GetTopLevelChangeTextVersionAsync());
+        loader.Value = TextAndVersion.Create(SourceText.From(""), VersionStamp.Create());
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
+
+        var tree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+        Assert.Equal(text, (await tree.GetTextAsync()).ToString());
+        Assert.Equal(version, await document.GetTopLevelChangeTextVersionAsync());
+        Assert.Equal(1, loader.LoadCount);
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task TopLevelVersionStillDetectsIncrementalChanges(string language)
+    {
+        using var workspace = CreateWorkspace();
+        var projectId = ProjectId.CreateNewId();
+        var documentId = DocumentId.CreateNewId(projectId);
+        var version = VersionStamp.Create();
+        var originalText = language == LanguageNames.CSharp
+            ? "class C { void M() { int x = 0; } }"
+            : "Class C\nSub M()\nDim x = 0\nEnd Sub\nEnd Class";
+        var document = workspace.CurrentSolution
+            .AddProject(projectId, "Test", "Test", language)
+            .AddDocument(DocumentInfo.Create(
+                documentId, "Test",
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From(originalText), version))))
+            .GetRequiredDocument(documentId);
+
+        Assert.Equal(version, await document.GetTopLevelChangeTextVersionAsync());
+
+        var bodyChange = document.WithText(SourceText.From(originalText.Replace("0", "1")));
+        Assert.Equal(version, await bodyChange.GetTopLevelChangeTextVersionAsync());
+
+        var declarationChange = bodyChange.WithText(SourceText.From(originalText.Replace("C", "D")));
+        Assert.NotEqual(version, await declarationChange.GetTopLevelChangeTextVersionAsync());
+    }
+
+    [Theory]
+    [InlineData(LanguageNames.CSharp)]
+    [InlineData(LanguageNames.VisualBasic)]
+    public async Task TopLevelVersionCanRetryAfterCancellation(string language)
+    {
+        using var workspace = CreateWorkspace();
+        var projectId = ProjectId.CreateNewId();
+        var documentId = DocumentId.CreateNewId(projectId);
+        var version = VersionStamp.Create();
+        var loader = new VersionQueryTextLoader(TextAndVersion.Create(SourceText.From(""), version));
+        var document = workspace.CurrentSolution
+            .AddProject(projectId, "Test", "Test", language)
+            .AddDocument(DocumentInfo.Create(documentId, "Test", loader: loader))
+            .GetRequiredDocument(documentId);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            async () => await document.GetTopLevelChangeTextVersionAsync(cancellation.Token));
+
+        Assert.Equal(version, await document.GetTopLevelChangeTextVersionAsync());
+        Assert.False(document.TryGetSyntaxTree(out _));
+        Assert.NotNull(await document.GetRequiredSyntaxTreeAsync(CancellationToken.None));
+        Assert.Equal(1, loader.LoadCount);
+    }
+
+    private sealed class VersionQueryTextLoader(TextAndVersion value) : TextLoader
+    {
+        public TextAndVersion Value { get; set; } = value;
+        public int LoadCount { get; private set; }
+
+        internal override bool CanReloadText => true;
+
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            LoadCount++;
+            return Task.FromResult(Value);
+        }
+    }
+
     [Fact]
     public void NoCompilationProjectsHaveNullSyntaxTreesAndSemanticModels()
     {
