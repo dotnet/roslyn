@@ -25,6 +25,40 @@ configuration:
       - addReply:
           reply: "Closing this issue as we've seen no reply to the request for more information. If you are able to get the requested information, please add it to the issue and we will retriage it. "
 
+    - description: Stale Draft PRs move to Close
+      frequencies:
+      - daily:
+          time: 3:15
+      filters:
+      - isOpen
+      - isPullRequest
+      - isDraftPullRequest
+      - hasLabel:
+          label: Urgency-Low
+      - noActivitySince:
+          days: 1
+      actions:
+      - closeIssue
+      - addReply:
+          reply: "Kind human, closing this pull request as it has been in draft state with no activity for 30 days. If you are ready to continue work on this PR, please re-open it and we will retriage it. "
+
+    - description: Stale Active PRs Move to Draft
+      frequencies:
+      - daily:
+          time: 4:15
+      filters:
+      - isOpen
+      - isPullRequest
+      - isNotDraftPullRequest
+      - hasLabel:
+          label: Urgency-Low
+      - noActivitySince:
+          days: 1
+      actions:
+      - markDraft
+      - addReply:
+          reply: "Kind human, changing this pull request to 'Draft' as it has no activity for 60 days. If you are ready to continue work on this PR, please un-draft it and we will retriage it. "
+
     eventResponderTasks:
 
     - description: Auto-approve maestro PRs
