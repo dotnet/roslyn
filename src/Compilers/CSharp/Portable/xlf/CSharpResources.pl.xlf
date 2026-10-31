@@ -2864,7 +2864,7 @@
       </trans-unit>
       <trans-unit id="ERR_UnsafeUnassignedAddressOf">
         <source>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</source>
-        <target state="new">The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</target>
+        <target state="translated">Operand wyrażenia address-of nie jest zdecydowanie przypisany. Upewnij się, że operand jest przypisany, lub użyj niebezpiecznego kontekstu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
@@ -4374,27 +4374,27 @@
         <target state="translated">
                              Opcje kompilatora języka Visual C#
 
-                       - PLIKI WYJŚCIOWE - 
--out:&lt;file&gt;                   Określanie nazwy pliku wyjściowego (domyślnie: nazwa podstawowa
+                       - PLIKI DANYCH WYJŚCIOWYCH — 
+-out:&lt;file&gt;                   Określanie nazwy pliku danych wyjściowych (domyślnie: nazwa podstawowa 
                               pliku z klasą główną lub pierwszym plikiem)
--target:exe                   Kompilowanie pliku wykonywalny konsoli (domyślnie) (skrócona
+-target:exe                   Kompilowanie pliku wykonywalnego konsoli (domyślnie) (skrócona
                               postać: -t:exe)
 -target:winexe                   Kompilowanie pliku wykonywalnego systemu Windows (skrócona postać:
                               -t:winexe)
 -target:library               Tworzenie biblioteki (skrócona postać: -t:library)
 -target:module                Tworzenie modułu, który można będzie dodać do innego
                               zestawu (skrócona postać: -t:module)
--target:appcontainerexe       Tworzenie pliku wykonywalnego Appcontainer (skrócona postać:
+-target:appcontainerexe       Kompilowanie pliku wykonywalnego Appcontainer (skrócona postać:
                               -t:appcontainerexe)
--target:winmdobj              Tworzenie pośredniego pliku środowiska wykonawczego systemu Windows, który
-                              jest używany przez WinMDExp (skrócona postać: -t:winmdobj)
+-target:winmdobj              Kompilowanie pośredniego pliku środowiska wykonawczego systemu Windows, który
+                              jest zużywany przez WinMDExp (skrócona postać: -t:winmdobj)
 -doc:&lt;file&gt;                       Plik dokumentacji XML do wygenerowania
 -refout:&lt;file&gt;                    Odwołanie do danych wyjściowych zestawu do wygenerowania
--platform:&lt;string&gt;                Ograniczanie platformy, na których można uruchomić ten kod: x86,
+-platform:&lt;string&gt;                Ograniczanie platformy, na których można uruchamiać ten kod: x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred lub
-                              anycpu. Domyślną jest anycpu.
+                              anycpu. Domyślną opcją jest anycpu.
 
-                       - PLIKI WEJŚCIOWE -
+                       - PLIKI DANYCH WEJŚCIOWYCH -
 -recurse:&lt;wildcard&gt;               Uwzględnianie wszystkie plików w bieżącym katalogu oraz
                               podkatalogach zgodnie ze specyfikacjami
                               symbolu wieloznacznego
@@ -4421,7 +4421,7 @@
 -resource:&lt;resinfo&gt;           Osadzanie określonego zasobu (skrócona postać: -res)
 -linkresource:&lt;resinfo&gt;      Łączenie określonego zasobu z tym zestawem
                               (skrócona postać: -linkres) Gdzie format resinfo
-                              to &lt;file&gt;[,&lt;name&gt;[,public|private]]
+                              ma postać &lt;file&gt;[,&lt;name&gt;[,public|private]]
 
                        - GENEROWANIE KODU -
 -debug[+|-]                       Emitowanie informacji o debugowaniu
@@ -4435,7 +4435,7 @@
                               (w tym identyfikatora GUID i sygnatury czasowej wersji modułu)
 -refonly                          Tworzenie zestawu odwołania zamiast wyjścia głównego
 -instrument:TestCoverage          Generowanie zestawu instrumentowanego do zbierania
-                              informacji o pokryciach
+                              informacji o pokryciu
 -sourcelink:&lt;file&gt;                Informacje o linku źródłowym do osadzenia w pliku PDB.
 
                        - BŁĘDY I OSTRZEŻENIA -
@@ -4457,11 +4457,11 @@
 -skipanalyzers[+|-]               Pomijanie wykonywanie analizatorów diagnostycznych.
 
                        - JĘZYK -
--checked[+|-]                 Generowanie testów przepełnienia
+-checked[+|-]                 Generowanie kontroli przepełnienia
 -unsafe[+|-]                  Zezwól na kod „unsafe” i modyfikatory „safe”
 -define:&lt;symbol list&gt;             Definiowanie symboli kompilacji warunkowej (skrócona
                               postać: -d)
--langversion:?                Wyświetlanie dozwolone wartości dla wersji językowej
+-langversion:?                Wyświetlanie dozwolonych wartości dla wersji języka
 -langversion:&lt;string&gt;             Określanie wersji języka, na przykład
                               `latest` (najnowsza wersja, w tym wersje pomocnicze),
                               `default` (tak samo jak `latest`),
@@ -4471,8 +4471,8 @@
 -nullable[+|-]                Określanie włączenia|wyłączenia opcji kontekstu dopuszczania wartości null.
 -nullable:{enable|disable|warnings|annotations}
                               Określanie opcji kontekstu dopuszczania wartości null enable|disable|warnings|annotations.
--memorysafetyrulesversion:&lt;n&gt; Ustaw wersję reguł bezpieczeństwa pamięci jako
-                              `1` (Starsza wersja),
+-memorysafetyrulesversion:&lt;n&gt; Ustawianie wersji reguł bezpieczeństwa pamięci jako
+                              `1` (starsza wersja),
                               `2` (zaktualizowano: niebezpieczne elementy członkowskie wymagają niebezpiecznego kontekstu w używanej lokacji)
 
                        - ZABEZPIECZENIA -
@@ -4480,9 +4480,9 @@
                               fragmentu silnego klucza nazwy
 -publicsign[+|-]                  Podpisywanie publiczne zestawu tylko przy użyciu publicznego
                               fragmentu silnego klucza nazwy
--keyfile:&lt;file&gt;                   Określanie pliku silnego klucza nazwy.
+-keyfile:&lt;file&gt;                   Określanie pliku silnego klucza nazwy
 -keycontainer:&lt;string&gt;            Określanie kontenera silnych kluczy nazw
--highentropyva[+|-]               Włączanie funkcji ASLR o wysokiej entropii.
+-highentropyva[+|-]               Włączanie funkcji ASLR o wysokiej entropii
 
                        — RÓŻNE —
 @&lt;file&gt;                       Odczytywanie pliku odpowiedzi w celu uzyskania dodatkowych opcji
@@ -4494,7 +4494,7 @@
 
                        - ZAAWANSOWANE -
 -baseaddress:&lt;address&gt;        Adres podstawowy dla bibiloteki, która ma być utworzona
--checksumalgorithm:&lt;alg&gt;          Określanie algorytmu obliczania pliku źródłowego
+-checksumalgorithm:&lt;alg&gt;          Określanie algorytmu obliczania sumy kontrolnej
                               pliku źródłowego przechowywanego w pliku PDB. Obsługiwane wartości to:
                               SHA1, SHA256 (domyślne), SHA384 lub SHA512.
 -codepage:&lt;n&gt;                 Określanie strony kodowej do używania podczas otwierania plików
@@ -4505,12 +4505,12 @@
                               postać: -m)
 -fullpaths                    Kompilator generuje w pełni kwalifikowane ścieżki
 -filealign:&lt;n&gt;               Określanie wyrównania używanego dla sekcji
-                              pliku wyjściowego
+                              pliku danych wyjściowych
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                               Określanie mapowania dla danych wyjściowych nazw ścieżek źródłowych przez
                               kompilatora.
 -pdb:&lt;file&gt;                   Określanie nazwy pliku z informacjami o debugowaniu (domyślnie:
-                              nazwa pliku wyjściowego z rozszerzeniem .pdb)
+                              nazwa pliku daych wyjściowych z rozszerzeniem .pdb)
 -errorendlocation             wiersz i kolumna danych wyjściowych lokalizacji końcowej
                               każdego błędu
 -preferreduilang                  Określanie preferowanej nazwy języka danych wyjściowych.
@@ -4528,7 +4528,7 @@
 -moduleassemblyname:&lt;string&gt;  Nazwa zestawu, którego częścią będzie
                               ten moduł
 -modulename:&lt;string&gt;          Określanie nazwy modułu źródłowego
--generatedfilesout:&lt;dir&gt;          Umieszczanie plików wygenerowane podczas kompilacji w
+-generatedfilesout:&lt;dir&gt;          Umieszczanie plików wygenerowanych podczas kompilacji w
                               określonym katalogu.
 -reportivts[+|-]                  Informacje dotyczące danych wyjściowych o wszystkich plikach IVT przyznanych temu
                               zestawowi przez wszystkie zależności i adnotowanie błędów
