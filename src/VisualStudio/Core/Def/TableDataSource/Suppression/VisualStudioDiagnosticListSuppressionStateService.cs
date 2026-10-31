@@ -33,6 +33,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 [Export(typeof(VisualStudioDiagnosticListSuppressionStateService))]
 internal sealed class VisualStudioDiagnosticListSuppressionStateService : IVisualStudioDiagnosticListSuppressionStateService
 {
+    private static readonly UIContext s_canRemoveSuppressionContext = UIContext.FromUIContextGuid(new Guid("{BD1C8461-4942-4685-9B33-8F0EEA950F19}"));
+    private static readonly UIContext s_canSuppressInSourceContext = UIContext.FromUIContextGuid(new Guid("{553258F0-5700-41B5-B1C0-30B96F0BD77E}"));
+    private static readonly UIContext s_canSuppressInFileContext = UIContext.FromUIContextGuid(new Guid("{716BCF90-89EC-46E3-A5B0-655A57DBD121}"));
+
     private readonly IThreadingContext _threadingContext;
     private readonly VisualStudioWorkspace _workspace;
 
@@ -64,8 +68,7 @@ internal sealed class VisualStudioDiagnosticListSuppressionStateService : IVisua
 
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-        ClearState();
-        InitializeFromTableControlIfNeeded();
+        RefreshSelection(_tableControl?.SelectedEntries ?? []);
     }
 
     private int SelectedItems => _selectedActiveItems + _selectedSuppressedItems + _selectedNonSuppressionStateItems;
@@ -113,7 +116,7 @@ internal sealed class VisualStudioDiagnosticListSuppressionStateService : IVisua
         ClearState();
         if (ProcessEntries(_tableControl.SelectedEntries, added: true))
         {
-            UpdateQueryStatus();
+            UpdateCommandState();
         }
     }
 
@@ -122,17 +125,18 @@ internal sealed class VisualStudioDiagnosticListSuppressionStateService : IVisua
     /// </summary>
     public void ProcessSelectionChanged(TableSelectionChangedEventArgs e)
     {
-        var hasAddedSuppressionStateEntry = ProcessEntries(e.AddedEntries, added: true);
-        var hasRemovedSuppressionStateEntry = ProcessEntries(e.RemovedEntries, added: false);
-
-        // If any entry that supports suppression state was ever involved, update query status since each item in the error list
-        // can have different context menu.
-        if (hasAddedSuppressionStateEntry || hasRemovedSuppressionStateEntry)
-        {
-            UpdateQueryStatus();
-        }
+        ProcessEntries(e.AddedEntries, added: true);
+        ProcessEntries(e.RemovedEntries, added: false);
+        UpdateCommandState();
 
         InitializeFromTableControlIfNeeded();
+    }
+
+    public void RefreshSelection(IEnumerable<ITableEntryHandle> selectedEntries)
+    {
+        ClearState();
+        ProcessEntries(selectedEntries, added: true);
+        UpdateCommandState();
     }
 
     private bool ProcessEntries(IEnumerable<ITableEntryHandle> entryHandles, bool added)
@@ -357,10 +361,20 @@ internal sealed class VisualStudioDiagnosticListSuppressionStateService : IVisua
     private void HandleNonSuppressionStateEntry(bool added)
         => UpdateSelectedItems(added, ref _selectedNonSuppressionStateItems);
 
-    private void UpdateQueryStatus()
+    private void UpdateCommandState()
     {
+        SetContext(s_canRemoveSuppressionContext, CanRemoveSuppressionsSelectedEntries);
+        SetContext(s_canSuppressInSourceContext, CanSuppressSelectedEntriesInSource);
+        SetContext(s_canSuppressInFileContext, CanSuppressSelectedEntriesInSuppressionFiles);
+
         // Force the shell to refresh the QueryStatus for all the command since default behavior is it only does query
         // when focus on error list has changed, not individual items.
         _shellService?.UpdateCommandUI(0);
+    }
+
+    private static void SetContext(UIContext context, bool isActive)
+    {
+        if (context.IsActive != isActive)
+            context.IsActive = isActive;
     }
 }
