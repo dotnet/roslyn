@@ -238,11 +238,14 @@ internal sealed partial class ConvertRegularStringToRawStringProvider
             builder.Append(indentation);
             builder.Append('"', quoteDelimiterCount);
 
+            var text = NormalizeLineEndings(builder.ToString(), formattingOptions.NewLine);
+            var value = NormalizeLineEndings(characterList.CreateString(), formattingOptions.NewLine);
+
             return Token(
                 token.LeadingTrivia,
                 SyntaxKind.MultiLineRawStringLiteralToken,
-                builder.ToString(),
-                characterList.CreateString(),
+                text,
+                value,
                 token.TrailingTrivia);
         }
     }

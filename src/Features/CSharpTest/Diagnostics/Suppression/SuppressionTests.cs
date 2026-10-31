@@ -1991,12 +1991,12 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
         """);
             }
 
-            [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+            [Fact]
             public Task TestSuppressionWithExistingGlobalSuppressionsDocument()
                 => TestAsync("""
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
-                            <Document FilePath="CurrentDocument.cs"><![CDATA[
+                            <Document FilePath="CurrentDocument.cs" Normalize="false"><![CDATA[
                     using System;
 
                     class Class { }
@@ -2004,7 +2004,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [|class Class2|] { }
                     ]]>
                             </Document>
-                            <Document FilePath="GlobalSuppressions.cs"><![CDATA[// This file is used by Code Analysis to maintain SuppressMessage
+                            <Document FilePath="GlobalSuppressions.cs" Normalize="false"><![CDATA[// This file is used by Code Analysis to maintain SuppressMessage
                     // attributes that are applied to this project.
                     // Project-level suppressions either have no target or are given
                     // a specific target and scoped to a namespace, type, member, etc.
@@ -2027,14 +2027,14 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """);
+                    """.ReplaceLineEndings("\n"));
 
             [Fact]
             public Task TestSuppressionWithExistingGlobalSuppressionsDocument2()
                 => TestAsync("""
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
-                            <Document FilePath="CurrentDocument.cs"><![CDATA[
+                            <Document FilePath="CurrentDocument.cs" Normalize="false"><![CDATA[
                     using System;
 
                     class Class { }
@@ -2042,7 +2042,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [|class Class2|] { }
                     ]]>
                             </Document>
-                            <Document FilePath="GlobalSuppressions.cs"><![CDATA[
+                            <Document FilePath="GlobalSuppressions.cs" Normalize="false"><![CDATA[
                     // My own file named GlobalSuppressions.cs.
                     using System;
                     class Class { }
@@ -2060,14 +2060,14 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
 
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """);
+                    """.ReplaceLineEndings("\n"));
 
-            [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+            [Fact]
             public Task TestSuppressionWithExistingGlobalSuppressionsDocument3()
                 => TestAsync("""
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
-                            <Document FilePath="CurrentDocument.cs"><![CDATA[
+                            <Document FilePath="CurrentDocument.cs" Normalize="false"><![CDATA[
                     using System;
 
                     class Class { }
@@ -2075,13 +2075,13 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [|class Class2|] { }
                     ]]>
                             </Document>
-                            <Document FilePath="GlobalSuppressions.cs"><![CDATA[
+                            <Document FilePath="GlobalSuppressions.cs" Normalize="false"><![CDATA[
                     // My own file named GlobalSuppressions.cs.
                     using System;
                     class Class { }
                     ]]>
                             </Document>
-                             <Document FilePath="GlobalSuppressions2.cs"><![CDATA[// This file is used by Code Analysis to maintain SuppressMessage
+                             <Document FilePath="GlobalSuppressions2.cs" Normalize="false"><![CDATA[// This file is used by Code Analysis to maintain SuppressMessage
                     // attributes that are applied to this project.
                     // Project-level suppressions either have no target or are given
                     // a specific target and scoped to a namespace, type, member, etc.
@@ -2104,14 +2104,14 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """);
+                    """.ReplaceLineEndings("\n"));
 
-            [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+            [Fact]
             public Task TestSuppressionWithUsingDirectiveInExistingGlobalSuppressionsDocument()
                 => TestAsync("""
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
-                            <Document FilePath="CurrentDocument.cs"><![CDATA[
+                            <Document FilePath="CurrentDocument.cs" Normalize="false"><![CDATA[
                     using System;
 
                     class Class { }
@@ -2119,7 +2119,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [|class Class2|] { }
                     ]]>
                             </Document>
-                            <Document FilePath="GlobalSuppressions.cs"><![CDATA[
+                            <Document FilePath="GlobalSuppressions.cs" Normalize="false"><![CDATA[
                     using System.Diagnostics.CodeAnalysis;
 
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
@@ -2134,14 +2134,14 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """);
+                    """.ReplaceLineEndings("\n"));
 
-            [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+            [Fact]
             public Task TestSuppressionWithoutUsingDirectiveInExistingGlobalSuppressionsDocument()
                 => TestAsync("""
                     <Workspace>
                         <Project Language="C#" CommonReferences="true" AssemblyName="Proj1">
-                            <Document FilePath="CurrentDocument.cs"><![CDATA[
+                            <Document FilePath="CurrentDocument.cs" Normalize="false"><![CDATA[
                     using System;
 
                     class Class { }
@@ -2149,7 +2149,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [|class Class2|] { }
                     ]]>
                             </Document>
-                            <Document FilePath="GlobalSuppressions.cs"><![CDATA[
+                            <Document FilePath="GlobalSuppressions.cs" Normalize="false"><![CDATA[
                     [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     ]]>
                             </Document>
@@ -2162,7 +2162,7 @@ public abstract partial class CSharpSuppressionTests : AbstractSuppressionDiagno
                     [assembly: System.Diagnostics.CodeAnalysis.SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "<Pending>", Scope = "type", Target = "Class")]
                     [assembly: SuppressMessage("InfoDiagnostic", "InfoDiagnostic:InfoDiagnostic", Justification = "{FeaturesResources.Pending}", Scope = "type", Target = "~T:Class2")]
 
-                    """);
+                    """.ReplaceLineEndings("\n"));
         }
     }
 
