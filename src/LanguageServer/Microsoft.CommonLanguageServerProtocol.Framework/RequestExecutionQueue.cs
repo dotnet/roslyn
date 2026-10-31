@@ -367,18 +367,13 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
             }
 
             Debug.Assert(!concurrentlyExecutingTasks.Any(t => !t.Key.IsCompleted), "The tasks should have all been drained before continuing");
-            // Mutating requests block other requests from starting to ensure an up to date snapshot is used.
-            // Since we're explicitly awaiting exceptions to mutating requests will bubble up here.
-            await WrapStartRequestTaskAsync(work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), rethrowExceptions: true).ConfigureAwait(false);
+            await work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            // Non mutating are fire-and-forget because they are by definition read-only. Any errors
-            // will be sent back to the client but they can also be captured via HandleNonMutatingRequestError,
-            // though these errors don't put us into a bad state as far as the rest of the queue goes.
-            // Furthermore we use Task.Run here to protect ourselves against synchronous execution of work
-            // blocking the request queue for longer periods of time (it enforces parallelizability).
-            var currentWorkTask = WrapStartRequestTaskAsync(Task.Run(() => work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), cancellationToken), rethrowExceptions: false);
+            // Use Task.Run to prevent synchronous execution of work from blocking the request queue
+            // for longer periods of time (it enforces parallelizability).
+            var currentWorkTask = Task.Run(() => work.StartRequestAsync<TRequest, TResponse>(deserializedRequest, context, handler, cancellationToken), cancellationToken);
 
             if (CancelInProgressWorkUponMutatingRequest)
             {
@@ -425,18 +420,6 @@ internal class RequestExecutionQueue<TRequestContext> : IRequestExecutionQueue<T
 
         result = default;
         return false;
-    }
-
-    /// <summary>
-    /// Provides an extensibility point to log or otherwise inspect errors thrown from non-mutating requests,
-    /// which would otherwise be lost to the fire-and-forget task in the queue.
-    /// </summary>
-    /// <param name="requestTask">The task to be inspected.</param>
-    /// <param name="rethrowExceptions">If exceptions should be re-thrown.</param>
-    /// <returns>The task from <paramref name="requestTask"/>, to allow chained calls if needed.</returns>
-    public virtual Task WrapStartRequestTaskAsync(Task requestTask, bool rethrowExceptions)
-    {
-        return requestTask;
     }
 
     /// <summary>
