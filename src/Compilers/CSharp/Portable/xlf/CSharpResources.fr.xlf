@@ -3584,12 +3584,12 @@
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag">
         <source>Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</source>
-        <target state="new">Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</target>
+        <target state="translated">L’indicateur de fonctionnalité '{0}' est obsolète et sera supprimé dans une version ultérieure. Utilisez la propriété MSBuild '{1}' ou l’option de compilateur '{2}' à la place.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag_Title">
         <source>Feature flag is deprecated</source>
-        <target state="new">Feature flag is deprecated</target>
+        <target state="translated">L’indicateur de fonctionnalité est déconseillé</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">

@@ -3584,7 +3584,7 @@
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag">
         <source>Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</source>
-        <target state="new">Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</target>
+        <target state="translated">Das Featureflag '{0}' ist veraltet und wird in einer zukünftigen Version entfernt. Verwenden Sie stattdessen die MSBuild-Eigenschaft '{1}' oder die Compileroption '{2}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DeprecatedFeatureFlag_Title">
