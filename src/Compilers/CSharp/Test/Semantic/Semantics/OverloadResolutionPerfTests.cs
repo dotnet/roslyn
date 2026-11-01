@@ -717,7 +717,7 @@ class Program
             comp.VerifyDiagnostics();
         }
 
-        [WorkItem(86276, "https://github.com/dotnet/roslyn/issues/86276")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86276")]
         [ConditionalFact(typeof(IsRelease))]
         public void NullableAnalysisNestedExpressionsInLambda()
         {
