@@ -3579,10 +3579,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 _snapshotBuilderOpt?.ExitWalker(this.SaveSharedState(), previousSlot);
-
-                // Restore the state even when the analysis of the body throws (for instance, when the stack guard
-                // cancels the analysis). Otherwise, _variables still references the variables of the nested function,
-                // and Free() frees them twice: once from _nestedFunctionVariables, and once from the _variables chain.
                 _variables = _variables.Container!;
                 this.State = oldState;
 #if DEBUG
