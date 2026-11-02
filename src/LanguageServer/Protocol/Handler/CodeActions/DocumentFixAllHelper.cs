@@ -23,8 +23,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 internal static class DocumentFixAllHelper
 {
     public static async Task<Solution> GetChangedSolutionAsync(
-        Document document, ICodeFixService codeFixService, DiagnosticSeverity minimumSeverity,
-        ResourceOperationKind[] resourceOperations, Action<string> log, CancellationToken cancellationToken)
+        Document document,
+        ICodeFixService codeFixService,
+        DiagnosticSeverity minimumSeverity,
+        ResourceOperationKind[] resourceOperations,
+        Action<string> log,
+        CancellationToken cancellationToken)
     {
         var originalSolution = document.Project.Solution;
         var solution = originalSolution;
@@ -57,11 +61,13 @@ internal static class DocumentFixAllHelper
                 if (collection?.FixAllState is not { } state || collection.Provider is not CodeFixProvider)
                     break;
 
+                var providerDescription = $"'{collection.Provider.GetType().FullName}' (Fix All provider '{state.FixAllProvider.GetType().FullName}')";
+
                 // Changing text alone need not fix anything. A decreasing diagnostic count bounds retries,
                 // including providers that continually introduce different text without making progress.
                 if (previousDiagnosticCount is { } count && collection.Diagnostics.Length >= count)
                 {
-                    log($"Stopping document Fix All for '{diagnosticId}': no diagnostic progress.");
+                    log($"Stopping document Fix All for '{diagnosticId}' from {providerDescription}: no diagnostic progress.");
                     break;
                 }
 
@@ -89,7 +95,7 @@ internal static class DocumentFixAllHelper
                 // Only a single ApplyChangesOperation can be converted into the workspace edit returned by this action.
                 if (operations.Length != 1 || operations[0] is not ApplyChangesOperation applyChanges)
                 {
-                    log($"Skipping document Fix All for '{diagnosticId}': unsupported code action operations.");
+                    log($"Skipping document Fix All for '{diagnosticId}' from {providerDescription}: unsupported code action operations.");
                     break;
                 }
 
@@ -97,14 +103,14 @@ internal static class DocumentFixAllHelper
                 var normalized = await NormalizeLinkedDocumentChangesAsync(solution, candidate, cancellationToken).ConfigureAwait(false);
                 if (normalized is null)
                 {
-                    log($"Skipping document Fix All for '{diagnosticId}': conflicting linked document changes.");
+                    log($"Skipping document Fix All for '{diagnosticId}' from {providerDescription}: conflicting linked document changes.");
                     break;
                 }
 
                 // Validate the complete edit after propagation, rejecting only this candidate while retaining earlier fixes.
                 if (!CodeActionResolveHelper.CanApplyFixAllChanges(originalSolution, normalized, resourceOperations))
                 {
-                    log($"Skipping document Fix All for '{diagnosticId}': unsupported accumulated workspace changes.");
+                    log($"Skipping document Fix All for '{diagnosticId}' from {providerDescription}: unsupported accumulated workspace changes.");
                     break;
                 }
 

@@ -279,9 +279,8 @@ internal sealed class CodeActionResolveHelper
     {
         foreach (var change in newSolution.GetChanges(solution).GetProjectChanges())
         {
-            // Don't apply changes in the presence of any non-document changes for now.  Note though that LSP does
-            // support additional functionality (like create/rename/delete file).  Once VS updates their LSP client
-            // impl to support this, we should add that support here.
+            // Workspace edits cannot represent changes to project, metadata, or analyzer references.
+            // File creation, rename, and deletion are supported when the client advertises those capabilities.
             //
             // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceEdit
             //
@@ -332,7 +331,7 @@ internal sealed class CodeActionResolveHelper
         }
 
         // Track destinations across projects so separate resource operations cannot claim the same file.
-        using var _ = PooledDictionary<DocumentUri, DocumentUri>.GetInstance(out var resourceDestinations);
+        using var _ = PooledDictionary<DocumentUri, DocumentUri>.GetInstance(out var seenFileChanges);
         foreach (var change in newSolution.GetChanges(solution).GetProjectChanges())
         {
             // Removing a linked context would still emit DeleteFile for the shared source file.
@@ -361,7 +360,7 @@ internal sealed class CodeActionResolveHelper
                 var filePath = added.FilePath ?? added.GetFilePathForDocumentWithoutFilePath();
                 var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
                 if (solution.GetDocumentIdsWithFilePath(filePath).Any() ||
-                    !RegisterDestination(uri, uri))
+                    HasConflictingFileChange(uri, uri))
                 {
                     return false;
                 }
@@ -386,7 +385,7 @@ internal sealed class CodeActionResolveHelper
                     : newDocument.GetFilePathForRenamedDocument();
                 var destination = GetRenamedDocumentUri(oldDocument, newDocument);
                 var linkedIds = solution.GetDocumentIdsWithFilePath(oldDocument.FilePath);
-                if (!RegisterDestination(destination, oldDocument.GetURI()) ||
+                if (HasConflictingFileChange(destination, oldDocument.GetURI()) ||
                     solution.GetDocumentIdsWithFilePath(destinationPath).Any(id => !linkedIds.Contains(id)) ||
                     newSolution.GetDocumentIdsWithFilePath(destinationPath).Any(id => !linkedIds.Contains(id)))
                 {
@@ -410,14 +409,14 @@ internal sealed class CodeActionResolveHelper
 
         return true;
 
-        bool RegisterDestination(DocumentUri destination, DocumentUri original)
+        bool HasConflictingFileChange(DocumentUri destination, DocumentUri original)
         {
             // Linked contexts may repeat the same operation, but different physical files cannot share a destination.
-            if (resourceDestinations.TryGetValue(destination, out var previous) && previous != original)
-                return false;
+            if (seenFileChanges.TryGetValue(destination, out var previous) && previous != original)
+                return true;
 
-            resourceDestinations[destination] = original;
-            return true;
+            seenFileChanges[destination] = original;
+            return false;
         }
     }
 

@@ -237,7 +237,9 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
         Assert.Equal(["FA0001", "FA0002"], fixer.Invocations);
-        Assert.Single(logs, message => message.Contains("FA0001", StringComparison.Ordinal));
+        Assert.Equal(
+            $"Stopping document Fix All for 'FA0001' from '{fixer.GetType().FullName}' (Fix All provider '{fixer.GetFixAllProvider().GetType().FullName}'): no diagnostic progress.",
+            Assert.Single(logs));
     }
 
     [Theory, CombinatorialData]
@@ -603,7 +605,9 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
         Assert.Equal(expectedOther, (await changed.Project.Documents.Last().GetTextAsync()).ToString());
         Assert.Equal(document.Project.MetadataReferences, changed.Project.MetadataReferences);
-        Assert.Single(logs, message => message.Contains("FA0002", StringComparison.Ordinal));
+        Assert.Equal(
+            $"Skipping document Fix All for 'FA0002' from '{fixer.GetType().FullName}' (Fix All provider '{fixer.GetFixAllProvider().GetType().FullName}'): unsupported accumulated workspace changes.",
+            Assert.Single(logs));
     }
 
     [Theory, CombinatorialData]
@@ -630,7 +634,9 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         // Preserve the earlier text and original path, discarding the whole unsupported candidate.
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
         Assert.Equal(document.FilePath, changed.FilePath);
-        Assert.Single(logs, message => message.Contains("FA0002", StringComparison.Ordinal));
+        Assert.Equal(
+            $"Skipping document Fix All for 'FA0002' from '{fixer.GetType().FullName}' (Fix All provider '{fixer.GetFixAllProvider().GetType().FullName}'): unsupported accumulated workspace changes.",
+            Assert.Single(logs));
     }
 
     [Theory, CombinatorialData]
@@ -874,7 +880,9 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString().ReplaceLineEndings("\n"));
         var linked = changed.Project.Solution.GetDocument(Assert.Single(changed.GetLinkedDocumentIds()))!;
         Assert.Equal(expected, (await linked.GetTextAsync()).ToString().ReplaceLineEndings("\n"));
-        Assert.Single(logs, message => message.Contains("FA0002", StringComparison.Ordinal));
+        Assert.Equal(
+            $"Skipping document Fix All for 'FA0002' from '{fixer.GetType().FullName}' (Fix All provider '{fixer.GetFixAllProvider().GetType().FullName}'): conflicting linked document changes.",
+            Assert.Single(logs));
     }
 
     [Theory, CombinatorialData]
@@ -1000,7 +1008,9 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Reject both operations together rather than accepting the edit or executing the side effect.
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
-        Assert.Single(logs, message => message.Contains("unsupported", StringComparison.Ordinal));
+        Assert.Equal(
+            $"Skipping document Fix All for 'FA0001' from '{fixer.GetType().FullName}' (Fix All provider '{fixer.GetFixAllProvider().GetType().FullName}'): unsupported code action operations.",
+            Assert.Single(logs));
     }
 
     [Theory, CombinatorialData]
