@@ -6021,4 +6021,28 @@ public sealed class SyntaxGeneratorTests
             safe extern void M();
             """);
     }
+
+    [Fact]
+    public void TestInterfaceInsertionPreservesSafetyModifiers()
+    {
+        Verify("public unsafe void M() { }", "unsafe void M();");
+        Verify("public safe void M() { }", "safe void M();");
+        Verify("public unsafe int P { get; set; }", "unsafe int P { get; set; }");
+        Verify("public unsafe int this[int index] { get; }", "unsafe int this[int index] { get; }");
+        Verify("public unsafe event System.Action E { add { } remove { } }", "unsafe event System.Action E;");
+        Verify("public unsafe event System.Action E;", "unsafe event System.Action E;");
+        Verify("static abstract unsafe I operator +(I left, I right);", "static abstract unsafe I operator +(I left, I right);");
+
+        void Verify(string memberDeclaration, string expectedMember)
+        {
+            var declaration = Generator.AddMembers(Generator.InterfaceDeclaration("I"), ParseMemberDeclaration(memberDeclaration));
+
+            VerifySyntax<InterfaceDeclarationSyntax>(declaration, $$"""
+                interface I
+                {
+                    {{expectedMember}}
+                }
+                """);
+        }
+    }
 }

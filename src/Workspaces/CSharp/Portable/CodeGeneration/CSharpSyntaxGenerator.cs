@@ -806,11 +806,15 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
             if (member is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax)
                 return member;
 
+            // Interface normalization must not change the safety contract of the supplied declaration.
+            var safetyModifiers = GetModifiers(member) & (DeclarationModifiers.Unsafe | DeclarationModifiers.Safe);
+            var safetyModifierTokens = AsModifierList(Accessibility.NotApplicable, safetyModifiers);
+
             switch (member.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
                     return ((MethodDeclarationSyntax)member)
-                             .WithModifiers(default)
+                             .WithModifiers(safetyModifierTokens)
                              .WithSemicolonToken(SemicolonToken)
                              .WithBody(null)
                              .WithExpressionBody(null);
@@ -820,7 +824,9 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                     var abstractVirtualModifiers = operatorDeclaration.Modifiers.Where(x =>
                         x.Kind() == SyntaxKind.AbstractKeyword
                         || x.Kind() == SyntaxKind.VirtualKeyword
-                        || x.Kind() == SyntaxKind.PublicKeyword);
+                        || x.Kind() == SyntaxKind.PublicKeyword
+                        || x.Kind() == SyntaxKind.UnsafeKeyword
+                        || x.Kind() == SyntaxKind.SafeKeyword);
                     var modifiersToken = SyntaxFactory.TokenList(abstractVirtualModifiers);
                     modifiersToken = modifiersToken.Insert(0, StaticKeyword);
                     return operatorDeclaration
@@ -831,13 +837,13 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)member;
                     return property
-                        .WithModifiers(default)
+                        .WithModifiers(safetyModifierTokens)
                         .WithAccessorList(WithoutBodies(property.AccessorList));
 
                 case SyntaxKind.IndexerDeclaration:
                     var indexer = (IndexerDeclarationSyntax)member;
                     return indexer
-                        .WithModifiers(default)
+                        .WithModifiers(safetyModifierTokens)
                         .WithAccessorList(WithoutBodies(indexer.AccessorList));
 
                 // convert event into field event
@@ -847,11 +853,11 @@ internal sealed class CSharpSyntaxGenerator() : SyntaxGenerator
                         ev.Identifier.ValueText,
                         ev.Type,
                         Accessibility.NotApplicable,
-                        DeclarationModifiers.None);
+                        safetyModifiers);
 
                 case SyntaxKind.EventFieldDeclaration:
                     var ef = (EventFieldDeclarationSyntax)member;
-                    return ef.WithModifiers(default);
+                    return ef.WithModifiers(safetyModifierTokens);
 
                 // convert field into property
                 case SyntaxKind.FieldDeclaration:
