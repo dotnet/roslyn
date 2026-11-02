@@ -23,6 +23,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeFixes;
 public sealed class DocumentFixAllProviderSelectionTests
 {
     [Fact]
+    public async Task ReturnsNoFixWithoutCodeFixProvider()
+    {
+        using var workspace = TestWorkspace.CreateCSharp("class C { }", composition: FeaturesTestCompositions.Features);
+        var document = GetDocumentWithAnalyzer(workspace);
+        var service = new CodeFixService([], [], configurationProviders: []);
+
+        // Report an eligible diagnostic so the missing provider, not missing diagnostics, explains the result.
+        var diagnostics = await workspace.Services.GetRequiredService<IDiagnosticAnalyzerService>().GetDiagnosticsForSpanAsync(
+            document, range: null, DiagnosticIdFilter.All, priority: null, DiagnosticKind.All, CancellationToken.None);
+        Assert.Contains(diagnostics, diagnostic => diagnostic.Id == "FA0001" &&
+            diagnostic.Severity == DiagnosticSeverity.Warning && !diagnostic.IsSuppressed);
+
+        var collection = await service.GetDocumentFixAllForIdInSpanAsync(
+            document, textSpan: null, "FA0001", DiagnosticSeverity.Warning,
+            includeInteractive: false, CancellationToken.None);
+
+        Assert.Null(collection);
+    }
+
+    [Fact]
     public Task SkipsProviderWithoutFixAllSupport()
         => VerifyProviderFallbackAsync(hasFixAll: false, documentScope: true);
 

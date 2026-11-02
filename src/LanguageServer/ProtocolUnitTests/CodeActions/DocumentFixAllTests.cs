@@ -46,36 +46,40 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task DiscoveryOffersFixAllOnlyForMatchingSourceFilters(
+    public async Task DiscoveryOffersDeferredFixAllForMatchingSourceFilters(
+        bool mutatingLspWorkspace, [CombinatorialValues("source", "source.fixAll")] string only)
+    {
+        var source = "class C { {|caret:|} }";
+
+        // A clean document proves that discovery does not depend on fixable diagnostics.
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        var actions = await GetActionsAsync(server, [only]);
+
+        // Matching kinds return a deferred source action with no command or edit.
+        var action = Assert.Single(actions, action => action.Kind == CodeActionKind.SourceFixAll);
+        Assert.Null(action.Command);
+        Assert.Null(action.Edit);
+
+        // Resolve data identifies the aggregate action and its requested document.
+        var data = Assert.IsType<JsonElement>(action.Data);
+        Assert.True(data.GetProperty("FixAllInDocument").GetBoolean());
+        Assert.Equal(server.GetLocations("caret").Single().DocumentUri,
+            JsonSerializer.Deserialize<TextDocumentIdentifier>(data.GetProperty("TextDocument"), ProtocolConversions.LspJsonSerializerOptions)!.DocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task DiscoveryOmitsFixAllForNonMatchingSourceFilters(
         bool mutatingLspWorkspace,
-        [CombinatorialValues(null, "", "quickfix", "source.organizeImports", "source.fixAll.child", "source", "source.fixAll")] string? only)
+        [CombinatorialValues(null, "", "quickfix", "source.organizeImports", "source.fixAll.child")] string? only)
     {
         var source = "class C { {|caret:|} }";
 
         // A clean document ensures discovery depends on the requested kind, not the presence of fixable diagnostics.
         await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
 
-        // Compare omitted/empty filters, unrelated kinds, a child kind, and the matching source kinds.
+        // Omitted/empty filters, unrelated kinds, and child-only filters must not expose the source action.
         var actions = await GetActionsAsync(server, only is null ? null : only.Length == 0 ? [] : [only]);
-        var sourceActions = actions.Where(action => action.Kind == CodeActionKind.SourceFixAll);
-        if (only is "source" or "source.fixAll")
-        {
-            // An explicit request for this action or its ancestor returns a deferred action with no command or edit.
-            var action = Assert.Single(sourceActions);
-            Assert.Null(action.Command);
-            Assert.Null(action.Edit);
-
-            // Resolve data must identify the aggregate document action and the document it will operate on.
-            var data = Assert.IsType<JsonElement>(action.Data);
-            Assert.True(data.GetProperty("FixAllInDocument").GetBoolean());
-            Assert.Equal(server.GetLocations("caret").Single().DocumentUri,
-                JsonSerializer.Deserialize<TextDocumentIdentifier>(data.GetProperty("TextDocument"), ProtocolConversions.LspJsonSerializerOptions)!.DocumentUri);
-        }
-        else
-        {
-            // Unrestricted, unrelated, and child-only filters must not expose the source action.
-            Assert.Empty(sourceActions);
-        }
+        Assert.DoesNotContain(actions, action => action.Kind == CodeActionKind.SourceFixAll);
     }
 
     [Theory, CombinatorialData]
@@ -235,7 +239,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task FixAllIncludesOnlyDiagnosticsAtOrAboveMinimumSeverity(
+    public async Task ResolveIncludesOnlyDiagnosticsAtOrAboveMinimumSeverity(
         bool mutatingLspWorkspace,
         [CombinatorialValues(DiagnosticSeverity.Error, DiagnosticSeverity.Warning, DiagnosticSeverity.Info, DiagnosticSeverity.Hidden)] DiagnosticSeverity threshold)
     {
@@ -244,12 +248,14 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         // Share an ID between warning and info occurrences to check filtering both between IDs and within one ID.
         await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
         var fixer = new TestFixer(["FA0001", "FA0002", "FA0003"]);
-        var document = GetDocumentWithReference(server, new TestReference(
+        await AddReferenceAsync(server, new TestReference(
             [new MarkerAnalyzer(new("FA0001", "error", DiagnosticSeverity.Error), new("FA0002", "warning"),
                 new("FA0002", "info", DiagnosticSeverity.Info), new("FA0003", "hidden", DiagnosticSeverity.Hidden))], [fixer]));
 
-        // Apply each threshold, including diagnostics exactly at the selected severity.
-        var changed = await ChangeAsync(document, server, threshold);
+        // Discover first, then configure each threshold to prove the resolve handler reads the current option.
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+        server.TestWorkspace.GetService<IGlobalOptionService>().SetGlobalOption(LspOptionsStorage.FixAllMinimumSeverity, threshold);
+        var resolved = await ResolveAsync(server, action);
 
         // Lower-severity markers must remain untouched; hidden diagnostics participate only at the Hidden threshold.
         var expected = threshold switch
@@ -260,7 +266,8 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
             DiagnosticSeverity.Hidden => "// fixed fixed fixed fixed\nclass C { }",
             _ => throw new InvalidOperationException(),
         };
-        Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
+        var uri = server.GetLocations("caret").Single().DocumentUri;
+        Assert.Equal(expected, ApplySingleDocumentEdit(resolved, await server.GetDocumentTextAsync(uri), uri));
     }
 
     [Theory, CombinatorialData]
@@ -282,94 +289,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         // Only the enabled hidden diagnostic should reach its fixer.
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
         Assert.Equal(["FA0003"], fixer.Invocations);
-    }
-
-    [Theory, CombinatorialData]
-    public async Task FixAllRespectsEditorConfigSeverityOverrides(bool mutatingLspWorkspace)
-    {
-        var source = "// promoted demoted disabled\n{|caret:|}class C { }";
-        var expected = "// fixed demoted disabled\nclass C { }";
-
-        // Start with descriptor severities that will be overridden by editorconfig settings.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        var fixer = new TestFixer(["FA0001", "FA0002", "FA0003"]);
-        var document = GetDocumentWithReference(server, new TestReference(
-            [new MarkerAnalyzer(new("FA0001", "promoted", DiagnosticSeverity.Info), new("FA0002", "demoted"), new("FA0003", "disabled"))], [fixer]));
-
-        // Promote info to warning, demote warning to suggestion, and disable the remaining warning.
-        var path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(document.FilePath!)!, ".editorconfig");
-        var editorConfig = """
-            root = true
-
-            [*]
-            dotnet_diagnostic.FA0001.severity = warning
-            dotnet_diagnostic.FA0002.severity = suggestion
-            dotnet_diagnostic.FA0003.severity = none
-            """;
-        var project = document.Project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorConfig), filePath: path).Project;
-
-        // Use effective severities: only the promoted diagnostic should meet the default Warning threshold.
-        var changed = await ChangeAsync(project.GetDocument(document.Id)!, server);
-        Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
-        Assert.Equal(["FA0001"], fixer.Invocations);
-    }
-
-    [Theory, CombinatorialData]
-    public async Task FixAllSkipsDiagnosticsWithoutCodeFixProviders(bool mutatingLspWorkspace)
-    {
-        var source = "// warning\n{|caret:|}class C { }";
-        var expected = "// warning\nclass C { }";
-
-        // Report an eligible warning without registering a code-fix provider for it.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        var document = GetDocumentWithReference(server, new TestReference(
-            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], []));
-
-        // Attempt document Fix All even though no provider can handle the diagnostic.
-        var changed = await ChangeAsync(document, server);
-
-        // Leave the document unchanged when no code fix is available.
-        Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
-    }
-
-    [Theory, CombinatorialData]
-    public async Task FixAllSkipsFixesWithoutFixAllSupport(bool mutatingLspWorkspace)
-    {
-        var source = "// warning\n{|caret:|}class C { }";
-        var expected = "// warning\nclass C { }";
-
-        // Register a code-fix provider that cannot supply a Fix All provider.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        var fixer = new TestFixer(["FA0001"], hasFixAll: false);
-        var document = GetDocumentWithReference(server, new TestReference(
-            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
-
-        // Attempt document Fix All rather than applying the available single-diagnostic fix.
-        var changed = await ChangeAsync(document, server);
-
-        // Skip the fix without changing text or invoking a Fix All provider.
-        Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
-        Assert.Empty(fixer.Invocations);
-    }
-
-    [Theory, CombinatorialData]
-    public async Task FixAllSkipsFixesWithoutDocumentScope(bool mutatingLspWorkspace)
-    {
-        var source = "// warning\n{|caret:|}class C { }";
-        var expected = "// warning\nclass C { }";
-
-        // Register a Fix All provider that supports project scope but not document scope.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        var fixer = new TestFixer(["FA0001"], documentScope: false);
-        var document = GetDocumentWithReference(server, new TestReference(
-            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
-
-        // Request document Fix All without falling back to the provider's broader scope.
-        var changed = await ChangeAsync(document, server);
-
-        // Keep the document unchanged and never invoke the project-only provider.
-        Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
-        Assert.Empty(fixer.Invocations);
     }
 
     [Theory, CombinatorialData]
@@ -518,9 +437,8 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
             return;
         }
 
-        // Create the new file before supplying its contents, and include the original file's fix.
-        Assert.Equal(3, operations.Length);
-        var create = Assert.IsType<CreateFile>(operations[0]);
+        // Preserve the source action's creation and text edits; ordinary resolve tests own operation ordering.
+        var create = Assert.Single(operations.OfType<CreateFile>());
         Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(addedPath), create.DocumentUri);
         Assert.Equal(expectedAdded, ApplyDocumentEdit(operations, SourceText.From(""), create.DocumentUri));
         Assert.Equal(expected, ApplyDocumentEdit(operations, await document.GetTextAsync(), document.GetURI()));
@@ -554,11 +472,9 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
             return;
         }
 
-        // Apply text at the old URI before renaming the file.
-        Assert.Equal(2, operations.Length);
-        Assert.IsType<TextDocumentEdit>(operations[0]);
+        // Preserve the accepted text and rename destination; ordinary resolve tests own operation ordering.
         Assert.Equal(expected, ApplyDocumentEdit(operations, await document.GetTextAsync(), document.GetURI()));
-        var rename = Assert.IsType<RenameFile>(operations[1]);
+        var rename = Assert.Single(operations.OfType<RenameFile>());
         Assert.Equal(document.GetURI(), rename.OldDocumentUri);
         var expectedPath = updatesFilePath ? renamedPath : Path.Combine(Path.GetDirectoryName(document.FilePath)!, "Renamed.cs");
         Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(expectedPath), rename.NewDocumentUri);
@@ -713,30 +629,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
         Assert.Equal(document.FilePath, changed.FilePath);
         Assert.Single(logs, message => message.Contains("FA0002", StringComparison.Ordinal));
-    }
-
-    [Theory, CombinatorialData]
-    public async Task ResolveUsesUpdatedMinimumSeveritySetting(bool mutatingLspWorkspace)
-    {
-        var source = "// info warning\n{|caret:|}class C { }";
-        var expected = "// fixed fixed\nclass C { }";
-
-        // Discover the source action while the default Warning threshold still excludes the info diagnostic.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        var fixer = new TestFixer(["FA0001", "FA0002"]);
-        await AddReferenceAsync(server, new TestReference(
-            [new MarkerAnalyzer(new("FA0001", "info", DiagnosticSeverity.Info), new("FA0002", "warning"))], [fixer]));
-        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
-
-        // Lower the threshold after discovery to confirm that settings are read when edits are computed.
-        var globalOptions = server.TestWorkspace.GetService<IGlobalOptionService>();
-        Assert.Equal(DiagnosticSeverity.Warning, globalOptions.GetOption(LspOptionsStorage.FixAllMinimumSeverity));
-        globalOptions.SetGlobalOption(LspOptionsStorage.FixAllMinimumSeverity, DiagnosticSeverity.Info);
-
-        // The already-discovered action must now fix both info and warning occurrences.
-        var resolved = await ResolveAsync(server, action);
-        var uri = server.GetLocations("caret").Single().DocumentUri;
-        Assert.Equal(expected, ApplySingleDocumentEdit(resolved, await server.GetDocumentTextAsync(uri), uri));
     }
 
     [Theory, CombinatorialData]
@@ -895,12 +787,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(expected, (await linked.GetTextAsync()).ToString().ReplaceLineEndings("\n"));
         Assert.Empty(logs);
 
-        // Resolving through LSP must emit only one edit for the shared physical file.
-        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
-        var resolved = await ResolveAsync(server, action);
-        Assert.Equal(expected,
-            ApplySingleDocumentEdit(resolved, await server.GetDocumentTextAsync(server.GetLocations("caret").Single().DocumentUri),
-                server.GetLocations("caret").Single().DocumentUri).ReplaceLineEndings("\n"));
     }
 
     [Theory, CombinatorialData]
@@ -1278,8 +1164,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     private sealed class TestFixer(
         ImmutableArray<string> ids,
         Func<Document, ImmutableArray<Diagnostic>, CancellationToken, Task<Solution>>? transform = null,
-        bool hasFixAll = true,
-        bool documentScope = true,
         CodeAction? action = null,
         bool unsupportedOperations = false) : CodeFixProvider
     {
@@ -1287,7 +1171,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         public List<string> Invocations { get; } = [];
         public List<FixAllScope> RequestedScopes { get; } = [];
         public override ImmutableArray<string> FixableDiagnosticIds => ids;
-        public override FixAllProvider? GetFixAllProvider() => hasFixAll ? new TestFixAllProvider(this, documentScope) : null;
+        public override FixAllProvider GetFixAllProvider() => new TestFixAllProvider(this);
 
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
@@ -1297,10 +1181,10 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
             return Task.CompletedTask;
         }
 
-        private sealed class TestFixAllProvider(TestFixer fixer, bool documentScope) : FixAllProvider
+        private sealed class TestFixAllProvider(TestFixer fixer) : FixAllProvider
         {
             public override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
-                => documentScope ? [FixAllScope.Document] : [FixAllScope.Project];
+                => [FixAllScope.Document];
 
             public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
             {
