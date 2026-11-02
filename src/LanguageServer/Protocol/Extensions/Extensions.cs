@@ -37,6 +37,9 @@ internal static partial class Extensions
     /// Used to generate the correct Uri when rename a document, because calling <seealso cref="Document.WithName(string)"/> doesn't update the file path.
     /// </summary>
     public static DocumentUri GetUriForRenamedDocument(this TextDocument document)
+        => ProtocolConversions.CreateAbsoluteDocumentUri(document.GetFilePathForRenamedDocument());
+
+    public static string GetFilePathForRenamedDocument(this TextDocument document)
     {
         Contract.ThrowIfNull(document.FilePath);
         Contract.ThrowIfNull(document.Name);
@@ -44,19 +47,20 @@ internal static partial class Extensions
         var directoryName = Path.GetDirectoryName(document.FilePath);
 
         Contract.ThrowIfNull(directoryName);
-        var path = Path.Combine(directoryName, document.Name);
-        return ProtocolConversions.CreateAbsoluteDocumentUri(path);
+        return Path.Combine(directoryName, document.Name);
     }
 
     public static DocumentUri CreateUriForDocumentWithoutFilePath(this TextDocument document)
+        => ProtocolConversions.CreateAbsoluteDocumentUri(document.GetFilePathForDocumentWithoutFilePath());
+
+    public static string GetFilePathForDocumentWithoutFilePath(this TextDocument document)
     {
         Contract.ThrowIfNull(document.Name);
         Contract.ThrowIfNull(document.Project.FilePath);
 
         var projectDirectoryName = Path.GetDirectoryName(document.Project.FilePath);
         Contract.ThrowIfNull(projectDirectoryName);
-        var path = Path.Combine([projectDirectoryName, .. document.Folders, document.Name]);
-        return ProtocolConversions.CreateAbsoluteDocumentUri(path);
+        return Path.Combine([projectDirectoryName, .. document.Folders, document.Name]);
     }
 
     public static bool IsSourceGeneratedUri(this DocumentUri documentUri)

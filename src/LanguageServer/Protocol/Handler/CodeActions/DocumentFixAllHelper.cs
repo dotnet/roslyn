@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 
@@ -92,14 +93,7 @@ internal static class DocumentFixAllHelper
                     break;
                 }
 
-                // Reject the whole candidate if any required change cannot be represented by the client.
                 var candidate = applyChanges.ChangedSolution;
-                if (!CodeActionResolveHelper.CanApplyFixAllChanges(solution, candidate, resourceOperations))
-                {
-                    log($"Skipping document Fix All for '{diagnosticId}': unsupported workspace changes.");
-                    break;
-                }
-
                 var normalized = await NormalizeLinkedDocumentChangesAsync(solution, candidate, cancellationToken).ConfigureAwait(false);
                 if (normalized is null)
                 {
@@ -107,6 +101,7 @@ internal static class DocumentFixAllHelper
                     break;
                 }
 
+                // Validate the complete edit after propagation, rejecting only this candidate while retaining earlier fixes.
                 if (!CodeActionResolveHelper.CanApplyFixAllChanges(originalSolution, normalized, resourceOperations))
                 {
                     log($"Skipping document Fix All for '{diagnosticId}': unsupported accumulated workspace changes.");
@@ -127,6 +122,8 @@ internal static class DocumentFixAllHelper
     private static async Task<Solution?> NormalizeLinkedDocumentChangesAsync(
         Solution solution, Solution changedSolution, CancellationToken cancellationToken)
     {
+        // The normal linked merger merges differing source text (including conflict comments) and skips additions
+        // and non-source documents. Here we must reject differing text and update every context before the next fix.
         using var _1 = PooledDictionary<DocumentUri, SourceText>.GetInstance(out var textsByUri);
         using var _2 = PooledDictionary<DocumentId, SourceText>.GetInstance(out var textsById);
         foreach (var projectChange in changedSolution.GetChanges(solution).GetProjectChanges())
@@ -145,13 +142,24 @@ internal static class DocumentFixAllHelper
                     continue;
                 }
 
+                // The final validator rejects unusable output paths; avoid constructing their URIs during normalization.
+                if (updated.FilePath is null &&
+                    (updated.Project.FilePath is not { } projectPath || !PathUtilities.IsAbsolute(projectPath)))
+                {
+                    continue;
+                }
+
+                var filePath = updated.FilePath ?? updated.GetFilePathForDocumentWithoutFilePath();
+                if (!PathUtilities.IsAbsolute(filePath))
+                    continue;
+
                 // Different text for linked contexts cannot be represented by one physical-file edit.
-                var uri = updated.FilePath is null ? updated.CreateUriForDocumentWithoutFilePath() : updated.GetURI();
+                var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
                 if (textsByUri.TryGetValue(uri, out var previousText) && !previousText.ContentEquals(text))
                     return null;
 
                 textsByUri[uri] = text;
-                foreach (var linkedId in changedSolution.GetDocumentIdsWithFilePath(uri.GetDocumentFilePathFromUri()).Add(id))
+                foreach (var linkedId in changedSolution.GetDocumentIdsWithFilePath(filePath).Add(id))
                 {
                     if (textsById.TryGetValue(linkedId, out previousText) && !previousText.ContentEquals(text))
                         return null;

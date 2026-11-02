@@ -358,8 +358,9 @@ internal sealed class CodeActionResolveHelper
                 }
 
                 // Match the converter's project-relative path fallback when the fix has not assigned a file path.
-                var uri = added.FilePath is null ? added.CreateUriForDocumentWithoutFilePath() : added.GetURI();
-                if (solution.GetDocumentIdsWithFilePath(uri.GetDocumentFilePathFromUri()).Any() ||
+                var filePath = added.FilePath ?? added.GetFilePathForDocumentWithoutFilePath();
+                var uri = ProtocolConversions.CreateAbsoluteDocumentUri(filePath);
+                if (solution.GetDocumentIdsWithFilePath(filePath).Any() ||
                     !RegisterDestination(uri, uri))
                 {
                     return false;
@@ -380,11 +381,14 @@ internal sealed class CodeActionResolveHelper
                     continue;
 
                 // A rename must not collide with another resource operation or an unrelated file in either snapshot.
+                var destinationPath = oldDocument.FilePath != newDocument.FilePath
+                    ? newDocument.FilePath
+                    : newDocument.GetFilePathForRenamedDocument();
                 var destination = GetRenamedDocumentUri(oldDocument, newDocument);
                 var linkedIds = solution.GetDocumentIdsWithFilePath(oldDocument.FilePath);
                 if (!RegisterDestination(destination, oldDocument.GetURI()) ||
-                    solution.GetDocumentIdsWithFilePath(destination.GetDocumentFilePathFromUri()).Any(id => !linkedIds.Contains(id)) ||
-                    newSolution.GetDocumentIdsWithFilePath(destination.GetDocumentFilePathFromUri()).Any(id => !linkedIds.Contains(id)))
+                    solution.GetDocumentIdsWithFilePath(destinationPath).Any(id => !linkedIds.Contains(id)) ||
+                    newSolution.GetDocumentIdsWithFilePath(destinationPath).Any(id => !linkedIds.Contains(id)))
                 {
                     return false;
                 }
