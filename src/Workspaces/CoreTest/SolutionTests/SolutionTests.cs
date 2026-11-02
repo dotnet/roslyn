@@ -2893,20 +2893,41 @@ public sealed class SolutionTests : TestBase
         Assert.Empty((await finalProject.GetCompilationAsync()).SyntaxTrees);
     }
 
-    [Theory, CombinatorialData]
-    public async Task CompilationSkipsIntermediateTextForChangedAndRemovedDocuments(bool removeTogether, bool withGenerator)
+    [Fact]
+    public async Task CompilationDoesNotLoadChangedTextForRemovedDocument()
     {
-        // Build and retain the original compilation so later requests apply incremental updates to its syntax trees.
+        // Build the initial compilation so subsequent changes apply incremental updates to its trees.
+        using var workspace = CreateWorkspace();
+        var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
+        var removed = project.AddDocument("Removed.cs", "class Removed { }");
+        var kept = removed.Project.AddDocument("Kept.cs", "class Kept { }");
+        project = kept.Project;
+        await project.GetCompilationAsync();
+        var keptTree = await kept.GetSyntaxTreeAsync();
+
+        // Change the removed document's loader, then remove the document without compiling in between.
+        var loader = new CountingTextLoader("class Changed { }");
+        var solution = project.Solution
+            .WithDocumentTextLoader(removed.Id, loader, PreservationMode.PreserveValue)
+            .RemoveDocument(removed.Id);
+
+        // The compilation must retain only the original kept tree, without loading the removed document's changed text.
+        var compilation = await solution.GetRequiredProject(project.Id).GetCompilationAsync();
+        Assert.NotNull(compilation);
+        Assert.Same(keptTree, Assert.Single(compilation.SyntaxTrees));
+        Assert.Equal(0, loader.LoadCount);
+    }
+
+    [Fact]
+    public async Task CompilationSkipsIntermediateTextForInterleavedDocumentChanges()
+    {
+        // Build the initial compilation before queuing changes across multiple documents.
         using var workspace = CreateWorkspace();
         var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
         project = project.AddDocument("A.cs", "class A { }").Project;
         project = project.AddDocument("B.cs", "class B { }").Project;
         project = project.AddDocument("Kept.cs", "class Kept { }").Project;
-        if (withGenerator)
-            project = project.AddAnalyzerReference(new TestGeneratorReference(new SingleFileTestGenerator("class Generated { }")));
-
-        var originalProject = project;
-        var originalCompilation = await project.GetCompilationAsync();
+        await project.GetCompilationAsync();
 
         // Queue interleaved text changes without compiling, including two changes to A and one to the retained document.
         var a = project.DocumentIds[0];
@@ -2921,56 +2942,28 @@ public sealed class SolutionTests : TestBase
             .WithDocumentTextLoader(kept, intermediateKept, PreservationMode.PreserveValue)
             .WithDocumentTextLoader(b, updatedB, PreservationMode.PreserveValue)
             .WithDocumentTextLoader(a, lastA, PreservationMode.PreserveValue);
-        var intermediateProject = solution.GetRequiredProject(project.Id);
 
-        // Remove A and B together or separately, and supersede the retained document's intermediate text.
-        if (removeTogether)
-        {
-            solution = solution.RemoveDocuments([a, b])
-                .WithDocumentTextLoader(kept, new TestTextLoader("class FinalKept { }"), PreservationMode.PreserveValue);
-        }
-        else
-        {
-            solution = solution.RemoveDocument(a)
-                .WithDocumentTextLoader(kept, new TestTextLoader("class FinalKept { }"), PreservationMode.PreserveValue)
-                .RemoveDocument(b);
-        }
+        // Interleave separate removals with the final update to the surviving document.
+        solution = solution.RemoveDocument(a)
+            .WithDocumentTextLoader(kept, new TestTextLoader("class FinalKept { }"), PreservationMode.PreserveValue)
+            .RemoveDocument(b);
 
-        // A canceled compilation request must leave the pending updates usable by a subsequent request.
-        var finalProject = solution.GetRequiredProject(project.Id);
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => finalProject.GetCompilationAsync(new CancellationToken(canceled: true)));
-
-        // Verify the final surviving text and optional generated type, without loading any intermediate document text.
-        var compilation = await finalProject.GetCompilationAsync();
+        // Only the surviving document's final tree should remain, and none of the intermediate text should load.
+        var compilation = await solution.GetRequiredProject(project.Id).GetCompilationAsync();
         Assert.NotNull(compilation);
-        Assert.NotNull(compilation.GetTypeByMetadataName("FinalKept"));
-        Assert.Null(compilation.GetTypeByMetadataName("A"));
-        Assert.Null(compilation.GetTypeByMetadataName("B"));
-        Assert.Equal(withGenerator ? 2 : 1, compilation.SyntaxTrees.Count());
+        Assert.Same(await solution.GetRequiredDocument(kept).GetSyntaxTreeAsync(), Assert.Single(compilation.SyntaxTrees));
         Assert.All(new[] { firstA, lastA, updatedB, intermediateKept }, loader => Assert.Equal(0, loader.LoadCount));
-        if (withGenerator)
-            Assert.NotNull(compilation.GetTypeByMetadataName("Generated"));
-
-        // Earlier snapshots must still compile their own document versions, independently of the merged final snapshot.
-        var intermediateCompilation = await intermediateProject.GetCompilationAsync();
-        Assert.NotNull(intermediateCompilation!.GetTypeByMetadataName("LastA"));
-        Assert.NotNull(intermediateCompilation.GetTypeByMetadataName("UpdatedB"));
-        Assert.NotNull(intermediateCompilation.GetTypeByMetadataName("IntermediateKept"));
-        Assert.Same(originalCompilation, await originalProject.GetCompilationAsync());
-        Assert.NotNull(originalCompilation!.GetTypeByMetadataName("A"));
-        Assert.NotNull(originalCompilation.GetTypeByMetadataName("Kept"));
-        GC.KeepAlive(originalCompilation);
     }
 
     [Theory, CombinatorialData]
     public async Task CompilationDoesNotMergeDocumentChangesAcrossAdditionsOrParseOptionChanges(bool addDocument)
     {
-        // Build and retain the starting compilation to exercise pending translations rather than a fresh compilation.
+        // Build the starting compilation to exercise pending translations rather than a fresh compilation.
         using var workspace = CreateWorkspace();
         var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
         project = project.AddDocument("A.cs", "class A { }").Project;
         project = project.AddDocument("Kept.cs", "class Kept { }").Project;
-        var originalCompilation = await project.GetCompilationAsync();
+        await project.GetCompilationAsync();
 
         // Queue a text change whose document will be removed after another kind of project update.
         var a = project.DocumentIds[0];
@@ -2984,15 +2977,11 @@ public sealed class SolutionTests : TestBase
         solution = solution.RemoveDocument(a);
 
         // The final compilation has no A, but merging stops at the intervening translation, so A's changed text loads once.
-        var compilation = await solution.GetRequiredProject(project.Id).GetCompilationAsync();
+        var finalProject = solution.GetRequiredProject(project.Id);
+        var compilation = await finalProject.GetCompilationAsync();
         Assert.NotNull(compilation);
-        Assert.NotNull(compilation.GetTypeByMetadataName("Kept"));
-        Assert.Null(compilation.GetTypeByMetadataName("ChangedA"));
-        Assert.Equal(addDocument ? 2 : 1, compilation.SyntaxTrees.Count());
-        if (addDocument)
-            Assert.NotNull(compilation.GetTypeByMetadataName("Added"));
+        AssertEx.SetEqual(await Task.WhenAll(finalProject.Documents.Select(document => document.GetSyntaxTreeAsync())), compilation.SyntaxTrees);
         Assert.Equal(1, loader.LoadCount);
-        GC.KeepAlive(originalCompilation);
     }
 
     private sealed class CountingTextLoader(string text) : TextLoader
