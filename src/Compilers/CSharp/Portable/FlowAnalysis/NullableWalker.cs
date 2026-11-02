@@ -10760,7 +10760,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 useLegacyWarnings,
                 AssignmentKind.Argument,
                 parameterOpt: parameter,
-                reportTopLevelWarnings,
+                reportTopLevelWarnings: reportRemainingWarnings,
                 reportRemainingWarnings,
                 trackMembers: false,
                 diagnosticLocation: diagnosticLocation);
