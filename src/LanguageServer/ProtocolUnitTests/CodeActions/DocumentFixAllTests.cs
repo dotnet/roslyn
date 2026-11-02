@@ -63,6 +63,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         // Resolve data identifies the aggregate action and its requested document.
         var data = Assert.IsType<JsonElement>(action.Data);
         Assert.True(data.GetProperty("FixAllInDocument").GetBoolean());
+        Assert.False(data.TryGetProperty(nameof(CodeActionResolveData.Range), out _));
         Assert.Equal(server.GetLocations("caret").Single().DocumentUri,
             JsonSerializer.Deserialize<TextDocumentIdentifier>(data.GetProperty("TextDocument"), ProtocolConversions.LspJsonSerializerOptions)!.DocumentUri);
     }
@@ -92,11 +93,12 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         var ordinary = await GetActionsAsync(server, ["refactor"]);
         var mixed = await GetActionsAsync(server, ["refactor", "source.fixAll"]);
 
-        // Adding the source action must leave the ordinary action list intact and in the same order.
+        // Append the source action after ordinary actions without changing their order.
         Assert.Single(mixed, action => action.Kind == CodeActionKind.SourceFixAll);
+        Assert.Equal(CodeActionKind.SourceFixAll, mixed.Last().Kind);
         Assert.NotEmpty(ordinary);
         Assert.Equal(ordinary.Select(action => action.Title),
-            mixed.Where(action => action.Kind != CodeActionKind.SourceFixAll).Select(action => action.Title));
+            mixed.Take(mixed.Length - 1).Select(action => action.Title));
     }
 
     private static async Task<LSP.CodeAction[]> GetActionsAsync(TestLspServer server, string[]? only)

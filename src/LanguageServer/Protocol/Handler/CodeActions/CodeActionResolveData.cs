@@ -27,7 +27,11 @@ internal sealed class CodeActionResolveData
 
     public ImmutableArray<string> CustomTags { get; }
 
-    public LSP.Range Range { get; }
+    /// <summary>
+    /// The selection used to recompute actions. Null selects the entire current document, not a caret position.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public LSP.Range? Range { get; }
 
     public LSP.TextDocumentIdentifier TextDocument { get; }
 
@@ -45,7 +49,7 @@ internal sealed class CodeActionResolveData
     public CodeActionResolveData(
         string uniqueIdentifier,
         ImmutableArray<string> customTags,
-        LSP.Range range,
+        LSP.Range? range,
         LSP.TextDocumentIdentifier textDocument,
         string[] codeActionPath,
         string[]? fixAllFlavors,

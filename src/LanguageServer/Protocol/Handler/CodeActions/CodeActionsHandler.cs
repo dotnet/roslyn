@@ -58,8 +58,13 @@ internal class CodeActionsHandler : ILspServiceDocumentRequestHandler<LSP.CodeAc
         var clientCapability = context.GetRequiredClientCapabilities();
         using var _ = ArrayBuilder<LSP.CodeAction>.GetInstance(out var result);
 
+        var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
+            request, document, _codeFixService, _codeRefactoringService, hasVsLspCapability: clientCapability.HasVisualStudioLspCapability(), cancellationToken).ConfigureAwait(false);
+        result.AddRange(codeActions);
+
         // Offer source.fixAll without computing fixes to keep discovery cheap. Resolve checks the current
         // document for eligible fixes and returns an empty edit when there is nothing to fix.
+        // A null range selects the whole current document, unlike ordinary actions using the requested range.
         if (document is Document && request.Context.Only?.Any(kind => CodeActionHelpers.MatchesKind(kind, CodeActionKind.SourceFixAll)) == true)
         {
             result.Add(new LSP.CodeAction
@@ -67,14 +72,10 @@ internal class CodeActionsHandler : ILspServiceDocumentRequestHandler<LSP.CodeAc
                 Title = FeaturesResources.Fix_all_diagnostics_in_document,
                 Kind = CodeActionKind.SourceFixAll,
                 Data = new CodeActionResolveData(
-                    CodeActionKind.SourceFixAll.Value, [], request.Range, request.TextDocument, [],
+                    CodeActionKind.SourceFixAll.Value, customTags: [], range: null, request.TextDocument, codeActionPath: [],
                     fixAllFlavors: null, fixAllInDocument: true, nestedCodeActions: null)
             });
         }
-
-        var codeActions = await CodeActionHelpers.GetVSCodeActionsAsync(
-            request, document, _codeFixService, _codeRefactoringService, hasVsLspCapability: clientCapability.HasVisualStudioLspCapability(), cancellationToken).ConfigureAwait(false);
-        result.AddRange(codeActions);
 
         return result.ToArray();
     }
