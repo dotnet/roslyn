@@ -61,12 +61,12 @@ internal sealed partial class SolutionCompilationState
 
             public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
             {
-                if (priorAction is UpdateDocumentsAction priorUpdate)
+                if (priorAction is UpdateDocumentsAction priorUpdateAction)
                 {
-                    // Keep the original trees and final document states. In particular, a touch followed by a removal
-                    // must not load the intermediate text of a deleted file (https://github.com/dotnet/roslyn/issues/86236).
+                    // Use the original project state and final document states to skip intermediate text.
+                    // This avoids loading missing files after a text update followed by removal.
                     return new UpdateDocumentsAction(
-                        priorUpdate.OldProjectState, NewProjectState, priorUpdate._documentIds.Union(_documentIds));
+                        priorUpdateAction.OldProjectState, NewProjectState, priorUpdateAction._documentIds.Union(_documentIds));
                 }
 
                 return null;

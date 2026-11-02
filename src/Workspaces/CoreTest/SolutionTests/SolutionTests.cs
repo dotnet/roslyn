@@ -2894,24 +2894,25 @@ public sealed class SolutionTests : TestBase
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86236")]
     public async Task CompilationDoesNotLoadChangedTextForRemovedDocument()
     {
-        // Build the initial compilation so subsequent changes apply incremental updates to its trees.
+        // Build a compilation so later changes use the incremental update path.
         using var workspace = CreateWorkspace();
         var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
-        var removed = project.AddDocument("Removed.cs", "class Removed { }");
-        var kept = removed.Project.AddDocument("Kept.cs", "class Kept { }");
-        project = kept.Project;
+        var removedDocument = project.AddDocument("Removed.cs", "class Removed { }");
+        var keptDocument = removedDocument.Project.AddDocument("Kept.cs", "class Kept { }");
+        project = keptDocument.Project;
         await project.GetCompilationAsync();
-        var keptTree = await kept.GetSyntaxTreeAsync();
+        var keptTree = await keptDocument.GetSyntaxTreeAsync();
 
-        // Change the removed document's loader, then remove the document without compiling in between.
+        // Queue a text update and removal without requesting a compilation between them.
         var loader = new CountingTextLoader("class Changed { }");
         var solution = project.Solution
-            .WithDocumentTextLoader(removed.Id, loader, PreservationMode.PreserveValue)
-            .RemoveDocument(removed.Id);
+            .WithDocumentTextLoader(removedDocument.Id, loader, PreservationMode.PreserveValue)
+            .RemoveDocument(removedDocument.Id);
 
-        // The compilation must retain only the original kept tree, without loading the removed document's changed text.
+        // Keep the unchanged tree without loading the removed document's replacement text.
         var compilation = await solution.GetRequiredProject(project.Id).GetCompilationAsync();
         Assert.NotNull(compilation);
         Assert.Same(keptTree, Assert.Single(compilation.SyntaxTrees));
@@ -2919,9 +2920,10 @@ public sealed class SolutionTests : TestBase
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86236")]
     public async Task CompilationSkipsIntermediateTextForInterleavedDocumentChanges()
     {
-        // Build the initial compilation before queuing changes across multiple documents.
+        // Build a compilation before queuing document changes.
         using var workspace = CreateWorkspace();
         var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
         project = project.AddDocument("A.cs", "class A { }").Project;
@@ -2929,33 +2931,34 @@ public sealed class SolutionTests : TestBase
         project = project.AddDocument("Kept.cs", "class Kept { }").Project;
         await project.GetCompilationAsync();
 
-        // Queue interleaved text changes without compiling, including two changes to A and one to the retained document.
-        var a = project.DocumentIds[0];
-        var b = project.DocumentIds[1];
-        var kept = project.DocumentIds[2];
-        var firstA = new CountingTextLoader("class FirstA { }");
-        var lastA = new CountingTextLoader("class LastA { }");
-        var updatedB = new CountingTextLoader("class UpdatedB { }");
-        var intermediateKept = new CountingTextLoader("class IntermediateKept { }");
+        // Queue overlapping updates without requesting a compilation.
+        var aId = project.DocumentIds[0];
+        var bId = project.DocumentIds[1];
+        var keptId = project.DocumentIds[2];
+        var firstALoader = new CountingTextLoader("class FirstA { }");
+        var secondALoader = new CountingTextLoader("class LastA { }");
+        var bLoader = new CountingTextLoader("class UpdatedB { }");
+        var intermediateKeptLoader = new CountingTextLoader("class IntermediateKept { }");
         var solution = project.Solution
-            .WithDocumentTextLoader(a, firstA, PreservationMode.PreserveValue)
-            .WithDocumentTextLoader(kept, intermediateKept, PreservationMode.PreserveValue)
-            .WithDocumentTextLoader(b, updatedB, PreservationMode.PreserveValue)
-            .WithDocumentTextLoader(a, lastA, PreservationMode.PreserveValue);
+            .WithDocumentTextLoader(aId, firstALoader, PreservationMode.PreserveValue)
+            .WithDocumentTextLoader(keptId, intermediateKeptLoader, PreservationMode.PreserveValue)
+            .WithDocumentTextLoader(bId, bLoader, PreservationMode.PreserveValue)
+            .WithDocumentTextLoader(aId, secondALoader, PreservationMode.PreserveValue);
 
-        // Interleave separate removals with the final update to the surviving document.
-        solution = solution.RemoveDocument(a)
-            .WithDocumentTextLoader(kept, new TestTextLoader("class FinalKept { }"), PreservationMode.PreserveValue)
-            .RemoveDocument(b);
+        // Remove A and B in separate updates, with the final Kept update between them.
+        solution = solution.RemoveDocument(aId)
+            .WithDocumentTextLoader(keptId, new TestTextLoader("class FinalKept { }"), PreservationMode.PreserveValue)
+            .RemoveDocument(bId);
 
-        // Only the surviving document's final tree should remain, and none of the intermediate text should load.
+        // Use Kept's final tree without loading any obsolete text.
         var compilation = await solution.GetRequiredProject(project.Id).GetCompilationAsync();
         Assert.NotNull(compilation);
-        Assert.Same(await solution.GetRequiredDocument(kept).GetSyntaxTreeAsync(), Assert.Single(compilation.SyntaxTrees));
-        Assert.All(new[] { firstA, lastA, updatedB, intermediateKept }, loader => Assert.Equal(0, loader.LoadCount));
+        Assert.Same(await solution.GetRequiredDocument(keptId).GetSyntaxTreeAsync(), Assert.Single(compilation.SyntaxTrees));
+        Assert.All(new[] { firstALoader, secondALoader, bLoader, intermediateKeptLoader }, loader => Assert.Equal(0, loader.LoadCount));
     }
 
     [Theory, CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86236")]
     public async Task CompilationDoesNotMergeDocumentChangesAcrossAdditionsOrParseOptionChanges(bool addDocument)
     {
         // Build the starting compilation to exercise pending translations rather than a fresh compilation.
@@ -2966,17 +2969,17 @@ public sealed class SolutionTests : TestBase
         await project.GetCompilationAsync();
 
         // Queue a text change whose document will be removed after another kind of project update.
-        var a = project.DocumentIds[0];
+        var aId = project.DocumentIds[0];
         var loader = new CountingTextLoader("class ChangedA { }");
-        var solution = project.Solution.WithDocumentTextLoader(a, loader, PreservationMode.PreserveValue);
+        var solution = project.Solution.WithDocumentTextLoader(aId, loader, PreservationMode.PreserveValue);
 
         // An addition or parse-option change separates the text update from removal and must prevent their merging.
         solution = addDocument
             ? solution.AddDocument(DocumentId.CreateNewId(project.Id), "Added.cs", SourceText.From("class Added { }"))
             : solution.WithProjectParseOptions(project.Id, new CSharpParseOptions(preprocessorSymbols: ["DEFINED"]));
-        solution = solution.RemoveDocument(a);
+        solution = solution.RemoveDocument(aId);
 
-        // The final compilation has no A, but merging stops at the intervening translation, so A's changed text loads once.
+        // The intervening action prevents merging, so the changed text loads before removal.
         var finalProject = solution.GetRequiredProject(project.Id);
         var compilation = await finalProject.GetCompilationAsync();
         Assert.NotNull(compilation);
