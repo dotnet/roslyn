@@ -25,17 +25,31 @@ internal sealed class RazorProjectGeneratorRunResult(RazorGeneratorResult genera
         bool declarationDocument,
         CancellationToken cancellationToken)
     {
-        var implementationHintName = generatorResult.GetHintName(filePath)
-            ?? throw new InvalidOperationException($"The Razor source generator did not produce a hint name for '{filePath}'.");
-        var hintName = declarationDocument
-            ? RazorSourceGenerator.GetDeclIdentifierFromHintName(implementationHintName)
-            : implementationHintName;
+        var hintName = GetRequiredHintName(filePath, declarationDocument);
+        return await TryGetSourceGeneratedDocumentAsync(filePath, declarationDocument, cancellationToken).ConfigureAwait(false)
+            ?? throw new InvalidOperationException($"The Razor source generator did not produce generated document '{hintName}'.");
+    }
+
+    public async Task<SourceGeneratedDocument?> TryGetSourceGeneratedDocumentAsync(
+        string filePath,
+        bool declarationDocument,
+        CancellationToken cancellationToken)
+    {
+        var hintName = GetRequiredHintName(filePath, declarationDocument);
 
         // TODO: Match by hint name until generator assembly locations are compared case-insensitively on Windows:
         // https://github.com/dotnet/roslyn/issues/76869
         var generatedDocuments = await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-        return generatedDocuments.SingleOrDefault(document => document.HintName == hintName)
-            ?? throw new InvalidOperationException($"The Razor source generator did not produce generated document '{hintName}'.");
+        return generatedDocuments.SingleOrDefault(document => document.HintName == hintName);
+    }
+
+    private string GetRequiredHintName(string filePath, bool declarationDocument)
+    {
+        var implementationHintName = generatorResult.GetHintName(filePath)
+            ?? throw new InvalidOperationException($"The Razor source generator did not produce a hint name for '{filePath}'.");
+        return declarationDocument
+            ? RazorSourceGenerator.GetDeclIdentifierFromHintName(implementationHintName)
+            : implementationHintName;
     }
 
     public static async Task<RazorProjectGeneratorRunResult?> TryCreateAsync(
