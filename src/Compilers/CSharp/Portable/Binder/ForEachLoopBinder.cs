@@ -258,8 +258,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if (IsAsync)
             {
+                var expr = _syntax.Expression;
                 ReportBadAwaitDiagnostics(_syntax.AwaitKeyword, diagnostics, ref hasErrors);
-                moveNextAwaitableInfo = BindMoveNextAwaitableInfo(_syntax.Expression, ref builder, diagnostics, ref hasErrors);
+                var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
+                moveNextAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
+
+                if (!hasErrors && (moveNextAwaitableInfo.GetResult ?? moveNextAwaitableInfo.RuntimeAsyncAwaitCall?.Method)?.ReturnType.SpecialType != SpecialType.System_Boolean)
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, expr.Location, getEnumeratorMethod.ReturnTypeWithAnnotations, getEnumeratorMethod);
+                    hasErrors = true;
+                }
             }
 
             TypeWithAnnotations iterationVariableType;
@@ -604,7 +612,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool GetAwaitDisposeAsyncInfo(ref ForEachEnumeratorInfo.Builder builder, BindingDiagnosticBag diagnostics)
         {
-            var awaitableType = GetDisposeAwaitableType(_syntax, ref builder, diagnostics);
+            var awaitableType = builder.PatternDisposeInfo is null
+                ? this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, this._syntax)
+                : builder.PatternDisposeInfo.Method.ReturnType;
 
             bool hasErrors = false;
             var expr = _syntax.Expression;
@@ -710,54 +720,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool TryGetForEachIterationType(SyntaxNode syntax, TypeSymbol collectionType, bool isAsync, out TypeWithAnnotations iterationType)
         {
-            var diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics: true, withDependencies: false);
             BoundExpression collectionExpr = new BoundValuePlaceholder(syntax, collectionType);
-            bool hasErrors = !GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax, ref collectionExpr, isAsync, isSpread: false, diagnostics, out iterationType, out var builder) ||
-                builder.IsIncomplete;
-
-            if (isAsync && !hasErrors)
-            {
-                BindMoveNextAwaitableInfo(syntax, ref builder, diagnostics, ref hasErrors);
-
-                if (!hasErrors && builder.NeedsDisposal)
-                {
-                    var disposeAwaitableType = GetDisposeAwaitableType(syntax, ref builder, diagnostics);
-                    BindAwaitInfo(new BoundAwaitableValuePlaceholder(syntax, disposeAwaitableType), syntax, diagnostics, ref hasErrors);
-                }
-            }
-
-            hasErrors |= diagnostics.HasAnyErrors();
-            diagnostics.Free();
-
-            if (hasErrors)
-            {
-                iterationType = default;
-                return false;
-            }
-
-            return true;
-        }
-
-        protected BoundAwaitableInfo BindMoveNextAwaitableInfo(SyntaxNode expr, ref ForEachEnumeratorInfo.Builder builder, BindingDiagnosticBag diagnostics, ref bool hasErrors)
-        {
-            var placeholder = new BoundAwaitableValuePlaceholder(expr, builder.MoveNextInfo?.Method.ReturnType ?? CreateErrorType());
-            BoundAwaitableInfo moveNextAwaitableInfo = BindAwaitInfo(placeholder, expr, diagnostics, ref hasErrors);
-
-            if (!hasErrors && (moveNextAwaitableInfo.GetResult ?? moveNextAwaitableInfo.RuntimeAsyncAwaitCall?.Method)?.ReturnType.SpecialType != SpecialType.System_Boolean)
-            {
-                MethodSymbol getEnumeratorMethod = builder.GetEnumeratorInfo?.Method;
-                diagnostics.Add(ErrorCode.ERR_BadGetAsyncEnumerator, expr.Location, getEnumeratorMethod.ReturnTypeWithAnnotations, getEnumeratorMethod);
-                hasErrors = true;
-            }
-
-            return moveNextAwaitableInfo;
-        }
-
-        protected TypeSymbol GetDisposeAwaitableType(SyntaxNode syntax, ref ForEachEnumeratorInfo.Builder builder, BindingDiagnosticBag diagnostics)
-        {
-            return builder.PatternDisposeInfo is null
-                ? this.GetWellKnownType(WellKnownType.System_Threading_Tasks_ValueTask, diagnostics, syntax)
-                : builder.PatternDisposeInfo.Method.ReturnType;
+            return GetEnumeratorInfoAndInferCollectionElementType(syntax, syntax, ref collectionExpr, isAsync, isSpread: false, BindingDiagnosticBag.Discarded, out iterationType, out _);
         }
 
         private BoundExpression UnwrapCollectionExpressionIfNullable(BoundExpression collectionExpr, BindingDiagnosticBag diagnostics)

@@ -39,6 +39,8 @@ public class GetIterationTypeTests : CSharpTestBase
                 AsyncPattern AsyncPattern,
                 AsyncPatternWithToken AsyncPatternWithToken,
                 AsyncTaskPattern AsyncTaskPattern,
+                AsyncBadMoveNext AsyncBadMoveNext,
+                AsyncBadDispose AsyncBadDispose,
                 WithExtension WithExtension,
                 WithAsyncExtension WithAsyncExtension)
             {
@@ -53,6 +55,10 @@ public class GetIterationTypeTests : CSharpTestBase
         class AsyncPatternEnumerator { public long Current => 0; public ValueTask<bool> MoveNextAsync() => default; }
         class AsyncTaskPattern { public AsyncTaskEnumerator GetAsyncEnumerator() => null!; }
         class AsyncTaskEnumerator { public short Current => 0; public Task<bool> MoveNextAsync() => null!; }
+        class AsyncBadMoveNext { public AsyncBadMoveNextEnumerator GetAsyncEnumerator() => null!; }
+        class AsyncBadMoveNextEnumerator { public long Current => 0; public Task<int> MoveNextAsync() => null!; }
+        class AsyncBadDispose { public AsyncBadDisposeEnumerator GetAsyncEnumerator() => null!; }
+        class AsyncBadDisposeEnumerator { public long Current => 0; public ValueTask<bool> MoveNextAsync() => default; public int DisposeAsync() => 0; }
         class WithExtension { }
         class WithAsyncExtension { }
 
@@ -120,7 +126,9 @@ public class GetIterationTypeTests : CSharpTestBase
     [InlineData("AsyncPattern", "System.Int64")]
     [InlineData("AsyncPatternWithToken", "System.Int64")]
     [InlineData("AsyncTaskPattern", "System.Int16")]
-    [InlineData("Array", null)]
+    [InlineData("AsyncBadMoveNext", "System.Int64")]
+    [InlineData("AsyncBadDispose", "System.Int64")]
+    [InlineData("Array", "System.Int32")]
     [InlineData("String", null)]
     [InlineData("Span", null)]
     [InlineData("Dynamic", null)]
