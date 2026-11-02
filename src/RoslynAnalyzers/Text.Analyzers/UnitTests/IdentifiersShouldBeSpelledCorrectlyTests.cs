@@ -246,6 +246,36 @@ namespace Text.Analyzers.UnitTests
                     .WithArguments(typeName));
 
         [Theory]
+        [InlineData("System.EventArgs")]
+        [InlineData("System.ComponentModel.CancelEventArgs")]
+        [InlineData("Notification")]
+        public Task MemberParameterEventArgsNamedE_Verify_NoDiagnosticsAsync(string eventArgsType)
+            => VerifyCSharpAsync($$"""
+                class Notification : System.EventArgs { }
+
+                class Program
+                {
+                    void OnChanged(object sender, {{eventArgsType}} e) { }
+                }
+                """);
+
+        [Fact]
+        public Task MemberParameterEventArgsNotNamedE_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                "class Program { void OnChanged(object sender, System.EventArgs {|#0:a|}) { } }",
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments("Program.OnChanged(object, System.EventArgs)", "a"));
+
+        [Fact]
+        public Task MemberParameterNamedENotEventArgs_Verify_EmitsDiagnosticAsync()
+            => VerifyCSharpAsync(
+                "class Program { void Method(string {|#0:e|}) { } }",
+                VerifyCS.Diagnostic(IdentifiersShouldBeSpelledCorrectlyAnalyzer.MemberParameterMoreMeaningfulNameRule)
+                    .WithLocation(0)
+                    .WithArguments("Program.Method(string)", "e"));
+
+        [Theory]
         [MemberData(nameof(MisspelledMembers))]
         public Task MemberMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string memberName)
             => VerifyCSharpAsync(
