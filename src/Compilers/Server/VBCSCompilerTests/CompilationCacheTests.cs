@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var outputFiles = new CompilationOutputFiles { AssemblyPath = assemblyPath };
 
             using var entryLock = AcquireEntryMutex(cache, dllName, hashKey);
-            var result = cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, _logger);
+            var result = cache.TryStoreResult(dllName, hashKey, outputFiles, deterministicKey, "", "", _logger);
 
             Assert.Equal(CompilationCacheStoreResult.SkippedRace, result);
             Assert.False(Directory.Exists(Path.Combine(cacheDir, dllName, hashKey)));
