@@ -483,15 +483,6 @@ public abstract class SyntaxGenerator : ILanguageService
             getAccessorStatements,
             setAccessorStatements);
 
-        if (indexer.UsesUpdatedMemorySafetyRules())
-        {
-            // V2 annotations belong to the declared accessors; keep the legacy template behavior unchanged.
-            indexerDecl = WithAccessorDeclarations(indexerDecl, GetAccessors(indexerDecl).Where(accessor =>
-                GetDeclarationKind(accessor) == DeclarationKind.GetAccessor
-                    ? indexer.GetMethod is not null
-                    : indexer.SetMethod is not null));
-        }
-
         indexerDecl = WithPropertyAccessorSafety(indexerDecl, indexer);
 
         if (indexer.ExplicitInterfaceImplementations.Length > 0)
