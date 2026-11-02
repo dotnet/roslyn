@@ -2893,6 +2893,106 @@ public sealed class SolutionTests : TestBase
         Assert.Empty((await finalProject.GetCompilationAsync()).SyntaxTrees);
     }
 
+    [Theory, CombinatorialData]
+    public async Task PendingDocumentUpdatesSkipObsoleteText(bool removeTogether, bool withGenerator)
+    {
+        using var workspace = CreateWorkspace();
+        var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
+        project = project.AddDocument("A.cs", "class A { }").Project;
+        project = project.AddDocument("B.cs", "class B { }").Project;
+        project = project.AddDocument("Kept.cs", "class Kept { }").Project;
+        if (withGenerator)
+            project = project.AddAnalyzerReference(new TestGeneratorReference(new SingleFileTestGenerator("class Generated { }")));
+
+        var originalProject = project;
+        var originalCompilation = await project.GetCompilationAsync();
+        var a = project.DocumentIds[0];
+        var b = project.DocumentIds[1];
+        var kept = project.DocumentIds[2];
+        var firstA = new CountingTextLoader("class FirstA { }");
+        var lastA = new CountingTextLoader("class LastA { }");
+        var updatedB = new CountingTextLoader("class UpdatedB { }");
+        var intermediateKept = new CountingTextLoader("class IntermediateKept { }");
+        var solution = project.Solution
+            .WithDocumentTextLoader(a, firstA, PreservationMode.PreserveValue)
+            .WithDocumentTextLoader(kept, intermediateKept, PreservationMode.PreserveValue)
+            .WithDocumentTextLoader(b, updatedB, PreservationMode.PreserveValue)
+            .WithDocumentTextLoader(a, lastA, PreservationMode.PreserveValue);
+        var intermediateProject = solution.GetRequiredProject(project.Id);
+
+        if (removeTogether)
+        {
+            solution = solution.RemoveDocuments([a, b])
+                .WithDocumentTextLoader(kept, new TestTextLoader("class FinalKept { }"), PreservationMode.PreserveValue);
+        }
+        else
+        {
+            solution = solution.RemoveDocument(a)
+                .WithDocumentTextLoader(kept, new TestTextLoader("class FinalKept { }"), PreservationMode.PreserveValue)
+                .RemoveDocument(b);
+        }
+
+        var finalProject = solution.GetRequiredProject(project.Id);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => finalProject.GetCompilationAsync(new CancellationToken(canceled: true)));
+        var compilation = await finalProject.GetCompilationAsync();
+        Assert.NotNull(compilation);
+        Assert.NotNull(compilation.GetTypeByMetadataName("FinalKept"));
+        Assert.Null(compilation.GetTypeByMetadataName("A"));
+        Assert.Null(compilation.GetTypeByMetadataName("B"));
+        Assert.Equal(withGenerator ? 2 : 1, compilation.SyntaxTrees.Count());
+        Assert.All(new[] { firstA, lastA, updatedB, intermediateKept }, loader => Assert.Equal(0, loader.LoadCount));
+        if (withGenerator)
+            Assert.NotNull(compilation.GetTypeByMetadataName("Generated"));
+
+        // Merging a fork's pending work must not change earlier solution snapshots.
+        var intermediateCompilation = await intermediateProject.GetCompilationAsync();
+        Assert.NotNull(intermediateCompilation!.GetTypeByMetadataName("LastA"));
+        Assert.NotNull(intermediateCompilation.GetTypeByMetadataName("UpdatedB"));
+        Assert.NotNull(intermediateCompilation.GetTypeByMetadataName("IntermediateKept"));
+        Assert.Same(originalCompilation, await originalProject.GetCompilationAsync());
+        Assert.NotNull(originalCompilation!.GetTypeByMetadataName("A"));
+        Assert.NotNull(originalCompilation.GetTypeByMetadataName("Kept"));
+        GC.KeepAlive(originalCompilation);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PendingDocumentUpdatesRespectOtherTranslations(bool addDocument)
+    {
+        using var workspace = CreateWorkspace();
+        var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
+        project = project.AddDocument("A.cs", "class A { }").Project;
+        project = project.AddDocument("Kept.cs", "class Kept { }").Project;
+        var originalCompilation = await project.GetCompilationAsync();
+        var a = project.DocumentIds[0];
+        var loader = new CountingTextLoader("class ChangedA { }");
+        var solution = project.Solution.WithDocumentTextLoader(a, loader, PreservationMode.PreserveValue);
+        solution = addDocument
+            ? solution.AddDocument(DocumentId.CreateNewId(project.Id), "Added.cs", SourceText.From("class Added { }"))
+            : solution.WithProjectParseOptions(project.Id, new CSharpParseOptions(preprocessorSymbols: ["DEFINED"]));
+        solution = solution.RemoveDocument(a);
+
+        var compilation = await solution.GetRequiredProject(project.Id).GetCompilationAsync();
+        Assert.NotNull(compilation);
+        Assert.NotNull(compilation.GetTypeByMetadataName("Kept"));
+        Assert.Null(compilation.GetTypeByMetadataName("ChangedA"));
+        Assert.Equal(addDocument ? 2 : 1, compilation.SyntaxTrees.Count());
+        if (addDocument)
+            Assert.NotNull(compilation.GetTypeByMetadataName("Added"));
+        Assert.Equal(1, loader.LoadCount);
+        GC.KeepAlive(originalCompilation);
+    }
+
+    private sealed class CountingTextLoader(string text) : TextLoader
+    {
+        public int LoadCount { get; private set; }
+
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        {
+            LoadCount++;
+            return Task.FromResult(TextAndVersion.Create(SourceText.From(text, encoding: null, options.ChecksumAlgorithm), VersionStamp.Create()));
+        }
+    }
+
     [Fact]
     public void RemoveTwoDocumentsFromDifferentProjects()
     {

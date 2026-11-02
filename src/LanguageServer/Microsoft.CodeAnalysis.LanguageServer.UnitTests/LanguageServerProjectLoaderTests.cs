@@ -110,6 +110,15 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
     [InlineData(false)]
     [InlineData(true)]
     public async Task DeletedSourceFilesDoNotDelayCompilationAfterReload(bool deleteDirectory)
+        => await TestDeletedSourceFilesAsync(deleteDirectory, reloadBeforeNotification: false);
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DeletedSourceNotificationsAfterReloadDoNotChangeDocuments(bool deleteDirectory)
+        => await TestDeletedSourceFilesAsync(deleteDirectory, reloadBeforeNotification: true);
+
+    private async Task TestDeletedSourceFilesAsync(bool deleteDirectory, bool reloadBeforeNotification)
     {
         AsynchronousOperationListenerProvider.Enable(enable: true);
         await using var server = await CreateLanguageServerAsync(
@@ -169,29 +178,36 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
                 File.Delete(path);
         }
 
-        TestOutputHelper.WriteLine("Delivering deletion notifications.");
-        await server.ExecuteRequestAsync<LSP.DidChangeWatchedFilesParams, object>(
-            LSP.Methods.WorkspaceDidChangeWatchedFilesName,
-            new LSP.DidChangeWatchedFilesParams
-            {
-                Changes = deletedPaths.Select(path => new LSP.FileEvent
-                {
-                    Uri = ProtocolConversions.CreateAbsoluteDocumentUri(path),
-                    FileChangeType = LSP.FileChangeType.Deleted,
-                }).ToArray(),
-            },
-            CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(30));
+        if (reloadBeforeNotification)
+            loadedProject.GetTestAccessor().RaiseNeedsReload();
+        else
+            await SendDeletionNotificationsAsync();
         TestOutputHelper.WriteLine("Waiting for reload design-time build.");
         await reload.Started.Task.WaitAsync(TimeSpan.FromSeconds(30));
 
         // Hold the design-time build until file-change processing has invalidated every deleted file's cached text.
         // This is the intermediate snapshot that a fast reload can otherwise hide.
-        await WaitForConditionAsync(() => deletedIds.All(id =>
-            !workspace.CurrentSolution.GetDocument(id)!.TryGetText(out _))).WaitAsync(TimeSpan.FromSeconds(30));
-        TestOutputHelper.WriteLine("Completing reload after file-change processing.");
+        if (!reloadBeforeNotification)
+        {
+            await WaitForConditionAsync(() => deletedIds.All(id =>
+                !workspace.CurrentSolution.GetDocument(id)!.TryGetText(out _))).WaitAsync(TimeSpan.FromSeconds(30));
+        }
+        TestOutputHelper.WriteLine("Completing reload.");
         reload.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath,
             projectInfo: projectInfo with { Documents = [projectInfo.Documents.Last()] });
         await workspaceWaiter.ExpeditedWaitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+
+        if (reloadBeforeNotification)
+        {
+            var solutionAfterRemoval = workspace.CurrentSolution;
+            var notificationReload = loader.ExpectDesignTimeBuild(projectPath);
+            await SendDeletionNotificationsAsync();
+            await notificationReload.Started.Task.WaitAsync(TimeSpan.FromSeconds(30));
+            notificationReload.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath,
+                projectInfo: projectInfo with { Documents = [projectInfo.Documents.Last()] });
+            await workspaceWaiter.ExpeditedWaitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+            Assert.Same(solutionAfterRemoval.GetDocument(keptId)!.State, workspace.CurrentSolution.GetDocument(keptId)!.State);
+        }
 
         var remainingDocument = Assert.Single(Assert.Single(workspace.CurrentSolution.Projects).Documents);
         Assert.Equal(keptId, remainingDocument.Id);
@@ -204,6 +220,22 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         Assert.NotNull(semanticModel.Compilation.GetTypeByMetadataName("Kept"));
         Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10), $"Compilation took {stopwatch.Elapsed}.");
         GC.KeepAlive(initialCompilation);
+
+        async Task SendDeletionNotificationsAsync()
+        {
+            TestOutputHelper.WriteLine("Delivering deletion notifications.");
+            await server.ExecuteRequestAsync<LSP.DidChangeWatchedFilesParams, object>(
+                LSP.Methods.WorkspaceDidChangeWatchedFilesName,
+                new LSP.DidChangeWatchedFilesParams
+                {
+                    Changes = deletedPaths.Select(path => new LSP.FileEvent
+                    {
+                        Uri = ProtocolConversions.CreateAbsoluteDocumentUri(path),
+                        FileChangeType = LSP.FileChangeType.Deleted,
+                    }).ToArray(),
+                },
+                CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(30));
+        }
     }
 
     private sealed class FileWatcherClient
