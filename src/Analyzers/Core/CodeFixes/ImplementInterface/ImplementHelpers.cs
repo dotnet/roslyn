@@ -16,6 +16,18 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 internal static class ImplementHelpers
 {
+    public static bool RequiresUnsafeModifierForImplementationSignature(ISymbol member, SyntaxNode contextNode, ISyntaxFactsService syntaxFacts)
+    {
+        // Under unsafe evolution, pointer-containing signatures do not require an unsafe context.
+        if (syntaxFacts.SupportsUnsafeEvolution(contextNode.SyntaxTree.Options))
+            return false;
+
+        if (!member.RequiresUnsafeModifierUnderLegacyRules())
+            return false;
+
+        return !syntaxFacts.IsUnsafeContext(contextNode);
+    }
+
     public static ImmutableArray<ISymbol> GetDelegatableMembers(
         Document document,
         INamedTypeSymbol namedType,

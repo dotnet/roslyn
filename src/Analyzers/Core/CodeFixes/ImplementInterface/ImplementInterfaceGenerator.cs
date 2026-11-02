@@ -188,13 +188,8 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             // class C : IBar
             //
             // In this case we only want to generate 'Goo' once.
-            var requiresExplicitSafetyImplementation = false;
             if (HasMatchingMember(implementedVisibleMembers, member))
-            {
-                requiresExplicitSafetyImplementation = HasConflictingInterfaceSafetyRequirement(member);
-                if (!requiresExplicitSafetyImplementation)
-                    return [];
-            }
+                return [];
 
             var memberName = DetermineMemberName(member, implementedVisibleMembers, out var conflictingMember);
 
@@ -203,8 +198,7 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
             var supportsImplicitImplementationOfNonPublicInterfaceMembers = this.Document
                 .GetRequiredLanguageService<ISyntaxFactsService>()
                 .SupportsImplicitImplementationOfNonPublicInterfaceMembers(options);
-            var generateInvisibleMember = requiresExplicitSafetyImplementation ||
-                ShouldGenerateInvisibleMember(options, member, memberName, supportsImplicitImplementationOfNonPublicInterfaceMembers);
+            var generateInvisibleMember = ShouldGenerateInvisibleMember(options, member, memberName, supportsImplicitImplementationOfNonPublicInterfaceMembers);
             memberName = generateInvisibleMember ? member.Name : memberName;
 
             // The language doesn't allow static abstract implementations of interface methods. i.e,
@@ -218,11 +212,11 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
 
             // Check if we need to add 'unsafe' to the signature we're generating.
             var syntaxFacts = Document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var addUnsafe = ShouldAddUnsafeModifier(member, State.ContextNode, syntaxFacts);
+            var requiresUnsafe = RequiresUnsafeModifierForImplementationSignature(member, State.ContextNode, syntaxFacts);
 
             return GenerateMembers(
                 compilation, member, conflictingMember, memberName, generateInvisibleMember, generateAbstractly,
-                addNew, addUnsafe, propertyGenerationBehavior);
+                addNew, requiresUnsafe, propertyGenerationBehavior);
         }
 
         public bool ShouldGenerateInvisibleMember(
@@ -247,9 +241,6 @@ internal abstract partial class AbstractImplementInterfaceService<TTypeDeclarati
                 // If the member contains a type is less accessible than type, for which we are implementing it, then
                 // only explicit implementation is valid.
                 if (ContainsTypeLessAccessibleThan(member, State.ClassOrStructType, supportsImplementingLessAccessibleMember))
-                    return true;
-
-                if (HasConflictingInterfaceSafetyRequirement(member))
                     return true;
             }
 

@@ -54,7 +54,7 @@ internal static partial class ISymbolExtensions
     {
         // Check unsafe v1.
         if (!symbol.UsesUpdatedMemorySafetyRules())
-            return symbol.RequiresUnsafeModifier() ? DeclarationModifiers.Unsafe : DeclarationModifiers.None;
+            return symbol.RequiresUnsafeModifierUnderLegacyRules() ? DeclarationModifiers.Unsafe : DeclarationModifiers.None;
 
         // Check unsafe v2.
 #if !OLDER_ROSLYN

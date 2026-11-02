@@ -52,7 +52,7 @@ internal abstract partial class AbstractOverrideCompletionProvider() : AbstractM
         var syntaxFactory = document.GetRequiredLanguageService<SyntaxGenerator>();
 
         var itemModifiers = MemberInsertionCompletionItem.GetModifiers(completionItem);
-        var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | overriddenMember.RequiresUnsafeModifier());
+        var modifiers = itemModifiers.WithIsUnsafe(itemModifiers.IsUnsafe | overriddenMember.RequiresUnsafeModifierUnderLegacyRules());
 
         return syntaxFactory.OverrideAsync(
             overriddenMember, containingType, document, modifiers, cancellationToken);

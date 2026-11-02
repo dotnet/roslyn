@@ -388,13 +388,14 @@ internal static class CodeGenerationSymbolFactory
         ImmutableArray<AttributeData> attributes = default,
         Accessibility? accessibility = null,
         ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
-        ImmutableArray<SyntaxNode> statements = default)
+        ImmutableArray<SyntaxNode> statements = default,
+        DeclarationModifiers? modifiers = null)
     {
         return CreateMethodSymbol(
             containingType: null,
             attributes,
             accessibility ?? accessor.DeclaredAccessibility,
-            accessor.GetSymbolModifiers().WithIsAbstract(statements == null),
+            (modifiers ?? accessor.GetSymbolModifiers()).WithIsAbstract(statements == null),
             accessor.ReturnType,
             accessor.RefKind,
             explicitInterfaceImplementations.IsDefault ? accessor.ExplicitInterfaceImplementations : explicitInterfaceImplementations,
@@ -406,7 +407,7 @@ internal static class CodeGenerationSymbolFactory
             methodKind: accessor.MethodKind,
             usesUpdatedMemorySafetyRules: accessor.UsesUpdatedMemorySafetyRules(),
 #if !OLDER_ROSLYN
-            requiresUnsafeContext: accessor.RequiresUnsafeContext,
+            requiresUnsafeContext: modifiers is null ? accessor.RequiresUnsafeContext : null,
 #endif
             isInitOnly: accessor.IsInitOnly);
     }

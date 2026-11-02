@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Shared.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -360,7 +361,7 @@ internal static class PropertyGenerator
             modifiers.Add(ReadOnlyKeyword);
 
 #if !OLDER_ROSLYN
-        if (info.LanguageVersion >= LanguageVersion.Preview && property.RequiresAccessorSafetyModifiers() && accessor.RequiresUnsafeContext)
+        if (info.LanguageVersion.IsCSharp16OrAbove() && property.RequiresAccessorSafetyModifiers() && accessor.RequiresUnsafeContext)
             modifiers.Add(UnsafeKeyword);
 #endif
 

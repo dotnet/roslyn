@@ -431,7 +431,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var delegatingArguments = this.GetRequiredLanguageService<SyntaxGenerator>(TypeToGenerateIn.Language).CreateArguments(_delegatedConstructor.Parameters);
 
             var newParameters = _delegatedConstructor.Parameters.Concat(_parameters);
-            var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(static p => p.RequiresUnsafeModifier());
+            var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(static p => p.RequiresUnsafeModifierUnderLegacyRules());
 
             var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
                 attributes: default,
