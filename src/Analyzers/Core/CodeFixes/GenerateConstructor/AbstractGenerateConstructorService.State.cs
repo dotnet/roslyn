@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.InitializeParameter;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -414,8 +415,29 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             //
             // Otherwise, just generate a normal constructor that assigns any provided
             // parameters into fields.
-            return await GenerateThisOrBaseDelegatingConstructorAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false) ??
-                   await GenerateMemberDelegatingConstructorAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
+            var changedDocument = await GenerateThisOrBaseDelegatingConstructorAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false) ??
+                                  await GenerateMemberDelegatingConstructorAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
+
+            if (_parameterToExistingMemberMap == null || (_delegatedConstructor != null && !withFields && !withProperties))
+                return changedDocument;
+
+            var solution = changedDocument.Project.Solution;
+            foreach (var property in _parameterToExistingMemberMap.Values.Distinct(SymbolEqualityComparer.Default).OfType<IPropertySymbol>())
+            {
+                if (property.IsWritableInConstructor())
+                    continue;
+
+                // A getter-only stub reused by the constructor needs to become an auto-property.
+                var originalDocument = document.Project.Solution.GetRequiredDocument(property.DeclaringSyntaxReferences[0].SyntaxTree);
+                var currentDocument = solution.GetRequiredDocument(originalDocument.Id);
+                var initializeParameterService = currentDocument.GetRequiredLanguageService<IInitializeParameterService>();
+                solution = await initializeParameterService.RemoveThrowNotImplementedAsync(
+                    currentDocument, property, useAutoProperty: true, cancellationToken).ConfigureAwait(false);
+            }
+
+            return solution == changedDocument.Project.Solution
+                ? changedDocument
+                : solution.GetRequiredDocument(changedDocument.Id);
         }
 
         private async Task<Document?> GenerateThisOrBaseDelegatingConstructorAsync(

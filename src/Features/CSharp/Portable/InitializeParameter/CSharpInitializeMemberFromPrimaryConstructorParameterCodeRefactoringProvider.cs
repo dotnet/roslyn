@@ -71,7 +71,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
 
         var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-        var fieldOrProperty = TryFindMatchingUninitializedFieldOrPropertySymbol();
+        var fieldOrProperty = await TryFindMatchingUninitializedFieldOrPropertySymbolAsync().ConfigureAwait(false);
         using var refactorings = TemporaryArray<CodeAction>.Empty;
         if (fieldOrProperty != null)
         {
@@ -86,7 +86,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         context.RegisterRefactorings(refactorings.ToImmutableAndClear(), context.Span);
         return;
 
-        ISymbol? TryFindMatchingUninitializedFieldOrPropertySymbol()
+        async Task<ISymbol?> TryFindMatchingUninitializedFieldOrPropertySymbolAsync()
         {
             // Look for a field/property that really looks like it corresponds to this parameter. Use a variety of
             // heuristics around the name/type to see if this is a match.
@@ -123,8 +123,11 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                         // We also allow assigning into a property of the form `=> throw new
                         // NotImplementedException()`. That way users can easily spit out those methods, but then
                         // convert them to be normal properties with ease.
-                        if (initializeParameterService.IsThrowNotImplementedProperty(compilation, property, cancellationToken))
+                        if (await initializeParameterService.IsThrowNotImplementedPropertyAsync(
+                            document.Project.Solution, property, cancellationToken).ConfigureAwait(false))
+                        {
                             return property;
+                        }
 
                         if (property.IsWritableInConstructor())
                             return property;

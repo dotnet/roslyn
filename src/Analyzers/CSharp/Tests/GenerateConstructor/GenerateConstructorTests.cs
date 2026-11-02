@@ -4704,8 +4704,6 @@ unsafe class C
     [WorkItem("https://github.com/dotnet/roslyn/issues/82157")]
     [InlineData("=> 0;")]
     [InlineData("{ get { return 0; } }")]
-    [InlineData("=> throw new System.NotImplementedException();")]
-    [InlineData("{ get { throw new System.NotImplementedException(); } }")]
     public Task TestWithExistingReadOnlyPropertyInReferencedProject(string propertyBody)
         => TestAsync(
             $$"""
@@ -4743,6 +4741,49 @@ unsafe class C
                 }
 
                 public int Value {{propertyBody}}
+            }
+            """,
+            new(parseOptions: TestOptions.Regular));
+
+    [ConditionalTheory(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/83159")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/82157")]
+    [InlineData("=> throw new System.NotImplementedException();")]
+    [InlineData("{ get { throw new System.NotImplementedException(); } }")]
+    public Task TestWithExistingThrowNotImplementedPropertyInReferencedProject(string propertyBody)
+        => TestAsync(
+            $$"""
+            <Workspace>
+                <Project Language="C#" Name="Library" CommonReferences="true">
+                    <Document>
+            public class C
+            {
+                public int Value {{propertyBody}}
+            }</Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true">
+                    <ProjectReference>Library</ProjectReference>
+                    <Document>
+            class D
+            {
+                void M(int value)
+                {
+                    new [|C|](value);
+                }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
+            """
+
+            public class C
+            {
+                public C(int value)
+                {
+                    Value = value;
+                }
+
+                public int Value { get; }
             }
             """,
             new(parseOptions: TestOptions.Regular));
