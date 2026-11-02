@@ -7,6 +7,7 @@ extern alias MSBuildWorkspacesContracts;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -20,7 +21,10 @@ using Microsoft.CommonLanguageServerProtocol.Framework;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 using Xunit.Abstractions;
+using DocumentFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.DocumentFileInfo;
+using FileGlobs = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.FileGlobs;
 using LSP = Roslyn.LanguageServer.Protocol;
 using ProjectFileInfo = MSBuildWorkspacesContracts::Microsoft.CodeAnalysis.MSBuild.ProjectFileInfo;
 
@@ -100,6 +104,119 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         secondDesignTimeBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath);
 
         Assert.Equal(2, loader.DesignTimeBuildCount);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DeletedSourceFilesDoNotDelayCompilationAfterReload(bool deleteDirectory)
+    {
+        AsynchronousOperationListenerProvider.Enable(enable: true);
+        await using var server = await CreateLanguageServerAsync(
+            new LSP.ClientCapabilities
+            {
+                Workspace = new LSP.WorkspaceClientCapabilities
+                {
+                    DidChangeWatchedFiles = new LSP.DidChangeWatchedFilesClientCapabilities { DynamicRegistration = true },
+                },
+            },
+            ServerConfigurationWithoutDevKit);
+        server.AddClientLocalRpcTarget(new FileWatcherClient());
+
+        var directory = TempRoot.CreateDirectory();
+        var projectPath = directory.CreateFile("Project.csproj").WriteAllText("<Project />").Path;
+        // OpenProjectHandler receives this URI-normalized path, including a lower-case drive letter on Windows.
+        projectPath = ProtocolConversions.CreateAbsoluteDocumentUri(projectPath).GetRequiredParsedUri().FsPath;
+        var sourceDirectory = directory.CreateDirectory("Sources");
+        var deletedPaths = Enumerable.Range(0, 20)
+            .Select(i => sourceDirectory.CreateFile($"C{i}.cs").WriteAllText($"class C{i} {{ }}").Path).ToArray();
+        var keptPath = directory.CreateFile("Kept.cs").WriteAllText("class Kept { }").Path;
+        var projectInfo = ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with
+        {
+            CommandLineArgs = ["/target:library"],
+            ProjectAssetsFilePath = directory.CreateFile("project.assets.json").WriteAllText("{}").Path,
+            Documents = [.. deletedPaths.Append(keptPath).Select(path => new DocumentFileInfo(
+                path, Path.GetFileName(path), isLinked: false, isGenerated: false, folders: []))],
+            FileGlobs = [new FileGlobs(["**/*.cs"], [], [])],
+        };
+
+        var loader = server.GetRequiredLspService<TestProjectLoader>();
+        var (loadedProject, initialBuild) = await loader.ExpectDesignTimeBuildAndBeginLoadingProjectAsync(projectPath);
+        TestOutputHelper.WriteLine("Waiting for initial design-time build.");
+        await initialBuild.Started.Task.WaitAsync(TimeSpan.FromSeconds(30));
+        initialBuild.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath, projectInfo: projectInfo);
+        Assert.True(await loadedProject.WaitForLoadAsync(CancellationToken.None).AsTask().WaitAsync(TimeSpan.FromSeconds(30)));
+        var workspaceWaiter = server.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>()
+            .GetWaiter(FeatureAttribute.Workspace);
+        await workspaceWaiter.ExpeditedWaitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+
+        var workspace = loader.WorkspaceFactory.HostWorkspace;
+        var initialProject = Assert.Single(workspace.CurrentSolution.Projects);
+        TestOutputHelper.WriteLine("Building initial compilation.");
+        var initialCompilation = await initialProject.GetCompilationAsync();
+        Assert.NotNull(initialCompilation!.GetTypeByMetadataName("C0"));
+        var deletedIds = initialProject.Documents.Where(d => d.FilePath != keptPath).Select(d => d.Id).ToArray();
+        var keptId = initialProject.Documents.Single(d => d.FilePath == keptPath).Id;
+        var reload = loader.ExpectDesignTimeBuild(projectPath);
+
+        if (deleteDirectory)
+        {
+            Directory.Delete(sourceDirectory.Path, recursive: true);
+        }
+        else
+        {
+            foreach (var path in deletedPaths)
+                File.Delete(path);
+        }
+
+        TestOutputHelper.WriteLine("Delivering deletion notifications.");
+        await server.ExecuteRequestAsync<LSP.DidChangeWatchedFilesParams, object>(
+            LSP.Methods.WorkspaceDidChangeWatchedFilesName,
+            new LSP.DidChangeWatchedFilesParams
+            {
+                Changes = deletedPaths.Select(path => new LSP.FileEvent
+                {
+                    Uri = ProtocolConversions.CreateAbsoluteDocumentUri(path),
+                    FileChangeType = LSP.FileChangeType.Deleted,
+                }).ToArray(),
+            },
+            CancellationToken.None).WaitAsync(TimeSpan.FromSeconds(30));
+        TestOutputHelper.WriteLine("Waiting for reload design-time build.");
+        await reload.Started.Task.WaitAsync(TimeSpan.FromSeconds(30));
+
+        // Hold the design-time build until file-change processing has invalidated every deleted file's cached text.
+        // This is the intermediate snapshot that a fast reload can otherwise hide.
+        await WaitForConditionAsync(() => deletedIds.All(id =>
+            !workspace.CurrentSolution.GetDocument(id)!.TryGetText(out _))).WaitAsync(TimeSpan.FromSeconds(30));
+        TestOutputHelper.WriteLine("Completing reload after file-change processing.");
+        reload.CompleteSuccessfully(loader.WorkspaceFactory.HostProjectFactory, projectPath,
+            projectInfo: projectInfo with { Documents = [projectInfo.Documents.Last()] });
+        await workspaceWaiter.ExpeditedWaitAsync().WaitAsync(TimeSpan.FromSeconds(30));
+
+        var remainingDocument = Assert.Single(Assert.Single(workspace.CurrentSolution.Projects).Documents);
+        Assert.Equal(keptId, remainingDocument.Id);
+        var stopwatch = Stopwatch.StartNew();
+        var semanticModel = await remainingDocument.GetSemanticModelAsync();
+        stopwatch.Stop();
+        TestOutputHelper.WriteLine($"Compilation after deleting {deletedPaths.Length} files: {stopwatch.Elapsed}.");
+        Assert.NotNull(semanticModel);
+        Assert.Null(semanticModel.Compilation.GetTypeByMetadataName("C0"));
+        Assert.NotNull(semanticModel.Compilation.GetTypeByMetadataName("Kept"));
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(10), $"Compilation took {stopwatch.Elapsed}.");
+        GC.KeepAlive(initialCompilation);
+    }
+
+    private sealed class FileWatcherClient
+    {
+        [JsonRpcMethod("client/registerCapability", UseSingleObjectParameterDeserialization = true)]
+        public void RegisterCapability(LSP.RegistrationParams _)
+        {
+        }
+
+        [JsonRpcMethod("client/unregisterCapability", UseSingleObjectParameterDeserialization = true)]
+        public void UnregisterCapability(LSP.UnregistrationParams _)
+        {
+        }
     }
 
     [Fact]
@@ -506,10 +623,10 @@ public sealed class LanguageServerProjectLoaderTests(ITestOutputHelper testOutpu
         public TaskCompletionSource Started { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
         public TaskCompletionSource<LanguageServerProjectLoader.RemoteProjectLoadResult?> Result { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-        public void CompleteSuccessfully(ProjectSystemProjectFactory projectFactory, string projectPath, string? targetFramework = null)
+        public void CompleteSuccessfully(ProjectSystemProjectFactory projectFactory, string projectPath, string? targetFramework = null, ProjectFileInfo? projectInfo = null)
             => Result.SetResult(new()
             {
-                ProjectFileInfos = [ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with { CommandLineArgs = ["/target:library"], TargetFramework = targetFramework }],
+                ProjectFileInfos = [projectInfo ?? ProjectFileInfo.CreateEmpty(LanguageNames.CSharp, projectPath) with { CommandLineArgs = ["/target:library"], TargetFramework = targetFramework }],
                 DiagnosticLogItems = [],
                 ProjectRestorePath = projectPath,
                 ProjectFactory = projectFactory,

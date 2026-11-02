@@ -107,7 +107,9 @@ public abstract class TextLoader
             }
             catch (IOException e)
             {
-                if (++retries > MaxRetries)
+                // Deleted files can still be loaded while applying pending compilation updates.
+                // Do not delay those updates by retrying missing files or directories.
+                if (e is FileNotFoundException or DirectoryNotFoundException || ++retries > MaxRetries)
                 {
                     return CreateFailedText(e.Message);
                 }
@@ -136,7 +138,9 @@ public abstract class TextLoader
             }
             catch (IOException e)
             {
-                if (++retries > MaxRetries)
+                // Deleted files can still be loaded while applying pending compilation updates.
+                // Do not delay those updates by retrying missing files or directories.
+                if (e is FileNotFoundException or DirectoryNotFoundException || ++retries > MaxRetries)
                 {
                     return CreateFailedText(e.Message);
                 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -133,5 +134,90 @@ public sealed class TextLoaderTests
         var loader = new LoaderOverridesNew();
         Assert.Same(LoaderOverridesNew.Value, await loader.LoadTextAndVersionAsync(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None));
         Assert.Same(LoaderOverridesNew.Value, await loader.LoadTextAndVersionAsync(workspace: null, documentId: null, CancellationToken.None));
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task MissingPathIsNotRetried(bool useAsync, bool missingDirectory)
+    {
+        IOException exception = missingDirectory ? new DirectoryNotFoundException("Missing directory") : new FileNotFoundException("Missing file");
+        var loader = new FailingLoader(exception);
+        var options = new LoadTextOptions(SourceHashAlgorithms.Default);
+
+        var result = useAsync
+            ? await loader.LoadTextAsync(options, CancellationToken.None)
+            : loader.LoadTextSynchronously(options, CancellationToken.None);
+
+        Assert.Equal(1, loader.Attempts);
+        Assert.Equal(exception.Message, result.ExceptionMessage);
+        Assert.Equal(0, result.Text.Length);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TransientIOExceptionIsRetried(bool useAsync)
+    {
+        var loader = new FailingLoader(new IOException("Sharing violation"), failureCount: 1);
+        var options = new LoadTextOptions(SourceHashAlgorithms.Default);
+
+        var result = useAsync
+            ? await loader.LoadTextAsync(options, CancellationToken.None)
+            : loader.LoadTextSynchronously(options, CancellationToken.None);
+
+        Assert.Equal(2, loader.Attempts);
+        Assert.Null(result.ExceptionMessage);
+        Assert.Equal("Loaded", result.Text.ToString());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PersistentIOExceptionExhaustsRetries(bool useAsync)
+    {
+        var exception = new IOException("Sharing violation");
+        var loader = new FailingLoader(exception);
+        var options = new LoadTextOptions(SourceHashAlgorithms.Default);
+
+        var result = useAsync
+            ? await loader.LoadTextAsync(options, CancellationToken.None)
+            : loader.LoadTextSynchronously(options, CancellationToken.None);
+
+        Assert.Equal(6, loader.Attempts);
+        Assert.Equal(exception.Message, result.ExceptionMessage);
+        Assert.Equal(0, result.Text.Length);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task InvalidDataIsNotRetried(bool useAsync)
+    {
+        var exception = new InvalidDataException("Invalid data");
+        var loader = new FailingLoader(exception);
+        var options = new LoadTextOptions(SourceHashAlgorithms.Default);
+
+        var result = useAsync
+            ? await loader.LoadTextAsync(options, CancellationToken.None)
+            : loader.LoadTextSynchronously(options, CancellationToken.None);
+
+        Assert.Equal(1, loader.Attempts);
+        Assert.Equal(exception.Message, result.ExceptionMessage);
+    }
+
+    private sealed class FailingLoader(Exception exception, int failureCount = int.MaxValue) : TextLoader
+    {
+        public int Attempts { get; private set; }
+
+        public override Task<TextAndVersion> LoadTextAndVersionAsync(LoadTextOptions options, CancellationToken cancellationToken)
+        {
+            if (++Attempts <= failureCount)
+                throw exception;
+
+            return Task.FromResult(TextAndVersion.Create(SourceText.From("Loaded"), VersionStamp.Default));
+        }
     }
 }
