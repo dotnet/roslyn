@@ -934,7 +934,7 @@ internal sealed partial class SolutionCompilationState
         {
             var oldDocumentStates = newDocumentStates.SelectAsArray(static (s, oldProjectState) => oldProjectState.DocumentStates.GetRequiredState(s.Id), oldProjectState);
             var newProjectState = oldProjectState.UpdateDocuments(oldDocumentStates, newDocumentStates);
-            return new TranslationAction.UpdateDocumentsAction(oldProjectState, newProjectState, newDocumentStates.Select(s => s.Id).ToImmutableHashSet());
+            return new TranslationAction.UpdateOrRemoveDocumentsAction(oldProjectState, newProjectState, newDocumentStates.Select(s => s.Id).ToImmutableHashSet());
         }
 
         TranslationAction GetUpdateAdditionalDocumentsTranslationAction(ProjectState oldProjectState, ImmutableArray<AdditionalDocumentState> newDocumentStates)
@@ -1118,7 +1118,7 @@ internal sealed partial class SolutionCompilationState
                 // This function shouldn't have been called if the document has not changed
                 Debug.Assert(stateChange.OldProjectState != stateChange.NewProjectState);
 
-                return new TranslationAction.UpdateDocumentsAction(
+                return new TranslationAction.UpdateOrRemoveDocumentsAction(
                     stateChange.OldProjectState, stateChange.NewProjectState, ImmutableHashSet.Create(documentId));
             },
             forkTracker: true,
@@ -1849,7 +1849,7 @@ internal sealed partial class SolutionCompilationState
     private static TranslationAction GetRemoveDocumentsTranslationAction<TDocumentState>(ProjectState oldProject, ImmutableArray<DocumentId> documentIds, ImmutableArray<TDocumentState> states)
         => states switch
         {
-            ImmutableArray<DocumentState> _ => new TranslationAction.UpdateDocumentsAction(oldProject, oldProject.RemoveDocuments(documentIds), documentIds.ToImmutableHashSet()),
+            ImmutableArray<DocumentState> _ => new TranslationAction.UpdateOrRemoveDocumentsAction(oldProject, oldProject.RemoveDocuments(documentIds), documentIds.ToImmutableHashSet()),
             ImmutableArray<AdditionalDocumentState> additionalDocumentStates => new TranslationAction.RemoveAdditionalDocumentsAction(oldProject, oldProject.RemoveAdditionalDocuments(documentIds), additionalDocumentStates),
             ImmutableArray<AnalyzerConfigDocumentState> _ => new TranslationAction.TouchAnalyzerConfigDocumentsAction(oldProject, oldProject.RemoveAnalyzerConfigDocuments(documentIds)),
             _ => throw ExceptionUtilities.UnexpectedValue(states)

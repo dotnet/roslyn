@@ -2923,7 +2923,7 @@ public sealed class SolutionTests : TestBase
     [WorkItem("https://github.com/dotnet/roslyn/issues/86236")]
     public async Task CompilationSkipsIntermediateTextForInterleavedDocumentChanges()
     {
-        // Build a compilation before queuing document changes.
+        // Build a compilation so later changes use the incremental update path.
         using var workspace = CreateWorkspace();
         var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
         project = project.AddDocument("A.cs", "class A { }").Project;
@@ -2961,7 +2961,7 @@ public sealed class SolutionTests : TestBase
     [WorkItem("https://github.com/dotnet/roslyn/issues/86236")]
     public async Task CompilationDoesNotMergeDocumentChangesAcrossAdditionsOrParseOptionChanges(bool addDocument)
     {
-        // Build the starting compilation to exercise pending translations rather than a fresh compilation.
+        // Build a compilation so later changes use the incremental update path.
         using var workspace = CreateWorkspace();
         var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
         project = project.AddDocument("A.cs", "class A { }").Project;

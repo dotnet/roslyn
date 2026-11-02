@@ -19,7 +19,7 @@ internal sealed partial class SolutionCompilationState
 {
     private abstract partial class TranslationAction
     {
-        internal sealed class UpdateDocumentsAction(
+        internal sealed class UpdateOrRemoveDocumentsAction(
             ProjectState oldProjectState,
             ProjectState newProjectState,
             ImmutableHashSet<DocumentId> documentIds) : TranslationAction(oldProjectState, newProjectState)
@@ -61,11 +61,10 @@ internal sealed partial class SolutionCompilationState
 
             public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
             {
-                if (priorAction is UpdateDocumentsAction priorUpdateAction)
+                if (priorAction is UpdateOrRemoveDocumentsAction priorUpdateAction)
                 {
                     // Use the original project state and final document states to skip intermediate text.
-                    // This avoids loading missing files after a text update followed by removal.
-                    return new UpdateDocumentsAction(
+                    return new UpdateOrRemoveDocumentsAction(
                         priorUpdateAction.OldProjectState, NewProjectState, priorUpdateAction._documentIds.Union(_documentIds));
                 }
 
