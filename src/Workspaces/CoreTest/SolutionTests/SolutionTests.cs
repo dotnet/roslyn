@@ -2894,8 +2894,9 @@ public sealed class SolutionTests : TestBase
     }
 
     [Theory, CombinatorialData]
-    public async Task PendingDocumentUpdatesSkipObsoleteText(bool removeTogether, bool withGenerator)
+    public async Task CompilationSkipsIntermediateTextForChangedAndRemovedDocuments(bool removeTogether, bool withGenerator)
     {
+        // Build and retain the original compilation so later requests apply incremental updates to its syntax trees.
         using var workspace = CreateWorkspace();
         var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
         project = project.AddDocument("A.cs", "class A { }").Project;
@@ -2906,6 +2907,8 @@ public sealed class SolutionTests : TestBase
 
         var originalProject = project;
         var originalCompilation = await project.GetCompilationAsync();
+
+        // Queue interleaved text changes without compiling, including two changes to A and one to the retained document.
         var a = project.DocumentIds[0];
         var b = project.DocumentIds[1];
         var kept = project.DocumentIds[2];
@@ -2920,6 +2923,7 @@ public sealed class SolutionTests : TestBase
             .WithDocumentTextLoader(a, lastA, PreservationMode.PreserveValue);
         var intermediateProject = solution.GetRequiredProject(project.Id);
 
+        // Remove A and B together or separately, and supersede the retained document's intermediate text.
         if (removeTogether)
         {
             solution = solution.RemoveDocuments([a, b])
@@ -2932,8 +2936,11 @@ public sealed class SolutionTests : TestBase
                 .RemoveDocument(b);
         }
 
+        // A canceled compilation request must leave the pending updates usable by a subsequent request.
         var finalProject = solution.GetRequiredProject(project.Id);
         await Assert.ThrowsAnyAsync<OperationCanceledException>(() => finalProject.GetCompilationAsync(new CancellationToken(canceled: true)));
+
+        // Verify the final surviving text and optional generated type, without loading any intermediate document text.
         var compilation = await finalProject.GetCompilationAsync();
         Assert.NotNull(compilation);
         Assert.NotNull(compilation.GetTypeByMetadataName("FinalKept"));
@@ -2944,7 +2951,7 @@ public sealed class SolutionTests : TestBase
         if (withGenerator)
             Assert.NotNull(compilation.GetTypeByMetadataName("Generated"));
 
-        // Merging a fork's pending work must not change earlier solution snapshots.
+        // Earlier snapshots must still compile their own document versions, independently of the merged final snapshot.
         var intermediateCompilation = await intermediateProject.GetCompilationAsync();
         Assert.NotNull(intermediateCompilation!.GetTypeByMetadataName("LastA"));
         Assert.NotNull(intermediateCompilation.GetTypeByMetadataName("UpdatedB"));
@@ -2956,21 +2963,27 @@ public sealed class SolutionTests : TestBase
     }
 
     [Theory, CombinatorialData]
-    public async Task PendingDocumentUpdatesRespectOtherTranslations(bool addDocument)
+    public async Task CompilationDoesNotMergeDocumentChangesAcrossAdditionsOrParseOptionChanges(bool addDocument)
     {
+        // Build and retain the starting compilation to exercise pending translations rather than a fresh compilation.
         using var workspace = CreateWorkspace();
         var project = workspace.CurrentSolution.AddProject("Project", "Project", LanguageNames.CSharp);
         project = project.AddDocument("A.cs", "class A { }").Project;
         project = project.AddDocument("Kept.cs", "class Kept { }").Project;
         var originalCompilation = await project.GetCompilationAsync();
+
+        // Queue a text change whose document will be removed after another kind of project update.
         var a = project.DocumentIds[0];
         var loader = new CountingTextLoader("class ChangedA { }");
         var solution = project.Solution.WithDocumentTextLoader(a, loader, PreservationMode.PreserveValue);
+
+        // An addition or parse-option change separates the text update from removal and must prevent their merging.
         solution = addDocument
             ? solution.AddDocument(DocumentId.CreateNewId(project.Id), "Added.cs", SourceText.From("class Added { }"))
             : solution.WithProjectParseOptions(project.Id, new CSharpParseOptions(preprocessorSymbols: ["DEFINED"]));
         solution = solution.RemoveDocument(a);
 
+        // The final compilation has no A, but merging stops at the intervening translation, so A's changed text loads once.
         var compilation = await solution.GetRequiredProject(project.Id).GetCompilationAsync();
         Assert.NotNull(compilation);
         Assert.NotNull(compilation.GetTypeByMetadataName("Kept"));
