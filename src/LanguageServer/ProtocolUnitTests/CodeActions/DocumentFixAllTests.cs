@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServer.UnitTests.MiscellaneousFiles;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -101,15 +102,20 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
             mixed.Take(mixed.Length - 1).Select(action => action.Title));
     }
 
-    private static async Task<LSP.CodeAction[]> GetActionsAsync(TestLspServer server, string[]? only)
+    private static Task<LSP.CodeAction[]> GetActionsAsync(TestLspServer server, string[]? only)
     {
         var location = server.GetLocations("caret").Single();
+        return GetActionsAsync(server, location.DocumentUri, location.Range, only);
+    }
+
+    private static async Task<LSP.CodeAction[]> GetActionsAsync(TestLspServer server, DocumentUri documentUri, LSP.Range range, string[]? only)
+    {
         var actions = await server.ExecuteRequestAsync<CodeActionParams, LSP.CodeAction[]>(
             Methods.TextDocumentCodeActionName,
             new CodeActionParams
             {
-                TextDocument = CreateTextDocumentIdentifier(location.DocumentUri),
-                Range = location.Range,
+                TextDocument = CreateTextDocumentIdentifier(documentUri),
+                Range = range,
                 Context = new CodeActionContext { Diagnostics = [], Only = only?.Select(kind => new CodeActionKind(kind)).ToArray() },
             },
             CancellationToken.None);
@@ -370,6 +376,110 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
+    public async Task ResolveFixesUntitledDocumentAcrossDiagnosticIds(bool mutatingLspWorkspace)
+    {
+        var source = """
+            class C
+            {
+                void M()
+                {
+                    int unused;
+                    int assigned = 1;
+                    return;
+                }
+            }
+            """;
+        var expected = """
+            class C
+            {
+                void M()
+                {
+                    return;
+                }
+            }
+            """;
+        var uri = new DocumentUri("untitled:Untitled-1");
+
+        // Open a real untitled document; didOpen supplies the language that its URI cannot identify.
+        await using var server = await CreateTestLspServerAsync("", mutatingLspWorkspace,
+            new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer },
+            composition: Composition.AddParts(typeof(TestLspMiscellaneousFilesWorkspaceProviderFactory)));
+        var miscellaneousFiles = Assert.IsType<TestLspMiscellaneousFilesWorkspaceProviderFactory.TestLspMiscellaneousFilesWorkspaceProvider>(
+            server.GetRequiredLspService<ILspMiscellaneousFilesWorkspaceProvider>());
+        miscellaneousFiles.EnableCompilerDiagnostics = true;
+        await server.OpenDocumentAsync(uri, source, languageId: "csharp");
+
+        // Request source.fixAll at a caret outside the warnings, using the opened URI rather than fixture markup.
+        var actions = await GetActionsAsync(server, uri, new LSP.Range { Start = new(), End = new() }, ["source.fixAll"]);
+        var action = Assert.Single(actions);
+
+        // Built-in fixes remove both warning kinds in one text edit without changing the open document.
+        var resolved = await ResolveAsync(server, action);
+        Assert.Equal(expected, ApplySingleDocumentEdit(resolved, SourceText.From(source), uri).ReplaceLineEndings("\n"));
+        Assert.Equal(source, Assert.Single(server.GetTrackedTexts()).ToString());
+    }
+
+    [Theory, CombinatorialData]
+    public Task ResolveRejectsUntitledDocumentCreationWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
+        => VerifyResolveRejectsUntitledResourceOperationWithoutLosingEarlierEditsAsync(
+            mutatingLspWorkspace, ResourceOperationKind.Create,
+            (solution, untitled) => solution.AddDocument(DocumentId.CreateNewId(untitled.Project.Id), "Untitled-2",
+                SourceText.From("class Added { }"), filePath: "untitled:Untitled-2"));
+
+    [Theory, CombinatorialData]
+    public Task ResolveRejectsUntitledDocumentRenameWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
+        => VerifyResolveRejectsUntitledResourceOperationWithoutLosingEarlierEditsAsync(
+            mutatingLspWorkspace, ResourceOperationKind.Rename,
+            (solution, untitled) => solution.WithDocumentName(untitled.Id, "Renamed.cs"));
+
+    [Theory, CombinatorialData]
+    public Task ResolveRejectsUntitledDocumentSaveWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
+        => VerifyResolveRejectsUntitledResourceOperationWithoutLosingEarlierEditsAsync(
+            mutatingLspWorkspace, ResourceOperationKind.Rename,
+            (solution, untitled) => solution.WithDocumentFilePath(untitled.Id, TestHelpers.GetRootedPath("Saved.cs")));
+
+    [Theory, CombinatorialData]
+    public Task ResolveRejectsUntitledDocumentDeletionWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
+        => VerifyResolveRejectsUntitledResourceOperationWithoutLosingEarlierEditsAsync(
+            mutatingLspWorkspace, ResourceOperationKind.Delete,
+            (solution, untitled) => solution.RemoveDocument(untitled.Id));
+
+    private async Task VerifyResolveRejectsUntitledResourceOperationWithoutLosingEarlierEditsAsync(
+        bool mutatingLspWorkspace, ResourceOperationKind resourceOperation, Func<Solution, Document, Solution> changeSolution)
+    {
+        var source = "// alpha beta\n{|caret:|}class C { }";
+        var expected = "// fixed beta\nclass C { }";
+        var uri = new DocumentUri("untitled:Untitled-1");
+
+        // Advertise the relevant resource capability so rejection must come from the untitled-document policy.
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace,
+            initializationOptions: ResourceOperationOptions(resourceOperation, supported: true));
+        var document = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        var untitled = document.Project.AddDocument("Untitled-1", SourceText.From("class Other { }"), filePath: uri.UriString);
+        await server.TestWorkspace.ChangeSolutionAsync(untitled.Project.Solution);
+
+        // Accept an ordinary fix first, then combine the second text fix with an unsupported untitled operation.
+        var fixer = new TestFixer(["FA0001", "FA0002"], async (document, diagnostics, cancellationToken) =>
+        {
+            var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
+            if (diagnostics[0].Id == "FA0001")
+                return solution;
+
+            return changeSolution(solution, untitled);
+        });
+        await AddReferenceAsync(server, new TestReference(
+            [new MarkerAnalyzer(new("FA0001", "alpha"), new("FA0002", "beta"))], [fixer]));
+
+        // Reject the whole second candidate, retaining only the earlier text edit and no resource operations.
+        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
+        var operations = GetEditOperations(await ResolveAsync(server, action));
+        Assert.IsType<TextDocumentEdit>(Assert.Single(operations));
+        Assert.Equal(expected, ApplyDocumentEdit(operations, await document.GetTextAsync(), document.GetURI()));
+        Assert.Equal(["FA0001", "FA0002"], fixer.Invocations);
+        Assert.Equal("class Other { }", (await server.GetDocumentTextAsync(uri)).ToString());
+    }
+
+    [Theory, CombinatorialData]
     public async Task ResolveIncludesAdditionalAndAnalyzerConfigDocumentChanges(bool mutatingLspWorkspace)
     {
         var source = "// warning\n{|caret:|}class C { }";
@@ -612,12 +722,12 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
     [Theory, CombinatorialData]
     public async Task FixAllRejectsUnusableDocumentPathsWithoutLosingEarlierEdits(
-        bool mutatingLspWorkspace, [CombinatorialValues(null, "Relative.cs")] string? filePath)
+        bool mutatingLspWorkspace, [CombinatorialValues(null, "Relative.cs", "untitled:Untitled-1")] string? filePath)
     {
         var source = "// alpha beta\n{|caret:|}class C { }";
         var expected = "// fixed beta\nclass C { }";
 
-        // Accept an initial fix before a later candidate removes the usable path.
+        // Accept an initial fix before a later candidate removes the filesystem path, including a rename to untitled.
         await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
         var fixer = new TestFixer(["FA0001", "FA0002"], async (document, diagnostics, cancellationToken) =>
         {

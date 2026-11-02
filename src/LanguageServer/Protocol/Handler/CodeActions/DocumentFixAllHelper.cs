@@ -148,7 +148,7 @@ internal static class DocumentFixAllHelper
                     continue;
                 }
 
-                // The final validator rejects unusable output paths; avoid constructing their URIs during normalization.
+                // The final validator rejects unusable output locations; avoid constructing their URIs during normalization.
                 if (updated.FilePath is null &&
                     (updated.Project.FilePath is not { } projectPath || !PathUtilities.IsAbsolute(projectPath)))
                 {
@@ -156,7 +156,7 @@ internal static class DocumentFixAllHelper
                 }
 
                 var filePath = updated.FilePath ?? updated.GetFilePathForDocumentWithoutFilePath();
-                if (!PathUtilities.IsAbsolute(filePath))
+                if (!CodeActionResolveHelper.IsAbsolutePathOrUntitledUri(filePath))
                     continue;
 
                 // Different text for linked contexts cannot be represented by one physical-file edit.

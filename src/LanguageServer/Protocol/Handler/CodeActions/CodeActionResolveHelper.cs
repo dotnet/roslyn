@@ -339,7 +339,7 @@ internal sealed class CodeActionResolveHelper
             foreach (var id in change.GetRemovedDocuments().Concat(change.GetRemovedAdditionalDocuments()).Concat(change.GetRemovedAnalyzerConfigDocuments()))
             {
                 var removed = solution.GetRequiredTextDocument(id);
-                if (!HasUsableFilePath(removed) ||
+                if (!HasAbsolutePath(removed) ||
                     solution.GetDocumentIdsWithFilePath(removed.FilePath).Any(id => newSolution.GetTextDocument(id) is not null))
                 {
                     return false;
@@ -350,7 +350,7 @@ internal sealed class CodeActionResolveHelper
             foreach (var id in change.GetAddedDocuments().Concat(change.GetAddedAdditionalDocuments()).Concat(change.GetAddedAnalyzerConfigDocuments()))
             {
                 var added = newSolution.GetRequiredTextDocument(id);
-                if (!HasUsableFilePath(added) &&
+                if (!HasAbsolutePath(added) &&
                     (added.FilePath is not null || added.Project.FilePath is not { } projectPath || !PathUtilities.IsAbsolute(projectPath)))
                 {
                     return false;
@@ -366,18 +366,21 @@ internal sealed class CodeActionResolveHelper
                 }
             }
 
-            // Text edits and renames require usable document URIs.
+            // Text edits can target an existing untitled URI, but renames still require filesystem paths.
             foreach (var id in change.GetChangedDocuments().Concat(change.GetChangedAdditionalDocuments()).Concat(change.GetChangedAnalyzerConfigDocuments()))
             {
                 var oldDocument = solution.GetRequiredTextDocument(id);
                 var newDocument = newSolution.GetRequiredTextDocument(id);
-                if (!HasUsableFilePath(oldDocument) || !HasUsableFilePath(newDocument))
+                if (!IsAbsolutePathOrUntitledUri(oldDocument.FilePath) || !IsAbsolutePathOrUntitledUri(newDocument.FilePath))
                 {
                     return false;
                 }
 
                 if (!HasDocumentRename(oldDocument, newDocument))
                     continue;
+
+                if (!HasAbsolutePath(oldDocument) || !HasAbsolutePath(newDocument))
+                    return false;
 
                 // A rename must not collide with another resource operation or an unrelated file in either snapshot.
                 var destinationPath = oldDocument.FilePath != newDocument.FilePath
@@ -399,7 +402,7 @@ internal sealed class CodeActionResolveHelper
                     var oldLinked = solution.GetRequiredTextDocument(linkedId);
                     var newLinked = newSolution.GetTextDocument(linkedId);
                     if (newLinked is not null && HasDocumentRename(oldLinked, newLinked) &&
-                        (!HasUsableFilePath(newLinked) || GetRenamedDocumentUri(oldLinked, newLinked) != destination))
+                        (!HasAbsolutePath(newLinked) || GetRenamedDocumentUri(oldLinked, newLinked) != destination))
                     {
                         return false;
                     }
@@ -420,8 +423,14 @@ internal sealed class CodeActionResolveHelper
         }
     }
 
-    private static bool HasUsableFilePath(TextDocument document)
-        => document.FilePath is { } path && PathUtilities.IsAbsolute(path);
+    // Text edits may use an existing untitled URI; resource operations must still use filesystem paths.
+    internal static bool IsAbsolutePathOrUntitledUri(string? filePath)
+        => filePath is not null &&
+            (PathUtilities.IsAbsolute(filePath) ||
+             string.Equals(new DocumentUri(filePath).ParsedDocumentUri?.Scheme, "untitled", StringComparison.OrdinalIgnoreCase));
+
+    private static bool HasAbsolutePath(TextDocument document)
+        => PathUtilities.IsAbsolute(document.FilePath);
 
     private static bool HasDocumentRename(TextDocument oldDocument, TextDocument newDocument)
         => oldDocument.Name != newDocument.Name || oldDocument.FilePath != newDocument.FilePath;
