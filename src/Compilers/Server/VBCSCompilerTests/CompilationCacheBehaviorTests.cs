@@ -255,6 +255,49 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
         Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
     }
 
+    [Theory, CombinatorialData]
+    public async Task CacheHit_UsesCurrentGeneratedSourceDirectory(bool initiallyExplicit, bool hasWarnings)
+    {
+        var workingDirectory = Temp.CreateDirectory();
+        var cacheDirectory = Temp.CreateDirectory();
+        var firstDirectory = workingDirectory.CreateDirectory("generated1").Path;
+        var secondDirectory = workingDirectory.CreateDirectory("generated2").Path;
+        var generatorAssembly = CreateGeneratedFilesGeneratorAssembly(
+            workingDirectory, (hasWarnings ? "#warning Generated warning\n" : "") + "public class GeneratedFromCache { }");
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(
+            false, serverData.PipeName, "test.cs", "test.dll",
+            additionalArguments: $"/a:{generatorAssembly}", cachePath: cacheDirectory.Path);
+        var firstArguments = arguments + (initiallyExplicit ? $" /generatedfilesout:{firstDirectory}" : "");
+
+        var (exitCode, originalOutput) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, firstArguments, workingDirectory, [new("test.cs", "public class C { }")]);
+        Assert.Equal(0, exitCode);
+        Assert.DoesNotContain("Compilation result restored from cache.", originalOutput, StringComparison.Ordinal);
+        if (hasWarnings)
+        {
+            Assert.Contains("warning CS1030", originalOutput, StringComparison.Ordinal);
+            Assert.Contains(initiallyExplicit ? "generated1" : "CacheGeneratedFilesGenerator", originalOutput, StringComparison.Ordinal);
+        }
+
+        (exitCode, var output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments + $" /generatedfilesout:{secondDirectory}", workingDirectory);
+        Assert.Equal(0, exitCode);
+        if (hasWarnings)
+        {
+            Assert.DoesNotContain("Compilation result restored from cache.", output, StringComparison.Ordinal);
+            Assert.Contains("generated2", output, StringComparison.Ordinal);
+            Assert.Contains("warning CS1030", output, StringComparison.Ordinal);
+            Assert.DoesNotContain("generated1", output, StringComparison.Ordinal);
+        }
+        else
+        {
+            Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        }
+
+        (exitCode, output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, firstArguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Equal(originalOutput + "Compilation result restored from cache." + Environment.NewLine, output);
+    }
+
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
     public async Task CacheHit_DoesNotReplayWarningsInDifferentContext(bool changeCulture)
     {

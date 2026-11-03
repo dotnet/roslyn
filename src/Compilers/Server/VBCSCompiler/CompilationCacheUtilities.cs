@@ -158,6 +158,10 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             writer.Write("culture", culture.Name);
             writer.Write("currentCulture", CultureInfo.CurrentCulture.Name);
             writer.Write("baseDirectory", arguments.BaseDirectory);
+            // Generated-source diagnostic paths depend on this directory. Keep the fallback in sync with CompileAndEmit.
+            writer.Write("generatedSourceBaseDirectory", string.IsNullOrWhiteSpace(arguments.GeneratedFilesOutputDirectory)
+                ? arguments.OutputDirectory
+                : arguments.GeneratedFilesOutputDirectory);
             writer.Write("fullPaths", arguments.PrintFullPaths);
             writer.Write("endLocations", arguments is CSharp.CSharpCommandLineArguments { ShouldIncludeErrorEndLocation: true });
             writer.Write("newLine", Environment.NewLine);
