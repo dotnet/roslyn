@@ -65,9 +65,9 @@ their original sub-tree layout
   embedded quotes are escaped without changing their values.
 - **Remote services**: Place the public stub method (calling `RunServiceAsync`) directly
   above its private implementation method.
-- **Formatting options across OOP**: Cohost endpoints must resolve
-  `CSharpSyntaxFormattingOptions` from the Razor document's analyzer-config options with
-  `razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken)`.
+- **Formatting options across OOP**: Cohost endpoints use
+  `razorDocument.GetRazorFormattingOptions(clientSettings, cancellationToken)` to resolve
+  Razor preferences and `CSharpSyntaxFormattingOptions` from the Razor document's analyzer-config options.
   This applies `.editorconfig` sections matching the `.razor` or `.cshtml` path and falls back to
   the user's global C# options. Include the resolved options in `RazorFormattingOptions` sent to
   remote formatting consumers; remote `IClientSettingsManager` state does not contain the user's

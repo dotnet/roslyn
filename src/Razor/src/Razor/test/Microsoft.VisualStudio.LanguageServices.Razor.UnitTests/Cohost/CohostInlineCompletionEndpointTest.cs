@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.AspNetCore.Razor.Test.Common.Mef;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Razor.Snippets;
 using Roslyn.Test.Utilities;
@@ -179,7 +180,9 @@ public class CohostInlineCompletionEndpointTest(ITestOutputHelper testOutputHelp
         ClientSettingsManager.Update(ClientSettingsManager.GetClientSettings().ClientSpaceSettings with { IndentSize = tabSize });
         var endpoint = new CohostInlineCompletionEndpoint(IncompatibleProjectService, RemoteServiceInvoker, ClientSettingsManager);
 
-        var list = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, ClientSettingsManager.GetClientSettings().ToRazorFormattingOptions().ToLspFormattingOptions(), DisposalToken);
+        var clientSettings = ClientSettingsManager.GetClientSettings();
+        var formattingOptions = document.GetRazorFormattingOptions(clientSettings, DisposalToken).ToLspFormattingOptions();
+        var list = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, formattingOptions, DisposalToken);
 
         if (output is null)
         {

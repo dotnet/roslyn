@@ -31,7 +31,7 @@ internal sealed class ManagedHotReloadLanguageServiceFactory(
     IDiagnosticsRefresher diagnosticRefresher,
     IAsynchronousOperationListenerProvider listenerProvider) : IEditAndContinueSolutionProvider
 {
-    public static readonly ServiceRpcDescriptor ServiceDescriptor = IManagedHotReloadUpdatesProvider.CreateServiceDescriptor(ManagedHotReloadUpdatesProviderDescriptor.Moniker);
+    public static readonly ServiceRpcDescriptor ServiceDescriptor = IManagedHotReloadUpdatesProvider.CreateImplementationDescriptor(ManagedHotReloadUpdatesProviderDescriptor.Moniker);
 
     public event Action<Solution>? SolutionCommitted;
 

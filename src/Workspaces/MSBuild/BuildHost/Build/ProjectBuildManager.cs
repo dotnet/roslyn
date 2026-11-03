@@ -64,6 +64,12 @@ internal sealed class ProjectBuildManager : IDisposable
     private readonly MSB.Execution.BuildParameters _buildParameters;
 
     /// <summary>
+    /// Keeps the latest in-memory project XML for each path alive for the lifetime of the project collection.
+    /// Otherwise MSBuild's XML cache can release its strong references and try to load these nonexistent files from disk.
+    /// </summary>
+    private readonly Dictionary<string, MSB.Construction.ProjectRootElement> _projectRootElements = new(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>
     /// An object used as a monitor to guard <see cref="_activeBuilds"/> and <see cref="_unloadedProjectsSinceLastCacheReset"/>.
     /// For us to call <see cref="MSB.Execution.BuildManager.ResetCaches"/>; we need to end builds, call ResetCaches, and then begin build again.
     /// This lets us easily count how many active builds there are, wait until that hits zero, and then block new builds from starting until
@@ -211,7 +217,13 @@ internal sealed class ProjectBuildManager : IDisposable
         {
             using var xmlReader = XmlReader.Create(content, s_xmlReaderSettings);
             var projectRootElement = MSB.Construction.ProjectRootElement.Create(xmlReader, _projectCollection);
-            projectRootElement.FullPath = path;
+
+            lock (_projectRootElements)
+            {
+                // FullPath registers the XML in MSBuild's cache; retain the same root when concurrent loads share a path.
+                projectRootElement.FullPath = path;
+                _projectRootElements[path] = projectRootElement;
+            }
 
             var mergedGlobalProperties = new Dictionary<string, string>(_projectCollection.GlobalProperties, StringComparer.OrdinalIgnoreCase);
 
@@ -257,6 +269,12 @@ internal sealed class ProjectBuildManager : IDisposable
         // unload project so collection will release global strings
         _projectCollection.UnloadAllProjects();
         _projectCollection.Dispose();
+
+        lock (_projectRootElements)
+        {
+            _projectRootElements.Clear();
+        }
+
         _disposed = true;
     }
 

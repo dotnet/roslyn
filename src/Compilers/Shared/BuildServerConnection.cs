@@ -11,6 +11,9 @@ using System.IO;
 using System.IO.Pipes;
 using System.Linq;
 using System.Runtime.InteropServices;
+#if NETFRAMEWORK
+using System.Security.AccessControl;
+#endif
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
@@ -1008,11 +1011,31 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal ServerNamedMutex(string mutexName, bool initiallyOwned, out bool createdNew)
         {
+#if NET
             Mutex = new Mutex(
                 initiallyOwned: initiallyOwned,
                 name: mutexName,
+                options: GetOptions(),
                 createdNew: out createdNew
             );
+#else
+            Mutex = new Mutex(initiallyOwned, mutexName, out createdNew, CreateMutexSecurity());
+            if (!createdNew)
+            {
+                try
+                {
+                    if (!IsCurrentUserOnly(Mutex))
+                    {
+                        throw new WaitHandleCannotBeOpenedException($"Mutex '{mutexName}' is not restricted to the current user.");
+                    }
+                }
+                catch
+                {
+                    Mutex.Dispose();
+                    throw;
+                }
+            }
+#endif
             if (initiallyOwned && createdNew)
                 IsLocked = true;
         }
@@ -1022,7 +1045,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
             Mutex? m = null;
             try
             {
-                return Mutex.TryOpenExisting(mutexName, out m);
+#if NET
+                return Mutex.TryOpenExisting(mutexName, GetOptions(), out m);
+#else
+                const MutexRights rights = MutexRights.Synchronize | MutexRights.Modify | MutexRights.ReadPermissions;
+                return Mutex.TryOpenExisting(mutexName, rights, out m) && IsCurrentUserOnly(m);
+#endif
             }
             catch
             {
@@ -1035,6 +1063,54 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 m?.Dispose();
             }
         }
+
+#if NET
+        private static NamedWaitHandleOptions GetOptions() => new()
+        {
+            CurrentUserOnly = true,
+            CurrentSessionOnly = false,
+        };
+#else
+        private static MutexSecurity CreateMutexSecurity()
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var security = new MutexSecurity();
+            security.SetOwner(identity.User);
+            security.AddAccessRule(new MutexAccessRule(identity.User, MutexRights.FullControl, AccessControlType.Allow));
+            return security;
+        }
+
+        private static bool IsCurrentUserOnly(Mutex mutex)
+        {
+            using var identity = WindowsIdentity.GetCurrent();
+            var security = mutex.GetAccessControl();
+            if (!identity.User.Equals(security.GetOwner(typeof(SecurityIdentifier))))
+            {
+                return false;
+            }
+
+            // A null DACL permits everyone, even though GetAccessRules returns no rules.
+            var descriptor = new RawSecurityDescriptor(security.GetSecurityDescriptorBinaryForm(), 0);
+            if (descriptor.DiscretionaryAcl is null)
+            {
+                return false;
+            }
+
+            // Match the access checks made by NamedWaitHandleOptions.CurrentUserOnly on modern .NET.
+            const MutexRights restrictedRights = MutexRights.ChangePermissions | MutexRights.TakeOwnership | MutexRights.Synchronize | MutexRights.Modify;
+            foreach (MutexAccessRule rule in security.GetAccessRules(includeExplicit: true, includeInherited: true, typeof(SecurityIdentifier)))
+            {
+                if (rule.AccessControlType == AccessControlType.Allow &&
+                    (rule.MutexRights & restrictedRights) != 0 &&
+                    !identity.User.Equals(rule.IdentityReference))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+#endif
 
         public bool TryLock(int timeoutMs)
         {

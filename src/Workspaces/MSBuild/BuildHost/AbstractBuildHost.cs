@@ -226,4 +226,11 @@ internal abstract class AbstractBuildHost :
 
         _server.Shutdown();
     }
+
+    public void TestOnly_ForceGarbageCollection()
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+    }
 }
