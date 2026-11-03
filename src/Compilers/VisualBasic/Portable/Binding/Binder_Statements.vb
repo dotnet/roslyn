@@ -1603,6 +1603,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return type
         End Function
 
+        Friend Function GetForEachIterationType(syntax As SyntaxNode, collectionType As TypeSymbol) As TypeSymbol
+            Dim elementType As TypeSymbol = Nothing
+            InterpretForEachStatementCollection(New BoundRValuePlaceholder(syntax, collectionType),
+                                                currentType:=Nothing,
+                                                elementType:=elementType,
+                                                isEnumerable:=Nothing,
+                                                boundGetEnumeratorCall:=Nothing,
+                                                boundEnumeratorPlaceholder:=Nothing,
+                                                boundMoveNextCall:=Nothing,
+                                                boundCurrentAccess:=Nothing,
+                                                collectionPlaceholder:=Nothing,
+                                                needToDispose:=Nothing,
+                                                isOrInheritsFromOrImplementsIDisposable:=Nothing,
+                                                diagnostics:=BindingDiagnosticBag.Discarded)
+            Return elementType
+        End Function
+
         ''' <summary>
         ''' Infer the type of a variable declared with an initializing expression.
         ''' </summary>
