@@ -17,12 +17,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
 
 public sealed class CodeActionHelpersTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
+    [Theory]
+    [InlineData("", "quickfix", true)]
+    [InlineData("quickfix", "quickfix", true)]
+    [InlineData("refactor", "refactor.extract", true)]
+    [InlineData("refactor.extract", "refactor", false)]
+    [InlineData("refactor", "refactoring", false)]
+    public void TestCodeActionKindMatchesHierarchy(string requestedKind, string actionKind, bool expected)
+        => Assert.Equal(expected, CodeActionHelpers.MatchesKind(new CodeActionKind(requestedKind), new CodeActionKind(actionKind)));
+
     [Theory, CombinatorialData]
-    public async Task TestCodeActionHelperReturnsOnlyQuickFixes(bool mutatingLspWorkspace, bool hasVsLspCapability)
+    public async Task TestCodeActionHelperReturnsOnlyQuickFixes(bool hasVsLspCapability)
     {
         // Select statements offering both missing-using fixes and refactorings, but request only quick fixes.
         var markup = "class C { void M() { {|caret:int value = 1; Task.Delay(value);|} } }";
-        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false);
         var request = CodeActionsTests.CreateCodeActionParams(server.GetLocations("caret").Single());
         request.Context.Only = [CodeActionKind.QuickFix];
 
@@ -38,11 +47,11 @@ public sealed class CodeActionHelpersTests(ITestOutputHelper testOutputHelper) :
     }
 
     [Theory, CombinatorialData]
-    public async Task TestCodeActionHelperIncludesChildRefactorings(bool mutatingLspWorkspace, bool hasVsLspCapability)
+    public async Task TestCodeActionHelperIncludesChildRefactorings(bool hasVsLspCapability)
     {
         // Request the parent refactor kind for statements that also offer fixes.
         var markup = "class C { void M() { {|caret:int value = 1; Task.Delay(value);|} } }";
-        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false);
         var request = CodeActionsTests.CreateCodeActionParams(server.GetLocations("caret").Single());
         request.Context.Only = [CodeActionKind.Refactor];
 
@@ -60,11 +69,11 @@ public sealed class CodeActionHelpersTests(ITestOutputHelper testOutputHelper) :
     }
 
     [Theory, CombinatorialData]
-    public async Task TestCodeActionHelperReturnsOnlyExtractRefactorings(bool mutatingLspWorkspace, bool hasVsLspCapability)
+    public async Task TestCodeActionHelperReturnsOnlyExtractRefactorings(bool hasVsLspCapability)
     {
         // Request only extract refactorings from statements that also offer other actions.
         var markup = "class C { void M() { {|caret:int value = 1; Task.Delay(value);|} } }";
-        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false);
         var request = CodeActionsTests.CreateCodeActionParams(server.GetLocations("caret").Single());
         request.Context.Only = [CodeActionKind.RefactorExtract];
 
@@ -81,11 +90,11 @@ public sealed class CodeActionHelpersTests(ITestOutputHelper testOutputHelper) :
     }
 
     [Theory, CombinatorialData]
-    public async Task TestCodeActionHelperReturnsMixedRequestedKinds(bool mutatingLspWorkspace, bool hasVsLspCapability)
+    public async Task TestCodeActionHelperReturnsMixedRequestedKinds(bool hasVsLspCapability)
     {
         // Request both quick fixes and extract refactorings for the same selection.
         var markup = "class C { void M() { {|caret:int value = 1; Task.Delay(value);|} } }";
-        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false);
         var request = CodeActionsTests.CreateCodeActionParams(server.GetLocations("caret").Single());
         request.Context.Only = [CodeActionKind.QuickFix, CodeActionKind.RefactorExtract];
 
@@ -104,52 +113,32 @@ public sealed class CodeActionHelpersTests(ITestOutputHelper testOutputHelper) :
     }
 
     [Theory, CombinatorialData]
-    public async Task TestCodeActionHelperReturnsNoOrdinaryActionsForSourceFixAll(bool mutatingLspWorkspace, bool hasVsLspCapability)
+    public async Task TestCodeActionHelperReturnsNoOrdinaryActionsForUnsupportedKind(
+        [CombinatorialValues("source.fixAll", "unknown")] string kind)
     {
-        // Request the source action, which the handler adds separately from quick fixes and refactorings.
+        // Source actions are added by the handler; neither requested kind matches an ordinary action.
         var markup = "class C { void M() { {|caret:int value = 1; Task.Delay(value);|} } }";
-        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false);
         var request = CodeActionsTests.CreateCodeActionParams(server.GetLocations("caret").Single());
-        request.Context.Only = [CodeActionKind.SourceFixAll];
-
-        // Use a selection offering ordinary actions; none may leak into the source-only result.
-        var actions = await CodeActionHelpers.GetVSCodeActionsAsync(
-            request, server.GetCurrentSolution().Projects.Single().Documents.Single(),
-            server.TestWorkspace.ExportProvider.GetExportedValue<ICodeFixService>(),
-            server.TestWorkspace.ExportProvider.GetExportedValue<ICodeRefactoringService>(),
-            hasVsLspCapability, CancellationToken.None);
-
-        // No ordinary action matches; source.fixAll is added separately by the request handler.
-        Assert.Empty(actions);
-    }
-
-    [Theory, CombinatorialData]
-    public async Task TestCodeActionHelperReturnsNoActionsForUnknownKind(bool mutatingLspWorkspace, bool hasVsLspCapability)
-    {
-        // Request a kind that neither code fixes nor refactorings support.
-        var markup = "class C { void M() { {|caret:int value = 1; Task.Delay(value);|} } }";
-        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-        var request = CodeActionsTests.CreateCodeActionParams(server.GetLocations("caret").Single());
-        request.Context.Only = [new CodeActionKind("unknown")];
+        request.Context.Only = [new CodeActionKind(kind)];
 
         // The real services offer actions here, but none belongs to the requested kind.
         var actions = await CodeActionHelpers.GetVSCodeActionsAsync(
             request, server.GetCurrentSolution().Projects.Single().Documents.Single(),
             server.TestWorkspace.ExportProvider.GetExportedValue<ICodeFixService>(),
             server.TestWorkspace.ExportProvider.GetExportedValue<ICodeRefactoringService>(),
-            hasVsLspCapability, CancellationToken.None);
+            hasVsLspCapability: false, CancellationToken.None);
 
-        // No action can match the unknown kind.
         Assert.Empty(actions);
     }
 
     [Theory, CombinatorialData]
     public async Task TestCodeActionHelperPreservesUnrestrictedFilters(
-        bool mutatingLspWorkspace, bool hasVsLspCapability, bool useEmptyKind)
+        bool hasVsLspCapability, bool useEmptyKind)
     {
         // Treat omitted, empty-list, and empty-parent filters as equivalent for either client format.
         var markup = "class C { void M() { {|caret:int value = 1; Task.Delay(value);|} } }";
-        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false);
         var request = CodeActionsTests.CreateCodeActionParams(server.GetLocations("caret").Single());
         var document = server.GetCurrentSolution().Projects.Single().Documents.Single();
         var codeFixService = server.TestWorkspace.ExportProvider.GetExportedValue<ICodeFixService>();

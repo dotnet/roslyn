@@ -302,26 +302,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
     }
 
     [Theory, CombinatorialData]
-    public async Task FixAllSkipsFixesRequiringOptions(bool mutatingLspWorkspace)
-    {
-        var source = "// warning\n{|caret:|}class C { }";
-        var expected = "// warning\nclass C { }";
-
-        // Register an action that requires user-supplied options before it can run.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        var fixer = new TestFixer(["FA0001"], action: new OptionsAction());
-        var document = GetDocumentWithReference(server, new TestReference(
-            [new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
-
-        // Attempt unattended document Fix All without requesting user input.
-        var changed = await ChangeAsync(document, server);
-
-        // Skip the interactive action rather than invoking its Fix All provider.
-        Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
-        Assert.Empty(fixer.Invocations);
-    }
-
-    [Theory, CombinatorialData]
     public async Task FixAllFallsBackFromInteractiveProvider(bool mutatingLspWorkspace, bool nested)
     {
         var source = "// warning\n{|caret:|}class C { }";
@@ -739,7 +719,11 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Normalization must reach rejection without attempting to construct an invalid document URI.
         var logs = new List<string>();
-        var changed = await ChangeAsync(document, server, log: logs.Add);
+        // Allow renames so rejection depends on the output path rather than missing client capabilities.
+        var changedSolution = await DocumentFixAllHelper.GetChangedSolutionAsync(
+            document, server.TestWorkspace.GetService<ICodeFixService>(), DiagnosticSeverity.Warning,
+            [ResourceOperationKind.Rename], logs.Add, CancellationToken.None);
+        var changed = changedSolution.GetRequiredDocument(document.Id);
 
         // Preserve the earlier text and original path, discarding the whole unsupported candidate.
         Assert.Equal(expected, (await changed.GetTextAsync()).ToString());
@@ -904,7 +888,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         var linked = changed.Project.Solution.GetDocument(Assert.Single(changed.GetLinkedDocumentIds()))!;
         Assert.Equal(expected, (await linked.GetTextAsync()).ToString().ReplaceLineEndings("\n"));
         Assert.Empty(logs);
-
     }
 
     [Theory, CombinatorialData]

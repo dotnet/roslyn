@@ -91,7 +91,7 @@ internal static class CodeActionHelpers
             }
         }
 
-        if (requestedKinds is not { Length: > 0 } only)
+        if (requestedKinds is not { Length: > 0 })
             return codeActions.ToArray();
 
         return [.. codeActions.Where(action => action.Kind is { } kind && requestedKinds.Any(requested => MatchesKind(requested, kind)))];

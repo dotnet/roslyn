@@ -372,9 +372,7 @@ internal sealed class CodeActionResolveHelper
                 var oldDocument = solution.GetRequiredTextDocument(id);
                 var newDocument = newSolution.GetRequiredTextDocument(id);
                 if (!IsAbsolutePathOrUntitledUri(oldDocument.FilePath) || !IsAbsolutePathOrUntitledUri(newDocument.FilePath))
-                {
                     return false;
-                }
 
                 if (!HasDocumentRename(oldDocument, newDocument))
                     continue;
