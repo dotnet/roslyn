@@ -216,6 +216,9 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
 
     public async Task<bool> IsThrowNotImplementedPropertyAsync(Solution solution, IPropertySymbol property, CancellationToken cancellationToken)
     {
+        if (property.RefKind != RefKind.None)
+            return false;
+
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var accessors);
 
         if (property.GetMethod != null)
@@ -230,6 +233,9 @@ internal abstract class AbstractInitializerParameterService<TStatementSyntax>
         foreach (var group in accessors.GroupBy(node => node.SyntaxTree))
         {
             var document = solution.GetRequiredDocument(group.Key);
+            if (document is SourceGeneratedDocument)
+                return false;
+
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             foreach (var accessorBody in group)
             {

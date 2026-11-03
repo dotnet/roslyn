@@ -443,7 +443,8 @@ internal abstract partial class AbstractInitializeMemberFromParameterCodeRefacto
         // constructor is now initializing the property properly with a value.
         if (isThrowNotImplementedProperty && currentFieldOrProperty is IPropertySymbol property)
         {
-            var currentDocument = solutionWithAssignmentAdded.GetRequiredDocument(documentWithMemberAdded.Id);
+            var currentDocument = await solutionWithAssignmentAdded.GetRequiredDocumentAsync(
+                documentWithMemberAdded.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
             return await initializeParameterService.RemoveThrowNotImplementedAsync(
                 currentDocument, property, useAutoProperty: false, cancellationToken).ConfigureAwait(false);
         }

@@ -4788,6 +4788,72 @@ unsafe class C
             """,
             new(parseOptions: TestOptions.Regular));
 
+    [Fact]
+    public Task TestWithExistingRefReturningThrowNotImplementedProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public ref int Value => throw new System.NotImplementedException();
+
+                void M(int value)
+                {
+                    new [|C|](value);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                private int value;
+
+                public C(int value)
+                {
+                    this.value = value;
+                }
+
+                public ref int Value => throw new System.NotImplementedException();
+
+                void M(int value)
+                {
+                    new C(value);
+                }
+            }
+            """);
+
+    [Fact]
+    public Task TestWithOutArgumentAndExistingThrowNotImplementedProperty()
+        => TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                public int Value => throw new System.NotImplementedException();
+
+                void M()
+                {
+                    int value;
+                    new [|C|](out value);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public C(out int value)
+                {
+                    value = 0;
+                }
+
+                public int Value => throw new System.NotImplementedException();
+
+                void M()
+                {
+                    int value;
+                    new C(out value);
+                }
+            }
+            """);
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/38822")]
     public Task TestMissingInLambdaWithCallToExistingConstructor()
         => TestMissingInRegularAndScriptAsync(

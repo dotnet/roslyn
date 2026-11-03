@@ -422,10 +422,17 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                 return changedDocument;
 
             var solution = changedDocument.Project.Solution;
-            foreach (var property in _parameterToExistingMemberMap.Values.Distinct(SymbolEqualityComparer.Default).OfType<IPropertySymbol>())
+            var processedProperties = new HashSet<IPropertySymbol>(SymbolEqualityComparer.Default);
+            foreach (var parameter in _parameters)
             {
-                if (property.IsWritableInConstructor())
+                if (parameter.RefKind == RefKind.Out ||
+                    !_parameterToExistingMemberMap.TryGetValue(parameter.Name, out var member) ||
+                    member is not IPropertySymbol property ||
+                    property.IsWritableInConstructor() ||
+                    !processedProperties.Add(property))
+                {
                     continue;
+                }
 
                 // A getter-only stub reused by the constructor needs to become an auto-property.
                 var originalDocument = document.Project.Solution.GetRequiredDocument(property.DeclaringSyntaxReferences[0].SyntaxTree);
@@ -435,9 +442,12 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                     currentDocument, property, useAutoProperty: true, cancellationToken).ConfigureAwait(false);
             }
 
-            return solution == changedDocument.Project.Solution
-                ? changedDocument
-                : solution.GetRequiredDocument(changedDocument.Id);
+            if (solution == changedDocument.Project.Solution)
+                return changedDocument;
+
+            return solution.GetDocument(changedDocument.Id) ??
+                await solution.GetSourceGeneratedDocumentAsync(changedDocument.Id, cancellationToken).ConfigureAwait(false) ??
+                throw ExceptionUtilities.Unreachable();
         }
 
         private async Task<Document?> GenerateThisOrBaseDelegatingConstructorAsync(
