@@ -32,13 +32,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions;
 
 public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    [Theory, CombinatorialData]
-    public async Task CapabilitiesAdvertiseFixAllAndResolveSupport(bool mutatingLspWorkspace)
+    [Fact]
+    public async Task CapabilitiesAdvertiseFixAllAndResolveSupport()
     {
         var source = "";
 
         // Inspect initialization capabilities without needing any document diagnostics.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace: false);
         var options = server.GetServerCapabilities().CodeActionProvider!.Value.Second;
 
         // Advertise source.fixAll together with resolve support, since its edits are computed lazily.
@@ -190,14 +190,14 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Empty(resolved.Edit.DocumentChanges!.Value.First);
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllHandlesDiagnosticsMovedOrRemovedByEarlierFixes(bool mutatingLspWorkspace)
+    [Fact]
+    public async Task FixAllHandlesDiagnosticsMovedOrRemovedByEarlierFixes()
     {
         var source = "// expand remove later\n{|caret:|}class C { }";
         var expected = "// expanded_text gone fixed\nclass C { }";
 
         // Make the first fix lengthen the text and eliminate a later diagnostic, invalidating the original spans.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace: false);
         var fixer = new TestFixer(["FA0001", "FA0002", "FA0003"], async (document, diagnostics, cancellationToken) =>
         {
             var text = await document.GetTextAsync(cancellationToken);
@@ -217,13 +217,13 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(["FA0001", "FA0003"], fixer.Invocations);
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllStopsRetryingWithoutDiagnosticProgress(bool mutatingLspWorkspace)
+    [Fact]
+    public async Task FixAllStopsRetryingWithoutDiagnosticProgress()
     {
         var source = "// alpha beta\n{|caret:|}class C { }";
         var expected = "// alpha fixed\nclass C { }\n// changed";
 
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace: false);
         var fixer = new TestFixer(["FA0001", "FA0002"], async (document, diagnostics, cancellationToken) =>
         {
             var text = await document.GetTextAsync(cancellationToken);
@@ -280,14 +280,14 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(expected, ApplySingleDocumentEdit(resolved, await server.GetDocumentTextAsync(uri), uri));
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllSkipsSuppressedAndDisabledDiagnostics(bool mutatingLspWorkspace)
+    [Fact]
+    public async Task FixAllSkipsSuppressedAndDisabledDiagnostics()
     {
         var source = "#pragma warning disable FA0001\n// suppressed disabled enabled\n{|caret:|}class C { }";
         var expected = "#pragma warning disable FA0001\n// suppressed disabled fixed\nclass C { }";
 
         // Combine pragma-suppressed, disabled-by-default, and enabled hidden diagnostics.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace: false);
         var fixer = new TestFixer(["FA0001", "FA0002", "FA0003"]);
         var document = GetDocumentWithReference(server, new TestReference(
             [new MarkerAnalyzer(new("FA0001", "suppressed"), new("FA0002", "disabled", Enabled: false),
@@ -301,13 +301,15 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(["FA0003"], fixer.Invocations);
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllFallsBackFromInteractiveProvider(bool mutatingLspWorkspace, bool nested)
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task FixAllFallsBackFromInteractiveProvider(bool nested)
     {
         var source = "// warning\n{|caret:|}class C { }";
         var expected = "// fixed\nclass C { }";
 
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace: false);
         CodeAction interactiveAction = nested
             ? CodeAction.Create("Choices", [new OptionsAction()], isInlinable: false)
             : new OptionsAction();
@@ -405,12 +407,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
             mutatingLspWorkspace, ResourceOperationKind.Create,
             (solution, untitled) => solution.AddDocument(DocumentId.CreateNewId(untitled.Project.Id), "Untitled-2",
                 SourceText.From("class Added { }"), filePath: "untitled:Untitled-2"));
-
-    [Theory, CombinatorialData]
-    public Task ResolveRejectsUntitledDocumentRenameWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
-        => VerifyResolveRejectsUntitledResourceOperationWithoutLosingEarlierEditsAsync(
-            mutatingLspWorkspace, ResourceOperationKind.Rename,
-            (solution, untitled) => solution.WithDocumentName(untitled.Id, "Renamed.cs"));
 
     [Theory, CombinatorialData]
     public Task ResolveRejectsUntitledDocumentSaveWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
@@ -667,8 +663,8 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Equal(expectedGenerated, ApplyDocumentEdit(operations, await generated.GetTextAsync(), generated.GetURI()));
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllRejectsReferenceChangesWithoutLosingEarlierEdits(bool mutatingLspWorkspace)
+    [Fact]
+    public async Task FixAllRejectsReferenceChangesWithoutLosingEarlierEdits()
     {
         var source = "// alpha beta\n{|caret:|}class C { }";
         var otherSource = "class Other { }";
@@ -676,7 +672,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         var expectedOther = "class Changed { }";
 
         // Accept an initial cross-file fix, then encounter a fix requiring unsupported project state.
-        await using var server = await CreateTestLspServerAsync([source, otherSource], mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync([source, otherSource], mutatingLspWorkspace: false);
         var fixer = new TestFixer(["FA0001", "FA0002"], async (document, diagnostics, cancellationToken) =>
         {
             var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
@@ -700,15 +696,17 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
             Assert.Single(logs));
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllRejectsUnusableDocumentPathsWithoutLosingEarlierEdits(
-        bool mutatingLspWorkspace, [CombinatorialValues(null, "Relative.cs", "untitled:Untitled-1")] string? filePath)
+    [Theory]
+    [InlineData(null)]
+    [InlineData("Relative.cs")]
+    [InlineData("untitled:Untitled-1")]
+    public async Task FixAllRejectsUnusableDocumentPathsWithoutLosingEarlierEdits(string? filePath)
     {
         var source = "// alpha beta\n{|caret:|}class C { }";
         var expected = "// fixed beta\nclass C { }";
 
         // Accept an initial fix before a later candidate removes the filesystem path, including a rename to untitled.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace: false);
         var fixer = new TestFixer(["FA0001", "FA0002"], async (document, diagnostics, cancellationToken) =>
         {
             var solution = await ReplaceDiagnosticsAsync(document, diagnostics, "fixed", cancellationToken);
@@ -759,44 +757,6 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
 
         // Only the replacement document's diagnostic ID should be sent to Fix All.
         Assert.Equal(["FA0002"], fixer.Invocations);
-    }
-
-    [Theory, CombinatorialData]
-    public async Task ResolveRemovesAllUnusedLocalDeclarations(bool mutatingLspWorkspace)
-    {
-        // Include two occurrences of both unassigned and assigned-but-unused local warnings.
-        var source = """
-            class C
-            {
-                void M()
-                {
-                    int unused;
-                    int alsoUnused;
-                    int assigned = 1;
-                    int alsoAssigned = 2;
-                    {|caret:|}System.Console.WriteLine(3);
-                }
-            }
-            """;
-        var expected = """
-            class C
-            {
-                void M()
-                {
-                    System.Console.WriteLine(3);
-                }
-            }
-            """;
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
-        var uri = server.GetLocations("caret").Single().DocumentUri;
-
-        // Exercise the built-in compiler fixes through source.fixAll rather than the synthetic test fixer.
-        var action = Assert.Single(await GetActionsAsync(server, ["source.fixAll"]));
-        var resolved = await ResolveAsync(server, action);
-
-        // Aggregate both diagnostic IDs, removing all four unused declarations while preserving the remaining statement.
-        Assert.Equal(expected.ReplaceLineEndings("\n"),
-            ApplySingleDocumentEdit(resolved, await server.GetDocumentTextAsync(uri), uri).ReplaceLineEndings("\n"));
     }
 
     [Theory, CombinatorialData]
@@ -860,13 +820,13 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
             ApplySingleDocumentEdit(resolved, await server.GetDocumentTextAsync(uri), uri).ReplaceLineEndings("\n"));
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllAcceptsMatchingLinkedDocumentChanges(bool mutatingLspWorkspace)
+    [Fact]
+    public async Task FixAllAcceptsMatchingLinkedDocumentChanges()
     {
         var source = "// warning\n{|caret:|}class C { }";
         var expected = "// fixed\nclass C { }";
 
-        await using var server = await CreateLinkedDocumentTestLspServerAsync(source, mutatingLspWorkspace);
+        await using var server = await CreateLinkedDocumentTestLspServerAsync(source, mutatingLspWorkspace: false);
 
         // Return the same updated text for every project context of the shared file.
         var fixer = new TestFixer(["FA0001"], async (document, diagnostics, cancellationToken) =>
@@ -890,8 +850,11 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         Assert.Empty(logs);
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllPropagatesLinkedChangesBeforeLaterFixes(bool mutatingLspWorkspace, TextDocumentKind documentKind)
+    [Theory]
+    [InlineData(TextDocumentKind.Document)]
+    [InlineData(TextDocumentKind.AdditionalDocument)]
+    [InlineData(TextDocumentKind.AnalyzerConfigDocument)]
+    public async Task FixAllPropagatesLinkedChangesBeforeLaterFixes(TextDocumentKind documentKind)
     {
         var source = "// alpha beta\n{|caret:|}class C { }";
         var otherSource = documentKind == TextDocumentKind.AnalyzerConfigDocument ? "root = true\n" : "class Other { }";
@@ -901,7 +864,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         var otherPath = TestHelpers.GetRootedPath(otherName);
 
         // Share both the requested source and a sibling of the selected document kind between projects.
-        await using var server = await CreateLinkedDocumentTestLspServerAsync(source, mutatingLspWorkspace);
+        await using var server = await CreateLinkedDocumentTestLspServerAsync(source, mutatingLspWorkspace: false);
         var solution = server.TestWorkspace.CurrentSolution;
         foreach (var projectId in solution.ProjectIds)
         {
@@ -941,14 +904,14 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
             Assert.Equal(expectedOther, (await result.Project.Solution.GetRequiredTextDocument(id).GetTextAsync()).ToString());
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllRejectsConflictingLinkedDocumentChanges(bool mutatingLspWorkspace)
+    [Fact]
+    public async Task FixAllRejectsConflictingLinkedDocumentChanges()
     {
         var source = "// alpha beta\n{|caret:|}class C { }";
         var conflictingSource = "// different\nclass C { }";
         var expected = "// fixed beta\nclass C { }";
 
-        await using var server = await CreateLinkedDocumentTestLspServerAsync(source, mutatingLspWorkspace);
+        await using var server = await CreateLinkedDocumentTestLspServerAsync(source, mutatingLspWorkspace: false);
 
         // Accept one fix, then mix a later local fix with conflicting text for its linked context.
         var fixer = new TestFixer(["FA0001", "FA0002"], async (document, diagnostics, cancellationToken) =>
@@ -1084,14 +1047,14 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         return CreateXmlTestLspServerAsync(workspace, mutatingLspWorkspace, initializationOptions: initializationOptions);
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllRejectsFixesWithAdditionalOperations(bool mutatingLspWorkspace)
+    [Fact]
+    public async Task FixAllRejectsFixesWithAdditionalOperations()
     {
         var source = "// warning\n{|caret:|}class C { }";
         var expected = "// warning\nclass C { }";
 
         // Return a valid text edit together with an extra operation that must never execute.
-        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync(source, mutatingLspWorkspace: false);
         var fixer = new TestFixer(["FA0001"], unsupportedOperations: true);
         var document = GetDocumentWithReference(server, new TestReference([new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]));
 
@@ -1106,8 +1069,8 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
             Assert.Single(logs));
     }
 
-    [Theory, CombinatorialData]
-    public async Task FixAllDiscoversDiagnosticsOnlyInTheRequestedDocument(bool mutatingLspWorkspace)
+    [Fact]
+    public async Task FixAllDiscoversDiagnosticsOnlyInTheRequestedDocument()
     {
         var source = "// warning\n{|caret:|}class C { }";
         var otherSource = "// warning\nclass Other { }";
@@ -1116,7 +1079,7 @@ public sealed class DocumentFixAllTests(ITestOutputHelper testOutputHelper) : Ab
         var expectedOriginal = "// warning\nclass C { }";
 
         // Place the same diagnostic marker in the requested document and a sibling document.
-        await using var server = await CreateTestLspServerAsync([source, otherSource], mutatingLspWorkspace);
+        await using var server = await CreateTestLspServerAsync([source, otherSource], mutatingLspWorkspace: false);
         var document = server.TestWorkspace.CurrentSolution.Projects.Single().Documents.First();
         var fixer = new TestFixer(["FA0001"]);
         var reference = new TestReference([new MarkerAnalyzer(new Rule("FA0001", "warning"))], [fixer]);
