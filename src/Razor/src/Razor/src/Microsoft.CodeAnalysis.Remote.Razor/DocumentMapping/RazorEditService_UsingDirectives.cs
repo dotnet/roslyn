@@ -1,6 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -84,6 +85,28 @@ internal partial class RazorEditService
             Debug.Assert(remainingUsings.IsEmpty, "Should not have no first block but still have remaining usings");
             var span = FindFirstTopLevelSpotForUsing(codeDocument);
             var newText = GetUsingsText(usingDirectives: [], addedUsings, removedUsings: [], ref edits);
+
+            // A directive at EOF may not have a newline, so the new using needs to start its own line.
+            if (codeDocument.Source.Text.Lines.GetLineFromPosition(span.Start).Start != span.Start)
+            {
+                newText = Environment.NewLine + newText;
+            }
+
+            // In an empty or directive-only document, a new member block can insert at the same position.
+            // Put the usings first in a single edit so normalization doesn't discard either insertion.
+            for (var i = 0; i < edits.Count; i++)
+            {
+                if (edits[i].Span.Start == span.Start && edits[i].Span.Length == 0)
+                {
+                    edits[i] = new RazorTextChange
+                    {
+                        Span = span,
+                        NewText = newText + edits[i].NewText
+                    };
+                    return;
+                }
+            }
+
             edits.Add(new RazorTextChange()
             {
                 Span = span,

@@ -2054,6 +2054,102 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 """);
 
     [Fact]
+    public Task UsingAdded_NamespaceOnlyWithoutTrailingNewline_StartsOnNewLine()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: "@namespace MyNamespace",
+            newCSharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            expectedRazorSource: """
+                @namespace MyNamespace
+                @using System
+
+                """);
+
+    [Fact]
+    public Task UsingAndMemberAdded_NamespaceOnlyWithoutTrailingNewline_PreservesBothInsertions()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: "@namespace MyNamespace",
+            newCSharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                    public int Counter { get; set; }
+                }
+                """,
+            expectedRazorSource: """
+                @namespace MyNamespace
+                @using System
+
+                @code {
+                    public int Counter { get; set; }
+                }
+                """);
+
+    [Fact]
+    public Task UsingAndMemberAdded_EmptyDocument_PreservesBothInsertions()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: "",
+            newCSharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                    public int Counter { get; set; }
+                }
+                """,
+            expectedRazorSource: """
+                @using System
+                @code {
+                    public int Counter { get; set; }
+                }
+                """);
+
+    [Fact]
+    public Task UsingAndMemberAdded_NamespaceOnlyWithTrailingNewline_PreservesBothInsertions()
+        => TestAsync(
+            csharpSource: """
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                @namespace MyNamespace
+
+                """,
+            newCSharpSource: """
+                using System;
+                class MyComponent : ComponentBase
+                {
+                    public int Counter { get; set; }
+                }
+                """,
+            expectedRazorSource: """
+                @namespace MyNamespace
+                @using System
+                @code {
+                    public int Counter { get; set; }
+                }
+                """);
+
+    [Fact]
     public Task UsingAndMemberAdded_AtEndOfFileWithTrailingNewline_PreservesMember()
         => TestAsync(
             csharpSource: """
