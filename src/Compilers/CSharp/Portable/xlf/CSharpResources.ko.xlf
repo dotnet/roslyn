@@ -2867,11 +2867,6 @@
         <target state="new">The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
-        <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
-        <target state="translated">SkipLocalsInit 내에서 이니셜라이저 없는 stackalloc 식은 안전하지 않은 컨텍스트에서만 사용할 수 있습니다.</target>
-        <note>'stackalloc' and 'SkipLocalsInit' are identifiers, should not be localized.</note>
-      </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
         <target state="translated">구현된 멤버 '{0}'에 이 특성이 없으므로 UnscopedRefAttribute를 인터페이스 구현에 적용할 수 없습니다.</target>
