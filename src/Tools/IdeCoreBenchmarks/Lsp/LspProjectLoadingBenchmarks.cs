@@ -4,7 +4,6 @@
 
 #if NET
 
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,8 +21,7 @@ public class LspProjectLoadingBenchmarks
     [GlobalSetup]
     public async Task GlobalSetup()
     {
-        var roslynRoot = Environment.GetEnvironmentVariable(Program.RoslynRootPathEnvVariableName)
-            ?? throw new InvalidOperationException($"{Program.RoslynRootPathEnvVariableName} is not set.");
+        var roslynRoot = Program.RoslynRootPath;
         _solutionPath = Path.GetFullPath(Path.Combine(roslynRoot, "Roslyn.slnx"));
         if (!File.Exists(_solutionPath))
             throw new FileNotFoundException("Couldn't find Roslyn.slnx.", _solutionPath);
