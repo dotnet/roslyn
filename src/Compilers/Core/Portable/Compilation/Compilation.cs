@@ -205,7 +205,9 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions = null,
             Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
-            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+            ImmutableArray<(string Path, SourceText Content)> analyzerConfigFiles = default,
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default,
+            CancellationToken cancellationToken = default)
         {
             return DeterministicKey.GetDeterministicKey(
                 compilationOptions,
@@ -219,7 +221,9 @@ namespace Microsoft.CodeAnalysis
                 emitOptions,
                 sourceLinkStream,
                 resources,
-                options);
+                analyzerConfigFiles,
+                options,
+                cancellationToken);
         }
 
         internal string GetDeterministicKey(
@@ -230,7 +234,9 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions = null,
             Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
-            DeterministicKeyOptions options = DeterministicKeyOptions.Default)
+            ImmutableArray<(string Path, SourceText Content)> analyzerConfigFiles = default,
+            DeterministicKeyOptions options = DeterministicKeyOptions.Default,
+            CancellationToken cancellationToken = default)
         {
             return GetDeterministicKey(
                 Options,
@@ -244,7 +250,9 @@ namespace Microsoft.CodeAnalysis
                 emitOptions,
                 sourceLinkStream,
                 resources,
-                options);
+                analyzerConfigFiles,
+                options,
+                cancellationToken);
         }
 
         internal static void ValidateScriptCompilationParameters(Compilation? previousScriptCompilation, Type? returnType, ref Type? globalsType)

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private static string? GetCachePath(IReadOnlyDictionary<string, string> features, ICompilerServerLogger logger)
         {
-            if (!features.TryGetValue(CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag, out var featureValue) || featureValue is null)
+            if (!features.TryGetValue(Feature.UseGlobalCache, out var featureValue) || featureValue is null)
             {
                 return null;
             }

@@ -323,8 +323,9 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
         public void FeatureFlag()
         {
             Assert.Equal("debug-determinism", CodeAnalysis.Feature.DebugDeterminism);
-            var compiler = TestableCompiler.CreateBasicNetCoreApp("test.vb", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", @"-define:_MYTYPE=""Empty""", "-debug:portable");
+            var compiler = TestableCompiler.CreateBasicNetCoreApp("test.vb", @"-t:library", "-nologo", "-features:debug-determinism", "-deterministic", @"-define:_MYTYPE=""Empty""", "-debug:portable", "-analyzerconfig:.globalconfig");
             var sourceFile = compiler.AddSourceFile("test.vb", @"' this is a test file");
+            var analyzerConfigFile = compiler.AddSourceFile(".globalconfig", "is_global = true");
             compiler.AddOutputFile("test.dll");
             var pdbFile = compiler.AddOutputFile("test.pdb");
             var keyFile = compiler.AddOutputFile("test.dll.key");
@@ -414,6 +415,16 @@ namespace Microsoft.CodeAnalysis.Rebuild.UnitTests
     ]
   }},
   ""additionalTexts"": [],
+  ""analyzerConfigs"": [
+    {{
+      ""fileName"": ""{Roslyn.Utilities.JsonWriter.EscapeString(analyzerConfigFile.FilePath)}"",
+      ""text"": {{
+        ""checksum"": ""971e9b97adb72253428fee6cec91146774875fb0"",
+        ""checksumAlgorithm"": ""Sha1"",
+        ""encodingName"": null
+      }}
+    }}
+  ],
   ""analyzers"": [],
   ""generators"": [],
   ""emitOptions"": {{

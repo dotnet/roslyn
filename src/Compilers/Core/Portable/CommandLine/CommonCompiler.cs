@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal ICommonCompilerFileSystem FileSystem { get; set; }
 
+        /// <summary>
+        /// The analyzer-configuration snapshot used for deterministic key generation, or <see langword="default"/> when not captured.
+        /// </summary>
+        internal ImmutableArray<(string Path, SourceText Content)> AnalyzerConfigFiles { get; private set; }
+
         private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
 
         public abstract Compilation? CreateCompilation(
@@ -295,6 +300,9 @@ namespace Microsoft.CodeAnalysis
             [NotNullWhen(true)] out AnalyzerConfigSet? analyzerConfigSet)
         {
             var configs = ArrayBuilder<AnalyzerConfig>.GetInstance(analyzerConfigPaths.Length);
+            var captureConfigFiles = Arguments.ParseOptions.HasFeature(Feature.DebugDeterminism)
+                || Arguments.ParseOptions.HasFeature(Feature.UseGlobalCache);
+            var configFiles = captureConfigFiles ? ArrayBuilder<(string Path, SourceText Content)>.GetInstance(analyzerConfigPaths.Length) : null;
 
             var processedDirs = PooledHashSet<string>.GetInstance();
 
@@ -312,7 +320,8 @@ namespace Microsoft.CodeAnalysis
 
                 Debug.Assert(normalizedPath is object);
                 var directory = Path.GetDirectoryName(normalizedPath) ?? normalizedPath;
-                var editorConfig = AnalyzerConfig.Parse(fileContent, normalizedPath);
+                var sourceText = SourceText.From(fileContent);
+                var editorConfig = AnalyzerConfig.Parse(sourceText, normalizedPath);
 
                 if (!editorConfig.IsGlobal)
                 {
@@ -327,6 +336,7 @@ namespace Microsoft.CodeAnalysis
                     processedDirs.Add(directory);
                 }
                 configs.Add(editorConfig);
+                configFiles?.Add((normalizedPath, sourceText));
             }
 
             processedDirs.Free();
@@ -334,12 +344,14 @@ namespace Microsoft.CodeAnalysis
             if (diagnostics.HasAnyErrors())
             {
                 configs.Free();
+                configFiles?.Free();
                 analyzerConfigSet = null;
                 return false;
             }
 
             analyzerConfigSet = AnalyzerConfigSet.Create(configs, out var setDiagnostics);
             configs.Free();
+            AnalyzerConfigFiles = configFiles?.ToImmutableAndFree() ?? default;
             diagnostics.AddRange(setDiagnostics);
             return true;
         }
@@ -1316,7 +1328,8 @@ namespace Microsoft.CodeAnalysis
                         Arguments.PathMap,
                         emitOptions,
                         sourceLinkStreamDisposerOpt?.Stream,
-                        Arguments.ManifestResources);
+                        Arguments.ManifestResources,
+                        cancellationToken);
                 }
 
                 // Need to ensure the PDB file path validation is done on the original path as that is the
@@ -1834,8 +1847,10 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<KeyValuePair<string, string>> pathMap,
             EmitOptions? emitOptions,
             Stream? sourceLinkStream,
-            ImmutableArray<ResourceDescription> resources)
+            ImmutableArray<ResourceDescription> resources,
+            CancellationToken cancellationToken)
         {
+            Debug.Assert(Arguments.AnalyzerConfigPaths.IsEmpty || !AnalyzerConfigFiles.IsDefault);
             var key = compilation.GetDeterministicKey(
                 additionalTexts,
                 analyzers,
@@ -1843,7 +1858,9 @@ namespace Microsoft.CodeAnalysis
                 pathMap,
                 emitOptions,
                 sourceLinkStream,
-                resources);
+                resources,
+                AnalyzerConfigFiles,
+                cancellationToken: cancellationToken);
 
             var filePath = Path.Combine(Arguments.OutputDirectory, Arguments.OutputFileName + ".key");
             using var stream = fileSystem.OpenFile(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.None);

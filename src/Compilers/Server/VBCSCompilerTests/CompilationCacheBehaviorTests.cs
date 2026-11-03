@@ -123,6 +123,138 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
         Assert.Equal(expectedExitCode == 0, File.Exists(Path.Combine(workingDirectory.Path, "test.dll")));
     }
 
+    [Theory, CombinatorialData]
+    public async Task CacheHit_UsesCurrentAnalyzerConfig(bool visualBasic, bool globalConfig, bool suppressInitially)
+    {
+        var workingDirectory = Temp.CreateDirectory();
+        var cacheDirectory = Temp.CreateDirectory();
+        var sourceFileName = visualBasic ? "test.vb" : "test.cs";
+        var compilerWarningId = visualBasic ? "BC40000" : "CS0618";
+        var source = visualBasic
+            ? """
+            Public Class C
+                <System.Obsolete("Example warning")>
+                Public Shared Sub Old()
+                End Sub
+
+                Public Shared Sub M()
+                    Old()
+                End Sub
+            End Class
+            """
+            : """
+            public class C
+            {
+                [System.Obsolete("Example warning")]
+                public static void Old() { }
+
+                public static void M() => Old();
+            }
+            """;
+        var analyzerAssembly = CreateWarningAnalyzerAssembly(workingDirectory);
+        var configPath = Path.Combine(workingDirectory.Path, globalConfig ? ".globalconfig" : ".editorconfig");
+        writeConfig(suppressInitially);
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(
+            visualBasic, serverData.PipeName, sourceFileName, "test.dll",
+            additionalArguments: $"/a:{analyzerAssembly} /analyzerconfig:{configPath}", cachePath: cacheDirectory.Path);
+
+        var (exitCode, originalOutput) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory, [new(sourceFileName, source)]);
+        Assert.Equal(0, exitCode);
+        verifyWarnings(originalOutput, suppressInitially);
+        Assert.DoesNotContain("Compilation result restored from cache.", originalOutput, StringComparison.Ordinal);
+
+        (exitCode, var output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Equal(originalOutput + "Compilation result restored from cache." + Environment.NewLine, output);
+
+        var originalTimestamp = File.GetLastWriteTimeUtc(configPath);
+        writeConfig(!suppressInitially);
+        File.SetLastWriteTimeUtc(configPath, originalTimestamp);
+        (exitCode, var changedOutput) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        verifyWarnings(changedOutput, !suppressInitially);
+        Assert.DoesNotContain("Compilation result restored from cache.", changedOutput, StringComparison.Ordinal);
+
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Equal(changedOutput + "Compilation result restored from cache." + Environment.NewLine, output);
+
+        writeConfig(suppressInitially);
+        (exitCode, output) = RunCommandLineCompiler(GetLanguage(visualBasic), arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Equal(originalOutput + "Compilation result restored from cache." + Environment.NewLine, output);
+
+        void writeConfig(bool suppress)
+        {
+            var header = globalConfig ? "is_global = true" : "root = true" + Environment.NewLine + "[*.{cs,vb}]";
+            var severity = suppress ? "none" : "warning";
+            File.WriteAllText(configPath, $"""
+                {header}
+                dotnet_diagnostic.{compilerWarningId}.severity = {severity}
+                dotnet_diagnostic.CACHWARN001.severity = {severity}
+                """);
+        }
+
+        void verifyWarnings(string output, bool suppressed)
+        {
+            foreach (var warningId in new[] { compilerWarningId, "CACHWARN001" })
+            {
+                if (suppressed)
+                {
+                    Assert.DoesNotContain(warningId, output, StringComparison.Ordinal);
+                }
+                else
+                {
+                    Assert.Contains("warning " + warningId, output, StringComparison.Ordinal);
+                }
+            }
+        }
+    }
+
+    [Fact]
+    public async Task CacheHit_UsesCurrentGeneratorConfig()
+    {
+        var workingDirectory = Temp.CreateDirectory();
+        var cacheDirectory = Temp.CreateDirectory();
+        var configPath = Path.Combine(workingDirectory.Path, ".globalconfig");
+        var generatorAssembly = EmitSupportAssembly(workingDirectory, "ConfigGenerator", """
+            using Microsoft.CodeAnalysis;
+
+            [Generator]
+            public sealed class ConfigGenerator : ISourceGenerator
+            {
+                public void Initialize(GeneratorInitializationContext context) { }
+
+                public void Execute(GeneratorExecutionContext context)
+                {
+                    context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("cache_value", out var value);
+                    context.AddSource("generatedSource.cs", "public class Generated { public const int Value = " + value + "; }");
+                }
+            }
+            """);
+        File.WriteAllText(configPath, "is_global = true\ncache_value = 1");
+        using var serverData = await ServerUtil.CreateServer(_logger);
+        var arguments = BuildCompilationArguments(
+            false, serverData.PipeName, "test.cs", "test.dll",
+            additionalArguments: $"/a:{generatorAssembly} /analyzerconfig:{configPath}", cachePath: cacheDirectory.Path);
+        var (exitCode, output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, workingDirectory, [new("test.cs", "public class C { }")]);
+        Assert.Equal(0, exitCode);
+        Assert.DoesNotContain("warning ", output, StringComparison.Ordinal);
+        var originalAssembly = File.ReadAllBytes(Path.Combine(workingDirectory.Path, "test.dll"));
+
+        File.WriteAllText(configPath, "is_global = true\ncache_value = 2");
+        (exitCode, output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.DoesNotContain("Compilation result restored from cache.", output, StringComparison.Ordinal);
+        Assert.DoesNotContain("warning ", output, StringComparison.Ordinal);
+        Assert.False(originalAssembly.SequenceEqual(File.ReadAllBytes(Path.Combine(workingDirectory.Path, "test.dll"))));
+
+        (exitCode, output) = RunCommandLineCompiler(RequestLanguage.CSharpCompile, arguments, workingDirectory);
+        Assert.Equal(0, exitCode);
+        Assert.Contains("Compilation result restored from cache.", output, StringComparison.Ordinal);
+    }
+
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/86198")]
     public async Task CacheHit_DoesNotReplayWarningsInDifferentContext(bool changeCulture)
     {
@@ -466,7 +598,7 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
             "/nologo",
             "/t:library",
             $"/out:{outputFileName}",
-            cachePath is null ? "" : $"/features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}={cachePath}",
+            cachePath is null ? "" : $"/features:{Feature.UseGlobalCache}={cachePath}",
             languageArguments,
             additionalArguments,
         };
@@ -540,11 +672,11 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
             }
             """);
 
-    private static string CreateGeneratedFilesGeneratorAssembly(TempDirectory directory)
+    private static string CreateGeneratedFilesGeneratorAssembly(TempDirectory directory, string generatedSource = "public class GeneratedFromCache { }")
         => EmitSupportAssembly(
             directory,
             "CacheGeneratedFilesGenerator",
-            """
+            $$"""
             using Microsoft.CodeAnalysis;
 
             [Generator(LanguageNames.CSharp)]
@@ -556,7 +688,7 @@ public sealed class CompilationCacheBehaviorTests(ITestOutputHelper testOutputHe
 
                 public void Execute(GeneratorExecutionContext context)
                 {
-                    context.AddSource("generatedSource.cs", "public class GeneratedFromCache { }");
+                    context.AddSource("generatedSource.cs", {{CSharp.SymbolDisplay.FormatLiteral(generatedSource, quote: true)}});
                 }
             }
             """);

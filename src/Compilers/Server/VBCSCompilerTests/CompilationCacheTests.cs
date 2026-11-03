@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -66,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var cacheDir = Temp.CreateDirectory().Path;
             var logMessages = new List<string>();
             var cache = CompilationCache.TryCreate(
-                ParseArguments([$"/features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}={cacheDir}", "test.cs"]),
+                ParseArguments([$"/features:{Feature.UseGlobalCache}={cacheDir}", "test.cs"]),
                 new CollectingLogger(logMessages));
 
             Assert.NotNull(cache);
@@ -833,7 +834,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var telemetry = new CompilationCacheTelemetry();
 
             Assert.Null(CompilationCacheUtilities.CheckCache(
-                cache, _logger, arguments, compilation, [], [], [], CultureInfo.GetCultureInfo("en"), TextWriter.Null,
+                cache, _logger, arguments, compilation, [], [], [], [], CultureInfo.GetCultureInfo("en"), TextWriter.Null,
                 telemetry, CancellationToken.None, out var cacheState));
             Assert.Equal("notfound", telemetry.ToTelemetryEvent(LanguageNames.CSharp).Properties["missreason"]);
 
@@ -846,7 +847,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var lookupTelemetry = new CompilationCacheTelemetry();
             using var output = new StringWriter();
             var exitCode = CompilationCacheUtilities.CheckCache(
-                cache, _logger, arguments, compilation, [], [], [], CultureInfo.GetCultureInfo(differentContext ? "fr" : "en"), output,
+                cache, _logger, arguments, compilation, [], [], [], [], CultureInfo.GetCultureInfo(differentContext ? "fr" : "en"), output,
                 lookupTelemetry, CancellationToken.None, out _);
             var telemetryEvent = lookupTelemetry.ToTelemetryEvent(LanguageNames.CSharp);
 
@@ -866,6 +867,42 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 Assert.Equal(diagnosticOutput, output.ToString());
                 Assert.Equal([1], File.ReadAllBytes(outputFile));
             }
+        }
+
+        [Fact]
+        public void CompilationCacheUtilities_ReusesEntryWithMappedAnalyzerConfigPaths()
+        {
+            var cache = CreateCache(Temp.CreateDirectory().Path);
+            var outputDirectory = Temp.CreateDirectory().Path;
+            var firstConfigDirectory = Temp.CreateDirectory().Path;
+            var secondConfigDirectory = Temp.CreateDirectory().Path;
+            var outputFile = Path.Combine(outputDirectory, "Util.dll");
+            var sourceFile = Path.Combine(outputDirectory, "test.cs");
+            var compilation = CSharpCompilation.Create(
+                "Util",
+                syntaxTrees: [CSharpSyntaxTree.ParseText("public class C { }", path: sourceFile)],
+                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, deterministic: true));
+            const string configContent = "is_global = true\ncache_value = 1";
+            var firstArguments = ParseArguments([$"/out:{outputFile}", "/t:library", "/deterministic", $"/pathmap:{firstConfigDirectory}=X:\\mapped", sourceFile]);
+            var telemetry = new CompilationCacheTelemetry();
+            Assert.Null(CompilationCacheUtilities.CheckCache(
+                cache, _logger, firstArguments, compilation, [], [], [], [(Path.Combine(firstConfigDirectory, ".globalconfig"), SourceText.From(configContent))],
+                CultureInfo.GetCultureInfo("en"), TextWriter.Null, telemetry, CancellationToken.None, out var firstState));
+            File.WriteAllBytes(outputFile, [1]);
+            CompilationCacheUtilities.OnCompilationSucceeded(cache, _logger, firstArguments, firstState, "", telemetry);
+            Assert.Equal(CompilationCacheStoreResult.Stored, telemetry.StoreResult);
+            File.Delete(outputFile);
+
+            var secondArguments = ParseArguments([$"/out:{outputFile}", "/t:library", "/deterministic", $"/pathmap:{secondConfigDirectory}=X:\\mapped", sourceFile]);
+            var exitCode = CompilationCacheUtilities.CheckCache(
+                cache, _logger, secondArguments, compilation, [], [], [], [(Path.Combine(secondConfigDirectory, ".globalconfig"), SourceText.From(configContent))],
+                CultureInfo.GetCultureInfo("en"), TextWriter.Null, new CompilationCacheTelemetry(), CancellationToken.None, out var secondState);
+
+            Assert.NotNull(firstState);
+            Assert.NotNull(secondState);
+            Assert.Equal(CommonCompiler.Succeeded, exitCode);
+            Assert.Equal(firstState.HashKey, secondState.HashKey);
+            Assert.Equal([1], File.ReadAllBytes(outputFile));
         }
 
         [Fact]
@@ -1304,7 +1341,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private static CompilationCache CreateCache(string cachePath)
         {
             return CompilationCache.TryCreate(
-                ParseArguments([$"/features:{CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag}={cachePath}", "test.cs"]),
+                ParseArguments([$"/features:{Feature.UseGlobalCache}={cachePath}", "test.cs"]),
                 EmptyCompilerServerLogger.Instance)
                 ?? throw new InvalidOperationException("Failed to create cache");
         }

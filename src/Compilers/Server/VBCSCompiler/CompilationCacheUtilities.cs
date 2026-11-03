@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CommandLine;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
@@ -40,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             ImmutableArray<ISourceGenerator> generators,
             ImmutableArray<AdditionalText> additionalTexts,
+            ImmutableArray<(string Path, SourceText Content)> analyzerConfigFiles,
             CultureInfo culture,
             TextWriter consoleOutput,
             CompilationCacheTelemetry telemetry,
@@ -52,6 +55,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 return null;
             }
+
+            Debug.Assert(arguments.AnalyzerConfigPaths.IsEmpty || !analyzerConfigFiles.IsDefault);
 
             var dllName = arguments.OutputFileName;
             var outputTimestampUtc = DateTime.UtcNow;
@@ -71,7 +76,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     arguments.PathMap,
                     arguments.EmitOptions,
                     sourceLinkStream,
-                    arguments.ManifestResources);
+                    arguments.ManifestResources,
+                    analyzerConfigFiles,
+                    cancellationToken: cancellationToken);
                 diagnosticContext = GetDiagnosticContext(arguments, compilation, additionalTexts, culture, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
