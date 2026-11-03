@@ -531,7 +531,7 @@ internal static class ProjectDataWriter
 	private static void AtomicReplace(string outputPath, byte[] content, int length, string? tempDirectory)
 	{
 		string? outputDir = Path.GetDirectoryName(outputPath);
-		if (outputDir != null) Directory.CreateDirectory(outputDir);
+		if (!string.IsNullOrEmpty(outputDir)) Directory.CreateDirectory(outputDir);
 
 		// Keep the transient side-file out of the (committed, watched) project folder by preferring
 		// the intermediate output directory, falling back to the output directory when none is given
@@ -552,7 +552,9 @@ internal static class ProjectDataWriter
 				// Directory links can put paths with the same textual root on different volumes.
 				// Stage beside the destination so replacement stays atomic even in that case.
 				// https://github.com/microsoft/vscode-dotnettools/issues/3715
-				string adjacentTempPath = Path.Combine(outputDir ?? ".", Path.GetFileName(tempPath));
+				string adjacentTempPath = Path.Combine(
+					string.IsNullOrEmpty(outputDir) ? "." : outputDir,
+					Path.GetFileName(tempPath));
 				if (string.Equals(Path.GetFullPath(tempPath), Path.GetFullPath(adjacentTempPath),
 					RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
 				{
