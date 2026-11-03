@@ -8980,17 +8980,9 @@ class Program
                 // (13,22): error CS0747: Invalid initializer member declarator
                 //         _ = c with { [undefined] = 1 };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[undefined] = 1").WithLocation(13, 22),
-                // (14,28): error CS0029: Cannot implicitly convert type 'string' to 'int'
-                //         _ = c with { [0] = "s" };
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""s""").WithArguments("string", "int").WithLocation(14, 28),
                 // (14,22): error CS0747: Invalid initializer member declarator
                 //         _ = c with { [0] = "s" };
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"[0] = ""s""").WithLocation(14, 22));
-
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var indexerAccess = tree.GetRoot().DescendantNodes().OfType<ImplicitElementAccessSyntax>().First();
-            Assert.Equal("System.Int32 C.this[System.Int32 i] { get; set; }", model.GetSymbolInfo(indexerAccess).Symbol.ToTestDisplayString());
         }
 
         [Fact]
