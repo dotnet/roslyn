@@ -2862,6 +2862,11 @@
         <target state="translated">이 작업은 안전하지 않은 컨텍스트에서만 사용할 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsafeUnassignedAddressOf">
+        <source>The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</source>
+        <target state="new">The operand of an address-of expression is not definitely assigned. Ensure the operand is assigned or use an unsafe context.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsafeUninitializedStackAlloc">
         <source>stackalloc expression without an initializer inside SkipLocalsInit may only be used in an unsafe context</source>
         <target state="translated">SkipLocalsInit 내에서 이니셜라이저 없는 stackalloc 식은 안전하지 않은 컨텍스트에서만 사용할 수 있습니다.</target>
@@ -3575,6 +3580,16 @@
       <trans-unit id="WRN_ConvertingLock_Title">
         <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
         <target state="translated">다른 형식으로 변환된 'System.Threading.Lock' 형식의 값은 ‘lock’ 문에서 의도하지 않은 모니터 기반 잠금을 사용합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DeprecatedFeatureFlag">
+        <source>Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</source>
+        <target state="new">Feature flag '{0}' is deprecated and will be removed in a future version. Use MSBuild property '{1}' or compiler option '{2}' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DeprecatedFeatureFlag_Title">
+        <source>Feature flag is deprecated</source>
+        <target state="new">Feature flag is deprecated</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -4293,6 +4308,9 @@
 -nullable[+|-]                Specify nullable context option enable|disable.
 -nullable:{enable|disable|warnings|annotations}
                               Specify nullable context option enable|disable|warnings|annotations.
+-memorysafetyrulesversion:&lt;n&gt;  Set memory safety rules version as
+                              `1` (legacy),
+                              `2` (updated: unsafe members require unsafe context at use site)
 
                        - SECURITY -
 -delaysign[+|-]               Delay-sign the assembly using only the public

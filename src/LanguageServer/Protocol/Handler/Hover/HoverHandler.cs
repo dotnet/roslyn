@@ -47,8 +47,9 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
         var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
         var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
         var supportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(MarkupKind.Markdown) == true;
+        var supportsCSharpDeclarationMarkers = SupportsCSharpDeclarationMarkers(clientCapabilities);
 
-        return await GetHoverAsync(document, linePosition, _globalOptions, supportsVSExtensions, supportsMarkdown, cancellationToken).ConfigureAwait(false);
+        return await GetHoverAsync(document, linePosition, _globalOptions, supportsVSExtensions, supportsMarkdown, supportsCSharpDeclarationMarkers, cancellationToken).ConfigureAwait(false);
     }
 
     // Used by the LSIF Generator
@@ -61,9 +62,13 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
     {
         var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
         var supportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(MarkupKind.Markdown) == true;
+        var supportsCSharpDeclarationMarkers = SupportsCSharpDeclarationMarkers(clientCapabilities);
 
-        return GetHoverAsync(document, position, options, supportsVSExtensions, supportsMarkdown, cancellationToken);
+        return GetHoverAsync(document, position, options, supportsVSExtensions, supportsMarkdown, supportsCSharpDeclarationMarkers, cancellationToken);
     }
+
+    internal static bool SupportsCSharpDeclarationMarkers(ClientCapabilities? clientCapabilities)
+        => clientCapabilities?.TextDocument?.Hover is RoslynHoverSetting { SupportsCSharpDeclarationMarkers: true };
 
     internal static async Task<Hover?> GetHoverAsync(
         Document document,
@@ -71,6 +76,7 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
         IGlobalOptionService globalOptions,
         bool supportsVSExtensions,
         bool supportsMarkdown,
+        bool supportsCSharpDeclarationMarkers,
         CancellationToken cancellationToken)
     {
         var position = await document
@@ -80,7 +86,7 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
         var options = globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
 
         return await GetHoverAsync(
-            document, position, options, supportsVSExtensions, supportsMarkdown, cancellationToken).ConfigureAwait(false);
+            document, position, options, supportsVSExtensions, supportsMarkdown, supportsCSharpDeclarationMarkers, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<Hover?> GetHoverAsync(
@@ -89,6 +95,7 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
         SymbolDescriptionOptions options,
         bool supportsVSExtensions,
         bool supportsMarkdown,
+        bool supportsCSharpDeclarationMarkers,
         CancellationToken cancellationToken)
     {
         // Get the quick info service to compute quick info.
@@ -100,7 +107,7 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
 
         return supportsVSExtensions
             ? await CreateVsHoverAsync(document, info, options, cancellationToken).ConfigureAwait(false)
-            : await CreateDefaultHoverAsync(document, info, supportsMarkdown, cancellationToken).ConfigureAwait(false);
+            : await CreateDefaultHoverAsync(document, info, supportsMarkdown, supportsCSharpDeclarationMarkers, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<VSInternalHover> CreateVsHoverAsync(
@@ -130,11 +137,26 @@ internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocum
     }
 
     private static async Task<Hover> CreateDefaultHoverAsync(
-        TextDocument document, QuickInfoItem info, bool supportsMarkdown, CancellationToken cancellationToken)
+        TextDocument document, QuickInfoItem info, bool supportsMarkdown, bool supportsCSharpDeclarationMarkers, CancellationToken cancellationToken)
     {
+        var markDeclarations = supportsMarkdown && supportsCSharpDeclarationMarkers && document.Project.Language == LanguageNames.CSharp;
+
         // Insert line breaks in between sections to ensure we get double spacing between sections.
         ImmutableArray<TaggedText> tags = [
-            .. info.Sections.SelectMany(static s => s.TaggedParts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine)))
+            .. info.Sections.SelectMany(s =>
+            {
+                var parts = s.TaggedParts;
+                if (markDeclarations &&
+                    s.Kind == QuickInfoSectionKinds.Description &&
+                    !parts.IsDefaultOrEmpty &&
+                    parts[0].Tag == TextTags.CodeBlockStart)
+                {
+                    // Opt declaration blocks into the C# TextMate hover grammar without changing documentation examples.
+                    parts = parts.Insert(1, new TaggedText(TextTags.Text, "\u200B"));
+                }
+
+                return parts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine));
+            })
         ];
 
         var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

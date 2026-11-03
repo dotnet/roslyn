@@ -17,6 +17,7 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
     private readonly TagHelperFlags _flags;
 
     private ImmutableArray<BoundAttributeDescriptor> _editorRequiredAttributes;
+    private ImmutableArray<RazorDiagnostic> _allDiagnostics;
 
     public TagHelperFlags Flags => _flags;
     public TagHelperKind Kind { get; }
@@ -177,22 +178,33 @@ public sealed class TagHelperDescriptor : TagHelperObject<TagHelperDescriptor>
 
     internal void AppendAllDiagnostics(ref PooledArrayBuilder<RazorDiagnostic> diagnostics)
     {
-        foreach (var allowedChildTag in AllowedChildTags)
+        if (_allDiagnostics.IsDefault)
         {
-            diagnostics.AddRange(allowedChildTag.Diagnostics);
+            // Descriptors are immutable and shared across documents. Cache this shallow
+            // aggregate so each document doesn't have to walk all of the children again.
+            using var builder = new PooledArrayBuilder<RazorDiagnostic>();
+
+            foreach (var allowedChildTag in AllowedChildTags)
+            {
+                builder.AddRange(allowedChildTag.Diagnostics);
+            }
+
+            foreach (var boundAttribute in BoundAttributes)
+            {
+                builder.AddRange(boundAttribute.Diagnostics);
+            }
+
+            foreach (var tagMatchingRule in TagMatchingRules)
+            {
+                builder.AddRange(tagMatchingRule.Diagnostics);
+            }
+
+            builder.AddRange(Diagnostics);
+
+            ImmutableInterlocked.InterlockedInitialize(ref _allDiagnostics, builder.ToImmutableAndClear());
         }
 
-        foreach (var boundAttribute in BoundAttributes)
-        {
-            diagnostics.AddRange(boundAttribute.Diagnostics);
-        }
-
-        foreach (var tagMatchingRule in TagMatchingRules)
-        {
-            diagnostics.AddRange(tagMatchingRule.Diagnostics);
-        }
-
-        diagnostics.AddRange(Diagnostics);
+        diagnostics.AddRange(_allDiagnostics);
     }
 
     public override string ToString()

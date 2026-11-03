@@ -25064,18 +25064,14 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Consider improving the error message
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // Enum.Zero.Property = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Enum.Zero.Property").WithLocation(1, 1));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "Enum.Zero.Property");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E.<G>$5BDAAC939B0896D4F1349316F7C8CE0F.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+        AssertEx.Equal("E.extension(Enum).Property", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        AssertEx.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
         Assert.Equal([], model.GetMemberGroup(memberAccess).ToTestDisplayStrings()); // Tracked by https://github.com/dotnet/roslyn/issues/78957 : handle GetMemberGroup on a property access
     }
 
@@ -25237,18 +25233,14 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Consider improving the error message
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // 1.Property = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "1.Property").WithLocation(1, 1));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "1.Property");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E.<G>$BA41CFE2B5EDAEB8C1B9062F59ED4D69.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+        AssertEx.Equal("E.extension(int).Property", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        AssertEx.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
     }
 
     [Fact]
@@ -25363,18 +25355,14 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        // Consider improving the error message
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // (1, 2).Property = 1;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "(1, 2).Property").WithLocation(1, 1));
+        comp.VerifyEmitDiagnostics();
 
         var tree = comp.SyntaxTrees.Single();
         var model = comp.GetSemanticModel(tree);
         var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "(1, 2).Property");
-        Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-        AssertEx.SequenceEqual(["System.Int32 E.<G>$49AAF2D3C1326E88AED3848611C299DA.Property { set; }"], model.GetSymbolInfo(memberAccess).CandidateSymbols.ToTestDisplayStrings());
-        Assert.Equal(CandidateReason.NotAVariable, model.GetSymbolInfo(memberAccess).CandidateReason);
+        AssertEx.Equal("E.extension((int, int)).Property", model.GetSymbolInfo(memberAccess).Symbol.ToDisplayString());
+        AssertEx.Empty(model.GetSymbolInfo(memberAccess).CandidateSymbols);
+        Assert.Equal(CandidateReason.None, model.GetSymbolInfo(memberAccess).CandidateReason);
     }
 
     [Fact]
@@ -28555,35 +28543,25 @@ static class E
 {
     extension(System.ReadOnlySpan<object> s)
     {
-        public int Property { set { } }
+        public int Property { set { System.Console.Write(value); } }
     }
 }
 """;
 
-        // Tracked by https://github.com/dotnet/roslyn/issues/79451 : consider adjusting receiver requirements for extension members
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics(
-            // (1,41): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new System.ReadOnlySpan<string>() { Property = 42 };
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 41),
-            // (3,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // new System.ReadOnlySpan<string>().Property = 43;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new System.ReadOnlySpan<string>().Property").WithLocation(3, 1));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("4243"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
 
         src = """
 new S().Property = 42;
 
 struct S
 {
-    public int Property { set { } }
+    public readonly int Property { set { } }
 }
 """;
 
         comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyEmitDiagnostics(
-            // (1,1): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // new S().Property = 42;
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "new S().Property").WithLocation(1, 1));
+        comp.VerifyEmitDiagnostics();
     }
 
     [Fact]
@@ -28605,10 +28583,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyEmitDiagnostics(
-            // (1,44): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new System.ValueTuple<int, string>() { Property = 42 };
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 44));
+        CompileAndVerify(comp, expectedOutput: "property").VerifyDiagnostics();
     }
 
     [Fact]
@@ -28630,10 +28605,7 @@ static class E
 }
 """;
         var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
-        comp.VerifyDiagnostics(
-            // (1,34): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
-            // _ = new System.String('a', 10) { Property = 42 };
-            Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "Property").WithLocation(1, 34));
+        CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify).VerifyDiagnostics();
     }
 
     [Fact]

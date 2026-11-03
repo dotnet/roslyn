@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
@@ -50,16 +49,9 @@ internal sealed class CohostCodeActionsResolveEndpoint(
         return resolveParams.TextDocument;
     }
 
-    protected override Task<CodeAction?> HandleRequestAsync(CodeAction request, TextDocument razorDocument, CancellationToken cancellationToken)
-    {
-        var csharpSyntaxFormattingOptions = razorDocument.GetCSharpSyntaxFormattingOptions(cancellationToken);
-        return HandleRequestAsync(request, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
-    }
-
-    private async Task<CodeAction?> HandleRequestAsync(
+    protected override async Task<CodeAction?> HandleRequestAsync(
         CodeAction request,
         TextDocument razorDocument,
-        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
         CancellationToken cancellationToken)
     {
         var resolveParams = RazorCodeActionResolutionParams.Unwrap(request);
@@ -71,10 +63,8 @@ internal sealed class CohostCodeActionsResolveEndpoint(
             _ => null
         };
 
-        var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions() with
-        {
-            CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
-        };
+        var clientSettings = _clientSettingsManager.GetClientSettings();
+        var formattingOptions = razorDocument.GetRazorFormattingOptions(clientSettings, cancellationToken);
 
         return await _remoteServiceInvoker.TryInvokeAsync<IRemoteCodeActionsService, CodeAction>(
             razorDocument.Project.Solution,

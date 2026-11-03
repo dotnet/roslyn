@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal sealed class ManagedHotReloadLanguageService(Func<IServiceBroker, ManagedHotReloadLanguageServiceImpl> implFactory) : IManagedHotReloadUpdatesProvider, IDisposable
 {
     private ManagedHotReloadLanguageServiceImpl? _impl;
+    private IDisposable? _eventSubscriber;
     private IDisposable? _eventSubscription;
+    private IDisposable? _registrationService;
     private IDisposable? _providerRegistration;
 
     internal async ValueTask InitializeAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
@@ -29,23 +31,29 @@ internal sealed class ManagedHotReloadLanguageService(Func<IServiceBroker, Manag
         _impl = implFactory(serviceBroker);
 
 #pragma warning disable ISB001 // Dispose of proxies
-        var hotReloadEventSubscriber = await serviceBroker.GetProxyAsync<IHotReloadEventSubscriber>(
+        var eventSubscriber = await serviceBroker.GetProxyAsync<IHotReloadEventSubscriber>(
             IHotReloadEventSubscriber.ServiceDescriptor,
             new() { ClientRpcTarget = _impl },
             cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
-        Assumes.Present(hotReloadEventSubscriber);
-        using var _1 = hotReloadEventSubscriber as IDisposable;
+        Assumes.Present(eventSubscriber);
 
-        _eventSubscription = await hotReloadEventSubscriber.SubscribeAsync(cancellationToken).ConfigureAwait(false);
+        // Keep the proxy alive until the subscription is disposed. 
+        // Otherwise, disposal of the proxy would close the connection and dispose the subscription as well.
+        _eventSubscriber = eventSubscriber as IDisposable;
+
+        _eventSubscription = await eventSubscriber.SubscribeAsync(cancellationToken).ConfigureAwait(false);
 
 #pragma warning disable ISB001 // Dispose of proxies
         var registrationService = await serviceBroker.GetProxyAsync<IManagedHotReloadUpdatesProviderRegistration>(IManagedHotReloadUpdatesProviderRegistration.ServiceDescriptor, cancellationToken).ConfigureAwait(false);
 #pragma warning restore ISB001 // Dispose of proxies
 
         Assumes.Present(registrationService);
-        using var _2 = registrationService as IDisposable;
+
+        // Keep the proxy alive until the registration is disposed. 
+        // Otherwise, disposal of the proxy would close the connection and dispose the registration as well.
+        _registrationService = registrationService as IDisposable;
 
         _providerRegistration = await registrationService.RegisterAsync(ManagedHotReloadUpdatesProviderDescriptor.Moniker, cancellationToken).ConfigureAwait(false);
     }
@@ -53,7 +61,9 @@ internal sealed class ManagedHotReloadLanguageService(Func<IServiceBroker, Manag
     public void Dispose()
     {
         _eventSubscription?.Dispose();
+        _eventSubscriber?.Dispose();
         _providerRegistration?.Dispose();
+        _registrationService?.Dispose();
     }
 
     // internal for testing:

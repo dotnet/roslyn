@@ -18,7 +18,7 @@ if (!Directory.Exists(nugetPackageDir))
     nugetPackageDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages");
 }
 
-var versions = XDocument.Parse(File.ReadAllText(Path.Combine(GetScriptDirectory(), "Packages.props")));
+var versions = XDocument.Parse(File.ReadAllText(Path.Combine(GetScriptDirectory(), "..", "Directory.Packages.props")));
 var vssdkVersion = versions.Descendants().First(n => n.Name.LocalName == "PackageVersion" && n.Attribute("Include").Value == "Microsoft.VisualStudio.SDK").Attribute("Version").Value;
 
 var vssdkPackageSpecPath = Path.Combine(nugetPackageDir, "microsoft.visualstudio.sdk", vssdkVersion, "microsoft.visualstudio.sdk.nuspec");
