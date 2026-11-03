@@ -4104,6 +4104,192 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.ERR_UnsafeOperation, "*").WithLocation(7, 15));
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_PropertyAccess()
+    {
+        var source = """
+            class C
+            {
+                unsafe int P { get; set; }
+
+                void M()
+                {
+                    _ = unsafe(P);
+                    unsafe(P) = 1;
+                    _ = unsafe(P)++;
+                    unsafe(P) += 1;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_IndexerAccess()
+    {
+        var source = """
+            class C
+            {
+                unsafe int this[int index] { get => 0; set { } }
+
+                void M()
+                {
+                    _ = unsafe(this[0]);
+                    unsafe(this[0]) = 1;
+                    _ = unsafe(this[0])++;
+                    unsafe(this[0]) += 1;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Theory]
+    [InlineData("(unsafe((P)))")]
+    [InlineData("checked(unsafe(P))")]
+    [InlineData("unchecked(unsafe(P))")]
+    [InlineData("unsafe(checked(P))")]
+    [InlineData("unsafe(unchecked(P))")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_PropertyAccess_Wrapped(string access)
+    {
+        var source = $$"""
+            class C
+            {
+                unsafe int P { get; set; }
+
+                void M()
+                {
+                    _ = {{access}};
+                    {{access}} = 1;
+                    _ = {{access}}++;
+                    {{access}} += 1;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_RefPropertyAccess()
+    {
+        var source = """
+            class C
+            {
+                int _value;
+                unsafe ref int P => ref _value;
+
+                void M()
+                {
+                    _ = unsafe(P);
+                    unsafe(P) = 1;
+                    ref int local = ref unsafe(P);
+                    Consume(ref unsafe(P));
+                }
+
+                static void Consume(ref int value) { }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_FieldLikeEventAccess()
+    {
+        var source = """
+            delegate void D();
+
+            class C
+            {
+                unsafe event D E;
+
+                void M()
+                {
+                    _ = unsafe(E);
+                    unsafe(E) = null;
+                    (unsafe(E))();
+                    Consume(ref unsafe(E));
+                }
+
+                static void Consume(ref D value) { }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_SuppressedMemberAccess()
+    {
+        var source = """
+            delegate void D();
+
+            class C
+            {
+                int _value;
+                unsafe int P { get; set; }
+                unsafe int this[int index] => 0;
+                unsafe ref int R => ref _value;
+                unsafe event D E;
+
+                void M()
+                {
+                    _ = unsafe(P!);
+                    _ = unsafe(P)!;
+                    _ = unsafe(this[0]!);
+                    _ = unsafe(this[0])!;
+                    _ = unsafe(R!);
+                    _ = unsafe(R)!;
+                    _ = unsafe(E!);
+                    _ = unsafe(E)!;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_MemberAccessContext()
+    {
+        var source = """
+            class C
+            {
+                unsafe int P { get; set; }
+                unsafe C Next => this;
+
+                void M()
+                {
+                    _ = unsafe(P) + P;
+                    unsafe(P) = P;
+                    _ = unsafe(Next).P;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (8,25): error CS9362: 'C.P.get' must be used in an unsafe context because it is marked as 'unsafe'
+            //         _ = unsafe(P) + P;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "P").WithArguments("C.P.get").WithLocation(8, 25),
+            // (9,21): error CS9362: 'C.P.get' must be used in an unsafe context because it is marked as 'unsafe'
+            //         unsafe(P) = P;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "P").WithArguments("C.P.get").WithLocation(9, 21),
+            // (10,13): error CS9362: 'C.P.get' must be used in an unsafe context because it is marked as 'unsafe'
+            //         _ = unsafe(Next).P;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "unsafe(Next).P").WithArguments("C.P.get").WithLocation(10, 13));
+    }
+
     [Fact]
     public void UnsafeExpression_Lambda()
     {
@@ -4120,6 +4306,684 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
 
         CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
             .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_Lambda_UnsafeMember_SafeContext()
+    {
+        var source = """
+            class C
+            {
+                static unsafe int F() => 0;
+
+                static System.Func<int> M() => () => F();
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (5,42): error CS9362: 'C.F()' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static System.Func<int> M() => () => F();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "F()").WithArguments("C.F()").WithLocation(5, 42));
+    }
+
+    [Fact]
+    public void UnsafeExpression_Lambda_UnsafeMember_UnsafeContext()
+    {
+        var source = """
+            class C
+            {
+                static unsafe int F() => 0;
+
+                static System.Func<int> M() => unsafe(() => F());
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_TargetTypedNew_SafeContext()
+    {
+        var source = """
+            class C
+            {
+                public unsafe C() { }
+
+                static C M() => new();
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (5,21): error CS9362: 'C.C()' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static C M() => new();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "new()").WithArguments("C.C()").WithLocation(5, 21));
+    }
+
+    [Fact]
+    public void UnsafeExpression_TargetTypedNew_UnsafeContext()
+    {
+        var source = """
+            class C
+            {
+                public unsafe C() { }
+
+                static C M() => unsafe(new());
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_RefSafety()
+    {
+        var source = """
+            using System;
+
+            delegate void D(ref int reference);
+
+            class C
+            {
+                void M()
+                {
+                    Span<int> span = default;
+                    int outer = 0;
+                    ref int reference = ref outer;
+                    {
+                        Span<int> innerSpan = stackalloc int[1];
+                        int inner = 0;
+                        _ = unsafe(span = innerSpan);
+                        _ = unsafe(reference = ref inner);
+                        unsafe
+                        {
+                            span = innerSpan;
+                            reference = ref inner;
+                        }
+                    }
+                }
+
+                D LambdaExpression() => unsafe((ref int reference) =>
+                {
+                    int local = 0;
+                    reference = ref local;
+                });
+
+                D LambdaBlock()
+                {
+                    unsafe
+                    {
+                        return (ref int reference) =>
+                        {
+                            int local = 0;
+                            reference = ref local;
+                        };
+                    }
+                }
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (15,31): warning CS9080: Use of variable 'innerSpan' in this context may expose referenced variables outside of their declaration scope
+            //             _ = unsafe(span = innerSpan);
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "innerSpan").WithArguments("innerSpan").WithLocation(15, 31),
+            // (16,24): warning CS9085: This ref-assigns 'inner' to 'reference' but 'inner' has a narrower escape scope than 'reference'.
+            //             _ = unsafe(reference = ref inner);
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "reference = ref inner").WithArguments("reference", "inner").WithLocation(16, 24),
+            // (19,24): warning CS9080: Use of variable 'innerSpan' in this context may expose referenced variables outside of their declaration scope
+            //                 span = innerSpan;
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "innerSpan").WithArguments("innerSpan").WithLocation(19, 24),
+            // (20,17): warning CS9085: This ref-assigns 'inner' to 'reference' but 'inner' has a narrower escape scope than 'reference'.
+            //                 reference = ref inner;
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "reference = ref inner").WithArguments("reference", "inner").WithLocation(20, 17),
+            // (28,9): warning CS9085: This ref-assigns 'local' to 'reference' but 'local' has a narrower escape scope than 'reference'.
+            //         reference = ref local;
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "reference = ref local").WithArguments("reference", "local").WithLocation(28, 9),
+            // (38,17): warning CS9085: This ref-assigns 'local' to 'reference' but 'local' has a narrower escape scope than 'reference'.
+            //                 reference = ref local;
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "reference = ref local").WithArguments("reference", "local").WithLocation(38, 17));
+    }
+
+    [Fact]
+    public void UnsafeExpression_PropertyAssignmentRefSafety()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                Span<int> P { get => default; set { } }
+
+                void M()
+                {
+                    Span<int> value = stackalloc int[1];
+                    unsafe(P) = value;
+                }
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_RefSafety_Context()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    Span<int> span = default;
+                    int outer = 0;
+                    ref int reference = ref outer;
+                    {
+                        Span<int> innerSpan = stackalloc int[1];
+                        int inner = 0;
+                        span = unsafe(innerSpan);
+                        reference = ref unsafe(inner);
+                        span = innerSpan;
+                        reference = ref inner;
+                    }
+                }
+
+                ref int Return()
+                {
+                    int local = 0;
+                    return ref unsafe(local);
+                }
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (13,27): error CS8352: Cannot use variable 'innerSpan' in this context because it may expose referenced variables outside of their declaration scope
+            //             span = unsafe(innerSpan);
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "innerSpan").WithArguments("innerSpan").WithLocation(13, 27),
+            // (14,13): error CS8374: Cannot ref-assign 'inner' to 'reference' because 'inner' has a narrower escape scope than 'reference'.
+            //             reference = ref unsafe(inner);
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "reference = ref unsafe(inner)").WithArguments("reference", "inner").WithLocation(14, 13),
+            // (15,20): error CS8352: Cannot use variable 'innerSpan' in this context because it may expose referenced variables outside of their declaration scope
+            //             span = innerSpan;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "innerSpan").WithArguments("innerSpan").WithLocation(15, 20),
+            // (16,13): error CS8374: Cannot ref-assign 'inner' to 'reference' because 'inner' has a narrower escape scope than 'reference'.
+            //             reference = ref inner;
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "reference = ref inner").WithArguments("reference", "inner").WithLocation(16, 13),
+            // (23,27): error CS8168: Cannot return local 'local' by reference because it is not a ref local
+            //         return ref unsafe(local);
+            Diagnostic(ErrorCode.ERR_RefReturnLocal, "local").WithArguments("local").WithLocation(23, 27));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_RefSafety_Calls()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                public C(ref Span<int> destination, Span<int> source) { }
+                static C Mix(ref Span<int> destination, Span<int> source) => null;
+                C Next() => this;
+                int End() => 0;
+
+                void M()
+                {
+                    Span<int> outer = default;
+                    {
+                        Span<int> inner = stackalloc int[1];
+                        _ = unsafe(Mix(ref outer, inner)).Next().End();
+                        _ = unsafe(Mix(ref outer, inner).Next().End());
+                        _ = Mix(ref outer, unsafe(inner)).Next().End();
+                        _ = unsafe(Mix(ref outer, inner).End() + 1) + 1;
+                        C c = unsafe(new(ref outer, inner));
+                        _ = unsafe(Mix(ref outer, inner).End)();
+                    }
+                }
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (15,39): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //             _ = unsafe(Mix(ref outer, inner)).Next().End();
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(15, 39),
+            // (16,39): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //             _ = unsafe(Mix(ref outer, inner).Next().End());
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(16, 39),
+            // (17,17): error CS8350: This combination of arguments to 'C.Mix(ref Span<int>, Span<int>)' is disallowed because it may expose variables referenced by parameter 'source' outside of their declaration scope
+            //             _ = Mix(ref outer, unsafe(inner)).Next().End();
+            Diagnostic(ErrorCode.ERR_CallArgMixing, "Mix(ref outer, unsafe(inner))").WithArguments("C.Mix(ref System.Span<int>, System.Span<int>)", "source").WithLocation(17, 17),
+            // (17,39): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+            //             _ = Mix(ref outer, unsafe(inner)).Next().End();
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(17, 39),
+            // (18,39): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //             _ = unsafe(Mix(ref outer, inner).End() + 1) + 1;
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(18, 39),
+            // (19,41): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //             C c = unsafe(new(ref outer, inner));
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(19, 41),
+            // (20,39): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //             _ = unsafe(Mix(ref outer, inner).End)();
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(20, 39));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_RefSafety_DelayedExpressions()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                public C(ref Span<int> destination, Span<int> source) { }
+
+                void M(bool b)
+                {
+                    Span<int> outer = default;
+                    Span<int> inner = stackalloc int[1];
+                    C[] array = unsafe([new(ref outer, inner)]);
+                    (C, int) tuple = unsafe((new(ref outer, inner), 0));
+                    C conditional = unsafe(b ? new(ref outer, inner) : new(ref outer, inner));
+                    C switched = unsafe(b switch { true => new(ref outer, inner), false => new(ref outer, inner) });
+                    _ = tuple;
+                }
+            }
+            """;
+
+        CreateCompilation(source, targetFramework: TargetFramework.Net100, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (11,44): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //         C[] array = unsafe([new(ref outer, inner)]);
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(11, 44),
+            // (12,49): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //         (C, int) tuple = unsafe((new(ref outer, inner), 0));
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(12, 49),
+            // (13,51): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //         C conditional = unsafe(b ? new(ref outer, inner) : new(ref outer, inner));
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(13, 51),
+            // (13,75): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //         C conditional = unsafe(b ? new(ref outer, inner) : new(ref outer, inner));
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(13, 75),
+            // (14,63): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //         C switched = unsafe(b switch { true => new(ref outer, inner), false => new(ref outer, inner) });
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(14, 63),
+            // (14,95): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //         C switched = unsafe(b switch { true => new(ref outer, inner), false => new(ref outer, inner) });
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(14, 95));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
+    public void UnsafeExpression_RefSafety_IteratorContext()
+    {
+        var source = """
+            class C
+            {
+                System.Func<int> M() => unsafe(() =>
+                {
+                    static System.Collections.Generic.IEnumerable<int> Iterator()
+                    {
+                        int outer = 0;
+                        ref int reference = ref outer;
+                        {
+                            int inner = 0;
+                            reference = ref inner;
+                            _ = unsafe(reference = ref inner);
+                        }
+                        yield return 0;
+                    }
+
+                    _ = Iterator();
+                    return 0;
+                });
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (11,17): error CS8374: Cannot ref-assign 'inner' to 'reference' because 'inner' has a narrower escape scope than 'reference'.
+            //                 reference = ref inner;
+            Diagnostic(ErrorCode.ERR_RefAssignNarrower, "reference = ref inner").WithArguments("reference", "inner").WithLocation(11, 17),
+            // (12,28): warning CS9085: This ref-assigns 'inner' to 'reference' but 'inner' has a narrower escape scope than 'reference'.
+            //                 _ = unsafe(reference = ref inner);
+            Diagnostic(ErrorCode.WRN_RefAssignNarrower, "reference = ref inner").WithArguments("reference", "inner").WithLocation(12, 28));
+    }
+
+    [Fact]
+    public void UnsafeExpression_TransparentClassification()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                static int F() => 7;
+
+                static void Main()
+                {
+                    Func<int> methodGroup = unsafe(F);
+                    var lambda = unsafe((int x) => x + 1);
+                    C instance = unsafe(new());
+                    C cast = (C)unsafe(new());
+                    int value = unsafe(default);
+                    string text = unsafe(null);
+                    int? nullable = unsafe(default);
+                    int assigned;
+                    unsafe(assigned) = 1;
+                    unsafe(assigned) += 1;
+                    Console.Write($"{methodGroup()},{lambda(1)},{assigned},{value},{text is null},{nullable.HasValue},{instance is not null},{cast is not null}");
+                }
+            }
+            """;
+
+        CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            expectedOutput: "7,2,2,0,True,False,True,True")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_TypeInference()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                static int F() => 7;
+                static T Invoke<T>(Func<T> factory) => factory();
+                static TResult Apply<T, TResult>(T value, Func<T, TResult> selector) => selector(value);
+                static int Pick(Func<int> factory) => factory();
+                static string Pick(Func<string> factory) => factory();
+
+                static void Main()
+                {
+                    Console.Write(Invoke(unsafe(() => 7)));
+                    Console.Write(Apply("text", unsafe(value => value.Length)));
+                    Console.Write(Pick(unsafe(() => 9)));
+                    Console.Write(Invoke(unsafe(F)));
+                }
+            }
+            """;
+
+        CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            expectedOutput: "7497")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_NullableFlow()
+    {
+        var source = """
+            #nullable enable
+            class C
+            {
+                static string? Maybe() => null;
+
+                static void M()
+                {
+                    string? text = null;
+                    _ = unsafe(text).Length;
+                    text = null;
+                    unsafe(text) = "value";
+                    _ = unsafe(text).Length;
+                    text = unsafe(Maybe());
+                    _ = text.Length;
+                    text = Maybe();
+                    if (unsafe(text is not null))
+                        _ = text.Length;
+                    text = null;
+                    _ = unsafe(text)!.Length;
+                    text = null;
+                    _ = unsafe(text!).Length;
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (9,20): warning CS8602: Dereference of a possibly null reference.
+            //         _ = unsafe(text).Length;
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "text").WithLocation(9, 20),
+            // (14,13): warning CS8602: Dereference of a possibly null reference.
+            //         _ = text.Length;
+            Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "text").WithLocation(14, 13));
+    }
+
+    [Fact]
+    public void UnsafeExpression_NullableSemanticModel()
+    {
+        var source = """
+            #nullable enable
+            class C
+            {
+                static string M(string? text) => unsafe(text)!;
+            }
+            """;
+
+        var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+        compilation.VerifyEmitDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
+        var expression = tree.GetRoot().DescendantNodes().OfType<UnsafeExpressionSyntax>().Single();
+        Assert.Equal(Microsoft.CodeAnalysis.NullableFlowState.NotNull, model.GetTypeInfo(expression).Nullability.FlowState);
+        Assert.Equal(Microsoft.CodeAnalysis.NullableFlowState.NotNull, model.GetTypeInfo(expression.Expression).Nullability.FlowState);
+    }
+
+    [Fact]
+    public void UnsafeExpression_NullableArgument()
+    {
+        var source = """
+            #nullable enable
+            class C
+            {
+                static void F(string text) { }
+                static void M(string? text) => F(unsafe(text));
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (5,45): warning CS8604: Possible null reference argument for parameter 'text' in 'void C.F(string text)'.
+            //     static void M(string? text) => F(unsafe(text));
+            Diagnostic(ErrorCode.WRN_NullReferenceArgument, "text").WithArguments("text", "void C.F(string text)").WithLocation(5, 45));
+    }
+
+    [Fact]
+    public void UnsafeExpression_MethodGroupSemanticModel()
+    {
+        var source = """
+            class C
+            {
+                static int F() => 7;
+                static System.Func<int> M() => unsafe(F);
+            }
+            """;
+
+        var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules());
+        compilation.VerifyEmitDiagnostics();
+
+        var tree = compilation.SyntaxTrees.Single();
+        var model = compilation.GetSemanticModel(tree);
+        var expression = tree.GetRoot().DescendantNodes().OfType<UnsafeExpressionSyntax>().Single();
+        Assert.Equal("System.Int32 C.F()", model.GetSymbolInfo(expression).Symbol.ToTestDisplayString());
+        Assert.Equal("System.Int32 C.F()", model.GetSymbolInfo(expression.Expression).Symbol.ToTestDisplayString());
+        Assert.Null(model.GetTypeInfo(expression).Type);
+        Assert.Equal("System.Func<System.Int32>", model.GetTypeInfo(expression).ConvertedType.ToTestDisplayString());
+        Assert.True(model.GetConversion(expression).IsMethodGroup);
+        Assert.True(model.GetConversion(expression.Expression).IsMethodGroup);
+    }
+
+    [Fact]
+    public void UnsafeExpression_MethodGroupInvocation()
+    {
+        var source = """
+            class C
+            {
+                static int F() => 7;
+                static int M() => unsafe(F)();
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_MethodGroupInvocation_UnsafeMember()
+    {
+        var source = """
+            class C
+            {
+                static unsafe int F() => 7;
+                static int M() => unsafe(F)();
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (4,23): error CS9362: 'C.F()' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int M() => unsafe(F)();
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "unsafe(F)()").WithArguments("C.F()").WithLocation(4, 23));
+    }
+
+    [Fact]
+    public void UnsafeExpression_EventAssignmentContext()
+    {
+        var source = """
+            class C
+            {
+                unsafe event System.Action E { add { } remove { } }
+
+                void M()
+                {
+                    unsafe(E) += null;
+                    _ = unsafe(E += null);
+                }
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (7,19): error CS9362: 'C.E.add' must be used in an unsafe context because it is marked as 'unsafe'
+            //         unsafe(E) += null;
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "+=").WithArguments("C.E.add").WithLocation(7, 19),
+            // (8,9): error CS8209: A value of type 'void' may not be assigned.
+            //         _ = unsafe(E += null);
+            Diagnostic(ErrorCode.ERR_VoidAssignment, "_").WithLocation(8, 9));
+    }
+
+    [Fact]
+    public void UnsafeExpression_ConversionContext()
+    {
+        var source = """
+            class C
+            {
+                public static unsafe implicit operator int(C value) => 0;
+                static int M(C value) => unsafe(value);
+                static int N(C value) => unsafe((int)value);
+            }
+            """;
+
+        CreateCompilation(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyDiagnostics(
+            // (4,37): error CS9362: 'C.implicit operator int(C)' must be used in an unsafe context because it is marked as 'unsafe'
+            //     static int M(C value) => unsafe(value);
+            Diagnostic(ErrorCode.ERR_UnsafeMemberOperation, "value").WithArguments("C.implicit operator int(C)").WithLocation(4, 37));
+    }
+
+    [Fact]
+    public void UnsafeExpression_ExpressionTree()
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            class C
+            {
+                static unsafe int F(int value) => value + 1;
+
+                static void Main()
+                {
+                    Expression<Func<int, int>> outer = unsafe((int value) => F(value));
+                    Expression<Func<int, int>> inner = value => unsafe(F(value));
+                    Console.Write($"{outer.Compile()(1)},{inner.Compile()(2)}");
+                }
+            }
+            """;
+
+        CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe.WithUpdatedMemorySafetyRules(),
+            expectedOutput: "2,3")
+            .VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void UnsafeExpression_ErrorRecovery()
+    {
+        var sourceWithoutUnsafe = """
+            class C
+            {
+                static int F() => 0;
+
+                static void M()
+                {
+                    int lambda = (() => 0);
+                    int methodGroup = (F);
+                    var missingType = (default);
+                    int value = (null);
+                }
+            }
+            """;
+
+        var sourceWithUnsafe = """
+            class C
+            {
+                static int F() => 0;
+
+                static void M()
+                {
+                    int lambda = unsafe(() => 0);
+                    int methodGroup = unsafe(F);
+                    var missingType = unsafe(default);
+                    int value = unsafe(null);
+                }
+            }
+            """;
+
+        var options = TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules();
+        CreateCompilation(sourceWithoutUnsafe, options: options).VerifyDiagnostics(
+            // (7,26): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+            //         int lambda = (() => 0);
+            Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(7, 26),
+            // (8,28): error CS0428: Cannot convert method group 'F' to non-delegate type 'int'. Did you intend to invoke the method?
+            //         int methodGroup = (F);
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "int").WithLocation(8, 28),
+            // (9,28): error CS8716: There is no target type for the default literal.
+            //         var missingType = (default);
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 28),
+            // (10,22): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+            //         int value = (null);
+            Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(10, 22));
+
+        CreateCompilation(sourceWithUnsafe, options: options).VerifyDiagnostics(
+            // (7,32): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+            //         int lambda = unsafe(() => 0);
+            Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "int").WithLocation(7, 32),
+            // (8,34): error CS0428: Cannot convert method group 'F' to non-delegate type 'int'. Did you intend to invoke the method?
+            //         int methodGroup = unsafe(F);
+            Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "F").WithArguments("F", "int").WithLocation(8, 34),
+            // (9,34): error CS8716: There is no target type for the default literal.
+            //         var missingType = unsafe(default);
+            Diagnostic(ErrorCode.ERR_DefaultLiteralNoTargetType, "default").WithLocation(9, 34),
+            // (10,28): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+            //         int value = unsafe(null);
+            Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(10, 28));
     }
 
     [Fact]

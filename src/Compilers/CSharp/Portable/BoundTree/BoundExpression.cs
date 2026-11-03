@@ -51,6 +51,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        internal BoundExpression WithUnsafeContext(bool inUnsafeContext)
+        {
+            // Transparent syntax must not clear the context already recorded on its operand.
+            if (!inUnsafeContext || WasBoundInUnsafeContext)
+            {
+                return this;
+            }
+
+            var result = (BoundExpression)MemberwiseClone();
+            result.WasBoundInUnsafeContext = true;
+            return result;
+        }
+
         internal BoundExpression WithWasConverted()
         {
 #if DEBUG
@@ -138,6 +151,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
+        }
+
+        public new bool WasBoundInUnsafeContext
+        {
+            get => base.WasBoundInUnsafeContext;
+            protected set => base.WasBoundInUnsafeContext = value;
         }
 
         public new NullabilityInfo TopLevelNullability

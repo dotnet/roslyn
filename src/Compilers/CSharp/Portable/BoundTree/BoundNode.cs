@@ -60,7 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             WasPropertyBackingFieldAccessChecked = 1 << 10,
 
-            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection,
+            WasBoundInUnsafeContext = 1 << 11,
+
+            AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection | WasBoundInUnsafeContext,
         }
 
         protected new BoundNode MemberwiseClone()
@@ -156,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(original is BoundExpression || !original.IsSuppressed);
             this.IsSuppressed = original.IsSuppressed;
+            this.WasBoundInUnsafeContext = original.WasBoundInUnsafeContext;
 
             if (original.IsParamsArrayOrCollection)
             {
@@ -290,6 +293,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var flowState = (_attributes & BoundNodeAttributes.TopLevelFlowStateMaybeNull) == 0 ? CodeAnalysis.NullableFlowState.NotNull : CodeAnalysis.NullableFlowState.MaybeNull;
 
                 return new NullabilityInfo(annotation, flowState);
+            }
+        }
+
+        /// <summary>
+        /// Whether this expression was bound in an unsafe context.
+        /// </summary>
+        protected bool WasBoundInUnsafeContext
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.WasBoundInUnsafeContext) != 0;
+            }
+            set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.WasBoundInUnsafeContext) == 0, "flag should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.WasBoundInUnsafeContext;
+                }
             }
         }
 
