@@ -201,6 +201,53 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
     }
 
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_02(bool mutatingLspWorkspace)
+    {
+        // A '*' glob does not match a file in nested folder
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="C:\App.cs">
+                        #:include Files\{|caret:|}*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="C:\Files\Nested\Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_03(bool mutatingLspWorkspace)
+    {
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="C:\App.cs">
+                        #:include Files\{|caret:|}*.cs
+                        System.Console.WriteLine();
+                    </Document>
+                    <Document FilePath="C:\Files\Nested\Util.cs">{|definition:|}class Util;</Document>
+                </Project>
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        Assert.Empty(results);
+    }
+
+    // TODO: test '**' globs
+    // TODO: test absolute paths containing globs
+    // TODO: test absolute path with glob, under a different drive than the app file.
+
     [Theory, CombinatorialData]
     public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirectiveDirectory(bool mutatingLspWorkspace)
     {
@@ -252,6 +299,9 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     [Theory, CombinatorialData]
     public async Task TestGotoDefinitionAsync_FileBasedProgramProjectDirectiveDirectoryWithMultipleProjects(bool mutatingLspWorkspace)
     {
+        // For '#:project Lib', return all projects directly contained in 'Lib/'.
+        // Note: this doesn't actually verify whether the project system would give us such a structure.
+        // An error at an earlier stage might block us from observing this in a real world project.
         var firstProjectFilePath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "First.csproj");
         var secondProjectFilePath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "Second.csproj");
         var markup =
@@ -334,7 +384,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
-    public async Task TestGotoDefinitionAsync_FileBasedProgramDirectiveWithDynamicPath(
+    public async Task TestGotoDefinitionAsync_FileBasedProgramDirective_MSBuildVariable(
         [CombinatorialValues("project", "ref", "include")] string directiveName,
         bool mutatingLspWorkspace)
     {
@@ -347,7 +397,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         {
             "project" => "$(MSBuildProjectDirectory)/../Lib",
             "ref" => "$(MSBuildProjectDirectory)/../Lib/Util.cs",
-            "include" => "*.cs",
+            "include" => "$(MSBuildProjectDirectory)/*.cs", // TODO2: why are we testing a glob here?
             _ => throw ExceptionUtilities.Unreachable(),
         };
         var markup =
@@ -386,6 +436,8 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
             {
                 ParseOptions = CSharpParseOptions.Default.WithFeatures([new("FileBasedProgram", "true")]),
             });
+
+        AddFileBasedProgramTarget(testLspServer, directiveName: "project", targetPath: "Library.csproj");
 
         var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
 

@@ -71,7 +71,7 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
 
         var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var token = syntaxRoot.FindToken(position, findInsideTrivia: true);
-        if (token.Parent is not IgnoredDirectiveTriviaSyntax { Content: (kind: SyntaxKind.StringLiteralToken) })
+        if (token.Parent is not IgnoredDirectiveTriviaSyntax { Content: (kind: SyntaxKind.StringLiteralToken) content })// || token != content)
             return [];
 
         // Caret is on the content token of an FBA directive.
@@ -94,7 +94,7 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
         var pathRoot = Path.GetPathRoot(directivePath);
         Contract.ThrowIfNull(pathRoot); // 'directivePath' is expected to be absolute here, so we should always have a 'pathRoot'
         var matcher = new Matcher();
-        var includePath = PathUtilities.GetRelativePath(pathRoot, PathUtilities.TrimTrailingSeparators(directivePath));
+        var includePath = PathUtilities.GetRelativePath(pathRoot, directivePath);
         matcher.AddInclude(includePath);
 
         using var builder = TemporaryArray<string>.Empty;
@@ -111,10 +111,10 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
                 if (matcher.Match(rootDir: pathRoot, projectPath).HasMatches)
                     builder.Add(projectPath);
 
-                // For '#:project', the 'directivePath' could look like '/folder/MyProject.csproj' or could look like '/folder' or '/folder/'.
+                // '#:project ./folder' or '#:project ./folder/' can match './folder/MyProject.csproj'
                 if (isProjectDirective
                     && Path.GetDirectoryName(projectPath) is { } projectDirectory
-                    && matcher.Match(rootDir: pathRoot, PathUtilities.TrimTrailingSeparators(projectDirectory)).HasMatches)
+                    && matcher.Match(rootDir: pathRoot, projectDirectory).HasMatches)
                 {
                     builder.Add(projectPath);
                 }
