@@ -31,6 +31,64 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 verify: verify);
         }
 
+        [Theory]
+        [InlineData("ref")]
+        [InlineData("ref readonly")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/83549")]
+        public void RefReturnLocalInUnsafeContext(string refKind)
+        {
+            var source = $$"""
+                delegate {{refKind}} int D();
+                class C
+                {
+                    static unsafe {{refKind}} int Method()
+                    {
+                        int local = 0;
+                        return ref local;
+                    }
+
+                    static {{refKind}} int Block()
+                    {
+                        int local = 0;
+                        unsafe { return ref local; }
+                    }
+
+                    static D Lambda() => () =>
+                    {
+                        int local = 0;
+                        unsafe { return ref local; }
+                    };
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            verifier.VerifyDiagnostics(
+                // (7,20): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //         return ref local;
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(7, 20),
+                // (13,29): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //         unsafe { return ref local; }
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(13, 29),
+                // (19,29): warning CS9091: This returns local 'local' by reference but it is not a ref local
+                //         unsafe { return ref local; }
+                Diagnostic(ErrorCode.WRN_RefReturnLocal, "local").WithArguments("local").WithLocation(19, 29));
+
+            var expectedIL = """
+                {
+                  // Code size        5 (0x5)
+                  .maxstack  1
+                  .locals init (int V_0) //local
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloca.s   V_0
+                  IL_0004:  ret
+                }
+                """;
+            verifier.VerifyIL("C.Method()", expectedIL);
+            verifier.VerifyIL("C.Block()", expectedIL);
+            verifier.VerifyIL("C.<>c.<Lambda>b__2_0()", expectedIL);
+        }
+
         [Fact]
         public void RefReturnRefAssignment()
         {
