@@ -449,7 +449,8 @@
       <_IsDebugConfiguration Condition="'$(Configuration)' == 'Debug'">true</_IsDebugConfiguration>
     </PropertyGroup>
     <ItemGroup>
-      <_ProjectDataProperties Update="HotReloadBrowserToolsEnabled" Condition="'%(_ProjectDataProperties.Value)' == ''">
+      <_ProjectDataProperties Condition="'%(_ProjectDataProperties.Identity)' == 'HotReloadBrowserToolsEnabled' and
+                                         '%(_ProjectDataProperties.Value)' == ''">
         <Value>false</Value>
         <Value Condition="$([MSBuild]::ValueOrDefault('$(EnableHotReloadInRuntimeConfigDevFile)', '$(_IsDebugConfiguration)')) and
                           '$(HotReloadBrowserToolsAssetPrefix)' != '' and

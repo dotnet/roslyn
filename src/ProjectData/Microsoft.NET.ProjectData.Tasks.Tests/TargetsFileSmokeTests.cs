@@ -222,11 +222,17 @@ public sealed class TargetsFileSmokeTests : IDisposable
 				$"/p:HotReloadBrowserToolsAssetPrefix={assetPrefix}",
 				$"/p:StaticWebAssetsEnabled={staticWebAssetsEnabled}",
 				$"/p:JSModulesEnabled={jsModulesEnabled}",
+				"/p:StartupHookSupport=",
+				"/p:MetadataUpdaterSupport=",
+				"/p:CompilerGeneratedFilesOutputPath=",
 			]);
 
 		Assert.True(result.ExitCode == 0, result.Output);
 		string content = File.ReadAllText(projectFile + ".lscache").Replace("\r\n", "\n");
-		Assert.Contains($"\nHotReloadBrowserToolsEnabled={(expected ? "true" : "false")}\n", content);
+		Assert.True(content.Contains($"\nHotReloadBrowserToolsEnabled={(expected ? "true" : "false")}\n", StringComparison.Ordinal), content);
+		Assert.DoesNotContain("\nStartupHookSupport=", content);
+		Assert.DoesNotContain("\nMetadataUpdaterSupport=", content);
+		Assert.DoesNotContain("\nCompilerGeneratedFilesOutputPath=", content);
 		Assert.DoesNotContain("\nConfiguration=", content);
 		Assert.DoesNotContain("\nHotReloadBrowserToolsAssetPrefix=", content);
 		Assert.DoesNotContain("\nStaticWebAssetsEnabled=", content);
