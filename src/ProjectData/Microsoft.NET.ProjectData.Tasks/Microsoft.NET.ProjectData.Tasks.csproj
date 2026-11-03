@@ -59,7 +59,7 @@
   </ItemGroup>
 
   <Target Name="_InitializeProjectDataSchemaProps"
-          BeforeTargets="AssignTargetPaths">
+          BeforeTargets="_GetPackageFiles;AssignTargetPaths">
     <PropertyGroup>
       <_GeneratedProjectDataProps>$([System.IO.Path]::GetFullPath('$(IntermediateOutputPath)Microsoft.NET.ProjectData.Schema.props'))</_GeneratedProjectDataProps>
     </PropertyGroup>
