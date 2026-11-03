@@ -276,6 +276,13 @@ namespace Text.Analyzers.UnitTests
                     .WithArguments("Program.Method(string)", "e"));
 
         [Theory]
+        [InlineData("class Program { void Method(string _) { } }")]
+        [InlineData("class Program { Program(int _) { } }")]
+        [InlineData("delegate void Callback(int _);")]
+        public Task MemberParameterDiscard_Verify_NoDiagnosticsAsync(string source)
+            => VerifyCSharpAsync(source);
+
+        [Theory]
         [MemberData(nameof(MisspelledMembers))]
         public Task MemberMisspelled_Verify_EmitsDiagnosticAsync(string source, string misspelling, string memberName)
             => VerifyCSharpAsync(

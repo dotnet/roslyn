@@ -369,7 +369,7 @@ namespace Text.Analyzers
 
             void ReportDiagnosticsForSymbol(ISymbol symbol, string symbolName, Action<Diagnostic> reportDiagnostic, bool checkForUnmeaningful = true)
             {
-                if (IsNumberedTypeParameter(symbol, symbolName) || IsEventArgsParameter(symbol))
+                if (IsNumberedTypeParameter(symbol, symbolName) || IsEventArgsParameter(symbol) || IsDiscardParameter(symbol))
                 {
                     return;
                 }
@@ -393,6 +393,10 @@ namespace Text.Analyzers
             // 'e' of an EventArgs type is the standard event handler signature; legacy FxCop did not report it either.
             bool IsEventArgsParameter(ISymbol symbol)
                 => symbol is IParameterSymbol { Name: "e" } parameter && parameter.Type.DerivesFrom(eventArgsType);
+
+            // '_' marks a parameter that a signature requires but the method does not use; IDE0060 skips it too.
+            static bool IsDiscardParameter(ISymbol symbol)
+                => symbol is IParameterSymbol { Name: "_" };
 
             IEnumerable<string> GetMisspelledWords(string symbolName)
             {
