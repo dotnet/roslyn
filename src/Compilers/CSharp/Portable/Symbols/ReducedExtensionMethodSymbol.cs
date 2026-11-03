@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInitOnly => false;
 
-        internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0].RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
+        internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0] is { Type.IsValueType: true, RefKind: RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None };
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
