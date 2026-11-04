@@ -1277,6 +1277,11 @@ internal sealed class ComponentNodeWriter : IntermediateNodeWriter, ITemplateTar
         {
             context.CodeWriter.Write(")");
         }
+        else if (addAttributeMethod == ComponentsApi.RenderTreeBuilder.AddEventThrottleAttribute &&
+                 node.TagHelper?.GetThrottleMode() == 1)
+        {
+            context.CodeWriter.Write($", global::{ComponentsApi.EventThrottleMode.FullTypeName}.{ComponentsApi.EventThrottleMode.LeadingAndTrailing}");
+        }
 
         context.CodeWriter.Write(");");
         context.CodeWriter.WriteLine();

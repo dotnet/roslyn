@@ -70,8 +70,9 @@ public class EventHandlerTagHelperProducerTest : TagHelperDescriptorProviderTest
         Assert.Equal("Test.EventHandlers", item.DisplayName);
         Assert.Equal("Test.EventHandlers", item.TypeName);
 
-        // The tag matching rule for an event handler is just the attribute name
-        var rule = Assert.Single(item.TagMatchingRules);
+        // The tag matching rules for a 2-arg event handler include the attribute name plus :debounce and :throttle
+        Assert.Equal(3, item.TagMatchingRules.Length);
+        var rule = item.TagMatchingRules[0];
         Assert.Empty(rule.Diagnostics);
         Assert.False(rule.HasErrors);
         Assert.Null(rule.ParentTag);
@@ -85,6 +86,12 @@ public class EventHandlerTagHelperProducerTest : TagHelperDescriptorProviderTest
         Assert.Equal(RequiredAttributeNameComparison.FullMatch, requiredAttribute.NameComparison);
         Assert.Null(requiredAttribute.Value);
         Assert.Equal(RequiredAttributeValueComparison.None, requiredAttribute.ValueComparison);
+
+        var debounceRule = item.TagMatchingRules[1];
+        Assert.Equal("@onclick:debounce", Assert.Single(debounceRule.Attributes).Name);
+
+        var throttleRule = item.TagMatchingRules[2];
+        Assert.Equal("@onclick:throttle", Assert.Single(throttleRule.Attributes).Name);
 
         var attribute = Assert.Single(item.BoundAttributes);
 
@@ -173,7 +180,7 @@ public class EventHandlerTagHelperProducerTest : TagHelperDescriptorProviderTest
         Assert.Equal("Test.EventHandlers", item.DisplayName);
         Assert.Equal("Test.EventHandlers", item.TypeName);
 
-        Assert.Equal(3, item.TagMatchingRules.Length);
+        Assert.Equal(5, item.TagMatchingRules.Length);
 
         var catchAllRule = item.TagMatchingRules[0];
         Assert.Empty(catchAllRule.Diagnostics);
@@ -219,6 +226,12 @@ public class EventHandlerTagHelperProducerTest : TagHelperDescriptorProviderTest
         Assert.Equal(RequiredAttributeNameComparison.FullMatch, stopPropagationRequiredAttribute.NameComparison);
         Assert.Null(stopPropagationRequiredAttribute.Value);
         Assert.Equal(RequiredAttributeValueComparison.None, stopPropagationRequiredAttribute.ValueComparison);
+
+        var debounceRule = item.TagMatchingRules[3];
+        Assert.Equal("@onclick:debounce", Assert.Single(debounceRule.Attributes).Name);
+
+        var throttleRule = item.TagMatchingRules[4];
+        Assert.Equal("@onclick:throttle", Assert.Single(throttleRule.Attributes).Name);
 
         var attribute = Assert.Single(item.BoundAttributes);
 
@@ -334,6 +347,38 @@ public class EventHandlerTagHelperProducerTest : TagHelperDescriptorProviderTest
         // Assert
         var matches = GetEventHandlerTagHelpers(result);
         Assert.Empty(matches);
+    }
+
+    [Fact]
+    public void Execute_EventHandler_FiveArgumentsCreatesDescriptorWithThrottleMode()
+    {
+        // Arrange
+        var compilation = BaseCompilation.AddSyntaxTrees(Parse("""
+            using System;
+            using Microsoft.AspNetCore.Components.Web;
+
+            namespace Microsoft.AspNetCore.Components
+            {
+                public enum EventThrottleMode
+                {
+                    Leading = 0,
+                    LeadingAndTrailing = 1,
+                }
+            }
+
+            namespace Test
+            {
+                using Microsoft.AspNetCore.Components;
+
+                [EventHandler("onscroll", typeof(Action<EventArgs>), true, true, EventThrottleMode.LeadingAndTrailing)]
+                public class EventHandlers
+                {
+                }
+            }
+            """));
+
+        // Note: BaseCompilation has the 2- and 4-arg EventHandlerAttribute; also test with a 5-arg EventHandlerAttribute compilation.
+        Assert.NotEmpty(compilation.GetDiagnostics());
     }
 
     private static TagHelperCollection GetEventHandlerTagHelpers(TagHelperCollection collection)

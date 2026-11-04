@@ -128,6 +128,9 @@ internal static class TagHelperDescriptorExtensions
     public static string? GetEventArgsType(this TagHelperDescriptor tagHelper)
         => tagHelper.Metadata is EventHandlerMetadata { EventArgsType: var value } ? value : null;
 
+    public static int GetThrottleMode(this TagHelperDescriptor tagHelper)
+        => tagHelper.Metadata is EventHandlerMetadata { ThrottleMode: var value } ? value : 0;
+
     /// <summary>
     /// Gets the set of component attributes that can accept child content (<c>RenderFragment</c> or <c>RenderFragment{T}</c>).
     /// </summary>

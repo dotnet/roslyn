@@ -24,6 +24,8 @@ internal abstract partial class DocumentationDescriptor : IEquatable<Documentati
     public static readonly DocumentationDescriptor EventHandlerTagHelper = new SimpleDescriptor(DocumentationId.EventHandlerTagHelper);
     public static readonly DocumentationDescriptor EventHandlerTagHelper_PreventDefault = new SimpleDescriptor(DocumentationId.EventHandlerTagHelper_PreventDefault);
     public static readonly DocumentationDescriptor EventHandlerTagHelper_StopPropagation = new SimpleDescriptor(DocumentationId.EventHandlerTagHelper_StopPropagation);
+    public static readonly DocumentationDescriptor EventHandlerTagHelper_Debounce = new SimpleDescriptor(DocumentationId.EventHandlerTagHelper_Debounce);
+    public static readonly DocumentationDescriptor EventHandlerTagHelper_Throttle = new SimpleDescriptor(DocumentationId.EventHandlerTagHelper_Throttle);
     public static readonly DocumentationDescriptor KeyTagHelper = new SimpleDescriptor(DocumentationId.KeyTagHelper);
     public static readonly DocumentationDescriptor RefTagHelper = new SimpleDescriptor(DocumentationId.RefTagHelper);
     public static readonly DocumentationDescriptor SplatTagHelper = new SimpleDescriptor(DocumentationId.SplatTagHelper);
@@ -59,6 +61,8 @@ internal abstract partial class DocumentationDescriptor : IEquatable<Documentati
                 DocumentationId.EventHandlerTagHelper => EventHandlerTagHelper,
                 DocumentationId.EventHandlerTagHelper_PreventDefault => EventHandlerTagHelper_PreventDefault,
                 DocumentationId.EventHandlerTagHelper_StopPropagation => EventHandlerTagHelper_StopPropagation,
+                DocumentationId.EventHandlerTagHelper_Debounce => EventHandlerTagHelper_Debounce,
+                DocumentationId.EventHandlerTagHelper_Throttle => EventHandlerTagHelper_Throttle,
                 DocumentationId.KeyTagHelper => KeyTagHelper,
                 DocumentationId.RefTagHelper => RefTagHelper,
                 DocumentationId.SplatTagHelper => SplatTagHelper,
@@ -121,6 +125,8 @@ internal abstract partial class DocumentationDescriptor : IEquatable<Documentati
             DocumentationId.EventHandlerTagHelper => ComponentResources.EventHandlerTagHelper_Documentation,
             DocumentationId.EventHandlerTagHelper_PreventDefault => ComponentResources.EventHandlerTagHelper_PreventDefault_Documentation,
             DocumentationId.EventHandlerTagHelper_StopPropagation => ComponentResources.EventHandlerTagHelper_StopPropagation_Documentation,
+            DocumentationId.EventHandlerTagHelper_Debounce => ComponentResources.EventHandlerTagHelper_Debounce_Documentation,
+            DocumentationId.EventHandlerTagHelper_Throttle => ComponentResources.EventHandlerTagHelper_Throttle_Documentation,
             DocumentationId.KeyTagHelper => ComponentResources.KeyTagHelper_Documentation,
             DocumentationId.RefTagHelper => ComponentResources.RefTagHelper_Documentation,
             DocumentationId.SplatTagHelper => ComponentResources.SplatTagHelper_Documentation,

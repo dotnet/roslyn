@@ -8,22 +8,26 @@ namespace Microsoft.AspNetCore.Razor.Language.Components;
 public sealed record EventHandlerMetadata() : MetadataObject(MetadataKind.EventHandler)
 {
     public required string EventArgsType { get; init; }
+    public int ThrottleMode { get; init; }
 
     internal override bool HasDefaultValue => false;
 
     private protected override void BuildChecksum(in Checksum.Builder builder)
     {
         builder.Append(EventArgsType);
+        builder.Append(ThrottleMode);
     }
 
     public ref struct Builder
     {
         public string? EventArgsType { get; set; }
+        public int ThrottleMode { get; set; }
 
         public readonly EventHandlerMetadata Build()
             => new()
             {
-                EventArgsType = EventArgsType.AssumeNotNull()
+                EventArgsType = EventArgsType.AssumeNotNull(),
+                ThrottleMode = ThrottleMode,
             };
     }
 }

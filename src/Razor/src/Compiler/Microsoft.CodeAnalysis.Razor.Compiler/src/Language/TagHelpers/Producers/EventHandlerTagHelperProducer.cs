@@ -56,19 +56,22 @@ internal sealed partial class EventHandlerTagHelperProducer : TagHelperProducer
         string Attribute,
         INamedTypeSymbol EventArgsType,
         bool EnableStopPropagation = false,
-        bool EnablePreventDefault = false)
+        bool EnablePreventDefault = false,
+        int ThrottleMode = 0)
     {
         public static bool TryGet(AttributeData attribute, out AttributeArgs args)
         {
-            // EventHandlerAttribute has two constructors:
+            // EventHandlerAttribute has three constructors:
             //
             // - EventHandlerAttribute(string attributeName, Type eventArgsType);
             // - EventHandlerAttribute(string attributeName, Type eventArgsType, bool enableStopPropagation, bool enablePreventDefault);
+            // - EventHandlerAttribute(string attributeName, Type eventArgsType, bool enableStopPropagation, bool enablePreventDefault, EventThrottleMode throttleMode);
 
             var arguments = attribute.ConstructorArguments;
 
             return TryGetFromTwoArguments(arguments, out args) ||
-                   TryGetFromFourArguments(arguments, out args);
+                   TryGetFromFourArguments(arguments, out args) ||
+                   TryGetFromFiveArguments(arguments, out args);
 
             static bool TryGetFromTwoArguments(ImmutableArray<TypedConstant> arguments, out AttributeArgs args)
             {
@@ -108,6 +111,25 @@ internal sealed partial class EventHandlerTagHelperProducer : TagHelperProducer
                 args = default;
                 return false;
             }
+
+            static bool TryGetFromFiveArguments(ImmutableArray<TypedConstant> arguments, out AttributeArgs args)
+            {
+                // Ctor 3: EventHandlerAttribute(string attributeName, Type eventArgsType, bool enableStopPropagation, bool enablePreventDefault, EventThrottleMode throttleMode);
+
+                if (arguments is [
+                    { Value: string attributeName },
+                    { Value: INamedTypeSymbol eventArgsType },
+                    { Value: bool enablePreventDefault },
+                    { Value: bool enableStopPropagation },
+                    { Kind: TypedConstantKind.Enum, Value: int throttleMode }])
+                {
+                    args = new(attributeName, eventArgsType, enableStopPropagation, enablePreventDefault, throttleMode);
+                    return true;
+                }
+
+                args = default;
+                return false;
+            }
         }
     }
 
@@ -117,7 +139,7 @@ internal sealed partial class EventHandlerTagHelperProducer : TagHelperProducer
         string typeNameIdentifier,
         AttributeArgs args)
     {
-        var (attribute, eventArgsType, enableStopPropagation, enablePreventDefault) = args;
+        var (attribute, eventArgsType, enableStopPropagation, enablePreventDefault, throttleMode) = args;
 
         var attributeName = "@" + attribute;
         var eventArgType = eventArgsType.GetDefaultDisplayString();
@@ -137,7 +159,8 @@ internal sealed partial class EventHandlerTagHelperProducer : TagHelperProducer
 
         builder.SetMetadata(new EventHandlerMetadata()
         {
-            EventArgsType = eventArgType
+            EventArgsType = eventArgType,
+            ThrottleMode = throttleMode,
         });
 
         builder.TagMatchingRule(rule =>
@@ -181,6 +204,30 @@ internal sealed partial class EventHandlerTagHelperProducer : TagHelperProducer
                 });
             });
         }
+
+        builder.TagMatchingRule(rule =>
+        {
+            rule.TagName = "*";
+
+            rule.Attribute(a =>
+            {
+                a.Name = attributeName + ":debounce";
+                a.NameComparison = RequiredAttributeNameComparison.FullMatch;
+                a.IsDirectiveAttribute = true;
+            });
+        });
+
+        builder.TagMatchingRule(rule =>
+        {
+            rule.TagName = "*";
+
+            rule.Attribute(a =>
+            {
+                a.Name = attributeName + ":throttle";
+                a.NameComparison = RequiredAttributeNameComparison.FullMatch;
+                a.IsDirectiveAttribute = true;
+            });
+        });
 
         builder.BindAttribute(a =>
         {
@@ -230,6 +277,28 @@ internal sealed partial class EventHandlerTagHelperProducer : TagHelperProducer
                             attributeName));
                 });
             }
+
+            a.BindAttributeParameter(parameter =>
+            {
+                parameter.Name = "debounce";
+                parameter.PropertyName = "Debounce";
+                parameter.TypeName = typeof(int).FullName;
+                parameter.SetDocumentation(
+                    DocumentationDescriptor.From(
+                        DocumentationId.EventHandlerTagHelper_Debounce,
+                        attributeName));
+            });
+
+            a.BindAttributeParameter(parameter =>
+            {
+                parameter.Name = "throttle";
+                parameter.PropertyName = "Throttle";
+                parameter.TypeName = typeof(int).FullName;
+                parameter.SetDocumentation(
+                    DocumentationDescriptor.From(
+                        DocumentationId.EventHandlerTagHelper_Throttle,
+                        attributeName));
+            });
         });
 
         return builder.Build();
