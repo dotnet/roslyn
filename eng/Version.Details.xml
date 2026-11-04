@@ -135,7 +135,7 @@
       <Uri>https://github.com/dotnet/arcade</Uri>
       <Sha>c2641a83796ef233acbacee361f8704237a5cbd4</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.DiaSymReader" Version="2.2.10">
+    <Dependency Name="Microsoft.DiaSymReader" Version="12.0.0-alpha.1.26554.104">
       <Uri>https://github.com/dotnet/symreader</Uri>
       <Sha>8655fee9aae40ba74257255cbcd1f05edc2f48fa</Sha>
     </Dependency>
