@@ -326,7 +326,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         AssertLocationsEqual(testLspServer.GetLocations("definition"), results);
     }
 
-    [ConditionalTheory(typeof(WindowsOnly), typeof(CoreClrOnly)), CombinatorialData]
+    [ConditionalTheory(typeof(UnixLikeOnly), typeof(CoreClrOnly)), CombinatorialData]
     public async Task TestGotoDefinitionAsync_FileBasedProgramIncludeDirective_Glob_05_Unix(bool mutatingLspWorkspace)
     {
         // Test a directive path which is both absolute in source and uses a glob
@@ -578,12 +578,12 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         var markup =
             $$"""
             <Workspace>
-                <Project FilePath="App/App.csproj" Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
-                    <Document FilePath="App/Program.cs">
+                <Project FilePath="App.csproj" Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="Program.cs">
                         #:include {|caret:|}$(MSBuildProjectDirectory)/Util.cs
                         System.Console.WriteLine();
                     </Document>
-                    <Document FilePath="App/Util.cs">class Util;</Document>
+                    <Document FilePath="Util.cs">class Util;</Document>
                 </Project>
             </Workspace>
             """;
