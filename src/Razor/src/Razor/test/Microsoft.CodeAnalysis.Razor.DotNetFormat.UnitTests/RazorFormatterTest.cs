@@ -497,6 +497,129 @@ public partial class RazorFormatterTest
                 }
                 """.Replace("PREFIX", prefix).Replace("SUFFIX", suffix));
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public Task TryFormatAsync_PreservesMultilineAttributeValueContents()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                       id="q">z</p>
+                </div>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public Task TryFormatAsync_PreservesMultilineAttributeValueContents_ClosingQuoteOnOwnLine()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                <section>
+                <p title="first
+                second
+                            third
+                  "
+                   id="q">z</p>
+                </section>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <section>
+                        <p title="first
+                second
+                            third
+                  "
+                           id="q">z</p>
+                    </section>
+                </div>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public Task TryFormatAsync_PreservesMultilineAttributeValueContents_IndentByOne()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                        id="q">z</p>
+                </div>
+                """,
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_one
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public Task TryFormatAsync_PreservesMultilineAttributeValueContents_IndentByTwo()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                <p class="a
+                   b c"
+                   id="q">z</p>
+                </div>
+                """,
+            expected: """
+                <div>
+                    <p class="a
+                   b c"
+                            id="q">z</p>
+                </div>
+                """,
+            analyzerConfigs:
+            [
+                (Path.Combine(Path.GetDirectoryName(TestProjectData.SomeProject.FilePath)!, ".editorconfig"), """
+                    root = true
+
+                    [*.razor]
+                    razor_attribute_indent_style = indent_by_two
+                    """)
+            ]);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86305")]
+    public Task TryFormatAsync_PreservesMultilineComponentAttributeValueContents()
+        => VerifyFormattingAsync(
+            input: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                <InputText Value="a
+                   b c"
+                   id="q" />
+                </div>
+                """,
+            expected: """
+                @using Microsoft.AspNetCore.Components.Forms
+                <div>
+                    <InputText Value="a
+                   b c"
+                               id="q" />
+                </div>
+                """);
+
     private static async Task VerifyFormattingAsync(
         string input,
         string expected,
