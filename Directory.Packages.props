@@ -131,7 +131,7 @@
     <PackageVersion Include="Microsoft.VisualStudio.Imaging" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.Interop" Version="18.12.772" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.14.28" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client" Version="18.14.30" />
     <PackageVersion Include="Microsoft.VisualStudio.OLE.Interop" Version="18.12.772" />
     <PackageVersion Include="Microsoft.VisualStudio.RemoteControl" Version="16.3.52" />
     <PackageVersion Include="Microsoft.VisualStudio.RpcContracts" Version="18.12.772" />
@@ -192,7 +192,7 @@
     <!--
       Language Server
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="18.14.28" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="18.14.30" />
     <PackageVersion Include="NuGet.ProjectModel" Version="6.14.3" />
     <PackageVersion Include="NuGet.Versioning" Version="$(NuGetVersioningVersion)" />
     <PackageVersion Include="MSTest.TestAdapter" Version="3.10.4" />
