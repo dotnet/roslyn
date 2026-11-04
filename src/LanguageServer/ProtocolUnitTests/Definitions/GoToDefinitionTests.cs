@@ -431,7 +431,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(secondProjectPath), results[1].DocumentUri);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
     public async Task TestGotoDefinitionAsync_FileBasedProgramProjectDirectiveDirectoryWithMultipleProjects_Glob(bool mutatingLspWorkspace)
     {
         // Globs can also match multiple project files
@@ -538,7 +538,7 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         Assert.Empty(results);
     }
 
-    [Theory, CombinatorialData]
+    [ConditionalTheory(typeof(CoreClrOnly)), CombinatorialData]
     public async Task TestGotoDefinitionAsync_FileBasedProgramRefDirective_Glob(bool mutatingLspWorkspace)
     {
         // A ref directive can refer to multiple files via glob
