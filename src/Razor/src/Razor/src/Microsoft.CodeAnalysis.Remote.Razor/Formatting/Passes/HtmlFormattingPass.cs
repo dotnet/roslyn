@@ -291,7 +291,7 @@ internal sealed partial class HtmlFormattingPass(ILoggerFactory loggerFactory) :
                 CheckForNewLines: true,
                 // Everything below here is default/unused for Html formatting
                 SkippedPreviousLineOriginOffset: null,
-                SkipNextLine: false,
+                SkipNextLines: 0,
                 SkipNextLineIfBrace: false,
                 FixedIndentLevel: 0,
                 OriginOffset: 0,

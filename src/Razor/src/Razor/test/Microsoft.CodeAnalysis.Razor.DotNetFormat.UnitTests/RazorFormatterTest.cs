@@ -497,6 +497,46 @@ public partial class RazorFormatterTest
                 }
                 """.Replace("PREFIX", prefix).Replace("SUFFIX", suffix));
 
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_EndTagAfterRazorCommentOnSameLine()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task TryFormatAsync_MultipleEndTagsAfterRazorCommentOnSameLine()
+        => VerifyFormattingAsync(
+            input: """
+                <div>
+                    <span>
+                        @* note *@ </span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    <span>
+                        @* note *@ </span></div>
+                <section>
+                    <p>x</p>
+                </section>
+                """);
+
     private static async Task VerifyFormattingAsync(
         string input,
         string expected,
