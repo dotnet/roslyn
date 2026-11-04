@@ -124,7 +124,6 @@
                         throw new InvalidDataException("Property value must be a string or null.");
                     }
 
-                    // Split the property-expression prefix so MSBuild does not expand the task source.
                     var value = hasValue
                         ? valueElement.GetString()
                         : "$" + "(" + name + ")";
