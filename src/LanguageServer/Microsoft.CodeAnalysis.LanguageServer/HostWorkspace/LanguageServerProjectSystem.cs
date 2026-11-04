@@ -216,6 +216,10 @@ internal sealed class LanguageServerProjectSystem : LanguageServerProjectLoader,
         if (TryGetSupportedLanguage(projectPath, out _))
             return true;
 
+        // Shared projects are expected solution entries, but don't need to be loaded since we don't do anything special with them
+        if (projectPath.EndsWith(".shproj", StringComparison.OrdinalIgnoreCase))
+            return false;
+
         _logger.LogInformation("Not loading project '{ProjectPath}' because its language is not supported.", projectPath);
         return false;
     }
