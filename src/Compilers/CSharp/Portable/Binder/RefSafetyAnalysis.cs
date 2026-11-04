@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #if DEBUG
             TrackVisit(node);
 #endif
-            using var _ = new UnsafeRegion(this, _inUnsafeRegion || node is BoundExpression { WasBoundInUnsafeContext: true });
+            using var _ = new UnsafeRegion(this, _inUnsafeRegion || node is BoundExpression { WasBoundInUnsafeExpression: true });
             return base.Visit(node);
         }
 
@@ -832,7 +832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void visitReceiver(BoundCall node, ref readonly MethodInvocationInfo methodInvocationInfo)
             {
-                using var _ = new UnsafeRegion(this, _inUnsafeRegion || node.WasBoundInUnsafeContext);
+                using var _ = new UnsafeRegion(this, _inUnsafeRegion || node.WasBoundInUnsafeExpression);
                 if (node.IsErroneousNode)
                 {
                     Visit(node.ReceiverOpt);
@@ -845,7 +845,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             void visitArguments(BoundCall node, ref readonly MethodInvocationInfo methodInvocationInfo)
             {
-                using var _ = new UnsafeRegion(this, _inUnsafeRegion || node.WasBoundInUnsafeContext);
+                using var _ = new UnsafeRegion(this, _inUnsafeRegion || node.WasBoundInUnsafeExpression);
                 if (node.IsErroneousNode)
                 {
                     VisitList(node.Arguments);

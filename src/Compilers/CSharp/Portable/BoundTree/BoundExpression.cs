@@ -51,16 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal BoundExpression WithUnsafeContext(bool inUnsafeContext)
+        internal BoundExpression WithUnsafeExpressionContext(bool inUnsafeExpression)
         {
             // Transparent syntax must not clear the context already recorded on its operand.
-            if (!inUnsafeContext || WasBoundInUnsafeContext)
+            if (!inUnsafeExpression || WasBoundInUnsafeExpression)
             {
                 return this;
             }
 
             var result = (BoundExpression)MemberwiseClone();
-            result.WasBoundInUnsafeContext = true;
+            result.WasBoundInUnsafeExpression = true;
             return result;
         }
 
@@ -153,10 +153,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public new bool WasBoundInUnsafeContext
+        public new bool WasBoundInUnsafeExpression
         {
-            get => base.WasBoundInUnsafeContext;
-            protected set => base.WasBoundInUnsafeContext = value;
+            get => base.WasBoundInUnsafeExpression;
+            protected set => base.WasBoundInUnsafeExpression = value;
         }
 
         public new NullabilityInfo TopLevelNullability

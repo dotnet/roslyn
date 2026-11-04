@@ -913,8 +913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Binder GetValueKindBinder(BoundExpression expr)
         {
-            return expr.WasBoundInUnsafeContext
-                ? WithAdditionalFlags(BinderFlags.UnsafeRegion)
+            return expr.WasBoundInUnsafeExpression
+                ? WithAdditionalFlags(BinderFlags.UnsafeRegion | BinderFlags.UnsafeExpressionRegion)
                 : this;
         }
 
