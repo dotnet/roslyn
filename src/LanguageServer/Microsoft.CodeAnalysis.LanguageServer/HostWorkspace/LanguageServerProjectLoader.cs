@@ -265,6 +265,9 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
     }
 
     /// <summary>Loads a project in the MSBuild host.</summary>
+    /// <returns>
+    /// The load result, or null if the project should not be loaded. Implementations that return null are responsible for logging why.
+    /// </returns>
     /// <remarks>Caller needs to catch exceptions to avoid bringing down the project loader queue.</remarks>
     protected abstract Task<RemoteProjectLoadResult?> TryLoadProjectInMSBuildHostAsync(
         BuildHostProcessManager buildHostProcessManager, string projectPath, CancellationToken cancellationToken);
@@ -290,14 +293,7 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
         {
             var remoteProjectLoadResult = await TryLoadProjectInMSBuildHostAsync(buildHostProcessManager, projectPath, cancellationToken);
             if (remoteProjectLoadResult is null)
-            {
-                // Example cases where this might occur:
-                // - Loading VB projects
-                // - Reloading file-based app projects, where edits were performed to e.g. delete all `#:` directives,
-                //   making the file no longer a file-based app entry point.
-                _logger.LogDebug("Reload of '{ProjectPath}' was canceled.", projectPath);
                 return null;
-            }
 
             var projectFactory = remoteProjectLoadResult.ProjectFactory;
             var preferredBuildHostKind = remoteProjectLoadResult.PreferredBuildHostKind;
@@ -604,4 +600,17 @@ internal abstract partial class LanguageServerProjectLoader : IAsyncDisposable
 
     protected static string NormalizeProjectPath(string projectPath)
         => PathUtilities.IsAbsolute(projectPath) ? IOUtilities.PerformIO(() => Path.GetFullPath(projectPath), projectPath) : projectPath;
+
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal readonly struct TestAccessor(LanguageServerProjectLoader loader)
+    {
+        public async ValueTask<ImmutableArray<string>> GetLoadedProjectPathsAsync()
+        {
+            using (await loader._gate.DisposableWaitAsync(CancellationToken.None))
+            {
+                return [.. loader._loadedProjects.Keys];
+            }
+        }
+    }
 }
