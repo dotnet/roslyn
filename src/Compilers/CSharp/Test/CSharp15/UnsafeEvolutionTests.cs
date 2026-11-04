@@ -4574,6 +4574,36 @@ public sealed class UnsafeEvolutionTests : CompilingTestBase
             Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(20, 39));
     }
 
+    [Fact]
+    public void UnsafeExpression_RefSafety_PartiallyWrappedCallChain()
+    {
+        var source = """
+            using System;
+
+            class C
+            {
+                static C Mix(ref Span<int> destination, Span<int> source) => null;
+                C Next() => this;
+                int End() => 0;
+
+                void M()
+                {
+                    Span<int> outer = default;
+                    {
+                        Span<int> inner = stackalloc int[1];
+                        _ = unsafe(Mix(ref outer, inner).Next()).End();
+                    }
+                }
+            }
+            """;
+
+        CreateCompilationWithSpan(source, options: TestOptions.UnsafeReleaseDll.WithUpdatedMemorySafetyRules())
+            .VerifyEmitDiagnostics(
+            // (14,39): warning CS9080: Use of variable 'inner' in this context may expose referenced variables outside of their declaration scope
+            //             _ = unsafe(Mix(ref outer, inner).Next()).End();
+            Diagnostic(ErrorCode.WRN_EscapeVariable, "inner").WithArguments("inner").WithLocation(14, 39));
+    }
+
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/86211")]
     public void UnsafeExpression_RefSafety_DelayedExpressions()
     {
