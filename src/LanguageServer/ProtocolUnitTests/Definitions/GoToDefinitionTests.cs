@@ -594,17 +594,40 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
-    public async Task TestGotoDefinitionAsync_FileBasedProgramDirectiveCaretNotOnPath(bool mutatingLspWorkspace)
+    public async Task TestGotoDefinitionAsync_FileBasedProgramDirectiveCaretNotOnPath_01(bool mutatingLspWorkspace)
     {
-        // Navigation only works if the caret is on the path part of the directive
-        // Note: there are "directive metadata" changes in flight here, possibly we wouldn't want to navigate if the caret is on the "metadata" part.
-        // This could be a possible future improvement.
+        // Navigation works even when the caret is on the "directive name" part of the trivia.
+        // We could consider a future improvement to only navigate on the part of the content which represents the path.
         var markup =
             """
             <Workspace>
                 <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
                     <Document FilePath="App.cs">
                         #:{|caret:|}project Lib\Library.csproj
+                        System.Console.WriteLine();
+                    </Document>
+                    <ProjectReference>Library</ProjectReference>
+                </Project>
+                <Project FilePath="Lib/Library.csproj" AssemblyName="Library" Language="C#" CommonReferences="true" Features="FileBasedProgram=true" />
+            </Workspace>
+            """;
+        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
+
+        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+        var projectFilePath = Path.Combine(TestWorkspace.RootDirectory, "Lib", "Library.csproj");
+        Assert.Equal(ProtocolConversions.CreateAbsoluteDocumentUri(projectFilePath), results.Single().DocumentUri);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGotoDefinitionAsync_FileBasedProgramDirectiveCaretNotOnPath_02(bool mutatingLspWorkspace)
+    {
+        // Navigation doesn't work on the '#:' part of the token.
+        var markup =
+            """
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" Features="FileBasedProgram=true">
+                    <Document FilePath="App.cs">
+                        #{|caret:|}:project Lib\Library.csproj
                         System.Console.WriteLine();
                     </Document>
                     <ProjectReference>Library</ProjectReference>

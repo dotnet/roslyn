@@ -71,7 +71,7 @@ internal sealed class FileBasedProgramService() : IFileBasedProgramService
 
         var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var token = syntaxRoot.FindToken(position, findInsideTrivia: true);
-        if (token.Parent is not IgnoredDirectiveTriviaSyntax { Content: (kind: SyntaxKind.StringLiteralToken) content })// || token != content)
+        if (token.Parent is not IgnoredDirectiveTriviaSyntax { Content: (kind: SyntaxKind.StringLiteralToken) content } || token != content)
             return [];
 
         // Caret is on the content token of an FBA directive.

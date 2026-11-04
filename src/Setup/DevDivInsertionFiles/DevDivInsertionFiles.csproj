@@ -114,6 +114,7 @@
       <_Dependency Remove="Microsoft.Extensions.DependencyInjection.Abstractions"/>
       <_Dependency Remove="Microsoft.Extensions.Diagnostics.Abstractions"/>
       <_Dependency Remove="Microsoft.Extensions.FileProviders.Abstractions"/>
+      <_Dependency Remove="Microsoft.Extensions.FileSystemGlobbing"/>
       <_Dependency Remove="Microsoft.Extensions.Hosting.Abstractions"/>
       <_Dependency Remove="Microsoft.Extensions.Logging.Abstractions"/>
       <_Dependency Remove="Microsoft.Extensions.Options"/>
