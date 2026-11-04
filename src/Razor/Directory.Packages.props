@@ -16,7 +16,7 @@
     <PackageVersion Include="Microsoft.Extensions.DependencyModel" Version="$(_MicrosoftExtensionsPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Copilot" Version="18.11.573" />
     <PackageVersion Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(VisualStudioEditorPackagesVersion)" />
-    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="18.14.5" />
+    <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Protocol.Internal" Version="18.14.6" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.CSharp.Symbols" Version="$(MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServices.Implementation.Symbols" Version="$(MicrosoftVisualStudioLanguageServicesPackageVersion)" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.Implementation" Version="$(VisualStudioEditorPackagesVersion)" NoWarn="NU1701" />
