@@ -23,8 +23,8 @@ using Task = System.Threading.Tasks.Task;
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 
 [PackageRegistration(UseManagedResourcesOnly = true, AllowsBackgroundLoading = true)]
-[ScenarioPreloadRegistration("{" + Guids.CSharpProjectIdString + "}")]
-[ScenarioPreloadRegistration("{" + Guids.CSharpCpsProjectIdString + "}")]
+[ScenarioPreloadRegistration($"{{{Guids.CSharpProjectIdString}}}", typeof(ICSharpProjectHost))]
+[ScenarioPreloadRegistration($"{{{Guids.CSharpCpsProjectIdString}}}", typeof(ICSharpProjectHost))]
 [ProvideLanguageExtension(typeof(CSharpLanguageService), ".cs")]
 [ProvideLanguageExtension(typeof(CSharpLanguageService), ".csx")]
 [ProvideLanguageService(typeof(CSharpLanguageService), "CSharp", 101,
