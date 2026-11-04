@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 
-namespace RunTests
+namespace TestRunner.RunTests
 {
     /// <summary>
     /// Orchestrates dump collection for a work item's owned processes, prioritizing test hosts.
@@ -51,7 +51,7 @@ namespace RunTests
             }
         }
 
-        internal static async Task CollectAsync(IReadOnlyList<Process> processes, Options options, string directory)
+        internal static async Task CollectAsync(IReadOnlyList<Process> processes, RunTestOptions options, string directory)
         {
             Directory.CreateDirectory(directory);
             var candidates = new List<(Process Process, string Name)>();

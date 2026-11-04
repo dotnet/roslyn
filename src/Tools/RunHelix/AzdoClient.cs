@@ -11,7 +11,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RunTests;
+namespace TestRunner.Helix;
 
 /// <summary>
 /// A lightweight Azure DevOps REST API client that replaces the heavy

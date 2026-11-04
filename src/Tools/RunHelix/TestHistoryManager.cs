@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace RunTests;
+namespace TestRunner.Helix;
 
 internal class TestHistoryManager
 {
@@ -29,7 +29,7 @@ internal class TestHistoryManager
     /// In xUnit v2, DurationInMs does NOT include IAsyncLifetime.InitializeAsync or DisposeAsync time.
     /// The caller is responsible for adjusting the duration based on the HasAsyncLifetime flag from test discovery.
     /// </summary>
-    public static async Task<Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>?> GetTestHistoryAsync(Options options, string testRunNamePrefix, CancellationToken cancellationToken)
+    public static async Task<Dictionary<string, (TimeSpan Duration, int TestTheoryInstances)>?> GetTestHistoryAsync(RunHelixOptions options, string testRunNamePrefix, CancellationToken cancellationToken)
     {
         // Access token that has permissions to lookup test history.  This typically comes from the pipeline.
         var accessToken = options.AccessToken ?? GetEnvironmentVariable("SYSTEM_ACCESSTOKEN");

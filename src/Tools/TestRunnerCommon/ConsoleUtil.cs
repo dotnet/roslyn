@@ -4,7 +4,7 @@
 
 using System;
 
-namespace RunTests
+namespace TestRunner
 {
     /// <summary>
     /// Used to write out to the Console. In addition to writing to the console this will output the same messages

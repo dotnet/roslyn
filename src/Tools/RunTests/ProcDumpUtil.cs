@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Security.Principal;
 using Microsoft.Win32;
 
-namespace RunTests
+namespace TestRunner.RunTests
 {
     internal static class DumpUtil
     {
