@@ -396,7 +396,7 @@ public class CohostFindAllReferencesEndpointTest(ITestOutputHelper testOutputHel
 
         var results = await endpoint.GetTestAccessor().HandleRequestAsync(document, position, DisposalToken);
 
-        Assumes.NotNull(results);
+        Contract.ThrowIfNull(results);
         return results;
     }
 

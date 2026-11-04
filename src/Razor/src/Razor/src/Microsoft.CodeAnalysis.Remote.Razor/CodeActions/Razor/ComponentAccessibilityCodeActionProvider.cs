@@ -101,7 +101,7 @@ internal sealed class ComponentAccessibilityCodeActionProvider(IFileSystem fileS
         path = FilePathNormalizer.Normalize(path);
 
         var directoryName = Path.GetDirectoryName(path);
-        Assumes.NotNull(directoryName);
+        Contract.ThrowIfNull(directoryName);
 
         var newComponentPath = Path.Combine(directoryName, $"{startTag.Name.Content}.razor");
         if (_fileSystem.FileExists(newComponentPath))
