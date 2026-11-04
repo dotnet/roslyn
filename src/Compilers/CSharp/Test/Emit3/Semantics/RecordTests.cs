@@ -8957,15 +8957,17 @@ record C(int X)
 
 class Program
 {
-    static void M(C c)
+    static void M(C c, int x)
     {
         _ = c with { [0] = 1 };
         _ = c with { X = 1, [0] = 2 };
         _ = c with { [undefined] = 1 };
         _ = c with { [0] = ""s"" };
+        _ = c with { [0] = ref x };
     }
 }";
 
+            // `[0] = ref x` checks that a ref on the right-hand side is unwrapped, so only CS0747 is reported.
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (11,22): error CS0747: Invalid initializer member declarator
@@ -8982,7 +8984,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[undefined] = 1").WithLocation(13, 22),
                 // (14,22): error CS0747: Invalid initializer member declarator
                 //         _ = c with { [0] = "s" };
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"[0] = ""s""").WithLocation(14, 22));
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, @"[0] = ""s""").WithLocation(14, 22),
+                // (15,22): error CS0747: Invalid initializer member declarator
+                //         _ = c with { [0] = ref x };
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "[0] = ref x").WithLocation(15, 22));
         }
 
         [Fact]

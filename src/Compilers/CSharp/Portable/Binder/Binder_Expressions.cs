@@ -5975,15 +5975,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var argument in implicitElementAccess.ArgumentList.Arguments)
             {
-                children.Add(BindToTypeForErrorRecovery(BindValue(argument.Expression, diagnostics, BindValueKind.RValue)));
+                children.Add(BindValue(argument.Expression, diagnostics, BindValueKind.RValue));
             }
 
             var rhsExpr = initializer.Right.CheckAndUnwrapRefExpression(diagnostics, out _);
-            children.Add(BindToTypeForErrorRecovery(BindValue(rhsExpr, diagnostics, BindValueKind.RValue)));
+            children.Add(BindValue(rhsExpr, diagnostics, BindValueKind.RValue));
 
             Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, initializer);
-            return new BoundBadExpression(
-                initializer, LookupResultKind.NotAValue, symbols: [], children.ToImmutableAndFree(), CreateErrorType());
+            return BadExpression(initializer, children.ToImmutableAndFree());
         }
 
         // returns BadBoundExpression or BoundObjectInitializerMember or BoundDynamicObjectInitializerMember or BoundImplicitIndexerAccess or BoundArrayAccess or BoundPointerElementAccess
