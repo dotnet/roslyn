@@ -40,8 +40,3 @@
 "Package"="{13C3BBB4-F18F-4111-9F54-A0FB010D9194}"
 "SortPriority"=dword:00000064
 @="Microsoft Visual C#"
-
-// Preload this package for legacy and SDK-style C# projects.
-[$RootKey$\ScenarioPreloads\{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}\{13C3BBB4-F18F-4111-9F54-A0FB010D9194}]
-
-[$RootKey$\ScenarioPreloads\{9A19103F-16F7-4668-BE54-9A1E7A4F7556}\{13C3BBB4-F18F-4111-9F54-A0FB010D9194}]
