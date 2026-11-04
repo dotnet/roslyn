@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             WasPropertyBackingFieldAccessChecked = 1 << 10,
 
             WasBoundInUnsafeContext = 1 << 11,
+            WasBoundInUnsafeContextIsChecked = 1 << 12,
 
             AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection | WasBoundInUnsafeContext,
         }
@@ -303,14 +304,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+#if DEBUG
+                _attributes |= BoundNodeAttributes.WasBoundInUnsafeContextIsChecked;
+#endif
                 return (_attributes & BoundNodeAttributes.WasBoundInUnsafeContext) != 0;
             }
             set
             {
-                Debug.Assert((_attributes & BoundNodeAttributes.WasBoundInUnsafeContext) == 0, "flag should not be set twice or reset");
+#if DEBUG
+                Debug.Assert((_attributes & BoundNodeAttributes.WasBoundInUnsafeContextIsChecked) == 0,
+                    "unsafe context flag should not be set after reading it");
+#endif
+
                 if (value)
                 {
                     _attributes |= BoundNodeAttributes.WasBoundInUnsafeContext;
+                }
+                else
+                {
+                    Debug.Assert((_attributes & BoundNodeAttributes.WasBoundInUnsafeContext) == 0,
+                        "unsafe context flag should not be reset here");
                 }
             }
         }
