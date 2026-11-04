@@ -144,6 +144,85 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
         Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), projectFileInfo.OutputFilePath);
     }
 
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+    [CombinatorialData]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenInMemoryProject_ReferencedProjectSurvivesCacheCleanup(bool cleanCache, bool reloadProject)
+    {
+        var projectFilePath = GetSolutionFileName("Parent.csproj");
+        var referencedProjectFilePath = GetSolutionFileName("Referenced.csproj");
+
+        await using var buildHostProcessManager = new BuildHostProcessManager(
+            knownCommandLineParserLanguages: [LanguageNames.CSharp],
+            maxNodeCount: 1);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
+
+        // Make a synthetic project structure consisting of the following:
+        // - 'referencedProject' with stub target returning hard-coded result.
+        // - 'project' referencing the above, with a target invoking the above's stub target.
+        // The point is to verify we can build this project structure, without any projects needing to actually exist on disk, and without running any irrelevant complex build tasks.
+
+        for (var version = 0; version <= (reloadProject ? 1 : 0); version++)
+        {
+            await using var referencedProject = await buildHost.LoadProjectInstanceAsync(
+                referencedProjectFilePath,
+                $$"""
+                <Project>
+                  <Target Name="GetTargetPath" Returns="@(Result)">
+                    <ItemGroup>
+                      <Result Include="/define:REFERENCED_PROJECT_BUILT_{{version}}" />
+                    </ItemGroup>
+                  </Target>
+                </Project>
+                """,
+                additionalGlobalProperties: null,
+                CancellationToken.None);
+            Assert.Empty(await referencedProject.GetDiagnosticLogItemsAsync(CancellationToken.None));
+        }
+
+        await using var project = await buildHost.LoadProjectAsync(
+            projectFilePath, physicalFilePath: null,
+            """
+            <Project>
+              <ItemGroup>
+                <ProjectReference Include="Referenced.csproj" />
+              </ItemGroup>
+              <Target Name="Compile">
+                <MSBuild Projects="@(ProjectReference)" Targets="GetTargetPath" SkipNonexistentProjects="Build">
+                  <Output TaskParameter="TargetOutputs" ItemName="CscCommandLineArgs" />
+                </MSBuild>
+              </Target>
+              <Target Name="CoreCompile" />
+            </Project>
+            """,
+            LanguageNames.CSharp, globalProperties: null, CancellationToken.None);
+        Assert.Empty(await project.GetDiagnosticLogItemsAsync(CancellationToken.None));
+
+        if (cleanCache)
+        {
+            // Unloading an unrelated evaluated project releases the XML cache's incidental strong references,
+            // without unloading the referenced project or removing its weak-cache entry.
+            await using (var unrelatedProject = await buildHost.LoadProjectAsync(
+                GetSolutionFileName("Unrelated.csproj"), physicalFilePath: null, "<Project />",
+                LanguageNames.CSharp, globalProperties: null, CancellationToken.None))
+            {
+                Assert.Empty(await unrelatedProject.GetDiagnosticLogItemsAsync(CancellationToken.None));
+            }
+
+            await buildHost.TestOnly_ForceGarbageCollectionAsync(CancellationToken.None);
+        }
+
+        Assert.False(File.Exists(referencedProjectFilePath));
+        var projectFileInfo = Assert.Single(await project.GetProjectFileInfosAsync(CancellationToken.None));
+        Assert.Empty(await project.GetDiagnosticLogItemsAsync(CancellationToken.None));
+        Assert.Contains(reloadProject ? "/define:REFERENCED_PROJECT_BUILT_1" : "/define:REFERENCED_PROJECT_BUILT_0", projectFileInfo.CommandLineArgs);
+        if (reloadProject)
+        {
+            Assert.DoesNotContain("/define:REFERENCED_PROJECT_BUILT_0", projectFileInfo.CommandLineArgs);
+        }
+    }
+
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]

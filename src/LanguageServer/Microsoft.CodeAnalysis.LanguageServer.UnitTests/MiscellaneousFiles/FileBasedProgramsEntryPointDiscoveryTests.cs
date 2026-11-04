@@ -154,6 +154,81 @@ public sealed class FileBasedProgramsEntryPointDiscoveryTests : AbstractLanguage
         AssertSequenceEqualAndStable([app2File.Path], () => discovery.FindEntryPoints(tempDir.Path));
     }
 
+    [ConditionalFact(typeof(UnixLikeOnly))]
+    public async Task TestDiscovery_DirectorySymlinks()
+    {
+        // Two links back to an ancestor would make the number of reachable paths grow exponentially with depth.
+        // Directory links are not followed, so each directory is visited only by its direct path, and directories reachable only through a link are not visited.
+        // tempDir/
+        //   a/
+        //     linkToShared -> tempDir/shared
+        //   shared/
+        //     Shared.cs
+        //   sub/
+        //     App.cs
+        //     loop1 -> tempDir
+        //     loop2 -> tempDir
+        //   linkToOther -> otherDir
+        // otherDir/
+        //   Other.cs
+
+        var tempDir = _tempRoot.CreateDirectory();
+        var appText = """
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World");
+            """;
+        var subDir = tempDir.CreateDirectory("sub");
+        var appFile = subDir.CreateFile("App.cs").WriteAllText(appText);
+        Directory.CreateSymbolicLink(Path.Combine(subDir.Path, "loop1"), tempDir.Path);
+        Directory.CreateSymbolicLink(Path.Combine(subDir.Path, "loop2"), tempDir.Path);
+
+        var sharedDir = tempDir.CreateDirectory("shared");
+        var sharedFile = sharedDir.CreateFile("Shared.cs").WriteAllText(appText);
+        Directory.CreateSymbolicLink(Path.Combine(tempDir.CreateDirectory("a").Path, "linkToShared"), sharedDir.Path);
+
+        var otherDir = _tempRoot.CreateDirectory();
+        otherDir.CreateFile("Other.cs").WriteAllText(appText);
+        Directory.CreateSymbolicLink(Path.Combine(tempDir.Path, "linkToOther"), otherDir.Path);
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertSequenceEqualAndStable([sharedFile.Path, appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
+    }
+
+    [ConditionalFact(typeof(UnixLikeOnly))]
+    public async Task TestDiscovery_DirectorySymlinkTargetsThroughSymlinks()
+    {
+        // Each link in 'folder' leads back to 'folder' through another link, under a new path each time ('link2/folder', 'link2/link2/folder', ...).
+        // With three such links, the number of those paths would grow exponentially with depth. Directory links are not followed, so only 'folder' itself is visited.
+        // tempDir/
+        //   folder/
+        //     App.cs
+        //     link1 -> ../link2/folder
+        //     link3 -> ../link5/folder
+        //     link4 -> ../link6/folder
+        //   link2 -> .
+        //   link5 -> .
+        //   link6 -> .
+
+        var tempDir = _tempRoot.CreateDirectory();
+        var folder = tempDir.CreateDirectory("folder");
+        var appFile = folder.CreateFile("App.cs").WriteAllText("""
+            #!/usr/bin/env dotnet
+            Console.WriteLine("Hello World");
+            """);
+        foreach (var (link, rootLink) in new[] { ("link1", "link2"), ("link3", "link5"), ("link4", "link6") })
+        {
+            Directory.CreateSymbolicLink(Path.Combine(tempDir.Path, rootLink), ".");
+            Directory.CreateSymbolicLink(Path.Combine(folder.Path, link), Path.Combine("..", rootLink, "folder"));
+        }
+
+        await using var testLspServer = await CreateDiscoveryTestServerAsync(tempDir.Path);
+
+        var discovery = testLspServer.GetRequiredLspService<FileBasedProgramsEntryPointDiscovery>();
+        AssertSequenceEqualAndStable([appFile.Path], () => discovery.FindEntryPoints(tempDir.Path));
+    }
+
     [Fact]
     public async Task TestDiscovery_DotPrefixedFolders()
     {

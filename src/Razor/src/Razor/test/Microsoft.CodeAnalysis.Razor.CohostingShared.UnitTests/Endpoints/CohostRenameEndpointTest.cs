@@ -731,8 +731,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
                 """,
             newName: "DifferentName",
             expected: """
-                @using Alias = My.DifferentName.Widget
                 @using My.DifferentName
+                @using Alias = My.DifferentName.Widget
 
                 @((Widget)null)
                 @((Alias)null)
@@ -875,8 +875,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
             newName: "DifferentName",
             expected: """
-                @using Alias = My.DifferentName.Component
                 @using My.DifferentName
+                @using Alias = My.DifferentName.Component
 
                 <My.DifferentName.Component />
                 <Component />
@@ -909,8 +909,8 @@ public class CohostRenameEndpointTest(ITestOutputHelper testOutputHelper) : Coho
             additionalFiles: [(FilePath("Component.razor"), "@namespace My.Foo")],
             newName: "DifferentAlias",
             expected: """
-                @using DifferentAlias = My.Foo.Component
                 @using My.Foo
+                @using DifferentAlias = My.Foo.Component
 
                 <Component />
                 @((Component)null)

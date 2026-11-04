@@ -189,6 +189,8 @@ Cache entries are written using a staging directory and then published with a di
 
 Per-entry synchronization is used so that multiple writers racing on the same key do not all try to publish the same result concurrently. If another process is already populating an entry, the current request simply continues with normal compilation behavior.
 
+Cache-entry mutexes coordinate processes of the same user across sessions on the same machine. If different users share a cache directory, their writes can race. The default cache directory is per-user. If you override the cache directory location, use a separate directory for each user to avoid cross-user races.
+
 ## Diagnostics
 
 While the experiment is active, the compiler server logs notable cache events, including:

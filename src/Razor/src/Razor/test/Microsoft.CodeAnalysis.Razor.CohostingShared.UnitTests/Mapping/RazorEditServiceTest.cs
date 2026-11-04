@@ -34,6 +34,35 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
     }
 
     [Fact]
+    public Task UsingAliasAdded_SameNameDifferentTarget_KeepsBoth()
+        // Conflicting aliases can occur while editing; mapping must retain both rather than stall.
+        => TestAsync(
+            csharpSource: """
+                {|mapUsing:using Goo = System.String;|}
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            razorSource: """
+                {|mapUsing:@using Goo = System.String|}
+
+                <div></div>
+                """,
+            newCSharpSource: """
+                using Goo = System.String;
+                using Goo = System.Text.StringBuilder;
+                class MyComponent : ComponentBase
+                {
+                }
+                """,
+            expectedRazorSource: """
+                @using Goo = System.String
+                @using Goo = System.Text.StringBuilder
+
+                <div></div>
+                """);
+
+    [Fact]
     public Task SimpleEdits_Apply()
         => TestAsync(
             csharpSource: """
@@ -2231,8 +2260,8 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 }
                 """,
             expectedRazorSource: """
-                @using Alias = Your.Foo.Component
                 @using Your.Foo
+                @using Alias = Your.Foo.Component
 
                 <div></div>
                 """);
@@ -2308,8 +2337,8 @@ public class RazorEditServiceTest(ITestOutputHelper testOutput) : CohostEndpoint
                 }
                 """,
             expectedRazorSource: """
-                @using Alias = Your.Foo.Component
                 @using Your.Foo
+                @using Alias = Your.Foo.Component
 
                 <p></p>
 

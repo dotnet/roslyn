@@ -35,13 +35,11 @@ internal sealed class BrokeredServiceBridgeProvider()
     public async Task SetupBrokeredServicesBridgeAsync(
         string brokeredServicePipeName,
         BrokeredServiceContainer container,
-        ILoggerFactory loggerFactory,
+        ILogger logger,
+        TraceSource traceSource,
         Func<CancellationToken, ValueTask> onServicesAvailable,
         CancellationToken cancellationToken)
     {
-        var logger = loggerFactory.CreateLogger<BrokeredServiceBridgeProvider>();
-        var brokeredServiceTraceSource = BrokeredServiceTraceListener.CreateTraceSource(loggerFactory);
-
         logger.LogDebug("Setting up brokered service bridge");
         using var bridgeStream = await ServerFactory.ConnectAsync(brokeredServicePipeName, cancellationToken);
         using var bridgeMxStream = await MultiplexingStream.CreateAsync(bridgeStream, cancellationToken);
@@ -58,7 +56,7 @@ internal sealed class BrokeredServiceBridgeProvider()
             // ConstructRpc starts listening here, so every inbound request that activates a service through
             // this broker is dispatched on this execution context and inherits the owning server's telemetry.
             FrameworkServices.RemoteServiceBroker
-                .WithTraceSource(brokeredServiceTraceSource)
+                .WithTraceSource(traceSource)
                 .ConstructRpc(relayServiceBroker, profferedServiceBrokerChannel);
 
             await relayServiceBroker.Completion.WaitAsync(cancellationToken);
@@ -68,7 +66,7 @@ internal sealed class BrokeredServiceBridgeProvider()
         {
             using var consumingServiceBrokerChannel = await bridgeMxStream.AcceptChannelAsync(ServiceBrokerChannelName, cancellationToken);
             var remoteClient = FrameworkServices.RemoteServiceBroker
-                .WithTraceSource(brokeredServiceTraceSource)
+                .WithTraceSource(traceSource)
                 .ConstructRpc<IRemoteServiceBroker>(consumingServiceBrokerChannel);
 
             using (container.ProfferRemoteBroker(remoteClient, bridgeMxStream, ServiceSource.OtherProcessOnSameMachine, [.. Descriptors.RemoteServicesToRegister.Keys]))
