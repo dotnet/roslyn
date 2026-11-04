@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
@@ -467,7 +466,6 @@ sealed class VirtualProjectBuilder
             }
         }
 
-        await CheckDirectivesAsync(project, evaluatedDirectives, reportError).ConfigureAwait(false);
         await CreateReferencedVirtualProjectsAsync(projectCollection, evaluatedDirectives, reportError, validateAllDirectives, processedRefFiles).ConfigureAwait(false);
 
         return new Result(project, projectRootElement, evaluatedDirectives);
@@ -569,36 +567,6 @@ sealed class VirtualProjectBuilder
                 reportError,
                 validateAllDirectives: validateAllDirectives,
                 processedRefFiles: processedFiles).ConfigureAwait(false);
-        }
-    }
-
-    private async ValueTask CheckDirectivesAsync(
-        IProjectInstance project,
-        ImmutableArray<CSharpDirective> directives,
-        ErrorReporter reportError)
-    {
-        var refEnabled = new StrongBox<bool?>();
-
-        foreach (var directive in directives)
-        {
-            if (directive is CSharpDirective.Ref)
-            {
-                await CheckFlagEnabledAsync(refEnabled, CSharpDirective.Ref.ExperimentalFileBasedProgramEnableRefDirective, directive).ConfigureAwait(false);
-            }
-        }
-
-        async ValueTask CheckFlagEnabledAsync(StrongBox<bool?> flag, string flagName, CSharpDirective directive)
-        {
-            bool value = flag.Value ??= MSBuildUtilities.ConvertStringToBool(await project.GetPropertyValueAsync(flagName).ConfigureAwait(false));
-
-            if (!value)
-            {
-                reportError(
-                    directive.Info.SourceFile.Text,
-                    directive.Info.SourceFile.Path,
-                    directive.Info.Span,
-                    string.Format(FileBasedProgramsResources.ExperimentalFeatureDisabled, flagName));
-            }
         }
     }
 

@@ -54,19 +54,9 @@
         <target state="translated">Razor 편집기는 프로젝트의 AdditionalFiles이 *.razor 및 *.cshtml 파일이어야 하는 Razor 원본 생성기를 사용합니다. {0}에는 Razor 문서가 포함되었지만 이 파일은 AdditionalFile이 아닌 '{1}'에서 가져왔으므로 편집 환경이 제한됩니다. 이 프로젝트에 대해 더 이상 메시지가 기록되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">오프셋이 유효하지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">{0} 키워드</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Razor 언어 서비스가 제대로 구성되지 않았습니다. 언어 서비스 '{0}'이(가) 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">

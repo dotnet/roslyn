@@ -602,7 +602,7 @@ public sealed class UsingDirectiveParsingTests : ParsingTests
 
 struct A { }";
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using x = A*;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = A*;").WithLocation(1, 1),
@@ -717,7 +717,7 @@ struct A { }";
         var text = @"using x = delegate*<int, void>;";
 
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using x = delegate*<int, void>;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = delegate*<int, void>;").WithLocation(1, 1),
@@ -1083,7 +1083,7 @@ struct A { }";
     {
         var text = @"using x = int*;";
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using x = int*;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using x = int*;").WithLocation(1, 1),
@@ -1186,7 +1186,7 @@ namespace N
     using Y = X;
 }";
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
             // (6,5): hidden CS8019: Unnecessary using directive.
             //     using Y = X;
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X;").WithLocation(6, 5),
@@ -1342,7 +1342,7 @@ namespace N
     using unsafe Y = X;
 }";
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
             // (2,11): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // using X = int*;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(2, 11),
@@ -1425,7 +1425,7 @@ namespace N
     using Y = X[];
 }";
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
             // (6,5): hidden CS8019: Unnecessary using directive.
             //     using Y = X[];
             Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Y = X[];").WithLocation(6, 5),
@@ -2150,7 +2150,7 @@ class C
     void M(VP vp) { }
 }";
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
             // (5,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     void M(VP vp) { }
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "VP").WithLocation(5, 12));
@@ -2304,7 +2304,7 @@ class C
     unsafe void M(VP vp) { }
 }";
         UsingTree(text);
-        CreateCompilation(text, parseOptions: TestOptions.Regular14, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+        CreateCompilation(text, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
             // (1,12): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             // using VP = void*;
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "void*").WithLocation(1, 12));

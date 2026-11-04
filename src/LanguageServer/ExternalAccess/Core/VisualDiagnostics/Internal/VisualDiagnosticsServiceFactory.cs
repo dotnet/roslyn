@@ -45,16 +45,7 @@ internal sealed class VisualDiagnosticsServiceFactory() : ILspServiceFactory
             (_visualDiagnosticsLanguageService as IDisposable)?.Dispose();
         }
 
-        public void OnServiceBrokerInitialized(IServiceBroker serviceBroker, CancellationToken cancellationToken)
-        {
-            _ = OnInitializeVisualDiagnosticsLanguageServiceAsync(serviceBroker, cancellationToken);
-        }
-
-        public void Proffer(GlobalBrokeredServiceContainer container)
-        {
-        }
-
-        private async Task OnInitializeVisualDiagnosticsLanguageServiceAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
+        public async ValueTask OnServiceBrokerInitializedAsync(IServiceBroker serviceBroker, CancellationToken cancellationToken)
         {
             // initialize VisualDiagnosticsLanguageService
             Workspace workspace = _lspWorkspaceRegistrationService.GetAllRegistrations().First(w => w.Kind == WorkspaceKind.Host);
@@ -67,6 +58,10 @@ internal sealed class VisualDiagnosticsServiceFactory() : ILspServiceFactory
                 await visualDiagnosticsLanguageService.InitializeAsync(serviceBroker, cancellationToken).ConfigureAwait(false);
                 _visualDiagnosticsLanguageService = visualDiagnosticsLanguageService;
             }
+        }
+
+        public void Proffer(GlobalBrokeredServiceContainer container)
+        {
         }
     }
 }

@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -132,6 +133,9 @@ internal sealed class InteractiveSession : IDisposable
     {
         Contract.ThrowIfFalse(result.InitializationResult != null);
 
+        Logger.Log(FunctionId.Interactive_Host_Initialized,
+            KeyValueLogMessage.Create(static (m, platform) => m.Add("HostPlatform", platform.ToString()), options.Platform));
+
         _workQueue.AddWork(async () =>
         {
             _workspace.ResetSolution();
@@ -233,6 +237,7 @@ internal sealed class InteractiveSession : IDisposable
 
         // Associate the path with both the editor document and our roslyn document so LSP can make requests on it.
         _textDocumentFactoryService.TryGetTextDocument(submissionBuffer, out var textDocument);
+        Contract.ThrowIfNull(textDocument, "We expect each submission buffer to have an ITextDocument.");
         textDocument.Rename(newSubmissionFilePath);
 
         // Chain projects to the the last submission that successfully executed.

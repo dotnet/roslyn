@@ -57,11 +57,6 @@
         <target state="translated">지시문 값에는 단순 문자열 리터럴이 필요합니다. 원시 문자열 리터럴과 축자 문자열 리터럴은 지시문 값에서 지원되지 않습니다. 검색 결과: {0}</target>
         <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
-      <trans-unit id="ExperimentalFeatureDisabled">
-        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="translated">이 기능은 실험적인 기능입니다. 사용하려면 MSBuild 속성 '{0}'을(를) 'true'로 설정하세요.</target>
-        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
-      </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
         <target state="translated">'{0}' 지시문에서 인식할 수 없는 파일 확장자입니다. 현재 인식되는 확장자는 다음과 같습니다. {1}.</target>

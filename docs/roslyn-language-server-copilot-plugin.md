@@ -34,34 +34,31 @@ With the plugin active, the agent gains LSP-powered capabilities for C# code:
 
 ## Automatic Project Loading
 
-The language server automatically discovers and loads projects using the following strategy (evaluated in order):
+The server is configured to automatically discover and load projects via either the `--autoLoadProjects [maximum]` CLI flag (defaults to a maximum of 500 projects if value omitted) or LSP `initializationOptions` in the Copilot lsp.json as defined below.
 
-### 1. VS Code Settings (`dotnet.defaultSolution`)
+```jsonc
+// lsp.json
+{
+  "initializationOptions": { "autoLoadProjects": 500 }
+}
+```
 
-If a `.vscode/settings.json` file exists in the workspace folder, the server reads the `dotnet.defaultSolution` setting:
+For how the server chooses which solution or projects to load, and how to control it, see [Automatic project loading](../src/LanguageServer/roslyn-language-server/README.md#automatic-project-loading).
+
+### On-Demand Project Loading
+
+Separately from startup loading, a request for a file that is not yet in a loaded project can trigger on-demand loading. The server searches upward from the file's directory, stopping at the workspace folder, and loads the supported projects in the nearest directory containing project files. It then loads their transitive project references.
+
+On-demand loading is enabled by default when Dev Kit features are not in use. When Dev Kit features are enabled, the language server disables on-demand project loading regardless of this setting. Otherwise, to disable request-triggered project loading, set `dotnet.projects.loadOnDemand` in `.vscode/settings.json`:
 
 ```jsonc
 // .vscode/settings.json
 {
-  "dotnet.defaultSolution": "src/MyApp.sln"
+  "dotnet.projects.loadOnDemand": false
 }
 ```
 
-- **Relative or absolute paths** to a `.sln` or `.slnx` file are supported.
-- Set to `"disable"` to prevent the server from loading any solution or projects automatically:
-  ```jsonc
-  {
-    "dotnet.defaultSolution": "disable"
-  }
-  ```
-
-### 2. Single Solution File at the Root
-
-If there is exactly **one** `.sln` or `.slnx` file at the root of the workspace folder, the server will automatically load that solution.
-
-### 3. Individual Project Discovery
-
-As a fallback, the server recursively discovers all `.csproj` files within the workspace folders and loads them individually.
+Setting `dotnet.defaultSolution` to `"disable"` only disables startup loading; on-demand loading remains available outside Dev Kit mode unless `dotnet.projects.loadOnDemand` is also disabled.
 
 ## Troubleshooting
 
@@ -114,13 +111,13 @@ When the agent opens a workspace containing `.cs` files, it will:
 
 1. **Install and run** the [`roslyn-language-server`](https://www.nuget.org/packages/roslyn-language-server) .NET tool on-the-fly using `dotnet dnx` (which downloads and caches the tool automatically; `--yes` skips confirmation and `--prerelease` allows prerelease versions).
 2. **Communicate over stdio** (`--stdio`) using the Language Server Protocol.
-3. **Automatically discover and load projects** (`--autoLoadProjects`) so that the agent immediately has full semantic understanding of the codebase.
+3. **Discover and load projects at startup** (`--autoLoadProjects`), with additional projects loaded on demand for requests to files not yet in loaded projects.
 
 ### Command-Line Options
 
 | Option | Description |
 |--------|-------------|
 | `--stdio` | Use stdio for LSP communication (required for most agent integrations) |
-| `--autoLoadProjects` | Automatically discover and load projects from workspace folders |
+| `--autoLoadProjects [maximum]` | Automatically discover and load projects; optionally limit individual project discovery (currently defaults to 500) |
 | `--logLevel <level>` | Minimum log verbosity (default: `Information`) |
 | `--debug` | Launch the debugger on startup |

@@ -4005,9 +4005,12 @@ parse_member_name:;
                 if (conversionOperator is not null)
                 {
                     // We need to ensure the type syntax the user provided gets an appropriate error and is placed as
-                    // leading skipped trivia for the explicit/implicit keyword.
+                    // leading skipped trivia for the explicit/implicit keyword. If the user also had a misplaced explicit
+                    // interface specifier, preserve that as well.
                     var newImplicitOrExplicitKeyword = AddLeadingSkippedSyntax(
-                        conversionOperator.ImplicitOrExplicitKeyword,
+                        conversionOperator.ImplicitOrExplicitKeyword, explicitInterfaceOpt);
+                    newImplicitOrExplicitKeyword = AddLeadingSkippedSyntax(
+                        newImplicitOrExplicitKeyword,
                         AddError(type, ErrorCode.ERR_BadOperatorSyntax, firstToken.Text));
                     return conversionOperator.Update(
                         conversionOperator.AttributeLists,

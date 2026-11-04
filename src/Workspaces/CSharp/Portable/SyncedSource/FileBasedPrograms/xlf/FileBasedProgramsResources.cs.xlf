@@ -57,11 +57,6 @@
         <target state="translated">V hodnotě direktivy se očekával jednoduchý řetězcový literál. Nezpracované a doslovné řetězcové literály nejsou v hodnotách direktiv podporovány. Nalezeno: {0}</target>
         <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
-      <trans-unit id="ExperimentalFeatureDisabled">
-        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="translated">Toto je experimentální funkce. Pokud ji chcete povolit, nastavte vlastnost MSBuild {0} na hodnotu true.</target>
-        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
-      </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
         <target state="translated">Nerozpoznaná přípona souboru v direktivě {0}. V současné době jsou rozpoznávány pouze tyto přípony: {1}</target>

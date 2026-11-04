@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>$(NetVS)</TargetFramework>
+    <IsShipping>false</IsShipping>
+    <AddPublicApiAnalyzers>false</AddPublicApiAnalyzers>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Microsoft.CodeAnalysis.Razor.DotNetFormat\Microsoft.CodeAnalysis.Razor.DotNetFormat.csproj" />
+    <ProjectReference Include="..\Microsoft.AspNetCore.Razor.Test.Common.Tooling\Microsoft.AspNetCore.Razor.Test.Common.Tooling.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -151,6 +151,11 @@ internal static class PredefinedCommandHandlerNames
     public const string StringCopyPaste = "String Copy Paste";
 
     /// <summary>
+    /// Command handler name for Cref Paste.
+    /// </summary>
+    public const string CrefPaste = "Cref Paste";
+
+    /// <summary>
     /// Command handler name for Toggle Block Comments.
     /// </summary>
     /// <remarks></remarks>

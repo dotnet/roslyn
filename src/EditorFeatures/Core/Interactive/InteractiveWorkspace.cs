@@ -48,6 +48,7 @@ internal partial class InteractiveWorkspace : Workspace
 
             foreach (var change in changes)
             {
+                Contract.ThrowIfNull(change.NewText);
                 edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
             }
 

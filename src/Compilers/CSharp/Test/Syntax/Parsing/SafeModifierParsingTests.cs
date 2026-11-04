@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -45,7 +45,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Method_Async_Before()
     {
-        UsingDeclaration("public safe async(int i);", TestOptions.Regular14);
+        UsingDeclaration("public safe async(int i);", TestOptions.Regular15);
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -307,7 +307,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Destructor_Before()
     {
-        UsingDeclaration("safe ~C() { }", TestOptions.Regular14,
+        UsingDeclaration("safe ~C() { }", TestOptions.Regular15,
             // (1,1): error CS1073: Unexpected token '~'
             // safe ~C() { }
             Diagnostic(ErrorCode.ERR_UnexpectedToken, "safe").WithArguments("~").WithLocation(1, 1),
@@ -353,7 +353,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Destructor_ExternSafe_Before()
     {
-        UsingDeclaration("extern safe ~C();", TestOptions.Regular14,
+        UsingDeclaration("extern safe ~C();", TestOptions.Regular15,
             // (1,1): error CS1073: Unexpected token '~'
             // extern safe ~C();
             Diagnostic(ErrorCode.ERR_UnexpectedToken, "extern safe").WithArguments("~").WithLocation(1, 1),
@@ -422,16 +422,12 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
         var source = $$"""class C { {{declaration}} }""";
         UsingDeclaration(declaration);
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (1,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // class C { public int P { safe get; set; } }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 26));
-        CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
-            // (1,26): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // class C { public int P { safe get; set; } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 26));
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
         N(SyntaxKind.PropertyDeclaration);
         {
@@ -485,16 +481,12 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
         const string declaration = """public int P { private safe get; set; }""";
         var source = $$"""class C { {{declaration}} }""";
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (1,34): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // class C { public int P { private safe get; set; } }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 34));
-        CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
-            // (1,34): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-            // class C { public int P { private safe get; set; } }
-            Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 34));
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
-        CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
     }
 
     [Fact]
@@ -504,10 +496,6 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
         var source = $$"""delegate void EHandler(); class C { {{declaration}} }""";
         UsingDeclaration(declaration);
 
-        CreateCompilation(source, parseOptions: TestOptions.Regular14).VerifyDiagnostics(
-            // (1,63): error CS1609: Modifiers cannot be placed on event accessor declarations
-            // delegate void EHandler(); class C { public event EHandler E { safe add { } remove { } } }
-            Diagnostic(ErrorCode.ERR_NoModifiersOnAccessor, "safe").WithLocation(1, 63));
         CreateCompilation(source, parseOptions: TestOptions.Regular15).VerifyDiagnostics(
             // (1,63): error CS1609: Modifiers cannot be placed on event accessor declarations
             // delegate void EHandler(); class C { public event EHandler E { safe add { } remove { } } }
@@ -592,7 +580,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Constructor_BeforeName_Before()
     {
-        UsingDeclaration("public safe C();", TestOptions.Regular14);
+        UsingDeclaration("public safe C();", TestOptions.Regular15);
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -636,7 +624,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Constructor_AfterExtern_Before()
     {
-        UsingDeclaration("public extern safe C();", TestOptions.Regular14);
+        UsingDeclaration("public extern safe C();", TestOptions.Regular15);
 
         N(SyntaxKind.MethodDeclaration);
         {
@@ -682,7 +670,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
     [Fact]
     public void Constructor_BeforePartial_Before()
     {
-        UsingDeclaration("public safe partial C();", TestOptions.Regular14);
+        UsingDeclaration("public safe partial C();", TestOptions.Regular15);
 
         N(SyntaxKind.ConstructorDeclaration);
         {
@@ -701,7 +689,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
 
         CreateCompilation(
             "class C { public safe partial C(); }",
-            parseOptions: TestOptions.Regular14).VerifyDiagnostics(
+            parseOptions: TestOptions.Regular15, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
             // (1,18): error CS8652: The feature 'updated memory safety rules' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
             // class C { public safe partial C(); }
             Diagnostic(ErrorCode.ERR_FeatureInPreview, "safe").WithArguments("updated memory safety rules").WithLocation(1, 18),
@@ -743,7 +731,7 @@ public sealed class SafeModifierParsingTests(ITestOutputHelper output) : Parsing
                 public safe partial C() { }
             }
             """,
-            parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+            parseOptions: TestOptions.RegularPreview, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
     }
 
     [Fact]

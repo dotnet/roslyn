@@ -57,11 +57,6 @@
         <target state="translated">Se esperaba un literal de cadena simple en el valor de la directiva. Los literales de cadena textuales y sin procesar no se admiten en los valores de directiva. Encontrado: {0}</target>
         <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
-      <trans-unit id="ExperimentalFeatureDisabled">
-        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="translated">Se trata de una característica experimental, establezca la propiedad "{0}" de MSBuild en "true" para habilitarla.</target>
-        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
-      </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
         <target state="translated">Extensión de archivo no reconocida en la directiva ''{0}. Actualmente solo se reconocen estas extensiones: {1}</target>

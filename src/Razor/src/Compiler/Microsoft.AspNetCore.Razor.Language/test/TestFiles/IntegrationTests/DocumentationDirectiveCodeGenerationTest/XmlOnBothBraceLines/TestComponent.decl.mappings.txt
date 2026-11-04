@@ -1,0 +1,9 @@
+﻿Source Location: (16:0,16 [66] x:\dir\subdir\Test\TestComponent.razor)
+|<summary>
+    Uses <see cref="System.DateTime"/>.
+    </summary>|
+Generated Location: (415:14,4 [66] )
+|<summary>
+    Uses <see cref="System.DateTime"/>.
+    </summary>|
+

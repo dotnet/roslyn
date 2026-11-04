@@ -1,0 +1,30 @@
+﻿RazorDocument - [0..32)::32 - [@documentation fooLF<p>After</p>]
+    MarkupBlock - [0..32)::32
+        MarkupTextLiteral - [0..0)::0 - [] - Gen<Markup>
+            Marker;[];
+        CSharpCodeBlock - [0..15)::15
+            RazorDocumentationDirective - [0..15)::15 - Directive:{documentation;CodeBlock;FileScopedSinglyOccurring} [RZ1017(15:0,15 [3] x:\dir\subdir\Test\TestComponent.razor)]
+                CSharpTransition - [0..1)::1 - Gen<None>
+                    Transition;[@];
+                RazorDirectiveBody - [1..15)::14
+                    RazorMetaCode - [1..14)::13 - Gen<None>
+                        Identifier;[documentation];
+                    CSharpCodeBlock - [14..15)::1
+                        UnclassifiedTextLiteral - [14..15)::1 - [ ] - Gen<None>
+                            Whitespace;[ ];
+        MarkupTextLiteral - [15..20)::5 - [fooLF] - Gen<Markup>
+            Text;[foo];
+            NewLine;[LF];
+        MarkupElement - [20..32)::12
+            MarkupStartTag - [20..23)::3 - [<p>] - Gen<Markup>
+                OpenAngle;[<];
+                Text;[p];
+                CloseAngle;[>];
+            MarkupTextLiteral - [23..28)::5 - [After] - Gen<Markup>
+                Text;[After];
+            MarkupEndTag - [28..32)::4 - [</p>] - Gen<Markup>
+                OpenAngle;[<];
+                ForwardSlash;[/];
+                Text;[p];
+                CloseAngle;[>];
+    EndOfFile;[];

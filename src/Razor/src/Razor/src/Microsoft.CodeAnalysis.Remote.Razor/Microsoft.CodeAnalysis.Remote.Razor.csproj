@@ -202,4 +202,6 @@
       <Private>true</Private>
     </ProjectReference>
   </ItemGroup>
+
+  <Import Project="..\Microsoft.CodeAnalysis.Razor.Formatting\Microsoft.CodeAnalysis.Razor.Formatting.projitems" Label="Shared" />
 </Project>

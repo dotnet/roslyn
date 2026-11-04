@@ -54,7 +54,9 @@ internal static class UseCollectionExpressionHelpers
         // The value we're tweaking.
         tupleNamesMustMatch: false,
         // We do not want to ignore this.  `ImmutableArray<string?>` should not be convertible to `ImmutableArray<string>`
-        ignoreNullableAnnotations: false);
+        ignoreNullableAnnotations: false,
+        // Not relevant.  We are not comparing members.
+        distinguishPartialParts: true);
 
     private static readonly SymbolEquivalenceComparer s_arrayAndReadOnlySpanCompareEquallyComparer = s_tupleNamesCanDifferComparer.With(arrayAndReadOnlySpanCompareEqually: true);
 

@@ -11,6 +11,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
 internal static partial class ClassificationExtensions
 {
+    public static IClassificationType GetRequiredClassificationType(
+        this IClassificationTypeRegistryService registryService, string name)
+    {
+        var classificationType = registryService.GetClassificationType(name);
+        Contract.ThrowIfNull(classificationType, $"The classification type '{name}' must be registered.");
+        return classificationType;
+    }
+
     public static IList<ClassificationSpan> ToClassificationSpans(
         this IEnumerable<TaggedText> parts,
         ITextSnapshot textSnapshot,

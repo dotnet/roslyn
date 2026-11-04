@@ -38,15 +38,15 @@
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.EditorFeatures.Text.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.VisualStudio.LanguageServices.dll" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="BasicVisualStudio" Path="|BasicVisualStudio|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="|CSharpVisualStudio|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="ServicesVisualStudioImpl" Path="|ServicesVisualStudioImpl|" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="ServicesVisualStudio" Path="|ServicesVisualStudio;PkgdefProjectOutputGroup|" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="BasicVisualStudio" Path="|BasicVisualStudio;PkgdefProjectOutputGroup|" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="CSharpVisualStudio" Path="|CSharpVisualStudio;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices.Xaml" Path="|Microsoft.VisualStudio.LanguageServices.Xaml|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices.VisualBasic" Path="|Microsoft.VisualStudio.LanguageServices.VisualBasic|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices.CSharp" Path="|Microsoft.VisualStudio.LanguageServices.CSharp|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices.Implementation" Path="|Microsoft.VisualStudio.LanguageServices.Implementation|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices" Path="|Microsoft.VisualStudio.LanguageServices;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices.VisualBasic" Path="|Microsoft.VisualStudio.LanguageServices.VisualBasic;PkgdefProjectOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices.CSharp" Path="|Microsoft.VisualStudio.LanguageServices.CSharp;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;AssemblyRedirectsPkgdefOutputGroup|" />
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="ServicesVisualStudio" Path="|ServicesVisualStudio;BrokeredServicesPkgdefOutputGroup|" />
+    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices" Path="|Microsoft.VisualStudio.LanguageServices;BrokeredServicesPkgdefOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Microsoft.VisualStudio.LanguageServices.Extra.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Microsoft.VisualStudio.LanguageServices.CSharp.Extra.pkgdef" />
     <Asset Type="Microsoft.VisualStudio.VsPackage" Path="Microsoft.VisualStudio.LanguageServices.VisualBasic.Extra.pkgdef" />
@@ -60,7 +60,7 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.VisualBasic.Workspaces.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.CSharp.Features.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.VisualBasic.Features.dll" />
-    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="XamlVisualStudio" Path="|XamlVisualStudio|" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" d:Source="Project" d:ProjectName="Microsoft.VisualStudio.LanguageServices.Xaml" Path="|Microsoft.VisualStudio.LanguageServices.Xaml|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.dll" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.dll" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="Microsoft.CodeAnalysis.EditorFeatures.ExternalAccess.dll" />

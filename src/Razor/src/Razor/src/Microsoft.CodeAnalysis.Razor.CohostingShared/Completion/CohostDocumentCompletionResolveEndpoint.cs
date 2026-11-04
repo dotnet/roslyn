@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Razor.CohostingShared;
 using Microsoft.CodeAnalysis.Razor.Cohost;
 using Microsoft.CodeAnalysis.Razor.Completion;
@@ -60,19 +59,9 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
         return null;
     }
 
-    protected override Task<VSInternalCompletionItem?> HandleRequestAsync(
+    protected override async Task<VSInternalCompletionItem?> HandleRequestAsync(
         VSInternalCompletionItem completionItem,
         TextDocument razorDocument,
-        CancellationToken cancellationToken)
-    {
-        var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
-        return HandleRequestAsync(completionItem, razorDocument, csharpSyntaxFormattingOptions, cancellationToken);
-    }
-
-    private async Task<VSInternalCompletionItem?> HandleRequestAsync(
-        VSInternalCompletionItem completionItem,
-        TextDocument razorDocument,
-        CSharpSyntaxFormattingOptions csharpSyntaxFormattingOptions,
         CancellationToken cancellationToken)
     {
         if (cancellationToken.IsCancellationRequested)
@@ -126,10 +115,8 @@ internal sealed class CohostDocumentCompletionResolveEndpoint(
             }
         }
         // Couldn't find an associated completion list, so its either Razor or C#. Either way, over to OOP
-        var formattingOptions = _clientSettingsManager.GetClientSettings().ToRazorFormattingOptions() with
-        {
-            CSharpSyntaxFormattingOptions = csharpSyntaxFormattingOptions,
-        };
+        var clientSettings = _clientSettingsManager.GetClientSettings();
+        var formattingOptions = razorDocument.GetRazorFormattingOptions(clientSettings, cancellationToken);
         var result = await _remoteServiceInvoker.TryInvokeAsync<IRemoteCompletionService, VSInternalCompletionItem>(
             razorDocument.Project.Solution,
             (service, solutionInfo, cancellationToken)

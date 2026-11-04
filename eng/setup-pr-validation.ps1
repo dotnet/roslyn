@@ -9,8 +9,8 @@ try {
     git config user.name "RoslynValidation"
     git config user.email "validation@roslyn.net"
 
-    if ($commitSHA.Length -lt 7) {
-      Write-Host "##vso[task.LogIssue type=error;]The PR Commit SHA must be at least 7 characters long."
+    if ($commitSHA -notmatch '\A[a-fA-F0-9]{40}\z') {
+      Write-Host "##vso[task.LogIssue type=error;]The PR Commit SHA must contain exactly 40 hexadecimal characters."
       exit 1
     }
     
@@ -24,8 +24,8 @@ try {
 
     if ($enforceLatestCommit) {
       Write-Host "Validating the PR head matches the specified commit SHA ($commitSHA)..."
-      if (!$prHeadSHA.StartsWith($commitSHA)) {
-        Write-Host "##vso[task.LogIssue type=error;]The PR's Head SHA ($prHeadSHA) does not begin with the specified commit SHA ($commitSHA). Unreviewed changes may have been pushed to the PR."
+      if ($prHeadSHA -ne $commitSHA) {
+        Write-Host "##vso[task.LogIssue type=error;]The PR's Head SHA ($prHeadSHA) does not match the specified commit SHA ($commitSHA). Unreviewed changes may have been pushed to the PR."
         exit 1
       }
     }
@@ -43,17 +43,23 @@ try {
       exit 1
     }
 
-    if (!$enforceLatestCommit) {
-      if ($prHeadSHA.StartsWith($commitSHA)) {
-        Write-Host "PR head SHA ($prHeadSHA) already matches the specified commit SHA ($commitSHA), skipping checkout."
+    $builtPrHead = git rev-parse 'HEAD^2'
+    if ($builtPrHead -ne $commitSHA) {
+      if ($enforceLatestCommit) {
+        Write-Host "##vso[task.LogIssue type=error;]The fetched merge's PR head SHA ($builtPrHead) does not match the specified commit SHA ($commitSHA). Unreviewed changes may have been pushed to the PR."
+        exit 1
       }
-      else {
-        Write-Host "Checking out the specified commit SHA ($commitSHA)..."
-        git checkout $commitSHA
-        if (!$?) {
-          Write-Host "##vso[task.LogIssue type=error;]Checking out commit SHA $commitSHA failed."
-          exit 1
-        }
+
+      Write-Host "Checking out the specified commit SHA ($commitSHA)..."
+      git fetch gh $commitSHA
+      if (!$?) {
+        Write-Host "##vso[task.LogIssue type=error;]Fetching commit SHA $commitSHA failed."
+        exit 1
+      }
+      git checkout $commitSHA
+      if (!$?) {
+        Write-Host "##vso[task.LogIssue type=error;]Checking out commit SHA $commitSHA failed."
+        exit 1
       }
     }
 }

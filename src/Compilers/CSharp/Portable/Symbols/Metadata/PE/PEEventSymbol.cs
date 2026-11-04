@@ -576,16 +576,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 : Type.ContainsPointerOrFunctionPointer();
         }
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound)
         {
             if (!RequiresUnsafe)
             {
-                return CallerUnsafeMode.None;
+                return RequiresUnsafeMode.None;
             }
 
             return ContainingModule.UseUpdatedMemorySafetyRules
-                ? CallerUnsafeMode.Explicit
-                : CallerUnsafeMode.Implicit;
+                ? RequiresUnsafeMode.Explicit
+                : RequiresUnsafeMode.Implicit;
         }
 
         internal sealed override CSharpCompilation? DeclaringCompilation // perf, not correctness

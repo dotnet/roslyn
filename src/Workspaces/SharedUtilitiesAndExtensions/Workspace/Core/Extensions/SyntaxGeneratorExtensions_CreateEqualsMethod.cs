@@ -240,7 +240,7 @@ internal static partial class SyntaxGeneratorExtensions
         ImmutableArray<ISymbol> members, SyntaxNode localNameExpression,
         ArrayBuilder<SyntaxNode> expressions)
     {
-        var iequatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+        var iequatableType = compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName!);
 
         // Now, iterate over all the supplied members and ensure that our instance
         // and the parameter think they are equals.  Specialize how we do this for

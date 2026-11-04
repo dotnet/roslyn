@@ -143,9 +143,17 @@ internal static class DelegatedCompletionHelper
         var token = root.FindToken(absoluteIndex, includeWhitespace: true);
 
         // At EOF after an incomplete start tag, the parser doesn't place EOF inside the tag.
-        token = token.Kind == SyntaxKind.EndOfFile
-            ? token.GetPreviousToken()
-            : token;
+        // In a truly empty document, the EOF token has no previous token — GetPreviousToken()
+        // returns a default (Kind == None) token in that case, so keep the original EOF token.
+        var atEof = token.Kind == SyntaxKind.EndOfFile;
+        if (atEof)
+        {
+            var previousToken = token.GetPreviousToken();
+            if (previousToken.Kind != SyntaxKind.None)
+            {
+                token = previousToken;
+            }
+        }
 
         // Empty document — allow snippets on explicit invocation.
         if (token.Kind == SyntaxKind.EndOfFile)
@@ -163,6 +171,18 @@ internal static class DelegatedCompletionHelper
             isStartTagContext = enclosingStartTag.Name.Span.IntersectsWith(absoluteIndex);
 
             return isStartTagContext;
+        }
+
+        // At the true end of the document, only treat the position as (empty) text content when
+        // the preceding token closes a *complete* end tag (e.g., "</div>$$"). An incomplete end
+        // tag (e.g., "</di$$", missing '>') falls through to the checks below, which correctly
+        // suppress snippets since the caret is still inside markup, not past it.
+        if (atEof && token.Parent is BaseMarkupEndTagSyntax { CloseAngle.IsMissing: false } endTag)
+        {
+            // Snippets are available here unless the tag we just closed is nested inside
+            // a <script> or <style> block — the closed tag's own element doesn't count, since the
+            // caret is now past it, not inside it.
+            return endTag.Parent?.Parent?.FirstAncestorOrSelf<BaseMarkupElementSyntax>(RazorSyntaxFacts.IsScriptOrStyleBlock) is null;
         }
 
         // In text content (element body), snippets are available on explicit invocation only

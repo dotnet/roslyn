@@ -104,12 +104,8 @@ internal sealed class CohostInlineCompletionEndpoint(
 
         if (result.Range is not null)
         {
-            var csharpSyntaxFormattingOptions = CSharpFormattingOptionsHelper.GetCSharpSyntaxFormattingOptions(razorDocument, cancellationToken);
-            var options = RazorFormattingOptions.From(
-                formattingOptions,
-                _clientSettingsManager.GetClientSettings().AdvancedSettings.CodeBlockBraceOnNextLine,
-                _clientSettingsManager.GetClientSettings().AdvancedSettings.AttributeIndentStyle,
-                csharpSyntaxFormattingOptions);
+            var clientSettings = _clientSettingsManager.GetClientSettings();
+            var options = razorDocument.GetRazorFormattingOptions(clientSettings, formattingOptions, cancellationToken);
             var span = result.Range.ToLinePositionSpan();
             var formattedInfo = await _remoteServiceInvoker.TryInvokeAsync<IRemoteInlineCompletionService, FormattedInlineCompletionInfo?>(
                 razorDocument.Project.Solution,

@@ -84,7 +84,7 @@ internal static class PRFinderCommand
 
             var settings = parseResult.LoadSettings(logger);
             using var remoteConnections = new RemoteConnections(settings, logger, loginToAzureDevOps: false);
-            return await PRFinder.PRFinder.FindPRsAsync(startRef, endRef, path, format, labels, remoteConnections, logger, repoPath);
+            return await PRFinder.PRFinder.FindPRsAsync(startRef, endRef, path, format, labels, remoteConnections, logger, repoPath, cancellationToken: cancellationToken);
         }
     }
 }

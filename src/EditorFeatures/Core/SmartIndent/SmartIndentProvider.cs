@@ -20,16 +20,11 @@ internal sealed class SmartIndentProvider(EditorOptionsService editorOptionsServ
 {
     private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
 
-    public ISmartIndent? CreateSmartIndent(ITextView textView)
+    public ISmartIndent CreateSmartIndent(ITextView textView)
     {
         if (textView == null)
         {
             throw new ArgumentNullException(nameof(textView));
-        }
-
-        if (!_editorOptionsService.GlobalOptions.GetOption(SmartIndenterOptionsStorage.SmartIndenter))
-        {
-            return null;
         }
 
         return new SmartIndent(textView, _editorOptionsService);

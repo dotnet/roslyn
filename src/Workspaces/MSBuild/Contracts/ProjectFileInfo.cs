@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.CodeAnalysis.MSBuild;
 
@@ -136,10 +137,20 @@ internal sealed record ProjectFileInfo
     public required PackageReferenceItem[] PackageReferences { get; init; }
 
     /// <summary>
-    /// Metadata references referenced by the project if not specified in <see cref="CommandLineArgs"/>.
+    /// The project's metadata references, or null to obtain them from <see cref="CommandLineArgs"/>.
+    /// When non-null, this collection is used instead of any metadata references in the command line.
     /// </summary>
     [DataMember]
-    public required MetadataReferenceItem[] MetadataReferences { get; init; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public required MetadataReferenceItem[]? MetadataReferences { get; init; }
+
+    /// <summary>
+    /// The project's analyzer references, or null to obtain them from <see cref="CommandLineArgs"/>.
+    /// When non-null, this collection is used instead of any analyzer references in the command line.
+    /// </summary>
+    [DataMember]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public required string[]? AnalyzerReferences { get; init; }
 
     /// <summary>
     /// The value of `CodePage` property. Zero if not specified.
@@ -179,7 +190,8 @@ internal sealed record ProjectFileInfo
             AnalyzerConfigDocuments = [],
             ProjectReferences = [],
             PackageReferences = [],
-            MetadataReferences = [],
+            MetadataReferences = null,
+            AnalyzerReferences = null,
             CodePage = 0,
             ChecksumAlgorithm = null,
             ProjectCapabilities = [],

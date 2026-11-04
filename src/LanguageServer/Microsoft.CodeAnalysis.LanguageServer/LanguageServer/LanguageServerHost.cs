@@ -52,7 +52,7 @@ internal sealed class LanguageServerHost
             LanguageServerTelemetry? languageServerTelemetry;
             if (serverConfiguration.IsDaemon)
             {
-                // Every daemon server needs an isolated router even when VS telemetry is disabled, so sinks
+                // Every daemon server needs an isolated telemetry instance even when VS telemetry is disabled, so sinks
                 // registered by one server cannot receive another server's events.
                 _telemetry = new RoslynTelemetry();
                 languageServerTelemetry = LanguageServerTelemetry.CreateSession(

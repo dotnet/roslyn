@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Razor.Test.Common;
 using Microsoft.VisualStudio.Razor.IntegrationTests.InProcess;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 using Xunit;
 
 namespace Microsoft.VisualStudio.Extensibility.Testing;
@@ -57,17 +58,16 @@ internal partial class EditorInProcess
 
     public async Task WaitForTextChangeAsync(Action action, CancellationToken cancellationToken)
     {
-        using var semaphore = new SemaphoreSlim(1);
-        await semaphore.WaitAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        var completionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         var view = await GetActiveTextViewAsync(cancellationToken);
         view.TextBuffer.PostChanged += TextBuffer_PostChanged;
 
-        action.Invoke();
-
         try
         {
-            await semaphore.WaitAsync(cancellationToken);
+            action.Invoke();
+            await completionSource.Task.WithCancellation(cancellationToken);
         }
         finally
         {
@@ -76,8 +76,7 @@ internal partial class EditorInProcess
 
         void TextBuffer_PostChanged(object sender, EventArgs e)
         {
-            semaphore.Release();
-            view.TextBuffer.PostChanged -= TextBuffer_PostChanged;
+            completionSource.TrySetResult(true);
         }
     }
 

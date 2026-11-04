@@ -40,8 +40,9 @@ internal static class LanguageServerCommandLine
 
         var telemetryLevelOption = new Option<string?>("--telemetryLevel")
         {
-            Description = "Telemetry level for Dev Kit. Supported values are 'all', 'crash', 'error', or 'off'. Defaults to 'off'.",
+            Description = "Telemetry level. Supported values are 'all', 'crash', 'error', or 'off'. Defaults to 'all'.",
             Required = false,
+            DefaultValueFactory = _ => "all",
         };
         var extensionLogDirectoryOption = new Option<string?>("--extensionLogDirectory")
         {

@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.MSBuild;
 internal static class MetadataNames
 {
     public const string Aliases = nameof(Aliases);
+    public const string EmbedInteropTypes = nameof(EmbedInteropTypes);
     public const string FullPath = nameof(FullPath);
     public const string HintPath = nameof(HintPath);
     public const string Link = nameof(Link);

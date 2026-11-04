@@ -68,24 +68,6 @@ Copyright (c) .NET Foundation. All rights reserved.
     <ProjectCapability Include="DynamicFileNesting" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)Rules\RazorConfiguration.xaml">
-      <Context>File</Context>
-    </PropertyPageSchema>
-    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)Rules\RazorExtension.xaml">
-      <Context>File</Context>
-    </PropertyPageSchema>
-    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)Rules\RazorGeneral.xaml">
-      <Context>Project</Context>
-    </PropertyPageSchema>
-    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)Rules\RazorGenerateWithTargetPath.xaml">
-      <Context>Project</Context>
-    </PropertyPageSchema>
-    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)Rules\RazorComponentWithTargetPath.xaml">
-      <Context>Project</Context>
-    </PropertyPageSchema>
-  </ItemGroup>
-
   <!--
     Microsoft.Managed.Core.targets discovers analyzer config files from Compile items. Razor files
     can live in directories without Compile items, so include their directories in design-time

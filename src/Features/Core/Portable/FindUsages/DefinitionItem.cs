@@ -133,7 +133,7 @@ internal abstract partial class DefinitionItem
         DisplayableProperties = displayableProperties.NullToEmpty();
         DisplayIfNoReferences = displayIfNoReferences;
 
-        Contract.ThrowIfFalse(classifiedSpans.IsEmpty || sourceSpans.Length == classifiedSpans.Length);
+        Contract.ThrowIfFalse(ClassifiedSpans.IsEmpty || SourceSpans.Length == ClassifiedSpans.Length);
 
         if (Properties.ContainsKey(MetadataSymbolKey))
         {

@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor;
 using Microsoft.CodeAnalysis.Razor.Logging;
-using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Threading;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -151,42 +151,37 @@ public abstract class AbstractRazorEditorTest(ITestOutputHelper testOutput) : Ab
     private async Task EnsureExtensionInstalledAsync(CancellationToken cancellationToken)
     {
         const string AssemblyName = "Microsoft.CodeAnalysis.Razor.Workspaces";
-        using var semaphore = new SemaphoreSlim(1);
-        await semaphore.WaitAsync(cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        var completionSource = new TaskCompletionSource<Assembly>(TaskCreationOptions.RunContinuationsAsynchronously);
 
         AppDomain.CurrentDomain.AssemblyLoad += CurrentDomain_AssemblyLoad;
 
-        Assembly? assembly = null;
+        Assembly assembly;
         try
         {
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-            assembly = assemblies.FirstOrDefault((assembly) => assembly.GetName().Name.Equals(AssemblyName));
-            if (assembly is null)
+            foreach (var loadedAssembly in AppDomain.CurrentDomain.GetAssemblies())
             {
-                await semaphore.WaitAsync(cancellationToken);
+                CompleteIfResolved(loadedAssembly);
             }
 
-            semaphore.Release();
+            assembly = await completionSource.Task.WithCancellation(cancellationToken);
         }
         finally
         {
             AppDomain.CurrentDomain.AssemblyLoad -= CurrentDomain_AssemblyLoad;
         }
 
-        if (assembly is null)
-        {
-            throw new NotImplementedException($"Integration test did not load extension");
-        }
-
         var version = assembly.GetName().Version;
         Logger.LogInformation($"#### Razor extension assembly loaded from '{assembly.Location}' version: {version}");
 
         void CurrentDomain_AssemblyLoad(object sender, AssemblyLoadEventArgs args)
+            => CompleteIfResolved(args.LoadedAssembly);
+
+        void CompleteIfResolved(Assembly loadedAssembly)
         {
-            if (args.LoadedAssembly.GetName().Name.Equals(AssemblyName, StringComparison.Ordinal))
+            if (string.Equals(loadedAssembly.GetName().Name, AssemblyName, StringComparison.Ordinal))
             {
-                assembly = args.LoadedAssembly;
-                semaphore.Release();
+                completionSource.TrySetResult(loadedAssembly);
             }
         }
     }

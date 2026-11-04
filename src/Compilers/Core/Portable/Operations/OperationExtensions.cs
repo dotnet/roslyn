@@ -69,7 +69,17 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <param name="operation">Operation whose descendants are to be fetched.</param>
         public static IEnumerable<IOperation> Descendants(this IOperation? operation)
         {
-            return Descendants(operation, includeSelf: false);
+            return Descendants(operation, descendIntoChildren: null, includeSelf: false);
+        }
+
+        /// <summary>
+        /// Returns all the descendant operations of the given <paramref name="operation"/> in evaluation order.
+        /// </summary>
+        /// <param name="operation">Operation whose descendants are to be fetched.</param>
+        /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
+        public static IEnumerable<IOperation> Descendants(this IOperation? operation, Func<IOperation, bool>? descendIntoChildren)
+        {
+            return Descendants(operation, descendIntoChildren, includeSelf: false);
         }
 
         /// <summary>
@@ -78,10 +88,20 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <param name="operation">Operation whose descendants are to be fetched.</param>
         public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation? operation)
         {
-            return Descendants(operation, includeSelf: true);
+            return Descendants(operation, descendIntoChildren: null, includeSelf: true);
         }
 
-        private static IEnumerable<IOperation> Descendants(IOperation? operation, bool includeSelf)
+        /// <summary>
+        /// Returns all the descendant operations of the given <paramref name="operation"/> including the given <paramref name="operation"/> in evaluation order.
+        /// </summary>
+        /// <param name="operation">Operation whose descendants are to be fetched.</param>
+        /// <param name="descendIntoChildren">An optional function that determines if the search descends into the argument node's children.</param>
+        public static IEnumerable<IOperation> DescendantsAndSelf(this IOperation? operation, Func<IOperation, bool>? descendIntoChildren)
+        {
+            return Descendants(operation, descendIntoChildren, includeSelf: true);
+        }
+
+        private static IEnumerable<IOperation> Descendants(IOperation? operation, Func<IOperation, bool>? descendIntoChildren, bool includeSelf)
         {
             if (operation == null)
             {
@@ -91,6 +111,11 @@ namespace Microsoft.CodeAnalysis.Operations
             if (includeSelf)
             {
                 yield return operation;
+            }
+
+            if (descendIntoChildren != null && !descendIntoChildren(operation))
+            {
+                yield break;
             }
 
             var stack = ArrayBuilder<IOperation.OperationList.Enumerator>.GetInstance();
@@ -116,7 +141,11 @@ namespace Microsoft.CodeAnalysis.Operations
                     if (current != null)
                     {
                         yield return current;
-                        stack.Push(current.ChildOperations.GetEnumerator());
+
+                        if (descendIntoChildren == null || descendIntoChildren(current))
+                        {
+                            stack.Push(current.ChildOperations.GetEnumerator());
+                        }
                     }
                 }
             }

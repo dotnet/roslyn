@@ -187,7 +187,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         }
         catch (Exception ex)
         {
-            logger.LogDebug("Could not read cache file: {ex.Message}", ex.Message);
+            logger.LogInformation(ex, "Could not read cache file");
         }
 
         cache ??= new Cache(workspaceFolder, DateTimeOffset.MinValue, FileBasedAppFullPaths: [], DirectoriesContainingCsproj: []);
@@ -223,15 +223,17 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         try
         {
             Directory.CreateDirectory(cacheDirectory);
+            // Write the cache to a staging file, then move it into place atomically once it is ready.
             var cacheStagingFilePath = Path.Join(cacheDirectory, "cache.staging.json");
             using (var stagingFile = File.Create(cacheStagingFilePath))
             {
                 JsonSerializer.Serialize(stagingFile, newCache, CacheSerializerContext.Default.Cache);
             }
-            File.Replace(cacheStagingFilePath, cacheFilePath, destinationBackupFileName: null);
+            File.Move(cacheStagingFilePath, cacheFilePath, overwrite: true);
         }
         catch (Exception ex) when (FatalError.ReportAndCatch(ex))
         {
+            logger.LogInformation(ex, "Could not write cache file");
         }
 
         return newCache.FileBasedAppFullPaths;
@@ -270,7 +272,7 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
         private CsFileKind GetKind(ref FileSystemEntry entry)
         {
             if (entry.IsDirectory)
-                return CsFileKind.Directory;
+                return IsDirectoryLink(ref entry) ? CsFileKind.None : CsFileKind.Directory;
 
             var extension = Path.GetExtension(entry.FileName);
             if (extension.Equals(".cs", StringComparison.OrdinalIgnoreCase))
@@ -280,6 +282,26 @@ internal sealed partial class FileBasedProgramsEntryPointDiscovery(
                 return CsFileKind.Csproj;
 
             return CsFileKind.None;
+        }
+
+        /// <summary>
+        /// Directory symlinks and junctions are not followed: a link to an ancestor directory (or two links into each other)
+        /// would otherwise make the walk unbounded. Reparse points which are not links (e.g. cloud-file placeholders) are still visited.
+        /// </summary>
+        private static bool IsDirectoryLink(ref FileSystemEntry entry)
+        {
+            if ((entry.Attributes & FileAttributes.ReparsePoint) == 0)
+                return false;
+
+            try
+            {
+                return new DirectoryInfo(entry.ToFullPath()).LinkTarget is not null;
+            }
+            catch (Exception ex) when (IOUtilities.IsNormalIOException(ex))
+            {
+                // If we can't tell, err on the side of not following it.
+                return true;
+            }
         }
 
         protected override CsFileInfo TransformEntry(ref FileSystemEntry entry)

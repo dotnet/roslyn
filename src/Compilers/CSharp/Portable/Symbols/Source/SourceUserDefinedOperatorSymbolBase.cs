@@ -52,7 +52,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _explicitInterfaceType = explicitInterfaceType;
             _name = name;
 
-            this.CheckUnsafeModifier(declarationModifiers, diagnostics);
+            this.CheckUnsafeOptionForModifiers(declarationModifiers, diagnostics,
+                syntax is BaseMethodDeclarationSyntax methodSyntax ? methodSyntax.Modifiers : default(SyntaxTokenList));
 
             if (isCompoundAssignmentOrIncrementAssignment)
             {

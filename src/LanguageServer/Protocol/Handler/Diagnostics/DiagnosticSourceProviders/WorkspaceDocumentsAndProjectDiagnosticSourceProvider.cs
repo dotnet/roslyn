@@ -26,6 +26,7 @@ internal sealed class WorkspaceDocumentsAndProjectDiagnosticSourceProvider(
 {
     public bool IsDocument => false;
     public string Name => PullDiagnosticCategories.WorkspaceDocumentsAndProject;
+    public bool HasInterFileDependencies => true;
 
     public bool IsEnabled(ClientCapabilities clientCapabilities) => true;
 

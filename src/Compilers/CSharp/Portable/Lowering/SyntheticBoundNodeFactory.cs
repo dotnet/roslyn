@@ -709,6 +709,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ObjectNotEqual(Convert(objectType, value, c), Null(objectType));
         }
 
+        public BoundExpression IsNullReference(BoundExpression value)
+        {
+            var objectType = SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
+
+            Conversion c;
+            if (value.Type is TypeParameterSymbol { AllowsRefLikeType: true })
+            {
+                c = Conversion.Boxing;
+            }
+            else
+            {
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                c = Compilation.Conversions.ClassifyConversionFromExpression(value, objectType, isChecked: false, ref useSiteInfo);
+            }
+
+            Debug.Assert(c.IsImplicit);
+            Debug.Assert(c.IsBoxing || c.IsReference || c.IsIdentity);
+
+            return ObjectEqual(Convert(objectType, value, c), Null(objectType));
+        }
+
         public BoundBinaryOperator ObjectNotEqual(BoundExpression left, BoundExpression right)
         {
             return Binary(BinaryOperatorKind.ObjectNotEqual, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
@@ -1262,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression NullRef(TypeWithAnnotations type)
         {
             // *default(T*)
-            return new BoundPointerIndirectionOperator(Syntax, Default(new PointerTypeSymbol(type)), refersToLocation: false, type.Type);
+            return new BoundPointerIndirectionOperator(Syntax, Default(new PointerTypeSymbol(type)), type.Type);
         }
 
         public static BoundExpression Null(TypeSymbol type, SyntaxNode syntax)

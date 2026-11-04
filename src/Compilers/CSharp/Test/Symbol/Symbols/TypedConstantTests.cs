@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
@@ -66,6 +67,57 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             Assert.Equal(commonArray.Values, commonArray2.Values);
             Assert.Equal(commonArray.Kind, commonArray2.Kind);
             Assert.Equal(commonArray.Type, commonArray2.Type);
+        }
+
+        [Fact]
+        public void ToCSharpString_IncludeTypeSuffix()
+        {
+            Assert.Equal("42U", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_UInt32), TypedConstantKind.Primitive, 42u).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("42L", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_Int64), TypedConstantKind.Primitive, 42L).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("42UL", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_UInt64), TypedConstantKind.Primitive, 42UL).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("26.2D", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_Double), TypedConstantKind.Primitive, 26.2).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("3.14F", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_Single), TypedConstantKind.Primitive, 3.14f).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("12.5M", new TypedConstant(_compilation.GetSpecialType(SpecialType.System_Decimal), TypedConstantKind.Primitive, 12.5m).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+        }
+
+        [Fact]
+        public void ToCSharpString_IncludeTypeSuffix_FormatsArrayElements()
+        {
+            var floatType = _compilation.GetSpecialType(SpecialType.System_Single);
+            var arrayType = _compilation.CreateArrayTypeSymbol(floatType);
+            var values = new TypedConstant(arrayType,
+                new[]
+                {
+                    new TypedConstant(floatType, TypedConstantKind.Primitive, 0.5f),
+                    new TypedConstant(floatType, TypedConstantKind.Primitive, 1.5f),
+                }.AsImmutableOrNull());
+
+            Assert.Equal("{0.5, 1.5}", values.ToCSharpString());
+            Assert.Equal("{0.5F, 1.5F}", values.ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+        }
+
+        [Fact]
+        public void ToCSharpString_IncludeTypeSuffix_LeavesOtherValuesUnchanged()
+        {
+            Assert.Equal("\"text\"", new TypedConstant(_stringType, TypedConstantKind.Primitive, "text").ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("42", new TypedConstant(_intType, TypedConstantKind.Primitive, 42).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+            Assert.Equal("typeof(C)", new TypedConstant(_systemType, TypedConstantKind.Type, _namedType).ToCSharpString(TypedConstantFormattingOptions.IncludeTypeSuffix));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74326")]
+        public void ToCSharpString_FlagsEnum_ExcludesZeroMember()
+        {
+            var compilation = CreateCompilation("""
+                [System.Flags] enum E { None = 0, A = 1, B = 2, C = 4 }
+                [System.Flags] enum U : uint { None = 0, A = 1, B = 2, C = 4 }
+                """);
+            var signedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
+            var unsignedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("U");
+
+            Assert.Equal("E.A | E.C", new TypedConstant(signedType, TypedConstantKind.Enum, 5).ToCSharpString());
+            Assert.Equal("U.A | U.C", new TypedConstant(unsignedType, TypedConstantKind.Enum, 5u).ToCSharpString());
+            Assert.Equal("E.None", new TypedConstant(signedType, TypedConstantKind.Enum, 0).ToCSharpString());
+            Assert.Equal("E.B", new TypedConstant(signedType, TypedConstantKind.Enum, 2).ToCSharpString());
         }
 
         [Fact]

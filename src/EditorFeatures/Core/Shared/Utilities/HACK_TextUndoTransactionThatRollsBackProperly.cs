@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.VisualStudio.Text.Operations;
 
@@ -43,7 +44,8 @@ internal sealed class HACK_TextUndoTransactionThatRollsBackProperly(ITextUndoTra
 
     public ITextUndoHistory History => _innerTransaction.History;
 
-    public IMergeTextUndoTransactionPolicy MergePolicy
+    [DisallowNull]
+    public IMergeTextUndoTransactionPolicy? MergePolicy
     {
         get
         {
@@ -56,7 +58,7 @@ internal sealed class HACK_TextUndoTransactionThatRollsBackProperly(ITextUndoTra
         }
     }
 
-    public ITextUndoTransaction Parent => _innerTransaction.Parent;
+    public ITextUndoTransaction? Parent => _innerTransaction.Parent;
 
     public UndoTransactionState State => _innerTransaction.State;
 

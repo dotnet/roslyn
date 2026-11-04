@@ -717,6 +717,49 @@ class Program
             comp.VerifyDiagnostics();
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/86276")]
+        [ConditionalFact(typeof(IsRelease))]
+        public void NullableAnalysisNestedExpressionsInLambda()
+        {
+            const int nestingLevel = 50;
+
+            var source = $$"""
+                #nullable enable
+                class C
+                {
+                    static int F(int i) => i;
+                    static void Main()
+                    {
+                        System.Func<int> f = () => {{string.Concat(Enumerable.Repeat("F(", nestingLevel))}}0{{new string(')', nestingLevel)}};
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.TestOnlyCompilationData = new NullableWalker.NullableAnalysisData(maxRecursionDepth: nestingLevel / 2);
+            comp.VerifyDiagnostics(
+                // (7,36): error CS8078: An expression is too long or complex to compile
+                //         System.Func<int> f = () => F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(F(0))))))))))))))))))))))))))))))))))))))))))))))))));
+                Diagnostic(ErrorCode.ERR_InsufficientStack, "F").WithLocation(7, 36));
+
+            // The stack guard cancels the analysis of the lambda body. The variables of the lambda must be returned
+            // to their pools only once, otherwise the nullable analysis of unrelated compilations shares them.
+            var source2 = """
+                #nullable enable
+                class D
+                {
+                    void M(string s)
+                    {
+                        System.Func<int> f = () => s.Length;
+                        System.Func<int> g = () => f() + s.Length;
+                    }
+                }
+                """;
+            for (int i = 0; i < 3; i++)
+            {
+                CreateCompilation(source2).VerifyEmitDiagnostics();
+            }
+        }
+
         [ConditionalFact(typeof(NoIOperationValidation), typeof(IsRelease))]
         public void NullableAnalysis_CondAccess_ComplexRightSide()
         {

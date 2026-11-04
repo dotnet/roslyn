@@ -80,7 +80,7 @@ internal sealed partial class RemoteUriPresentationService(in ServiceArgs args) 
             return Response.CallHtml;
         }
 
-        var tag = descriptor.TryGetComponentTag();
+        var tag = descriptor.TryGetComponentTag(codeDocument);
         if (tag is null)
         {
             return Response.CallHtml;

@@ -176,6 +176,28 @@ internal sealed partial class LoadedProject : IAsyncDisposable
         }
     }
 
+    public async ValueTask<ImmutableArray<string>> GetProjectReferencePathsAsync(CancellationToken cancellationToken)
+    {
+        using (await _gate.DisposableWaitAsync(cancellationToken))
+        {
+            if (_projectDirectory is null)
+                return [];
+
+            var references = new HashSet<string>(PathUtilities.Comparer);
+            foreach (var target in _targets)
+            {
+                foreach (var projectReference in target.GetProjectReferences())
+                {
+                    var absolutePath = FileUtilities.ResolveRelativePath(projectReference.Path, _projectDirectory);
+                    if (absolutePath is not null)
+                        references.Add(FileUtilities.NormalizeAbsolutePath(absolutePath));
+                }
+            }
+
+            return [.. references];
+        }
+    }
+
     public async ValueTask<bool> UsesProjectFactoryAsync(ProjectSystemProjectFactory projectFactory)
     {
         using (await _gate.DisposableWaitAsync())
@@ -388,11 +410,15 @@ internal sealed partial class LoadedProject : IAsyncDisposable
 
         public bool Equals(DocumentFileInfo? x, DocumentFileInfo? y)
         {
-            return StringComparer.Ordinal.Equals(x?.FilePath, y?.FilePath);
+            return ReferenceEquals(x, y)
+                || (x is not null && y is not null
+                    && StringComparer.Ordinal.Equals(x.FilePath, y.FilePath)
+                    && x.Folders.SequenceEqual(y.Folders, StringComparer.Ordinal));
         }
 
         public int GetHashCode(DocumentFileInfo obj)
         {
+            // File paths are usually unique, so hashing folders is unlikely to reduce collisions enough to justify the extra work.
             return StringComparer.Ordinal.GetHashCode(obj.FilePath);
         }
     }

@@ -42,9 +42,10 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         (string filePath, string contents)[]? additionalFiles = null,
         (DocumentUri fileUri, string contents)[]? additionalExpectedFiles = null,
         bool addDefaultImports = true,
-        bool makeDiagnosticsRequest = false)
+        bool makeDiagnosticsRequest = false,
+        Action<RazorProjectBuilder>? projectConfigure = null)
     {
-        var document = CreateRazorDocument(input, fileKind, documentFilePath, additionalFiles, addDefaultImports: addDefaultImports);
+        var document = CreateRazorDocument(input, fileKind, documentFilePath, additionalFiles, addDefaultImports: addDefaultImports, projectConfigure: projectConfigure);
 
         var codeAction = await VerifyCodeActionRequestAsync(document, input, codeActionName, codeActionIndex, childActionIndex, expectOffer: expected is not null, makeDiagnosticsRequest);
 
@@ -64,7 +65,13 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
         await workspaceEdit.AssertWorkspaceEditAsync(document.Project.Solution, expectedChanges, DisposalToken);
     }
 
-    private protected TextDocument CreateRazorDocument(TestCode input, RazorFileKind? fileKind = null, string? documentFilePath = null, (string filePath, string contents)[]? additionalFiles = null, bool addDefaultImports = true)
+    private protected TextDocument CreateRazorDocument(
+        TestCode input,
+        RazorFileKind? fileKind = null,
+        string? documentFilePath = null,
+        (string filePath, string contents)[]? additionalFiles = null,
+        bool addDefaultImports = true,
+        Action<RazorProjectBuilder>? projectConfigure = null)
     {
         var fileSystem = (RemoteFileSystem)OOPExportProvider.GetExportedValue<IFileSystem>();
         fileSystem.GetTestAccessor().SetFileSystem(new TestFileSystem(additionalFiles));
@@ -82,7 +89,7 @@ public abstract class CohostCodeActionsEndpointTestBase(ITestOutputHelper testOu
             return options;
         });
 
-        return CreateProjectAndRazorDocument(input.Text, fileKind, documentFilePath, additionalFiles: additionalFiles, addDefaultImports: addDefaultImports);
+        return CreateProjectAndRazorDocument(input.Text, fileKind, documentFilePath, additionalFiles: additionalFiles, addDefaultImports: addDefaultImports, projectConfigure: projectConfigure);
     }
 
     private async Task<CodeAction?> VerifyCodeActionRequestAsync(TextDocument document, TestCode input, string codeActionName, int? codeActionIndex, int childActionIndex, bool expectOffer, bool makeDiagnosticsRequest)

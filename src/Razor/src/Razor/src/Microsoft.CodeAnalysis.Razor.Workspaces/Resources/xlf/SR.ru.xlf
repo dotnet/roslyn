@@ -54,19 +54,9 @@
         <target state="translated">Редактор Razor использует генератор источника Razor, который требует, чтобы файлы *.razor и *.cshtml были файлами AdditionalFile в проекте. {0} поступает из "{1}", где есть документы Razor, но этот файл не является AdditionalFile, поэтому возможности редактирования будут ограничены. Для этого проекта больше не будут регистрироваться сообщения в журнале.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_Offset">
-        <source>Invalid offset.</source>
-        <target state="translated">Недопустимое смещение.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="KeywordDescription">
         <source>{0} Keyword</source>
         <target state="translated">Ключевое слово: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Language_Services_Missing_Service">
-        <source>Razor language services not configured properly, missing language service '{0}'.</source>
-        <target state="translated">Языковые службы Razor настроены неправильно, отсутствует языковая служба "{0}".</target>
         <note />
       </trans-unit>
       <trans-unit id="MDN_Reference">

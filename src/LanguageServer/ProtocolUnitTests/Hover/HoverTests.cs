@@ -4,9 +4,11 @@
 
 #nullable disable
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Test.Utilities;
 using Roslyn.Text.Adornments;
@@ -18,6 +20,76 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Hover;
 
 public sealed class HoverTests(ITestOutputHelper testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
+    [Theory]
+    [InlineData("namespace N { class {|caret:C|} { } }", "class N.C")]
+    [InlineData("namespace {|caret:N|}.Inner { }", "namespace N")]
+    [InlineData("struct {|caret:S|} { }", "struct S")]
+    [InlineData("interface {|caret:I|} { }", "interface I")]
+    [InlineData("enum {|caret:E|} { A }", "enum E")]
+    [InlineData("record {|caret:R|}(int Value);", "record R")]
+    [InlineData("delegate void {|caret:D|}(int value);", "delegate void D(int value)")]
+    [InlineData("class C { void {|caret:M|}(int value) { } }", "void C.M(int value)")]
+    [InlineData("class C { public {|caret:C|}(int value) { } }", "C.C(int value)")]
+    [InlineData("class C { int {|caret:P|} { get; set; } }", "int C.P { get; set; }")]
+    [InlineData("class C { int {|caret:f|}; }", "int C.f")]
+    [InlineData("class C { void M(int {|caret:value|}) { } }", "int value")]
+    [InlineData("class C { void M() { int {|caret:value|} = 0; } }", "int value")]
+    [InlineData("class C { event System.Action {|caret:E|}; }", "System.Action C.E")]
+    public async Task TestGetHoverAsync_MarksCSharpDeclarations(string markup, string declaration)
+    {
+        var clientCapabilities = new LSP.ClientCapabilities
+        {
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = true } }
+        };
+        await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace: false, clientCapabilities);
+        var location = testLspServer.GetLocations("caret").Single();
+        var result = await RunGetHoverAsync(testLspServer, location);
+
+        Assert.Equal(LSP.MarkupKind.Markdown, result.Contents.Fourth.Kind);
+        var markdown = result.Contents.Fourth.Value.ReplaceLineEndings("\n");
+        Assert.StartsWith("```csharp\n\u200B", markdown);
+        Assert.Contains(declaration, markdown);
+        Assert.Equal(1, markdown.Count(c => c == '\u200B'));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetHoverAsync_DoesNotMarkCSharpDeclarationsWithoutClientSupport(bool mutatingLspWorkspace, bool roslynHoverSetting)
+    {
+        var markup = "class {|caret:C|} { }";
+        LSP.HoverSetting hoverSetting = roslynHoverSetting
+            ? new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = false }
+            : new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] };
+        var clientCapabilities = new LSP.ClientCapabilities
+        {
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = hoverSetting }
+        };
+        await using var testLspServer = await CreateTestLspServerAsync(
+            markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities });
+        var result = await RunGetHoverAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        Assert.StartsWith("```csharp\nclass C", result.Contents.Fourth.Value.ReplaceLineEndings("\n"));
+        Assert.DoesNotContain("\u200B", result.Contents.Fourth.Value, StringComparison.Ordinal);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGetHoverAsync_DoesNotMarkVisualBasic(bool mutatingLspWorkspace)
+    {
+        var markup = """
+            Class {|caret:C|}
+            End Class
+            """;
+        var clientCapabilities = new LSP.ClientCapabilities
+        {
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = true } }
+        };
+        await using var testLspServer = await CreateVisualBasicTestLspServerAsync(
+            markup, mutatingLspWorkspace, new InitializationOptions { ClientCapabilities = clientCapabilities });
+        var result = await RunGetHoverAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+
+        Assert.StartsWith("```vb\n", result.Contents.Fourth.Value.ReplaceLineEndings("\n"));
+        Assert.DoesNotContain("\u200B", result.Contents.Fourth.Value, StringComparison.Ordinal);
+    }
+
     [Theory, CombinatorialData]
     public async Task TestGetHoverAsync(bool mutatingLspWorkspace)
     {
@@ -232,14 +304,14 @@ $@"<Workspace>
 }";
         var clientCapabilities = new LSP.ClientCapabilities
         {
-            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = true } }
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
         var results = await RunGetHoverAsync(
             testLspServer,
             expectedLocation).ConfigureAwait(false);
-        Assert.Equal(@$"```csharp
+        Assert.Equal(MarkDeclaration(@$"```csharp
 void A.AMethod(int i)
 ```
   
@@ -260,7 +332,7 @@ Remarks are cool too\.
   
 {WorkspacesResources.Exceptions_colon}  
 &nbsp;&nbsp;System\.NullReferenceException  
-", results.Contents.Fourth.Value);
+"), results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData]
@@ -356,14 +428,14 @@ Remarks are cool too.
 }";
         var clientCapabilities = new LSP.ClientCapabilities
         {
-            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = true } }
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
         var results = await RunGetHoverAsync(
             testLspServer,
             expectedLocation).ConfigureAwait(false);
-        Assert.Equal(@"```csharp
+        Assert.Equal(MarkDeclaration(@"```csharp
 void A.AMethod(int i)
 ```
   
@@ -375,7 +447,7 @@ Exclaim\!
 **strong\\\*\* text**  
 _italic\_ \*\*text\*\*_  
 [closing\] link](https://google.com)  
-", results.Contents.Fourth.Value);
+"), results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData]
@@ -397,19 +469,19 @@ _italic\_ \*\*text\*\*_
 }";
         var clientCapabilities = new LSP.ClientCapabilities
         {
-            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = true } }
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
         var results = await RunGetHoverAsync(
             testLspServer,
             expectedLocation).ConfigureAwait(false);
-        Assert.Equal(@"```csharp
+        Assert.Equal(MarkDeclaration(@"```csharp
 void A.AMethod(int i)
 ```
   
 `if (true) { Console.WriteLine(""hello""); }`  
-", results.Contents.Fourth.Value);
+"), results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75181")]
@@ -431,14 +503,14 @@ void A.AMethod(int i)
 }";
         var clientCapabilities = new LSP.ClientCapabilities
         {
-            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = true } }
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
         var results = await RunGetHoverAsync(
             testLspServer,
             expectedLocation).ConfigureAwait(false);
-        Assert.Equal(@"```csharp
+        Assert.Equal(MarkDeclaration(@"```csharp
 void A.AMethod(int i)
 ```
   
@@ -448,7 +520,7 @@ if (true) {
     Console.WriteLine(""hello"");
 }
 ```  
-".ReplaceLineEndings(), results.Contents.Fourth.Value.ReplaceLineEndings());
+".ReplaceLineEndings()), results.Contents.Fourth.Value.ReplaceLineEndings());
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/microsoft/vscode-dotnettools/issues/1499")]
@@ -466,19 +538,19 @@ if (true) {
 }";
         var clientCapabilities = new LSP.ClientCapabilities
         {
-            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = true } }
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
         var results = await RunGetHoverAsync(
             testLspServer,
             expectedLocation).ConfigureAwait(false);
-        Assert.Equal(@"```csharp
+        Assert.Equal(MarkDeclaration(@"```csharp
 void A.AMethod(int i)
 ```
   
 Hello&nbsp;``A`1[B,C]``  
-", results.Contents.Fourth.Value);
+"), results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
@@ -495,7 +567,7 @@ class C
 }";
         var clientCapabilities = new LSP.ClientCapabilities
         {
-            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = true } }
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
@@ -539,7 +611,7 @@ class C
             """;
         var clientCapabilities = new LSP.ClientCapabilities
         {
-            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = true } }
         };
         await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace, initializationOptions: new InitializationOptions { ClientCapabilities = clientCapabilities });
         var location = testLspServer.GetLocations("caret").Single();
@@ -548,7 +620,7 @@ class C
         var result = await RunGetHoverAsync(testLspServer, location, project.Id);
 
         Assert.NotNull(result);
-        Assert.Equal($"""
+        Assert.Equal(MarkDeclaration($"""
             ```csharp
             ({FeaturesResources.constant}) string WithConstant.Target = "Target in net472"
             ```
@@ -559,7 +631,7 @@ class C
               
             {FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts.Replace(".", "\\.")}  
             
-            """, result.Contents.Fourth.Value);
+            """), result.Contents.Fourth.Value);
     }
 
     [ConditionalTheory(typeof(IsEnglishLocal)), CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
@@ -581,14 +653,14 @@ class C
             """;
         var clientCapabilities = new LSP.ClientCapabilities
         {
-            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new LSP.HoverSetting { ContentFormat = [LSP.MarkupKind.Markdown] } }
+            TextDocument = new LSP.TextDocumentClientCapabilities { Hover = new RoslynHoverSetting { ContentFormat = [LSP.MarkupKind.Markdown], SupportsCSharpDeclarationMarkers = true } }
         };
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
         var expectedLocation = testLspServer.GetLocations("caret").Single();
         var results = await RunGetHoverAsync(
             testLspServer,
             expectedLocation).ConfigureAwait(false);
-        Assert.Equal("""
+        Assert.Equal(MarkDeclaration("""
             ```csharp
             interface System.Collections.Generic.IDictionary<TKey, TValue>
             ```
@@ -597,7 +669,7 @@ class C
             TKey&nbsp;is&nbsp;string  
             TValue&nbsp;is&nbsp;ImmutableArray\<int\>  
             
-            """, results.Contents.Fourth.Value);
+            """), results.Contents.Fourth.Value);
     }
 
     [Theory, CombinatorialData]
@@ -646,6 +718,9 @@ class C
         Assert.NotNull(results);
         VerifyVSContent(results, $"({FeaturesResources.label}) outer");
     }
+
+    private static string MarkDeclaration(string markdown)
+        => markdown.Insert(markdown.IndexOf('\n') + 1, "\u200B");
 
     private static async Task<LSP.Hover> RunGetHoverAsync(
         TestLspServer testLspServer,

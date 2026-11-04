@@ -57,11 +57,6 @@
         <target state="translated">Oczekiwano prostego literału ciągu w wartości dyrektywy. Literały ciągu nieprzetworzonego i dosłownego nie są obsługiwane w wartościach dyrektywy. Znaleziono: {0}</target>
         <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
-      <trans-unit id="ExperimentalFeatureDisabled">
-        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="translated">To funkcja eksperymentalna, ustaw właściwość MSBuild „{0}” na wartość „true”, aby ją włączyć.</target>
-        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
-      </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
         <target state="translated">Nierozpoznane rozszerzenie pliku w dyrektywie „{0}”. Obecnie rozpoznawane są tylko te rozszerzenia: {1}</target>

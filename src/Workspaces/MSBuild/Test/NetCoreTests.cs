@@ -144,6 +144,85 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
         Assert.Equal(Path.Combine(projectDir, "bin", "Debug", "netcoreapp3.1", "Project.dll"), projectFileInfo.OutputFilePath);
     }
 
+    [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+    [CombinatorialData]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenInMemoryProject_ReferencedProjectSurvivesCacheCleanup(bool cleanCache, bool reloadProject)
+    {
+        var projectFilePath = GetSolutionFileName("Parent.csproj");
+        var referencedProjectFilePath = GetSolutionFileName("Referenced.csproj");
+
+        await using var buildHostProcessManager = new BuildHostProcessManager(
+            knownCommandLineParserLanguages: [LanguageNames.CSharp],
+            maxNodeCount: 1);
+        var buildHost = await buildHostProcessManager.GetBuildHostAsync(BuildHostProcessKind.NetCore, CancellationToken.None);
+
+        // Make a synthetic project structure consisting of the following:
+        // - 'referencedProject' with stub target returning hard-coded result.
+        // - 'project' referencing the above, with a target invoking the above's stub target.
+        // The point is to verify we can build this project structure, without any projects needing to actually exist on disk, and without running any irrelevant complex build tasks.
+
+        for (var version = 0; version <= (reloadProject ? 1 : 0); version++)
+        {
+            await using var referencedProject = await buildHost.LoadProjectInstanceAsync(
+                referencedProjectFilePath,
+                $$"""
+                <Project>
+                  <Target Name="GetTargetPath" Returns="@(Result)">
+                    <ItemGroup>
+                      <Result Include="/define:REFERENCED_PROJECT_BUILT_{{version}}" />
+                    </ItemGroup>
+                  </Target>
+                </Project>
+                """,
+                additionalGlobalProperties: null,
+                CancellationToken.None);
+            Assert.Empty(await referencedProject.GetDiagnosticLogItemsAsync(CancellationToken.None));
+        }
+
+        await using var project = await buildHost.LoadProjectAsync(
+            projectFilePath, physicalFilePath: null,
+            """
+            <Project>
+              <ItemGroup>
+                <ProjectReference Include="Referenced.csproj" />
+              </ItemGroup>
+              <Target Name="Compile">
+                <MSBuild Projects="@(ProjectReference)" Targets="GetTargetPath" SkipNonexistentProjects="Build">
+                  <Output TaskParameter="TargetOutputs" ItemName="CscCommandLineArgs" />
+                </MSBuild>
+              </Target>
+              <Target Name="CoreCompile" />
+            </Project>
+            """,
+            LanguageNames.CSharp, globalProperties: null, CancellationToken.None);
+        Assert.Empty(await project.GetDiagnosticLogItemsAsync(CancellationToken.None));
+
+        if (cleanCache)
+        {
+            // Unloading an unrelated evaluated project releases the XML cache's incidental strong references,
+            // without unloading the referenced project or removing its weak-cache entry.
+            await using (var unrelatedProject = await buildHost.LoadProjectAsync(
+                GetSolutionFileName("Unrelated.csproj"), physicalFilePath: null, "<Project />",
+                LanguageNames.CSharp, globalProperties: null, CancellationToken.None))
+            {
+                Assert.Empty(await unrelatedProject.GetDiagnosticLogItemsAsync(CancellationToken.None));
+            }
+
+            await buildHost.TestOnly_ForceGarbageCollectionAsync(CancellationToken.None);
+        }
+
+        Assert.False(File.Exists(referencedProjectFilePath));
+        var projectFileInfo = Assert.Single(await project.GetProjectFileInfosAsync(CancellationToken.None));
+        Assert.Empty(await project.GetDiagnosticLogItemsAsync(CancellationToken.None));
+        Assert.Contains(reloadProject ? "/define:REFERENCED_PROJECT_BUILT_1" : "/define:REFERENCED_PROJECT_BUILT_0", projectFileInfo.CommandLineArgs);
+        if (reloadProject)
+        {
+            Assert.DoesNotContain("/define:REFERENCED_PROJECT_BUILT_0", projectFileInfo.CommandLineArgs);
+        }
+    }
+
     [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
     [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
     [Trait(Traits.Feature, Traits.Features.NetCore)]
@@ -823,7 +902,6 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     {
         CreateFiles(new FileSet(
             ("Program.cs", """
-                #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref Util.cs
                 Console.WriteLine($"Hello {Util.M()}!");
                 """),
@@ -864,7 +942,6 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     {
         CreateFiles(new FileSet(
             ("Program.cs", """
-                #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref Util.cs
                 #:ref Util.cs
                 Console.WriteLine($"Hello {Util.M()}!");
@@ -906,7 +983,6 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     {
         CreateFiles(new FileSet(
             ("Program.cs", """
-                #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref Program.cs
                 Console.WriteLine("Hello");
                 """)));
@@ -941,7 +1017,6 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
     {
         CreateFiles(new FileSet(
             ("Program.cs", """
-                #:property ExperimentalFileBasedProgramEnableRefDirective=true
                 #:ref $(MyReferencedFileName).cs
                 Console.WriteLine($"Hello {Util.M()}!");
                 """),
@@ -969,6 +1044,46 @@ public sealed class NetCoreTests : MSBuildWorkspaceTestBase, IClassFixture<Proje
         Assert.Same(projRef, Assert.Single(project.AllProjectReferences));
         Assert.NotEmpty(project.AnalyzerReferences);
         Assert.NotEmpty(project.MetadataReferences);
+
+        // Assert that there are no compilation errors.
+        var compilation = await project.GetCompilationAsync();
+        compilation.GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify();
+    }
+
+    [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
+    [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+    [Trait(Traits.Feature, Traits.Features.NetCore)]
+    public async Task TestOpenProject_FileBasedApp_RefDirective_Inactive()
+    {
+        CreateFiles(new FileSet(
+            ("Program.cs", """
+                #:ref Util.cs
+                #if false
+                #:ref Missing.cs
+                #endif
+                Console.WriteLine($"Hello {Util.M()}!");
+                """),
+            ("Util.cs", """
+                #:property OutputType=Library
+                public static class Util
+                {
+                    public static string M() => "Util";
+                }
+                """)));
+
+        var sourceFilePath = GetSolutionFileName("Program.cs");
+
+        using var workspace = CreateMSBuildWorkspace();
+        var project = await workspace.OpenProjectAsync(sourceFilePath);
+
+        // The #:ref inside '#if false' must not create a project reference or a missing-file diagnostic,
+        // while the #:ref before the conditional still applies.
+        Assert.Empty(workspace.Diagnostics);
+
+        Assert.Equal(["Program", "Util"], workspace.CurrentSolution.Projects.Select(p => p.Name).Order());
+
+        var projRef = Assert.Single(project.ProjectReferences);
+        Assert.Equal(projRef.ProjectId, workspace.CurrentSolution.Projects.Single(p => p.Name == "Util").Id);
 
         // Assert that there are no compilation errors.
         var compilation = await project.GetCompilationAsync();

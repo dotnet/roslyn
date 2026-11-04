@@ -57,11 +57,6 @@
         <target state="translated">Ожидался простой строковый литерал в значении директивы. Необработанные и буквальные строковые литералы в значениях директив не поддерживаются. Найдено: {0}</target>
         <note>{0} is the offending C# token text, for example '"""abc"""'.</note>
       </trans-unit>
-      <trans-unit id="ExperimentalFeatureDisabled">
-        <source>This is an experimental feature, set MSBuild property '{0}' to 'true' to enable it.</source>
-        <target state="translated">Это экспериментальная функция. Чтобы включить ее, присвойте свойству MSBuild "{0}" значение true.</target>
-        <note>{Locked="MSBuild"}{Locked="true"}. {0} is MSBuild property name.</note>
-      </trans-unit>
       <trans-unit id="IncludeOrExcludeDirectiveUnknownFileType">
         <source>Unrecognized file extension in the '{0}' directive. Only these extensions are currently recognized: {1}</source>
         <target state="translated">Нераспознанное расширение файла в директиве "{0}". В настоящее время распознаются только следующие расширения: {1}</target>

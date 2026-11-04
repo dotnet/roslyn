@@ -2318,9 +2318,9 @@ unsafe class Derived : Base
 }";
             var comp = CreateCompilation(text, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // (10,14): error CS0227: Unsafe code may only appear if compiling with /unsafe
+                // (10,1): error CS9401: Unsafe or safe declaration modifiers may only appear if compiling with /unsafe.
                 // unsafe class Derived : Base
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "Derived").WithLocation(10, 14),
+                Diagnostic(ErrorCode.ERR_IllegalUnsafeModifier, "unsafe").WithLocation(10, 1),
                 // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
                 //     class F : A<D*>.B { }
                 Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17),

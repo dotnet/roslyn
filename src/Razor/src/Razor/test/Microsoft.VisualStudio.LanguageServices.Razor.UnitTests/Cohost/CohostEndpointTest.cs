@@ -17,11 +17,8 @@ using Microsoft.CodeAnalysis.Razor.Workspaces;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServer.ContainedLanguage;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using VSLSP = Microsoft.VisualStudio.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.Razor.LanguageClient.Cohost;
 
@@ -138,13 +135,11 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
         public IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> LanguageClients => throw new NotImplementedException();
 
         public event EventHandler<LanguageClientLoadedEventArgs> LanguageClientLoaded { add { } remove { } }
-        public event AsyncEventHandler<LanguageClientNotifyEventArgs> ClientNotifyAsync { add { } remove { } }
 
         public void AddCustomBufferContentTypes(IEnumerable<string> contentTypes) => throw new NotImplementedException();
         public void AddLanguageClients(IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> items) => throw new NotImplementedException();
         public Task LoadAsync(IContentTypeMetadata contentType, ILanguageClient client) => throw new NotImplementedException();
         public void Notify<T>(Notification<T> notification, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task NotifyAsync(ILanguageClient languageClient, string method, JToken parameters, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task OnDidChangeTextDocumentAsync(ITextSnapshot before, ITextSnapshot after, IEnumerable<ITextChange> textChanges) => throw new NotImplementedException();
         public Task OnDidCloseTextDocumentAsync(ITextSnapshot snapShot) => throw new NotImplementedException();
         public Task OnDidOpenTextDocumentAsync(ITextSnapshot snapShot) => throw new NotImplementedException();
@@ -152,16 +147,7 @@ public class CohostEndpointTest(ITestOutputHelper testOutputHelper) : ToolingTes
         public void RemoveCustomBufferContentTypes(IEnumerable<string> contentTypes) => throw new NotImplementedException();
         public void RemoveLanguageClients(IEnumerable<Lazy<ILanguageClient, IContentTypeMetadata>> items) => throw new NotImplementedException();
         public IAsyncEnumerable<(string client, TResponse? response)> RequestAllAsync<TRequest, TResponse>(Request<TRequest, TResponse> request, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<(ILanguageClient?, JToken?)> RequestAsync(string[] contentTypes, Func<JToken, bool> capabilitiesFilter, string method, JToken parameters, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<(ILanguageClient?, JToken?)> RequestAsync(string[] contentTypes, Func<JToken, bool> capabilitiesFilter, string clientName, string method, JToken parameters, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<ManualInvocationResponse?> RequestAsync(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<JToken?> RequestAsync(ILanguageClient languageClient, string method, JToken parameters, CancellationToken cancellationToken) => throw new NotImplementedException();
         public Task<TResponse?> RequestAsync<TRequest, TResponse>(Request<TRequest, TResponse> request, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<(ILanguageClient?, TOut)> RequestAsync<TIn, TOut>(string[] contentTypes, Func<VSLSP.ServerCapabilities, bool> capabilitiesFilter, VSLSP.LspRequest<TIn, TOut> method, TIn parameters, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<TOut> RequestAsync<TIn, TOut>(ILanguageClient languageClient, VSLSP.LspRequest<TIn, TOut> method, TIn parameters, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<IEnumerable<(ILanguageClient, JToken?)>> RequestMultipleAsync(string[] contentTypes, Func<JToken, bool> capabilitiesFilter, string method, JToken parameters, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public IAsyncEnumerable<ManualInvocationResponse> RequestMultipleAsync(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken) => throw new NotImplementedException();
-        public Task<IEnumerable<(ILanguageClient, TOut)>> RequestMultipleAsync<TIn, TOut>(string[] contentTypes, Func<VSLSP.ServerCapabilities, bool> capabilitiesFilter, VSLSP.LspRequest<TIn, TOut> method, TIn parameters, CancellationToken cancellationToken) => throw new NotImplementedException();
     }
 
     [Export(typeof(IWorkspaceProvider)), PartNotDiscoverable]

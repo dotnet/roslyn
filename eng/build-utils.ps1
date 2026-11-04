@@ -3,6 +3,9 @@
 Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
+# Set the repository default before Arcade supplies its own default.
+$warnAsError = if (Test-Path variable:warnAsError) { $warnAsError } else { $false }
+
 # Import Arcade functions
 . (Join-Path $PSScriptRoot "common\tools.ps1")
 

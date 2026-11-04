@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Language;
 using Microsoft.AspNetCore.Razor.Test.Common;
+using Microsoft.CodeAnalysis.Razor.Formatting;
 using Microsoft.CodeAnalysis.Razor.Settings;
 using Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 using Xunit;
@@ -680,13 +681,23 @@ public class HtmlFormattingTest(ITestOutputHelper testOutput) : DocumentFormatti
         // doesn't "fix" the first attribute placement, and put it on the same line as the start tag.
 
         var document = CreateProjectAndRazorDocument(input);
-        var options = ClientSettingsManager.GetClientSettings().ToRazorFormattingOptions();
+        var clientSettings = ClientSettingsManager.GetClientSettings();
+        var options = document.GetRazorFormattingOptions(clientSettings, DisposalToken);
 
         var formattingService = (RazorFormattingService)OOPExportProvider.GetExportedValue<IRazorFormattingService>();
         formattingService.GetTestAccessor().SetFormattingLoggerFactory(new TestFormattingLoggerFactory(TestOutputHelper));
 
         var htmlEdits = new TextEdit[0];
-        var edits = await GetFormattingEditsAsync(document, htmlEdits, span: default, options.CodeBlockBraceOnNextLine, attributeIndentStyle, options.InsertSpaces, options.TabSize);
+        var edits = await GetFormattingEditsAsync(
+            document,
+            htmlEdits,
+            span: default,
+            options.CodeBlockBraceOnNextLine,
+            attributeIndentStyle,
+            options.InsertSpaces,
+            options.TabSize,
+            csharpSyntaxFormattingOptions: null,
+            ignoreIndentationInScriptOrStyleBlocksWithComplexRazor: false);
 
         Assert.NotNull(edits);
 

@@ -1,7 +1,8 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text.Json;
 using Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -15,6 +16,17 @@ public sealed class AutoLoadProjectsInitializerTests : IDisposable
 
     public void Dispose()
         => _tempRoot.Dispose();
+
+    [Theory]
+    [InlineData("-1")]
+    [InlineData("1.5")]
+    [InlineData("true")]
+    public void GetAutoLoadProjectsMaximum_InvalidValueIsRejected(string value)
+    {
+        var options = JsonSerializer.Deserialize<JsonElement>($$"""{"autoLoadProjects":{{value}}}""");
+
+        Assert.Throws<JsonException>(() => AutoLoadProjectsInitializer.GetAutoLoadProjectsMaximum(options, commandLineMaximum: 500));
+    }
 
     [Fact]
     public void TryGetVSCodeSolutionSettings_SingleFolderDisableSuppressesAutoLoad()

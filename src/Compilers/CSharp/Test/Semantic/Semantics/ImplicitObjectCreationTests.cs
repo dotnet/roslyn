@@ -2795,7 +2795,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular14, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular15, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,20): error CS1031: Type expected
                 //         _ = sizeof(new());

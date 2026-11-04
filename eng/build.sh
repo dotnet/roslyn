@@ -22,14 +22,11 @@ usage()
   echo "  --pack                     Build nuget packages"
   echo "  --publish                  Publish build artifacts"
   echo "  --sign                     Sign build artifacts"
+  echo "  --test                     Run already-built tests after any build actions (also: -test)"
+  echo "  --testSet:<name>            Run already-built tests, forwarding the set name to RunTests (also: -testSet:<name>)"
+  echo "  --testKind:<name>           Run already-built tests, forwarding the test kind to RunTests (also: -testKind:<name>)"
+  echo "  --testFramework:<name>      Run already-built tests for a framework; repeat for multiple frameworks (also: -testFramework:<name>)"
   echo "  --help                     Print help and exit"
-  echo ""
-  echo "Test actions:"
-  echo "  --testCoreClr              Run unit tests on .NET Core (short: --test, -t)"
-  echo "  --testMono                 Run unit tests on Mono"
-  echo "  --testCompilerOnly         Run only the compiler unit tests"
-  echo "  --testIOperation           Run unit tests with the IOperation test hook"
-  echo "  --testRuntimeAsync         Run unit tests with runtime async validation enabled"
   echo ""
   echo "Advanced settings:"
   echo "  --ci                       Building in CI"
@@ -39,7 +36,7 @@ usage()
   echo "  --prepareMachine           Prepare machine for CI run, clean up processes after build"
   echo "  --msbuildMultiThreaded <value> Sets MSBuild's multi-threaded mode, i.e. the -mt switch ('true' or 'false') (short: --mt)"
   echo "  --nodeReuse <value>        Sets nodereuse msbuild parameter ('true' or 'false')"
-  echo "  --warnAsError              Treat all warnings as errors"
+  echo "  --warnAsError [true|false] Treat all warnings as errors (default: false)"
   echo "  --warnNotAsError <codes>   Suppress specific warnings from being treated as errors (semi-colon delimited)"
   echo "  --sourceBuild              Build the repository in source-only mode"
   echo "  --productBuild             Build the repository in product-build mode."
@@ -67,25 +64,22 @@ rebuild=false
 pack=false
 sign=false
 publish=false
-test_core_clr=false
-test_mono=false
-test_ioperation=false
-test_runtime_async=false
-test_compiler_only=false
+test=false
+test_arguments=()
+test_kind_arguments=()
+test_framework_arguments=()
 
 configuration="Debug"
 verbosity='minimal'
 binary_log=false
 ci=false
-helix=false
-helix_queue_name=""
-helix_api_access_token=""
 bootstrap=false
 run_analyzers=false
 skip_documentation=false
 prepare_machine=false
 # Empty means "not specified"; tools.sh leaves it off unless it's explicitly requested.
 msbuild_multi_threaded=''
+# Arcade's MSBuild helper consumes this variable implicitly.
 warn_as_error=false
 warn_not_as_error=""
 properties=()
@@ -140,36 +134,23 @@ while [[ $# > 0 ]]; do
     --sign)
       sign=true
       ;;
-    --testcoreclr|--test|-t)
-      test_core_clr=true
+    --test|-test)
+      test=true
       ;;
-    --testmono)
-      test_mono=true
+    --testset:*|-testset:*)
+      test=true
+      test_arguments=("--testSet:${1#*:}")
       ;;
-    --testcompileronly)
-      test_compiler_only=true
+    --testkind:*|-testkind:*)
+      test=true
+      test_kind_arguments=("--testKind:${1#*:}")
       ;;
-    --testioperation)
-      test_ioperation=true
-      ;;
-    --testruntimeasync)
-      test_runtime_async=true
+    --testframework:*|-testframework:*)
+      test=true
+      test_framework_arguments+=("--testFramework:${1#*:}")
       ;;
     --ci)
       ci=true
-      ;;
-    --helix)
-      helix=true
-      ;;
-    --helixqueuename)
-      helix_queue_name=$2
-      args="$args $1"
-      shift
-      ;;
-    --helixapiaccesstoken)
-      helix_api_access_token=$2
-      args="$args $1"
-      shift
       ;;
     --bootstrap)
       bootstrap=true
@@ -197,6 +178,13 @@ while [[ $# > 0 ]]; do
       ;;
     --warnaserror)
       warn_as_error=true
+      case "${2:-}" in
+        true|false)
+          warn_as_error=$2
+          args="$args $1"
+          shift
+          ;;
+      esac
       ;;
     --warnnotaserror)
       warn_not_as_error=$2
@@ -248,12 +236,15 @@ function MakeBootstrapBuild {
   local package_name="Microsoft.Net.Compilers.Toolset"
   local project_path=src/NuGet/$package_name/AnyCpu/$package_name.Package.csproj
 
-  dotnet pack -nologo "$project_path" -p:ContinuousIntegrationBuild=$ci -p:DotNetUseShippingVersions=true -p:InitialDefineConstants=BOOTSTRAP -p:PackageOutputPath="$dir" -bl:"$log_dir/Bootstrap.binlog"
+  local binary_log=true
+  local disable_pipeline_set_result=true
+  # Use Arcade's MSBuild helper for correct warnAsError/warnNotAsError behavior.
+  MSBuild "$project_path" /restore /t:Pack /p:Configuration=Release /p:DotNetUseShippingVersions=true /p:InitialDefineConstants=BOOTSTRAP /p:PackageOutputPath="$dir" /bl:"$log_dir/Bootstrap.binlog"
   unzip "$dir/$package_name.*.nupkg" -d "$dir"
   chmod -R 755 "$dir"
 
   echo "Cleaning Bootstrap compiler artifacts"
-  dotnet clean "$project_path"
+  MSBuild "$project_path" /t:Clean /bl:"$log_dir/BootstrapClean.binlog"
 
   if [[ "$node_reuse" == true ]]; then
     dotnet build-server shutdown
@@ -285,40 +276,6 @@ function BuildSolution {
     ulimit -n 6500 || echo "Cannot change ulimit"
   fi
 
-  if [[ "$test_ioperation" == true ]]; then
-    export ROSLYN_TEST_IOPERATION="true"
-
-    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
-      test_core_clr=true
-    fi
-  fi
-
-  if [[ "$test_runtime_async" == true ]]; then
-    export DOTNET_RuntimeAsync="1"
-
-    if [[ "$test_mono" != true && "$test_core_clr" != true ]]; then
-      test_core_clr=true
-    fi
-  fi
-
-  local test=false
-  local test_runtime=""
-  local mono_tool=""
-  local test_runtime_args=""
-  if [[ "$test_mono" == true ]]; then
-    mono_path=`command -v mono`
-    # Echo out the mono version to the command line so it's visible in CI logs. It's not fixed
-    # as we're using a feed vs. a hard coded package.
-    if [[ "$ci" == true ]]; then
-      mono --version
-    fi
-
-    test=true
-    test_runtime="/p:TestRuntime=Mono"
-    mono_tool="/p:MonoTool=\"$mono_path\""
-    test_runtime_args="--debug"
-  fi
-
   local msbuild_warn_as_error=""
   if [[ "$warn_as_error" == true ]]; then
     msbuild_warn_as_error="/warnAsError"
@@ -347,7 +304,6 @@ function BuildSolution {
     /p:Restore=$restore \
     /p:Build=$build \
     /p:Rebuild=$rebuild \
-    /p:Test=$test \
     /p:Pack=$pack \
     /p:Publish=$publish \
     /p:Sign=$sign \
@@ -355,12 +311,9 @@ function BuildSolution {
     /p:BootstrapBuildPath="$bootstrap_dir" \
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=$warn_as_error \
-    /p:TestRuntimeAdditionalArguments=$test_runtime_args \
     /p:DotNetBuildSourceOnly=$source_build \
     /p:DotNetBuild=$product_build \
     /p:DotNetBuildFromVMR=$from_vmr \
-    $test_runtime \
-    $mono_tool \
     $msbuild_warn_as_error \
     $msbuild_warn_not_as_error \
     $generate_documentation_file \
@@ -368,30 +321,8 @@ function BuildSolution {
     ${properties[@]+"${properties[@]}"}
 }
 
-function GetCompilerTestAssembliesIncludePaths {
-  assemblies="--include '^Microsoft\.CodeAnalysis\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CompilerServer\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Syntax\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Symbol\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Semantic\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit2\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.Emit3\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CSharp15\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.IOperation\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.CSharp\.CommandLine\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Syntax\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Symbol\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Semantic\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.Emit\.UnitTests$'"
-  assemblies+=" --include '^Roslyn\.Compilers\.VisualBasic\.IOperation\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.CodeAnalysis\.VisualBasic\.CommandLine\.UnitTests$'"
-  assemblies+=" --include '^Microsoft\.Build\.Tasks\.CodeAnalysis\.UnitTests$'"
-  echo "$assemblies"
-}
-
 install=false
-if [[ "$restore" == true || "$test_core_clr" == true ]]; then
+if [[ "$restore" == true || "$test" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
@@ -406,32 +337,15 @@ if [[ "$bootstrap" == true ]]; then
   bootstrap_dir=$_MakeBootstrapBuild
 fi
 
-if [[ "$restore" == true || "$build" == true || "$rebuild" == true || "$test_mono" == true ]]; then
+if [[ "$restore" == true || "$build" == true || "$rebuild" == true ]]; then
   BuildSolution
 fi
 
-if [[ "$test_core_clr" == true ]]; then
-  runtests_args=""
-
-  if [[ "$test_compiler_only" == true ]]; then
-    runtests_args="$runtests_args $(GetCompilerTestAssembliesIncludePaths)"
+if [[ "$test" == true ]]; then
+  if [[ "$ci" == true ]]; then
+    test_arguments+=("--ci")
   fi
-
-  if [[ -n "$helix_queue_name" ]]; then
-    runtests_args="$runtests_args --helixQueueName $helix_queue_name"
-  fi
-
-  if [[ -n "$helix_api_access_token" ]]; then
-    runtests_args="$runtests_args --helixApiAccessToken $helix_api_access_token"
-  fi
-
-  if [[ "$helix" == true ]]; then
-    runtests_args="$runtests_args --helix"
-  fi
-
-  if [[ "$ci" != true ]]; then
-    runtests_args="$runtests_args --html"
-  fi
-  dotnet exec "$scriptroot/../artifacts/bin/RunTests/${configuration}/net10.0/RunTests.dll" --runtime core --configuration ${configuration} --logs ${log_dir} --dotnet ${_InitializeDotNetCli}/dotnet $runtests_args
+  "$_InitializeDotNetCli/dotnet" exec "$artifacts_dir/bin/RunTests/$configuration/net10.0/RunTests.dll" --testConfiguration "$configuration" ${test_arguments[@]+"${test_arguments[@]}"} ${test_kind_arguments[@]+"${test_kind_arguments[@]}"} ${test_framework_arguments[@]+"${test_framework_arguments[@]}"} || ExitWithExitCode $?
 fi
+
 ExitWithExitCode 0

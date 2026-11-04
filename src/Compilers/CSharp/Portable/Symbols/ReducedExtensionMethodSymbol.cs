@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsInitOnly => false;
 
-        internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0].RefKind is RefKind.In or RefKind.RefReadOnlyParameter;
+        internal override bool IsEffectivelyReadOnly => _reducedFrom.Parameters[0] is { Type.IsValueType: true, RefKind: RefKind.In or RefKind.RefReadOnlyParameter or RefKind.None };
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
         {
@@ -604,7 +604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool HasUnscopedRefAttribute => false;
 
-        internal sealed override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _reducedFrom.GetCallerUnsafeMode(fieldsBeingBound);
+        internal sealed override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _reducedFrom.GetRequiresUnsafeMode(fieldsBeingBound);
 
         internal sealed override bool UseUpdatedEscapeRules => _reducedFrom.UseUpdatedEscapeRules;
 

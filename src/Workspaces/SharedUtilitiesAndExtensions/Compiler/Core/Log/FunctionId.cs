@@ -663,6 +663,7 @@ internal enum FunctionId
     VSCode_LanguageServer_Daemon_Client_Disconnected = 865,
     VSCode_LanguageServer_Process_Lifetime = 866,
     VSCode_LanguageServer_Lifetime = 867,
+    VSCode_LanguageServer_Process_Memory = 868,
 
     GraphQuery_Calls = 870,
     GraphQuery_Contains = 871,
@@ -675,4 +676,5 @@ internal enum FunctionId
     Workspace_EventsImmediate = 900,
     ChecksumUpdater_SynchronizeTextChangesStatus = 901,
     RemoteHostService_SynchronizeTextAsyncStatus = 902,
+    Interactive_Host_Initialized = 903,
 }

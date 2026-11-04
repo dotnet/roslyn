@@ -43,6 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<CSharpAttributeData> attributes)
             => throw ExceptionUtilities.Unreachable();
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => UnderlyingMethod.GetCallerUnsafeMode(fieldsBeingBound);
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => UnderlyingMethod.GetRequiresUnsafeMode(fieldsBeingBound);
     }
 }

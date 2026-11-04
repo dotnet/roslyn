@@ -26,6 +26,8 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.InlinePrompts;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Moq;
+using Moq.Protected;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -92,7 +94,7 @@ public sealed class CopilotGenerateDocumentationInlinePromptTests
 
         var threadingContext = workspace.GetService<IThreadingContext>();
         var manager = workspace.ExportProvider.GetExportedValue<CopilotGenerateDocumentationCommentManager>();
-        var inlinePrompt = (TestInlinePromptService)workspace.ExportProvider.GetExportedValue<InlinePromptServiceBase>();
+        var inlinePrompt = workspace.ExportProvider.GetExportedValue<TestInlinePromptService>();
         var waiter = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>()
             .GetWaiter(FeatureAttribute.GenerateDocumentation);
 
@@ -169,7 +171,7 @@ public sealed class CopilotGenerateDocumentationInlinePromptTests
         options.GenerateDocumentationCommentEnabled = false;
 
         var manager = workspace.ExportProvider.GetExportedValue<CopilotGenerateDocumentationCommentManager>();
-        var inlinePrompt = (TestInlinePromptService)workspace.ExportProvider.GetExportedValue<InlinePromptServiceBase>();
+        var inlinePrompt = workspace.ExportProvider.GetExportedValue<TestInlinePromptService>();
         var waiter = workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>()
             .GetWaiter(FeatureAttribute.GenerateDocumentation);
 
@@ -183,25 +185,31 @@ public sealed class CopilotGenerateDocumentationInlinePromptTests
         Assert.Null(inlinePrompt.AcceptTask);
     }
 
-    [System.ComponentModel.Composition.Export(typeof(InlinePromptServiceBase))]
-    private sealed class TestInlinePromptService : InlinePromptServiceBase
+    [System.ComponentModel.Composition.Export(typeof(TestInlinePromptService))]
+    private sealed class TestInlinePromptService
     {
         public InlinePromptOptions? CapturedOptions;
         public Task? AcceptTask;
+
+        [System.ComponentModel.Composition.Export(typeof(InlinePromptServiceBase))]
+        public InlinePromptServiceBase Service { get; }
 
         [System.ComponentModel.Composition.ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TestInlinePromptService()
         {
-        }
-
-        public override IDisposable? Show(
-            ITextView view, VirtualSnapshotPoint position, Func<CancellationToken, Task> onAcceptAsync, InlinePromptOptions options)
-        {
-            CapturedOptions = options;
-            // Simulate the user immediately accepting the chip.
-            AcceptTask = onAcceptAsync(CancellationToken.None);
-            return new NoOpDisposable();
+            // The SDK exposes an internal abstract member only its friend assemblies, including Moq's proxy, can implement.
+            var service = new Mock<InlinePromptServiceBase>(MockBehavior.Strict);
+            service.Protected().Setup<bool>("IsSessionActive", ItExpr.IsAny<ITextView>()).Returns(false);
+            service.Setup(s => s.Show(It.IsAny<ITextView>(), It.IsAny<VirtualSnapshotPoint>(), It.IsAny<Func<CancellationToken, Task>>(), It.IsAny<InlinePromptOptions>()))
+                .Returns((ITextView view, VirtualSnapshotPoint position, Func<CancellationToken, Task> onAcceptAsync, InlinePromptOptions options) =>
+                {
+                    CapturedOptions = options;
+                    // Simulate the user immediately accepting the chip.
+                    AcceptTask = onAcceptAsync(CancellationToken.None);
+                    return new NoOpDisposable();
+                });
+            Service = service.Object;
         }
 
         private sealed class NoOpDisposable : IDisposable

@@ -220,6 +220,17 @@ public sealed class RpcTests
     }
 
     [Fact]
+    public async Task ClientDisconnectWithoutRequestsCompletesServer()
+    {
+        await using var rpcPair = new RpcPair();
+
+        rpcPair.Client.Shutdown();
+
+        // Wait for the server to shut down, implicitly testing that it does shut down
+        await rpcPair.ServerCompletion;
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/77040")]
     public async Task RequestThatClosesServerDoesNotThrow()
     {

@@ -138,6 +138,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override CallerUnsafeMode GetCallerUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingEvent.GetCallerUnsafeMode(fieldsBeingBound);
+        internal override RequiresUnsafeMode GetRequiresUnsafeMode(ConsList<FieldSymbol> fieldsBeingBound) => _underlyingEvent.GetRequiresUnsafeMode(fieldsBeingBound);
     }
 }

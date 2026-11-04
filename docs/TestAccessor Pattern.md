@@ -1,6 +1,13 @@
 # The `TestAccessor` Pattern
 
-The `TestAccessor` pattern allows production code to expose internal functionality for test purposes without making the internal functionality available to other production code. The pattern has two primary components:
+Prefer testing observable behavior through existing product entry points. Do not
+introduce a `TestAccessor` for exhaustive unit testing or to assert a class's
+specific implementation. When a scenario is critical to cover and cannot be
+adequately tested through existing observable behavior, the `TestAccessor`
+pattern allows production code to expose the minimum required internal
+functionality without making it available to other production code.
+
+The pattern has two primary components:
 
 1. A `TestAccessor` type, which contains the functionality available only for testing
 2. A `GetTestAccessor()` method, which returns an instance of `TestAccessor`

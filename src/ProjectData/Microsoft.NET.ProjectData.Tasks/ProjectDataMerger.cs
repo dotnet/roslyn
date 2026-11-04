@@ -71,22 +71,102 @@ internal static class ProjectDataMerger
 
 	public static int Merge(string outputPath, IEnumerable<string> sliceFiles, string? targetFrameworks = null, bool preserveExistingSlices = false, string? tempDirectory = null)
 	{
-		List<string> sortedSliceFiles = sliceFiles
-			.Where(static file => !string.IsNullOrWhiteSpace(file))
-			.OrderBy(static file => file, StringComparer.OrdinalIgnoreCase)
-			.ToList();
-		if (sortedSliceFiles.Count == 0) return 0;
+		return Merge(outputPath, preferredSliceFiles: sliceFiles, discoveredSliceFiles: [], targetFrameworks, preserveExistingSlices, tempDirectory);
+	}
 
-		var slices = new List<SliceData>(sortedSliceFiles.Count);
-		foreach (string file in sortedSliceFiles)
-			slices.Add(ParseSlice(File.ReadAllText(file)));
+	internal static int Merge(
+		string outputPath,
+		IEnumerable<string> preferredSliceFiles,
+		IEnumerable<string> discoveredSliceFiles,
+		string? targetFrameworks = null,
+		bool preserveExistingSlices = false,
+		string? tempDirectory = null)
+	{
+		// discoveredSliceFiles must come from the current build's fallback directory. Registered
+		// sidecar builds scope that directory to their unique reconciliation attempt.
+		List<SliceCandidate> candidates = LoadSliceCandidates(preferredSliceFiles, discoveredSliceFiles);
+		if (candidates.Count == 0) return 0;
+
+		List<SliceData> slices = SelectCurrentSlices(candidates, targetFrameworks);
+		if (slices.Count == 0) return 0;
+		int currentSliceCount = slices.Count;
 
 		if (preserveExistingSlices)
 			AddPreservedExistingSlices(outputPath, slices);
 
 		ProjectDataWriter.AtomicWriteStreamed(outputPath, writer => WriteMergedContent(writer, slices, targetFrameworks), tempDirectory);
 
-		return sortedSliceFiles.Count;
+		return currentSliceCount;
+	}
+
+	private static List<SliceCandidate> LoadSliceCandidates(IEnumerable<string> preferredSliceFiles, IEnumerable<string> discoveredSliceFiles)
+	{
+		var candidates = new List<SliceCandidate>();
+		var seen = new HashSet<string>(StringComparers.Paths);
+		AddSliceCandidates(candidates, seen, preferredSliceFiles, isPreferred: true);
+		AddSliceCandidates(candidates, seen, discoveredSliceFiles, isPreferred: false);
+		return candidates;
+	}
+
+	private static void AddSliceCandidates(List<SliceCandidate> candidates, HashSet<string> seen, IEnumerable<string> sliceFiles, bool isPreferred)
+	{
+		foreach (string file in sliceFiles.Where(static file => !string.IsNullOrWhiteSpace(file)).OrderBy(static file => file, StringComparers.Paths))
+		{
+			string fullPath = Path.GetFullPath(file);
+			if (seen.Add(fullPath))
+			{
+				candidates.Add(new SliceCandidate(fullPath, isPreferred, ParseSlice(File.ReadAllText(fullPath))));
+			}
+		}
+	}
+
+	private static List<SliceData> SelectCurrentSlices(List<SliceCandidate> candidates, string? targetFrameworks)
+	{
+		List<string> orderedTargetFrameworks = GetTargetFrameworks(targetFrameworks);
+		HashSet<string>? allowedTargetFrameworks = orderedTargetFrameworks.Count == 0
+			? null
+			: new HashSet<string>(orderedTargetFrameworks, StringComparer.OrdinalIgnoreCase);
+
+		return candidates
+			.Where(candidate => allowedTargetFrameworks is null || allowedTargetFrameworks.Contains(candidate.Slice.GetTargetFramework() ?? string.Empty))
+			.GroupBy(candidate => GetSliceIdentity(candidate.Slice) ?? candidate.Path, StringComparer.OrdinalIgnoreCase)
+			.Select(SelectCurrentSlice)
+			.OrderBy(candidate => GetTargetFrameworkOrder(candidate.Slice, orderedTargetFrameworks))
+			.ThenBy(static candidate => GetSliceIdentity(candidate.Slice) ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+			.Select(static candidate => candidate.Slice)
+			.ToList();
+	}
+
+	private static SliceCandidate SelectCurrentSlice(IGrouping<string, SliceCandidate> candidates)
+	{
+		SliceCandidate[] preferred = candidates.Where(static candidate => candidate.IsPreferred).ToArray();
+		if (preferred.Length > 0)
+		{
+			return preferred.OrderBy(static candidate => candidate.Path, StringComparers.Paths).First();
+		}
+
+		SliceCandidate[] discovered = candidates.ToArray();
+		if (discovered.Length == 1)
+		{
+			return discovered[0];
+		}
+
+		throw new InvalidOperationException(
+			$"Multiple fallback ProjectData slices matched '{candidates.Key}': {string.Join("; ", discovered.Select(static candidate => candidate.Path))}");
+	}
+
+	private static int GetTargetFrameworkOrder(SliceData slice, List<string> orderedTargetFrameworks)
+	{
+		string? targetFramework = slice.GetTargetFramework();
+		for (int i = 0; i < orderedTargetFrameworks.Count; i++)
+		{
+			if (string.Equals(orderedTargetFrameworks[i], targetFramework, StringComparison.OrdinalIgnoreCase))
+			{
+				return i;
+			}
+		}
+
+		return orderedTargetFrameworks.Count;
 	}
 
 	private static void AddPreservedExistingSlices(string outputPath, List<SliceData> slices)
@@ -640,5 +720,19 @@ internal static class ProjectDataMerger
 
 			return null;
 		}
+	}
+
+	private sealed class SliceCandidate
+	{
+		public SliceCandidate(string path, bool isPreferred, SliceData slice)
+		{
+			this.Path = path;
+			this.IsPreferred = isPreferred;
+			this.Slice = slice;
+		}
+
+		public string Path { get; }
+		public bool IsPreferred { get; }
+		public SliceData Slice { get; }
 	}
 }

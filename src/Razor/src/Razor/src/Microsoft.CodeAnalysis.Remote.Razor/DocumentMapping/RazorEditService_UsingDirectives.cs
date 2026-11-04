@@ -135,21 +135,19 @@ internal partial class RazorEditService
                 var nextNew = remainingNew[0];
 
                 RazorSyntaxFacts.TryGetNamespaceFromDirective(currentDirective, out var currentNamespace);
-                var comparand = UsingsStringComparer.Instance.Compare(currentNamespace, nextNew);
-                if (comparand < 0)
+                if (UsingsStringComparer.Instance.Compare(currentNamespace, nextNew) <= 0)
                 {
-                    // Current namespace goes before new namespace
+                    // Keep existing directives first on ties. Different targets can have the same alias name,
+                    // so equality must still consume a directive and leave the new one to be added.
                     builder.AppendLine(currentDirective.GetContent());
                     remainingExisting = remainingExisting[1..];
                 }
-                else if (comparand > 0)
+                else
                 {
                     // New namespace goes before current namespace
                     builder.AppendLine(GetUsingsText(nextNew));
                     remainingNew = remainingNew[1..];
                 }
-
-                Debug.Assert(comparand != 0, "New namespace should never be an existing namespace");
             }
 
             Debug.Assert(remainingNew.IsEmpty || remainingExisting.IsEmpty, "Should have consumed all new or existing usings");

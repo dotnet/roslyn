@@ -10,7 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="CSDevKit.Tests" Key="$(VsPublicKey)" />
+    <InternalsVisibleTo Include="CSDevKit.Tests" Key="$(VisualStudioKey)" />
   </ItemGroup>
 
   <Import Project="$([MSBuild]::GetPathOfFileAbove($(MSBuildThisFile), $(MSBuildThisFileDirectory)..))" />
