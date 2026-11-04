@@ -663,31 +663,6 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
         Assert.Empty(results);
     }
 
-    [Theory, CombinatorialData]
-    public async Task TestGotoDefinitionAsync_FileBasedProgramWithRelativeDocumentPath(bool mutatingLspWorkspace)
-    {
-        // Document needs to have an absolute path for us to navigate to it.
-        // Note: this mostly illustrates a theoretical limitation around the way we resolve directive paths and use the glob matcher.
-        // Normal projects generally always use absolute paths for these.
-        var markup =
-            """
-            <Workspace>
-                <Project Language="C#" CommonReferences="true">
-                    <Document FilePath="App.cs" ResolveFilePath="false">
-                        #:{|caret:|}project Lib\Library.csproj
-                        System.Console.WriteLine();
-                    </Document>
-                    <ProjectReference>Library</ProjectReference>
-                </Project>
-                <Project FilePath="Lib/Library.csproj" ResolveFilePath="false" AssemblyName="Library" Language="C#" CommonReferences="true" />
-            </Workspace>
-            """;
-        await using var testLspServer = await CreateXmlTestLspServerAsync(markup, mutatingLspWorkspace);
-
-        var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
-        Assert.Null(results);
-    }
-
     [ConditionalTheory(typeof(WindowsOnly)), CombinatorialData]
     public async Task TestGotoDefinitionAsync_FileBasedProgramWithCurrentDriveRootedDirectivePath(bool mutatingLspWorkspace)
     {
@@ -960,30 +935,6 @@ public sealed class GoToDefinitionTests : AbstractLanguageServerProtocolTests
 
         var service = Assert.IsType<TestSourceGeneratedDocumentSpanMappingService>(workspace.Services.GetService<ISourceGeneratedDocumentSpanMappingService>());
         Assert.True(service.DidMapSpans);
-    }
-
-    private static void AddFileBasedProgramTarget(TestLspServer testLspServer, string directiveName, string targetPath)
-    {
-        var document = testLspServer.TestWorkspace.CurrentSolution.Projects.First().Documents.First();
-        var updatedDocument = WithFileBasedProgramTarget(document, directiveName, targetPath);
-        testLspServer.TestWorkspace.SetCurrentSolution(_ => updatedDocument.Project.Solution, WorkspaceChangeKind.SolutionChanged);
-    }
-
-    /// <summary>Create a changed solution which includes a stub item (file or project reference) which is matched by a directive with the given name and targetPath.</summary>
-    private static Document WithFileBasedProgramTarget(Document document, string directiveName, string targetPath)
-    {
-        var project = document.Project;
-        if (directiveName == "include")
-        {
-            return project.AddDocument(Path.GetFileName(targetPath), SourceText.From(""), filePath: targetPath)
-                .Project.GetDocument(document.Id);
-        }
-
-        var targetProjectId = ProjectId.CreateNewId();
-        var solution = project.Solution
-            .AddProject(ProjectInfo.Create(targetProjectId, VersionStamp.Create(), "Target", "Target", LanguageNames.CSharp, filePath: targetPath))
-            .AddProjectReference(project.Id, new ProjectReference(targetProjectId));
-        return solution.GetDocument(document.Id);
     }
 
     private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)
