@@ -792,9 +792,7 @@ public class ProjectDataWriterTests
 
 	public sealed class CrossVolumeSymbolicLinksAvailable : ExecutionCondition
 	{
-		public static string? OtherDriveRoot => DriveInfo.GetDrives()
-			.FirstOrDefault(drive => drive.IsReady && drive.DriveType == DriveType.Fixed
-				&& !string.Equals(drive.Name, Path.GetPathRoot(Path.GetTempPath()), StringComparison.OrdinalIgnoreCase))?.Name;
+		public static string? OtherDriveRoot { get; private set; }
 
 		private string? _skipReason;
 
@@ -804,36 +802,67 @@ public class ProjectDataWriterTests
 		{
 			get
 			{
-				if (!OperatingSystem.IsWindows() || OtherDriveRoot is not string otherDriveRoot)
+				string tempRoot = Path.GetFullPath(Path.GetTempPath());
+				StringComparison comparison = OperatingSystem.IsWindows()
+					? StringComparison.OrdinalIgnoreCase
+					: StringComparison.Ordinal;
+				string? tempDriveName = DriveInfo.GetDrives()
+					.Where(drive => drive.IsReady && tempRoot.StartsWith(drive.Name, comparison))
+					.OrderByDescending(drive => drive.Name.Length)
+					.FirstOrDefault()?.Name ?? Path.GetPathRoot(tempRoot);
+
+				foreach (DriveInfo drive in DriveInfo.GetDrives())
 				{
-					_skipReason = "Requires Windows and a second writable fixed drive.";
-					return true;
+					if (!drive.IsReady ||
+						drive.DriveType is not (DriveType.Fixed or DriveType.Removable or DriveType.Ram) ||
+						string.Equals(drive.Name, tempDriveName, comparison))
+					{
+						continue;
+					}
+
+					string root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
+					string target = Path.Combine(drive.Name, Guid.NewGuid().ToString("N"));
+					string link = Path.Combine(root, "link");
+					try
+					{
+						Directory.CreateDirectory(root);
+						Directory.CreateDirectory(target);
+						Directory.CreateSymbolicLink(link, target);
+
+						// Verify that root and target are genuinely on different volumes/devices
+						// (on macOS, /System/Volumes/Data shares the same underlying device as /tmp).
+						string probeSource = Path.Combine(root, "probe.tmp");
+						string probeDest = Path.Combine(target, "probe.txt");
+						File.WriteAllText(probeSource, "source");
+						File.WriteAllText(probeDest, "dest");
+						try
+						{
+							File.Replace(probeSource, probeDest, destinationBackupFileName: null);
+							continue;
+						}
+						catch (IOException)
+						{
+							OtherDriveRoot = drive.Name;
+							return false;
+						}
+					}
+					catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+					{
+						_skipReason = $"Cross-volume directory symbolic links are unavailable: {ex.Message}";
+					}
+					finally
+					{
+						if (Directory.Exists(link))
+							Directory.Delete(link);
+						if (Directory.Exists(root))
+							Directory.Delete(root, recursive: true);
+						if (Directory.Exists(target))
+							Directory.Delete(target, recursive: true);
+					}
 				}
 
-				string root = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N"));
-				string target = Path.Combine(otherDriveRoot, Guid.NewGuid().ToString("N"));
-				string link = Path.Combine(root, "link");
-				try
-				{
-					Directory.CreateDirectory(root);
-					Directory.CreateDirectory(target);
-					Directory.CreateSymbolicLink(link, target);
-					return false;
-				}
-				catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-				{
-					_skipReason = $"Cross-volume directory symbolic links are unavailable: {ex.Message}";
-					return true;
-				}
-				finally
-				{
-					if (Directory.Exists(link))
-						Directory.Delete(link);
-					if (Directory.Exists(root))
-						Directory.Delete(root);
-					if (Directory.Exists(target))
-						Directory.Delete(target);
-				}
+				_skipReason ??= "Requires a second writable volume.";
+				return true;
 			}
 		}
 	}
