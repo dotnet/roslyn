@@ -1,1 +1,4 @@
 ﻿root = true
+
+[*.{cs,razor}]
+charset = utf-8-bom

@@ -27,6 +27,9 @@
     <PackageReference Include="Mono.Options" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="App.config" />
     <None Include="README.md" />
   </ItemGroup>
