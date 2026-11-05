@@ -9,8 +9,10 @@ extern alias DSR;
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using DSR::Microsoft.DiaSymReader;
 using PortablePdb = Microsoft.DiaSymReader.PortablePdb;
 
@@ -23,16 +25,31 @@ namespace Roslyn.Test.PdbUtilities
 
         private static ISymUnmanagedReader5 CreateNativeSymReader(Stream pdbStream, object metadataImporter)
         {
-            // Delegate to the DiaSymReader factory so the native reader is created through the
-            // source-generated COM marshalling infrastructure. Creating the reader via a raw P/Invoke
-            // that marshals it as a built-in COM object (UnmanagedType.IUnknown) is incompatible with the
-            // [GeneratedComInterface]-based ISymUnmanagedReader* interfaces and fails when the reader is used.
-            return SymUnmanagedReaderFactory.CreateReaderWithMetadataImport<ISymUnmanagedReader5>(pdbStream, metadataImporter);
+            // Let DiaSymReader create the metadata adapter so it uses the same COM marshalling as the reader.
+            return SymUnmanagedReaderFactory.CreateReader<ISymUnmanagedReader5>(
+                pdbStream, new NativeSymReaderMetadataProvider((PortablePdb.IMetadataImport)metadataImporter));
         }
 
         private static ISymUnmanagedReader5 CreatePortableSymReader(Stream pdbStream, object metadataImporter)
         {
-            return (ISymUnmanagedReader5)new PortablePdb.SymBinder().GetReaderFromStream(pdbStream, metadataImporter);
+            // Call the managed binder directly rather than converting it to a COM interface.
+            var hr = new PortablePdb.SymBinder().GetReaderFromStream(
+                metadataImporter, SymUnmanagedStreamFactory.CreateStream(pdbStream), out var reader);
+            Marshal.ThrowExceptionForHR(hr);
+            return (ISymUnmanagedReader5)reader;
+        }
+
+        private sealed class NativeSymReaderMetadataProvider(PortablePdb.IMetadataImport metadataImporter) : ISymReaderMetadataProvider
+        {
+            public unsafe bool TryGetStandaloneSignature(int standaloneSignatureToken, out byte* signature, out int length)
+                => metadataImporter.GetSigFromToken(standaloneSignatureToken, out signature, out length) == 0;
+
+            // Type information is only requested by portable readers.
+            public bool TryGetTypeDefinitionInfo(int typeDefinitionToken, out string namespaceName, out string typeName, out TypeAttributes attributes)
+                => throw new NotSupportedException();
+
+            public bool TryGetTypeReferenceInfo(int typeReferenceToken, out string namespaceName, out string typeName)
+                => throw new NotSupportedException();
         }
 
         public static ISymUnmanagedReader5 CreateReader(byte[] pdbImage, byte[] peImageOpt = null)
