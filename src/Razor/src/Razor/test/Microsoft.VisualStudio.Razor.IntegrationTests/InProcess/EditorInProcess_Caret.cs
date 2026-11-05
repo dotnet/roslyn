@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -108,7 +109,7 @@ internal partial class EditorInProcess
         var view = await GetActiveTextViewAsync(cancellationToken);
 
         var subjectBuffer = view.GetBufferContainingCaret();
-        Assumes.Present(subjectBuffer);
+        Contract.ThrowIfNull(subjectBuffer);
 
         var bufferPosition = view.Caret.Position.BufferPosition;
         return bufferPosition.Position;

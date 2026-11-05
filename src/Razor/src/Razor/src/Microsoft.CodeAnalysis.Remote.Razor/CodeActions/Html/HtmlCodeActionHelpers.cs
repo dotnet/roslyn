@@ -14,7 +14,7 @@ internal static class HtmlCodeActionHelpers
 {
     internal static async Task MapAndFixHtmlCodeActionEditAsync(IRazorEditService razorEditService, RemoteDocumentSnapshot documentSnapshot, CodeAction codeAction, CancellationToken cancellationToken)
     {
-        Assumes.NotNull(codeAction.Edit);
+        Contract.ThrowIfNull(codeAction.Edit);
 
         await razorEditService.MapWorkspaceEditAsync(documentSnapshot.TextDocument.Project.Solution, codeAction.Edit, cancellationToken).ConfigureAwait(false);
 
