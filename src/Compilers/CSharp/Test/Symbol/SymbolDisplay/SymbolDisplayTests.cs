@@ -8029,7 +8029,7 @@ class C
                 "var _",
                 SymbolDisplayPartKind.ErrorTypeName, // var
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Punctuation); // _
+                SymbolDisplayPartKind.Keyword); // _
         }
 
         [Fact]
