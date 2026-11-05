@@ -2545,6 +2545,57 @@ namespace Test
         CompileToAssembly(generated);
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85443")]
+    public void LayoutDirective_Null()
+    {
+        var generated = CompileToCSharp("""
+            @layout null
+            <p>Hello</p>
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85443")]
+    public void LayoutDirective_Null_Generic()
+    {
+        var generated = CompileToCSharp("""
+            @layout null
+            @typeparam TItem
+            <p>@typeof(TItem).Name</p>
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/85443")]
+    public void LayoutDirective_Null_Inherited()
+    {
+        ComponentName = "InheritedPage";
+        AdditionalSyntaxTrees.Add(Parse("""
+            namespace Test;
+
+            [Microsoft.AspNetCore.Components.Layout(typeof(NonEmptyLayout))]
+            public class BaseWithLayout : Microsoft.AspNetCore.Components.ComponentBase { }
+
+            public class NonEmptyLayout : Microsoft.AspNetCore.Components.LayoutComponentBase { }
+            """));
+
+        var generated = CompileToCSharp("""
+            @layout null
+            @inherits BaseWithLayout
+            <p>Hello</p>
+            """);
+
+        AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
+        AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
+        CompileToAssembly(generated);
+    }
+
     [Fact]
     public void Component_AddContent_Multiline()
     {
@@ -6131,7 +6182,7 @@ namespace AnotherTest
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);
         CompileToAssembly(generated, // x:\dir\subdir\Test\TestComponent.cshtml(4,7): warning CS8602: Dereference of a possibly null reference.
-              // __o = _field.ToString();
+                                     // __o = _field.ToString();
               Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "_field").WithLocation(4, 3));
     }
 
@@ -13183,7 +13234,7 @@ Time: @DateTime.Now
         var generated = CompileToCSharp("""
             @section One { <p>Content</p> }
             """);
-                                        
+
         // Assert
         AssertDocumentNodeMatchesBaseline(generated.CodeDocument);
         AssertCSharpDocumentMatchesBaseline(generated.CodeDocument);

@@ -305,6 +305,7 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
     // and are shared into the decl subtree; the same node kept in the impl half decorates the impl partial
     // too, emitting the attribute twice on the combined type -- a CS0579 for a single-instance attribute,
     // a duplicate route for @page (RouteAttribute allows multiples, so it compiles but registers twice).
+    // Namespace-level declarations (e.g. the file-local empty layout) stay with their attributes in decl.
     // Documentation also belongs only on the decl partial, so C# does not combine duplicate comments.
     // The class body, usings, directives, and synthesized helpers stay in the impl.
     private static void StripClassDecorationsFromImpl(
@@ -322,7 +323,9 @@ internal sealed class DefaultRazorMarkupSplitPhase : RazorEnginePhaseBase
             // @layout/@attribute lower to a CSharpCodeIntermediateNode, @page to a RouteAttributeExtensionNode.
             // A compiler-synthesized decoration (e.g. the @rendermode attribute helper) is impl-half plumbing
             // and isn't shared into the decl, so it stays in the impl.
-            if (children[i] is CSharpCodeIntermediateNode { IsSynthesizedHelper: false } or RouteAttributeExtensionNode or DocumentationIntermediateNode)
+            if (children[i] is CSharpCodeIntermediateNode { IsSynthesizedHelper: false } or
+                EmptyLayoutIntermediateNode or
+                RouteAttributeExtensionNode or DocumentationIntermediateNode)
             {
                 children.RemoveAt(i);
             }
