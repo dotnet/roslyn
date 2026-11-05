@@ -24,6 +24,7 @@ internal abstract class AbstractNavigableItemsService : INavigableItemsService
         Document document, int position, bool forSymbolType, CancellationToken cancellationToken)
     {
         var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+        var currentSolution = document.Project.Solution;
 
         // First try with frozen partial semantics.  For the common case where no symbols referenced though skeleton
         // references are involved, this can be much faster.  If that fails, try again, this time allowing skeletons to
@@ -68,6 +69,26 @@ internal abstract class AbstractNavigableItemsService : INavigableItemsService
                     return null;
 
                 symbol = typeSymbol;
+            }
+
+            if (solution != currentSolution)
+            {
+                // Frozen semantics can retain an old tree for a different document. Consumers resolve
+                // navigable document IDs in the current solution, so its text must agree with the span.
+                // Retry with full semantics when a source declaration no longer belongs to that tree.
+                foreach (var location in symbol.Locations)
+                {
+                    if (solution.GetDocument(location.SourceTree) is not { } targetDocument)
+                        continue;
+
+                    var currentDocument = await currentSolution.GetDocumentAsync(
+                        targetDocument.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                    if (currentDocument is null ||
+                        await currentDocument.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false) != location.SourceTree)
+                    {
+                        return null;
+                    }
+                }
             }
 
             return (symbol, solution);
