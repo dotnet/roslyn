@@ -30,6 +30,8 @@ internal enum DocumentationId
     SplatTagHelper,
     RenderModeTagHelper,
     FormNameTagHelper,
+    EventHandlerTagHelper_Debounce,
+    EventHandlerTagHelper_Throttle,
 
-    Last = FormNameTagHelper
+    Last = EventHandlerTagHelper_Throttle
 }

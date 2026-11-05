@@ -498,4 +498,35 @@ internal static class ComponentDiagnosticFactory
 
     public static RazorDiagnostic CreateAssetPath_NonStringParameter(SourceSpan? source, string parameter)
         => RazorDiagnostic.Create(AssetPath_NonStringParameter, source, parameter);
+
+    public static readonly RazorDiagnosticDescriptor EventHandlerParameter_DebounceAndThrottleConflict =
+        new($"{DiagnosticPrefix}10031",
+            "Attribute '{0}' can't be used in conjunction with '{1}'.",
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateEventHandlerParameter_DebounceAndThrottleConflict(
+        SourceSpan? source,
+        string debounceAttribute,
+        string throttleAttribute)
+        => RazorDiagnostic.Create(EventHandlerParameter_DebounceAndThrottleConflict, source, debounceAttribute, throttleAttribute);
+
+    public static readonly RazorDiagnosticDescriptor EventHandlerParameter_MissingValue =
+        new($"{DiagnosticPrefix}10032",
+            "Attribute '{0}' must specify a millisecond interval value.",
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateEventHandlerParameter_MissingValue(
+        SourceSpan? source,
+        string attribute)
+        => RazorDiagnostic.Create(EventHandlerParameter_MissingValue, source, attribute);
+
+    public static readonly RazorDiagnosticDescriptor EventHandlerParameter_UnsupportedSyntaxDebounceThrottle =
+        new($"{DiagnosticPrefix}10033",
+            "Attribute '{0}' can only be used with RazorLanguageVersion 12.0 or higher.",
+            RazorDiagnosticSeverity.Error);
+
+    public static RazorDiagnostic CreateEventHandlerParameter_UnsupportedSyntaxDebounceThrottle(
+        SourceSpan? source,
+        string attribute)
+        => RazorDiagnostic.Create(EventHandlerParameter_UnsupportedSyntaxDebounceThrottle, source, attribute);
 }

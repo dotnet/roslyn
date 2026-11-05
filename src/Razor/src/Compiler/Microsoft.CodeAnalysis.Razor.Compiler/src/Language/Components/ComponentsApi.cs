@@ -128,6 +128,10 @@ internal static class ComponentsApi
 
         public const string AddEventStopPropagationAttribute = nameof(AddEventStopPropagationAttribute);
 
+        public const string AddEventDebounceAttribute = nameof(AddEventDebounceAttribute);
+
+        public const string AddEventThrottleAttribute = nameof(AddEventThrottleAttribute);
+
         public const string AddComponentRenderMode = nameof(AddComponentRenderMode);
 
         public const string RenderModeVariableName = "__renderMode";
@@ -160,6 +164,12 @@ internal static class ComponentsApi
     public static class EventHandlerAttribute
     {
         public const string FullTypeName = "Microsoft.AspNetCore.Components.EventHandlerAttribute";
+    }
+
+    public static class EventThrottleMode
+    {
+        public const string FullTypeName = "Microsoft.AspNetCore.Components.EventThrottleMode";
+        public const string LeadingAndTrailing = "LeadingAndTrailing";
     }
 
     public static class AssetPathAttribute

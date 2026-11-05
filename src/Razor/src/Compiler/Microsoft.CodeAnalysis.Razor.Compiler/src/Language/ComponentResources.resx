@@ -177,6 +177,12 @@
   <data name="EventHandlerTagHelper_StopPropagation_Documentation" xml:space="preserve">
     <value>Specifies whether to prevent further propagation of the '{0}' event in the capturing and bubbling phases.</value>
   </data>
+  <data name="EventHandlerTagHelper_Debounce_Documentation" xml:space="preserve">
+    <value>Specifies the debounce interval in milliseconds before dispatching the '{0}' event.</value>
+  </data>
+  <data name="EventHandlerTagHelper_Throttle_Documentation" xml:space="preserve">
+    <value>Specifies the throttle interval in milliseconds for rate-limiting the '{0}' event.</value>
+  </data>
   <data name="FormNameTagHelper_Documentation" xml:space="preserve">
     <value>Name used to match the form handler on the server.</value>
   </data>

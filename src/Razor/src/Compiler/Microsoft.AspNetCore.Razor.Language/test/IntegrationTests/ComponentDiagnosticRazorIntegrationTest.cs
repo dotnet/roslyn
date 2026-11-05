@@ -274,6 +274,8 @@ namespace Test
             @using Microsoft.AspNetCore.Components.Web
             <div @onclick="HandleClick"
                  @onclick:preventDefault="true"
+                 @onclick:debounce="300"
+                 @onmousemove:throttle="100"
                  @ref="element"
                  @key="key"
                  @attributes="attributes"></div>
@@ -283,6 +285,137 @@ namespace Test
 
         // Assert
         Assert.Empty(generated.RazorDiagnostics);
+    }
+
+    [Fact]
+    public void EventHandler_DebounceAndThrottleOnSameEvent_ReportsError()
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            """
+            @using Microsoft.AspNetCore.Components.Web
+            <input @oninput="HandleInput" @oninput:debounce="300" @oninput:throttle="100" />
+            """);
+
+        // Assert
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
+        Assert.Equal("RZ10031", diagnostic.Id);
+        Assert.Equal(
+            "Attribute '@oninput:debounce' can't be used in conjunction with '@oninput:throttle'.",
+            diagnostic.GetMessage(CultureInfo.CurrentCulture));
+    }
+
+    [Fact]
+    public void EventHandler_DebounceMinimized_ReportsError()
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            """
+            @using Microsoft.AspNetCore.Components.Web
+            <input @oninput="HandleInput" @oninput:debounce />
+            """);
+
+        // Assert
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
+        Assert.Equal("RZ10032", diagnostic.Id);
+        Assert.Equal(
+            "Attribute '@oninput:debounce' must specify a millisecond interval value.",
+            diagnostic.GetMessage(CultureInfo.CurrentCulture));
+    }
+
+    [Fact]
+    public void EventHandler_ThrottleMinimized_ReportsError()
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            """
+            @using Microsoft.AspNetCore.Components.Web
+            <button @onclick="HandleClick" @onclick:throttle />
+            """);
+
+        // Assert
+        var diagnostic = Assert.Single(generated.RazorDiagnostics);
+        Assert.Equal("RZ10032", diagnostic.Id);
+        Assert.Equal(
+            "Attribute '@onclick:throttle' must specify a millisecond interval value.",
+            diagnostic.GetMessage(CultureInfo.CurrentCulture));
+    }
+
+    [Fact]
+    public void EventHandler_DebounceAndThrottle_ProducesErrorOnOlderLanguageVersions()
+    {
+        // Arrange & Act
+        var generated = CompileToCSharp(
+            """
+            @using Microsoft.AspNetCore.Components.Web
+            <input @oninput="HandleInput" @oninput:debounce="300" />
+            <button @onclick="HandleClick" @onclick:throttle="500" />
+            """,
+            configuration: Configuration with { LanguageVersion = RazorLanguageVersion.Version_11_0 });
+
+        // Assert
+        Assert.Collection(generated.RazorDiagnostics,
+            diagnostic =>
+            {
+                Assert.Equal("RZ10033", diagnostic.Id);
+                Assert.Equal(
+                    "Attribute '@oninput:debounce' can only be used with RazorLanguageVersion 12.0 or higher.",
+                    diagnostic.GetMessage(CultureInfo.CurrentCulture));
+            },
+            diagnostic =>
+            {
+                Assert.Equal("RZ10033", diagnostic.Id);
+                Assert.Equal(
+                    "Attribute '@onclick:throttle' can only be used with RazorLanguageVersion 12.0 or higher.",
+                    diagnostic.GetMessage(CultureInfo.CurrentCulture));
+            });
+    }
+
+    [Fact]
+    public void EventHandler_DebounceAndThrottle_EmitsExpectedBuilderCalls()
+    {
+        // Arrange
+        AdditionalSyntaxTrees.Add(Parse(
+            """
+            namespace Microsoft.AspNetCore.Components
+            {
+                public enum EventThrottleMode
+                {
+                    Leading = 0,
+                    LeadingAndTrailing = 1,
+                }
+            }
+
+            namespace Microsoft.AspNetCore.Components.Web
+            {
+                public static class EventRateLimitTestExtensions
+                {
+                    public static void AddEventDebounceAttribute(this Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, int sequence, string eventName, int value) { }
+                    public static void AddEventThrottleAttribute(this Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, int sequence, string eventName, int value, Microsoft.AspNetCore.Components.EventThrottleMode throttleMode = Microsoft.AspNetCore.Components.EventThrottleMode.Leading) { }
+                }
+            }
+            """));
+
+        // Act
+        var generated = CompileToCSharp(
+            """
+            @using Microsoft.AspNetCore.Components.Web
+            <input @bind="text" @bind:event="oninput" @oninput:debounce="300" />
+            <button @onclick="OnClick" @onclick:throttle="@throttleMs">Click</button>
+            @code {
+                string text = "";
+                int throttleMs = 500;
+                void OnClick() { }
+            }
+            """);
+
+        // Assert
+        Assert.Empty(generated.RazorDiagnostics);
+        CompileToAssembly(generated);
+        Assert.Contains("__builder.AddEventDebounceAttribute(", generated.Code);
+        Assert.Contains("\"oninput\"", generated.Code);
+        Assert.Contains("__builder.AddEventThrottleAttribute(", generated.Code);
+        Assert.Contains("\"onclick\"", generated.Code);
     }
 
     [Fact]
