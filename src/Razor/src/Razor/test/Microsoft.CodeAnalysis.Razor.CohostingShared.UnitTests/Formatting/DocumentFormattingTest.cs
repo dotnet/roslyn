@@ -16720,6 +16720,35 @@ public class DocumentFormattingTest(ITestOutputHelper testOutput) : DocumentForm
     }
 
     [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/86304")]
+    public Task EndTagAfterRazorCommentOnSameLine()
+    {
+        return RunFormattingTestAsync(
+            input: """
+                <div>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            htmlFormatted: """
+                <div>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            expected: """
+                <div>
+                    @* note *@ </div>
+                <section>
+                    <p>x</p>
+                </section>
+                """,
+            validateHtmlFormattedMatchesWebTools: false);
+    }
+
+    [Fact]
     [WorkItem("https://github.com/dotnet/roslyn/issues/84601")]
     public Task RazorCommentWithInternalBlankLine()
     {

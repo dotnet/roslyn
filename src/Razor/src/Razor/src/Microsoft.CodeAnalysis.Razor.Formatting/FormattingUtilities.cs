@@ -371,9 +371,9 @@ internal static class FormattingUtilities
                 }
             }
 
-            if (lineInfo.SkipNextLine)
+            if (lineInfo.SkipNextLines > 0)
             {
-                iFormatted++;
+                iFormatted += lineInfo.SkipNextLines;
             }
             else if (lineInfo.SkipNextLineIfBrace)
             {

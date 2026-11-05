@@ -10,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Remote.Razor.Formatting;
 /// <param name="ProcessFormatting">Whether the formatted document text to the right of the first non-whitespace character should be applied to the origin document</param>
 /// <param name="CheckForNewLines">Whether the origin document text could have overflowed to multiple lines in the formatted document</param>
 /// <param name="SkippedPreviousLineOriginOffset">The offset into the previous original line of a skipped formatted line, or <see langword="null"/> if there is no skipped previous line.</param>
-/// <param name="SkipNextLine">Whether to skip the next line in the formatted document, since it doesn't represent anything in the origin document</param>
-/// <param name="SkipNextLineIfBrace">Whether to skip the next line in the formatted document, like <see cref="SkipNextLine" />, but only skips if the next line is a brace</param>
+/// <param name="SkipNextLines">How many lines to skip after this one in the formatted document, since they don't represent anything in the origin document</param>
+/// <param name="SkipNextLineIfBrace">Whether to skip the next line in the formatted document, like <see cref="SkipNextLines" />, but only skips if the next line is a brace</param>
 /// <param name="FixedIndentLevel">The indent level that the Html formatter applied to this line</param>
 /// <param name="OriginOffset">How many characters after the first non-whitespace character of the origin line should be skipped before applying formatting</param>
 /// <param name="FormattedLength">How many characters of the origin line the formatted line represents</param>
@@ -23,7 +23,7 @@ internal readonly record struct LineInfo(
     bool ProcessFormatting,
     bool CheckForNewLines,
     int? SkippedPreviousLineOriginOffset,
-    bool SkipNextLine,
+    int SkipNextLines,
     bool SkipNextLineIfBrace,
     int FixedIndentLevel,
     int OriginOffset,
