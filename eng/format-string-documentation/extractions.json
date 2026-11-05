@@ -1,0 +1,2660 @@
+[
+  {
+    "resource": "FormatDoc_numeric_standard_u0042",
+    "family": "numeric-standard",
+    "specifiers": [
+      "B",
+      "b"
+    ],
+    "text": "A binary string.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 0,
+      "specifier": "\"B\" or \"b\"",
+      "column": "Description",
+      "field": "Result"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_precision_u0042",
+    "family": "numeric-precision",
+    "specifiers": [
+      "B",
+      "b"
+    ],
+    "text": "Number of digits in the result string.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 0,
+      "specifier": "\"B\" or \"b\"",
+      "column": "Description",
+      "field": "Precision specifier"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_support_u0042",
+    "family": "numeric-support",
+    "specifiers": [
+      "B",
+      "b"
+    ],
+    "text": "Integral types only (.NET 8+).",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 0,
+      "specifier": "\"B\" or \"b\"",
+      "column": "Description",
+      "field": "Supported by"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_standard_u0043",
+    "family": "numeric-standard",
+    "specifiers": [
+      "C",
+      "c"
+    ],
+    "text": "A currency value.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 1,
+      "specifier": "\"C\" or \"c\"",
+      "column": "Description",
+      "field": "Result"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_precision_u0043",
+    "family": "numeric-precision",
+    "specifiers": [
+      "C",
+      "c"
+    ],
+    "text": "Number of decimal digits.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 1,
+      "specifier": "\"C\" or \"c\"",
+      "column": "Description",
+      "field": "Precision specifier"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_standard_u0044",
+    "family": "numeric-standard",
+    "specifiers": [
+      "D",
+      "d"
+    ],
+    "text": "Integer digits with optional negative sign.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 2,
+      "specifier": "\"D\" or \"d\"",
+      "column": "Description",
+      "field": "Result"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_precision_u0044",
+    "family": "numeric-precision",
+    "specifiers": [
+      "D",
+      "d"
+    ],
+    "text": "Minimum number of digits.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 2,
+      "specifier": "\"D\" or \"d\"",
+      "column": "Description",
+      "field": "Precision specifier"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_standard_u0045",
+    "family": "numeric-standard",
+    "specifiers": [
+      "E",
+      "e"
+    ],
+    "text": "Exponential notation.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 3,
+      "specifier": "\"E\" or \"e\"",
+      "column": "Description",
+      "field": "Result"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_precision_u0045",
+    "family": "numeric-precision",
+    "specifiers": [
+      "E",
+      "e"
+    ],
+    "text": "Number of decimal digits.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 3,
+      "specifier": "\"E\" or \"e\"",
+      "column": "Description",
+      "field": "Precision specifier"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_standard_u0046",
+    "family": "numeric-standard",
+    "specifiers": [
+      "F",
+      "f"
+    ],
+    "text": "Integral and decimal digits with optional negative sign.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 4,
+      "specifier": "\"F\" or \"f\"",
+      "column": "Description",
+      "field": "Result"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_precision_u0046",
+    "family": "numeric-precision",
+    "specifiers": [
+      "F",
+      "f"
+    ],
+    "text": "Number of decimal digits.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 4,
+      "specifier": "\"F\" or \"f\"",
+      "column": "Description",
+      "field": "Precision specifier"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_standard_u0047",
+    "family": "numeric-standard",
+    "specifiers": [
+      "G",
+      "g"
+    ],
+    "text": "The more compact of either fixed-point or scientific notation.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 5,
+      "specifier": "\"G\" or \"g\"",
+      "column": "Description",
+      "field": "Result"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_precision_u0047",
+    "family": "numeric-precision",
+    "specifiers": [
+      "G",
+      "g"
+    ],
+    "text": "Number of significant digits.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 5,
+      "specifier": "\"G\" or \"g\"",
+      "column": "Description",
+      "field": "Precision specifier"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_standard_u004E",
+    "family": "numeric-standard",
+    "specifiers": [
+      "N",
+      "n"
+    ],
+    "text": "Integral and decimal digits, group separators, and a decimal separator with optional negative sign.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 6,
+      "specifier": "\"N\" or \"n\"",
+      "column": "Description",
+      "field": "Result"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_precision_u004E",
+    "family": "numeric-precision",
+    "specifiers": [
+      "N",
+      "n"
+    ],
+    "text": "Desired number of decimal places.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 6,
+      "specifier": "\"N\" or \"n\"",
+      "column": "Description",
+      "field": "Precision specifier"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_standard_u0050",
+    "family": "numeric-standard",
+    "specifiers": [
+      "P",
+      "p"
+    ],
+    "text": "Number multiplied by 100 and displayed with a percent symbol.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 7,
+      "specifier": "\"P\" or \"p\"",
+      "column": "Description",
+      "field": "Result"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_precision_u0050",
+    "family": "numeric-precision",
+    "specifiers": [
+      "P",
+      "p"
+    ],
+    "text": "Desired number of decimal places.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 7,
+      "specifier": "\"P\" or \"p\"",
+      "column": "Description",
+      "field": "Precision specifier"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_standard_u0052",
+    "family": "numeric-standard",
+    "specifiers": [
+      "R",
+      "r"
+    ],
+    "text": "A string that can round-trip to an identical number.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 8,
+      "specifier": "\"R\" or \"r\"",
+      "column": "Description",
+      "field": "Result"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_precision_u0052",
+    "family": "numeric-precision",
+    "specifiers": [
+      "R",
+      "r"
+    ],
+    "text": "Ignored.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 8,
+      "specifier": "\"R\" or \"r\"",
+      "column": "Description",
+      "field": "Precision specifier"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_standard_u0058",
+    "family": "numeric-standard",
+    "specifiers": [
+      "X",
+      "x"
+    ],
+    "text": "A hexadecimal string.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 9,
+      "specifier": "\"X\" or \"x\"",
+      "column": "Description",
+      "field": "Result"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_precision_u0058",
+    "family": "numeric-precision",
+    "specifiers": [
+      "X",
+      "x"
+    ],
+    "text": "Number of digits in the result string.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 9,
+      "specifier": "\"X\" or \"x\"",
+      "column": "Description",
+      "field": "Precision specifier"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u0030",
+    "family": "numeric-custom",
+    "specifiers": [
+      "0"
+    ],
+    "text": "Replaces the zero with the corresponding digit if one is present; otherwise, zero appears in the result string.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 0,
+      "specifier": "\"0\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u0023",
+    "family": "numeric-custom",
+    "specifiers": [
+      "#"
+    ],
+    "text": "Replaces the \"#\" symbol with the corresponding digit if one is present; otherwise, no digit appears in the result string. Note that no digit appears in the result string if the corresponding digit in the input string is a non-significant 0. For example, 0003 (\"####\") -> 3.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 1,
+      "specifier": "\"#\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u002E",
+    "family": "numeric-custom",
+    "specifiers": [
+      "."
+    ],
+    "text": "Determines the location of the decimal separator in the result string.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 2,
+      "specifier": "\".\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u002C",
+    "family": "numeric-custom",
+    "specifiers": [
+      ","
+    ],
+    "text": "Serves as both a group separator and a number scaling specifier. As a group separator, it inserts a localized group separator character between each group. As a number scaling specifier, it divides a number by 1000 for each comma specified.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 3,
+      "specifier": "\",\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u0025",
+    "family": "numeric-custom",
+    "specifiers": [
+      "%"
+    ],
+    "text": "Multiplies a number by 100 and inserts a localized percentage symbol in the result string.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 4,
+      "specifier": "\"%\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u2030",
+    "family": "numeric-custom",
+    "specifiers": [
+      "‰"
+    ],
+    "text": "Multiplies a number by 1000 and inserts a localized per mille symbol in the result string.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 5,
+      "specifier": "\"‰\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u0045_u0030",
+    "family": "numeric-custom",
+    "specifiers": [
+      "E0",
+      "E+0",
+      "E-0",
+      "e0",
+      "e+0",
+      "e-0"
+    ],
+    "text": "If followed by at least one 0 (zero), formats the result using exponential notation. The case of \"E\" or \"e\" indicates the case of the exponent symbol in the result string. The number of zeros following the \"E\" or \"e\" character determines the minimum number of digits in the exponent. A plus sign (+) indicates that a sign character always precedes the exponent. A minus sign (-) indicates that a sign character precedes only negative exponents.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 6,
+      "specifier": "\"E0\"<br /><br /> \"E+0\"<br /><br /> \"E-0\"<br /><br /> \"e0\"<br /><br /> \"e+0\"<br /><br /> \"e-0\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u0065_u0073_u0063_u0061_u0070_u0065",
+    "family": "numeric-custom",
+    "specifiers": [
+      "escape"
+    ],
+    "text": "Causes the next character to be interpreted as a literal rather than as a custom format specifier.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 7,
+      "specifier": "\"\\\\\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u0071_u0075_u006F_u0074_u0065_u0064",
+    "family": "numeric-custom",
+    "specifiers": [
+      "quoted"
+    ],
+    "text": "Indicates that the enclosed characters should be copied to the result string unchanged.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 8,
+      "specifier": "'*string*'<br /><br /> \"*string*\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u003B",
+    "family": "numeric-custom",
+    "specifiers": [
+      ";"
+    ],
+    "text": "Defines sections with separate format strings for positive, negative, and zero numbers.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 9,
+      "specifier": ";",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_custom_u006C_u0069_u0074_u0065_u0072_u0061_u006C",
+    "family": "numeric-custom",
+    "specifiers": [
+      "literal"
+    ],
+    "text": "The character is copied to the result string unchanged.",
+    "source": "numeric-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 10,
+      "specifier": "Other",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "979e620cc993ec5d7c0914903544754a5a801e7b",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0064",
+    "family": "date-standard",
+    "specifiers": [
+      "d"
+    ],
+    "text": "Short date pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 0,
+      "specifier": "\"d\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0044",
+    "family": "date-standard",
+    "specifiers": [
+      "D"
+    ],
+    "text": "Long date pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 1,
+      "specifier": "\"D\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0066",
+    "family": "date-standard",
+    "specifiers": [
+      "f"
+    ],
+    "text": "Full date/time pattern (short time).",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 2,
+      "specifier": "\"f\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0046",
+    "family": "date-standard",
+    "specifiers": [
+      "F"
+    ],
+    "text": "Full date/time pattern (long time).",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 3,
+      "specifier": "\"F\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0067",
+    "family": "date-standard",
+    "specifiers": [
+      "g"
+    ],
+    "text": "General date/time pattern (short time).",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 4,
+      "specifier": "\"g\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0047",
+    "family": "date-standard",
+    "specifiers": [
+      "G"
+    ],
+    "text": "General date/time pattern (long time).",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 5,
+      "specifier": "\"G\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u004D",
+    "family": "date-standard",
+    "specifiers": [
+      "M",
+      "m"
+    ],
+    "text": "Month/day pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 6,
+      "specifier": "\"M\", \"m\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u004F",
+    "family": "date-standard",
+    "specifiers": [
+      "O",
+      "o"
+    ],
+    "text": "round-trip date/time pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 7,
+      "specifier": "\"O\", \"o\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0052",
+    "family": "date-standard",
+    "specifiers": [
+      "R",
+      "r"
+    ],
+    "text": "RFC1123 pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 8,
+      "specifier": "\"R\", \"r\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0073",
+    "family": "date-standard",
+    "specifiers": [
+      "s"
+    ],
+    "text": "Sortable date/time pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 9,
+      "specifier": "\"s\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0074",
+    "family": "date-standard",
+    "specifiers": [
+      "t"
+    ],
+    "text": "Short time pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 10,
+      "specifier": "\"t\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0054",
+    "family": "date-standard",
+    "specifiers": [
+      "T"
+    ],
+    "text": "Long time pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 11,
+      "specifier": "\"T\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0075",
+    "family": "date-standard",
+    "specifiers": [
+      "u"
+    ],
+    "text": "Universal sortable date/time pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 12,
+      "specifier": "\"u\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0055",
+    "family": "date-standard",
+    "specifiers": [
+      "U"
+    ],
+    "text": "Universal full date/time pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 13,
+      "specifier": "\"U\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_standard_u0059",
+    "family": "date-standard",
+    "specifiers": [
+      "Y",
+      "y"
+    ],
+    "text": "Year month pattern.",
+    "source": "date-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 14,
+      "specifier": "\"Y\", \"y\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5aa298816b838ef4abd65700539a58731b763006",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0064",
+    "family": "date-custom",
+    "specifiers": [
+      "d"
+    ],
+    "text": "The day of the month, from 1 to 31.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 0,
+      "specifier": "\"d\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0064_u0064",
+    "family": "date-custom",
+    "specifiers": [
+      "dd"
+    ],
+    "text": "The day of the month, from 01 to 31.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 1,
+      "specifier": "\"dd\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0064_u0064_u0064",
+    "family": "date-custom",
+    "specifiers": [
+      "ddd"
+    ],
+    "text": "The abbreviated name of the day of the week.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 2,
+      "specifier": "\"ddd\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0064_u0064_u0064_u0064",
+    "family": "date-custom",
+    "specifiers": [
+      "dddd"
+    ],
+    "text": "The full name of the day of the week.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 3,
+      "specifier": "\"dddd\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0066",
+    "family": "date-custom",
+    "specifiers": [
+      "f"
+    ],
+    "text": "The tenths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 4,
+      "specifier": "\"f\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0066_u0066",
+    "family": "date-custom",
+    "specifiers": [
+      "ff"
+    ],
+    "text": "The hundredths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 5,
+      "specifier": "\"ff\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0066_u0066_u0066",
+    "family": "date-custom",
+    "specifiers": [
+      "fff"
+    ],
+    "text": "The milliseconds in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 6,
+      "specifier": "\"fff\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0066_u0066_u0066_u0066",
+    "family": "date-custom",
+    "specifiers": [
+      "ffff"
+    ],
+    "text": "The ten thousandths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 7,
+      "specifier": "\"ffff\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0066_u0066_u0066_u0066_u0066",
+    "family": "date-custom",
+    "specifiers": [
+      "fffff"
+    ],
+    "text": "The hundred thousandths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 8,
+      "specifier": "\"fffff\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0066_u0066_u0066_u0066_u0066_u0066",
+    "family": "date-custom",
+    "specifiers": [
+      "ffffff"
+    ],
+    "text": "The millionths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 9,
+      "specifier": "\"ffffff\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0066_u0066_u0066_u0066_u0066_u0066_u0066",
+    "family": "date-custom",
+    "specifiers": [
+      "fffffff"
+    ],
+    "text": "The ten millionths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 10,
+      "specifier": "\"fffffff\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0046",
+    "family": "date-custom",
+    "specifiers": [
+      "F"
+    ],
+    "text": "If non-zero, the tenths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 11,
+      "specifier": "\"F\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0046_u0046",
+    "family": "date-custom",
+    "specifiers": [
+      "FF"
+    ],
+    "text": "If non-zero, the hundredths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 12,
+      "specifier": "\"FF\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0046_u0046_u0046",
+    "family": "date-custom",
+    "specifiers": [
+      "FFF"
+    ],
+    "text": "If non-zero, the milliseconds in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 13,
+      "specifier": "\"FFF\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0046_u0046_u0046_u0046",
+    "family": "date-custom",
+    "specifiers": [
+      "FFFF"
+    ],
+    "text": "If non-zero, the ten thousandths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 14,
+      "specifier": "\"FFFF\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0046_u0046_u0046_u0046_u0046",
+    "family": "date-custom",
+    "specifiers": [
+      "FFFFF"
+    ],
+    "text": "If non-zero, the hundred thousandths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 15,
+      "specifier": "\"FFFFF\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0046_u0046_u0046_u0046_u0046_u0046",
+    "family": "date-custom",
+    "specifiers": [
+      "FFFFFF"
+    ],
+    "text": "If non-zero, the millionths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 16,
+      "specifier": "\"FFFFFF\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0046_u0046_u0046_u0046_u0046_u0046_u0046",
+    "family": "date-custom",
+    "specifiers": [
+      "FFFFFFF"
+    ],
+    "text": "If non-zero, the ten millionths of a second in a date and time value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 17,
+      "specifier": "\"FFFFFFF\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0067",
+    "family": "date-custom",
+    "specifiers": [
+      "g",
+      "gg"
+    ],
+    "text": "The period or era.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 18,
+      "specifier": "\"g\", \"gg\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0068",
+    "family": "date-custom",
+    "specifiers": [
+      "h"
+    ],
+    "text": "The hour, using a 12-hour clock from 1 to 12.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 19,
+      "specifier": "\"h\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0068_u0068",
+    "family": "date-custom",
+    "specifiers": [
+      "hh"
+    ],
+    "text": "The hour, using a 12-hour clock from 01 to 12.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 20,
+      "specifier": "\"hh\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0048",
+    "family": "date-custom",
+    "specifiers": [
+      "H"
+    ],
+    "text": "The hour, using a 24-hour clock from 0 to 23.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 21,
+      "specifier": "\"H\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0048_u0048",
+    "family": "date-custom",
+    "specifiers": [
+      "HH"
+    ],
+    "text": "The hour, using a 24-hour clock from 00 to 23.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 22,
+      "specifier": "\"HH\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u004B",
+    "family": "date-custom",
+    "specifiers": [
+      "K"
+    ],
+    "text": "Time zone information.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 23,
+      "specifier": "\"K\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u006D",
+    "family": "date-custom",
+    "specifiers": [
+      "m"
+    ],
+    "text": "The minute, from 0 to 59.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 24,
+      "specifier": "\"m\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u006D_u006D",
+    "family": "date-custom",
+    "specifiers": [
+      "mm"
+    ],
+    "text": "The minute, from 00 to 59.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 25,
+      "specifier": "\"mm\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u004D",
+    "family": "date-custom",
+    "specifiers": [
+      "M"
+    ],
+    "text": "The month, from 1 to 12.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 26,
+      "specifier": "\"M\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u004D_u004D",
+    "family": "date-custom",
+    "specifiers": [
+      "MM"
+    ],
+    "text": "The month, from 01 to 12.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 27,
+      "specifier": "\"MM\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u004D_u004D_u004D",
+    "family": "date-custom",
+    "specifiers": [
+      "MMM"
+    ],
+    "text": "The abbreviated name of the month. When used with \"d\" or \"dd\" specifiers, uses genitive names, except with .NET Framework. (This is known issue that's fixed in .NET.)",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 28,
+      "specifier": "\"MMM\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u004D_u004D_u004D_u004D",
+    "family": "date-custom",
+    "specifiers": [
+      "MMMM"
+    ],
+    "text": "The full name of the month. When used with \"d\" or \"dd\" specifiers, uses genitive names.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 29,
+      "specifier": "\"MMMM\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0073",
+    "family": "date-custom",
+    "specifiers": [
+      "s"
+    ],
+    "text": "The second, from 0 to 59.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 30,
+      "specifier": "\"s\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0073_u0073",
+    "family": "date-custom",
+    "specifiers": [
+      "ss"
+    ],
+    "text": "The second, from 00 to 59.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 31,
+      "specifier": "\"ss\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0074",
+    "family": "date-custom",
+    "specifiers": [
+      "t"
+    ],
+    "text": "The first character of the AM/PM designator.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 32,
+      "specifier": "\"t\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0074_u0074",
+    "family": "date-custom",
+    "specifiers": [
+      "tt"
+    ],
+    "text": "The AM/PM designator.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 33,
+      "specifier": "\"tt\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0079",
+    "family": "date-custom",
+    "specifiers": [
+      "y"
+    ],
+    "text": "The year, from 0 to 99.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 34,
+      "specifier": "\"y\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0079_u0079",
+    "family": "date-custom",
+    "specifiers": [
+      "yy"
+    ],
+    "text": "The year, from 00 to 99.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 35,
+      "specifier": "\"yy\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0079_u0079_u0079",
+    "family": "date-custom",
+    "specifiers": [
+      "yyy"
+    ],
+    "text": "The year, with a minimum of three digits.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 36,
+      "specifier": "\"yyy\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0079_u0079_u0079_u0079",
+    "family": "date-custom",
+    "specifiers": [
+      "yyyy"
+    ],
+    "text": "The year as a four-digit number.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 37,
+      "specifier": "\"yyyy\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0079_u0079_u0079_u0079_u0079",
+    "family": "date-custom",
+    "specifiers": [
+      "yyyyy"
+    ],
+    "text": "The year as a five-digit number.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 38,
+      "specifier": "\"yyyyy\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u007A",
+    "family": "date-custom",
+    "specifiers": [
+      "z"
+    ],
+    "text": "Hours offset from UTC, with no leading zeros.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 39,
+      "specifier": "\"z\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u007A_u007A",
+    "family": "date-custom",
+    "specifiers": [
+      "zz"
+    ],
+    "text": "Hours offset from UTC, with a leading zero for a single-digit value.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 40,
+      "specifier": "\"zz\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u007A_u007A_u007A",
+    "family": "date-custom",
+    "specifiers": [
+      "zzz"
+    ],
+    "text": "Hours and minutes offset from UTC.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 41,
+      "specifier": "\"zzz\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u003A",
+    "family": "date-custom",
+    "specifiers": [
+      ":"
+    ],
+    "text": "The time separator.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 42,
+      "specifier": "\":\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u002F",
+    "family": "date-custom",
+    "specifiers": [
+      "/"
+    ],
+    "text": "The date separator.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 43,
+      "specifier": "\"/\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0071_u0075_u006F_u0074_u0065_u0064",
+    "family": "date-custom",
+    "specifiers": [
+      "quoted"
+    ],
+    "text": "Literal string delimiter.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 44,
+      "specifier": "\"*string*\"<br /><br /> '*string*'",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0025",
+    "family": "date-custom",
+    "specifiers": [
+      "%"
+    ],
+    "text": "Defines the following character as a custom format specifier.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 45,
+      "specifier": "%",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0065_u0073_u0063_u0061_u0070_u0065",
+    "family": "date-custom",
+    "specifiers": [
+      "escape"
+    ],
+    "text": "The escape character.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 46,
+      "specifier": "&#92;",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u006C_u0069_u0074_u0065_u0072_u0061_u006C",
+    "family": "date-custom",
+    "specifiers": [
+      "literal"
+    ],
+    "text": "The character is copied to the result string unchanged.",
+    "source": "date-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 47,
+      "specifier": "Any other character",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_standard_u0063",
+    "family": "duration-standard",
+    "specifiers": [
+      "c"
+    ],
+    "text": "This specifier is not culture-sensitive. It takes the form [-][d'.']hh':'mm':'ss['.'fffffff]. (The \"t\" and \"T\" format strings produce the same results.)",
+    "source": "duration-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 0,
+      "specifier": "\"c\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "72c25391b9ee30fc108764a0ec89f24360be7a2a",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_standard_u0067",
+    "family": "duration-standard",
+    "specifiers": [
+      "g"
+    ],
+    "text": "This specifier outputs only what is needed. It is culture-sensitive and takes the form [-][d':']h':'mm':'ss[.FFFFFFF].",
+    "source": "duration-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 1,
+      "specifier": "\"g\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "72c25391b9ee30fc108764a0ec89f24360be7a2a",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_standard_u0047",
+    "family": "duration-standard",
+    "specifiers": [
+      "G"
+    ],
+    "text": "This specifier always outputs days and seven fractional digits. It is culture-sensitive and takes the form [-]d':'hh':'mm':'ss.fffffff.",
+    "source": "duration-standard.md",
+    "selector": {
+      "table": 0,
+      "row": 2,
+      "specifier": "\"G\"",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "72c25391b9ee30fc108764a0ec89f24360be7a2a",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0064",
+    "family": "duration-custom",
+    "specifiers": [
+      "d",
+      "%d"
+    ],
+    "text": "The number of whole days in the time interval.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 0,
+      "specifier": "`\"d\"`, `\"%d\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0064_u0064",
+    "family": "duration-custom",
+    "specifiers": [
+      "dd",
+      "ddd",
+      "dddd",
+      "ddddd",
+      "dddddd",
+      "ddddddd",
+      "dddddddd"
+    ],
+    "text": "The number of whole days in the time interval, padded with leading zeros as needed.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 1,
+      "specifier": "`\"dd\"`-`\"dddddddd\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0068",
+    "family": "duration-custom",
+    "specifiers": [
+      "h",
+      "%h"
+    ],
+    "text": "The number of whole hours in the time interval that aren't counted as part of days. Single-digit hours don't have a leading zero.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 2,
+      "specifier": "`\"h\"`, `\"%h\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0068_u0068",
+    "family": "duration-custom",
+    "specifiers": [
+      "hh"
+    ],
+    "text": "The number of whole hours in the time interval that aren't counted as part of days. Single-digit hours have a leading zero.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 3,
+      "specifier": "`\"hh\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u006D",
+    "family": "duration-custom",
+    "specifiers": [
+      "m",
+      "%m"
+    ],
+    "text": "The number of whole minutes in the time interval that aren't included as part of hours or days. Single-digit minutes don't have a leading zero.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 4,
+      "specifier": "`\"m\"`, `\"%m\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u006D_u006D",
+    "family": "duration-custom",
+    "specifiers": [
+      "mm"
+    ],
+    "text": "The number of whole minutes in the time interval that aren't included as part of hours or days. Single-digit minutes have a leading zero.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 5,
+      "specifier": "`\"mm\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0073",
+    "family": "duration-custom",
+    "specifiers": [
+      "s",
+      "%s"
+    ],
+    "text": "The number of whole seconds in the time interval that aren't included as part of hours, days, or minutes. Single-digit seconds don't have a leading zero.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 6,
+      "specifier": "`\"s\"`, `\"%s\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0073_u0073",
+    "family": "duration-custom",
+    "specifiers": [
+      "ss"
+    ],
+    "text": "The number of whole seconds in the time interval that aren't included as part of hours, days, or minutes. Single-digit seconds have a leading zero.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 7,
+      "specifier": "`\"ss\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0066",
+    "family": "duration-custom",
+    "specifiers": [
+      "f",
+      "%f"
+    ],
+    "text": "The tenths of a second in a time interval.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 8,
+      "specifier": "`\"f\"`, `\"%f\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0066_u0066",
+    "family": "duration-custom",
+    "specifiers": [
+      "ff"
+    ],
+    "text": "The hundredths of a second in a time interval.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 9,
+      "specifier": "`\"ff\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0066_u0066_u0066",
+    "family": "duration-custom",
+    "specifiers": [
+      "fff"
+    ],
+    "text": "The milliseconds in a time interval.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 10,
+      "specifier": "`\"fff\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0066_u0066_u0066_u0066",
+    "family": "duration-custom",
+    "specifiers": [
+      "ffff"
+    ],
+    "text": "The ten-thousandths of a second in a time interval.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 11,
+      "specifier": "`\"ffff\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0066_u0066_u0066_u0066_u0066",
+    "family": "duration-custom",
+    "specifiers": [
+      "fffff"
+    ],
+    "text": "The hundred-thousandths of a second in a time interval.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 12,
+      "specifier": "`\"fffff\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0066_u0066_u0066_u0066_u0066_u0066",
+    "family": "duration-custom",
+    "specifiers": [
+      "ffffff"
+    ],
+    "text": "The millionths of a second in a time interval.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 13,
+      "specifier": "`\"ffffff\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0066_u0066_u0066_u0066_u0066_u0066_u0066",
+    "family": "duration-custom",
+    "specifiers": [
+      "fffffff"
+    ],
+    "text": "The ten-millionths of a second (or the fractional ticks) in a time interval.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 14,
+      "specifier": "`\"fffffff\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0046",
+    "family": "duration-custom",
+    "specifiers": [
+      "F",
+      "%F"
+    ],
+    "text": "The tenths of a second in a time interval. Nothing is displayed if the digit is zero.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 15,
+      "specifier": "`\"F\"`, `\"%F\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0046_u0046",
+    "family": "duration-custom",
+    "specifiers": [
+      "FF"
+    ],
+    "text": "The hundredths of a second in a time interval. Any fractional trailing zeros or two zero digits aren't included.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 16,
+      "specifier": "`\"FF\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0046_u0046_u0046",
+    "family": "duration-custom",
+    "specifiers": [
+      "FFF"
+    ],
+    "text": "The milliseconds in a time interval. Any fractional trailing zeros aren't included.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 17,
+      "specifier": "`\"FFF\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0046_u0046_u0046_u0046",
+    "family": "duration-custom",
+    "specifiers": [
+      "FFFF"
+    ],
+    "text": "The ten-thousandths of a second in a time interval. Any fractional trailing zeros aren't included.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 18,
+      "specifier": "`\"FFFF\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0046_u0046_u0046_u0046_u0046",
+    "family": "duration-custom",
+    "specifiers": [
+      "FFFFF"
+    ],
+    "text": "The hundred-thousandths of a second in a time interval. Any fractional trailing zeros aren't included.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 19,
+      "specifier": "`\"FFFFF\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0046_u0046_u0046_u0046_u0046_u0046",
+    "family": "duration-custom",
+    "specifiers": [
+      "FFFFFF"
+    ],
+    "text": "The millionths of a second in a time interval. Any fractional trailing zeros aren't displayed.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 20,
+      "specifier": "`\"FFFFFF\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0046_u0046_u0046_u0046_u0046_u0046_u0046",
+    "family": "duration-custom",
+    "specifiers": [
+      "FFFFFFF"
+    ],
+    "text": "The ten-millions of a second in a time interval. Any fractional trailing zeros or seven zeros aren't displayed.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 21,
+      "specifier": "`\"FFFFFFF\"`",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0071_u0075_u006F_u0074_u0065_u0064",
+    "family": "duration-custom",
+    "specifiers": [
+      "quoted"
+    ],
+    "text": "Literal string delimiter.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 22,
+      "specifier": "'*string*'",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u0065_u0073_u0063_u0061_u0070_u0065",
+    "family": "duration-custom",
+    "specifiers": [
+      "escape"
+    ],
+    "text": "The escape character.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 23,
+      "specifier": "&#92;",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_duration_custom_u006C_u0069_u0074_u0065_u0072_u0061_u006C",
+    "family": "duration-custom",
+    "specifiers": [
+      "literal"
+    ],
+    "text": "Any other unescaped character is interpreted as a custom format specifier.",
+    "source": "duration-custom.md",
+    "selector": {
+      "table": 0,
+      "row": 24,
+      "specifier": "Any other character",
+      "column": "Description"
+    },
+    "transform": "before-more-information",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "d5a103b8d5b56cf1821ca2e96d65ef0f51475e02",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-timespan-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_hex_float_u0058",
+    "family": "numeric-hex-float",
+    "specifiers": [
+      "X",
+      "x"
+    ],
+    "text": "double, float, and Half can now be formatted and parsed in their hexadecimal IEEE-754 form.",
+    "source": "net11-libraries.md",
+    "selector": {
+      "heading": "### Floating-point hex formatting and parsing",
+      "paragraph": 0,
+      "sentence": 0
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "198fde4fd9d75d03d03e957ba218a73a4fc9e21a",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/core/whats-new/dotnet-11/libraries.md"
+  },
+  {
+    "resource": "FormatDoc_guid_u004E",
+    "family": "guid",
+    "specifiers": [
+      "N"
+    ],
+    "text": "32 digits:",
+    "source": "Guid.xml",
+    "selector": {
+      "xml_member": "ToString",
+      "parameters": [
+        "System.String"
+      ],
+      "element": "Docs/remarks",
+      "table": 0,
+      "row": 0,
+      "column": "Format of return value"
+    },
+    "transform": "first-break",
+    "commit": "b048785279367d02531d04e1f61dc7dad6ed7096",
+    "git_blob": "6acd7f6057b7cdbcd080234becc4f47dabbb3ba5",
+    "url": "https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml"
+  },
+  {
+    "resource": "FormatDoc_guid_u0044",
+    "family": "guid",
+    "specifiers": [
+      "D"
+    ],
+    "text": "32 digits separated by hyphens:",
+    "source": "Guid.xml",
+    "selector": {
+      "xml_member": "ToString",
+      "parameters": [
+        "System.String"
+      ],
+      "element": "Docs/remarks",
+      "table": 0,
+      "row": 1,
+      "column": "Format of return value"
+    },
+    "transform": "first-break",
+    "commit": "b048785279367d02531d04e1f61dc7dad6ed7096",
+    "git_blob": "6acd7f6057b7cdbcd080234becc4f47dabbb3ba5",
+    "url": "https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml"
+  },
+  {
+    "resource": "FormatDoc_guid_u0042",
+    "family": "guid",
+    "specifiers": [
+      "B"
+    ],
+    "text": "32 digits separated by hyphens, enclosed in braces:",
+    "source": "Guid.xml",
+    "selector": {
+      "xml_member": "ToString",
+      "parameters": [
+        "System.String"
+      ],
+      "element": "Docs/remarks",
+      "table": 0,
+      "row": 2,
+      "column": "Format of return value"
+    },
+    "transform": "first-break",
+    "commit": "b048785279367d02531d04e1f61dc7dad6ed7096",
+    "git_blob": "6acd7f6057b7cdbcd080234becc4f47dabbb3ba5",
+    "url": "https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml"
+  },
+  {
+    "resource": "FormatDoc_guid_u0050",
+    "family": "guid",
+    "specifiers": [
+      "P"
+    ],
+    "text": "32 digits separated by hyphens, enclosed in parentheses:",
+    "source": "Guid.xml",
+    "selector": {
+      "xml_member": "ToString",
+      "parameters": [
+        "System.String"
+      ],
+      "element": "Docs/remarks",
+      "table": 0,
+      "row": 3,
+      "column": "Format of return value"
+    },
+    "transform": "first-break",
+    "commit": "b048785279367d02531d04e1f61dc7dad6ed7096",
+    "git_blob": "6acd7f6057b7cdbcd080234becc4f47dabbb3ba5",
+    "url": "https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml"
+  },
+  {
+    "resource": "FormatDoc_guid_u0058",
+    "family": "guid",
+    "specifiers": [
+      "X"
+    ],
+    "text": "Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces:",
+    "source": "Guid.xml",
+    "selector": {
+      "xml_member": "ToString",
+      "parameters": [
+        "System.String"
+      ],
+      "element": "Docs/remarks",
+      "table": 0,
+      "row": 4,
+      "column": "Format of return value"
+    },
+    "transform": "first-break",
+    "commit": "b048785279367d02531d04e1f61dc7dad6ed7096",
+    "git_blob": "6acd7f6057b7cdbcd080234becc4f47dabbb3ba5",
+    "url": "https://github.com/dotnet/dotnet-api-docs/blob/b048785279367d02531d04e1f61dc7dad6ed7096/xml/System/Guid.xml"
+  },
+  {
+    "resource": "FormatDoc_enum_u0047",
+    "family": "enum",
+    "specifiers": [
+      "G",
+      "g"
+    ],
+    "text": "Displays the enumeration entry as a string value, if possible, and otherwise displays the integer value of the current instance. If the enumeration is defined with the System.FlagsAttribute set, the string values of each valid entry are concatenated together, separated by commas. If the Flags attribute isn't set, an invalid value is displayed as a numeric entry.",
+    "source": "enum.md",
+    "selector": {
+      "heading": "## G or g",
+      "paragraph": 0
+    },
+    "transform": "before-example",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5e91e6425350562002933dc3bc0baff154605778",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_enum_u0046",
+    "family": "enum",
+    "specifiers": [
+      "F",
+      "f"
+    ],
+    "text": "Displays the enumeration entry as a string value, if possible. If the value can be displayed as a summation of the entries in the enumeration (even if the Flags attribute isn't present), the string values of each valid entry are concatenated together, separated by commas. If the value can't be determined by the enumeration entries, then the value is formatted as the integer value.",
+    "source": "enum.md",
+    "selector": {
+      "heading": "## F or f",
+      "paragraph": 0
+    },
+    "transform": "before-example",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5e91e6425350562002933dc3bc0baff154605778",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_enum_u0044",
+    "family": "enum",
+    "specifiers": [
+      "D",
+      "d"
+    ],
+    "text": "Displays the enumeration entry as an integer value in the shortest representation possible.",
+    "source": "enum.md",
+    "selector": {
+      "heading": "## D or d",
+      "paragraph": 0
+    },
+    "transform": "before-example",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5e91e6425350562002933dc3bc0baff154605778",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_enum_u0058",
+    "family": "enum",
+    "specifiers": [
+      "X",
+      "x"
+    ],
+    "text": "Displays the enumeration entry as a hexadecimal value. The value is represented with leading zeros as necessary, to ensure that the result string has two characters for each byte in the enumeration type's underlying numeric type.",
+    "source": "enum.md",
+    "selector": {
+      "heading": "## X or x",
+      "paragraph": 0
+    },
+    "transform": "before-example",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "5e91e6425350562002933dc3bc0baff154605778",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/enumeration-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_interpolation_u006E_u0075_u006C_u006C",
+    "family": "interpolation",
+    "specifiers": [
+      "null"
+    ],
+    "text": "When the expression is null, the output is the empty string (System.String.Empty).",
+    "source": "interpolation.md",
+    "selector": {
+      "table": 0,
+      "row_key": "interpolationExpression",
+      "column": "Description",
+      "sentence_prefix": "When the expression is `null`"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "628d293b4fd6492cd5e13460eded260b9e152754",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/csharp/language-reference/tokens/interpolated.md"
+  },
+  {
+    "resource": "FormatDoc_numeric_special_u0047_u0030",
+    "family": "numeric-special",
+    "specifiers": [
+      "G0"
+    ],
+    "text": "If the precision specifier is omitted or zero, the type of the number determines the default precision, as indicated in the following table.",
+    "source": "numeric-standard.md",
+    "selector": {
+      "sentence_prefix": "If the precision specifier is omitted or zero,"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "48c9bdff393a3cbf1ce1fe061b613d1dc5fe9b0c",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/standard-numeric-format-strings.md"
+  },
+  {
+    "resource": "FormatDoc_date_custom_u0065_u0078_u0074_u0065_u006E_u0064_u0065_u0064_u002D_u0079_u0065_u0061_u0072",
+    "family": "date-custom",
+    "specifiers": [
+      "extended-year"
+    ],
+    "text": "If there are additional \"y\" specifiers, the number is padded with as many leading zeros as necessary to produce the number of \"y\" specifiers.",
+    "source": "date-custom.md",
+    "selector": {
+      "sentence_prefix": "If there are additional \"y\" specifiers,"
+    },
+    "transform": "whole",
+    "commit": "81cd030da804aa06cfbd8f23474cbbacba597c72",
+    "git_blob": "925d7b3891589906e4c5e116b55a734fcfb12428",
+    "url": "https://github.com/dotnet/docs/blob/81cd030da804aa06cfbd8f23474cbbacba597c72/docs/standard/base-types/custom-date-and-time-format-strings.md"
+  }
+]

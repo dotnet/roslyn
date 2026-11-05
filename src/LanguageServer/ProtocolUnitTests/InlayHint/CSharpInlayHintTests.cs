@@ -6,9 +6,11 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -21,6 +23,54 @@ public sealed class CSharpInlayHintTests : AbstractInlayHintTests
 {
     public CSharpInlayHintTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {
+    }
+
+    [Theory]
+    [InlineData("""string.Format(format: "{{escaped}} {1,-8:X4}{|hint:|} / {0:N1}{|hint:|}", arg0: 12.5m, arg1: 42)""", "→ 002A|→ 12.5", true)]
+    [InlineData("""string.Format("\u007B0\u003AN2\u007D{|hint:|}", 12.5m)""", "→ 12.50", true)]
+    [InlineData("""new System.Text.StringBuilder().AppendFormat(System.Globalization.CultureInfo.GetCultureInfo("fr-FR"), "{0:N2}{|hint:|}", 12.5m)""", "→ 12,50", true)]
+    [InlineData("""System.Console.WriteLine("{0:D4}{|hint:|}", 42)""", "", true)]
+    [InlineData("""new System.IO.StringWriter().Write("{0:X4}{|hint:|}", 42)""", "", true)]
+    [InlineData("""string.Format("{3:X4}{|hint:|} {0:D2}{|hint:|}", new object[] { 1, 2, 3, 42 })""", "→ 002A|→ 01", true)]
+    [InlineData("""string.Format("{0:N2}{|hint:|} {1:N2}", 12.5m, unknown)""", "→ 12.50", true)]
+    [InlineData("""(42).ToString("'literal {0:N2}'0"){|hint:|}""", "→ literal {0:N2}42", true)]
+    [InlineData("""string.Format("{{0:N2}}", 12.5m)""", "", true)]
+    [InlineData("""string.Format("{0,+:N2} {0:N2}", 12.5m)""", "", true)]
+    [InlineData("""string.Format(provider, "{0:N2}", 12.5m)""", "", true)]
+    [InlineData("""string.Format("{0:D4}", 42)""", "", false)]
+    public async Task CompositeFormatPreviewsUseItemPositions(string expression, string expected, bool enabled)
+    {
+        var markup = "class C { void M(decimal unknown, System.IFormatProvider provider) { " + expression + "; } }";
+        var workspace = LspTestWorkspace.CreateWorkspaceElement(LanguageNames.CSharp, files: [markup]);
+        var project = workspace.Element("Project")!;
+        project.Element("Document")!.SetAttributeValue("FilePath", "/Format.cs");
+        project.Add(new XElement("AnalyzerConfigDocument", new XAttribute("FilePath", "/.editorconfig"), """
+            root = true
+            [*.cs]
+            dotnet_format_string_preview_hints =
+            """ + (enabled ? "true" : "false")));
+        await using var server = await CreateXmlTestLspServerAsync(workspace.ToString(), mutatingLspWorkspace: false);
+        server.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForParameters, LanguageNames.CSharp, false);
+        server.TestWorkspace.GlobalOptions.SetGlobalOption(InlineHintsOptionsStorage.EnabledForTypes, LanguageNames.CSharp, false);
+        var document = server.GetCurrentSolution().Projects.Single().Documents.Single();
+        var text = await document.GetTextAsync(CancellationToken.None);
+        var request = new LSP.InlayHintParams
+        {
+            TextDocument = CreateTextDocumentIdentifier(document.GetURI()),
+            Range = ProtocolConversions.TextSpanToRange(new TextSpan(0, text.Length), text),
+        };
+        var hints = await server.ExecuteRequestAsync<LSP.InlayHintParams, LSP.InlayHint[]>(
+            LSP.Methods.TextDocumentInlayHintName, request, CancellationToken.None);
+        Assert.NotNull(hints);
+        Assert.Equal(expected.Length == 0 ? [] : expected.Split('|'), hints.Select(hint => hint.Label.First));
+        if (expected.Length > 0)
+            Assert.Equal(server.GetLocations("hint").Select(location => location.Range.Start), hints.Select(hint => hint.Position));
+        foreach (var hint in hints)
+        {
+            var resolved = await server.ExecuteRequestAsync<LSP.InlayHint, LSP.InlayHint>(LSP.Methods.InlayHintResolveName, hint, CancellationToken.None);
+            Assert.NotNull(resolved);
+            Assert.NotNull(resolved.ToolTip);
+        }
     }
 
     [Theory, CombinatorialData]

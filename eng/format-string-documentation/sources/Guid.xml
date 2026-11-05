@@ -1,0 +1,2733 @@
+<Type Name="Guid" FullName="System.Guid">
+  <TypeSignature Language="C#" Value="public readonly struct Guid : IComparable, IComparable&lt;Guid&gt;, IEquatable&lt;Guid&gt;, IParsable&lt;Guid&gt;, ISpanFormattable, ISpanParsable&lt;Guid&gt;, IUtf8SpanFormattable, IUtf8SpanParsable&lt;Guid&gt;" FrameworkAlternate="net-10.0;net-11.0" />
+  <TypeSignature Language="ILAsm" Value=".class public sequential ansi sealed beforefieldinit Guid extends System.ValueType implements class System.IComparable, class System.IComparable`1&lt;valuetype System.Guid&gt;, class System.IEquatable`1&lt;valuetype System.Guid&gt;, class System.IFormattable, class System.IParsable`1&lt;valuetype System.Guid&gt;, class System.ISpanFormattable, class System.ISpanParsable`1&lt;valuetype System.Guid&gt;, class System.IUtf8SpanFormattable, class System.IUtf8SpanParsable`1&lt;valuetype System.Guid&gt;" FrameworkAlternate="net-10.0;net-11.0" />
+  <TypeSignature Language="DocId" Value="T:System.Guid" />
+  <TypeSignature Language="VB.NET" Value="Public Structure Guid&#xA;Implements IComparable, IComparable(Of Guid), IEquatable(Of Guid), IParsable(Of Guid), ISpanFormattable, ISpanParsable(Of Guid), IUtf8SpanFormattable, IUtf8SpanParsable(Of Guid)" FrameworkAlternate="net-10.0;net-11.0" />
+  <TypeSignature Language="F#" Value="type Guid = struct&#xA;    interface IFormattable&#xA;    interface IParsable&lt;Guid&gt;&#xA;    interface ISpanFormattable&#xA;    interface ISpanParsable&lt;Guid&gt;&#xA;    interface IUtf8SpanFormattable&#xA;    interface IUtf8SpanParsable&lt;Guid&gt;" FrameworkAlternate="net-10.0;net-11.0" />
+  <TypeSignature Language="C++ CLI" Value="public value class Guid : IComparable, IComparable&lt;Guid&gt;, IEquatable&lt;Guid&gt;, IParsable&lt;Guid&gt;, ISpanFormattable, ISpanParsable&lt;Guid&gt;, IUtf8SpanFormattable, IUtf8SpanParsable&lt;Guid&gt;" FrameworkAlternate="net-10.0;net-11.0" />
+  <TypeSignature Language="C#" Value="public readonly struct Guid : IComparable, IComparable&lt;Guid&gt;, IEquatable&lt;Guid&gt;, IParsable&lt;Guid&gt;, ISpanFormattable, ISpanParsable&lt;Guid&gt;, IUtf8SpanFormattable" FrameworkAlternate="net-8.0;net-9.0" />
+  <TypeSignature Language="ILAsm" Value=".class public sequential ansi sealed beforefieldinit Guid extends System.ValueType implements class System.IComparable, class System.IComparable`1&lt;valuetype System.Guid&gt;, class System.IEquatable`1&lt;valuetype System.Guid&gt;, class System.IFormattable, class System.IParsable`1&lt;valuetype System.Guid&gt;, class System.ISpanFormattable, class System.ISpanParsable`1&lt;valuetype System.Guid&gt;, class System.IUtf8SpanFormattable" FrameworkAlternate="net-8.0;net-9.0" />
+  <TypeSignature Language="VB.NET" Value="Public Structure Guid&#xA;Implements IComparable, IComparable(Of Guid), IEquatable(Of Guid), IParsable(Of Guid), ISpanFormattable, ISpanParsable(Of Guid), IUtf8SpanFormattable" FrameworkAlternate="net-8.0;net-9.0" />
+  <TypeSignature Language="F#" Value="type Guid = struct&#xA;    interface IFormattable&#xA;    interface IParsable&lt;Guid&gt;&#xA;    interface ISpanFormattable&#xA;    interface ISpanParsable&lt;Guid&gt;&#xA;    interface IUtf8SpanFormattable" FrameworkAlternate="net-8.0;net-9.0" />
+  <TypeSignature Language="C++ CLI" Value="public value class Guid : IComparable, IComparable&lt;Guid&gt;, IEquatable&lt;Guid&gt;, IParsable&lt;Guid&gt;, ISpanFormattable, ISpanParsable&lt;Guid&gt;, IUtf8SpanFormattable" FrameworkAlternate="net-8.0;net-9.0" />
+  <AssemblyInfo>
+    <AssemblyName>System.Runtime</AssemblyName>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
+    <AssemblyVersion>4.0.10.0</AssemblyVersion>
+    <AssemblyVersion>4.0.20.0</AssemblyVersion>
+    <AssemblyVersion>4.1.0.0</AssemblyVersion>
+    <AssemblyVersion>4.2.0.0</AssemblyVersion>
+    <AssemblyVersion>4.2.1.0</AssemblyVersion>
+    <AssemblyVersion>4.2.2.0</AssemblyVersion>
+    <AssemblyVersion>5.0.0.0</AssemblyVersion>
+    <AssemblyVersion>6.0.0.0</AssemblyVersion>
+    <AssemblyVersion>7.0.0.0</AssemblyVersion>
+    <AssemblyVersion>8.0.0.0</AssemblyVersion>
+    <AssemblyVersion>9.0.0.0</AssemblyVersion>
+    <AssemblyVersion>10.0.0.0</AssemblyVersion>
+    <AssemblyVersion>11.0.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <AssemblyInfo>
+    <AssemblyName>mscorlib</AssemblyName>
+    <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <AssemblyVersion>2.0.5.0</AssemblyVersion>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <AssemblyInfo>
+    <AssemblyName>netstandard</AssemblyName>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <AssemblyVersion>2.1.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <TypeForwardingChain>
+    <TypeForwarding From="netstandard" FromVersion="2.1.0.0" To="System.Runtime" ToVersion="10.0.0.0" FrameworkAlternate="net-10.0" />
+    <TypeForwarding From="netstandard" FromVersion="2.1.0.0" To="System.Runtime" ToVersion="11.0.0.0" FrameworkAlternate="net-11.0" />
+    <TypeForwarding From="netstandard" FromVersion="2.1.0.0" To="System.Runtime" ToVersion="8.0.0.0" FrameworkAlternate="net-8.0" />
+    <TypeForwarding From="netstandard" FromVersion="2.1.0.0" To="System.Runtime" ToVersion="9.0.0.0" FrameworkAlternate="net-9.0" />
+  </TypeForwardingChain>
+  <Base>
+    <BaseTypeName>System.ValueType</BaseTypeName>
+  </Base>
+  <Interfaces>
+    <Interface FrameworkAlternate="net-9.0">
+      <InterfaceName>System.IComparable</InterfaceName>
+    </Interface>
+    <Interface FrameworkAlternate="net-9.0">
+      <InterfaceName>System.IComparable&lt;System.Guid&gt;</InterfaceName>
+    </Interface>
+    <Interface FrameworkAlternate="net-9.0">
+      <InterfaceName>System.IEquatable&lt;System.Guid&gt;</InterfaceName>
+    </Interface>
+    <Interface FrameworkAlternate="net-9.0">
+      <InterfaceName>System.IFormattable</InterfaceName>
+    </Interface>
+    <Interface FrameworkAlternate="net-9.0">
+      <InterfaceName>System.IParsable&lt;System.Guid&gt;</InterfaceName>
+    </Interface>
+    <Interface FrameworkAlternate="net-9.0">
+      <InterfaceName>System.IParsable&lt;TSelf&gt;</InterfaceName>
+    </Interface>
+    <Interface FrameworkAlternate="net-9.0">
+      <InterfaceName>System.ISpanFormattable</InterfaceName>
+    </Interface>
+    <Interface FrameworkAlternate="net-9.0">
+      <InterfaceName>System.ISpanParsable&lt;System.Guid&gt;</InterfaceName>
+    </Interface>
+    <Interface FrameworkAlternate="net-9.0">
+      <InterfaceName>System.IUtf8SpanFormattable</InterfaceName>
+    </Interface>
+    <Interface FrameworkAlternate="net-10.0;net-11.0">
+      <InterfaceName>System.IUtf8SpanParsable&lt;System.Guid&gt;</InterfaceName>
+    </Interface>
+  </Interfaces>
+  <Attributes>
+    <Attribute>
+      <AttributeName Language="C#">[System.Runtime.CompilerServices.IsReadOnly]</AttributeName>
+      <AttributeName Language="F#">[&lt;System.Runtime.CompilerServices.IsReadOnly&gt;]</AttributeName>
+    </Attribute>
+  </Attributes>
+  <Docs>
+    <summary>Represents a globally unique identifier (GUID).</summary>
+    <remarks>
+      <format type="text/markdown"><![CDATA[
+
+## Remarks
+ A GUID is a 128-bit integer (16 bytes) that can be used across all computers and networks wherever a unique identifier is required. Such an identifier has a very low probability of being duplicated.
+
+ ]]></format>
+    </remarks>
+  </Docs>
+  <Members>
+    <MemberGroup MemberName=".ctor">
+      <Docs>
+        <summary>Initializes a new instance of the <see cref="T:System.Guid" /> structure.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public Guid (byte[] b);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig specialname rtspecialname instance void .ctor(unsigned int8[] b) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.#ctor(System.Byte[])" />
+      <MemberSignature Language="VB.NET" Value="Public Sub New (b As Byte())" />
+      <MemberSignature Language="F#" Value="new Guid : byte[] -&gt; Guid" Usage="new System.Guid b" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; Guid(cli::array &lt;System::Byte&gt; ^ b);" />
+      <MemberType>Constructor</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <Parameters>
+        <Parameter Name="b" Type="System.Byte[]" />
+      </Parameters>
+      <Docs>
+        <param name="b">A 16-element byte array containing values with which to initialize the GUID.</param>
+        <summary>Initializes a new instance of the <see cref="T:System.Guid" /> structure by using the specified array of bytes.</summary>
+        <remarks>To be added.</remarks>
+        <exception cref="T:System.ArgumentNullException">
+          <paramref name="b" /> is <see langword="null" />.</exception>
+        <exception cref="T:System.ArgumentException">
+          <paramref name="b" /> is not 16 bytes long.</exception>
+      </Docs>
+    </Member>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public Guid (ReadOnlySpan&lt;byte&gt; b);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig specialname rtspecialname instance void .ctor(valuetype System.ReadOnlySpan`1&lt;unsigned int8&gt; b) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.#ctor(System.ReadOnlySpan{System.Byte})" />
+      <MemberSignature Language="VB.NET" Value="Public Sub New (b As ReadOnlySpan(Of Byte))" />
+      <MemberSignature Language="F#" Value="new Guid : ReadOnlySpan&lt;byte&gt; -&gt; Guid" Usage="new System.Guid b" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; Guid(ReadOnlySpan&lt;System::Byte&gt; b);" />
+      <MemberType>Constructor</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <Parameters>
+        <Parameter Name="b" Type="System.ReadOnlySpan&lt;System.Byte&gt;" />
+      </Parameters>
+      <Docs>
+        <param name="b">A read-only span containing the bytes representing the GUID. The span must be exactly 16 bytes long.</param>
+        <summary>Initializes a new instance of the <see cref="T:System.Guid" /> structure by using the value represented by the specified read-only span of bytes.</summary>
+        <remarks>To be added.</remarks>
+        <exception cref="T:System.ArgumentException">The span must be exactly 16 bytes long.</exception>
+      </Docs>
+    </Member>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public Guid (string g);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig specialname rtspecialname instance void .ctor(string g) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.#ctor(System.String)" />
+      <MemberSignature Language="VB.NET" Value="Public Sub New (g As String)" />
+      <MemberSignature Language="F#" Value="new Guid : string -&gt; Guid" Usage="new System.Guid g" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; Guid(System::String ^ g);" />
+      <MemberType>Constructor</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <Parameters>
+        <Parameter Name="g" Type="System.String" />
+      </Parameters>
+      <Docs>
+        <param name="g">A string that contains a GUID in one of the following formats ("d" represents a hexadecimal digit whose case is ignored):
+
+ 32 contiguous hexadecimal digits:
+
+ dddddddddddddddddddddddddddddddd
+
+ -or-
+
+ Groups of 8, 4, 4, 4, and 12 hexadecimal digits with hyphens between the groups. The entire GUID can optionally be enclosed in matching braces or parentheses:
+
+ dddddddd-dddd-dddd-dddd-dddddddddddd
+
+ -or-
+
+ {dddddddd-dddd-dddd-dddd-dddddddddddd}
+
+ -or-
+
+ (dddddddd-dddd-dddd-dddd-dddddddddddd)
+
+ -or-
+
+ Groups of 8, 4, and 4 hexadecimal digits, and a subset of eight groups of 2 hexadecimal digits, with each group prefixed by "0x" or "0X", and separated by commas. The entire GUID, as well as the subset, is enclosed in matching braces:
+
+ {0xdddddddd, 0xdddd, 0xdddd,{0xdd,0xdd,0xdd,0xdd,0xdd,0xdd,0xdd,0xdd}}
+
+ All braces, commas, and "0x" prefixes are required. All embedded spaces are ignored. All leading zeros in a group are ignored.
+
+ The hexadecimal digits shown in a group are the maximum number of meaningful hexadecimal digits that can appear in that group. You can specify from 1 to the number of hexadecimal digits shown for a group. The specified digits are assumed to be the low-order digits of the group.</param>
+        <summary>Initializes a new instance of the <see cref="T:System.Guid" /> structure by using the value represented by the specified string.</summary>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ The alphabetic hexadecimal digits in the `g` parameter can be uppercase or lowercase. For example, the following strings represent the same GUID:
+
+ "ca761232ed4211cebacd00aa0057b223"
+
+ "CA761232-ED42-11CE-BACD-00AA0057B223"
+
+ "{CA761232-ED42-11CE-BACD-00AA0057B223}"
+
+ "(CA761232-ED42-11CE-BACD-00AA0057B223)"
+
+ "{0xCA761232, 0xED42, 0x11CE, {0xBA, 0xCD, 0x00, 0xAA, 0x00, 0x57, 0xB2, 0x23}}"
+
+
+
+## Examples
+ The following example passes each string listed in the Remarks section to the <xref:System.Guid.%23ctor(System.String)> constructor.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/.ctor/ctor1.cs" id="Snippet1":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/.ctor/ctor1.fs" id="Snippet1":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/.ctor/ctor1.vb" id="Snippet1":::
+
+ ]]></format>
+        </remarks>
+        <exception cref="T:System.ArgumentNullException">
+          <paramref name="g" /> is <see langword="null" />.</exception>
+        <exception cref="T:System.FormatException">The format of <paramref name="g" /> is invalid.</exception>
+        <exception cref="T:System.OverflowException">The format of <paramref name="g" /> is invalid.</exception>
+      </Docs>
+    </Member>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public Guid (ReadOnlySpan&lt;byte&gt; b, bool bigEndian);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig specialname rtspecialname instance void .ctor(valuetype System.ReadOnlySpan`1&lt;unsigned int8&gt; b, bool bigEndian) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.#ctor(System.ReadOnlySpan{System.Byte},System.Boolean)" />
+      <MemberSignature Language="VB.NET" Value="Public Sub New (b As ReadOnlySpan(Of Byte), bigEndian As Boolean)" />
+      <MemberSignature Language="F#" Value="new Guid : ReadOnlySpan&lt;byte&gt; * bool -&gt; Guid" Usage="new System.Guid (b, bigEndian)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; Guid(ReadOnlySpan&lt;System::Byte&gt; b, bool bigEndian);" />
+      <MemberType>Constructor</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <Parameters>
+        <Parameter Name="b" Type="System.ReadOnlySpan&lt;System.Byte&gt;" />
+        <Parameter Name="bigEndian" Type="System.Boolean" />
+      </Parameters>
+      <Docs>
+        <param name="b">A 16-element read-only span containing the bytes with which to initialize the GUID.</param>
+        <param name="bigEndian">
+          <see langword="true" /> to interpret <paramref name="b" /> as big-endian; <see langword="false" /> to interpret it as little-endian.</param>
+        <summary>Initializes a new instance of the <see cref="T:System.Guid" /> structure by using the value represented by the specified read-only span of bytes and the specified endianness.</summary>
+        <remarks>To be added.</remarks>
+        <exception cref="T:System.ArgumentException">
+          <paramref name="b" /> is not 16 bytes long.</exception>
+      </Docs>
+    </Member>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public Guid (int a, short b, short c, byte[] d);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig specialname rtspecialname instance void .ctor(int32 a, int16 b, int16 c, unsigned int8[] d) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.#ctor(System.Int32,System.Int16,System.Int16,System.Byte[])" />
+      <MemberSignature Language="VB.NET" Value="Public Sub New (a As Integer, b As Short, c As Short, d As Byte())" />
+      <MemberSignature Language="F#" Value="new Guid : int * int16 * int16 * byte[] -&gt; Guid" Usage="new System.Guid (a, b, c, d)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; Guid(int a, short b, short c, cli::array &lt;System::Byte&gt; ^ d);" />
+      <MemberType>Constructor</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <Parameters>
+        <Parameter Name="a" Type="System.Int32" />
+        <Parameter Name="b" Type="System.Int16" />
+        <Parameter Name="c" Type="System.Int16" />
+        <Parameter Name="d" Type="System.Byte[]" />
+      </Parameters>
+      <Docs>
+        <param name="a">The first 4 bytes of the GUID.</param>
+        <param name="b">The next 2 bytes of the GUID.</param>
+        <param name="c">The next 2 bytes of the GUID.</param>
+        <param name="d">The remaining 8 bytes of the GUID.</param>
+        <summary>Initializes a new instance of the <see cref="T:System.Guid" /> structure by using the specified integers and byte array.</summary>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Examples
+ `Guid(1,2,3,new byte[]{0,1,2,3,4,5,6,7})` creates a <xref:System.Guid> that corresponds to "00000001-0002-0003-0001-020304050607".
+
+ ]]></format>
+        </remarks>
+        <exception cref="T:System.ArgumentNullException">
+          <paramref name="d" /> is <see langword="null" />.</exception>
+        <exception cref="T:System.ArgumentException">
+          <paramref name="d" /> is not 8 bytes long.</exception>
+      </Docs>
+    </Member>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public Guid (int a, short b, short c, byte d, byte e, byte f, byte g, byte h, byte i, byte j, byte k);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig specialname rtspecialname instance void .ctor(int32 a, int16 b, int16 c, unsigned int8 d, unsigned int8 e, unsigned int8 f, unsigned int8 g, unsigned int8 h, unsigned int8 i, unsigned int8 j, unsigned int8 k) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.#ctor(System.Int32,System.Int16,System.Int16,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte)" />
+      <MemberSignature Language="VB.NET" Value="Public Sub New (a As Integer, b As Short, c As Short, d As Byte, e As Byte, f As Byte, g As Byte, h As Byte, i As Byte, j As Byte, k As Byte)" />
+      <MemberSignature Language="F#" Value="new Guid : int * int16 * int16 * byte * byte * byte * byte * byte * byte * byte * byte -&gt; Guid" Usage="new System.Guid (a, b, c, d, e, f, g, h, i, j, k)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; Guid(int a, short b, short c, System::Byte d, System::Byte e, System::Byte f, System::Byte g, System::Byte h, System::Byte i, System::Byte j, System::Byte k);" />
+      <MemberType>Constructor</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <Parameters>
+        <Parameter Name="a" Type="System.Int32" />
+        <Parameter Name="b" Type="System.Int16" />
+        <Parameter Name="c" Type="System.Int16" />
+        <Parameter Name="d" Type="System.Byte" />
+        <Parameter Name="e" Type="System.Byte" />
+        <Parameter Name="f" Type="System.Byte" />
+        <Parameter Name="g" Type="System.Byte" />
+        <Parameter Name="h" Type="System.Byte" />
+        <Parameter Name="i" Type="System.Byte" />
+        <Parameter Name="j" Type="System.Byte" />
+        <Parameter Name="k" Type="System.Byte" />
+      </Parameters>
+      <Docs>
+        <param name="a">The first 4 bytes of the GUID.</param>
+        <param name="b">The next 2 bytes of the GUID.</param>
+        <param name="c">The next 2 bytes of the GUID.</param>
+        <param name="d">The next byte of the GUID.</param>
+        <param name="e">The next byte of the GUID.</param>
+        <param name="f">The next byte of the GUID.</param>
+        <param name="g">The next byte of the GUID.</param>
+        <param name="h">The next byte of the GUID.</param>
+        <param name="i">The next byte of the GUID.</param>
+        <param name="j">The next byte of the GUID.</param>
+        <param name="k">The next byte of the GUID.</param>
+        <summary>Initializes a new instance of the <see cref="T:System.Guid" /> structure by using the specified integers and bytes.</summary>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ Specifying individual bytes in this manner can be used to circumvent byte order restrictions (big-endian or little-endian byte order) on particular types of computers.
+
+
+
+## Examples
+ The following example creates a GUID whose string representation is "0000000a-000b-000c-0001-020304050607".
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/.ctor/ctor2.cs" id="Snippet2":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/.ctor/ctor2.fs" id="Snippet2":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/.ctor/ctor2.vb" id="Snippet2":::
+
+ ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public Guid (uint a, ushort b, ushort c, byte d, byte e, byte f, byte g, byte h, byte i, byte j, byte k);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig specialname rtspecialname instance void .ctor(unsigned int32 a, unsigned int16 b, unsigned int16 c, unsigned int8 d, unsigned int8 e, unsigned int8 f, unsigned int8 g, unsigned int8 h, unsigned int8 i, unsigned int8 j, unsigned int8 k) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.#ctor(System.UInt32,System.UInt16,System.UInt16,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte,System.Byte)" />
+      <MemberSignature Language="VB.NET" Value="Public Sub New (a As UInteger, b As UShort, c As UShort, d As Byte, e As Byte, f As Byte, g As Byte, h As Byte, i As Byte, j As Byte, k As Byte)" />
+      <MemberSignature Language="F#" Value="new Guid : uint32 * uint16 * uint16 * byte * byte * byte * byte * byte * byte * byte * byte -&gt; Guid" Usage="new System.Guid (a, b, c, d, e, f, g, h, i, j, k)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; Guid(System::UInt32 a, System::UInt16 b, System::UInt16 c, System::Byte d, System::Byte e, System::Byte f, System::Byte g, System::Byte h, System::Byte i, System::Byte j, System::Byte k);" />
+      <MemberType>Constructor</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <Attributes>
+        <Attribute>
+          <AttributeName Language="C#">[System.CLSCompliant(false)]</AttributeName>
+          <AttributeName Language="F#">[&lt;System.CLSCompliant(false)&gt;]</AttributeName>
+        </Attribute>
+      </Attributes>
+      <Parameters>
+        <Parameter Name="a" Type="System.UInt32" />
+        <Parameter Name="b" Type="System.UInt16" />
+        <Parameter Name="c" Type="System.UInt16" />
+        <Parameter Name="d" Type="System.Byte" />
+        <Parameter Name="e" Type="System.Byte" />
+        <Parameter Name="f" Type="System.Byte" />
+        <Parameter Name="g" Type="System.Byte" />
+        <Parameter Name="h" Type="System.Byte" />
+        <Parameter Name="i" Type="System.Byte" />
+        <Parameter Name="j" Type="System.Byte" />
+        <Parameter Name="k" Type="System.Byte" />
+      </Parameters>
+      <Docs>
+        <param name="a">The first 4 bytes of the GUID.</param>
+        <param name="b">The next 2 bytes of the GUID.</param>
+        <param name="c">The next 2 bytes of the GUID.</param>
+        <param name="d">The next byte of the GUID.</param>
+        <param name="e">The next byte of the GUID.</param>
+        <param name="f">The next byte of the GUID.</param>
+        <param name="g">The next byte of the GUID.</param>
+        <param name="h">The next byte of the GUID.</param>
+        <param name="i">The next byte of the GUID.</param>
+        <param name="j">The next byte of the GUID.</param>
+        <param name="k">The next byte of the GUID.</param>
+        <summary>Initializes a new instance of the <see cref="T:System.Guid" /> structure by using the specified unsigned integers and bytes.</summary>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ Specifying the bytes in this manner avoids endianness issues.
+
+ ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="AllBitsSet">
+      <MemberSignature Language="C#" Value="public static Guid AllBitsSet { get; }" />
+      <MemberSignature Language="ILAsm" Value=".property valuetype System.Guid AllBitsSet" />
+      <MemberSignature Language="DocId" Value="P:System.Guid.AllBitsSet" />
+      <MemberSignature Language="VB.NET" Value="Public Shared ReadOnly Property AllBitsSet As Guid" />
+      <MemberSignature Language="F#" Value="static member AllBitsSet : Guid" Usage="System.Guid.AllBitsSet" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static property Guid AllBitsSet { Guid get(); };" />
+      <MemberType>Property</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>Gets a <see cref="T:System.Guid" /> where all bits are set.</summary>
+        <value>A GUID with a value of FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF.</value>
+        <remarks>This property returns the value: FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFFFF</remarks>
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="CompareTo">
+      <Docs>
+        <summary>Compares this instance to a specified object or <see cref="T:System.Guid" /> and returns an indication of their relative values.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="CompareTo">
+      <MemberSignature Language="C#" Value="public int CompareTo (Guid value);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig newslot virtual instance int32 CompareTo(valuetype System.Guid value) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.CompareTo(System.Guid)" />
+      <MemberSignature Language="VB.NET" Value="Public Function CompareTo (value As Guid) As Integer" />
+      <MemberSignature Language="F#" Value="abstract member CompareTo : Guid -&gt; int&#xA;override this.CompareTo : Guid -&gt; int" Usage="guid.CompareTo value" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; virtual int CompareTo(Guid value);" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.IComparable`1.CompareTo(`0)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="value" Type="System.Guid" />
+      </Parameters>
+      <Docs>
+        <param name="value">An object to compare to this instance.</param>
+        <summary>Compares this instance to a specified <see cref="T:System.Guid" /> object and returns an indication of their relative values.</summary>
+        <returns>A signed number indicating the relative values of this instance and <paramref name="value" />.
+
+ <list type="table"><listheader><term> Return value
+
+ </term><description> Description
+
+ </description></listheader><item><term> A negative integer
+
+ </term><description> This instance is less than <paramref name="value" />.
+
+ </description></item><item><term> Zero
+
+ </term><description> This instance is equal to <paramref name="value" />.
+
+ </description></item><item><term> A positive integer
+
+ </term><description> This instance is greater than <paramref name="value" />.
+
+ </description></item></list></returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ The <xref:System.Guid.CompareTo*> method compares the GUIDs as if they were values provided to the <xref:System.Guid.%23ctor(System.Int32,System.Int16,System.Int16,System.Byte%5B%5D)> constructor, as follows:
+
+- It compares the <xref:System.UInt32> values, and returns a result if they are unequal. If they are equal, it performs the next comparison.
+
+- It compares the first <xref:System.UInt16> values, and returns a result if they are unequal. If they are equal, it performs the next comparison.
+
+- It compares the second <xref:System.UInt16> values, and returns a result if they are unequal. If they are equal, it performs the next comparison.
+
+- If performs a byte-by-byte comparison of the next eight <xref:System.Byte> values. When it encounters the first unequal pair, it returns the result. Otherwise, it returns 0 to indicate that the two <xref:System.Guid> values are equal.
+
+ Note that the final eight bytes appear in the string representation of a <xref:System.Guid> in reverse order, from low byte to high byte. For example, in the string representation of the <xref:System.Guid> value "01e75c83-c6f5-4192-b57e-7427cec5560d", the final eight bytes are "b57e-7427cec5560d." In other words, the final eight bytes are compared on a byte-by-byte basis from left to right starting with 0xb5.
+
+ If two GUIDs have equal values for a component, the method compares the next component. When it finds a component whose values are unequal, it returns the result.
+
+ This method implements the <xref:System.IComparable`1?displayProperty=nameWithType> interface and performs slightly better than the <xref:System.Guid.CompareTo*?displayProperty=nameWithType> method because it does not have to convert the `value` parameter to a <xref:System.Guid> value.
+
+
+
+## Examples
+ The following example calls the <xref:System.Guid.CompareTo(System.Guid)> method to compare a GUID value with two similar GUID values.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/CompareTo/compareto2.cs" id="Snippet1":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/CompareTo/compareto2.fs" id="Snippet1":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/CompareTo/compareto2.vb" id="Snippet1":::
+
+ ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="CompareTo">
+      <MemberSignature Language="C#" Value="public int CompareTo (object? value);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig newslot virtual instance int32 CompareTo(object value) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.CompareTo(System.Object)" />
+      <MemberSignature Language="VB.NET" Value="Public Function CompareTo (value As Object) As Integer" />
+      <MemberSignature Language="F#" Value="abstract member CompareTo : obj -&gt; int&#xA;override this.CompareTo : obj -&gt; int" Usage="guid.CompareTo value" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; virtual int CompareTo(System::Object ^ value);" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.IComparable.CompareTo(System.Object)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="value" Type="System.Object" />
+      </Parameters>
+      <Docs>
+        <param name="value">An object to compare, or <see langword="null" />.</param>
+        <summary>Compares this instance to a specified object and returns an indication of their relative values.</summary>
+        <returns>A signed number indicating the relative values of this instance and <paramref name="value" />.
+
+ <list type="table"><listheader><term> Return value
+
+ </term><description> Description
+
+ </description></listheader><item><term> A negative integer
+
+ </term><description> This instance is less than <paramref name="value" />.
+
+ </description></item><item><term> Zero
+
+ </term><description> This instance is equal to <paramref name="value" />.
+
+ </description></item><item><term> A positive integer
+
+ </term><description> This instance is greater than <paramref name="value" />, or <paramref name="value" /> is <see langword="null" />.
+
+ </description></item></list></returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ The `value` parameter must be `null` or an instance of <xref:System.Guid>; otherwise, an exception is thrown. Any instance of <xref:System.Guid>, regardless of its value, is considered greater than `null`.
+
+ The <xref:System.Guid.CompareTo*> method compares the GUIDs as if they were values provided to the <xref:System.Guid.%23ctor*> constructor, as follows:
+
+- It compares the <xref:System.Int32> values, and returns a result if they are unequal. If they are equal, it performs the next comparison.
+
+- It compares the first <xref:System.Int16> values, and returns a result if they are unequal. If they are equal, it performs the next comparison.
+
+- It compares the second <xref:System.Int16> values, and returns a result if they are unequal. If they are equal, it performs the next comparison.
+
+- If performs a byte-by-byte comparison of the next eight <xref:System.Byte> values. When it encounters the first unequal pair, it returns the result. Otherwise, it returns 0 to indicate that the two <xref:System.Guid> values are equal.
+
+ If two GUIDs have equal values for a component, the method compares the next component. When it finds a component whose values are unequal, it returns the result.
+
+ Note that the final eight bytes appear in the string representation of a <xref:System.Guid> in reverse order, from low byte to high byte. For example, in the string representation of the <xref:System.Guid> value "01e75c83-c6f5-4192-b57e-7427cec5560d", the final eight bytes are "b57e-7427cec5560d."
+
+
+
+## Examples
+ The following example uses the <xref:System.Runtime.InteropServices.GuidAttribute> attribute to assign a GUID to a class. It retrieves the value of this GUID by calling the <xref:System.Attribute.GetCustomAttribute*?displayProperty=nameWithType> method and passing the <xref:System.Runtime.InteropServices.GuidAttribute.Value> property of the returned <xref:System.Runtime.InteropServices.GuidAttribute> object to the <xref:System.Guid.Parse*> method. Then it compares that GUID with an array of values.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/CompareTo/compareto1.cs" id="Snippet2":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/CompareTo/compareto1.fs" id="Snippet2":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/CompareTo/compareto1.vb" id="Snippet2":::
+
+ ]]></format>
+        </remarks>
+        <exception cref="T:System.ArgumentException">
+          <paramref name="value" /> is not a <see cref="T:System.Guid" />.</exception>
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="CreateVersion7">
+      <Docs>
+        <summary>Creates a new <see cref="T:System.Guid" /> according to RFC 9562, following the Version 7 format.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="CreateVersion7">
+      <MemberSignature Language="C#" Value="public static Guid CreateVersion7 ();" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid CreateVersion7() cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.CreateVersion7" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function CreateVersion7 () As Guid" />
+      <MemberSignature Language="F#" Value="static member CreateVersion7 : unit -&gt; Guid" Usage="System.Guid.CreateVersion7 " />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid CreateVersion7();" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>Creates a new <see cref="T:System.Guid" /> according to RFC 9562, following the Version 7 format.</summary>
+        <returns>A new <see cref="T:System.Guid" /> according to RFC 9562, following the Version 7 format.</returns>
+        <remarks>
+          <para>This method uses <see cref="P:System.DateTimeOffset.UtcNow" /> to determine the Unix Epoch timestamp source.</para>
+          <para>This method seeds the rand_a and rand_b sub-fields with random data.</para>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="CreateVersion7">
+      <MemberSignature Language="C#" Value="public static Guid CreateVersion7 (DateTimeOffset timestamp);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid CreateVersion7(valuetype System.DateTimeOffset timestamp) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.CreateVersion7(System.DateTimeOffset)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function CreateVersion7 (timestamp As DateTimeOffset) As Guid" />
+      <MemberSignature Language="F#" Value="static member CreateVersion7 : DateTimeOffset -&gt; Guid" Usage="System.Guid.CreateVersion7 timestamp" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid CreateVersion7(DateTimeOffset timestamp);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="timestamp" Type="System.DateTimeOffset" Index="0" FrameworkAlternate="net-10.0;net-11.0;net-9.0" />
+      </Parameters>
+      <Docs>
+        <param name="timestamp">The date-time offset used to determine the Unix Epoch timestamp.</param>
+        <summary>Creates a new <see cref="T:System.Guid" /> according to RFC 9562, following the Version 7 format.</summary>
+        <returns>A new <see cref="T:System.Guid" /> according to RFC 9562, following the Version 7 format.</returns>
+        <remarks>
+          <para>This method seeds the rand_a and rand_b sub-fields with random data.</para>
+        </remarks>
+        <exception cref="T:System.ArgumentOutOfRangeException">
+          <paramref name="timestamp" /> represents an offset prior to <see cref="F:System.DateTimeOffset.UnixEpoch" />.</exception>
+      </Docs>
+    </Member>
+    <Member MemberName="Empty">
+      <MemberSignature Language="C#" Value="public static readonly Guid Empty;" />
+      <MemberSignature Language="ILAsm" Value=".field public static initonly valuetype System.Guid Empty" />
+      <MemberSignature Language="DocId" Value="F:System.Guid.Empty" />
+      <MemberSignature Language="VB.NET" Value="Public Shared ReadOnly Empty As Guid " />
+      <MemberSignature Language="F#" Value=" staticval mutable Empty : Guid" Usage="System.Guid.Empty" />
+      <MemberSignature Language="C++ CLI" Value="public: static initonly Guid Empty;" />
+      <MemberType>Field</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>A read-only instance of the <see cref="T:System.Guid" /> structure whose value is all zeros.</summary>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ You can compare a GUID with the value of the <xref:System.Guid.Empty?displayProperty=nameWithType> field to determine whether a GUID is non-zero. The following example uses the <xref:System.Guid.op_Equality*> operator to compare two GUID values with <xref:System.Guid.Empty?displayProperty=nameWithType> to determine whether they consist exclusively of zeros.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/Empty/empty.cs" id="Snippet1":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/Empty/empty.fs" id="Snippet1":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/Empty/empty.vb" id="Snippet1":::
+
+ ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="Equals">
+      <Docs>
+        <summary>Returns a value that indicates whether two instances of <see cref="T:System.Guid" /> represent the same value.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="Equals">
+      <MemberSignature Language="C#" Value="public bool Equals (Guid g);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig newslot virtual instance bool Equals(valuetype System.Guid g) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.Equals(System.Guid)" />
+      <MemberSignature Language="VB.NET" Value="Public Function Equals (g As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="override this.Equals : Guid -&gt; bool" Usage="guid.Equals g" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; virtual bool Equals(Guid g);" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.IEquatable`1.Equals(`0)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="g" Type="System.Guid" />
+      </Parameters>
+      <Docs>
+        <param name="g">An object to compare to this instance.</param>
+        <summary>Returns a value indicating whether this instance and a specified <see cref="T:System.Guid" /> object represent the same value.</summary>
+        <returns>
+          <see langword="true" /> if <paramref name="g" /> is equal to this instance; otherwise, <see langword="false" />.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ Two <xref:System.Guid> objects are equal if they have identical byte values.
+
+ This method performs slightly better than the <xref:System.Guid.Equals*> method because it does not have to box the `g` parameter.
+
+ ]]></format>
+        </remarks>
+        <altmember cref="M:System.Guid.Equals(System.Object)" />
+        <altmember cref="Overload:System.Guid.CompareTo" />
+      </Docs>
+    </Member>
+    <Member MemberName="Equals">
+      <MemberSignature Language="C#" Value="public override bool Equals (object? o);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig virtual instance bool Equals(object o) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.Equals(System.Object)" />
+      <MemberSignature Language="VB.NET" Value="Public Overrides Function Equals (o As Object) As Boolean" />
+      <MemberSignature Language="F#" Value="override this.Equals : obj -&gt; bool" Usage="guid.Equals o" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; override bool Equals(System::Object ^ o);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="o" Type="System.Object">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.NotNullWhen(true)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.NotNullWhen(true)&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+      </Parameters>
+      <Docs>
+        <param name="o">The object to compare with this instance.</param>
+        <summary>Returns a value that indicates whether this instance is equal to a specified object.</summary>
+        <returns>
+          <see langword="true" /> if <paramref name="o" /> is a <see cref="T:System.Guid" /> that has the same value as this instance; otherwise, <see langword="false" />.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ Two <xref:System.Guid> objects are equal if they have identical byte values.
+
+ ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="GetHashCode">
+      <MemberSignature Language="C#" Value="public override int GetHashCode ();" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig virtual instance int32 GetHashCode() cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.GetHashCode" />
+      <MemberSignature Language="VB.NET" Value="Public Overrides Function GetHashCode () As Integer" />
+      <MemberSignature Language="F#" Value="override this.GetHashCode : unit -&gt; int" Usage="guid.GetHashCode " />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; override int GetHashCode();" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>Returns the hash code for this instance.</summary>
+        <returns>The hash code for this instance.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="NewGuid">
+      <MemberSignature Language="C#" Value="public static Guid NewGuid ();" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid NewGuid() cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.NewGuid" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function NewGuid () As Guid" />
+      <MemberSignature Language="F#" Value="static member NewGuid : unit -&gt; Guid" Usage="System.Guid.NewGuid " />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid NewGuid();" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>Initializes a new instance of the <see cref="T:System.Guid" /> structure.</summary>
+        <returns>A new GUID object.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ This is a convenient `static` method that you can call to get a new <xref:System.Guid>. The method creates a Version 4 Universally Unique Identifier (UUID) as described in [RFC 4122, Sec. 4.4](https://datatracker.ietf.org/doc/html/rfc4122#section-4.4). The returned <xref:System.Guid> is guaranteed to not equal <xref:System.Guid.Empty?displayProperty=nameWithType>.
+
+ On Windows, this function wraps a call to the [CoCreateGuid](/windows/win32/api/combaseapi/nf-combaseapi-cocreateguid) function. The generated GUID contains 122 bits of strong entropy.
+
+ On non-Windows platforms, this function calls the OS's underlying cryptographically secure pseudo-random number generator (CSPRNG) to generate 122 bits of strong entropy.
+
+ It is recommended that applications __not__ use the _NewGuid_ method for cryptographic purposes. First, since a Version 4 UUID has a partially predictable bit pattern, the _NewGuid_ function cannot serve as a proper cryptographic pseudo-random function (PRF). If the output of _NewGuid_ is given to a cryptographic component that requires its input to be generated by a proper PRF, the cryptographic component may not be able to maintain its security properties. Second, _NewGuid_ utilizes at most 122 bits of entropy, regardless of platform. Some cryptographic components set a minimum entropy level on their inputs as a matter of policy. Such policies often set the minimum entropy level at 128 bits or higher. Passing the output of _NewGuid_ to such a routine may violate its policy.
+
+ If an application requires random data for cryptographic purposes, consider using a static method on the <xref:System.Security.Cryptography.RandomNumberGenerator> class. That class provides a random number generator suitable for cryptographic use.
+
+## Examples
+ The following code example creates and displays the values of two <xref:System.Guid> objects.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/NewGuid/ng.cs" id="Snippet1":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/NewGuid/ng.fs" id="Snippet1":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/NewGuid/ng.vb" id="Snippet1":::
+
+ ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="op_Equality">
+      <MemberSignature Language="C#" Value="public static bool operator == (Guid a, Guid b);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig specialname bool op_Equality(valuetype System.Guid a, valuetype System.Guid b) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.op_Equality(System.Guid,System.Guid)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Operator == (a As Guid, b As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member ( = ) : Guid * Guid -&gt; bool" Usage="a = b" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool operator ==(Guid a, Guid b);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="a" Type="System.Guid" />
+        <Parameter Name="b" Type="System.Guid" />
+      </Parameters>
+      <Docs>
+        <param name="a">The first object to compare.</param>
+        <param name="b">The second object to compare.</param>
+        <summary>Indicates whether the values of two specified <see cref="T:System.Guid" /> objects are equal.</summary>
+        <returns>
+          <see langword="true" /> if <paramref name="a" /> and <paramref name="b" /> are equal; otherwise, <see langword="false" />.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[The equivalent method for this operator is <xref:System.Guid.Equals(System.Object)?displayProperty=nameWithType>
+
+## Examples
+ The following example uses the <xref:System.Guid.op_Equality*> operator to compare two GUID values with <xref:System.Guid.Empty?displayProperty=nameWithType> to determine whether they consist exclusively of zeros.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/Empty/empty.cs" id="Snippet1":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/Empty/empty.fs" id="Snippet1":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/Empty/empty.vb" id="Snippet1":::
+
+ ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="op_GreaterThan">
+      <MemberSignature Language="C#" Value="public static bool operator &gt; (Guid left, Guid right);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig specialname bool op_GreaterThan(valuetype System.Guid left, valuetype System.Guid right) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.op_GreaterThan(System.Guid,System.Guid)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Operator &gt; (left As Guid, right As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member ( &gt; ) : Guid * Guid -&gt; bool" Usage="left &gt; right" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool operator &gt;(Guid left, Guid right);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="left" Type="System.Guid" />
+        <Parameter Name="right" Type="System.Guid" />
+      </Parameters>
+      <Docs>
+        <param name="left">The value to compare with <paramref name="right" />.</param>
+        <param name="right">The value to compare with <paramref name="left" />.</param>
+        <summary>Compares two values to determine which is greater.</summary>
+        <returns>
+          <see langword="true" /> if <paramref name="left" /> is greater than <paramref name="right" />; otherwise, <see langword="false" />.</returns>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref="M:System.Numerics.IComparisonOperators`3.op_GreaterThan(`0,`1)" />
+      </Docs>
+    </Member>
+    <Member MemberName="op_GreaterThanOrEqual">
+      <MemberSignature Language="C#" Value="public static bool operator &gt;= (Guid left, Guid right);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig specialname bool op_GreaterThanOrEqual(valuetype System.Guid left, valuetype System.Guid right) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.op_GreaterThanOrEqual(System.Guid,System.Guid)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Operator &gt;= (left As Guid, right As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member ( &gt;= ) : Guid * Guid -&gt; bool" Usage="left &gt;= right" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool operator &gt;=(Guid left, Guid right);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="left" Type="System.Guid" />
+        <Parameter Name="right" Type="System.Guid" />
+      </Parameters>
+      <Docs>
+        <param name="left">The value to compare with <paramref name="right" />.</param>
+        <param name="right">The value to compare with <paramref name="left" />.</param>
+        <summary>Compares two values to determine which is greater or equal.</summary>
+        <returns>
+          <see langword="true" /> if <paramref name="left" /> is greater than or equal to <paramref name="right" />; otherwise, <see langword="false" />.</returns>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref="M:System.Numerics.IComparisonOperators`3.op_GreaterThanOrEqual(`0,`1)" />
+      </Docs>
+    </Member>
+    <Member MemberName="op_Inequality">
+      <MemberSignature Language="C#" Value="public static bool operator != (Guid a, Guid b);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig specialname bool op_Inequality(valuetype System.Guid a, valuetype System.Guid b) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.op_Inequality(System.Guid,System.Guid)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Operator != (a As Guid, b As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member op_Inequality : Guid * Guid -&gt; bool" Usage="System.Guid.op_Inequality (a, b)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool operator !=(Guid a, Guid b);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="a" Type="System.Guid" />
+        <Parameter Name="b" Type="System.Guid" />
+      </Parameters>
+      <Docs>
+        <param name="a">The first object to compare.</param>
+        <param name="b">The second object to compare.</param>
+        <summary>Indicates whether the values of two specified <see cref="T:System.Guid" /> objects are not equal.</summary>
+        <returns>
+          <see langword="true" /> if <paramref name="a" /> and <paramref name="b" /> are not equal; otherwise, <see langword="false" />.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[The equivalent method for this operator is <xref:System.Guid.Equals(System.Object)?displayProperty=nameWithType>]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="op_LessThan">
+      <MemberSignature Language="C#" Value="public static bool operator &lt; (Guid left, Guid right);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig specialname bool op_LessThan(valuetype System.Guid left, valuetype System.Guid right) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.op_LessThan(System.Guid,System.Guid)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Operator &lt; (left As Guid, right As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member ( &lt; ) : Guid * Guid -&gt; bool" Usage="left &lt; right" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool operator &lt;(Guid left, Guid right);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="left" Type="System.Guid" />
+        <Parameter Name="right" Type="System.Guid" />
+      </Parameters>
+      <Docs>
+        <param name="left">The value to compare with <paramref name="right" />.</param>
+        <param name="right">The value to compare with <paramref name="left" />.</param>
+        <summary>Compares two values to determine which is less.</summary>
+        <returns>
+          <see langword="true" /> if <paramref name="left" /> is less than <paramref name="right" />; otherwise, <see langword="false" />.</returns>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref="M:System.Numerics.IComparisonOperators`3.op_LessThan(`0,`1)" />
+      </Docs>
+    </Member>
+    <Member MemberName="op_LessThanOrEqual">
+      <MemberSignature Language="C#" Value="public static bool operator &lt;= (Guid left, Guid right);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig specialname bool op_LessThanOrEqual(valuetype System.Guid left, valuetype System.Guid right) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.op_LessThanOrEqual(System.Guid,System.Guid)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Operator &lt;= (left As Guid, right As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member ( &lt;= ) : Guid * Guid -&gt; bool" Usage="left &lt;= right" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool operator &lt;=(Guid left, Guid right);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="left" Type="System.Guid" />
+        <Parameter Name="right" Type="System.Guid" />
+      </Parameters>
+      <Docs>
+        <param name="left">The value to compare with <paramref name="right" />.</param>
+        <param name="right">The value to compare with <paramref name="left" />.</param>
+        <summary>Compares two values to determine which is less or equal.</summary>
+        <returns>
+          <see langword="true" /> if <paramref name="left" /> is less than or equal to <paramref name="right" />; otherwise, <see langword="false" />.</returns>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref="M:System.Numerics.IComparisonOperators`3.op_LessThanOrEqual(`0,`1)" />
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="Parse">
+      <Docs>
+        <summary>Parses a string into a value.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="Parse">
+      <MemberSignature Language="C#" Value="public static Guid Parse (ReadOnlySpan&lt;byte&gt; utf8Text);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid Parse(valuetype System.ReadOnlySpan`1&lt;unsigned int8&gt; utf8Text) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.Parse(System.ReadOnlySpan{System.Byte})" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function Parse (utf8Text As ReadOnlySpan(Of Byte)) As Guid" />
+      <MemberSignature Language="F#" Value="static member Parse : ReadOnlySpan&lt;byte&gt; -&gt; Guid" Usage="System.Guid.Parse utf8Text" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid Parse(ReadOnlySpan&lt;System::Byte&gt; utf8Text);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="utf8Text" Type="System.ReadOnlySpan&lt;System.Byte&gt;" Index="0" FrameworkAlternate="net-10.0;net-11.0" />
+      </Parameters>
+      <Docs>
+        <param name="utf8Text">To be added.</param>
+        <summary>To be added.</summary>
+        <returns>To be added.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Parse">
+      <MemberSignature Language="C#" Value="public static Guid Parse (ReadOnlySpan&lt;char&gt; input);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid Parse(valuetype System.ReadOnlySpan`1&lt;char&gt; input) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.Parse(System.ReadOnlySpan{System.Char})" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function Parse (input As ReadOnlySpan(Of Char)) As Guid" />
+      <MemberSignature Language="F#" Value="static member Parse : ReadOnlySpan&lt;char&gt; -&gt; Guid" Usage="System.Guid.Parse input" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid Parse(ReadOnlySpan&lt;char&gt; input);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="input" Type="System.ReadOnlySpan&lt;System.Char&gt;" />
+      </Parameters>
+      <Docs>
+        <param name="input">A read-only span containing the bytes representing a GUID.</param>
+        <summary>Converts a read-only character span that represents a GUID to the equivalent <see cref="T:System.Guid" /> structure.</summary>
+        <returns>A structure that contains the value that was parsed.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+The <xref:System.Guid.Parse*> method trims any leading or trailing white space characters from `input` and converts the remaining characters in `input` to a <xref:System.Guid> value. This method can convert a character span that represents any of the five formats produced by the <xref:System.Guid.ToString*> methods, as shown in the following table.
+
+|Specifier|Description|Format|
+|---------------|-----------------|------------|
+|`N`|32 hexadecimal digits|00000000000000000000000000000000|
+|`D`|32 hexadecimal digits separated by hyphens|00000000-0000-0000-0000-000000000000|
+|`B`|32 hexadecimal digits separated by hyphens, enclosed in braces|{00000000-0000-0000-0000-000000000000}|
+|`P`|32 hexadecimal digits separated by hyphens, enclosed in parentheses|(00000000-0000-0000-0000-000000000000)|
+|`X`|Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces|{0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}|
+
+The method throws a <xref:System.FormatException> if it is unable to successfully parse the string. Some of the reasons why this might occur include:
+
+-   `input` contains characters that are not part of the hexadecimal character set.
+
+-   `input` has too many or too few characters.
+
+-   `input` is not in one of the formats recognized by the <xref:System.Guid.ToString*> method and listed in the previous table.
+
+Use the <xref:System.Guid.TryParse*> method to catch any unsuccessful parse operations without having to handle an exception.
+
+        ]]></format>
+        </remarks>
+        <exception cref="T:System.FormatException">
+          <paramref name="input" /> is not in a recognized format.
+
+-or-
+
+After trimming, the length of the read-only character span is 0.</exception>
+      </Docs>
+    </Member>
+    <Member MemberName="Parse">
+      <MemberSignature Language="C#" Value="public static Guid Parse (string input);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid Parse(string input) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.Parse(System.String)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function Parse (input As String) As Guid" />
+      <MemberSignature Language="F#" Value="static member Parse : string -&gt; Guid" Usage="System.Guid.Parse input" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid Parse(System::String ^ input);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="input" Type="System.String" />
+      </Parameters>
+      <Docs>
+        <param name="input">The string to convert.</param>
+        <summary>Converts the string representation of a GUID to the equivalent <see cref="T:System.Guid" /> structure.</summary>
+        <returns>A structure that contains the value that was parsed.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ The <xref:System.Guid.Parse*> method trims any leading or trailing white space from `input` and converts the string representation of a GUID to a <xref:System.Guid> value. This method can convert strings in any of the five formats produced by the <xref:System.Guid.ToString(System.String)> and <xref:System.Guid.ToString(System.String,System.IFormatProvider)> methods, as shown in the following table.
+
+|Specifier|Description|Format|
+|---------------|-----------------|------------|
+|`N`|32 hexadecimal digits|00000000000000000000000000000000|
+|`D`|32 hexadecimal digits separated by hyphens|00000000-0000-0000-0000-000000000000|
+|`B`|32 hexadecimal digits separated by hyphens, enclosed in braces|{00000000-0000-0000-0000-000000000000}|
+|`P`|32 hexadecimal digits separated by hyphens, enclosed in parentheses|(00000000-0000-0000-0000-000000000000)|
+|`X`|Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces|{0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}|
+
+ The method throws a <xref:System.FormatException> if it is unable to successfully parse the string. Some of the reasons why this might occur include:
+
+-   `input` contains characters that are not part of the hexadecimal character set.
+
+-   `input` has too many or too few characters.
+
+-   `input` is not in one of the formats recognized by the <xref:System.Guid.ToString*> method and listed in the previous table.
+
+ Use the <xref:System.Guid.TryParse*> method to catch any unsuccessful parse operations without having to handle an exception.
+
+## Examples
+ The following example creates a new GUID, converts it to three separate string representations by calling the <xref:System.Guid.ToString(System.String)> method with the "B", "D", and "X" format specifiers, and then calls the <xref:System.Guid.Parse*> method to convert the strings back to <xref:System.Guid> values.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/Parse/parseex1.cs" id="Snippet3":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/Parse/parseex1.fs" id="Snippet3":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/Parse/parseex1.vb" id="Snippet3":::
+
+ ]]></format>
+        </remarks>
+        <exception cref="T:System.ArgumentNullException">
+          <paramref name="input" /> is <see langword="null" />.</exception>
+        <exception cref="T:System.FormatException">
+          <paramref name="input" /> is not in a recognized format.</exception>
+        <altmember cref="M:System.Guid.TryParse(System.String,System.Guid@)" />
+        <altmember cref="M:System.Guid.ToString" />
+      </Docs>
+    </Member>
+    <Member MemberName="Parse">
+      <MemberSignature Language="C#" Value="public static Guid Parse (ReadOnlySpan&lt;byte&gt; utf8Text, IFormatProvider? provider);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid Parse(valuetype System.ReadOnlySpan`1&lt;unsigned int8&gt; utf8Text, class System.IFormatProvider provider) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.Parse(System.ReadOnlySpan{System.Byte},System.IFormatProvider)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function Parse (utf8Text As ReadOnlySpan(Of Byte), provider As IFormatProvider) As Guid" />
+      <MemberSignature Language="F#" Value="static member Parse : ReadOnlySpan&lt;byte&gt; * IFormatProvider -&gt; Guid" Usage="System.Guid.Parse (utf8Text, provider)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid Parse(ReadOnlySpan&lt;System::Byte&gt; utf8Text, IFormatProvider ^ provider) = IUtf8SpanParsable&lt;Guid&gt;::Parse;" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.IUtf8SpanParsable`1.Parse(System.ReadOnlySpan{System.Byte},System.IFormatProvider)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="utf8Text" Type="System.ReadOnlySpan&lt;System.Byte&gt;" Index="0" FrameworkAlternate="net-10.0;net-11.0" />
+        <Parameter Name="provider" Type="System.IFormatProvider" Index="1" FrameworkAlternate="net-10.0;net-11.0">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Runtime.CompilerServices.Nullable(2)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Runtime.CompilerServices.Nullable(2)&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+      </Parameters>
+      <Docs>
+        <param name="utf8Text">To be added.</param>
+        <param name="provider">To be added.</param>
+        <summary>To be added.</summary>
+        <returns>To be added.</returns>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref="M:System.IUtf8SpanParsable`1.Parse(System.ReadOnlySpan{System.Byte},System.IFormatProvider)" />
+      </Docs>
+    </Member>
+    <Member MemberName="Parse">
+      <MemberSignature Language="C#" Value="public static Guid Parse (ReadOnlySpan&lt;char&gt; s, IFormatProvider? provider);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid Parse(valuetype System.ReadOnlySpan`1&lt;char&gt; s, class System.IFormatProvider provider) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.Parse(System.ReadOnlySpan{System.Char},System.IFormatProvider)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function Parse (s As ReadOnlySpan(Of Char), provider As IFormatProvider) As Guid" />
+      <MemberSignature Language="F#" Value="static member Parse : ReadOnlySpan&lt;char&gt; * IFormatProvider -&gt; Guid" Usage="System.Guid.Parse (s, provider)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid Parse(ReadOnlySpan&lt;char&gt; s, IFormatProvider ^ provider) = ISpanParsable&lt;Guid&gt;::Parse;" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.ISpanParsable`1.Parse(System.ReadOnlySpan{System.Char},System.IFormatProvider)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="s" Type="System.ReadOnlySpan&lt;System.Char&gt;" />
+        <Parameter Name="provider" Type="System.IFormatProvider">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Runtime.CompilerServices.Nullable(2)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Runtime.CompilerServices.Nullable(2)&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+      </Parameters>
+      <Docs>
+        <param name="s">The span of characters to parse.</param>
+        <param name="provider">An object that provides culture-specific formatting information about <paramref name="s" />.</param>
+        <summary>Parses a span of characters into a value.</summary>
+        <returns>The result of parsing <paramref name="s" />.</returns>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref="M:System.ISpanParsable`1.Parse(System.ReadOnlySpan{System.Char},System.IFormatProvider)" />
+      </Docs>
+    </Member>
+    <Member MemberName="Parse">
+      <MemberSignature Language="C#" Value="public static Guid Parse (string s, IFormatProvider? provider);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid Parse(string s, class System.IFormatProvider provider) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.Parse(System.String,System.IFormatProvider)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function Parse (s As String, provider As IFormatProvider) As Guid" />
+      <MemberSignature Language="F#" Value="static member Parse : string * IFormatProvider -&gt; Guid" Usage="System.Guid.Parse (s, provider)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid Parse(System::String ^ s, IFormatProvider ^ provider) = IParsable&lt;Guid&gt;::Parse;" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.IParsable`1.Parse(System.String,System.IFormatProvider)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="s" Type="System.String" />
+        <Parameter Name="provider" Type="System.IFormatProvider">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Runtime.CompilerServices.Nullable(2)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Runtime.CompilerServices.Nullable(2)&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+      </Parameters>
+      <Docs>
+        <param name="s">The string to parse.</param>
+        <param name="provider">An object that provides culture-specific formatting information about <paramref name="s" />.</param>
+        <summary>Parses a string into a value.</summary>
+        <returns>The result of parsing <paramref name="s" />.</returns>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref="M:System.IParsable`1.Parse(System.String,System.IFormatProvider)" />
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="ParseExact">
+      <Docs>
+        <summary>Converts the string representation of a GUID to the equivalent <see cref="T:System.Guid" /> structure, provided that the string is in the specified format.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="ParseExact">
+      <MemberSignature Language="C#" Value="public static Guid ParseExact (ReadOnlySpan&lt;char&gt; input, ReadOnlySpan&lt;char&gt; format);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid ParseExact(valuetype System.ReadOnlySpan`1&lt;char&gt; input, valuetype System.ReadOnlySpan`1&lt;char&gt; format) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.ParseExact(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char})" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function ParseExact (input As ReadOnlySpan(Of Char), format As ReadOnlySpan(Of Char)) As Guid" />
+      <MemberSignature Language="F#" Value="static member ParseExact : ReadOnlySpan&lt;char&gt; * ReadOnlySpan&lt;char&gt; -&gt; Guid" Usage="System.Guid.ParseExact (input, format)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid ParseExact(ReadOnlySpan&lt;char&gt; input, ReadOnlySpan&lt;char&gt; format);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="input" Type="System.ReadOnlySpan&lt;System.Char&gt;" />
+        <Parameter Name="format" Type="System.ReadOnlySpan&lt;System.Char&gt;">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+      </Parameters>
+      <Docs>
+        <param name="input">A read-only span containing the characters representing the GUID to convert.</param>
+        <param name="format">A read-only span of characters representing one of the following specifiers that indicates the exact format to use when interpreting <paramref name="input" />: "N", "D", "B", "P", or "X".</param>
+        <summary>Converts the character span representation of a GUID to the equivalent <see cref="T:System.Guid" /> structure, provided that the string is in the specified format.</summary>
+        <returns>A structure that contains the value that was parsed.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+
+The <xref:System.Guid.ParseExact*> method requires the read-only character span to convert to be exactly in the format specified by the `format` parameter, after leading and trailing white-space characters are removed. The following table shows the accepted format specifiers for the `format` parameter. "0" represents a digit; hyphens ("-"), braces ("{", "}"), and parentheses ("(", ")") appear as shown.
+
+|Specifier|Format of the `input` parameter|
+|---------------|-------------------------------------|
+|N|32 hexadecimal digits:<br /><br /> 00000000000000000000000000000000|
+|D|32 hexadecimal digits separated by hyphens:<br /><br /> 00000000-0000-0000-0000-000000000000|
+|B|32 hexadecimal digits separated by hyphens, enclosed in braces:<br /><br /> {00000000-0000-0000-0000-000000000000}|
+|P|32 hexadecimal digits separated by hyphens, enclosed in parentheses:<br /><br /> (00000000-0000-0000-0000-000000000000)|
+|X|Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces:<br /><br /> {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}|
+
+ ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="ParseExact">
+      <MemberSignature Language="C#" Value="public static Guid ParseExact (string input, string format);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig valuetype System.Guid ParseExact(string input, string format) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.ParseExact(System.String,System.String)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function ParseExact (input As String, format As String) As Guid" />
+      <MemberSignature Language="F#" Value="static member ParseExact : string * string -&gt; Guid" Usage="System.Guid.ParseExact (input, format)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static Guid ParseExact(System::String ^ input, System::String ^ format);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Guid</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="input" Type="System.String" />
+        <Parameter Name="format" Type="System.String">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+      </Parameters>
+      <Docs>
+        <param name="input">The GUID to convert.</param>
+        <param name="format">One of the following specifiers that indicates the exact format to use when interpreting <paramref name="input" />: "N", "D", "B", "P", or "X".</param>
+        <summary>Converts the string representation of a GUID to the equivalent <see cref="T:System.Guid" /> structure, provided that the string is in the specified format.</summary>
+        <returns>A structure that contains the value that was parsed.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ The <xref:System.Guid.ParseExact*> method requires the string to convert to be exactly in the format specified by the `format` parameter, after leading and trailing white-space characters are removed. The following table shows the accepted format specifiers for the `format` parameter. "0" represents a digit; hyphens ("-"), braces ("{", "}"), and parentheses ("(", ")") appear as shown.
+
+|Specifier|Format of the `input` parameter|
+|---------------|-------------------------------------|
+|N|32 hexadecimal digits:<br /><br /> 00000000000000000000000000000000|
+|D|32 hexadecimal digits separated by hyphens:<br /><br /> 00000000-0000-0000-0000-000000000000|
+|B|32 hexadecimal digits separated by hyphens, enclosed in braces:<br /><br /> {00000000-0000-0000-0000-000000000000}|
+|P|32 hexadecimal digits separated by hyphens, enclosed in parentheses:<br /><br /> (00000000-0000-0000-0000-000000000000)|
+|X|Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces:<br /><br /> {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}|
+
+## Examples
+ The following example calls the <xref:System.Guid.ToString(System.String)> method with each of the supported format specifiers to generate an array of strings that represent a single GUID. These are then passed to the <xref:System.Guid.ParseExact*> method, which successfully parses only the string that conforms to the "B" format specifier.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/Parse/parseexactex1.cs" id="Snippet4":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/Parse/parseexactex1.fs" id="Snippet4":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/Parse/parseexactex1.vb" id="Snippet4":::
+
+ ]]></format>
+        </remarks>
+        <exception cref="T:System.ArgumentNullException">
+          <paramref name="input" /> or <paramref name="format" /> is <see langword="null" />.</exception>
+        <exception cref="T:System.FormatException">
+          <paramref name="input" /> is not in the format specified by <paramref name="format" />.</exception>
+        <altmember cref="M:System.Guid.TryParseExact(System.String,System.String,System.Guid@)" />
+      </Docs>
+    </Member>
+    <Member MemberName="System.ISpanFormattable.TryFormat">
+      <MemberSignature Language="C#" Value="bool ISpanFormattable.TryFormat (Span&lt;char&gt; destination, out int charsWritten, ReadOnlySpan&lt;char&gt; format, IFormatProvider provider);" />
+      <MemberSignature Language="ILAsm" Value=".method hidebysig newslot virtual instance bool System.ISpanFormattable.TryFormat(valuetype System.Span`1&lt;char&gt; destination, [out] int32&amp; charsWritten, valuetype System.ReadOnlySpan`1&lt;char&gt; format, class System.IFormatProvider provider) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.System#ISpanFormattable#TryFormat(System.Span{System.Char},System.Int32@,System.ReadOnlySpan{System.Char},System.IFormatProvider)" />
+      <MemberSignature Language="VB.NET" Value="Function TryFormat (destination As Span(Of Char), ByRef charsWritten As Integer, format As ReadOnlySpan(Of Char), provider As IFormatProvider) As Boolean Implements ISpanFormattable.TryFormat" />
+      <MemberSignature Language="F#" Value="abstract member System.ISpanFormattable.TryFormat : Span&lt;char&gt; * int * ReadOnlySpan&lt;char&gt; * IFormatProvider -&gt; bool&#xA;override this.System.ISpanFormattable.TryFormat : Span&lt;char&gt; * int * ReadOnlySpan&lt;char&gt; * IFormatProvider -&gt; bool" Usage="guid.System.ISpanFormattable.TryFormat (destination, charsWritten, format, provider)" />
+      <MemberSignature Language="C++ CLI" Value=" virtual bool System.ISpanFormattable.TryFormat(Span&lt;char&gt; destination, [Runtime::InteropServices::Out] int % charsWritten, ReadOnlySpan&lt;char&gt; format, IFormatProvider ^ provider) = ISpanFormattable::TryFormat;" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.ISpanFormattable.TryFormat(System.Span{System.Char},System.Int32@,System.ReadOnlySpan{System.Char},System.IFormatProvider)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="destination" Type="System.Span&lt;System.Char&gt;" />
+        <Parameter Name="charsWritten" Type="System.Int32" RefType="out" />
+        <Parameter Name="format" Type="System.ReadOnlySpan&lt;System.Char&gt;">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+        <Parameter Name="provider" Type="System.IFormatProvider" />
+      </Parameters>
+      <Docs>
+        <param name="destination">The span in which to write this instance's value formatted as a span of characters.</param>
+        <param name="charsWritten">When this method returns, contains the number of characters that were written in <paramref name="destination" />.</param>
+        <param name="format">A span containing the characters that represent a standard or custom format string that defines the acceptable format for <paramref name="destination" />.</param>
+        <param name="provider">An optional object that supplies culture-specific formatting information for <paramref name="destination" />.</param>
+        <summary>Tries to format the value of the current instance into the provided span of characters.</summary>
+        <returns>
+          <see langword="true" /> if the formatting was successful; otherwise, <see langword="false" />.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="System.IUtf8SpanFormattable.TryFormat">
+      <MemberSignature Language="C#" Value="bool IUtf8SpanFormattable.TryFormat (Span&lt;byte&gt; utf8Destination, out int bytesWritten, ReadOnlySpan&lt;char&gt; format, IFormatProvider provider);" />
+      <MemberSignature Language="ILAsm" Value=".method hidebysig newslot virtual instance bool System.IUtf8SpanFormattable.TryFormat(valuetype System.Span`1&lt;unsigned int8&gt; utf8Destination, [out] int32&amp; bytesWritten, valuetype System.ReadOnlySpan`1&lt;char&gt; format, class System.IFormatProvider provider) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.System#IUtf8SpanFormattable#TryFormat(System.Span{System.Byte},System.Int32@,System.ReadOnlySpan{System.Char},System.IFormatProvider)" />
+      <MemberSignature Language="VB.NET" Value="Function TryFormat (utf8Destination As Span(Of Byte), ByRef bytesWritten As Integer, format As ReadOnlySpan(Of Char), provider As IFormatProvider) As Boolean Implements IUtf8SpanFormattable.TryFormat" />
+      <MemberSignature Language="F#" Value="abstract member System.IUtf8SpanFormattable.TryFormat : Span&lt;byte&gt; * int * ReadOnlySpan&lt;char&gt; * IFormatProvider -&gt; bool&#xA;override this.System.IUtf8SpanFormattable.TryFormat : Span&lt;byte&gt; * int * ReadOnlySpan&lt;char&gt; * IFormatProvider -&gt; bool" Usage="guid.System.IUtf8SpanFormattable.TryFormat (utf8Destination, bytesWritten, format, provider)" />
+      <MemberSignature Language="C++ CLI" Value=" virtual bool System.IUtf8SpanFormattable.TryFormat(Span&lt;System::Byte&gt; utf8Destination, [Runtime::InteropServices::Out] int % bytesWritten, ReadOnlySpan&lt;char&gt; format, IFormatProvider ^ provider) = IUtf8SpanFormattable::TryFormat;" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.IUtf8SpanFormattable.TryFormat(System.Span{System.Byte},System.Int32@,System.ReadOnlySpan{System.Char},System.IFormatProvider)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="utf8Destination" Type="System.Span&lt;System.Byte&gt;" />
+        <Parameter Name="bytesWritten" Type="System.Int32" RefType="out" />
+        <Parameter Name="format" Type="System.ReadOnlySpan&lt;System.Char&gt;">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+        <Parameter Name="provider" Type="System.IFormatProvider" />
+      </Parameters>
+      <Docs>
+        <param name="utf8Destination">The span in which to write this instance's value formatted as a span of bytes.</param>
+        <param name="bytesWritten">When this method returns, contains the number of bytes that were written in <paramref name="utf8Destination" />.</param>
+        <param name="format">A span containing the characters that represent a standard or custom format string that defines the acceptable format for <paramref name="utf8Destination" />.</param>
+        <param name="provider">An optional object that supplies culture-specific formatting information for <paramref name="utf8Destination" />.</param>
+        <summary>Tries to format the value of the current instance as UTF-8 into the provided span of bytes.</summary>
+        <returns>
+          <see langword="true" /> if the formatting was successful; otherwise, <see langword="false" />.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="ToByteArray">
+      <Docs>
+        <summary>Returns a 16-element byte array that contains the value of this instance.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="ToByteArray">
+      <MemberSignature Language="C#" Value="public byte[] ToByteArray ();" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig instance unsigned int8[] ToByteArray() cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.ToByteArray" />
+      <MemberSignature Language="VB.NET" Value="Public Function ToByteArray () As Byte()" />
+      <MemberSignature Language="F#" Value="member this.ToByteArray : unit -&gt; byte[]" Usage="guid.ToByteArray " />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; cli::array &lt;System::Byte&gt; ^ ToByteArray();" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Byte[]</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>Returns a 16-element byte array that contains the value of this instance.</summary>
+        <returns>A 16-element byte array.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ You can use the byte array returned by this method to round-trip a <xref:System.Guid> value by calling the <xref:System.Guid.%23ctor(System.Byte%5B%5D)> constructor.
+
+ Note that the order of bytes in the returned byte array is different from the string representation of a <xref:System.Guid> value. The order of the beginning four-byte group and the next two two-byte groups is reversed, whereas the order of the last two-byte group and the closing six-byte group is the same. The example provides an illustration.
+
+
+
+## Examples
+ The following example calls the <xref:System.Guid.NewGuid*> method to create a <xref:System.Guid> value, and then calls the <xref:System.Guid.ToByteArray*> method to represent the <xref:System.Guid> value as a byte array. It then displays both values to the console. Finally, it instantiates a new <xref:System.Guid> value from the byte array and calls its <xref:System.Guid.Equals(System.Guid)> method to show that the two <xref:System.Guid> values are identical.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/ToByteArray/tobytearray3.cs" id="Snippet1":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/ToByteArray/tobytearray3.fs" id="Snippet1":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/ToByteArray/tobytearray3.vb" id="Snippet1":::
+
+ ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="ToByteArray">
+      <MemberSignature Language="C#" Value="public byte[] ToByteArray (bool bigEndian);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig instance unsigned int8[] ToByteArray(bool bigEndian) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.ToByteArray(System.Boolean)" />
+      <MemberSignature Language="VB.NET" Value="Public Function ToByteArray (bigEndian As Boolean) As Byte()" />
+      <MemberSignature Language="F#" Value="member this.ToByteArray : bool -&gt; byte[]" Usage="guid.ToByteArray bigEndian" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; cli::array &lt;System::Byte&gt; ^ ToByteArray(bool bigEndian);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Byte[]</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="bigEndian" Type="System.Boolean" />
+      </Parameters>
+      <Docs>
+        <param name="bigEndian">
+          <see langword="true" /> to write the bytes in big-endian byte order; <see langword="false" /> to write them in little-endian byte order.</param>
+        <summary>Returns a 16-element byte array that contains the value of this instance, using the specified endianness.</summary>
+        <returns>A 16-element byte array.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="ToString">
+      <Docs>
+        <summary>Returns a string representation of the value of this instance of the <see cref="T:System.Guid" /> structure.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="ToString">
+      <MemberSignature Language="C#" Value="public override string ToString ();" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig virtual instance string ToString() cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.ToString" />
+      <MemberSignature Language="VB.NET" Value="Public Overrides Function ToString () As String" />
+      <MemberSignature Language="F#" Value="override this.ToString : unit -&gt; string" Usage="guid.ToString " />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; override System::String ^ ToString();" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.String</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>Returns a string representation of the value of this instance in registry format.</summary>
+        <returns>The value of this <see cref="T:System.Guid" />, formatted by using the "D" format specifier as follows:
+
+ <c>xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</c>
+
+ where the value of the GUID is represented as a series of lowercase hexadecimal digits in groups of 8, 4, 4, 4, and 12 digits and separated by hyphens. An example of a return value is "382c74c3-721d-4f34-80e5-57657b6cbc27". To convert the hexadecimal digits from a through f to uppercase, call the <see cref="M:System.String.ToUpper" /> method on the returned string.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ This method provides a default GUID format that is sufficient for typical use; however, other versions of this method that take a `format` parameter provide a few common format variations.
+
+ ]]></format>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="ToString">
+      <MemberSignature Language="C#" Value="public string ToString (string? format);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig instance string ToString(string format) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.ToString(System.String)" />
+      <MemberSignature Language="VB.NET" Value="Public Function ToString (format As String) As String" />
+      <MemberSignature Language="F#" Value="override this.ToString : string -&gt; string" Usage="guid.ToString format" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; System::String ^ ToString(System::String ^ format);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.String</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="format" Type="System.String">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")&gt;]</AttributeName>
+            </Attribute>
+            <Attribute>
+              <AttributeName Language="C#">[System.Runtime.CompilerServices.Nullable(2)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Runtime.CompilerServices.Nullable(2)&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+      </Parameters>
+      <Docs>
+        <param name="format">A single format specifier that indicates how to format the value of this <see cref="T:System.Guid" />. The <paramref name="format" /> parameter can be "N", "D", "B", "P", or "X". If <paramref name="format" /> is <see langword="null" /> or an empty string (""), "D" is used.</param>
+        <summary>Returns a string representation of the value of this <see cref="T:System.Guid" /> instance, according to the provided format specifier.</summary>
+        <returns>The value of this <see cref="T:System.Guid" />, represented as a series of lowercase hexadecimal digits in the specified format.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ The following table shows the accepted format specifiers for the `format` parameter. "0" represents a digit; hyphens ("-"), braces ("{", "}"), and parentheses ("(", ")") appear as shown.
+
+|Specifier|Format of return value|
+|---------------|----------------------------|
+|`N`|32 digits:<br /><br /> 00000000000000000000000000000000|
+|`D`|32 digits separated by hyphens:<br /><br /> 00000000-0000-0000-0000-000000000000|
+|`B`|32 digits separated by hyphens, enclosed in braces:<br /><br /> {00000000-0000-0000-0000-000000000000}|
+|`P`|32 digits separated by hyphens, enclosed in parentheses:<br /><br /> (00000000-0000-0000-0000-000000000000)|
+|`X`|Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces:<br /><br /> {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}|
+
+ The hexadecimal digits a through f are lowercase in the returned string. To convert them to uppercase, call the <xref:System.String.ToUpper*?displayProperty=nameWithType> method on the returned string.
+
+ ]]></format>
+        </remarks>
+        <exception cref="T:System.FormatException">The value of <paramref name="format" /> is not <see langword="null" />, an empty string (""), "N", "D", "B", "P", or "X".</exception>
+      </Docs>
+    </Member>
+    <Member MemberName="ToString">
+      <MemberSignature Language="C#" Value="public string ToString (string? format, IFormatProvider? provider);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig newslot virtual instance string ToString(string format, class System.IFormatProvider provider) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.ToString(System.String,System.IFormatProvider)" />
+      <MemberSignature Language="VB.NET" Value="Public Function ToString (format As String, provider As IFormatProvider) As String" />
+      <MemberSignature Language="F#" Value="override this.ToString : string * IFormatProvider -&gt; string" Usage="guid.ToString (format, provider)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; virtual System::String ^ ToString(System::String ^ format, IFormatProvider ^ provider);" />
+      <MemberType>Method</MemberType>
+      <Implements>
+        <InterfaceMember>M:System.IFormattable.ToString(System.String,System.IFormatProvider)</InterfaceMember>
+      </Implements>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>1.0.5000.0</AssemblyVersion>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.String</ReturnType>
+        <Attributes>
+          <Attribute FrameworkAlternate="net-10.0">
+            <AttributeName Language="C#">[System.Runtime.CompilerServices.Nullable(1)]</AttributeName>
+            <AttributeName Language="F#">[&lt;System.Runtime.CompilerServices.Nullable(1)&gt;]</AttributeName>
+          </Attribute>
+        </Attributes>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="format" Type="System.String">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+        <Parameter Name="provider" Type="System.IFormatProvider" />
+      </Parameters>
+      <Docs>
+        <param name="format">A single format specifier that indicates how to format the value of this <see cref="T:System.Guid" />. The <paramref name="format" /> parameter can be "N", "D", "B", "P", or "X". If <paramref name="format" /> is <see langword="null" /> or an empty string (""), "D" is used.</param>
+        <param name="provider">(Reserved) An object that supplies culture-specific formatting information.</param>
+        <summary>Returns a string representation of the value of this instance of the <see cref="T:System.Guid" /> class, according to the provided format specifier and culture-specific format information.</summary>
+        <returns>The value of this <see cref="T:System.Guid" />, represented as a series of lowercase hexadecimal digits in the specified format.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ The `provider` parameter is reserved for future use and does not contribute to the execution of this method. You can pass `null` in the method call.
+
+ The following table shows the accepted format specifiers for the `format` parameter. "0" represents a digit; hyphens ("-"), braces ("{", "}"), and parentheses ("(", ")") appear as shown.
+
+|Specifier|Format of return value|
+|---------------|----------------------------|
+|`N`|32 digits:<br /><br /> 00000000000000000000000000000000|
+|`D`|32 digits separated by hyphens:<br /><br /> 00000000-0000-0000-0000-000000000000|
+|`B`|32 digits separated by hyphens, enclosed in braces:<br /><br /> {00000000-0000-0000-0000-000000000000}|
+|`P`|32 digits separated by hyphens, enclosed in parentheses:<br /><br /> (00000000-0000-0000-0000-000000000000)|
+|`X`|Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces:<br /><br /> {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}|
+
+ The hexadecimal digits a through f are lowercase in the returned string. To convert them to uppercase, call the <xref:System.String.ToUpper*?displayProperty=nameWithType> method on the returned string.
+
+ Because the `provider` parameter is ignored, you cannot use it to provide a custom formatting solution. To represent a <xref:System.Guid> value as a string in a format that isn't supported by the standard GUID format strings, call the <xref:System.String.Format(System.IFormatProvider,System.String,System.Object%5B%5D)?displayProperty=nameWithType> method with a `provider` object that implements both the <xref:System.ICustomFormatter> and <xref:System.IFormatProvider> interfaces. For more information, see the "Custom Formatting with ICustomFormatter" section in the [Formatting Types](/dotnet/standard/base-types/formatting-types) article.
+
+ ]]></format>
+        </remarks>
+        <exception cref="T:System.FormatException">The value of <paramref name="format" /> is not <see langword="null" />, an empty string (""), "N", "D", "B", "P", or "X".</exception>
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="TryFormat">
+      <Docs>
+        <summary>Tries to format the current GUID instance into the provided span.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="TryFormat">
+      <MemberSignature Language="C#" Value="public bool TryFormat (Span&lt;byte&gt; utf8Destination, out int bytesWritten, ReadOnlySpan&lt;char&gt; format = default);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig instance bool TryFormat(valuetype System.Span`1&lt;unsigned int8&gt; utf8Destination, [out] int32&amp; bytesWritten, valuetype System.ReadOnlySpan`1&lt;char&gt; format) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryFormat(System.Span{System.Byte},System.Int32@,System.ReadOnlySpan{System.Char})" />
+      <MemberSignature Language="VB.NET" Value="Public Function TryFormat (utf8Destination As Span(Of Byte), ByRef bytesWritten As Integer, Optional format As ReadOnlySpan(Of Char) = Nothing) As Boolean" />
+      <MemberSignature Language="F#" Value="member this.TryFormat : Span&lt;byte&gt; * int * ReadOnlySpan&lt;char&gt; -&gt; bool" Usage="guid.TryFormat (utf8Destination, bytesWritten, format)" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="utf8Destination" Type="System.Span&lt;System.Byte&gt;" />
+        <Parameter Name="bytesWritten" Type="System.Int32" RefType="out" />
+        <Parameter Name="format" Type="System.ReadOnlySpan&lt;System.Char&gt;">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+      </Parameters>
+      <Docs>
+        <param name="utf8Destination">The span in which to write the GUID as a span of UTF-8 bytes.</param>
+        <param name="bytesWritten">When this method returns, contains the number of bytes written into <paramref name="utf8Destination" />.</param>
+        <param name="format">A read-only span containing the character representing one of the following specifiers that indicates the exact format to use when interpreting the current GUID instance: "N", "D", "B", "P", or "X".</param>
+        <summary>Tries to format the current GUID instance as UTF-8 into the provided span of bytes.</summary>
+        <returns>
+          <see langword="true" /> if the formatting operation was successful; <see langword="false" /> otherwise.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="TryFormat">
+      <MemberSignature Language="C#" Value="public bool TryFormat (Span&lt;char&gt; destination, out int charsWritten, ReadOnlySpan&lt;char&gt; format = default);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig instance bool TryFormat(valuetype System.Span`1&lt;char&gt; destination, [out] int32&amp; charsWritten, valuetype System.ReadOnlySpan`1&lt;char&gt; format) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryFormat(System.Span{System.Char},System.Int32@,System.ReadOnlySpan{System.Char})" />
+      <MemberSignature Language="VB.NET" Value="Public Function TryFormat (destination As Span(Of Char), ByRef charsWritten As Integer, Optional format As ReadOnlySpan(Of Char) = Nothing) As Boolean" />
+      <MemberSignature Language="F#" Value="member this.TryFormat : Span&lt;char&gt; * int * ReadOnlySpan&lt;char&gt; -&gt; bool" Usage="guid.TryFormat (destination, charsWritten, format)" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="destination" Type="System.Span&lt;System.Char&gt;" />
+        <Parameter Name="charsWritten" Type="System.Int32" RefType="out" />
+        <Parameter Name="format" Type="System.ReadOnlySpan&lt;System.Char&gt;">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+      </Parameters>
+      <Docs>
+        <param name="destination">The span in which to write the GUID as a span of characters.</param>
+        <param name="charsWritten">When this method returns, contains the number of characters written into the span.</param>
+        <param name="format">A read-only span containing the character representing one of the following specifiers that indicates the exact format to use when interpreting the current GUID instance: "N", "D", "B", "P", or "X".</param>
+        <summary>Tries to format the current GUID instance into the provided character span.</summary>
+        <returns>
+          <see langword="true" /> if the formatting operation was successful; <see langword="false" /> otherwise.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="TryParse">
+      <Docs>
+        <summary>Tries to parse a string into a value.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="TryParse">
+      <MemberSignature Language="C#" Value="public static bool TryParse (ReadOnlySpan&lt;byte&gt; utf8Text, out Guid result);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig bool TryParse(valuetype System.ReadOnlySpan`1&lt;unsigned int8&gt; utf8Text, [out] valuetype System.Guid&amp; result) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryParse(System.ReadOnlySpan{System.Byte},System.Guid@)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function TryParse (utf8Text As ReadOnlySpan(Of Byte), ByRef result As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member TryParse : ReadOnlySpan&lt;byte&gt; * Guid -&gt; bool" Usage="System.Guid.TryParse (utf8Text, result)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool TryParse(ReadOnlySpan&lt;System::Byte&gt; utf8Text, [Runtime::InteropServices::Out] Guid % result);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="utf8Text" Type="System.ReadOnlySpan&lt;System.Byte&gt;" Index="0" FrameworkAlternate="net-10.0;net-11.0" />
+        <Parameter Name="result" Type="System.Guid" RefType="out" Index="1" FrameworkAlternate="net-10.0;net-11.0" />
+      </Parameters>
+      <Docs>
+        <param name="utf8Text">To be added.</param>
+        <param name="result">To be added.</param>
+        <summary>To be added.</summary>
+        <returns>To be added.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="TryParse">
+      <MemberSignature Language="C#" Value="public static bool TryParse (ReadOnlySpan&lt;char&gt; input, out Guid result);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig bool TryParse(valuetype System.ReadOnlySpan`1&lt;char&gt; input, [out] valuetype System.Guid&amp; result) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryParse(System.ReadOnlySpan{System.Char},System.Guid@)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function TryParse (input As ReadOnlySpan(Of Char), ByRef result As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member TryParse : ReadOnlySpan&lt;char&gt; * Guid -&gt; bool" Usage="System.Guid.TryParse (input, result)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool TryParse(ReadOnlySpan&lt;char&gt; input, [Runtime::InteropServices::Out] Guid % result);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="input" Type="System.ReadOnlySpan&lt;System.Char&gt;" />
+        <Parameter Name="result" Type="System.Guid" RefType="out" />
+      </Parameters>
+      <Docs>
+        <param name="input">A span containing the characters representing the GUID to convert.</param>
+        <param name="result">When this method returns, contains the parsed value. If the method returns <see langword="true" />, <paramref name="result" /> contains a valid <see cref="T:System.Guid" />. If the method returns <see langword="false" />, <paramref name="result" /> equals <see cref="F:System.Guid.Empty" />.</param>
+        <summary>Converts the specified read-only span of characters containing the representation of a GUID to the equivalent <see cref="T:System.Guid" /> structure.</summary>
+        <returns>
+          <see langword="true" /> if the parse operation was successful; otherwise, <see langword="false" />.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="TryParse">
+      <MemberSignature Language="C#" Value="public static bool TryParse (string? input, out Guid result);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig bool TryParse(string input, [out] valuetype System.Guid&amp; result) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryParse(System.String,System.Guid@)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function TryParse (input As String, ByRef result As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member TryParse : string * Guid -&gt; bool" Usage="System.Guid.TryParse (input, result)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool TryParse(System::String ^ input, [Runtime::InteropServices::Out] Guid % result);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="input" Type="System.String">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.NotNullWhen(true)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.NotNullWhen(true)&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+        <Parameter Name="result" Type="System.Guid" RefType="out" />
+      </Parameters>
+      <Docs>
+        <param name="input">A string containing the GUID to convert.</param>
+        <param name="result">When this method returns, contains the parsed value. If the method returns <see langword="true" />, <paramref name="result" /> contains a valid <see cref="T:System.Guid" />. If the method returns <see langword="false" />, <paramref name="result" /> equals <see cref="F:System.Guid.Empty" />.</param>
+        <summary>Converts the string representation of a GUID to the equivalent <see cref="T:System.Guid" /> structure.</summary>
+        <returns>
+          <see langword="true" /> if the parse operation was successful; otherwise, <see langword="false" />.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ This method is like the <xref:System.Guid.Parse*> method, except that instead of returning the parsed GUID, it returns `false` if `input` is `null` or not in a recognized format, and doesn't throw an exception. It trims any leading or trailing white space from `input` and converts strings in any of the five formats recognized by the <xref:System.Guid.ToString(System.String)> and <xref:System.Guid.ToString(System.String,System.IFormatProvider)> methods, as shown in the following table.
+
+|Specifier|Description|Format|
+|---------------|-----------------|------------|
+|`N`|32 digits|00000000000000000000000000000000|
+|`D`|32 digits separated by hyphens|00000000-0000-0000-0000-000000000000|
+|`B`|32 digits separated by hyphens, enclosed in braces|{00000000-0000-0000-0000-000000000000}|
+|`P`|32 digits separated by hyphens, enclosed in parentheses|(00000000-0000-0000-0000-000000000000)|
+|`X`|Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces|{0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}|
+
+## Examples
+ The following example creates a new GUID, converts it to three separate string representations by calling the <xref:System.Guid.ToString(System.String)> method with the "B", "D", and "X" format specifiers, and then calls the <xref:System.Guid.TryParse*> method to convert the strings back to <xref:System.Guid> values.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/Parse/tryparseex1.cs" id="Snippet2":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/Parse/tryparseex1.fs" id="Snippet2":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/Parse/tryparseex1.vb" id="Snippet2":::
+
+ ]]></format>
+        </remarks>
+        <altmember cref="M:System.Guid.Parse(System.String)" />
+      </Docs>
+    </Member>
+    <Member MemberName="TryParse">
+      <MemberSignature Language="C#" Value="public static bool TryParse (ReadOnlySpan&lt;byte&gt; utf8Text, IFormatProvider? provider, out Guid result);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig bool TryParse(valuetype System.ReadOnlySpan`1&lt;unsigned int8&gt; utf8Text, class System.IFormatProvider provider, [out] valuetype System.Guid&amp; result) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryParse(System.ReadOnlySpan{System.Byte},System.IFormatProvider,System.Guid@)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function TryParse (utf8Text As ReadOnlySpan(Of Byte), provider As IFormatProvider, ByRef result As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member TryParse : ReadOnlySpan&lt;byte&gt; * IFormatProvider * Guid -&gt; bool" Usage="System.Guid.TryParse (utf8Text, provider, result)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool TryParse(ReadOnlySpan&lt;System::Byte&gt; utf8Text, IFormatProvider ^ provider, [Runtime::InteropServices::Out] Guid % result) = IUtf8SpanParsable&lt;Guid&gt;::TryParse;" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="utf8Text" Type="System.ReadOnlySpan&lt;System.Byte&gt;" Index="0" FrameworkAlternate="net-10.0;net-11.0" />
+        <Parameter Name="provider" Type="System.IFormatProvider" Index="1" FrameworkAlternate="net-10.0;net-11.0">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Runtime.CompilerServices.Nullable(2)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Runtime.CompilerServices.Nullable(2)&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+        <Parameter Name="result" Type="System.Guid" RefType="out" Index="2" FrameworkAlternate="net-10.0;net-11.0" />
+      </Parameters>
+      <Docs>
+        <param name="utf8Text">To be added.</param>
+        <param name="provider">To be added.</param>
+        <param name="result">To be added.</param>
+        <summary>To be added.</summary>
+        <returns>To be added.</returns>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref="M:System.IUtf8SpanParsable`1.TryParse(System.ReadOnlySpan{System.Byte},System.IFormatProvider,`0@)" />
+      </Docs>
+    </Member>
+    <Member MemberName="TryParse">
+      <MemberSignature Language="C#" Value="public static bool TryParse (ReadOnlySpan&lt;char&gt; s, IFormatProvider? provider, out Guid result);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig bool TryParse(valuetype System.ReadOnlySpan`1&lt;char&gt; s, class System.IFormatProvider provider, [out] valuetype System.Guid&amp; result) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryParse(System.ReadOnlySpan{System.Char},System.IFormatProvider,System.Guid@)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function TryParse (s As ReadOnlySpan(Of Char), provider As IFormatProvider, ByRef result As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member TryParse : ReadOnlySpan&lt;char&gt; * IFormatProvider * Guid -&gt; bool" Usage="System.Guid.TryParse (s, provider, result)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool TryParse(ReadOnlySpan&lt;char&gt; s, IFormatProvider ^ provider, [Runtime::InteropServices::Out] Guid % result) = ISpanParsable&lt;Guid&gt;::TryParse;" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="s" Type="System.ReadOnlySpan&lt;System.Char&gt;" />
+        <Parameter Name="provider" Type="System.IFormatProvider">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Runtime.CompilerServices.Nullable(2)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Runtime.CompilerServices.Nullable(2)&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+        <Parameter Name="result" Type="System.Guid" RefType="out" />
+      </Parameters>
+      <Docs>
+        <param name="s">The span of characters to parse.</param>
+        <param name="provider">An object that provides culture-specific formatting information about <paramref name="s" />.</param>
+        <param name="result">When this method returns, contains the result of successfully parsing <paramref name="s" />, or an undefined value on failure.</param>
+        <summary>Tries to parse a span of characters into a value.</summary>
+        <returns>
+          <see langword="true" /> if <paramref name="s" /> was successfully parsed; otherwise, <see langword="false" />.</returns>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref="M:System.ISpanParsable`1.TryParse(System.ReadOnlySpan{System.Char},System.IFormatProvider,`0@)" />
+      </Docs>
+    </Member>
+    <Member MemberName="TryParse">
+      <MemberSignature Language="C#" Value="public static bool TryParse (string? s, IFormatProvider? provider, out Guid result);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig bool TryParse(string s, class System.IFormatProvider provider, [out] valuetype System.Guid&amp; result) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryParse(System.String,System.IFormatProvider,System.Guid@)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function TryParse (s As String, provider As IFormatProvider, ByRef result As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member TryParse : string * IFormatProvider * Guid -&gt; bool" Usage="System.Guid.TryParse (s, provider, result)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool TryParse(System::String ^ s, IFormatProvider ^ provider, [Runtime::InteropServices::Out] Guid % result) = IParsable&lt;Guid&gt;::TryParse;" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="s" Type="System.String">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.NotNullWhen(true)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.NotNullWhen(true)&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+        <Parameter Name="provider" Type="System.IFormatProvider" />
+        <Parameter Name="result" Type="System.Guid" RefType="out" />
+      </Parameters>
+      <Docs>
+        <param name="s">The string to parse.</param>
+        <param name="provider">An object that provides culture-specific formatting information about <paramref name="s" />.</param>
+        <param name="result">When this method returns, contains the result of successfully parsing <paramref name="s" /> or an undefined value on failure.</param>
+        <summary>Tries to parse a string into a value.</summary>
+        <returns>
+          <see langword="true" /> if <paramref name="s" /> was successfully parsed; otherwise, <see langword="false" />.</returns>
+        <remarks>To be added.</remarks>
+        <inheritdoc cref="M:System.IParsable`1.TryParse(System.String,System.IFormatProvider,`0@)" />
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="TryParseExact">
+      <Docs>
+        <summary>Converts the string representation of a GUID to the equivalent <see cref="T:System.Guid" /> structure, provided that the string is in the specified format.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="TryParseExact">
+      <MemberSignature Language="C#" Value="public static bool TryParseExact (ReadOnlySpan&lt;char&gt; input, ReadOnlySpan&lt;char&gt; format, out Guid result);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig bool TryParseExact(valuetype System.ReadOnlySpan`1&lt;char&gt; input, valuetype System.ReadOnlySpan`1&lt;char&gt; format, [out] valuetype System.Guid&amp; result) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryParseExact(System.ReadOnlySpan{System.Char},System.ReadOnlySpan{System.Char},System.Guid@)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function TryParseExact (input As ReadOnlySpan(Of Char), format As ReadOnlySpan(Of Char), ByRef result As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member TryParseExact : ReadOnlySpan&lt;char&gt; * ReadOnlySpan&lt;char&gt; * Guid -&gt; bool" Usage="System.Guid.TryParseExact (input, format, result)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool TryParseExact(ReadOnlySpan&lt;char&gt; input, ReadOnlySpan&lt;char&gt; format, [Runtime::InteropServices::Out] Guid % result);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="input" Type="System.ReadOnlySpan&lt;System.Char&gt;" />
+        <Parameter Name="format" Type="System.ReadOnlySpan&lt;System.Char&gt;">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+        <Parameter Name="result" Type="System.Guid" RefType="out" />
+      </Parameters>
+      <Docs>
+        <param name="input">A read-only span containing the characters representing the GUID to convert.</param>
+        <param name="format">A read-only span containing a character representing one of the following specifiers that indicates the exact format to use when interpreting <paramref name="input" />: "N", "D", "B", "P", or "X".</param>
+        <param name="result">When this method returns, contains the parsed value. If the method returns <see langword="true" />, <paramref name="result" /> contains a valid <see cref="T:System.Guid" />. If the method returns <see langword="false" />, <paramref name="result" /> equals <see cref="F:System.Guid.Empty" />.</param>
+        <summary>Converts span of characters representing the GUID to the equivalent <see cref="T:System.Guid" /> structure, provided that the string is in the specified format.</summary>
+        <returns>
+          <see langword="true" /> if the parse operation was successful; otherwise, <see langword="false" />.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="TryParseExact">
+      <MemberSignature Language="C#" Value="public static bool TryParseExact (string? input, string? format, out Guid result);" />
+      <MemberSignature Language="ILAsm" Value=".method public static hidebysig bool TryParseExact(string input, string format, [out] valuetype System.Guid&amp; result) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryParseExact(System.String,System.String,System.Guid@)" />
+      <MemberSignature Language="VB.NET" Value="Public Shared Function TryParseExact (input As String, format As String, ByRef result As Guid) As Boolean" />
+      <MemberSignature Language="F#" Value="static member TryParseExact : string * string * Guid -&gt; bool" Usage="System.Guid.TryParseExact (input, format, result)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; static bool TryParseExact(System::String ^ input, System::String ^ format, [Runtime::InteropServices::Out] Guid % result);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>mscorlib</AssemblyName>
+        <AssemblyVersion>2.0.5.0</AssemblyVersion>
+        <AssemblyVersion>4.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="input" Type="System.String">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.NotNullWhen(true)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.NotNullWhen(true)&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+        <Parameter Name="format" Type="System.String">
+          <Attributes>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.NotNullWhen(true)]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.NotNullWhen(true)&gt;]</AttributeName>
+            </Attribute>
+            <Attribute>
+              <AttributeName Language="C#">[System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")]</AttributeName>
+              <AttributeName Language="F#">[&lt;System.Diagnostics.CodeAnalysis.StringSyntax("GuidFormat")&gt;]</AttributeName>
+            </Attribute>
+          </Attributes>
+        </Parameter>
+        <Parameter Name="result" Type="System.Guid" RefType="out" />
+      </Parameters>
+      <Docs>
+        <param name="input">The GUID to convert.</param>
+        <param name="format">One of the following specifiers that indicates the exact format to use when interpreting <paramref name="input" />: "N", "D", "B", "P", or "X".</param>
+        <param name="result">When this method returns, contains the parsed value. If the method returns <see langword="true" />, <paramref name="result" /> contains a valid <see cref="T:System.Guid" />. If the method returns <see langword="false" />, <paramref name="result" /> equals <see cref="F:System.Guid.Empty" />.</param>
+        <summary>Converts the string representation of a GUID to the equivalent <see cref="T:System.Guid" /> structure, provided that the string is in the specified format.</summary>
+        <returns>
+          <see langword="true" /> if the parse operation was successful; otherwise, <see langword="false" />.</returns>
+        <remarks>
+          <format type="text/markdown"><![CDATA[
+
+## Remarks
+ This method requires the string to convert to be exactly in the format specified by the `format` parameter, after leading and trailing white-space characters are removed. It returns `false` if `input` is `null` or is not in the format specified by `format`, and doesn't throw an exception.
+
+ The following table shows the accepted format specifiers for the `format` parameter. "0" represents a digit; hyphens ("-"), braces ("{", "}"), and parentheses ("(", ")") appear as shown.
+
+|Specifier|Format of the `input` parameter|
+|---------------|-------------------------------------|
+|N|32 digits:<br /><br /> 00000000000000000000000000000000|
+|D|32 digits separated by hyphens:<br /><br /> 00000000-0000-0000-0000-000000000000|
+|B|32 digits separated by hyphens, enclosed in braces:<br /><br /> {00000000-0000-0000-0000-000000000000}|
+|P|32 digits separated by hyphens, enclosed in parentheses:<br /><br /> (00000000-0000-0000-0000-000000000000)|
+|X|Four hexadecimal values enclosed in braces, where the fourth value is a subset of eight hexadecimal values that is also enclosed in braces:<br /><br /> {0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}|
+
+## Examples
+ The following example calls the <xref:System.Guid.ToString(System.String)> method with each of the supported format specifiers to generate an array of strings that represent a single GUID. These are then passed to the <xref:System.Guid.TryParseExact*> method, which successfully parses the string that conforms to the "B" format specifier.
+
+ :::code language="csharp" source="~/snippets/csharp/System/Guid/Parse/tryparseexactex1.cs" id="Snippet5":::
+ :::code language="fsharp" source="~/snippets/fsharp/System/Guid/Parse/tryparseexactex1.fs" id="Snippet5":::
+ :::code language="vb" source="~/snippets/visualbasic/System/Guid/Parse/tryparseexactex1.vb" id="Snippet5":::
+
+ ]]></format>
+        </remarks>
+        <altmember cref="M:System.Guid.ParseExact(System.String,System.String)" />
+      </Docs>
+    </Member>
+    <MemberGroup MemberName="TryWriteBytes">
+      <Docs>
+        <summary>Tries to write the current GUID instance into a span of bytes.</summary>
+      </Docs>
+    </MemberGroup>
+    <Member MemberName="TryWriteBytes">
+      <MemberSignature Language="C#" Value="public bool TryWriteBytes (Span&lt;byte&gt; destination);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig instance bool TryWriteBytes(valuetype System.Span`1&lt;unsigned int8&gt; destination) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryWriteBytes(System.Span{System.Byte})" />
+      <MemberSignature Language="VB.NET" Value="Public Function TryWriteBytes (destination As Span(Of Byte)) As Boolean" />
+      <MemberSignature Language="F#" Value="member this.TryWriteBytes : Span&lt;byte&gt; -&gt; bool" Usage="guid.TryWriteBytes destination" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; bool TryWriteBytes(Span&lt;System::Byte&gt; destination);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+        <AssemblyVersion>2.1.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="destination" Type="System.Span&lt;System.Byte&gt;" />
+      </Parameters>
+      <Docs>
+        <param name="destination">When this method returns, the GUID as a span of bytes.</param>
+        <summary>Tries to write the current GUID instance into a span of bytes.</summary>
+        <returns>
+          <see langword="true" /> if the GUID is successfully written to the specified span; <see langword="false" /> otherwise.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="TryWriteBytes">
+      <MemberSignature Language="C#" Value="public bool TryWriteBytes (Span&lt;byte&gt; destination, bool bigEndian, out int bytesWritten);" />
+      <MemberSignature Language="ILAsm" Value=".method public hidebysig instance bool TryWriteBytes(valuetype System.Span`1&lt;unsigned int8&gt; destination, bool bigEndian, [out] int32&amp; bytesWritten) cil managed" />
+      <MemberSignature Language="DocId" Value="M:System.Guid.TryWriteBytes(System.Span{System.Byte},System.Boolean,System.Int32@)" />
+      <MemberSignature Language="VB.NET" Value="Public Function TryWriteBytes (destination As Span(Of Byte), bigEndian As Boolean, ByRef bytesWritten As Integer) As Boolean" />
+      <MemberSignature Language="F#" Value="member this.TryWriteBytes : Span&lt;byte&gt; * bool * int -&gt; bool" Usage="guid.TryWriteBytes (destination, bigEndian, bytesWritten)" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; bool TryWriteBytes(Span&lt;System::Byte&gt; destination, bool bigEndian, [Runtime::InteropServices::Out] int % bytesWritten);" />
+      <MemberType>Method</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>8.0.0.0</AssemblyVersion>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Boolean</ReturnType>
+      </ReturnValue>
+      <Parameters>
+        <Parameter Name="destination" Type="System.Span&lt;System.Byte&gt;" />
+        <Parameter Name="bigEndian" Type="System.Boolean" />
+        <Parameter Name="bytesWritten" Type="System.Int32" RefType="out" />
+      </Parameters>
+      <Docs>
+        <param name="destination">The span in which to write the GUID as a span of bytes.</param>
+        <param name="bigEndian">
+          <see langword="true" /> to write the bytes in big-endian byte order; <see langword="false" /> to write them in little-endian byte order.</param>
+        <param name="bytesWritten">When this method returns, contains the number of bytes written into <paramref name="destination" />.</param>
+        <summary>Tries to write the current GUID instance into a span of bytes, using the specified endianness.</summary>
+        <returns>
+          <see langword="true" /> if the GUID is successfully written to the specified span; <see langword="false" /> otherwise.</returns>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Variant">
+      <MemberSignature Language="C#" Value="public int Variant { get; }" />
+      <MemberSignature Language="ILAsm" Value=".property instance int32 Variant" />
+      <MemberSignature Language="DocId" Value="P:System.Guid.Variant" />
+      <MemberSignature Language="VB.NET" Value="Public ReadOnly Property Variant As Integer" />
+      <MemberSignature Language="F#" Value="member this.Variant : int" Usage="System.Guid.Variant" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; property int Variant { int get(); };" />
+      <MemberType>Property</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>Gets the value of the variant field for the <see cref="T:System.Guid" />.</summary>
+        <value>To be added.</value>
+        <remarks>
+          <para>This property returns all 4 bits as-is. If you only care about fewer bits of the variant field, see <see href="https://www.rfc-editor.org/rfc/rfc9562.html">RFC 9562</see> for information on how to interpret the result.</para>
+          <para>For example, [the UUIDv7 standard](https://www.rfc-editor.org/rfc/rfc9562.html#uuidv7) might only want to consider the two most significant bits of the field, as the least two significant bits are documented as "don't-care".</para>
+        </remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Version">
+      <MemberSignature Language="C#" Value="public int Version { get; }" />
+      <MemberSignature Language="ILAsm" Value=".property instance int32 Version" />
+      <MemberSignature Language="DocId" Value="P:System.Guid.Version" />
+      <MemberSignature Language="VB.NET" Value="Public ReadOnly Property Version As Integer" />
+      <MemberSignature Language="F#" Value="member this.Version : int" Usage="System.Guid.Version" />
+      <MemberSignature Language="C++ CLI" Value="public:&#xA; property int Version { int get(); };" />
+      <MemberType>Property</MemberType>
+      <AssemblyInfo>
+        <AssemblyName>System.Runtime</AssemblyName>
+        <AssemblyVersion>9.0.0.0</AssemblyVersion>
+        <AssemblyVersion>10.0.0.0</AssemblyVersion>
+        <AssemblyVersion>11.0.0.0</AssemblyVersion>
+      </AssemblyInfo>
+      <AssemblyInfo>
+        <AssemblyName>netstandard</AssemblyName>
+      </AssemblyInfo>
+      <ReturnValue>
+        <ReturnType>System.Int32</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>Gets the value of the version field for the <see cref="T:System.Guid" />.</summary>
+        <value>To be added.</value>
+        <remarks>
+          <para>This property corresponds to the most significant 4 bits of the 6th byte: 00000000-0000-F000-0000-000000000000.</para>
+          <para>For more information on how to interpret this value, see <see href="https://www.rfc-editor.org/rfc/rfc9562.html">RFC 9562</see>.</para>
+        </remarks>
+      </Docs>
+    </Member>
+  </Members>
+</Type>
