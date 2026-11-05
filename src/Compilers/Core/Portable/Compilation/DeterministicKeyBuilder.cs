@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions,
             Stream? sourceLinkStream,
             ImmutableArray<ResourceDescription> resources,
+            ImmutableArray<(string Path, SourceText Content)> analyzerConfigFiles,
             DeterministicKeyOptions options,
             CancellationToken cancellationToken)
         {
@@ -141,6 +142,7 @@ namespace Microsoft.CodeAnalysis
             analyzers = analyzers.NullToEmpty();
             generators = generators.NullToEmpty();
             resources = resources.NullToEmpty();
+            analyzerConfigFiles = analyzerConfigFiles.NullToEmpty();
 
             var (writer, builder) = CreateWriter();
 
@@ -150,6 +152,8 @@ namespace Microsoft.CodeAnalysis
             WriteCompilation(writer, compilationOptions, syntaxTrees, references, publicKey, pathMap, options, cancellationToken);
             writer.WriteKey("additionalTexts");
             writeAdditionalTexts();
+            writer.WriteKey("analyzerConfigs");
+            writeAnalyzerConfigs();
             writer.WriteKey("analyzers");
             writeAnalyzers();
             writer.WriteKey("generators");
@@ -185,6 +189,22 @@ namespace Microsoft.CodeAnalysis
                         WriteSourceText(writer, additionalText.GetText(cancellationToken));
                     }
 
+                    writer.WriteObjectEnd();
+                }
+                writer.WriteArrayEnd();
+            }
+
+            void writeAnalyzerConfigs()
+            {
+                writer.WriteArrayStart();
+                foreach (var (path, content) in analyzerConfigFiles)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    writer.WriteObjectStart();
+                    WriteFilePath(writer, "fileName", path, pathMap, options);
+                    writer.WriteKey("text");
+                    WriteSourceText(writer, content);
                     writer.WriteObjectEnd();
                 }
                 writer.WriteArrayEnd();

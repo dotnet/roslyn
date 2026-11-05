@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     ///   <item><c>pdb</c> — the PDB debug symbols</item>
     ///   <item><c>refassembly</c> — the reference assembly</item>
     ///   <item><c>xmldoc</c> — the XML documentation file</item>
+    ///   <item><c>diagnostics</c> — the diagnostic context and formatted diagnostic output (always present)</item>
     ///   <item><c>&lt;dll name&gt;.key</c> — the full deterministic key JSON</item>
     /// </list>
     /// </remarks>
@@ -54,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private const string PdbFileName = "pdb";
         private const string RefAssemblyFileName = "refassembly";
         private const string XmlDocFileName = "xmldoc";
+        private const string DiagnosticsFileName = "diagnostics";
         private const string LastUsedFileName = "last-used";
         private const string CreatedFileName = "created";
 
@@ -95,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private static string? GetCachePath(IReadOnlyDictionary<string, string> features, ICompilerServerLogger logger)
         {
-            if (!features.TryGetValue(CompilerOptionParseUtilities.UseGlobalCacheFeatureFlag, out var featureValue) || featureValue is null)
+            if (!features.TryGetValue(Feature.UseGlobalCache, out var featureValue) || featureValue is null)
             {
                 return null;
             }
@@ -145,9 +147,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string dllName,
             string hashKey,
             CompilationOutputFiles outputFiles,
+            string diagnosticContext,
             ICompilerServerLogger logger,
-            DateTime outputTimestampUtc)
+            DateTime outputTimestampUtc,
+            out string? diagnosticOutput,
+            out CompilationCacheMissReason missReason)
         {
+            diagnosticOutput = null;
+            missReason = CompilationCacheMissReason.None;
             var entryDir = GetCacheEntryDirectory(dllName, hashKey);
             var cachedAssemblyPath = Path.Combine(entryDir, AssemblyFileName);
             Debug.Assert(outputTimestampUtc.Kind == DateTimeKind.Utc);
@@ -157,26 +164,46 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 if (!File.Exists(cachedAssemblyPath))
                 {
                     using var entryMutex = TryAcquireEntryMutex(dllName, hashKey, createIfMissing: false);
-                    if (entryMutex is null && !File.Exists(cachedAssemblyPath))
-                    {
-                        logger.Log($"Cache miss because entry is being populated: {dllName} [{hashKey}]");
-                        return false;
-                    }
-
                     if (!File.Exists(cachedAssemblyPath))
                     {
+                        missReason = Directory.Exists(entryDir)
+                            ? CompilationCacheMissReason.MissingOutputs
+                            : CompilationCacheMissReason.NotFound;
+                        if (entryMutex is null)
+                        {
+                            logger.Log($"Cache miss because entry is being populated: {dllName} [{hashKey}]");
+                        }
+
                         return false;
                     }
                 }
 
                 // Verify all required cached files exist before copying anything,
                 // so we don't partially overwrite outputs on a cache miss.
-                if (isMissingWhenRequired(entryDir, PdbFileName, outputFiles.PdbPath)
-                    || isMissingWhenRequired(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
-                    || isMissingWhenRequired(entryDir, XmlDocFileName, outputFiles.XmlDocPath))
+                if (!HasRequiredOutputFiles(entryDir, outputFiles))
                 {
+                    missReason = CompilationCacheMissReason.MissingOutputs;
                     logger.Log($"Cache miss because entry is missing required output files: {dllName} [{hashKey}]");
                     return false;
+                }
+
+                string cachedDiagnosticOutput;
+                using (var stream = File.OpenRead(Path.Combine(entryDir, DiagnosticsFileName)))
+                {
+                    if (!TryReadDiagnostics(stream, out var cachedContext, out cachedDiagnosticOutput, out var exception))
+                    {
+                        missReason = CompilationCacheMissReason.InvalidDiagnostics;
+                        var exceptionDetails = exception is null ? "" : $": {exception.Message}";
+                        logger.Log($"Cache miss because entry has invalid diagnostic data: {dllName} [{hashKey}]{exceptionDetails}");
+                        return false;
+                    }
+
+                    if (cachedDiagnosticOutput.Length > 0 && cachedContext != diagnosticContext)
+                    {
+                        missReason = CompilationCacheMissReason.DiagnosticContextMismatch;
+                        logger.Log($"Cache miss because diagnostic context changed: {dllName} [{hashKey}]");
+                        return false;
+                    }
                 }
 
                 logger.Log($"Cache hit: {dllName} [{hashKey}]");
@@ -185,25 +212,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 copyIfNeeded(entryDir, PdbFileName, outputFiles.PdbPath, outputTimestampUtc);
                 copyIfNeeded(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath, outputTimestampUtc);
                 copyIfNeeded(entryDir, XmlDocFileName, outputFiles.XmlDocPath, outputTimestampUtc);
+                diagnosticOutput = cachedDiagnosticOutput;
             }
             catch (Exception ex)
             {
+                missReason = CompilationCacheMissReason.RestoreFailed;
                 logger.Log($"Cache hit restore failed, falling through to compilation: {ex.Message}");
                 return false;
             }
 
             return true;
-
-            // Returns true if the cached file exists or is not needed (targetPath is null).
-            static bool isMissingWhenRequired(string entryDir, string cachedFileName, string? targetPath)
-            {
-                if (targetPath is null)
-                {
-                    return false;
-                }
-
-                return !File.Exists(Path.Combine(entryDir, cachedFileName));
-            }
 
             static void copyIfNeeded(string entryDir, string cachedFileName, string? targetPath, DateTime outputTimestampUtc)
             {
@@ -219,6 +237,55 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             {
                 File.Copy(sourcePath, targetPath, overwrite: true);
                 File.SetLastWriteTimeUtc(targetPath, outputTimestampUtc);
+            }
+        }
+
+        private static bool HasRequiredOutputFiles(string entryDir, CompilationOutputFiles outputFiles)
+        {
+            return File.Exists(Path.Combine(entryDir, AssemblyFileName))
+                && File.Exists(Path.Combine(entryDir, DiagnosticsFileName))
+                && !isMissingWhenRequired(entryDir, PdbFileName, outputFiles.PdbPath)
+                && !isMissingWhenRequired(entryDir, RefAssemblyFileName, outputFiles.RefAssemblyPath)
+                && !isMissingWhenRequired(entryDir, XmlDocFileName, outputFiles.XmlDocPath);
+
+            // Returns true if the cached file exists or is not needed (targetPath is null).
+            static bool isMissingWhenRequired(string entryDir, string cachedFileName, string? targetPath)
+                => targetPath is not null && !File.Exists(Path.Combine(entryDir, cachedFileName));
+        }
+
+        private static bool TryReadDiagnostics(
+            Stream stream,
+            out string diagnosticContext,
+            out string diagnosticOutput,
+            out Exception? exception)
+        {
+            try
+            {
+                using var reader = new BinaryReader(stream, Encoding.UTF8, leaveOpen: true);
+                diagnosticContext = reader.ReadString();
+                diagnosticOutput = reader.ReadString();
+                exception = null;
+                return stream.Position == stream.Length;
+            }
+            catch (Exception ex) when (ex is IOException or FormatException)
+            {
+                diagnosticContext = "";
+                diagnosticOutput = "";
+                exception = ex;
+                return false;
+            }
+        }
+
+        private static bool HasValidDiagnostics(string entryDir)
+        {
+            try
+            {
+                using var stream = File.OpenRead(Path.Combine(entryDir, DiagnosticsFileName));
+                return TryReadDiagnostics(stream, out _, out _, out _);
+            }
+            catch (IOException)
+            {
+                return false;
             }
         }
 
@@ -286,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         /// <summary>
         /// Stores all compiled outputs and the deterministic key in the cache.
-        /// Only files that actually exist at the given paths are stored.
+        /// Replaces existing entries that are incomplete or contain malformed diagnostics.
         /// Failures are logged but do not propagate as exceptions.
         /// </summary>
         internal CompilationCacheStoreResult TryStoreResult(
@@ -294,6 +361,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             string hashKey,
             CompilationOutputFiles outputFiles,
             string deterministicKey,
+            string diagnosticContext,
+            string diagnosticOutput,
             ICompilerServerLogger logger)
         {
             string? stagingDir = null;
@@ -312,9 +381,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 var cacheDir = GetCacheEntryDirectory(dllName, hashKey);
                 if (Directory.Exists(cacheDir))
                 {
-                    // Another writer finished publishing this entry before we got here.
-                    logger.Log($"Cache store skipped because entry already exists: {dllName} [{hashKey}]");
-                    return CompilationCacheStoreResult.SkippedExists;
+                    if (HasRequiredOutputFiles(cacheDir, outputFiles) && HasValidDiagnostics(cacheDir))
+                    {
+                        logger.Log($"Cache store skipped because entry already exists: {dllName} [{hashKey}]");
+                        return CompilationCacheStoreResult.SkippedExists;
+                    }
+
+                    logger.Log($"Cache store replacing incomplete or invalid entry: {dllName} [{hashKey}]");
                 }
 
                 // Populate a unique staging directory and publish it with a single rename so readers only
@@ -328,14 +401,35 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 tryCopyOptional(outputFiles.RefAssemblyPath, Path.Combine(stagingDir, RefAssemblyFileName));
                 tryCopyOptional(outputFiles.XmlDocPath, Path.Combine(stagingDir, XmlDocFileName));
 
+                using (var stream = File.Create(Path.Combine(stagingDir, DiagnosticsFileName)))
+                using (var writer = new BinaryWriter(stream, Encoding.UTF8))
+                {
+                    writer.Write(diagnosticContext);
+                    writer.Write(diagnosticOutput);
+                }
+
                 File.WriteAllText(Path.Combine(stagingDir, dllName + ".key"), deterministicKey, Encoding.UTF8);
                 File.WriteAllText(Path.Combine(stagingDir, CreatedFileName), DateTimeOffset.UtcNow.ToString("O", CultureInfo.InvariantCulture));
+
+                if (!HasRequiredOutputFiles(stagingDir, outputFiles))
+                {
+                    logger.Log($"Cache store failed for {dllName} [{hashKey}]: missing required output files.");
+                    return CompilationCacheStoreResult.Failed;
+                }
+
+                var replacedEntry = false;
+                if (Directory.Exists(cacheDir))
+                {
+                    Directory.Delete(cacheDir, recursive: true);
+                    replacedEntry = true;
+                }
+
                 Directory.Move(stagingDir, cacheDir);
                 stagingDir = null;
 
                 TouchLastUsed(cacheDir, logger);
                 logger.Log($"Cache stored: {dllName} [{hashKey}]");
-                return CompilationCacheStoreResult.Stored;
+                return replacedEntry ? CompilationCacheStoreResult.ReplacedEntry : CompilationCacheStoreResult.Stored;
             }
             catch (Exception ex)
             {

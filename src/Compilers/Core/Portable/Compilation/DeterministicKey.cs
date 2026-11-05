@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis
             EmitOptions? emitOptions = null,
             Stream? sourceLinkStream = null,
             ImmutableArray<ResourceDescription> resources = default,
+            ImmutableArray<(string Path, SourceText Content)> analyzerConfigFiles = default,
             DeterministicKeyOptions options = DeterministicKeyOptions.Default,
             CancellationToken cancellationToken = default)
         {
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis
                 emitOptions,
                 sourceLinkStream,
                 resources,
+                analyzerConfigFiles,
                 options,
                 cancellationToken);
         }
