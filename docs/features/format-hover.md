@@ -2,8 +2,8 @@
 
 C# Quick Info explains explicit formats in interpolation, recognized framework
 format arguments, and composite items. Descriptions are direct Microsoft Learn
-extracts. [Regeneration and verification](../../eng/format-string-documentation/README.md)
-use pinned source hashes and selectors in the generated resource comments.
+extracts. The resource comments identify the pinned sources and exact excerpts.
+See the [documentation license](../../src/Features/CSharp/Portable/FormatStringDocumentation.LICENSE.txt).
 
 Supported types include Guid, numbers, enums, DateTime, DateTimeOffset, DateOnly,
 TimeOnly, TimeSpan, BigInteger, and Complex. Unsupported types and formats receive
